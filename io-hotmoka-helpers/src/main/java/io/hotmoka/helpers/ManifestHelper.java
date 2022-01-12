@@ -183,11 +183,6 @@ public class ManifestHelper {
 
 			builder.append("   │  ├─ targetGasAtReward: ").append(targetGasAtReward).append("\n");
 
-			long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
-
-			builder.append(String.format("   │  ├─ inflation: %d (ie. %.2f%%)\n", inflation, inflation / 100_000.0));
-
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 
@@ -228,15 +223,35 @@ public class ManifestHelper {
 				builder.append("   │  │  └─ power: ").append(power).append("\n");
 			}
 
-			BigInteger totalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_TOTAL_SUPPLY, validators))).value;
+			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_SUPPLY, validators))).value;
 
-			builder.append("   │  ├─ totalSupply: ").append(totalSupply).append("\n");
+			builder.append("   │  ├─ initialSupply: ").append(initialSupply).append("\n");
+
+			BigInteger currentSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_CURRENT_SUPPLY, validators))).value;
+
+			builder.append("   │  ├─ currentSupply: ").append(currentSupply).append("\n");
+
+			BigInteger finalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_FINAL_SUPPLY, validators))).value;
+
+			builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
 
 			BigInteger totalSupplyRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TOTAL_SUPPLY_RED, validators))).value;
 
 			builder.append("   │  ├─ totalSupplyRed: ").append(totalSupplyRed).append("\n");
+
+			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;
+
+			builder.append(String.format("   │  ├─ initialInflation: %d (ie. %.5f%%)\n", initialInflation, initialInflation / 100_000.0));
+
+			long currentInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_CURRENT_INFLATION, validators))).value;
+
+			builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.5f%%)\n", currentInflation, currentInflation / 100_000.0));
 
 			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;

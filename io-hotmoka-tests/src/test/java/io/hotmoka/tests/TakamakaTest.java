@@ -270,9 +270,9 @@ public abstract class TakamakaTest {
 
 			String publicKeyOfGamete = Base58.encode(signature.encodingOf(keys.getPublic()));
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, publicKeyOfGamete, takamakaCode, aLot, aLot);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, publicKeyOfGamete, takamakaCode, aLot);
 			else
-				InitializedNode.of(node, consensus, publicKeyOfGamete, takamakaCode, aLot, aLot);
+				InitializedNode.of(node, consensus, publicKeyOfGamete, takamakaCode, aLot);
 		}
 
 		return keys.getPrivate();
@@ -290,6 +290,7 @@ public abstract class TakamakaTest {
 			.allowUnsignedFaucet(true) // good for testing
 			.allowMintBurnFromGamete(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
+			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.build();
 
 		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
@@ -315,6 +316,7 @@ public abstract class TakamakaTest {
 			// .signRequestsWith("qtesla3").build();
 			// .signRequestsWith("sha256dsa").build();
 			.setChainId("test")
+			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.build();
 
 		return MemoryBlockchain.init(config, consensus);
@@ -329,6 +331,7 @@ public abstract class TakamakaTest {
 			.signRequestsWith("ed25519det") // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
+			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.build();
 		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
@@ -378,6 +381,7 @@ public abstract class TakamakaTest {
 			.ignoreGasPrice(true) // good for testing
 			.allowSelfCharged(true) // only for this kind of node
 			.allowUnsignedFaucet(true) // good for testing
+			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.build();
 
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;

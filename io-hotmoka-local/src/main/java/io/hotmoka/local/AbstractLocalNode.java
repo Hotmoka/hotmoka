@@ -638,9 +638,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
 
 				TransactionReference takamakaCode = getTakamakaCode();
+				BigInteger minted = coinsSinceLastReward.subtract(coinsSinceLastRewardWithoutInflation);
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators,
-					new BigIntegerValue(coinsSinceLastReward), new BigIntegerValue(coinsSinceLastReward.subtract(coinsSinceLastRewardWithoutInflation)),
+					new BigIntegerValue(coinsSinceLastReward), new BigIntegerValue(minted),
 					new StringValue(behaving), new StringValue(misbehaving),
 					new BigIntegerValue(gasConsumedSinceLastReward), new BigIntegerValue(numberOfTransactionsSinceLastReward));
 
@@ -660,7 +661,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				else {
 					logger.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumedSinceLastReward);
 					logger.info("units of coin rewarded to the validators for their work since the previous reward: " + coinsSinceLastReward);
-					logger.info("units of coin minted since the previous reward: " + coinsSinceLastReward.subtract(coinsSinceLastRewardWithoutInflation));
+					logger.info("units of coin minted since the previous reward: " + minted);
 					gasConsumedSinceLastReward = ZERO;
 					coinsSinceLastReward = ZERO;
 					coinsSinceLastRewardWithoutInflation = ZERO;
@@ -885,8 +886,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		// when a node is restarted; in that case, the actual final gas is irrelevant
 		ConsensusParams consensus = caches.getConsensusParams();
 		if (consensus != null)
-			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.inflation)))
-		         .divide(_1_000_000);
+			gas = gas
+					.multiply(_1_000_000.add(BigInteger.valueOf(consensus.initialInflation)))
+					.divide(_1_000_000);
 
 		return gas;
 	}

@@ -101,9 +101,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	private final Field externallyOwnedAccountNonce;
 
 	/**
-	 * Field {@link io.takamaka.code.givernance.AbstractValidators#totalSupply}.
+	 * Field {@link io.takamaka.code.givernance.AbstractValidators#currentSupply}.
 	 */
-	private final Field abstractValidatorsTotalSupply;
+	private final Field abstractValidatorsCurrentSupply;
 
 	/**
 	 * Field {@link io.takamaka.code.lang.Storage#storageReference}.
@@ -197,8 +197,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.redBalanceField.setAccessible(true); // it was private
 			this.externallyOwnedAccountNonce = getExternallyOwnedAccount().getDeclaredField("nonce");
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
-			this.abstractValidatorsTotalSupply= getAbstractValidators().getDeclaredField("totalSupply");
-			this.abstractValidatorsTotalSupply.setAccessible(true); // it was private
+			this.abstractValidatorsCurrentSupply= getAbstractValidators().getDeclaredField("currentSupply");
+			this.abstractValidatorsCurrentSupply.setAccessible(true); // it was private
 			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
 			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
@@ -441,12 +441,12 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public final void increaseTotalSupply(Object validators, BigInteger amount) {
+	public final void increaseCurrentSupply(Object validators, BigInteger amount) {
 		Class<?> clazz = validators.getClass();
 
 		try {
 			if (getAbstractValidators().isAssignableFrom(clazz))
-				abstractValidatorsTotalSupply.set(validators, ((BigInteger) abstractValidatorsTotalSupply.get(validators)).add(amount));
+				abstractValidatorsCurrentSupply.set(validators, ((BigInteger) abstractValidatorsCurrentSupply.get(validators)).add(amount));
 			else
 				throw new IllegalArgumentException("unknown validators class " + clazz);
 		}
@@ -454,7 +454,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			throw e;
 		}
 		catch (IllegalAccessException e) {
-			throw new IllegalArgumentException("cannot access the total supply field of a validators object of class " + clazz.getName(), e);
+			throw new IllegalArgumentException("cannot access the current supply field of a validators object of class " + clazz.getName(), e);
 		}
 	}
 

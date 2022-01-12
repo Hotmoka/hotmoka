@@ -40,8 +40,11 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class InitMemory extends AbstractCommand {
 
-	@Parameters(description = "the initial balance of the gamete")
-    private BigInteger balance;
+	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
+    private BigInteger initialSupply;
+
+	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
+    private BigInteger deltaSupply;
 
 	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
 	private String chainId;
@@ -112,10 +115,12 @@ public class InitMemory extends AbstractCommand {
 				.setOblivion(oblivion)
 				.ignoreGasPrice(ignoreGasPrice)
 				.setChainId(chainId)
+				.setInitialSupply(initialSupply)
+				.setFinalSupply(initialSupply.add(deltaSupply))
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balance, balanceRed);
+				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balanceRed);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();

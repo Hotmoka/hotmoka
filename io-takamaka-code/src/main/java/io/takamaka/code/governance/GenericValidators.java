@@ -44,9 +44,14 @@ public class GenericValidators extends AbstractValidators<Validator> {
 	 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
 	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
 	 *                         require to pay this amount for starting a poll
+	 * @param finalSupply the final supply of coins that will be reached, eventually
+	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
+	 *                		   as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 *                  	   10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 *                  	   Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
-	protected GenericValidators(Manifest<Validator> manifest, Validator[] validators, BigInteger[] powers, BigInteger ticketForNewPoll) {
-		super(manifest, validators, powers, ticketForNewPoll);
+	protected GenericValidators(Manifest<Validator> manifest, Validator[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
+		super(manifest, validators, powers, ticketForNewPoll, finalSupply, initialInflation);
 	}
 
 	/**
@@ -58,9 +63,10 @@ public class GenericValidators extends AbstractValidators<Validator> {
 	 * @param powers the initial powers of the initial validators,
 	 *               as a space-separated sequence of integers; they must be as many
 	 *               as there are public keys in {@code publicKeys}
+	 * @param finalSupply the final supply of coins that will be reached, eventually
 	 */
-	private GenericValidators(Manifest<Validator> manifest, String publicKeys, String powers, BigInteger ticketForNewPoll) {
-		this(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll);
+	private GenericValidators(Manifest<Validator> manifest, String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
+		this(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll, finalSupply, initialInflation);
 	}
 
 	private static Validator[] buildValidators(String publicKeysAsStringSequence) {
@@ -84,16 +90,20 @@ public class GenericValidators extends AbstractValidators<Validator> {
 		private final String publicKeys;
 		private final String powers;
 		private final BigInteger ticketForNewPoll;
+		private final BigInteger finalSupply;
+		private final long initialInflation;
 
-		public Builder(String publicKeys, String powers, BigInteger ticketForNewPoll) {
+		public Builder(String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 			this.publicKeys = publicKeys;
 			this.powers = powers;
 			this.ticketForNewPoll = ticketForNewPoll;
+			this.finalSupply = finalSupply;
+			this.initialInflation = initialInflation;
 		}
 
 		@Override
 		public GenericValidators apply(Manifest<Validator> manifest) {
-			return new GenericValidators(manifest, publicKeys, powers, ticketForNewPoll);
+			return new GenericValidators(manifest, publicKeys, powers, ticketForNewPoll, finalSupply, initialInflation);
 		}
 	}
 }

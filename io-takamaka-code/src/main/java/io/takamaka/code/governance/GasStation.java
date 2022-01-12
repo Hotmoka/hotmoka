@@ -84,16 +84,6 @@ public interface GasStation<V extends Validator> {
 	@View long getOblivion();
 
 	/**
-	 * Yields the inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
-	 * 
-	 * @return the inflation
-	 */
-	@View long getInflation();
-
-	/**
 	 * Yields the current gas price, that is, the units of coins necessary to buy a unit of gas.
 	 * 
 	 * @return the gas price, always positive

@@ -44,8 +44,11 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class InitTendermint extends AbstractCommand {
 
-	@Parameters(description = "the initial balance of the gamete")
-    private BigInteger balance;
+	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
+    private BigInteger initialSupply;
+
+	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
+    private BigInteger deltaSupply;
 
 	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
     private BigInteger balanceRed;
@@ -121,11 +124,13 @@ public class InitTendermint extends AbstractCommand {
 				.ignoreGasPrice(ignoreGasPrice)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
-				.setInflation(inflation)
+				.setInitialInflation(inflation)
+				.setInitialSupply(initialSupply)
+				.setFinalSupply(initialSupply.add(deltaSupply))
 				.build();
 
 			try (TendermintBlockchain node = TendermintBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balance, balanceRed);
+				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balanceRed);
 				NodeService service = NodeService.of(networkConfig, initialized)) {
 
 				cleanUp();

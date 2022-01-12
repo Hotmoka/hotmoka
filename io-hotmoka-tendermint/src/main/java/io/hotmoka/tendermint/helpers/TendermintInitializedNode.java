@@ -49,7 +49,6 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
@@ -61,8 +60,8 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
-			Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, null, takamakaCode, greenAmount, redAmount);
+			Path takamakaCode, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, null, takamakaCode, redAmount);
 	}
 
 	/**
@@ -76,7 +75,6 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @return a decorated view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
@@ -88,7 +86,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
-			ProducerOfStorageObject producerOfGasStation, Path takamakaCode, BigInteger greenAmount, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, producerOfGasStation, takamakaCode, greenAmount, redAmount);
+			ProducerOfStorageObject producerOfGasStation, Path takamakaCode, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+		return new TendermintInitializedNodeImpl(parent, consensus, publicKeyOfGamete, producerOfGasStation, takamakaCode, redAmount);
 	}
 }

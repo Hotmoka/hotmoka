@@ -80,15 +80,6 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 	 */
 	private final BigInteger oblivion;
 
-	/**
-	 * The inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
-	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
-	 */
-	private final long inflation;
-
 	private final BigInteger COMPLEMENT_OF_OBLIVION;
 
 	private final BigInteger DIVISOR;
@@ -125,20 +116,13 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 	 *                 0 means never, {@link #MAX_OBLIVION} means immediately.
 	 *                 Hence a smaller level means that the latest rewards are heavier
 	 *                 in the determination of the gas price
-	 * @param inflation the inflation applied to the gas consumed by transactions before it gets sent
-	 *                  as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 *                  10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 *                  Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
-	GenericGasStation(Manifest<V> manifest, BigInteger initialGasPrice, BigInteger maxGasPerTransaction, boolean ignoresGasPrice,
-			BigInteger targetGasAtReward, long oblivion, long inflation) {
-
+	GenericGasStation(Manifest<V> manifest, BigInteger initialGasPrice, BigInteger maxGasPerTransaction, boolean ignoresGasPrice, BigInteger targetGasAtReward, long oblivion) {
 		this.manifest = manifest;
 		this.maxGasPerTransaction = maxGasPerTransaction;
 		this.ignoresGasPrice = ignoresGasPrice;
 		this.targetGasAtReward = targetGasAtReward;
 		this.oblivion = BigInteger.valueOf(oblivion);
-		this.inflation = inflation;
 		this.COMPLEMENT_OF_OBLIVION = maxOblivion.subtract(this.oblivion);
 		this.pastGasConsumedWeighted = targetGasAtReward.multiply(COMPLEMENT_OF_OBLIVION);
 		this.DIVISOR = targetGasAtReward.multiply(maxOblivion);
@@ -205,11 +189,6 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 		return oblivion.longValue();
 	}
 
-	@Override
-	public @View long getInflation() {
-		return inflation;
-	}
-
 	@Exported
 	public static class Builder<V extends Validator> extends Storage implements Function<Manifest<V>, GasStation<V>> {
 		private final BigInteger initialGasPrice;
@@ -217,7 +196,6 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 		private final boolean ignoresGasPrice;
 		private final BigInteger targetGasAtReward;
 		private final long oblivion;
-		private final long inflation;
 
 		/**
 		 * @param initialGasPrice the initial gas price
@@ -235,23 +213,18 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 		 *                 0 means never, {@link #MAX_OBLIVION} means immediately.
 		 *                 Hence a smaller level means that the latest rewards are heavier
 		 *                 in the determination of the gas price
-		 * @param inflation the inflation applied to the gas consumed by transactions before it gets sent
-		 *                  as reward to the validators. 0 means 0%, 100,000 means 1%,
-		 *                  10,000,000 means 100%, 20,000,000 means 200% and so on.
-		 *                  Inflation can be negative. For instance, -30,000 means -0.3%
 		 */
-		public Builder(BigInteger initialGasPrice, BigInteger maxGasPerTransaction, boolean ignoresGasPrice, BigInteger targetGasAtReward, long oblivion, long inflation) {
+		public Builder(BigInteger initialGasPrice, BigInteger maxGasPerTransaction, boolean ignoresGasPrice, BigInteger targetGasAtReward, long oblivion) {
 			this.initialGasPrice = initialGasPrice;
 			this.maxGasPerTransaction = maxGasPerTransaction;
 			this.ignoresGasPrice = ignoresGasPrice;
 			this.targetGasAtReward = targetGasAtReward;
 			this.oblivion = oblivion;
-			this.inflation = inflation;
 		}
 
 		@Override
 		public GasStation<V> apply(Manifest<V> manifest) {
-			return new GenericGasStation<>(manifest, initialGasPrice, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion, inflation);
+			return new GenericGasStation<>(manifest, initialGasPrice, maxGasPerTransaction, ignoresGasPrice, targetGasAtReward, oblivion);
 		}
 	}
 }

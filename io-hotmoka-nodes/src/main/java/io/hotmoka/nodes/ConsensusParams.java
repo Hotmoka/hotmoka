@@ -121,18 +121,29 @@ public class ConsensusParams {
 	public final long oblivion;
 
 	/**
-	 * The inflation applied to the gas consumed by transactions before it gets sent
+	 * The initial inflation applied to the gas consumed by transactions before it gets sent
 	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
 	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
 	 * Inflation can be negative. For instance, -30,000 means -0.3%.
 	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
 	 */
-	public final long inflation;
+	public final long initialInflation;
 
 	/**
 	 * The version of the verification module to use. It defaults to 0.
 	 */
 	public final int verificationVersion;
+
+	/**
+	 * The initial supply of coins in the node.
+	 */
+	public final BigInteger initialSupply;
+
+	/**
+	 * The final supply of coins in the node. Once the current supply reaches
+	 * this final amount, it remains constant.
+	 */
+	public final BigInteger finalSupply;
 
 	/**
 	 * The amount of coin to pay to start a new poll amount the validators,
@@ -158,11 +169,13 @@ public class ConsensusParams {
 		this.skipsVerification = builder.skipsVerification;
 		this.targetGasAtReward = builder.targetGasAtReward;
 		this.oblivion = builder.oblivion;
-		this.inflation = builder.inflation;
+		this.initialInflation = builder.initialInflation;
 		this.verificationVersion = builder.verificationVersion;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.ticketForNewPoll = builder.ticketForNewPoll;
+		this.initialSupply = builder.initialSupply;
+		this.finalSupply = builder.finalSupply;
 		this.signature = builder.signature;
 	}
 
@@ -188,8 +201,10 @@ public class ConsensusParams {
 			.skipVerification(skipsVerification)
 			.setTargetGasAtReward(targetGasAtReward)
 			.setOblivion(oblivion)
-			.setInflation(inflation)
+			.setInitialInflation(initialInflation)
 			.setVerificationVersion(verificationVersion)
+			.setInitialSupply(initialSupply)
+			.setFinalSupply(finalSupply)
 			.setTicketForNewPoll(ticketForNewPoll);
 	}
 
@@ -209,8 +224,10 @@ public class ConsensusParams {
 		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
-		private long inflation = 10_000L; // 0.1%
+		private long initialInflation = 10_000L; // 0.1%
 		private int verificationVersion = 0;
+		private BigInteger initialSupply = BigInteger.ZERO;
+		private BigInteger finalSupply = BigInteger.ZERO;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
 
 		public Builder() {
@@ -428,14 +445,14 @@ public class ConsensusParams {
 		}
 
 		/**
-		 * Sets the inflation applied to the gas consumed by transactions before it gets sent
+		 * Sets the initial inflation applied to the gas consumed by transactions before it gets sent
 		 * as reward to the validators. 0 means 0%, 100,000 means 1%,
 		 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
 		 * Inflation can be negative. For instance, -30,000 means -0.3%.
 		 * It defaults to 10,000 (that is, inflation is 0.1% by default).
 		 */
-		public Builder setInflation(long inflation) {
-			this.inflation = inflation;
+		public Builder setInitialInflation(long initialInflation) {
+			this.initialInflation = initialInflation;
 			return this;
 		}
 
@@ -475,6 +492,42 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the verification version must be non-negative");
 
 			this.verificationVersion = verificationVersion;
+			return this;
+		}
+
+		/**
+		 * Sets the initial supply of coins of the node.
+		 * It defaults to 0.
+		 * 
+		 * @param initialSupply the initial supply of coins of the node
+		 * @return this builder
+		 */
+		public Builder setInitialSupply(BigInteger initialSupply) {
+			if (initialSupply == null)
+				throw new NullPointerException("the initial supply cannot be null");
+
+			if (initialSupply.signum() < 0)
+				throw new IllegalArgumentException("the initial supply must be non-negative");
+
+			this.initialSupply = initialSupply;
+			return this;
+		}
+
+		/**
+		 * Sets the final supply of coins of the node.
+		 * It defaults to 0.
+		 * 
+		 * @param finalSupply the final supply of coins of the node
+		 * @return this builder
+		 */
+		public Builder setFinalSupply(BigInteger finalSupply) {
+			if (finalSupply == null)
+				throw new NullPointerException("the final supply cannot be null");
+
+			if (finalSupply.signum() < 0)
+				throw new IllegalArgumentException("the final supply must be non-negative");
+
+			this.finalSupply = finalSupply;
 			return this;
 		}
 

@@ -231,11 +231,17 @@ public class NodeCachesImpl implements NodeCaches {
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
 	
-			long inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INFLATION, gasStation))).value;
+			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;
 
 			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+
+			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_SUPPLY, validators))).value;
+
+			BigInteger finalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_FINAL_SUPPLY, validators))).value;
 
 			consensus = new ConsensusParams.Builder()
 				.setGenesisTime(genesisTime)
@@ -246,7 +252,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
-				.setInflation(inflation)
+				.setInitialInflation(initialInflation)
 				.setMaxErrorLength(maxErrorLength)
 				.setMaxDependencies(maxDependencies)
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
@@ -256,6 +262,8 @@ public class NodeCachesImpl implements NodeCaches {
 				.skipVerification(skipsVerification)
 				.setVerificationVersion(verificationVersion)
 				.setTicketForNewPoll(ticketForNewPoll)
+				.setInitialSupply(initialSupply)
+				.setFinalSupply(finalSupply)
 				.build();
 		}
 		catch (Throwable t) {

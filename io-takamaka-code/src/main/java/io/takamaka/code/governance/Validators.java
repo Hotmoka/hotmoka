@@ -64,13 +64,27 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@FromContract @Payable void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward);
 
 	/**
-	 * Yields the total circulating supply of coins in the node. This increases
+	 * Yields the initial circulating supply of coins in the node.
+	 * 
+	 * @return the initial circulating supply
+	 */
+	@View BigInteger getInitialSupply();
+
+	/**
+	 * Yields the current circulating supply of coins in the node. This increases
 	 * with time if inflation is not zero, since the gas used for the transactions
 	 * gets inflated by inflation and distributed to the validators.
 	 * 
-	 * @return the total circulating supply
+	 * @return the current circulating supply
 	 */
-	@View BigInteger getTotalSupply();
+	@View BigInteger getCurrentSupply();
+
+	/**
+	 * Yields the final circulating supply of coins in the node.
+	 * 
+	 * @return the final circulating supply
+	 */
+	@View BigInteger getFinalSupply();
 
 	/**
 	 * Yields the total circulating supply of red coins in the node.
@@ -78,6 +92,27 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * @return the total circulating supply of red coins
 	 */
 	@View BigInteger getTotalSupplyRed();
+
+	/**
+	 * Yields the initial inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * 
+	 * @return the initial inflation
+	 */
+	@View long getInitialInflation();
+
+	/**
+	 * Yields the current inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * This starts at {@link #getInitialInflation()} and decreases towards zero.
+	 * 
+	 * @return the current inflation
+	 */
+	@View long getCurrentInflation();
 
 	/**
 	 * Yields the amount of coins needed to start a new poll among the validators of this node.

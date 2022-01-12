@@ -89,8 +89,9 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the builder of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER),
-			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.ticketForNewPoll));
+			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
+			new LongValue(consensus.initialInflation));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -105,10 +106,10 @@ public class InitializedNodeImpl implements InitializedNode {
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature("io.takamaka.code.governance.GenericGasStation$Builder",
-				ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, BasicTypes.LONG, BasicTypes.LONG),
+				ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, BasicTypes.LONG),
 			new BigIntegerValue(consensus.initialGasPrice), new BigIntegerValue(consensus.maxGasPerTransaction),
 			new BooleanValue(consensus.ignoresGasPrice), new BigIntegerValue(consensus.targetGasAtReward),
-			new LongValue(consensus.oblivion), new LongValue(consensus.inflation));
+			new LongValue(consensus.oblivion));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -121,7 +122,6 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param greenAmount the amount of green coins that must be put in the gamete
 	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
 	 *                                    if this is {@code null}, a generic empty set of validators is created
@@ -136,8 +136,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public InitializedNodeImpl(Node parent, ConsensusParams consensus,
-			String publicKeyOfGamete, Path takamakaCode,
-			BigInteger greenAmount, BigInteger redAmount,
+			String publicKeyOfGamete, Path takamakaCode, BigInteger redAmount,
 			ProducerOfStorageObject producerOfValidatorsBuilder,
 			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
@@ -148,7 +147,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we create a gamete with both red and green coins
 		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(publicKeyOfGamete));
-		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, greenAmount, redAmount, publicKeyOfGameteBase64Encoded));
+		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.initialSupply, redAmount, publicKeyOfGameteBase64Encoded));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;

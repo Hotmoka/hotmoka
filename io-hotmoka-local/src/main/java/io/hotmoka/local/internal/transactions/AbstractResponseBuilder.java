@@ -234,7 +234,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @param amount the amount of coins to mint (if positive) or burn (if negative)
 		 */
 		public final void addToTotalSupply(BigInteger amount) {
-			node.getCaches().getValidators().map(deserializer::deserialize).ifPresent(validators -> classLoader.increaseTotalSupply(validators, amount));
+			node.getCaches().getValidators().map(deserializer::deserialize).ifPresent(validators -> classLoader.increaseCurrentSupply(validators, amount));
 		}
 
 		/**

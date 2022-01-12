@@ -59,16 +59,46 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	private final BigInteger ticketForNewPoll;
 
 	/**
-	 * The total circulating supply of coins in the node. This increases
-	 * with time if inflation is not zero, since the gas used for the transactions
-	 * gets inflated by inflation and distributed to the validators.
+	 * The initial circulating supply of coins in the node.
 	 */
-	private BigInteger totalSupply;
+	private final BigInteger initialSupply;
+
+	/**
+	 * The current circulating supply of coins in the node. This increases
+	 * with time if inflation is not zero, since the gas used for the transactions
+	 * gets inflated by inflation and distributed to the validators. This is
+	 * between {@link #initialSupply} and {@link #finalSupply}.
+	 */
+	private BigInteger currentSupply;
+
+	/**
+	 * The final circulating supply of coins in the node, that will be reached
+	 * eventually, if inflation is not zero.
+	 */
+	private final BigInteger finalSupply;
 
 	/**
 	 * The total circulating supply of red coins in the node.
 	 */
 	private final BigInteger totalSupplyRed;
+
+	/**
+	 * The initial inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
+	 */
+	private final long initialInflation;
+
+	/**
+	 * The current inflation applied to the gas consumed by transactions before it gets sent
+	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * This starts at {@link #initialInflation} and goes towards zero.
+	 */
+	private long currentInflation;
 
 	/**
 	 * The number of transactions validated up to now.
@@ -105,8 +135,13 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
 	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
 	 *                         require to pay this amount for starting a poll
+	 * @param finalSupply the final supply of coins that will be reached, eventually
+	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
+	 *                		   as reward to the validators. 0 means 0%, 100,000 means 1%,
+	 *                  	   10,000,000 means 100%, 20,000,000 means 200% and so on.
+	 *                  	   Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
-	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll) {
+	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 		super(validators, powers);
 
 		require(ticketForNewPoll != null, "the ticket for new poll must be non-null");
@@ -114,8 +149,12 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 		this.manifest = manifest;
 		Account gamete = manifest.getGamete();
-		this.totalSupply = gamete.balance(); // initially, all coins are inside the gamete
+		this.currentSupply = gamete.balance(); // initially, all coins are inside the gamete
+		this.initialSupply = currentSupply;
+		this.finalSupply = finalSupply;
 		this.totalSupplyRed = gamete.balanceRed();
+		this.initialInflation = initialInflation;
+		this.currentInflation = initialInflation;
 		this.ticketForNewPoll = ticketForNewPoll;
 		this.numberOfTransactions = ZERO;
 		this.height = ZERO;
@@ -123,13 +162,33 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public final BigInteger getTotalSupply() {
-		return totalSupply;
+	public final BigInteger getInitialSupply() {
+		return initialSupply;
+	}
+
+	@Override
+	public final BigInteger getCurrentSupply() {
+		return currentSupply;
+	}
+
+	@Override
+	public final BigInteger getFinalSupply() {
+		return finalSupply;
 	}
 
 	@Override
 	public final BigInteger getTotalSupplyRed() {
 		return totalSupplyRed;
+	}
+
+	@Override
+	public @View long getInitialInflation() {
+		return initialInflation;
+	}
+
+	@Override
+	public @View long getCurrentInflation() {
+		return currentInflation;
 	}
 
 	@Override
@@ -199,7 +258,23 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 			numberOfTransactions = numberOfTransactions.add(numberOfTransactionsSinceLastReward);
 
 			// the total supply is increased by the coins minted since the previous reward
-			totalSupply = totalSupply.add(minted);
+			currentSupply = currentSupply.add(minted);
+
+			// we compute the current inflation, so that it approaches zero while
+			// the current supply is reaching the final supply
+			BigInteger delta = finalSupply.subtract(initialSupply);
+			if (delta.signum() != 0) {
+				BigInteger currentDelta = finalSupply.subtract(currentSupply);
+				long oldCurrentInflation = currentInflation;
+
+				// if the current supply reached the total supply, inflation is forced to zero
+				if (delta.signum() <= 0 && currentDelta.signum() >= 0)
+					currentInflation = 0L;
+				else if (delta.signum() >= 0 && currentDelta.signum() <= 0)
+					currentInflation = 0L;
+				else
+					currentInflation = BigInteger.valueOf(initialInflation).multiply(currentDelta).divide(delta).longValue();
+			}
 		}
 	}
 

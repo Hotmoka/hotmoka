@@ -113,10 +113,10 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	void setRedBalanceOf(Object object, BigInteger value);
 
 	/**
-	 * Adds the given amount of coins to the total amount of the validators set of the node.
+	 * Adds the given amount of coins to the current amount of the validators set of the node.
 	 * 
 	 * @param validators the object containing the validators set
 	 * @param amount the amount to add (if positive) or remove (if negative)
 	 */
-	void increaseTotalSupply(Object validators, BigInteger amount);
+	void increaseCurrentSupply(Object validators, BigInteger amount);
 }

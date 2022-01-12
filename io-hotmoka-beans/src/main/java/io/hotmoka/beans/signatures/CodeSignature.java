@@ -108,9 +108,9 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_HEIGHT = new NonVoidMethodSignature(ClassType.VALIDATORS, "getHeight", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code getTotalSupply} of the validators.
+	 * The method {@code getCurrentSupply} of the validators.
 	 */
-	public final static MethodSignature GET_TOTAL_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTotalSupply", ClassType.BIG_INTEGER);
+	public final static MethodSignature GET_CURRENT_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getCurrentSupply", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code getTotalSupplyRed} of the validators.
@@ -208,9 +208,14 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getOblivion", BasicTypes.LONG);
 
 	/**
-	 * The method {@code getInflation} of the gas station.
+	 * The method {@code getInitialInflation} of the validators object.
 	 */
-	public final static MethodSignature GET_INFLATION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getInflation", BasicTypes.LONG);
+	public final static MethodSignature GET_INITIAL_INFLATION = new NonVoidMethodSignature(ClassType.VALIDATORS, "getInitialInflation", BasicTypes.LONG);
+
+	/**
+	 * The method {@code getCurrentInflation} of the validators object.
+	 */
+	public final static MethodSignature GET_CURRENT_INFLATION = new NonVoidMethodSignature(ClassType.VALIDATORS, "getCurrentInflation", BasicTypes.LONG);
 
 	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
@@ -236,6 +241,16 @@ public abstract class CodeSignature extends Marshallable {
 	 * The method {@code getPolls} of the validators object.
 	 */
 	public final static MethodSignature GET_POLLS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getPolls", ClassType.STORAGE_SET_VIEW);
+
+	/**
+	 * The method {@code getInitialSupply} of the validators object.
+	 */
+	public final static MethodSignature GET_INITIAL_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getInitialSupply", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getFinalSupply} of the validators object.
+	 */
+	public final static MethodSignature GET_FINAL_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getFinalSupply", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code add} of the account ledger.
