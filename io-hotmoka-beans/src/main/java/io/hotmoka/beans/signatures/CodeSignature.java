@@ -113,11 +113,6 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_CURRENT_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getCurrentSupply", ClassType.BIG_INTEGER);
 
 	/**
-	 * The method {@code getTotalSupplyRed} of the validators.
-	 */
-	public final static MethodSignature GET_TOTAL_SUPPLY_RED = new NonVoidMethodSignature(ClassType.VALIDATORS, "getTotalSupplyRed", ClassType.BIG_INTEGER);
-
-	/**
 	 * The method {@code getNumberOfTransactions} of the validators.
 	 */
 	public final static MethodSignature GET_NUMBER_OF_TRANSACTIONS = new NonVoidMethodSignature(ClassType.VALIDATORS, "getNumberOfTransactions", ClassType.BIG_INTEGER);
@@ -246,6 +241,11 @@ public abstract class CodeSignature extends Marshallable {
 	 * The method {@code getInitialSupply} of the validators object.
 	 */
 	public final static MethodSignature GET_INITIAL_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getInitialSupply", ClassType.BIG_INTEGER);
+
+	/**
+	 * The method {@code getInitialRedSupply} of the validators object.
+	 */
+	public final static MethodSignature GET_INITIAL_RED_SUPPLY = new NonVoidMethodSignature(ClassType.VALIDATORS, "getInitialRedSupply", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code getFinalSupply} of the validators object.

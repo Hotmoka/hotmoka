@@ -238,10 +238,10 @@ public class ManifestHelper {
 
 			builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
 
-			BigInteger totalSupplyRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_TOTAL_SUPPLY_RED, validators))).value;
+			BigInteger initialRedSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_RED_SUPPLY, validators))).value;
 
-			builder.append("   │  ├─ totalSupplyRed: ").append(totalSupplyRed).append("\n");
+			builder.append("   │  ├─ initialRedSupply: ").append(initialRedSupply).append("\n");
 
 			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;

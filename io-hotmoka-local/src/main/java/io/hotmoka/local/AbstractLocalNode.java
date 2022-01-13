@@ -886,9 +886,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		// when a node is restarted; in that case, the actual final gas is irrelevant
 		ConsensusParams consensus = caches.getConsensusParams();
 		if (consensus != null)
-			gas = gas
-					.multiply(_1_000_000.add(BigInteger.valueOf(consensus.initialInflation)))
-					.divide(_1_000_000);
+			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.initialInflation)))
+					 .divide(_1_000_000);
 
 		return gas;
 	}

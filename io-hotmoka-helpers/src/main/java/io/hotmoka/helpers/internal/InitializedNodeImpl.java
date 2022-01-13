@@ -25,7 +25,6 @@ import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -59,7 +58,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
@@ -120,9 +118,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @param producerOfValidatorsBuilder an algorithm that creates the builder of the validators to be installed in the manifest of the node;
 	 *                                    if this is {@code null}, a generic empty set of validators is created
 	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
@@ -135,8 +131,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusParams consensus,
-			String publicKeyOfGamete, Path takamakaCode, BigInteger redAmount,
+	public InitializedNodeImpl(Node parent, ConsensusParams consensus, Path takamakaCode,
 			ProducerOfStorageObject producerOfValidatorsBuilder,
 			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
@@ -146,8 +141,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		String publicKeyOfGameteBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(publicKeyOfGamete));
-		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.initialSupply, redAmount, publicKeyOfGameteBase64Encoded));
+		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.initialSupply, consensus.initialRedSupply, consensus.publicKeyOfGamete));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;

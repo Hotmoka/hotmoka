@@ -34,6 +34,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,7 +72,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -123,7 +123,7 @@ public abstract class TakamakaTest {
 	/**
 	 * The consensus parameters of the node.
 	 */
-	protected static ConsensusParams consensus;
+	protected final static ConsensusParams consensus;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -206,6 +206,23 @@ public abstract class TakamakaTest {
 	        hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
 	        tendermintBlockchain = null; // Tendermint would reassign
 
+	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
+			Entropy entropy = new Entropy(new byte[16]);
+			String password = "";
+			SignatureAlgorithm<SignedTransactionRequest> localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
+			KeyPair keys = entropy.keys(password, localSignature);
+			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
+			consensus = new ConsensusParams.Builder()
+	    			.signRequestsWith("ed25519det") // good for testing
+	    			.allowUnsignedFaucet(true) // good for testing
+	    			.allowMintBurnFromGamete(true) // good for testing
+	    			.ignoreGasPrice(true) // good for testing
+	    			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+	    			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
+	    			.setPublicKeyOfGamete(publicKeyOfGamete)
+	    			.build();
+	        privateKeyOfGamete = keys.getPrivate();
+
 	        // Change this to test with different node implementations
 	        node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
@@ -219,7 +236,7 @@ public abstract class TakamakaTest {
 	        //node = mkRemoteNode("localhost:8080");
 
 	        signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
-	        privateKeyOfGamete = initializeNodeIfNeeded();
+	        initializeNodeIfNeeded();
 	        Signer signerOfGamete = Signer.with(signature, privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
@@ -250,13 +267,8 @@ public abstract class TakamakaTest {
 		}
 	}
 
-	private static PrivateKey initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
+	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
-
-		// we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-		Entropy entropy = new Entropy(new byte[16]);
-		String password = "";
-		KeyPair keys = entropy.keys(password, signature);
 
 		try {
 			node.getManifest();
@@ -264,18 +276,12 @@ public abstract class TakamakaTest {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 
-			// enough for all tests
-			BigInteger aLot = Coin.level7(10000000);
 			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
-
-			String publicKeyOfGamete = Base58.encode(signature.encodingOf(keys.getPublic()));
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, publicKeyOfGamete, takamakaCode, aLot);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
 			else
-				InitializedNode.of(node, consensus, publicKeyOfGamete, takamakaCode, aLot);
+				InitializedNode.of(node, consensus, takamakaCode);
 		}
-
-		return keys.getPrivate();
 	}
 
 	@SuppressWarnings("unused")
@@ -285,14 +291,6 @@ public abstract class TakamakaTest {
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 		nodeConfig = config;
-		consensus = new ConsensusParams.Builder()
-			.signRequestsWith("ed25519det") // good for testing
-			.allowUnsignedFaucet(true) // good for testing
-			.allowMintBurnFromGamete(true) // good for testing
-			.ignoreGasPrice(true) // good for testing
-			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-			.build();
-
 		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
 		tendermintBlockchain = result;
 		return result;
@@ -306,19 +304,6 @@ public abstract class TakamakaTest {
 
 		nodeConfig = config;
 
-		// specify the signing algorithm, if you need; otherwise ED25519 will be used by default
-		consensus = new ConsensusParams.Builder()
-			.signRequestsWith("ed25519det") // good for testing
-			.allowUnsignedFaucet(true) // good for testing
-			.allowMintBurnFromGamete(true) // good for testing
-			.ignoreGasPrice(true) // good for testing
-			// .signRequestsWith("qtesla1").build();
-			// .signRequestsWith("qtesla3").build();
-			// .signRequestsWith("sha256dsa").build();
-			.setChainId("test")
-			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-			.build();
-
 		return MemoryBlockchain.init(config, consensus);
 	}
 
@@ -326,13 +311,6 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		nodeConfig = config;
-		consensus = new ConsensusParams.Builder()
-			.setChainId("test")
-			.signRequestsWith("ed25519det") // good for testing
-			.ignoreGasPrice(true) // good for testing
-			.allowSelfCharged(true) // only for this kind of node
-			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-			.build();
 		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
@@ -376,13 +354,6 @@ public abstract class TakamakaTest {
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		nodeConfig = config;
-		consensus = new ConsensusParams.Builder()
-			.setChainId("test")
-			.ignoreGasPrice(true) // good for testing
-			.allowSelfCharged(true) // only for this kind of node
-			.allowUnsignedFaucet(true) // good for testing
-			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-			.build();
 
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 

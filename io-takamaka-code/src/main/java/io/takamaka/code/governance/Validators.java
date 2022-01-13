@@ -87,11 +87,12 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@View BigInteger getFinalSupply();
 
 	/**
-	 * Yields the total circulating supply of red coins in the node.
+	 * Yields the initial circulating supply of red coins in the node.
+	 * This does not change with the time.
 	 * 
-	 * @return the total circulating supply of red coins
+	 * @return the initial circulating supply of red coins
 	 */
-	@View BigInteger getTotalSupplyRed();
+	@View BigInteger getInitialRedSupply();
 
 	/**
 	 * Yields the initial inflation applied to the gas consumed by transactions before it gets sent

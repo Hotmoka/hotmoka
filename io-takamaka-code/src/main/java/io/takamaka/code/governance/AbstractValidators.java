@@ -78,9 +78,10 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	private final BigInteger finalSupply;
 
 	/**
-	 * The total circulating supply of red coins in the node.
+	 * The initial circulating supply of red coins in the node.
+	 * This does not change with the time.
 	 */
-	private final BigInteger totalSupplyRed;
+	private final BigInteger initialRedSupply;
 
 	/**
 	 * The initial inflation applied to the gas consumed by transactions before it gets sent
@@ -152,7 +153,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		this.currentSupply = gamete.balance(); // initially, all coins are inside the gamete
 		this.initialSupply = currentSupply;
 		this.finalSupply = finalSupply;
-		this.totalSupplyRed = gamete.balanceRed();
+		this.initialRedSupply = gamete.balanceRed();
 		this.initialInflation = initialInflation;
 		this.currentInflation = initialInflation;
 		this.ticketForNewPoll = ticketForNewPoll;
@@ -177,8 +178,8 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public final BigInteger getTotalSupplyRed() {
-		return totalSupplyRed;
+	public final BigInteger getInitialRedSupply() {
+		return initialRedSupply;
 	}
 
 	@Override
@@ -274,6 +275,10 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 					currentInflation = 0L;
 				else
 					currentInflation = BigInteger.valueOf(initialInflation).multiply(currentDelta).divide(delta).longValue();
+
+				if (currentInflation != oldCurrentInflation) {
+					// TODO: notify that inflation changed
+				}
 			}
 		}
 	}

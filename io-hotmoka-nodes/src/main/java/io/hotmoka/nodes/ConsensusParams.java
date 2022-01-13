@@ -84,6 +84,11 @@ public class ConsensusParams {
 	public final boolean skipsVerification;
 
 	/**
+	 * The Base64-encoded public key of the gamete account.
+	 */
+	public final String publicKeyOfGamete;
+
+	/**
 	 * The initial gas price. It defaults to 100.
 	 */
 	public final BigInteger initialGasPrice;
@@ -146,6 +151,11 @@ public class ConsensusParams {
 	public final BigInteger finalSupply;
 
 	/**
+	 * The initial supply of red coins in the node.
+	 */
+	public final BigInteger initialRedSupply;
+
+	/**
 	 * The amount of coin to pay to start a new poll amount the validators,
 	 * for instance in order to change a consensus parameter.
 	 */
@@ -176,6 +186,8 @@ public class ConsensusParams {
 		this.ticketForNewPoll = builder.ticketForNewPoll;
 		this.initialSupply = builder.initialSupply;
 		this.finalSupply = builder.finalSupply;
+		this.initialRedSupply = builder.initialRedSupply;
+		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.signature = builder.signature;
 	}
 
@@ -205,6 +217,8 @@ public class ConsensusParams {
 			.setVerificationVersion(verificationVersion)
 			.setInitialSupply(initialSupply)
 			.setFinalSupply(finalSupply)
+			.setInitialRedSupply(initialRedSupply)
+			.setPublicKeyOfGamete(publicKeyOfGamete)
 			.setTicketForNewPoll(ticketForNewPoll);
 	}
 
@@ -228,6 +242,8 @@ public class ConsensusParams {
 		private int verificationVersion = 0;
 		private BigInteger initialSupply = BigInteger.ZERO;
 		private BigInteger finalSupply = BigInteger.ZERO;
+		private BigInteger initialRedSupply = BigInteger.ZERO;
+		private String publicKeyOfGamete = "";
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
 
 		public Builder() {
@@ -510,6 +526,39 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the initial supply must be non-negative");
 
 			this.initialSupply = initialSupply;
+			return this;
+		}
+
+		/**
+		 * Sets the initial supply of red coins of the node.
+		 * It defaults to 0.
+		 * 
+		 * @param initialRedSupply the initial supply of red coins of the node
+		 * @return this builder
+		 */
+		public Builder setInitialRedSupply(BigInteger initialRedSupply) {
+			if (initialRedSupply == null)
+				throw new NullPointerException("the initial red supply cannot be null");
+
+			if (initialRedSupply.signum() < 0)
+				throw new IllegalArgumentException("the initial red supply must be non-negative");
+
+			this.initialRedSupply = initialRedSupply;
+			return this;
+		}
+
+		/**
+		 * Sets the public key for the gamete account.
+		 * It defaults to "" (hence a non-existent key).
+		 * 
+		 * @param publicKeyOfGamete the Base64-encoded public key of the gamete account
+		 * @return this builder
+		 */
+		public Builder setPublicKeyOfGamete(String publicKeyOfGamete) {
+			if (publicKeyOfGamete == null)
+				throw new NullPointerException("the public key of the gamete cannot be null");
+
+			this.publicKeyOfGamete = publicKeyOfGamete;
 			return this;
 		}
 

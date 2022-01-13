@@ -19,11 +19,13 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.util.Base64;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.memory.MemoryBlockchain;
@@ -49,8 +51,8 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
 	private String chainId;
 
-	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
-    private BigInteger balanceRed;
+	@Option(names = { "--initial-red-supply" }, description = "the initial supply of red coins of the node, which goes to the gamete", defaultValue = "0")
+    private BigInteger initialRedSupply;
 
 	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
     private String keyOfGamete;
@@ -117,10 +119,12 @@ public class InitMemory extends AbstractCommand {
 				.setChainId(chainId)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
+				.setInitialRedSupply(initialRedSupply)
+				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balanceRed);
+				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, takamakaCode);
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();

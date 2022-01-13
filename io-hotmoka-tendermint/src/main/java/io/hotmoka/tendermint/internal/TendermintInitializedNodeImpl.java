@@ -92,12 +92,10 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
-	 * @param publicKeyOfGamete the Base58-encoded public key of the gamete
 	 * @param producerOfGasStationBuilder
 	 * 		an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *      if this is {@code null}, a generic gas station is created
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @param redAmount the amount of red coins that must be put in the gamete
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
@@ -106,20 +104,19 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus, String publicKeyOfGamete,
-			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode, BigInteger redAmount) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus,
+			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
 		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
-		// TODO: do we still need this?
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time of the underlying Tendermint network
 		consensus = consensus.toBuilder()
 			.setChainId(poster.getTendermintChainId())
 			.setGenesisTime(poster.getGenesisTime())
 			.build();
 
-		this.parent = InitializedNode.of(parent, consensus, publicKeyOfGamete,
-			takamakaCode, redAmount, (node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
+		this.parent = InitializedNode.of(parent, consensus, takamakaCode,
+			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {

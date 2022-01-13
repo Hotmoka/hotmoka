@@ -21,12 +21,14 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Base64;
 import java.util.Comparator;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.nodes.ConsensusParams;
@@ -50,8 +52,8 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
     private BigInteger deltaSupply;
 
-	@Option(names = { "--balance-red" }, description = "the initial red balance of the gamete", defaultValue = "0")
-    private BigInteger balanceRed;
+	@Option(names = { "--initial-red-supply" }, description = "the initial supply of red coins of the node, which goes to the gamete", defaultValue = "0")
+    private BigInteger initialRedSupply;
 
 	@Option(names = { "--key-of-gamete" }, description = "the Base58-encoded public key of the gamete account")
     private String keyOfGamete;
@@ -127,10 +129,12 @@ public class InitTendermint extends AbstractCommand {
 				.setInitialInflation(inflation)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
+				.setInitialRedSupply(initialRedSupply)
+				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (TendermintBlockchain node = TendermintBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, keyOfGamete, takamakaCode, balanceRed);
+				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCode);
 				NodeService service = NodeService.of(networkConfig, initialized)) {
 
 				cleanUp();
