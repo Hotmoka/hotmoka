@@ -45,8 +45,9 @@ public class InitMemory extends AbstractCommand {
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
 
-	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
-    private BigInteger deltaSupply;
+	private final static String DELTA_SUPPLY_DEFAULT = "equals to the initial supply";
+	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
+    private String deltaSupply;
 
 	@Option(names = { "--chain-id" }, description = "the chain identifier of the network", defaultValue = "")
 	private String chainId;
@@ -109,6 +110,12 @@ public class InitMemory extends AbstractCommand {
 			networkConfig = new NodeServiceConfig.Builder()
 				.setPort(port)
 				.build();
+
+			BigInteger deltaSupply;
+			if (DELTA_SUPPLY_DEFAULT.equals(InitMemory.this.deltaSupply))
+				deltaSupply = initialSupply;
+			else
+				deltaSupply = new BigInteger(InitMemory.this.deltaSupply);
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)

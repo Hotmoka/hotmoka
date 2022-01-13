@@ -127,12 +127,20 @@ public interface StoreUtilities {
 	StorageReference getCreatorUncommitted(StorageReference event);
 
 	/**
-	 * Yields the nonce of the given externally owned account (normal or red/green).
+	 * Yields the nonce of the given externally owned account.
 	 * 
 	 * @param account the account
 	 * @return the nonce
 	 */
 	BigInteger getNonceUncommitted(StorageReference account);
+
+	/**
+	 * Yields the current supply of coins of the given validators object.
+	 * 
+	 * @param validators the validators object
+	 * @return the current supply
+	 */
+	BigInteger getCurrentSupplyUncommitted(StorageReference validators);
 
 	/**
 	 * Yields the class name of the given object, whose creation might not be committed yet.

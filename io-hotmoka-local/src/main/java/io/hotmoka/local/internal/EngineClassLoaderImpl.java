@@ -726,6 +726,11 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
+	public boolean isInflationUpdateEvent(String className) {
+		return parent.isInflationUpdateEvent(className);
+	}
+
+	@Override
 	public boolean isValidatorsUpdateEvent(String className) {
 		return parent.isValidatorsUpdateEvent(className);
 	}

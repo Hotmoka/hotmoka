@@ -158,6 +158,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType VALIDATORS = new ClassType(Constants.VALIDATORS_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.AbstractValidators}.
+	 */
+	public final static ClassType ABSTRACT_VALIDATORS = new ClassType(Constants.ABSTRACT_VALIDATORS_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
 	 */
 	public final static ClassType VERSIONS = new ClassType(Constants.VERSIONS_NAME);

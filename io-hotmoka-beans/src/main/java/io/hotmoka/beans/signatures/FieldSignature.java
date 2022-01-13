@@ -87,6 +87,11 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	public final static FieldSignature GENERIC_GAS_STATION_GAS_PRICE_FIELD = new FieldSignature(ClassType.GENERIC_GAS_STATION, "gasPrice", ClassType.BIG_INTEGER);
 
 	/**
+	 * The field that holds the current supply inside a {@code io.takamaka.code.governance.AbstractValidators}.
+	 */
+	public final static FieldSignature ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD = new FieldSignature(ClassType.ABSTRACT_VALIDATORS, "currentSupply", ClassType.BIG_INTEGER);
+
+	/**
 	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
 	 */
 	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = new FieldSignature(ClassType.UNSIGNED_BIG_INTEGER, "value", ClassType.BIG_INTEGER);

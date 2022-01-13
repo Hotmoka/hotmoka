@@ -217,6 +217,11 @@ public interface Constants {
 	String GAS_PRICE_UPDATE_NAME = "io.takamaka.code.governance.GasPriceUpdate";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.governance.InflationUpdate}.
+	 */
+	String INFLATION_UPDATE_NAME = "io.takamaka.code.governance.InflationUpdate";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.governance.VerificationVersionUpdate}.
 	 */
 	String VERIFICATION_VERSION_UPDATE_NAME = "io.takamaka.code.governance.VerificationVersionUpdate";

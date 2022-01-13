@@ -49,8 +49,9 @@ public class InitTendermint extends AbstractCommand {
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
 
-	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = "0")
-    private BigInteger deltaSupply;
+	private final static String DELTA_SUPPLY_DEFAULT = "equals to the initial supply";
+	@Option(names = { "--delta-supply" }, description = "the amount of coins that can be minted during the life of the node, after which inflation becomes 0", defaultValue = DELTA_SUPPLY_DEFAULT)
+    private String deltaSupply;
 
 	@Option(names = { "--initial-red-supply" }, description = "the initial supply of red coins of the node, which goes to the gamete", defaultValue = "0")
     private BigInteger initialRedSupply;
@@ -119,6 +120,12 @@ public class InitTendermint extends AbstractCommand {
 			networkConfig = new NodeServiceConfig.Builder()
 				.setPort(port)
 				.build();
+
+			BigInteger deltaSupply;
+			if (DELTA_SUPPLY_DEFAULT.equals(InitTendermint.this.deltaSupply))
+				deltaSupply = initialSupply;
+			else
+				deltaSupply = new BigInteger(InitTendermint.this.deltaSupply);
 
 			ConsensusParams consensus = new ConsensusParams.Builder()
 				.allowUnsignedFaucet(openUnsignedFaucet)

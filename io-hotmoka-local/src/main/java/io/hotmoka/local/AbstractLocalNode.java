@@ -636,9 +636,30 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
 				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
-
 				TransactionReference takamakaCode = getTakamakaCode();
+
+				// we determine how many coins have been minted during the last reward:
+				// it is the price of the gas distributed minus the same price without inflation
 				BigInteger minted = coinsSinceLastReward.subtract(coinsSinceLastRewardWithoutInflation);
+
+				// it might happen that the last distribution goes beyond the limit imposed
+				// as final supply: in that case we truncate the minted coins so that the current
+				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
+				// or from above (negative inflation)
+				BigInteger currentSupply = storeUtilities.getCurrentSupplyUncommitted(validators);
+				if (minted.signum() > 0) {
+					BigInteger finalSupply = caches.getConsensusParams().finalSupply;
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() < 0)
+						minted = minted.add(extra);
+				}
+				else if (minted.signum() < 0) {
+					BigInteger finalSupply = caches.getConsensusParams().finalSupply;
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() > 0)
+						minted = minted.add(extra);
+				}
+
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators,
 					new BigIntegerValue(coinsSinceLastReward), new BigIntegerValue(minted),
@@ -882,11 +903,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	}
 
 	private BigInteger addInflation(BigInteger gas) {
-		// consensus can be null only during the run transactions to reconstruct the same consensus
-		// when a node is restarted; in that case, the actual final gas is irrelevant
-		ConsensusParams consensus = caches.getConsensusParams();
-		if (consensus != null)
-			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(consensus.initialInflation)))
+		Optional<Long> currentInflation = caches.getCurrentInflation();
+
+		if (currentInflation.isPresent())
+			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(currentInflation.get())))
 					 .divide(_1_000_000);
 
 		return gas;

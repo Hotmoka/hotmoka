@@ -129,6 +129,11 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	}
 
 	@Override
+	public BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
+		return getBigIntegerFieldUncommitted(validators, FieldSignature.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
+	}
+
+	@Override
 	public String getPublicKeyUncommitted(StorageReference account) {
 		return getStringFieldUncommitted(account, FieldSignature.EOA_PUBLIC_KEY_FIELD);
 	}

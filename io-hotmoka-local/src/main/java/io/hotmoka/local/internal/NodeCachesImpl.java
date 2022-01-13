@@ -113,9 +113,14 @@ public class NodeCachesImpl implements NodeCaches {
 	private volatile Optional<StorageReference> gasStation;
 
 	/**
-	 * A cache for the current gas price. It gets reset at each reward.
+	 * A cache for the current gas price. It gets reset if it changes.
 	 */
 	private volatile BigInteger gasPrice;
+
+	/**
+	 * A cache for the current inflation. It gets reset if it changes.
+	 */
+	private volatile Long inflation;
 
 	/**
 	 * Enough gas for a simple get method.
@@ -152,6 +157,7 @@ public class NodeCachesImpl implements NodeCaches {
 		gasStation = Optional.empty();
 		gamete = Optional.empty();
 		gasPrice = null;
+		inflation = null;
 	}
 
 	@Override
@@ -171,6 +177,13 @@ public class NodeCachesImpl implements NodeCaches {
 			logger.info("recomputing the gas price cache since it has changed");
 			recomputeGasPrice();
 			logger.info("the gas price cache has been recomputed and changed from " + gasPriceBefore + " to " + gasPrice);
+		}
+
+		if (inflationMightHaveChanged(response, classLoader)) {
+			Long inflationBefore = inflation;
+			logger.info("recomputing the inflation cache since it has changed");
+			recomputeInflation();
+			logger.info("the inflation cache has been recomputed and changed from " + inflationBefore + " to " + inflation);
 		}
 	}
 
@@ -357,6 +370,14 @@ public class NodeCachesImpl implements NodeCaches {
 		return Optional.ofNullable(gasPrice);
 	}
 
+	@Override
+	public final Optional<Long> getCurrentInflation() {
+		if (inflation == null)
+			recomputeInflation();
+
+		return Optional.ofNullable(inflation);
+	}
+
 	/**
 	 * Yields the public key of the given externally owned account.
 	 * 
@@ -401,6 +422,19 @@ public class NodeCachesImpl implements NodeCaches {
 			}
 			catch (Throwable t) {
 				throw InternalFailureException.of("could not determine the gas price", t);
+			}
+	}
+
+	private void recomputeInflation() {
+		Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
+		if (manifest.isPresent())
+			try {
+				inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
+					CodeSignature.GET_CURRENT_INFLATION, getValidators().get()))).value;
+			}
+			catch (Throwable t) {
+				throw InternalFailureException.of("could not determine the current inflation", t);
 			}
 	}
 
@@ -471,7 +505,35 @@ public class NodeCachesImpl implements NodeCaches {
 		return false;
 	}
 
+	/**
+	 * Determines if the given response might change the current inflation.
+	 * 
+	 * @param response the response
+	 * @param classLoader the class loader used to build the response
+	 * @return true if the response changes the current inflation
+	 */
+	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+
+		// we check if there are events of type InflationUpdate triggered by the validators object
+		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			StorageReference validators = getValidators().get();
+
+			return events.filter(event -> isInflationUpdateEvent(event, classLoader))
+				.map(node.getStoreUtilities()::getCreatorUncommitted)
+				.anyMatch(validators::equals);
+		}
+
+		return false;
+	}
+
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
 		return classLoader.isGasPriceUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
+	}
+
+	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+		return classLoader.isInflationUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 }

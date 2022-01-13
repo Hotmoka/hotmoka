@@ -285,7 +285,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		/**
-		 * For system calls to the 
+		 * For system calls to the rewarding method of the validators.
 		 */
 		private void mintCoinsForRewardToValidators() {
 			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();

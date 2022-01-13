@@ -1,6 +1,7 @@
 #!/bin/bash
 
 INITIAL_SUPPLY=${INITIAL_SUPPLY:-100000000000000000000000000000}
+DELTA_SUPPLY=${DELTA_SUPPLY:-${INITIAL_SUPPLY}}
 OPEN_UNSIGNED_FAUCET=${OPEN_UNSIGNED_FAUCET:-false}
 ALLOW_MINT_BURN_FROM_GAMETE=${ALLOW_MINT_BURN_FROM_GAMETE:-false}
 KEY_OF_GAMETE=${KEY_OF_GAMETE:-missing}
@@ -15,6 +16,7 @@ echo
 echo "Starting a Tendermint Hotmoka node as the single initial validator of a brand new blockchain"
 echo "  CHAIN_ID=$CHAIN_ID"
 echo "  INITIAL_SUPPLY=$INITIAL_SUPPLY"
+echo "  DELTA_SUPPLY=$DELTA_SUPPLY"
 echo "  KEY_OF_GAMETE=$KEY_OF_GAMETE"
 echo "  INITIAL_GAS_PRICE=$INITIAL_GAS_PRICE"
 echo "  OPEN_UNSIGNED_FAUCET=$OPEN_UNSIGNED_FAUCET"
@@ -39,4 +41,4 @@ sed -i '/timeout_commit = /s/".*"/"'${TIMEOUT_COMMIT}s'"/' node0/config/config.t
 # invoke moka in a way that deletes the tendermint configuration that was initially
 # created into node0, so that we do not leave garbage around;
 # in any case, it has been copied inside the chain directory
-moka init-tendermint ${INITIAL_SUPPLY} --interactive=false --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --allow-mint-burn-from-gamete=${ALLOW_MINT_BURN_FROM_GAMETE} --key-of-gamete=${KEY_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-1.0.7.jar --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW} --oblivion ${OBLIVION} --inflation ${INFLATION} --initial-gas-price ${INITIAL_GAS_PRICE}
+moka init-tendermint ${INITIAL_SUPPLY} --delta-supply=${DELTA_SUPPLY} --interactive=false --open-unsigned-faucet=${OPEN_UNSIGNED_FAUCET} --allow-mint-burn-from-gamete=${ALLOW_MINT_BURN_FROM_GAMETE} --key-of-gamete=${KEY_OF_GAMETE} --takamaka-code /modules/explicit/io-takamaka-code-1.0.7.jar --tendermint-config=node0 --delete-tendermint-config --max-gas-per-view ${MAX_GAS_PER_VIEW} --oblivion ${OBLIVION} --inflation ${INFLATION} --initial-gas-price ${INITIAL_GAS_PRICE}

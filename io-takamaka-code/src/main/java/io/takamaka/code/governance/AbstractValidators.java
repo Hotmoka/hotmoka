@@ -276,9 +276,8 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 				else
 					currentInflation = BigInteger.valueOf(initialInflation).multiply(currentDelta).divide(delta).longValue();
 
-				if (currentInflation != oldCurrentInflation) {
-					// TODO: notify that inflation changed
-				}
+				if (currentInflation != oldCurrentInflation)
+					event(new InflationUpdate(currentInflation));
 			}
 		}
 	}
