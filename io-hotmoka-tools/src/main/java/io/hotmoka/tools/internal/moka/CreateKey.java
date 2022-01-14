@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import java.security.KeyPair;
+import java.util.Base64;
 
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
@@ -47,8 +48,11 @@ public class CreateKey extends AbstractCommand {
 			var signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
 			Entropy entropy = new Entropy();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
-			var publicKeyBase58 = Base58.encode(signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic()));
-			System.out.println("A new key " + publicKeyBase58 + " has been created.");
+			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());
+			var publicKeyBase58 = Base58.encode(publicKeyBytes);
+			System.out.println("A new key has been created.");
+			System.out.println("Key in Base58: " + publicKeyBase58);
+			System.out.println("Key in Base64: " + Base64.getEncoder().encodeToString(publicKeyBytes));
 			String fileName = entropy.dump(publicKeyBase58);
 			System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 		}

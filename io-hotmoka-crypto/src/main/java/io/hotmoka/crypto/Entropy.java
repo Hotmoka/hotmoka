@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -147,7 +146,15 @@ public class Entropy implements Comparable<Entropy> {
 	 * @throws IOException if the PEM file cannot be created
 	 */
 	public String dump(String filePrefix) throws IOException {
-		return dump(Paths.get("."), filePrefix);
+		PemObject pemObject = new PemObject("ENTROPY", entropy);
+		String fileName = filePrefix + ".pem";
+		Path resolved = Path.of(fileName);
+
+		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
+			pemWriter.writeObject(pemObject);
+		}
+
+		return resolved.toString();
 	}
 
 	/**

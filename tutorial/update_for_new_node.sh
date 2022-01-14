@@ -85,9 +85,8 @@ moka send 200000 $ACCOUNT1 --payer faucet --url=$NETWORK_URL --print-costs=false
 
 message "Sending coins to an anonymous key"
 RUN=$(moka create-key --password-of-new-key=kiwis --interactive=false)
-LINE1=$(echo "$RUN"| sed '1!d')
-LINE1=${LINE1:10}
-NEW_KEY=${LINE1::-18}
+LINE2=$(echo "$RUN"| sed '2!d')
+NEW_KEY=${LINE2:15}
 echo "  new key = $NEW_KEY"
 sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" create_from_source.sh
 moka send 10000 $NEW_KEY --anonymous --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false --print-costs=false >/dev/null
