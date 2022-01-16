@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -94,9 +95,11 @@ public abstract class AbstractCommand implements Runnable {
 		var keys = account.keys(password, algorithm);
 
 		try {
+			// we read the classpath of the account object
+			TransactionReference classpath = node.getClassTag(account.reference).jar;
 			// we read the public key stored inside the account in the node (it is Base64-encoded)
 			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account.reference, _100_000, node.getTakamakaCode(), CodeSignature.PUBLIC_KEY, account.reference))).value;
+				(account.reference, _100_000, classpath, CodeSignature.PUBLIC_KEY, account.reference))).value;
 			// we compare it with what we reconstruct from entropy and password
 			String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
 			if (!publicKeyAsGiven.equals(publicKeyAsFound))

@@ -40,7 +40,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -122,10 +121,8 @@ public class Call extends AbstractCommand {
 
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				if ("the classpath of the receiver".equals(Call.this.classpath)) {
-					ClassTag tag = node.getClassTag(new StorageReference(Call.this.receiver));
-					this.classpath = tag.jar;
-				}
+				if ("the classpath of the receiver".equals(Call.this.classpath))
+					this.classpath = node.getClassTag(new StorageReference(Call.this.receiver)).jar;
 				else
 					this.classpath = new LocalTransactionReference(Call.this.classpath);
 
@@ -224,7 +221,7 @@ public class Call extends AbstractCommand {
 			else {
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = new NonceHelper(node).getNonceOf(payer);
 				BigInteger gasPrice = getGasPrice();
