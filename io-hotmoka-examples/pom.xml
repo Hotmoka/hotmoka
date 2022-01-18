@@ -33,17 +33,14 @@
       <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
       </plugin>
-      <plugin>
+      <!--<plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>
-      </plugin>
+      </plugin>-->
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
         <version>3.2.0</version>
@@ -825,6 +822,12 @@
           <execution><id>tokens</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>tokens</classifier>
               <includes><include>io/hotmoka/examples/tokens/**</include></includes>
+            </configuration>
+          </execution>
+
+          <execution><id>wine</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>wine</classifier>
+              <includes><include>io/hotmoka/examples/wine/**</include></includes>
             </configuration>
           </execution>
 
