@@ -26,4 +26,6 @@ public interface LocalDate {
 	boolean isBefore(java.time.chrono.ChronoLocalDate other);
 	boolean isAfter(java.time.chrono.ChronoLocalDate other);
 	boolean isEqual(java.time.chrono.ChronoLocalDate other);
+	long toEpochDay();
+	java.time.LocalDate ofEpochDay(long epochDay);
 }
