@@ -1,14 +1,14 @@
 package io.hotmoka.examples.wine.resources;
 
+import io.hotmoka.examples.wine.staff.Authority;
+import io.hotmoka.examples.wine.staff.Role;
+import io.hotmoka.examples.wine.staff.SupplyChain;
+import io.hotmoka.examples.wine.staff.Worker;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Takamaka;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.hotmoka.examples.wine.staff.Authority;
-import io.hotmoka.examples.wine.staff.Role;
-import io.hotmoka.examples.wine.staff.SupplyChain;
-import io.hotmoka.examples.wine.staff.Worker;
 
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,9 +21,9 @@ public final class Bottle extends Resource {
     private String packaging;
     private String labelling;
     private Certification certification;
-    private String creationDate; // FIXME: LocalData not supported in Storage classes
+    private long creationDate;
     private int sold = 0;
-    private StorageList<String> saleDates = new StorageLinkedList<>(); // FIXME: LocalData not supported in Storage classes
+    private StorageList<String> saleDates = new StorageLinkedList<>();
 
     @FromContract
     public Bottle(SupplyChain chain, String name, String description, int amount, Resource origin) {
@@ -33,25 +33,21 @@ public final class Bottle extends Resource {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void setAttributes(int aging, String packaging, String labelling) {
+    public void setAttributes(Integer aging, String packaging, String labelling) {
         this.aging = aging;
         this.packaging = packaging;
         this.labelling = labelling;
-        creationDate = LocalDate.ofInstant
-                (Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome")).toString();
+        creationDate = LocalDate.ofInstant(Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome")).toEpochDay();
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void sell(int amount, Worker retailer) {
+    public void sell(Integer amount, Worker retailer) {
         require(retailer.getRole() == Role.RETAILER, "Only a retailer can sell bottles.");
         require(this.amount - sold > amount, "Check if there are enough bottles available.");
         sold += amount;
         LocalDate now = LocalDate.ofInstant
-                (Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome")); // LocalDateTime could be better here?
-        saleDates.add(now.toString());
-        // FIXME: toString() cause following error:
-        //  io.hotmoka.beans.TransactionException: io.hotmoka.nodes.NonWhiteListedCallException:
-        //  cannot prove that toString() on this object is deterministic and terminating
+                (Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome"));
+        saleDates.add(((Long) (now.toEpochDay())).toString());
         if (sold == amount)
             retailer.removeProduct(this);
     }

@@ -1,15 +1,15 @@
 package io.hotmoka.examples.wine.staff;
 
+import io.hotmoka.examples.wine.resources.Grape;
+import io.hotmoka.examples.wine.resources.GrapeState;
+import io.hotmoka.examples.wine.resources.Resource;
+import io.hotmoka.examples.wine.resources.Wine;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.hotmoka.examples.wine.resources.Grape;
-import io.hotmoka.examples.wine.resources.GrapeState;
-import io.hotmoka.examples.wine.resources.Resource;
-import io.hotmoka.examples.wine.resources.Wine;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -40,7 +40,8 @@ public class SupplyChain extends Contract {
 
     @FromContract(ExternallyOwnedAccount.class)
     public void add(Staff staff) {
-        require(caller() == owner || administrators.contains(caller()), "Only the owner and the administrators can add new Staff.");
+        require(caller() == owner || administrators.contains(caller()),
+                "Only the owner and the administrators can add new Staff.");
         if (staff instanceof Worker)
             workers.add((Worker) staff);
         else if (staff instanceof Administrator)
@@ -51,7 +52,8 @@ public class SupplyChain extends Contract {
 
     @FromContract(ExternallyOwnedAccount.class)
     public void remove(Staff staff) {
-        require(caller() == owner || administrators.contains(caller()), "Only the owner and the administrators can remove Staff.");
+        require(caller() == owner || administrators.contains(caller()),
+                "Only the owner and the administrators can remove Staff.");
         if (staff instanceof Worker)
             workers.remove(staff);
         else if (staff instanceof Administrator) // An Administrator can remove himself?
@@ -61,7 +63,7 @@ public class SupplyChain extends Contract {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void transferProduct(Resource product, Worker origin) {
+    public Worker transferProduct(Resource product, Worker origin) {
         require(origin.getRole() != Role.RETAILER, "Retailers are the last Workers in the supply chain.");
         require(workers.contains(origin), "The Worker has to operate in this chain.");
         require(origin.getProducts().contains(product),
@@ -81,6 +83,7 @@ public class SupplyChain extends Contract {
             }
         }
         require(next != null, "There are no next Workers available in the supply chain.");
+        return next;
     }
 
     @FromContract(ExternallyOwnedAccount.class)

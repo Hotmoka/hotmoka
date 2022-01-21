@@ -1,19 +1,21 @@
 package io.hotmoka.examples.wine.resources;
 
+import io.hotmoka.examples.wine.staff.Role;
+import io.hotmoka.examples.wine.staff.SupplyChain;
+import io.hotmoka.examples.wine.staff.Worker;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.hotmoka.examples.wine.staff.Role;
-import io.hotmoka.examples.wine.staff.SupplyChain;
-import io.hotmoka.examples.wine.staff.Worker;
+
+import java.time.LocalDate;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
 public final class Vine extends Resource {
     private StorageList<String> fertilizers = new StorageLinkedList<>();
     private StorageList<String> pesticides = new StorageLinkedList<>();
-    private String harvest; // FIXME: LocalDate not supported in Storage class
+    private long harvest;
 
     @FromContract
     public Vine(SupplyChain chain, String name, String description, int amount, Resource origin) {
@@ -33,7 +35,7 @@ public final class Vine extends Resource {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void setHarvestDate(String date) {
-        harvest = date;
-    } // TODO: Use LocalDate.parse() if possible
+    public void setHarvestDate(Integer day, Integer month, Integer year) {
+        harvest = LocalDate.of(year, month, day).toEpochDay();
+    }
 }

@@ -1,11 +1,11 @@
 package io.hotmoka.examples.wine.staff;
 
+import io.hotmoka.examples.wine.resources.*;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
-import io.hotmoka.examples.wine.resources.*;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -15,7 +15,7 @@ public final class Worker extends Staff {
     private StorageList<Resource> products = new StorageLinkedList<>();
     private boolean waiting = false;
 
-    public Worker(ExternallyOwnedAccount owner, String name, Role role, int max_products) {
+    public Worker(ExternallyOwnedAccount owner, String name, Role role, Integer max_products) {
         super(owner, name);
         this.role = role;
         this.max_products = max_products;
@@ -37,7 +37,8 @@ public final class Worker extends Staff {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void addProduct(SupplyChain chain, String name, String description, int amount, Resource prevProduct) {
+    public Resource addProduct(SupplyChain chain, String name, String description, Integer amount,
+                               Resource prevProduct) {
         require(caller() == owner,
                 "Only this worker can add a new product to his own products.");
         require(chain != null, "The SupplyChain must exist.");
@@ -46,21 +47,24 @@ public final class Worker extends Staff {
         require(isAvailable(), "This Worker cannot accept more products.");
         // Except for Vine, every product in this phase is completely transformed in the next one,
         // so it is removed from the ones possessed
+        Resource product = null;
         if (prevProduct == null)
-            products.add(new Vine(chain, name, description, amount, null));
+            product = new Vine(chain, name, description, amount, null);
         else if (prevProduct instanceof Vine)
-            products.add(new Grape(chain, name, description, amount, prevProduct));
+            product = new Grape(chain, name, description, amount, prevProduct);
         else if (prevProduct instanceof Grape) {
-            products.add(new Must(chain, name, description, amount, prevProduct));
+            product = new Must(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
         } else if (prevProduct instanceof Must) {
-            products.add(new Wine(chain, name, description, amount, prevProduct));
+            product = new Wine(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
         } else if (prevProduct instanceof Wine) {
-            products.add(new Bottle(chain, name, description, amount, prevProduct));
+            product = new Bottle(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
         }
+        products.add(product);
         checkNewProducts();
+        return product;
     }
 
     @FromContract
