@@ -6,6 +6,7 @@ import io.hotmoka.examples.wine.staff.Worker;
 import io.takamaka.code.lang.*;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageListView;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -43,14 +44,12 @@ class Resource extends Storage {
         return origin;
     }
 
-    @View
-    public StorageList<Resource> getProduced() {
-        return produced;
+    public StorageListView<Resource> getProduced() {
+        return produced.snapshot();
     }
 
-    @View
-    public StorageList<Worker> getProducers() {
-        return producers;
+    public StorageListView<Worker> getProducers() {
+        return producers.snapshot();
     }
 
     @View

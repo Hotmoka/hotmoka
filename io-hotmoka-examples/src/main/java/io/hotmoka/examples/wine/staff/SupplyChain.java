@@ -7,9 +7,9 @@ import io.hotmoka.examples.wine.resources.Wine;
 import io.takamaka.code.lang.Contract;
 import io.takamaka.code.lang.ExternallyOwnedAccount;
 import io.takamaka.code.lang.FromContract;
-import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageListView;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -23,19 +23,16 @@ public class SupplyChain extends Contract {
         this.owner = owner;
     }
 
-    @View
-    public StorageList<Worker> getWorkers() {
-        return workers;
+    public StorageListView<Worker> getWorkers() {
+        return workers.snapshot();
     }
 
-    @View
-    public StorageList<Administrator> getAdministrators() {
-        return administrators;
+    public StorageListView<Administrator> getAdministrators() {
+        return administrators.snapshot();
     }
 
-    @View
-    public StorageList<Authority> getAuthorities() {
-        return authorities;
+    public StorageListView<Authority> getAuthorities() {
+        return authorities.snapshot();
     }
 
     @FromContract(ExternallyOwnedAccount.class)

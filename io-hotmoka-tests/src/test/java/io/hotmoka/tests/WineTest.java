@@ -269,18 +269,27 @@ class WineTest extends TakamakaTest {
         // Add and remove a Worker from the SupplyChain (by owner)
         addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1), jar(), ADD_STAFF,
                 chain, producer_obj, administrator_obj);
-        /*
-        // TODO: Check in the Storage Lists that the a new Staff is added/removed
+
+        // Check that a new Worker is added in the list
         StorageReference workers =
                 (StorageReference) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LINKED_LIST);, chain);
+                        new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LIST), chain);
         IntValue workers_size =
                 (IntValue) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(ClassType.STORAGE_LINKED_LIST, "size", BasicTypes.INT), workers);
-        Assertions.assertTrue(workers_size.value == 1);
-         */
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
+        Assertions.assertEquals(1, workers_size.value);
+
         addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1), jar(),
                 REMOVE_STAFF, chain, producer_obj, administrator_obj);
+
+        // Check that a Worker is removed from the list
+        workers =
+                (StorageReference) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LIST), chain);
+        workers_size =
+                (IntValue) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
+        Assertions.assertEquals(0, workers_size.value);
 
         // Remove an Administrator from the SupplyChain
         addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(), REMOVE_STAFF, chain,
@@ -327,6 +336,28 @@ class WineTest extends TakamakaTest {
         Assertions.assertThrows(TransactionException.class,
                 () -> transferProduct(chain, producer_obj, producer, producer_prv_key, grape));
 
+        // Check that a new Resource is added to the products list of the receiver
+        StorageReference products =
+                (StorageReference) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
+                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getProducts",
+                                ClassType.STORAGE_LIST), wine_making_centre_obj);
+        IntValue products_size =
+                (IntValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre, _500_000,
+                        panarea(1), jar(), new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size",
+                                BasicTypes.INT), products);
+        Assertions.assertEquals(1, products_size.value);
+
+        //  Check that the producers list of Grape is updated when it is transferred
+        StorageReference producers =
+                (StorageReference) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
+                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(RESOURCE, "getProducers",
+                                ClassType.STORAGE_LIST), grape);
+        IntValue producers_size =
+                (IntValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre, _500_000,
+                        panarea(1), jar(), new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT)
+                        , producers);
+        Assertions.assertEquals(2, producers_size.value);
+
         // Create Must and Wine from Grape and transfer it to the bottling centre
         StorageReference must = newProduct(chain, wine_making_centre_obj, wine_making_centre,
                 wine_making_centre_prv_key, "Must", "", 100, grape);
@@ -368,9 +399,6 @@ class WineTest extends TakamakaTest {
         Assertions.assertThrows(TransactionException.class,
                 () -> transferProduct(chain, retailer_obj, retailer, retailer_prv_key,
                         bottle));
-
-        // TODO: Check that new Resources are added to the products list of the Workers
-        // TODO: Check that a the producers list is updated when a Resource is transferred
     }
 
     @Test
@@ -404,7 +432,17 @@ class WineTest extends TakamakaTest {
         addInstanceMethodCallTransaction(producer_prv_key, producer, _500_000, panarea(1), jar(),
                 new VoidMethodSignature(SUPPLYCHAIN, "callAuthority", RESOURCE, WORKER), chain,
                 grape, producer_obj);
-        // TODO: Check that a new Resource is added during the calls
+
+        // Check that a new Resource is added after the call
+        StorageReference products =
+                (StorageReference) addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1),
+                        jar(), new NonVoidMethodSignature(AUTHORITY, "getProducts", ClassType.STORAGE_LIST),
+                        authority_obj);
+        IntValue products_size =
+                (IntValue) addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
+        Assertions.assertEquals(1, products_size.value);
+
         addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1), jar(),
                 new VoidMethodSignature(GRAPE, "setState", GRAPE_STATE, AUTHORITY), grape,
                 new EnumValue(GRAPE_STATE.name, "ELIGIBLE"), authority_obj);
@@ -633,7 +671,28 @@ class WineTest extends TakamakaTest {
                 new VoidMethodSignature(BOTTLE, "sell", BasicTypes.INT, WORKER), bottle, new IntValue(3),
                 retailer_obj);
 
-        // TODO: If all Bottles are sold, check that the retailer doesn't possess the product anymore...
+        // If all Bottles are sold, check that the retailer doesn't possess the product anymore
+        StorageReference products =
+                (StorageReference) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1),
+                        jar(), new NonVoidMethodSignature(WORKER, "getProducts", ClassType.STORAGE_LIST),
+                        retailer_obj);
+        IntValue products_size =
+                (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
+        Assertions.assertEquals(1, products_size.value);
+
+        addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
+                new VoidMethodSignature(BOTTLE, "sell", BasicTypes.INT, WORKER), bottle, new IntValue(7),
+                retailer_obj);
+
+        products =
+                (StorageReference) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1),
+                        jar(), new NonVoidMethodSignature(WORKER, "getProducts", ClassType.STORAGE_LIST),
+                        retailer_obj);
+        products_size =
+                (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
+        Assertions.assertEquals(0, products_size.value);
     }
 
     @Test

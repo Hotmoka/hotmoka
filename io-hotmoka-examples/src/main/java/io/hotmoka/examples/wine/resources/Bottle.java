@@ -46,12 +46,12 @@ public final class Bottle extends Resource {
     public void sell(int amount, Worker retailer) {
         require(producers.contains(retailer) && retailer.getRole() == Role.RETAILER, "Only a retailer can sell" +
                 "  bottles.");
-        require(this.amount - sold > amount, "Check if there are enough bottles available.");
+        require(this.amount - sold >= amount, "Check if there are enough bottles available.");
         sold += amount;
         LocalDate now = LocalDate.ofInstant
                 (Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome"));
         saleDates.add(((Long) (now.toEpochDay())).toString());
-        if (sold == amount)
+        if (sold == this.amount)
             retailer.removeProduct(this);
     }
 

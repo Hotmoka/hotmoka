@@ -6,6 +6,7 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.View;
 import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
+import io.takamaka.code.util.StorageListView;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -27,9 +28,8 @@ public final class Worker extends Staff {
         return role;
     }
 
-    @View
-    public StorageList<Resource> getProducts() {
-        return products;
+    public StorageListView<Resource> getProducts() {
+        return products.snapshot();
     }
 
     @View
