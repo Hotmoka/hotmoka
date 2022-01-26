@@ -158,6 +158,18 @@ public class Entropy implements Comparable<Entropy> {
 	}
 
 	/**
+	 * Deletes the PEM file in the current directory.
+	 * 
+	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
+	 * @throws IOException if the PEM file cannot be deleted
+	 */
+	public void delete(String filePrefix) throws IOException {
+		String fileName = filePrefix + ".pem";
+		Path resolved = Path.of(fileName);
+		Files.delete(resolved);
+	}
+
+	/**
 	 * Constructs the key pair of this entropy, from the given password.
 	 * 
 	 * @param password the password

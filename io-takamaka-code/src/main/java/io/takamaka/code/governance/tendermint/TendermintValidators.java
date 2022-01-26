@@ -26,6 +26,8 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
+import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
 /**
  * The validators of a Tendermint blockchain. They have an ED25519 public key
@@ -34,13 +36,11 @@ import io.takamaka.code.lang.Storage;
 public class TendermintValidators extends AbstractValidators<TendermintED25519Validator> {
 
 	/**
-	 * Creates a set of validators of a Tendermint blockchain, from their public keys and powers.
+	 * Creates a set of validators of a Tendermint blockchain.
 	 * 
 	 * @param manifest the manifest of the node having these validators
-	 * @param publicKeys the public keys of the initial validators, as a space-separated
-	 *                   sequence of Base64-encoded ED25519 publicKeys
-	 * @param powers the initial powers of the initial validators, as a space-separated sequence of integers;
-	 *               they must be as many as there are public keys in {@code publicKeys}
+	 * @param validators the initial validators
+	 * @param powers the initial powers of the initial validators
 	 * @param ticketForNewPoll the amount of coins to pay for starting a new poll among the validators;
 	 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
 	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
@@ -51,14 +51,8 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 	 *                  	   10,000,000 means 100%, 20,000,000 means 200% and so on.
 	 *                  	   Inflation can be negative. For instance, -30,000 means -0.3%
 	 */
-	private TendermintValidators(Manifest<TendermintED25519Validator> manifest, String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
-		super(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll, finalSupply, initialInflation);
-	}
-
-	private static TendermintED25519Validator[] buildValidators(String publicKeysAsStringSequence) {
-		return splitAtSpaces(publicKeysAsStringSequence).stream()
-			.map(TendermintED25519Validator::new)
-			.toArray(TendermintED25519Validator[]::new);
+	private TendermintValidators(Manifest<TendermintED25519Validator> manifest, TendermintED25519Validator[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
+		super(manifest, validators, powers, ticketForNewPoll, finalSupply, initialInflation);
 	}
 
 	@Override
@@ -72,23 +66,27 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 
 	@Exported
 	public static class Builder extends Storage implements Function<Manifest<TendermintED25519Validator>, TendermintValidators> {
-		private final String publicKeys;
-		private final String powers;
+		private final StorageList<TendermintED25519Validator> validators = new StorageLinkedList<>();
+		private final StorageList<BigInteger> powers = new StorageLinkedList<>();
 		private final BigInteger ticketForNewPoll;
 		private final BigInteger finalSupply;
 		private final long initialInflation;
 
-		public Builder(String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
-			this.publicKeys = publicKeys;
-			this.powers = powers;
+		public Builder(BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 			this.ticketForNewPoll = ticketForNewPoll;
 			this.finalSupply = finalSupply;
 			this.initialInflation = initialInflation;
 		}
 
+		public void addValidator(String publicKey, long power) {
+			validators.add(new TendermintED25519Validator(publicKey));
+			powers.add(BigInteger.valueOf(power));
+		}
+
 		@Override
 		public TendermintValidators apply(Manifest<TendermintED25519Validator> manifest) {
-			return new TendermintValidators(manifest, publicKeys, powers, ticketForNewPoll, finalSupply, initialInflation);
+			return new TendermintValidators(manifest, validators.toArray(TendermintED25519Validator[]::new),
+				powers.toArray(BigInteger[]::new), ticketForNewPoll, finalSupply, initialInflation);
 		}
 	}
 }

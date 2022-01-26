@@ -27,8 +27,19 @@ import java.util.Comparator;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Entropy;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.nodes.ConsensusParams;
@@ -95,8 +106,11 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
 
-	@Option(names = { "--delete-tendermint-config" }, description = "deletes the directory of the Tendermint configuration after starting the node")
+	@Option(names = { "--delete-tendermint-config" }, description = "delete the directory of the Tendermint configuration after starting the node")
 	private boolean deleteTendermintConfig;
+
+	@Option(names = { "--bind-validators" }, description = "bind the pem of the keys of the validators, if they exist")
+	private boolean bindValidators;
 
 	@Override
 	protected void execute() throws Exception {
@@ -144,11 +158,42 @@ public class InitTendermint extends AbstractCommand {
 				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCode);
 				NodeService service = NodeService.of(networkConfig, initialized)) {
 
+				bindValidators();
 				cleanUp();
 				printManifest();
 				printBanner();
 				dumpInstructionsToBindGamete();
 				waitForEnterKey();
+			}
+		}
+
+		private void bindValidators() throws Exception {
+			if (bindValidators) {
+				TransactionReference takamakaCode = initialized.getTakamakaCode();
+				StorageReference manifest = initialized.getManifest();
+				StorageReference validators = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
+				StorageReference shares = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), validators));
+				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
+				for (int num = 0; num < numOfValidators; num++) {
+					StorageReference validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).value;
+					String publicKeyBase58 = Base58.encode(Base64.getDecoder().decode(publicKeyBase64));
+					// the pem file, if it exists, is named with the public key, base58
+					try {
+						Entropy entropy = new Entropy(publicKeyBase58);
+						String fileName = new Account(entropy, validator).dump(dir);
+						entropy.delete(publicKeyBase58);
+						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + fileName + "\".");
+					}
+					catch (IOException e) {
+						System.out.println("Could not bind the key of validator #" + num + "!");
+					}
+				}
 			}
 		}
 

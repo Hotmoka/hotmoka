@@ -136,7 +136,17 @@ public class Account extends Entropy {
 	 * @throws IOException if the PEM file cannot be created
 	 */
 	public String dump() throws IOException {
-		return super.dump(reference.toString());
+		return dump(reference.toString());
+	}
+
+	/**
+	 * Removes the PEM file, in the current directory,
+	 * with the name of the reference of this account, if it exists.
+	 * 
+	 * @throws IOException if the PEM file cannot be deleted
+	 */
+	public void delete() throws IOException {
+		delete(reference.toString());
 	}
 
 	/**

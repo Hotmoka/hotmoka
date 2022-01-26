@@ -31,7 +31,6 @@ import java.util.Base64.Encoder;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.slf4j.Logger;
@@ -54,6 +53,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
@@ -130,25 +130,32 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 
 		Encoder encoder = Base64.getEncoder();
 		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
-		String publicKeys = Stream.of(tendermintValidators)
-			.map(TendermintInitializedNodeImpl::publicKeyFromTendermintValidator)
-			.map(ed25519::encodingOf)
-			.map(encoder::encodeToString)
-			.collect(Collectors.joining(" "));
 
-		String powers = Stream.of(tendermintValidators)
-			.map(TendermintInitializedNodeImpl::powerFromTendermintValidator)
-			.map(String::valueOf)
-			.collect(Collectors.joining(" "));
-
-		// we create the builder of the validators, passing the public keys of the validators and their powers
+		// we create the builder of the validators
+		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		String builderClassName = ClassType.TENDERMINT_VALIDATORS + "$Builder";
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(new byte[0], gamete, nonceOfGamete, "", BigInteger.valueOf(100_000), ZERO, takamakaCodeReference,
-			new ConstructorSignature(ClassType.TENDERMINT_VALIDATORS + "$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
-			new StringValue(publicKeys), new StringValue(powers), new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
+			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+			new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
 			new LongValue(consensus.initialInflation));
+		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 
 		StorageReference builder = node.addConstructorCallTransaction(request);
+
+		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
+		VoidMethodSignature addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", ClassType.STRING, BasicTypes.LONG);
+		for (TendermintValidator tv: tendermintValidators) {
+			String publicKeyBase64 = encoder.encodeToString(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
+			long power = powerFromTendermintValidator(tv);
+			InstanceMethodCallTransactionRequest addValidator = new InstanceMethodCallTransactionRequest
+				(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+				addValidatorMethod,
+				builder,
+				new StringValue(publicKeyBase64), new LongValue(power));
+			node.addInstanceMethodCallTransaction(addValidator);
+			nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
+		}
 
 		Stream.of(tendermintValidators)
 			.forEachOrdered(tv -> logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power));
