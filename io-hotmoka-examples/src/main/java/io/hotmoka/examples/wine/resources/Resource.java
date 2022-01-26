@@ -1,11 +1,11 @@
 package io.hotmoka.examples.wine.resources;
 
-import io.takamaka.code.lang.*;
-import io.takamaka.code.util.StorageLinkedList;
-import io.takamaka.code.util.StorageList;
 import io.hotmoka.examples.wine.staff.Staff;
 import io.hotmoka.examples.wine.staff.SupplyChain;
 import io.hotmoka.examples.wine.staff.Worker;
+import io.takamaka.code.lang.*;
+import io.takamaka.code.util.StorageLinkedList;
+import io.takamaka.code.util.StorageList;
 
 import static io.takamaka.code.lang.Takamaka.require;
 
@@ -15,7 +15,7 @@ class Resource extends Storage {
     protected final SupplyChain chain;
     protected final String name;
     protected String description;
-    protected int amount;
+    protected final int amount;
     protected final Resource origin;
     protected StorageList<Resource> produced = new StorageLinkedList<>();
     protected StorageList<Worker> producers = new StorageLinkedList<>();
@@ -38,9 +38,34 @@ class Resource extends Storage {
         return chain;
     }
 
+    @View
+    public Resource getOrigin() {
+        return origin;
+    }
+
+    @View
+    public StorageList<Resource> getProduced() {
+        return produced;
+    }
+
+    @View
+    public StorageList<Worker> getProducers() {
+        return producers;
+    }
+
+    @View
+    public String getAnalysisResults() {
+        return analysis;
+    }
+
+    @FromContract(SupplyChain.class)
+    public void addProducer(Worker worker) {
+        producers.add(worker);
+    }
+
     @FromContract(ExternallyOwnedAccount.class)
     public void addAnalysisResults(String url, Staff staff) {
-        require((chain.getWorkers().contains(staff) && ((Worker) staff).getProducts().contains(this))
+        require((chain.getWorkers().contains(staff) && producers.contains(staff))
                         || chain.getAuthorities().contains(staff),
                 "Only the Worker who currently possess the resource or the Authority can add a new analysis.");
         analysis = url;

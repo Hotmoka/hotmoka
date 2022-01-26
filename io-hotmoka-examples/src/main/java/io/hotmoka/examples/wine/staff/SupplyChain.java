@@ -39,8 +39,8 @@ public class SupplyChain extends Contract {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void add(Staff staff) {
-        require(caller() == owner || administrators.contains(caller()),
+    public void add(Staff staff, Administrator administrator) {
+        require(caller() == owner || (administrators.contains(administrator) && administrator != staff),
                 "Only the owner and the administrators can add new Staff.");
         if (staff instanceof Worker)
             workers.add((Worker) staff);
@@ -51,12 +51,12 @@ public class SupplyChain extends Contract {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void remove(Staff staff) {
-        require(caller() == owner || administrators.contains(caller()),
+    public void remove(Staff staff, Administrator administrator) {
+        require(caller() == owner || (administrators.contains(administrator) && administrator != staff),
                 "Only the owner and the administrators can remove Staff.");
         if (staff instanceof Worker)
             workers.remove(staff);
-        else if (staff instanceof Administrator) // An Administrator can remove himself?
+        else if (staff instanceof Administrator)
             administrators.remove(staff);
         else
             authorities.remove(staff);
@@ -64,8 +64,8 @@ public class SupplyChain extends Contract {
 
     @FromContract(ExternallyOwnedAccount.class)
     public Worker transferProduct(Resource product, Worker origin) {
-        require(origin.getRole() != Role.RETAILER, "Retailers are the last Workers in the supply chain.");
         require(workers.contains(origin), "The Worker has to operate in this chain.");
+        require(origin.getRole() != Role.RETAILER, "Retailers are the last Workers in the supply chain.");
         require(origin.getProducts().contains(product),
                 "The Resource must be one of the products possessed by the Worker.");
         if (product instanceof Grape)
@@ -79,6 +79,7 @@ public class SupplyChain extends Contract {
                 next.addProduct(product);
                 next.notifyNewProduct();
                 origin.removeProduct(product);
+                product.addProducer(next);
                 break;
             }
         }
@@ -88,9 +89,10 @@ public class SupplyChain extends Contract {
 
     @FromContract(ExternallyOwnedAccount.class)
     public void callAuthority(Resource product, Worker origin) {
-        require(origin.getRole() == Role.PRODUCER || origin.getRole() == Role.WINE_MAKING_CENTRE,
-                "Only resources to be checked are Grape and Wine.");
         require(workers.contains(origin), "The Worker has to operate in this chain.");
+        require((product instanceof Grape && origin.getRole() == Role.PRODUCER) ||
+                        (product instanceof Wine && origin.getRole() == Role.WINE_MAKING_CENTRE),
+                "Only resources to be checked are Grape and Wine.");
         if (product instanceof Grape)
             require(((Grape) product).getState() != GrapeState.ELIGIBLE,
                     "If Grape is already eligible it can be transferred.");

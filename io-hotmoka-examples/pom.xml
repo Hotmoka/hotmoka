@@ -1851,6 +1851,20 @@
                         </configuration>
                     </execution>
 
+                    <execution>
+                        <id>wine</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <classifier>wine</classifier>
+                            <includes>
+                                <include>io/hotmoka/examples/wine/**</include>
+                            </includes>
+                        </configuration>
+                    </execution>
+
                 </executions>
             </plugin>
 

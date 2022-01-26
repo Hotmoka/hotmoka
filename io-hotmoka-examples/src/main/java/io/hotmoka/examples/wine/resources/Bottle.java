@@ -30,19 +30,22 @@ public final class Bottle extends Resource {
         super(chain, name, description, amount, origin);
         require(((Worker) caller()).getRole() == Role.BOTTLING_CENTRE,
                 "Only a Bottling Centre can create a new object Bottle.");
-    }
-
-    @FromContract(ExternallyOwnedAccount.class)
-    public void setAttributes(Integer aging, String packaging, String labelling) {
-        this.aging = aging;
-        this.packaging = packaging;
-        this.labelling = labelling;
         creationDate = LocalDate.ofInstant(Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome")).toEpochDay();
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void sell(Integer amount, Worker retailer) {
-        require(retailer.getRole() == Role.RETAILER, "Only a retailer can sell bottles.");
+    public void setAttributes(int aging, String packaging, String labelling, Worker bottling_centre) {
+        require(producers.contains(bottling_centre) && bottling_centre.getRole() == Role.BOTTLING_CENTRE,
+                "Only a Worker who created the bottles can set their attributes.");
+        this.aging = aging;
+        this.packaging = packaging;
+        this.labelling = labelling;
+    }
+
+    @FromContract(ExternallyOwnedAccount.class)
+    public void sell(int amount, Worker retailer) {
+        require(producers.contains(retailer) && retailer.getRole() == Role.RETAILER, "Only a retailer can sell" +
+                "  bottles.");
         require(this.amount - sold > amount, "Check if there are enough bottles available.");
         sold += amount;
         LocalDate now = LocalDate.ofInstant

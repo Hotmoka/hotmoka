@@ -25,17 +25,23 @@ public final class Vine extends Resource {
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void addFertilizer(String fertilizer) {
+    public void addFertilizer(String fertilizer, Worker producer) {
+        require(producers.contains(producer) && producer.getRole() == Role.PRODUCER,
+                "Only a Worker who is taking care of the Vine can add fertilizers.");
         fertilizers.add(fertilizer);
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void addPesticide(String pesticide) {
+    public void addPesticide(String pesticide, Worker producer) {
+        require(producers.contains(producer) && producer.getRole() == Role.PRODUCER,
+                "Only a Worker who is taking care of the Vine can add pesticides.");
         fertilizers.add(pesticide);
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public void setHarvestDate(Integer day, Integer month, Integer year) {
+    public void setHarvestDate(int day, int month, int year, Worker producer) {
+        require(producers.contains(producer) && producer.getRole() == Role.PRODUCER,
+                "Only a Worker who is taking care of the Vine can set its harvest date.");
         harvest = LocalDate.of(year, month, day).toEpochDay();
     }
 }

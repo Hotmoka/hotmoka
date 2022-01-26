@@ -13,11 +13,12 @@ public final class Worker extends Staff {
     private final Role role;
     private int max_products;
     private StorageList<Resource> products = new StorageLinkedList<>();
-    private boolean waiting = false;
+    private boolean pending = false;
 
-    public Worker(ExternallyOwnedAccount owner, String name, Role role, Integer max_products) {
+    public Worker(ExternallyOwnedAccount owner, String name, Role role, int max_products) {
         super(owner, name);
         this.role = role;
+        require(max_products >= 0, "Number of maximum products must be greater or equal to zero.");
         this.max_products = max_products;
     }
 
@@ -32,12 +33,24 @@ public final class Worker extends Staff {
     }
 
     @View
+    public boolean getPending() {
+        return pending;
+    }
+
+    @View
     public boolean isAvailable() {
         return products.size() < max_products;
     }
 
     @FromContract(ExternallyOwnedAccount.class)
-    public Resource addProduct(SupplyChain chain, String name, String description, Integer amount,
+    public void setMaxProducts(int amount) {
+        require(caller() == owner, "Only this Worker can modify its attributes.");
+        require(max_products >= 0, "Number of maximum products must be greater or equal to zero.");
+        max_products = amount;
+    }
+
+    @FromContract(ExternallyOwnedAccount.class)
+    public Resource addProduct(SupplyChain chain, String name, String description, int amount,
                                Resource prevProduct) {
         require(caller() == owner,
                 "Only this worker can add a new product to his own products.");
@@ -70,7 +83,7 @@ public final class Worker extends Staff {
     @FromContract
     public void addProduct(Resource product) {
         require(caller() == owner || caller() instanceof SupplyChain,
-                "Only the current worker or the supply chain can add products.");
+                "Only the current Worker or the SupplyChain can add products.");
         require(isAvailable(), "This Worker cannot accept more products.");
         products.add(product);
     }
@@ -79,17 +92,25 @@ public final class Worker extends Staff {
         products.remove(product);
     }
 
+    // Notify the Worker that a new Resource from is arrived (from the previous Worker in the chain)
     @FromContract(SupplyChain.class)
     public void notifyNewProduct() {
-        waiting = true;
+        pending = true;
     }
 
-    // Check if there are still new products waiting to be processed
+    // Check if there are still new Resources waiting to be processed
     private void checkNewProducts() {
         boolean newProducts = false;
         if (role == Role.WINE_MAKING_CENTRE) {
             for (Resource resource : products) {
                 if (resource instanceof Grape) {
+                    newProducts = true;
+                    break;
+                }
+            }
+        } else if (role == Role.BOTTLING_CENTRE) {
+            for (Resource resource : products) {
+                if (resource instanceof Wine) {
                     newProducts = true;
                     break;
                 }
@@ -102,6 +123,6 @@ public final class Worker extends Staff {
                 }
             }
         }
-        waiting = newProducts;
+        pending = newProducts;
     }
 }
