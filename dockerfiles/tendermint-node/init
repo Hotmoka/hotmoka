@@ -30,18 +30,18 @@ echo "  TIMEOUT_COMMIT=$TIMEOUT_COMMIT"
 VALIDATOR_ACCOUNT_CREATION=$(moka create-key --password-of-new-key= --interactive=false --private-key)
 LINE3=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '3!d')
 PUBLIC_KEY_BASE64=${LINE3:19}
-echo "  PUBLIC KEY OF THE VALIDATOR=$PUBLIC_KEY_BASE64"
+echo "  PUBLIC KEY OF THIS NODE AS VALIDATOR=$PUBLIC_KEY_BASE64"
 LINE6=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '6!d')
 CONCATENATED_KEYS_BASE64=${LINE6:40}
 LINE7=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '7!d')
 TENDERMINT_ADDRESS=${LINE7:25}
-echo "  TENDERMINT ADDRESS OF THE VALIDATOR=$TENDERMINT_ADDRESS"
+echo "  TENDERMINT ADDRESS OF THIS NODE AS VALIDATOR=$TENDERMINT_ADDRESS"
 VALIDATOR_ACCOUNT_CREATION=
 
 # create an initial Tendermint configuration, that later will be modified for our needs
 tendermint testnet --v 1 --o . >> /dev/null
 
-# we replace the validator's key used by Tendermint with the that created above
+# we replace the validator's key used by Tendermint with that created above
 echo "{
   \"address\": \"${TENDERMINT_ADDRESS}\",
   \"pub_key\": {

@@ -67,8 +67,38 @@ INITIAL_VALIDATORS_JSON=$'\n'"${INITIAL_VALIDATORS_JSON}"$'\n  '
 
 echo "    INITIAL_VALIDATORS_JSON=$INITIAL_VALIDATORS_JSON"
 
+# create the key pair of the validator account (used only if the node will ever become a validator)
+VALIDATOR_ACCOUNT_CREATION=$(moka create-key --password-of-new-key= --interactive=false --private-key)
+LINE2=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '2!d')
+PUBLIC_KEY_BASE58=${LINE2:19}
+LINE3=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '3!d')
+PUBLIC_KEY_BASE64=${LINE3:19}
+echo "  PUBLIC KEY OF THIS NODE AS VALIDATOR=$PUBLIC_KEY_BASE64"
+LINE6=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '6!d')
+CONCATENATED_KEYS_BASE64=${LINE6:40}
+LINE7=$(echo "$VALIDATOR_ACCOUNT_CREATION"| sed '7!d')
+TENDERMINT_ADDRESS=${LINE7:25}
+echo "  TENDERMINT ADDRESS OF THIS NODE AS VALIDATOR=$TENDERMINT_ADDRESS"
+echo "  KEY FILE OF THIS NODE AS VALIDATOR=${PUBLIC_KEY_BASE58}.pem"
+VALIDATOR_ACCOUNT_CREATION=
+
 # create an initial Tendermint configuration, that later will be modified for our needs
 tendermint testnet --v 0 --n 1 --o . >> /dev/null
+
+# we replace the validator's key used by Tendermint with that created above
+echo "{
+  \"address\": \"${TENDERMINT_ADDRESS}\",
+  \"pub_key\": {
+    \"type\": \"tendermint/PubKeyEd25519\",
+    \"value\": \"${PUBLIC_KEY_BASE64}\"
+  },
+  \"priv_key\": {
+    \"type\": \"tendermint/PrivKeyEd25519\",
+    \"value\": \"${CONCATENATED_KEYS_BASE64}\"
+  }
+}" > node0/config/priv_validator_key.json
+
+CONCATENATED_KEYS_BASE64=
 
 # set the chain id as in the remote node
 sed -i '/"chain_id": /s/".*"/"chain_id": "'$CHAIN_ID'"/' node0/config/genesis.json
