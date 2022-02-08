@@ -51,8 +51,10 @@ public final class Bottle extends Resource {
         LocalDate now = LocalDate.ofInstant
                 (Instant.ofEpochMilli(Takamaka.now()), ZoneId.of("Europe/Rome"));
         saleDates.add(((Long) (now.toEpochDay())).toString());
-        if (sold == this.amount)
+        if (sold == this.amount) {
             retailer.removeProduct(this);
+            retailer.removePending();
+        }
     }
 
     @FromContract(ExternallyOwnedAccount.class)

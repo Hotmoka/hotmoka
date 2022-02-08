@@ -11,6 +11,7 @@ import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageListView;
 
+import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 public class SupplyChain extends Contract {
@@ -74,7 +75,8 @@ public class SupplyChain extends Contract {
             if (worker.getRole().ordinal() == origin.getRole().ordinal() + 1 && worker.isAvailable()) {
                 next = worker;
                 next.addProduct(product);
-                next.notifyNewProduct();
+                //next.notifyNewProduct(); // DELETE!
+                event(new ResourcePending(next));
                 origin.removeProduct(product);
                 product.addProducer(next);
                 break;

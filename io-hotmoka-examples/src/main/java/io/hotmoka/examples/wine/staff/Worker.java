@@ -8,13 +8,14 @@ import io.takamaka.code.util.StorageLinkedList;
 import io.takamaka.code.util.StorageList;
 import io.takamaka.code.util.StorageListView;
 
+import static io.takamaka.code.lang.Takamaka.event;
 import static io.takamaka.code.lang.Takamaka.require;
 
 public final class Worker extends Staff {
     private final Role role;
     private int max_products;
     private StorageList<Resource> products = new StorageLinkedList<>();
-    private boolean pending = false;
+    private int pending = 0;
 
     public Worker(ExternallyOwnedAccount owner, String name, Role role, int max_products) {
         super(owner, name);
@@ -33,7 +34,7 @@ public final class Worker extends Staff {
     }
 
     @View
-    public boolean getPending() {
+    public int getPending() {
         return pending;
     }
 
@@ -47,6 +48,14 @@ public final class Worker extends Staff {
         require(caller() == owner, "Only this Worker can modify its attributes.");
         require(max_products >= 0, "Number of maximum products must be greater or equal to zero.");
         max_products = amount;
+    }
+
+    public void addPending() {
+        this.pending++;
+    }
+
+    public void removePending() {
+        this.pending--;
     }
 
     @FromContract(ExternallyOwnedAccount.class)
@@ -76,7 +85,7 @@ public final class Worker extends Staff {
             products.remove(prevProduct);
         }
         products.add(product);
-        checkNewProducts();
+        event(new ResourceUsed(this));
         return product;
     }
 
@@ -90,39 +99,5 @@ public final class Worker extends Staff {
 
     public void removeProduct(Resource product) {
         products.remove(product);
-    }
-
-    // Notify the Worker that a new Resource from is arrived (from the previous Worker in the chain)
-    @FromContract(SupplyChain.class)
-    public void notifyNewProduct() {
-        pending = true;
-    }
-
-    // Check if there are still new Resources waiting to be processed
-    private void checkNewProducts() {
-        boolean newProducts = false;
-        if (role == Role.WINE_MAKING_CENTRE) {
-            for (Resource resource : products) {
-                if (resource instanceof Grape) {
-                    newProducts = true;
-                    break;
-                }
-            }
-        } else if (role == Role.BOTTLING_CENTRE) {
-            for (Resource resource : products) {
-                if (resource instanceof Wine) {
-                    newProducts = true;
-                    break;
-                }
-            }
-        } else if (role != Role.PRODUCER) {
-            for (Resource resource : products) {
-                if (resource instanceof Bottle) {
-                    newProducts = true;
-                    break;
-                }
-            }
-        }
-        pending = newProducts;
     }
 }

@@ -9,14 +9,19 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.*;
+import io.hotmoka.nodes.Node;
 import org.junit.jupiter.api.*;
 
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static io.hotmoka.beans.Coin.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * A test for the wine package.
@@ -26,8 +31,6 @@ class WineTest extends TakamakaTest {
      * Class types and most used constructors signatures
      */
     private static final ClassType SUPPLYCHAIN = new ClassType("io.hotmoka.examples.wine.staff.SupplyChain");
-    private static final ConstructorSignature CONSTRUCTOR_SUPPLYCHAIN = new ConstructorSignature(SUPPLYCHAIN,
-            ClassType.EOA);
 
     private static final ClassType RESOURCE = new ClassType("io.hotmoka.examples.wine.resources.Resource");
     private static final ClassType VINE = new ClassType("io.hotmoka.examples.wine.resources.Vine");
@@ -39,21 +42,15 @@ class WineTest extends TakamakaTest {
 
     private static final ClassType STAFF = new ClassType("io.hotmoka.examples.wine.staff.Staff");
     private static final ClassType ADMINISTRATOR = new ClassType("io.hotmoka.examples.wine.staff.Administrator");
-    private static final ConstructorSignature CONSTRUCTOR_ADMINISTRATOR = new ConstructorSignature(ADMINISTRATOR,
-            ClassType.EOA, ClassType.STRING);
+    private static final ClassType AUTHORITY = new ClassType("io.hotmoka.examples.wine.staff.Authority");
+    private static final ClassType WORKER = new ClassType("io.hotmoka.examples.wine.staff.Worker");
+    private static final ClassType ROLE = new ClassType("io.hotmoka.examples.wine.staff.Role");
+    private static final ClassType RESOURCE_PENDING = new ClassType("io.hotmoka.examples.wine.staff.ResourcePending");
+
     private static final VoidMethodSignature ADD_STAFF =
             new VoidMethodSignature(SUPPLYCHAIN, "add", STAFF, ADMINISTRATOR);
     private static final VoidMethodSignature REMOVE_STAFF =
             new VoidMethodSignature(SUPPLYCHAIN, "remove", STAFF, ADMINISTRATOR);
-
-    private static final ClassType AUTHORITY = new ClassType("io.hotmoka.examples.wine.staff.Authority");
-    private static final ConstructorSignature CONSTRUCTOR_AUTHORITY = new ConstructorSignature(AUTHORITY,
-            ClassType.EOA, ClassType.STRING);
-
-    private static final ClassType WORKER = new ClassType("io.hotmoka.examples.wine.staff.Worker");
-    private static final ClassType ROLE = new ClassType("io.hotmoka.examples.wine.staff.Role");
-    private static final ConstructorSignature CONSTRUCTOR_WORKER = new ConstructorSignature(WORKER,
-            ClassType.EOA, ClassType.STRING, ROLE, BasicTypes.INT);
 
     /**
      * The owner and the supply chain.
@@ -144,11 +141,13 @@ class WineTest extends TakamakaTest {
             throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException,
             SignatureException {
         chain = addConstructorCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
-                CONSTRUCTOR_SUPPLYCHAIN, owner);
+                new ConstructorSignature(SUPPLYCHAIN, ClassType.EOA), owner);
         administrator_obj = addConstructorCallTransaction(owner_prv_key, owner, _500_000, panarea(1),
-                jar(), CONSTRUCTOR_ADMINISTRATOR, administrator, new StringValue("Alessia"));
+                jar(), new ConstructorSignature(ADMINISTRATOR, ClassType.EOA, ClassType.STRING), administrator,
+                new StringValue("Alessia"));
         authority_obj = addConstructorCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1),
-                jar(), CONSTRUCTOR_AUTHORITY, authority, new StringValue("Stefania"));
+                jar(), new ConstructorSignature(AUTHORITY, ClassType.EOA, ClassType.STRING), authority,
+                new StringValue("Stefania"));
         producer_obj = newWorker(producer, producer_prv_key, "Mario", "PRODUCER", 5);
         wine_making_centre_obj = newWorker(wine_making_centre, wine_making_centre_prv_key, "Luigi",
                 "WINE_MAKING_CENTRE", 10);
@@ -165,7 +164,8 @@ class WineTest extends TakamakaTest {
             throws TransactionException, TransactionRejectedException, CodeExecutionException, SignatureException,
             InvalidKeyException {
         return addConstructorCallTransaction(account_prv_key, account, _500_000, panarea(1), jar(),
-                CONSTRUCTOR_WORKER, account, new StringValue(name), new EnumValue("io.hotmoka.examples.wine.staff.Role",
+                new ConstructorSignature(WORKER, ClassType.EOA, ClassType.STRING, ROLE, BasicTypes.INT), account,
+                new StringValue(name), new EnumValue("io.hotmoka.examples.wine.staff.Role",
                         role), new IntValue(max_products));
     }
 
@@ -266,7 +266,7 @@ class WineTest extends TakamakaTest {
         addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(), REMOVE_STAFF, chain,
                 authority_obj, administrator_obj);
 
-        // Add and remove a Worker from the SupplyChain (by owner)
+        // Add and remove a Worker from the SupplyChain (by an Administrator)
         addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1), jar(), ADD_STAFF,
                 chain, producer_obj, administrator_obj);
 
@@ -275,9 +275,10 @@ class WineTest extends TakamakaTest {
                 (StorageReference) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LIST), chain);
         IntValue workers_size =
-                (IntValue) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
+                (IntValue) addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1),
+                        jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
-        Assertions.assertEquals(1, workers_size.value);
+        assertEquals(1, workers_size.value);
 
         addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1), jar(),
                 REMOVE_STAFF, chain, producer_obj, administrator_obj);
@@ -289,7 +290,7 @@ class WineTest extends TakamakaTest {
         workers_size =
                 (IntValue) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
-        Assertions.assertEquals(0, workers_size.value);
+        assertEquals(0, workers_size.value);
 
         // Remove an Administrator from the SupplyChain
         addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(), REMOVE_STAFF, chain,
@@ -330,7 +331,7 @@ class WineTest extends TakamakaTest {
 
         // SUCCESS
         StorageReference next_worker = transferProduct(chain, producer_obj, producer, producer_prv_key, grape);
-        Assertions.assertEquals(next_worker, wine_making_centre_obj);
+        assertEquals(next_worker, wine_making_centre_obj);
 
         // EXCEPTION: Worker doesn't possess the Resource anymore
         Assertions.assertThrows(TransactionException.class,
@@ -345,7 +346,7 @@ class WineTest extends TakamakaTest {
                 (IntValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre, _500_000,
                         panarea(1), jar(), new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size",
                                 BasicTypes.INT), products);
-        Assertions.assertEquals(1, products_size.value);
+        assertEquals(1, products_size.value);
 
         //  Check that the producers list of Grape is updated when it is transferred
         StorageReference producers =
@@ -356,7 +357,7 @@ class WineTest extends TakamakaTest {
                 (IntValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre, _500_000,
                         panarea(1), jar(), new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT)
                         , producers);
-        Assertions.assertEquals(2, producers_size.value);
+        assertEquals(2, producers_size.value);
 
         // Create Must and Wine from Grape and transfer it to the bottling centre
         StorageReference must = newProduct(chain, wine_making_centre_obj, wine_making_centre,
@@ -378,7 +379,7 @@ class WineTest extends TakamakaTest {
         // SUCCESS
         next_worker =
                 transferProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, wine);
-        Assertions.assertEquals(next_worker, bottling_centre_obj);
+        assertEquals(next_worker, bottling_centre_obj);
 
         // Create Bottle and transfer it to the distribution centre
         StorageReference bottle = newProduct(chain, bottling_centre_obj, bottling_centre,
@@ -386,14 +387,14 @@ class WineTest extends TakamakaTest {
         addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(), ADD_STAFF,
                 chain, distribution_centre_obj, NullValue.INSTANCE);
         next_worker = transferProduct(chain, bottling_centre_obj, bottling_centre, bottling_centre_prv_key, bottle);
-        Assertions.assertEquals(next_worker, distribution_centre_obj);
+        assertEquals(next_worker, distribution_centre_obj);
 
         // Transfer Bottles to retailers
         addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(), ADD_STAFF,
                 chain, retailer_obj, NullValue.INSTANCE);
         next_worker = transferProduct(chain, distribution_centre_obj, distribution_centre, distribution_centre_prv_key,
                 bottle);
-        Assertions.assertEquals(retailer_obj, next_worker);
+        assertEquals(retailer_obj, next_worker);
 
         // EXCEPTION: Transferring a Resource from a Retailer isn't possible
         Assertions.assertThrows(TransactionException.class,
@@ -415,9 +416,9 @@ class WineTest extends TakamakaTest {
                 vine);
 
         // Check Grape isn't eligible
-        StorageValue grape_state = addInstanceMethodCallTransaction(producer_prv_key, producer, _500_000, panarea(1),
-                jar(), new NonVoidMethodSignature(GRAPE, "getState", GRAPE_STATE), grape);
-        Assertions.assertEquals(grape_state, NullValue.INSTANCE);
+        StorageValue grape_state = runInstanceMethodCallTransaction(producer, _500_000, jar(),
+                new NonVoidMethodSignature(GRAPE, "getState", GRAPE_STATE), grape);
+        assertEquals(grape_state, NullValue.INSTANCE);
 
         // Call Authority to make it eligible
         // EXCEPTION: There's no Authority the SupplyChain
@@ -441,7 +442,7 @@ class WineTest extends TakamakaTest {
         IntValue products_size =
                 (IntValue) addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
-        Assertions.assertEquals(1, products_size.value);
+        assertEquals(1, products_size.value);
 
         addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1), jar(),
                 new VoidMethodSignature(GRAPE, "setState", GRAPE_STATE, AUTHORITY), grape,
@@ -467,9 +468,8 @@ class WineTest extends TakamakaTest {
                 chain, bottling_centre_obj, NullValue.INSTANCE);
 
         // Check Wine isn't eligible
-        BooleanValue wine_state = (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key,
-                wine_making_centre,
-                _500_000, panarea(1), jar(), new NonVoidMethodSignature(WINE, "isEligible", BasicTypes.BOOLEAN), wine);
+        BooleanValue wine_state = (BooleanValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                new NonVoidMethodSignature(WINE, "isEligible", BasicTypes.BOOLEAN), wine);
         Assertions.assertFalse(wine_state.value);
 
         // Call Authority to make it eligible
@@ -480,8 +480,8 @@ class WineTest extends TakamakaTest {
                 new VoidMethodSignature(WINE, "setEligible", AUTHORITY), wine, authority_obj);
 
         // Check Wine is eligible
-        wine_state = (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
-                _500_000, panarea(1), jar(), new NonVoidMethodSignature(WINE, "isEligible", BasicTypes.BOOLEAN), wine);
+        wine_state = (BooleanValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                new NonVoidMethodSignature(WINE, "isEligible", BasicTypes.BOOLEAN), wine);
         Assertions.assertTrue(wine_state.value);
 
         // Only Grape and Wine can be set as eligible
@@ -533,42 +533,69 @@ class WineTest extends TakamakaTest {
 
     @Test
     @DisplayName("Check pending products (Grape case)")
-    void checkPendingProducts()
+    void checkPendingResources()
             throws TransactionException, TransactionRejectedException, CodeExecutionException, SignatureException,
-            InvalidKeyException {
-        // Get first pack of Grape from the producer
-        StorageReference grape1 = createInteractionsUntil("WINE_MAKING_CENTRE");
-        BooleanValue pending =
-                (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
-                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getPending",
-                                BasicTypes.BOOLEAN), wine_making_centre_obj);
-        Assertions.assertTrue(pending.value);
+            InvalidKeyException, ExecutionException, InterruptedException {
+        StorageReference grape1, grape2;
 
-        // Get another pack of Grape from the producer
-        StorageReference grape2 = createInteractionsUntil("WINE_MAKING_CENTRE");
-        pending =
-                (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
-                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getPending",
-                                BasicTypes.BOOLEAN), wine_making_centre_obj);
-        Assertions.assertTrue(pending.value);
+        // Wine-making centre listens to ResourcePending events about him
+        CompletableFuture<StorageReference> received = new CompletableFuture<>();
+        StorageReference event;
 
-        // When the wine-making centre adds a new Must, it automatically controls is there are still pending resources
-        newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
-                grape1);
-        pending =
-                (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
-                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getPending",
-                                BasicTypes.BOOLEAN), wine_making_centre_obj);
-        Assertions.assertTrue(pending.value);
+        try (Node.Subscription subscription = node.subscribeToEvents(chain,
+                (__, _event) -> received.complete(_event))) {
+            // Get first pack of Grape from the producer
+            grape1 = createInteractionsUntil("WINE_MAKING_CENTRE");
+            event = received.get();
+        }
+        assertNotNull(event);
 
-        // Creating another Must means there aren't more pending resources
-        newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
-                grape2);
+        IntValue pending =
+                (IntValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                        new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
+        Assertions.assertEquals(pending.value, 1);
+
+        try (Node.Subscription subscription = node.subscribeToEvents(chain,
+                (__, _event) -> received.complete(_event))) {
+            // Get another pack of Grape from the producer
+            grape2 = createInteractionsUntil("WINE_MAKING_CENTRE");
+            event = received.get();
+        }
+        assertNotNull(event);
+
         pending =
-                (BooleanValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre,
-                        _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getPending",
-                                BasicTypes.BOOLEAN), wine_making_centre_obj);
-        Assertions.assertFalse(pending.value);
+                (IntValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                        new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
+        Assertions.assertEquals(pending.value, 2);
+
+        try (Node.Subscription subscription = node.subscribeToEvents(wine_making_centre_obj,
+                (__, _event) -> received.complete(_event))) {
+            // When the wine-making centre adds a new Must, it automatically controls is there are still pending
+            // resources
+            newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
+                    grape1);
+            event = received.get();
+        }
+        assertNotNull(event);
+
+        pending =
+                (IntValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                        new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
+        Assertions.assertEquals(pending.value, 1);
+
+        try (Node.Subscription subscription = node.subscribeToEvents(wine_making_centre_obj,
+                (__, _event) -> received.complete(_event))) {
+            // Creating another Must means there aren't more pending resources
+            newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
+                    grape2);
+            event = received.get();
+        }
+        assertNotNull(event);
+
+        pending =
+                (IntValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                        new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
+        Assertions.assertEquals(pending.value, 0);
 
         // Similarly, for Wine and Bottle cases
     }
@@ -679,7 +706,7 @@ class WineTest extends TakamakaTest {
         IntValue products_size =
                 (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
-        Assertions.assertEquals(1, products_size.value);
+        assertEquals(1, products_size.value);
 
         addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
                 new VoidMethodSignature(BOTTLE, "sell", BasicTypes.INT, WORKER), bottle, new IntValue(7),
@@ -692,7 +719,7 @@ class WineTest extends TakamakaTest {
         products_size =
                 (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
-        Assertions.assertEquals(0, products_size.value);
+        assertEquals(0, products_size.value);
     }
 
     @Test
