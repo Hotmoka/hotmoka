@@ -21,7 +21,7 @@ public final class Bottle extends Resource {
     private String packaging;
     private String labelling;
     private Certification certification;
-    private long creationDate;
+    private final long creationDate;
     private int sold = 0;
     private StorageList<String> saleDates = new StorageLinkedList<>();
 
@@ -61,6 +61,5 @@ public final class Bottle extends Resource {
     public void certify(Certification name, Authority authority) {
         require(chain.getAuthorities().contains(authority), "Only an Authority can approve a certification.");
         certification = name;
-        // TODO: Add link to actual certificate...
     }
 }

@@ -75,10 +75,9 @@ public class SupplyChain extends Contract {
             if (worker.getRole().ordinal() == origin.getRole().ordinal() + 1 && worker.isAvailable()) {
                 next = worker;
                 next.addProduct(product);
-                //next.notifyNewProduct(); // DELETE!
+                product.addProducer(next);
                 event(new ResourcePending(next));
                 origin.removeProduct(product);
-                product.addProducer(next);
                 break;
             }
         }

@@ -18,6 +18,8 @@ import java.security.SignatureException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import static io.hotmoka.beans.Coin.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,7 +47,6 @@ class WineTest extends TakamakaTest {
     private static final ClassType AUTHORITY = new ClassType("io.hotmoka.examples.wine.staff.Authority");
     private static final ClassType WORKER = new ClassType("io.hotmoka.examples.wine.staff.Worker");
     private static final ClassType ROLE = new ClassType("io.hotmoka.examples.wine.staff.Role");
-    private static final ClassType RESOURCE_PENDING = new ClassType("io.hotmoka.examples.wine.staff.ResourcePending");
 
     private static final VoidMethodSignature ADD_STAFF =
             new VoidMethodSignature(SUPPLYCHAIN, "add", STAFF, ADMINISTRATOR);
@@ -275,8 +276,7 @@ class WineTest extends TakamakaTest {
                 (StorageReference) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LIST), chain);
         IntValue workers_size =
-                (IntValue) addInstanceMethodCallTransaction(administrator_prv_key, administrator, _500_000, panarea(1),
-                        jar(),
+                (IntValue) runInstanceMethodCallTransaction(owner, _500_000, jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
         assertEquals(1, workers_size.value);
 
@@ -288,7 +288,7 @@ class WineTest extends TakamakaTest {
                 (StorageReference) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
                         new NonVoidMethodSignature(SUPPLYCHAIN, "getWorkers", ClassType.STORAGE_LIST), chain);
         workers_size =
-                (IntValue) addInstanceMethodCallTransaction(owner_prv_key, owner, _500_000, panarea(1), jar(),
+                (IntValue) runInstanceMethodCallTransaction(owner, _500_000, jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), workers);
         assertEquals(0, workers_size.value);
 
@@ -343,9 +343,8 @@ class WineTest extends TakamakaTest {
                         _500_000, panarea(1), jar(), new NonVoidMethodSignature(WORKER, "getProducts",
                                 ClassType.STORAGE_LIST), wine_making_centre_obj);
         IntValue products_size =
-                (IntValue) addInstanceMethodCallTransaction(wine_making_centre_prv_key, wine_making_centre, _500_000,
-                        panarea(1), jar(), new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size",
-                                BasicTypes.INT), products);
+                (IntValue) runInstanceMethodCallTransaction(wine_making_centre, _500_000, jar(),
+                        new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
         assertEquals(1, products_size.value);
 
         //  Check that the producers list of Grape is updated when it is transferred
@@ -440,7 +439,7 @@ class WineTest extends TakamakaTest {
                         jar(), new NonVoidMethodSignature(AUTHORITY, "getProducts", ClassType.STORAGE_LIST),
                         authority_obj);
         IntValue products_size =
-                (IntValue) addInstanceMethodCallTransaction(authority_prv_key, authority, _500_000, panarea(1), jar(),
+                (IntValue) runInstanceMethodCallTransaction(authority, _500_000, jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
         assertEquals(1, products_size.value);
 
@@ -535,18 +534,17 @@ class WineTest extends TakamakaTest {
     @DisplayName("Check pending products (Grape case)")
     void checkPendingResources()
             throws TransactionException, TransactionRejectedException, CodeExecutionException, SignatureException,
-            InvalidKeyException, ExecutionException, InterruptedException {
+            InvalidKeyException, ExecutionException, InterruptedException, TimeoutException {
         StorageReference grape1, grape2;
-
-        // Wine-making centre listens to ResourcePending events about him
         CompletableFuture<StorageReference> received = new CompletableFuture<>();
         StorageReference event;
 
+        // Wine-making centre listens to ResourcePending events when new Resources are transferred
         try (Node.Subscription subscription = node.subscribeToEvents(chain,
                 (__, _event) -> received.complete(_event))) {
             // Get first pack of Grape from the producer
             grape1 = createInteractionsUntil("WINE_MAKING_CENTRE");
-            event = received.get();
+            event = received.get(20_000, TimeUnit.MILLISECONDS);
         }
         assertNotNull(event);
 
@@ -559,7 +557,7 @@ class WineTest extends TakamakaTest {
                 (__, _event) -> received.complete(_event))) {
             // Get another pack of Grape from the producer
             grape2 = createInteractionsUntil("WINE_MAKING_CENTRE");
-            event = received.get();
+            event = received.get(20_000, TimeUnit.MILLISECONDS);
         }
         assertNotNull(event);
 
@@ -568,13 +566,13 @@ class WineTest extends TakamakaTest {
                         new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
         Assertions.assertEquals(pending.value, 2);
 
+        // When the wine-making centre adds a new Must, control that a new ResourceUsed event is generated and
+        // pending is updated
         try (Node.Subscription subscription = node.subscribeToEvents(wine_making_centre_obj,
                 (__, _event) -> received.complete(_event))) {
-            // When the wine-making centre adds a new Must, it automatically controls is there are still pending
-            // resources
             newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
                     grape1);
-            event = received.get();
+            event = received.get(20_000, TimeUnit.MILLISECONDS);
         }
         assertNotNull(event);
 
@@ -583,12 +581,12 @@ class WineTest extends TakamakaTest {
                         new NonVoidMethodSignature(WORKER, "getPending", BasicTypes.INT), wine_making_centre_obj);
         Assertions.assertEquals(pending.value, 1);
 
+        // Creating another Must means there aren't more pending resources
         try (Node.Subscription subscription = node.subscribeToEvents(wine_making_centre_obj,
                 (__, _event) -> received.complete(_event))) {
-            // Creating another Must means there aren't more pending resources
             newProduct(chain, wine_making_centre_obj, wine_making_centre, wine_making_centre_prv_key, "Must", "", 100,
                     grape2);
-            event = received.get();
+            event = received.get(20_000, TimeUnit.MILLISECONDS);
         }
         assertNotNull(event);
 
@@ -704,7 +702,7 @@ class WineTest extends TakamakaTest {
                         jar(), new NonVoidMethodSignature(WORKER, "getProducts", ClassType.STORAGE_LIST),
                         retailer_obj);
         IntValue products_size =
-                (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
+                (IntValue) runInstanceMethodCallTransaction(retailer, _500_000, jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
         assertEquals(1, products_size.value);
 
@@ -717,7 +715,7 @@ class WineTest extends TakamakaTest {
                         jar(), new NonVoidMethodSignature(WORKER, "getProducts", ClassType.STORAGE_LIST),
                         retailer_obj);
         products_size =
-                (IntValue) addInstanceMethodCallTransaction(retailer_prv_key, retailer, _500_000, panarea(1), jar(),
+                (IntValue) runInstanceMethodCallTransaction(retailer, _500_000, jar(),
                         new NonVoidMethodSignature(ClassType.STORAGE_LIST, "size", BasicTypes.INT), products);
         assertEquals(0, products_size.value);
     }

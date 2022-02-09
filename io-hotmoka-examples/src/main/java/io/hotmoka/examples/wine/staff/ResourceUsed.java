@@ -7,6 +7,7 @@ public class ResourceUsed extends Event {
 
     @FromContract
     public ResourceUsed(Worker worker) {
+        super();
         worker.removePending();
     }
 }

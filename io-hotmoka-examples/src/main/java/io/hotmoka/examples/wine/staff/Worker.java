@@ -51,11 +51,11 @@ public final class Worker extends Staff {
     }
 
     public void addPending() {
-        this.pending++;
+        pending++;
     }
 
     public void removePending() {
-        this.pending--;
+        pending--;
     }
 
     @FromContract(ExternallyOwnedAccount.class)
@@ -77,15 +77,16 @@ public final class Worker extends Staff {
         else if (prevProduct instanceof Grape) {
             product = new Must(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
+            event(new ResourceUsed(this));
         } else if (prevProduct instanceof Must) {
             product = new Wine(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
         } else if (prevProduct instanceof Wine) {
             product = new Bottle(chain, name, description, amount, prevProduct);
             products.remove(prevProduct);
+            event(new ResourceUsed(this));
         }
         products.add(product);
-        event(new ResourceUsed(this));
         return product;
     }
 

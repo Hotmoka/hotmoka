@@ -7,6 +7,7 @@ public class ResourcePending extends Event {
 
     @FromContract
     public ResourcePending(Worker worker) {
+        super();
         worker.addPending();
     }
 }
