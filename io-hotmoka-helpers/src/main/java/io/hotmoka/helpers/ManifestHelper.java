@@ -217,6 +217,11 @@ public class ManifestHelper {
 
 				builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
+				BigInteger stakedForValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_STAKE, validators, validator))).value;
+
+				builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
+
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 

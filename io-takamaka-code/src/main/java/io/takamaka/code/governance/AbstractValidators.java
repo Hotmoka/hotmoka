@@ -37,8 +37,10 @@ import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
+import io.takamaka.code.util.StorageTreeMap;
 import io.takamaka.code.util.StorageTreeSet;
 
 /**
@@ -52,6 +54,25 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 * The manifest of the node having these validators.
 	 */
 	private final Manifest<V> manifest;
+
+	/**
+	 * The earnings of each validators, that have not yet been sent to the validators.
+	 * They are not given immediately to the validators,
+	 * but rather stored in this map and given only if a validator sells all its shares.
+	 */
+	private final StorageMap<V, BigInteger> stakes = new StorageTreeMap<>();
+
+	/**
+	 * The amount of rewards that get staked. The remaining percent is sent
+	 * to the validators immediately.
+	 */
+	private final int percentStaked = 75;
+
+	/**
+	 * Extra tax paid when a validator acquires the shares of another validator
+	 * (in percent of the offer cost).
+	 */
+	private final int buyerSurcharge = 50;
 
 	/**
 	 * The amount of coins to pay for starting a new poll among the validators.
@@ -160,6 +181,13 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		this.numberOfTransactions = ZERO;
 		this.height = ZERO;
 		this.snapshotOfPolls = polls.snapshot();
+		for (V validator: validators)
+			stakes.put(validator, BigInteger.ZERO);
+	}
+
+	@Override
+	public final BigInteger getStake(V validator) {
+		return stakes.getOrDefault(validator, BigInteger.ZERO);
 	}
 
 	@Override
@@ -223,7 +251,18 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		// argument of type PayableContract is redefined by the compiler with a bridge method
 		// that casts the argument to Validator and calls this method. In this way
 		// only instances of Validator can become shareholders (ie, actual validators)
+
+		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(buyerSurcharge + 100)).divide(BigInteger.valueOf(100L));
+		require(costWithSurchage.compareTo(amount) <= 0, "not enough money to accept the offer: you need " + costWithSurchage);
 		super.accept(amount, buyer, offer);
+
+		// if the seller is not a validator anymore, we send its staked coins
+		V seller = offer.seller;
+		if (sharesOf(seller).signum() == 0) {
+			seller.receive(stakes.get(seller));
+			stakes.remove(seller);
+		}
+
 		event(new ValidatorsUpdate());
 	}
 
@@ -235,16 +274,30 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		if (!behavingIDs.isEmpty()) {
 			// compute the total power of the well behaving validators; this is always positive
 			BigInteger totalPower = getShareholders()
-				.filter(shareholder -> behavingIDs.contains(shareholder.id()))
+				.filter(validator -> behavingIDs.contains(validator.id()))
 				.map(this::sharesOf)
 				.reduce(ZERO, BigInteger::add);
 
-			// distribute the balance of this contract to the well behaving validators, in proportion to their power
-			final BigInteger balance = balance();
+			// compute the total amount of staked coins
+			BigInteger totalStaked = stakes.values().reduce(BigInteger.ZERO, BigInteger::add);
+
+			// compute the balance that is not staked and must be distributed
+			BigInteger toDistribute = balance().subtract(totalStaked);
+
+			// 75% of the distribution gets staked for the well-behaving validators, in proportion to their power
+			final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
 			getShareholders()
-				.filter(shareholder -> behavingIDs.contains(shareholder.id()))
-				.forEachOrdered(shareholder -> shareholder.receive(balance.multiply(sharesOf(shareholder)).divide(totalPower)));
+				.filter(validator -> behavingIDs.contains(validator.id()))
+				.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
+
+			// distribute immediately the remaining 25% to the well-behaving validators, in proportion to their power
+			final BigInteger paid = toDistribute.subtract(addedToStakes);
+			getShareholders()
+				.filter(validator -> behavingIDs.contains(validator.id()))
+				.forEachOrdered(validator -> validator.receive(paid.multiply(sharesOf(validator)).divide(totalPower)));
 		}
+
+		// TODO: slash staked coins for misbehaving validators
 
 		// the gas station is informed about the amount of gas consumed for CPU, RAM or storage, so that it can update the gas price
 		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);

@@ -203,6 +203,11 @@ public abstract class CodeSignature extends Marshallable {
 	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(ClassType.GAS_STATION, "getOblivion", BasicTypes.LONG);
 
 	/**
+	 * The method {@code getStake} of the validators object.
+	 */
+	public final static MethodSignature GET_STAKE = new NonVoidMethodSignature(ClassType.VALIDATORS, "getStake", ClassType.BIG_INTEGER, ClassType.VALIDATOR);
+
+	/**
 	 * The method {@code getInitialInflation} of the validators object.
 	 */
 	public final static MethodSignature GET_INITIAL_INFLATION = new NonVoidMethodSignature(ClassType.VALIDATORS, "getInitialInflation", BasicTypes.LONG);

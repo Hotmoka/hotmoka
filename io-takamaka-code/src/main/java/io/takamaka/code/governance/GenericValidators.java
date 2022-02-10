@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.takamaka.code.governance;
 
-import static io.takamaka.code.lang.Takamaka.event;
-
 import java.math.BigInteger;
 import java.util.function.Function;
 
@@ -82,7 +80,6 @@ public class GenericValidators extends AbstractValidators<Validator> {
 		// that casts the argument to Validator and calls this method. In this way
 		// only instances of Validator can become shareholders (ie, actual validators)
 		super.accept(amount, buyer, offer);
-		event(new ValidatorsUpdate());
 	}
 
 	@Exported

@@ -33,6 +33,7 @@ import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.PayableContract;
 import io.takamaka.code.lang.Storage;
 import io.takamaka.code.lang.View;
+import io.takamaka.code.util.StorageMap;
 import io.takamaka.code.util.StorageMapView;
 import io.takamaka.code.util.StorageSet;
 import io.takamaka.code.util.StorageSetView;
@@ -51,7 +52,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 	/**
 	 * The shares of each shareholder. These are always positive.
 	 */
-	private final StorageTreeMap<S, BigInteger> shares = new StorageTreeMap<>();
+	private final StorageMap<S, BigInteger> shares = new StorageTreeMap<>();
 
 	/**
 	 * The set of offers of sale of shares.
@@ -86,9 +87,9 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		Iterator<BigInteger> it = sharesAsList.iterator();
 		for (S shareholder: shareholdersAsList) {
 			require(shareholder != null, "shareholders cannot be null");
-			BigInteger added = it.next();
-			require(added != null && added.signum() > 0, "shares must be positive big integers");
-			addShares(shareholder, added);
+			BigInteger share = it.next();
+			require(share != null && share.signum() > 0, "shares must be positive big integers");
+			addShares(shareholder, share);
 		}
 	
 		this.snapshotOfShares = this.shares.snapshot();
@@ -302,13 +303,13 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 			.forEachOrdered(offers::remove);
 	}
 
-	private void addShares(S shareholder, BigInteger added) {
+	private void addShares(S shareholder, BigInteger share) {
 		shares.update(shareholder,
 			() -> {
 				event(new ShareholderAdded<>(shareholder));
 				return ZERO;
 			},
-			added::add);
+			share::add);
 	}
 
 	private void removeShares(S shareholder, BigInteger removed) {

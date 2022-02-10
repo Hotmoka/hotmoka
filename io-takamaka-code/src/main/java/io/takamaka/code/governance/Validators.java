@@ -64,6 +64,15 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@FromContract @Payable void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward);
 
 	/**
+	 * Yields the earnings collected by the given validator and not yet sent to it.
+	 * They are not given immediately to the validator but only when it sells all its shares.
+	 * 
+	 * @param validator the validator
+	 * @return the earnings of {@code validator}
+	 */
+	@View BigInteger getStake(V validator);
+
+	/**
 	 * Yields the initial circulating supply of coins in the node.
 	 * 
 	 * @return the initial circulating supply
