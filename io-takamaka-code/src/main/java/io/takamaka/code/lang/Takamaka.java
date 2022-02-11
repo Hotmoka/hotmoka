@@ -129,7 +129,7 @@ public abstract class Takamaka {
 		// Runtime.event(event);
 	}
 
-	public static long now() {
+	public static @View long now() {
 		// code provided by instrumentation as
 		// return Runtime.now();
 		return 0L;

@@ -39,6 +39,8 @@ echo "    OPEN_UNSIGNED_FAUCET: true if the gamete can be used as a free faucet 
 echo "      [default: false]"
 echo "    TIMEOUT_COMMIT: commit timeout in seconds, which determines the block creation time"
 echo "      [default: 5]"
+echo "    TOTAL_VALIDATION_POWER: the total amount of validation shares among all validators"
+echo "      [default: 1000000]"
 echo
 echo "  start:  creates a node that connects to an already existing node of a blockchain"
 echo "    MAX_GAS_PER_VIEW: the maximal gas limit allowed when running @View methods"

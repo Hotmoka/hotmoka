@@ -139,6 +139,42 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		public @View boolean isOngoing() {
 			return now() <= expiration;
 		}
+
+		/**
+		 * Yields the seller of this offer.
+		 * 
+		 * @return the seller of this offer
+		 */
+		public @View S getSeller() {
+			return seller;
+		}
+
+		/**
+		 * Yields the amount of shares on sale with this offer.
+		 * 
+		 * @return the amount of shares on sale with this offer
+		 */
+		public @View BigInteger getSharesOnSale() {
+			return sharesOnSale;
+		}
+
+		/**
+		 * Yields the cost of this offer.
+		 * 
+		 * @return the cost of this offer
+		 */
+		public @View BigInteger getCost() {
+			return cost;
+		}
+
+		/**
+		 * Yields the expiration time of this offer, in milliseconds from 1/1/1970.
+		 * 
+		 * @return the expiration time of this offer
+		 */
+		public @View long getExpiration() {
+			return expiration;
+		}
 	}
 
 	final class OfferPlaced<S extends PayableContract> extends Event {

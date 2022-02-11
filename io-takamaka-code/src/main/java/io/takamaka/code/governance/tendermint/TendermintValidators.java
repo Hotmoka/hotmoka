@@ -58,7 +58,7 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 	@Override
 	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, TendermintED25519Validator buyer, Offer<TendermintED25519Validator> offer) {
 		// it is important to redefine this method, so that the same method with
-		// argument of type PayableContract is redefined by the compiler with a bridge method
+		// argument of type PayableContract and Validator is redefined by the compiler with a bridge method
 		// that casts the argument to TendermintED25519Validator and calls this method. In this way
 		// only instances of TendermintED25519Validator can become shareholders (ie, actual validators)
 		super.accept(amount, buyer, offer);

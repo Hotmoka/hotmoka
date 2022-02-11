@@ -17,7 +17,12 @@ limitations under the License.
 package io.hotmoka.helpers;
 
 import java.math.BigInteger;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -196,14 +201,36 @@ public class ManifestHelper {
 			int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 
-			if (numOfValidators == 0)
-				builder.append("   │  └─ number of validators: 0\n");
-			else
-				builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
+			StorageReference offers = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY, "getOffers", ClassType.STORAGE_SET_VIEW), validators));
+
+			int numOfOffers = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "size", BasicTypes.INT), offers))).value;
+
+			builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
+
+			StorageReference[] validatorsArray = new StorageReference[numOfValidators];
+			for (int num = 0; num < numOfValidators; num++)
+				validatorsArray[num] = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+
+			Map<StorageReference, SortedSet<StorageReference>> offersPerValidator = new HashMap<>();
+			for (int num = 0; num < numOfOffers; num++) {
+				StorageReference offer = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), offers, new IntValue(num)));
+				StorageReference seller = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSeller", ClassType.PAYABLE_CONTRACT), offer));
+
+				// the set of offers might contain expired offers since it gets updated lazily
+				boolean isOngoing = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "isOngoing", BasicTypes.BOOLEAN), offer))).value;
+
+				if (isOngoing)
+					offersPerValidator.computeIfAbsent(seller, _seller -> new TreeSet<>()).add(offer);
+			}
 
 			for (int num = 0; num < numOfValidators; num++) {
-				StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+				StorageReference validator = validatorsArray[num];
 
 				builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
 
@@ -225,7 +252,41 @@ public class ManifestHelper {
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
 
-				builder.append("   │  │  └─ power: ").append(power).append("\n");
+				SortedSet<StorageReference> saleOffers = offersPerValidator.get(validator);
+				if (saleOffers == null)
+					builder.append("   │  │  └─ power: ").append(power).append("\n");
+				else {
+					builder.append("   │  │  ├─ power: ").append(power).append("\n");
+					int counter = 0, last = saleOffers.size() - 1;
+					for (StorageReference offer: saleOffers) {
+						boolean isLast = counter == last;
+
+						if (isLast)
+							builder.append("   │  │  └─ sale offer #" + counter + ": ").append(offer).append("\n");
+						else
+							builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
+
+						BigInteger powerOnSale = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSharesOnSale", ClassType.BIG_INTEGER), offer))).value;
+						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
+						Date expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
+
+						if (isLast) {
+							builder.append("   │  │     ├─ power on sale: ").append(powerOnSale).append("\n");
+							builder.append("   │  │     ├─ cost: ").append(cost).append("\n");
+							builder.append("   │  │     └─ expiration: ").append(expiration).append("\n");
+						}
+						else {
+							builder.append("   │  │  |  ├─ power on sale: ").append(powerOnSale).append("\n");
+							builder.append("   │  │  |  ├─ cost: ").append(cost).append("\n");
+							builder.append("   │  │  |  └─ expiration: ").append(expiration).append("\n");
+						}
+
+						counter++;
+					}
+				}
 			}
 
 			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

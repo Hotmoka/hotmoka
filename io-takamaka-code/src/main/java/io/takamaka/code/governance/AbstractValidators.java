@@ -284,17 +284,19 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 			// compute the balance that is not staked and must be distributed
 			BigInteger toDistribute = balance().subtract(totalStaked);
 
-			// 75% of the distribution gets staked for the well-behaving validators, in proportion to their power
-			final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
-			getShareholders()
-				.filter(validator -> behavingIDs.contains(validator.id()))
-				.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
+			if (toDistribute.signum() > 0) {
+				// 75% of the distribution gets staked for the well-behaving validators, in proportion to their power
+				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
+				getShareholders()
+					.filter(validator -> behavingIDs.contains(validator.id()))
+					.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
 
-			// distribute immediately the remaining 25% to the well-behaving validators, in proportion to their power
-			final BigInteger paid = toDistribute.subtract(addedToStakes);
-			getShareholders()
-				.filter(validator -> behavingIDs.contains(validator.id()))
-				.forEachOrdered(validator -> validator.receive(paid.multiply(sharesOf(validator)).divide(totalPower)));
+				// distribute immediately the remaining 25% to the well-behaving validators, in proportion to their power
+				final BigInteger paid = toDistribute.subtract(addedToStakes);
+				getShareholders()
+					.filter(validator -> behavingIDs.contains(validator.id()))
+					.forEachOrdered(validator -> validator.receive(paid.multiply(sharesOf(validator)).divide(totalPower)));
+			}
 		}
 
 		// TODO: slash staked coins for misbehaving validators

@@ -338,6 +338,11 @@ public final class ClassType implements StorageType {
 	public static final ClassType SHARED_ENTITY =  new ClassType(Constants.SHARED_ENTITY_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity.Offer}.
+	 */
+	public static final ClassType SHARED_ENTITY_OFFER =  new ClassType(Constants.SHARED_ENTITY_OFFER_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
 	public static final ClassType SHARED_ENTITY_VIEW =  new ClassType(Constants.SHARED_ENTITY_VIEW_NAME);

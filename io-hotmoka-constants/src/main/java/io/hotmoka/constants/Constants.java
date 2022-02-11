@@ -382,6 +382,11 @@ public interface Constants {
 	String SHARED_ENTITY_NAME = "io.takamaka.code.dao.SharedEntity";
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity.Offer}.
+	 */
+	String SHARED_ENTITY_OFFER_NAME = "io.takamaka.code.dao.SharedEntity$Offer";
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
 	String SHARED_ENTITY_VIEW_NAME = "io.takamaka.code.dao.SharedEntityView";
