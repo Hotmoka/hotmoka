@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.takamaka.code.governance.tendermint;
 
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -23,6 +24,8 @@ import java.util.Base64;
 
 import io.takamaka.code.governance.Validator;
 import io.takamaka.code.lang.AccountED25519;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
 
 /**
@@ -51,14 +54,46 @@ public final class TendermintED25519Validator extends Validator implements Accou
 	public TendermintED25519Validator(String publicKey) {
 		super(publicKey);
 
-		try {
-			MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-			sha256.update(Base64.getDecoder().decode(publicKey()));
-			this.id = bytesToHex(sha256.digest()).substring(0, 40);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new IllegalStateException(e);
-		}
+		this.id = computeId();
+	}
+
+	/**
+	 * Creates a Tendermint validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public TendermintED25519Validator(int initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
+
+		this.id = computeId();
+	}
+
+	/**
+	 * Creates a Tendermint validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public TendermintED25519Validator(long initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
+
+		this.id = computeId();
+	}
+
+	/**
+	 * Creates a Tendermint validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public TendermintED25519Validator(BigInteger initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
+
+		this.id = computeId();
 	}
 
 	/**
@@ -70,6 +105,17 @@ public final class TendermintED25519Validator extends Validator implements Accou
 	@Override
 	public final @View String id() {
 		return id;
+	}
+
+	private String computeId() {
+		try {
+			MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+			sha256.update(Base64.getDecoder().decode(publicKey()));
+			return bytesToHex(sha256.digest()).substring(0, 40);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new IllegalStateException(e);
+		}
 	}
 
 	/**

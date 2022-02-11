@@ -307,6 +307,11 @@ public interface Constants {
 	String TENDERMINT_VALIDATORS_NAME = "io.takamaka.code.governance.tendermint.TendermintValidators";
 
 	/**
+	 * The name of the class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
+	 */
+	String TENDERMINT_ED25519_VALIDATOR_NAME = "io.takamaka.code.governance.tendermint.TendermintED25519Validator";
+
+	/**
 	 * The name of the class type for {@link io.takamaka.code.lang.Payable}.
 	 */
 	String PAYABLE_NAME = IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + "Payable";

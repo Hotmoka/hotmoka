@@ -188,6 +188,11 @@ public final class ClassType implements StorageType {
 	public final static ClassType TENDERMINT_VALIDATORS = new ClassType(Constants.TENDERMINT_VALIDATORS_NAME);
 
 	/**
+	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
+	 */
+	public final static ClassType TENDERMINT_ED25519_VALIDATOR = new ClassType(Constants.TENDERMINT_ED25519_VALIDATOR_NAME);
+
+	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
 	public final static ClassType STORAGE = new ClassType(Constants.STORAGE_NAME);

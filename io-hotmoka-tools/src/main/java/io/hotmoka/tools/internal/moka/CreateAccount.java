@@ -18,12 +18,14 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
+import java.security.PublicKey;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
+import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
@@ -48,7 +50,10 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
     private String payer;
 
-	@Option(names = { "--password-of-new-account" }, description = "the password that will be used later to control the new account; if not specified, it will be asked interactively")
+	@Option(names = { "--key-of-new-account" }, description = "the Base58-encoded public key of the new account; if not specified, the password of the new account must be specified or it will be asked interactively")
+    private String keyOfNewAccount;
+
+	@Option(names = { "--password-of-new-account" }, description = "the password that will be used later to control the new account; if not specified and if no key is specified, it will be asked interactively")
     private String passwordOfNewAccount;
 
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account, if it is not the faucet; if not specified, it will be asked interactively")
@@ -63,6 +68,9 @@ public class CreateAccount extends AbstractCommand {
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
 	private boolean interactive;
 
+	@Option(names = { "--create-tendermint-validator" }, description = "create a Tendermint ED25519 validator account (--signature will be ignored)")
+	private boolean createTendermintValidator;
+
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
 
@@ -73,22 +81,37 @@ public class CreateAccount extends AbstractCommand {
 
 	private class Run {
 		private final Node node;
-		private final KeyPair keys;
+		private final PublicKey publicKey;
 		private final AccountCreationHelper accountCreationHelper;
 		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
-			passwordOfNewAccount = ensurePassword(passwordOfNewAccount, "the new account", interactive, false);
+			if (keyOfNewAccount != null)
+				checkPublicKey(keyOfNewAccount);
+			else
+				passwordOfNewAccount = ensurePassword(passwordOfNewAccount, "the new account", interactive, false);
+	
+			if (createTendermintValidator)
+				signature = "ed25519";
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.mk(nameOfSignatureAlgorithmOfNewAccount);
-				Entropy entropy = new Entropy();
-				keys = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount);
+
+				Entropy entropy;
+				if (keyOfNewAccount == null) {
+					entropy = new Entropy();
+					publicKey = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount).getPublic();
+				}
+				else {
+					entropy = new Entropy(keyOfNewAccount);
+					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
+				}
+
 				accountCreationHelper = new AccountCreationHelper(node);
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
-	            Account account = new Account(entropy, accountReference);
+				Account account = new Account(entropy, accountReference);
 	            System.out.println("A new account " + account + " has been created.");
 	            String fileName = account.dump();
 	            System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
@@ -100,7 +123,10 @@ public class CreateAccount extends AbstractCommand {
 			System.out.println("Free account creation will succeed only if the gamete of the node supports an open unsigned faucet.");
 			
 			try {
-				return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, keys.getPublic(), balance,  balanceRed, this::printCosts);
+				if (createTendermintValidator)
+					return accountCreationHelper.tendermintValidatorFromFaucet(publicKey, balance, balanceRed, this::printCosts);
+				else
+					return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey, balance,  balanceRed, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))
@@ -114,9 +140,13 @@ public class CreateAccount extends AbstractCommand {
 			checkStorageReference(payer);
 			Account payer = new Account(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
-			return accountCreationHelper.fromPayer
-				(payer.reference, keysOfPayer, signatureAlgorithmOfNewAccount, keys.getPublic(),
-				balance, balanceRed, false, this::askForConfirmation, this::printCosts);
+			if (createTendermintValidator)
+				return accountCreationHelper.tendermintValidatorFromPayer
+					(payer.reference, keysOfPayer, publicKey, balance, balanceRed, this::askForConfirmation, this::printCosts);
+			else
+				return accountCreationHelper.fromPayer
+					(payer.reference, keysOfPayer, signatureAlgorithmOfNewAccount, publicKey,
+					balance, balanceRed, false, this::askForConfirmation, this::printCosts);
 		}
 
 		private void askForConfirmation(BigInteger gas) {

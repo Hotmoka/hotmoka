@@ -16,7 +16,11 @@ limitations under the License.
 
 package io.takamaka.code.governance;
 
+import java.math.BigInteger;
+
 import io.takamaka.code.lang.ExternallyOwnedAccount;
+import io.takamaka.code.lang.FromContract;
+import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
 
 /**
@@ -37,6 +41,39 @@ public class Validator extends ExternallyOwnedAccount {
 	 */
 	public Validator(String publicKey) {
 		super(publicKey);
+	}
+
+	/**
+	 * Creates a validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public Validator(int initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
+	}
+
+	/**
+	 * Creates a validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public Validator(long initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
+	}
+
+	/**
+	 * Creates a validator with the given initial green funds.
+	 * 
+	 * @param initialAmount the initial funds
+	 * @param publicKey the Base64-encoded public key that will be assigned to the validator
+	 */
+	@Payable @FromContract
+	public Validator(BigInteger initialAmount, String publicKey) {
+		super(initialAmount, publicKey);
 	}
 
 	/**

@@ -21,6 +21,8 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 
+import io.takamaka.code.governance.tendermint.TendermintED25519Validator;
+
 /**
  * A contract that can be used as gamete of a network. It is an externally-owned
  * account with a faucet method for providing funds to other externally-owned accounts.
@@ -158,6 +160,23 @@ public final class Gamete extends ExternallyOwnedAccount {
 	}
 
 	/**
+	 * Yields a new Tendermint validator with the given initial green coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new validator
+	 * @return the new validator
+	 */
+	public final @FromContract TendermintED25519Validator faucetTendermintED25519Validator(BigInteger green, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		return new TendermintED25519Validator(green, publicKey);
+	}
+
+	/**
 	 * Yields a new SHA256DSA account with the given initial green coins, paid by this gamete.
 	 * Only the gamete itself can call this method.
 	 * This method is special, in the sense that it can be called without a correct
@@ -284,6 +303,28 @@ public final class Gamete extends ExternallyOwnedAccount {
 		ExternallyOwnedAccountED25519 account = new ExternallyOwnedAccountED25519(green, publicKey);
 		account.receiveRed(red);
 		return account;
+	}
+
+	/**
+	 * Yields a new Tendermint validator with the given initial green and red coins, paid by this gamete.
+	 * Only the gamete itself can call this method.
+	 * This method is special, in the sense that it can be called without a correct
+	 * signature, if the {@code allowsUnsignedFaucet} consensus option is set.
+	 * 
+	 * @param green the initial funds of the new account, between 0 and the maximal threshold
+	 *              set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param red the initial red funds of the new account, between 0 and the maximal threshold
+	 *            set with {@link #setMaxFaucet(BigInteger, BigInteger)}
+	 * @param publicKey the public key of the new validator
+	 * @return the new validator
+	 */
+	public final @FromContract TendermintED25519Validator faucetTendermintED25519Validator(BigInteger green, BigInteger red, String publicKey) {
+		require(green != null && green.signum() >= 0 && green.compareTo(maxFaucet) <= 0, () -> "the balance must be between 0 and " + maxFaucet + " inclusive");
+		require(red != null && red.signum() >= 0 && red.compareTo(maxRedFaucet) <= 0, () -> "the red balance must be between 0 and " + maxRedFaucet + " inclusive");
+		require(caller() == this, "only the gamete can call its own faucet");
+		TendermintED25519Validator validator = new TendermintED25519Validator(green, publicKey);
+		validator.receiveRed(red);
+		return validator;
 	}
 
 	/**

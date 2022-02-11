@@ -57,7 +57,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial funds
-	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the account
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(int initialAmount, String publicKey) {
@@ -68,7 +68,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial funds
-	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the account
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(long initialAmount, String publicKey) {
@@ -79,7 +79,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 * Creates an externally owned contract with the given initial green funds.
 	 * 
 	 * @param initialAmount the initial funds
-	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the account
 	 */
 	@Payable @FromContract
 	public ExternallyOwnedAccount(BigInteger initialAmount, String publicKey) {

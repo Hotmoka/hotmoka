@@ -206,7 +206,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected boolean looksLikePublicKey(String s) {
     	try {
-            return s != null && Base58.decode(s).length == 32; // ed25519 public keys are 32 bytes long
+            return s != null && Base58.decode(s).length == 32;
         }
     	catch (IllegalArgumentException e) {
             return false;

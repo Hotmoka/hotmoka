@@ -221,6 +221,87 @@ public class AccountCreationHelper {
 		return account;
 	}
 
+	/**
+	 * Creates a new Tendermint validator by letting the faucet pay.
+	 * 
+	 * @param publicKey the public key of the new validator
+	 * @param balance the balance of the new validator
+	 * @param balanceRed the red balance of the new validator
+	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
+	 * @return the storage reference of the validator
+	 */
+	public StorageReference tendermintValidatorFromFaucet(PublicKey publicKey,
+			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+
+		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+
+		BigInteger gas = gasForCreatingAccountWithSignature("ed25519");
+
+		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
+		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
+		KeyPair keyPair = signatureForFaucet.getKeyPair();
+		Signer signer = Signer.with(signatureForFaucet, keyPair);
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
+		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
+			(signer, gamete, nonceHelper.getNonceOf(gamete),
+			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
+			new NonVoidMethodSignature(ClassType.GAMETE, "faucetTendermintED25519Validator", ClassType.TENDERMINT_ED25519_VALIDATOR, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, ClassType.STRING),
+			gamete,
+			new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKeyEncoded));
+
+		return (StorageReference) node.addInstanceMethodCallTransaction(request);
+	}
+
+	/**
+	 * Creates a new Tendermint validator by letting another account pay.
+	 * 
+	 * @param payer the payer of the validator creation
+	 * @param keysOfPayer the keys of the {@code payer}
+	 * @param publicKey the public key of the new validator
+	 * @param balance the balance of the new validator
+	 * @param balanceRed the red balance of the new validator
+	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
+	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
+	 * @return the storage reference of the new validator
+	 */
+	public StorageReference tendermintValidatorFromPayer(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
+			Consumer<BigInteger> gasHandler,
+			Consumer<TransactionRequest<?>[]> requestsHandler)
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+
+		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = new SignatureHelper(node).signatureAlgorithmFor(payer);
+
+		BigInteger gas1 = gasForCreatingAccountWithSignature("ed25519");
+		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
+		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
+
+		gasHandler.accept(totalGas);
+
+		Signer signer = Signer.with(signatureForPayer, keysOfPayer);
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
+		TransactionRequest<?> request1 = new ConstructorCallTransactionRequest
+			(signer, payer, nonceHelper.getNonceOf(payer),
+			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
+			new ConstructorSignature(ClassType.TENDERMINT_ED25519_VALIDATOR, ClassType.BIG_INTEGER, ClassType.STRING),
+			new BigIntegerValue(balance), new StringValue(publicKeyEncoded));
+		StorageReference validator = node.addConstructorCallTransaction((ConstructorCallTransactionRequest) request1);
+
+		if (balanceRed.signum() > 0) {
+			InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
+				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
+				CodeSignature.RECEIVE_RED_BIG_INTEGER, validator, new BigIntegerValue(balanceRed));
+			node.addInstanceMethodCallTransaction(request2);
+			
+			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });
+		}
+		else
+			requestsHandler.accept(new TransactionRequest<?>[] { request1 });
+
+		return validator;
+	}
+
 	private BigInteger gasForCreatingAccountWithSignature(String signature) {
 		switch (signature) {
 		case "ed25519":
