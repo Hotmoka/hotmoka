@@ -221,6 +221,11 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
+	public @View int getBuyerSurcharge() {
+		return buyerSurcharge;
+	}
+
+	@Override
 	public final @View BigInteger getTicketForNewPoll() {
 		return ticketForNewPoll;
 	}
@@ -252,7 +257,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		// that casts the argument to Validator and calls this method. In this way
 		// only instances of Validator can become shareholders (ie, actual validators)
 
-		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(buyerSurcharge + 100)).divide(BigInteger.valueOf(100L));
+		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(getBuyerSurcharge() + 100)).divide(BigInteger.valueOf(100L));
 		require(costWithSurchage.compareTo(amount) <= 0, "not enough money to accept the offer: you need " + costWithSurchage);
 		super.accept(amount, buyer, offer);
 

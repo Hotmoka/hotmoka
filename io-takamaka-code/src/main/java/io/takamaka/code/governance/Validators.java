@@ -125,6 +125,14 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@View long getCurrentInflation();
 
 	/**
+	 * Yields the extra tax paid when a validator acquires the shares of another validator
+	 * (in percent of the sale offer cost).
+	 * 
+	 * @return the extra tax paid
+	 */
+	@View int getBuyerSurcharge();
+
+	/**
 	 * Yields the amount of coins needed to start a new poll among the validators of this node.
 	 * Both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
 	 * {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}

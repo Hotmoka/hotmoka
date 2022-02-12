@@ -128,7 +128,7 @@ public class SellValidation extends AbstractCommand {
 					validators, new BigIntegerValue(BigInteger.ZERO), newOffer);
 
 				node.addInstanceMethodCallTransaction(request2);
-				System.out.println("Offer placed");
+				System.out.println("Offer " + newOffer + " placed");
 
 				printCosts(request1, request2);
 			}

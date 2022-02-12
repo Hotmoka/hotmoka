@@ -207,6 +207,10 @@ public class ManifestHelper {
 			int numOfOffers = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "size", BasicTypes.INT), offers))).value;
 
+			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
+
+			builder.append("   │  ├─ surcharge for buying validation power: ").append(buyerSurcharge).append("%\n");
 			builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
 
 			StorageReference[] validatorsArray = new StorageReference[numOfValidators];
@@ -270,18 +274,21 @@ public class ManifestHelper {
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSharesOnSale", ClassType.BIG_INTEGER), offer))).value;
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
+						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100)).divide(BigInteger.valueOf(100L));
 						Date expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
 
 						if (isLast) {
 							builder.append("   │  │     ├─ power on sale: ").append(powerOnSale).append("\n");
 							builder.append("   │  │     ├─ cost: ").append(cost).append("\n");
+							builder.append("   │  │     ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
 							builder.append("   │  │     └─ expiration: ").append(expiration).append("\n");
 						}
 						else {
-							builder.append("   │  │  |  ├─ power on sale: ").append(powerOnSale).append("\n");
-							builder.append("   │  │  |  ├─ cost: ").append(cost).append("\n");
-							builder.append("   │  │  |  └─ expiration: ").append(expiration).append("\n");
+							builder.append("   │  │  │  ├─ power on sale: ").append(powerOnSale).append("\n");
+							builder.append("   │  │  │  ├─ cost: ").append(cost).append("\n");
+							builder.append("   │  │  │  ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
+							builder.append("   │  │  │  └─ expiration: ").append(expiration).append("\n");
 						}
 
 						counter++;

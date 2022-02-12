@@ -19,6 +19,7 @@ package io.hotmoka.tools;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.tools.internal.moka.BindKey;
 import io.hotmoka.tools.internal.moka.Burn;
+import io.hotmoka.tools.internal.moka.BuyValidation;
 import io.hotmoka.tools.internal.moka.Call;
 import io.hotmoka.tools.internal.moka.Create;
 import io.hotmoka.tools.internal.moka.CreateAccount;
@@ -53,6 +54,7 @@ import picocli.CommandLine.Command;
 
 	subcommands = { BindKey.class,
 					Burn.class,
+					BuyValidation.class,
 					Call.class,
 					Create.class,
 					CreateAccount.class,

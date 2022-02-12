@@ -138,7 +138,7 @@ public class Send extends AbstractCommand {
 		}
 
 		private void askForConfirmation(BigInteger gas) {
-			if (interactive)
+			if (interactive && !"faucet".equals(payer))
 				yesNo("Do you really want to spend up to " + gas + " gas units to send the coins [Y/N] ");
 		}
 

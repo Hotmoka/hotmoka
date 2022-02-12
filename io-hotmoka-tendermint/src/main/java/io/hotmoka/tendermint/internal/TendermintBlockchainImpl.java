@@ -29,7 +29,6 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.Base64;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -279,11 +278,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				(manifest, _50_000, takamakaCode, GET, shares, validator))).value.longValue();
 
 			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
-			// Tendermint stores the public key without the leading 12 bytes
-			byte[] raw = Base64.getDecoder().decode(publicKey);
-			byte[] raw2 = new byte[raw.length - 12];
-			System.arraycopy(raw, 12, raw2, 0, raw2.length);
-			publicKey = Base64.getEncoder().encodeToString(raw2);
 
 			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
 		}
