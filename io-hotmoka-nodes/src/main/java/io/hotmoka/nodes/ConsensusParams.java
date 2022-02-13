@@ -127,9 +127,8 @@ public class ConsensusParams {
 
 	/**
 	 * The initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * as reward to the validators. 1,000,000 means 1%.
+	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
 	 */
 	public final long initialInflation;
@@ -238,7 +237,7 @@ public class ConsensusParams {
 		private boolean skipsVerification = false;
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
-		private long initialInflation = 10_000L; // 0.1%
+		private long initialInflation = 100_000L; // 0.1%
 		private int verificationVersion = 0;
 		private BigInteger initialSupply = BigInteger.ZERO;
 		private BigInteger finalSupply = BigInteger.ZERO;
@@ -462,10 +461,9 @@ public class ConsensusParams {
 
 		/**
 		 * Sets the initial inflation applied to the gas consumed by transactions before it gets sent
-		 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-		 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-		 * Inflation can be negative. For instance, -30,000 means -0.3%.
-		 * It defaults to 10,000 (that is, inflation is 0.1% by default).
+		 * as reward to the validators. 1,000,000 means 1%.
+		 * Inflation can be negative. For instance, -300,000 means -0.3%.
+		 * It defaults to 100,000 (that is, inflation is 0.1% by default).
 		 */
 		public Builder setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;

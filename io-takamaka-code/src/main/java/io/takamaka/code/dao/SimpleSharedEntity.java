@@ -293,6 +293,36 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 	}
 
 	/**
+	 * Removes some shares from a shareholder.
+	 * 
+	 * @param shareholder the shareholder
+	 * @param removed the shares to remove
+	 */
+	private void removeShares(S shareholder, BigInteger removed) {
+		shares.update(shareholder, old -> old.subtract(removed));
+		if (shares.get(shareholder).signum() == 0) {
+			shares.remove(shareholder);
+			event(new ShareholderRemoved<>(shareholder));
+		}
+	}
+
+	/**
+	 * Removes a shareholder, distributing its shares to the other shareholders.
+	 * 
+	 * @param toRemove the shareholder
+	 */
+	protected void removeShareholderAndDistributeToOthers(S toRemove) {
+		BigInteger toDistribute = sharesOf(toRemove);
+		shares.remove(toRemove);
+		event(new ShareholderRemoved<>(toRemove));
+		BigInteger total = shares.values().reduce(ZERO, BigInteger::add);
+		if (total.signum() > 0)
+			shares.keys().forEachOrdered(shareholder -> shares.update(shareholder, old -> old.add(toDistribute.multiply(old).divide(total))));
+
+		snapshotOfShares = shares.snapshot();
+	}
+
+	/**
 	 * Deletes offers that have expired.
 	 * 
 	 * @param offerToRemove an offer whose first occurrence must be removed
@@ -310,13 +340,5 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 				return ZERO;
 			},
 			share::add);
-	}
-
-	private void removeShares(S shareholder, BigInteger removed) {
-		shares.update(shareholder, shares -> shares.subtract(removed));
-		if (shares.get(shareholder).signum() == 0) {
-			shares.remove(shareholder);
-			event(new ShareholderRemoved<>(shareholder));
-		}
 	}
 }

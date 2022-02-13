@@ -210,7 +210,18 @@ public class ManifestHelper {
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
 
-			builder.append("   │  ├─ surcharge for buying validation power: ").append(buyerSurcharge).append("%\n");
+			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
+
+			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getSlashingForMisbehaving", BasicTypes.INT), validators))).value;
+
+			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
+
+			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getSlashingForNotBehaving", BasicTypes.INT), validators))).value;
+
+			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
+
 			builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
 
 			StorageReference[] validatorsArray = new StorageReference[numOfValidators];
@@ -319,12 +330,12 @@ public class ManifestHelper {
 			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;
 
-			builder.append(String.format("   │  ├─ initialInflation: %d (ie. %.5f%%)\n", initialInflation, initialInflation / 100_000.0));
+			builder.append(String.format("   │  ├─ initialInflation: %d (ie. %.6f%%)\n", initialInflation, initialInflation / 1_000_000.0));
 
 			long currentInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_CURRENT_INFLATION, validators))).value;
 
-			builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.5f%%)\n", currentInflation, currentInflation / 100_000.0));
+			builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.6f%%)\n", currentInflation, currentInflation / 1_000_000.0));
 
 			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;

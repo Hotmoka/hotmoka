@@ -23,6 +23,7 @@ import io.takamaka.code.dao.PollWithTimeWindow;
 import io.takamaka.code.dao.SharedEntity;
 import io.takamaka.code.dao.SharedEntity.Offer;
 import io.takamaka.code.dao.SimplePoll;
+import io.takamaka.code.lang.Event;
 import io.takamaka.code.lang.FromContract;
 import io.takamaka.code.lang.Payable;
 import io.takamaka.code.lang.View;
@@ -105,9 +106,8 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 
 	/**
 	 * Yields the initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * as reward to the validators. 1,000,000 means 1%.
+	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 * 
 	 * @return the initial inflation
 	 */
@@ -115,9 +115,8 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 
 	/**
 	 * Yields the current inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * as reward to the validators. 1,000,000 means 1%.
+	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 * This starts at {@link #getInitialInflation()} and decreases towards zero.
 	 * 
 	 * @return the current inflation
@@ -128,9 +127,23 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * Yields the extra tax paid when a validator acquires the shares of another validator
 	 * (in percent of the sale offer cost).
 	 * 
-	 * @return the extra tax paid
+	 * @return the extra tax paid. 1000000 means 1%
 	 */
 	@View int getBuyerSurcharge();
+
+	/**
+	 * Yields the slashing percent applied to stakes for each misbehavior.
+	 * 
+	 * @return the slashing percent. 1000000 means 1%
+	 */
+	@View int getSlashingForMisbehaving();
+
+	/**
+	 * Yields the slashing percent applied to stakes for no misbehavior (no vote).
+	 * 
+	 * @return the slashing percent. 1000000 means 1%
+	 */
+	@View int getSlashingForNotBehaving();
 
 	/**
 	 * Yields the amount of coins needed to start a new poll among the validators of this node.
@@ -183,4 +196,14 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * @return the poll
 	 */
 	@Payable @FromContract PollWithTimeWindow<V> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
+
+	final class ValidatorSlashed<V extends Validator> extends Event {
+		public final V validator;
+		public final BigInteger amount;
+
+		protected @FromContract ValidatorSlashed(V validator, BigInteger amount) {
+			this.validator = validator;
+			this.amount = amount;
+		}
+	}
 }

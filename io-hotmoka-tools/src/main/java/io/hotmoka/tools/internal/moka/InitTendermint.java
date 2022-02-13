@@ -88,7 +88,7 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--oblivion" }, description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately). Use 0 to keep the gas price constant", defaultValue = "250000") 
 	private long oblivion;
 
-	@Option(names = { "--inflation" }, description = "inflation added to the remuneration of the validators at each block (0 = 0%, 10000000 = 100%)", defaultValue = "10000") 
+	@Option(names = { "--inflation" }, description = "inflation added to the remuneration of the validators at each block (0 = 0%, 1000000 = 1%)", defaultValue = "1000000") 
 	private long inflation;
 
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")

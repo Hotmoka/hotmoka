@@ -44,9 +44,8 @@ public class GenericValidators extends AbstractValidators<Validator> {
 	 *                         require to pay this amount for starting a poll
 	 * @param finalSupply the final supply of coins that will be reached, eventually
 	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
-	 *                		   as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 *                  	   10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 *                  	   Inflation can be negative. For instance, -30,000 means -0.3%
+	 *                		   as reward to the validators. 1,000,000 means 1%.
+	 *                         Inflation can be negative. For instance, -300,000 means -0.3%
 	 */
 	protected GenericValidators(Manifest<Validator> manifest, Validator[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 		super(manifest, validators, powers, ticketForNewPoll, finalSupply, initialInflation);
@@ -61,7 +60,14 @@ public class GenericValidators extends AbstractValidators<Validator> {
 	 * @param powers the initial powers of the initial validators,
 	 *               as a space-separated sequence of integers; they must be as many
 	 *               as there are public keys in {@code publicKeys}
+	 * @param ticketForNewPoll the amount of coins to pay for starting a new poll among the validators;
+	 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
+	 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
+	 *                         require to pay this amount for starting a poll
 	 * @param finalSupply the final supply of coins that will be reached, eventually
+	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
+	 *                		   as reward to the validators. 1,000,000 means 1%.
+	 *                         Inflation can be negative. For instance, -300,000 means -0.3%
 	 */
 	private GenericValidators(Manifest<Validator> manifest, String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 		this(manifest, buildValidators(publicKeys), buildPowers(powers), ticketForNewPoll, finalSupply, initialInflation);

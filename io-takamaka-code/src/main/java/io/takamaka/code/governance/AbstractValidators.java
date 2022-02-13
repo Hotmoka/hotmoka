@@ -62,17 +62,27 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 */
 	private final StorageMap<V, BigInteger> stakes = new StorageTreeMap<>();
 
+	//TODO: transform into consensus parameters
 	/**
-	 * The amount of rewards that get staked. The remaining percent is sent
-	 * to the validators immediately.
+	 * The amount of rewards that gets staked. The rest is sent to the validators immediately.
 	 */
 	private final int percentStaked = 75;
 
 	/**
 	 * Extra tax paid when a validator acquires the shares of another validator
-	 * (in percent of the offer cost).
+	 * (in percent of the offer cost). 1000000 = 1%
 	 */
-	private final int buyerSurcharge = 50;
+	private final int buyerSurcharge = 50_000_000;
+
+	/**
+	 * The percent of stake that gets slashed for each misbehaving. 1000000 means 1%.
+	 */
+	private final int slashingForMisbehaving = 1_000_000;
+
+	/**
+	 * The percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%.
+	 */
+	private final int slashingForNotBehaving = 500_000;
 
 	/**
 	 * The amount of coins to pay for starting a new poll among the validators.
@@ -106,18 +116,15 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 	/**
 	 * The initial inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
-	 * This defaults to 10,000 (that is, inflation is 0.1% by default).
+	 * as reward to the validators. 1,000,000 means 1%.
+	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 */
 	private final long initialInflation;
 
 	/**
 	 * The current inflation applied to the gas consumed by transactions before it gets sent
-	 * as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 * 10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 * Inflation can be negative. For instance, -30,000 means -0.3%.
+	 * as reward to the validators. 1,000,000 means 1%.
+	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 * This starts at {@link #initialInflation} and goes towards zero.
 	 */
 	private long currentInflation;
@@ -159,9 +166,8 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 *                         require to pay this amount for starting a poll
 	 * @param finalSupply the final supply of coins that will be reached, eventually
 	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
-	 *                		   as reward to the validators. 0 means 0%, 100,000 means 1%,
-	 *                  	   10,000,000 means 100%, 20,000,000 means 200% and so on.
-	 *                  	   Inflation can be negative. For instance, -30,000 means -0.3%
+	 *                		   as reward to the validators. 1,000,000 means 1%.
+	 *                         Inflation can be negative. For instance, -300,000 means -0.3%
 	 */
 	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
 		super(validators, powers);
@@ -211,23 +217,122 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public @View long getInitialInflation() {
+	public final @View long getInitialInflation() {
 		return initialInflation;
 	}
 
 	@Override
-	public @View long getCurrentInflation() {
+	public final @View long getCurrentInflation() {
 		return currentInflation;
 	}
 
 	@Override
-	public @View int getBuyerSurcharge() {
+	public final @View int getBuyerSurcharge() {
 		return buyerSurcharge;
+	}
+
+	@Override
+	public final @View int getSlashingForMisbehaving() {
+		return slashingForMisbehaving;
+	}
+
+	@Override
+	public final @View int getSlashingForNotBehaving() {
+		return slashingForNotBehaving;
 	}
 
 	@Override
 	public final @View BigInteger getTicketForNewPoll() {
 		return ticketForNewPoll;
+	}
+
+	@Override
+	public final @View StorageSetView<Poll<V>> getPolls() {
+		return snapshotOfPolls;
+	}
+
+	@Override
+	public final @View BigInteger getHeight() {
+		return height;
+	}
+
+	@Override
+	public final @View BigInteger getNumberOfTransactions() {
+		return numberOfTransactions;
+	}
+
+	@Override
+	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, V buyer, Offer<V> offer) {
+		// it is important to redefine this method, so that the same method with
+		// argument of type PayableContract is redefined by the compiler with a bridge method
+		// that casts the argument to Validator and calls this method. In this way
+		// only instances of Validator can become shareholders (ie, actual validators)
+
+		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(BigInteger.valueOf(100_000_000L));
+		require(costWithSurchage.compareTo(amount) <= 0, "not enough money to accept the offer: you need " + costWithSurchage);
+		super.accept(amount, buyer, offer);
+
+		// if the seller is not a validator anymore, we send to it its staked coins
+		V seller = offer.seller;
+		if (sharesOf(seller).signum() == 0) {
+			seller.receive(stakes.get(seller));
+			stakes.remove(seller);
+		}
+
+		event(new ValidatorsUpdate());
+	}
+
+	@Override
+	@FromContract @Payable public void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
+		require(isSystemCall(), "the validators can only be rewarded with a system request");
+
+		List<String> behavingIDs = splitAtSpaces(behaving);
+		List<String> misbehavingIDs = splitAtSpaces(misbehaving);
+		rewardBehavingValidators(behavingIDs);
+		slashMisbehavingValidators(misbehavingIDs);
+		slashNotBehavingValidators(behavingIDs, misbehavingIDs);
+		updateGasPrice(gasConsumed);
+		updateParameters(minted, numberOfTransactionsSinceLastReward);
+	}
+
+	@Override
+	@Payable @FromContract
+	public final SimplePoll<V> newPoll(BigInteger amount, SimplePoll.Action action) {
+		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
+		checkThatItCanStartPoll(caller());
+	
+		SimplePoll<V> poll = new SimplePoll<>(this, action) {
+	
+			@Override
+			public void close() {
+				super.close();
+				removePoll(this);
+			}
+		};
+	
+		addPoll(poll);
+	
+		return poll;
+	}
+
+	@Override
+	@Payable @FromContract
+	public final PollWithTimeWindow<V> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration) {
+		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
+		checkThatItCanStartPoll(caller());
+	
+		PollWithTimeWindow<V> poll = new PollWithTimeWindow<>(this, action, start, duration) {
+	
+			@Override
+			public void close() {
+				super.close();
+				removePoll(this);
+			}
+		};
+	
+		addPoll(poll);
+	
+		return poll;
 	}
 
 	protected static BigInteger[] buildPowers(String powersAsStringSequence) {
@@ -243,75 +348,16 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 			list.add(s.substring(0, pos));
 			s = s.substring(pos + 1);
 		}
-
+	
 		if (!s.isEmpty())
 			list.add(s);
-
+	
 		return list;
 	}
 
-	@Override
-	public @FromContract(PayableContract.class) @Payable void accept(BigInteger amount, V buyer, Offer<V> offer) {
-		// it is important to redefine this method, so that the same method with
-		// argument of type PayableContract is redefined by the compiler with a bridge method
-		// that casts the argument to Validator and calls this method. In this way
-		// only instances of Validator can become shareholders (ie, actual validators)
-
-		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(getBuyerSurcharge() + 100)).divide(BigInteger.valueOf(100L));
-		require(costWithSurchage.compareTo(amount) <= 0, "not enough money to accept the offer: you need " + costWithSurchage);
-		super.accept(amount, buyer, offer);
-
-		// if the seller is not a validator anymore, we send its staked coins
-		V seller = offer.seller;
-		if (sharesOf(seller).signum() == 0) {
-			seller.receive(stakes.get(seller));
-			stakes.remove(seller);
-		}
-
-		event(new ValidatorsUpdate());
-	}
-
-	@Override
-	@FromContract @Payable public void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
-		require(isSystemCall(), "the validators can only be rewarded with a system request");
-
-		List<String> behavingIDs = splitAtSpaces(behaving);
-		if (!behavingIDs.isEmpty()) {
-			// compute the total power of the well behaving validators; this is always positive
-			BigInteger totalPower = getShareholders()
-				.filter(validator -> behavingIDs.contains(validator.id()))
-				.map(this::sharesOf)
-				.reduce(ZERO, BigInteger::add);
-
-			// compute the total amount of staked coins
-			BigInteger totalStaked = stakes.values().reduce(BigInteger.ZERO, BigInteger::add);
-
-			// compute the balance that is not staked and must be distributed
-			BigInteger toDistribute = balance().subtract(totalStaked);
-
-			if (toDistribute.signum() > 0) {
-				// 75% of the distribution gets staked for the well-behaving validators, in proportion to their power
-				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
-				getShareholders()
-					.filter(validator -> behavingIDs.contains(validator.id()))
-					.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
-
-				// distribute immediately the remaining 25% to the well-behaving validators, in proportion to their power
-				final BigInteger paid = toDistribute.subtract(addedToStakes);
-				getShareholders()
-					.filter(validator -> behavingIDs.contains(validator.id()))
-					.forEachOrdered(validator -> validator.receive(paid.multiply(sharesOf(validator)).divide(totalPower)));
-			}
-		}
-
-		// TODO: slash staked coins for misbehaving validators
-
-		// the gas station is informed about the amount of gas consumed for CPU, RAM or storage, so that it can update the gas price
-		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
-
+	private void updateParameters(BigInteger minted, BigInteger numberOfTransactionsSinceLastReward) {
 		// we increase the number of rewards (ie, the height of the blockchain, if the node is part of a blockchain)
-		// but only if there are transactions, which gives to the underlying blockchain engine the possibility
-		// to stop generating empty blocks
+		// but only if there are transactions, which gives to the underlying blockchain engine the possibility to stop generating empty blocks
 		if (numberOfTransactionsSinceLastReward.signum() > 0) {
 			height = height.add(ONE);
 
@@ -342,59 +388,76 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		}
 	}
 
-	@Override
-	@Payable @FromContract
-	public final SimplePoll<V> newPoll(BigInteger amount, SimplePoll.Action action) {
-		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
-		checkThatItCanStartPoll(caller());
+	private void rewardBehavingValidators(List<String> behavingIDs) {
+		if (!behavingIDs.isEmpty()) {
+			// compute the total power of the well behaving validators; this is always positive
+			BigInteger totalPower = getShareholders()
+				.filter(validator -> behavingIDs.contains(validator.id()))
+				.map(this::sharesOf)
+				.reduce(ZERO, BigInteger::add);
 
-		SimplePoll<V> poll = new SimplePoll<>(this, action) {
+			// compute the total amount of staked coins
+			BigInteger totalStaked = stakes.values().reduce(BigInteger.ZERO, BigInteger::add);
 
-			@Override
-			public void close() {
-				super.close();
-				removePoll(this);
+			// compute the balance that is not staked and must be distributed
+			BigInteger toDistribute = balance().subtract(totalStaked);
+
+			if (toDistribute.signum() > 0) {
+				// percentStaked of the distribution gets staked for the well-behaving validators, in proportion to their power
+				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
+				getShareholders()
+					.filter(validator -> behavingIDs.contains(validator.id()))
+					.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
+
+				// distribute immediately the rest to the well-behaving validators, in proportion to their power
+				final BigInteger paid = toDistribute.subtract(addedToStakes);
+				getShareholders()
+					.filter(validator -> behavingIDs.contains(validator.id()))
+					.forEachOrdered(validator -> validator.receive(paid.multiply(sharesOf(validator)).divide(totalPower)));
 			}
-		};
-	
-		addPoll(poll);
-
-		return poll;
+		}
 	}
 
-	@Override
-	@Payable @FromContract
-	public final PollWithTimeWindow<V> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration) {
-		require(amount.compareTo(ticketForNewPoll) >= 0, () -> "a new poll costs " + ticketForNewPoll + " coins");
-		checkThatItCanStartPoll(caller());
-
-		PollWithTimeWindow<V> poll = new PollWithTimeWindow<>(this, action, start, duration) {
-	
-			@Override
-			public void close() {
-				super.close();
-				removePoll(this);
-			}
-		};
-	
-		addPoll(poll);
-	
-		return poll;
+	private void updateGasPrice(BigInteger gasConsumed) {
+		// the gas station is informed about the amount of gas consumed for CPU, RAM or storage, so that it can update the gas price
+		manifest.gasStation.takeNoteOfGasConsumedDuringLastReward(gasConsumed);
 	}
 
-	@Override
-	public final @View StorageSetView<Poll<V>> getPolls() {
-		return snapshotOfPolls;
+	private void slashNotBehavingValidators(List<String> behavingIDs, List<String> misbehavingIDs) {
+		getShareholders()
+			.filter(validator -> !behavingIDs.contains(validator.id()) && !misbehavingIDs.contains(validator.id()))
+			.forEachOrdered(this::slashForNotBehaving);
 	}
 
-	@Override
-	public final @View BigInteger getHeight() {
-		return height;
+	private void slashMisbehavingValidators(List<String> misbehavingIDs) {
+		if (!misbehavingIDs.isEmpty()) {
+			getShareholders()
+				.filter(validator -> misbehavingIDs.contains(validator.id()))
+				.forEachOrdered(this::slashForMisbehaving);
+		}
 	}
 
-	@Override
-	public final @View BigInteger getNumberOfTransactions() {
-		return numberOfTransactions;
+	private void slashForMisbehaving(V validator) {
+		slash(validator, slashingForMisbehaving);
+	}
+
+	private void slashForNotBehaving(V validator) {
+		slash(validator, slashingForNotBehaving);
+	}
+
+	private void slash(V validator, int percent) {
+		BigInteger oldStakes = getStake(validator);
+		BigInteger newStakes = oldStakes.multiply(BigInteger.valueOf(100_000_000L - percent)).divide(BigInteger.valueOf(100_000_000L));
+		event(new ValidatorSlashed<V>(validator, oldStakes.subtract(newStakes)));
+
+		if (newStakes.signum() == 0) {
+			// if the staked coins reached zero, we remove the validator altogether
+			removeShareholderAndDistributeToOthers(validator);
+			stakes.remove(validator);
+			event(new ValidatorsUpdate());
+		}
+		else
+			stakes.put(validator, newStakes);
 	}
 
 	private void addPoll(SimplePoll<V> poll) {
