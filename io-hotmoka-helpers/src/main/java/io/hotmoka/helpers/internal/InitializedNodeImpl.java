@@ -79,17 +79,20 @@ public class InitializedNodeImpl implements InitializedNode {
 	private final StorageReference gamete;
 
 	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		BigInteger _200_000 = BigInteger.valueOf(200_000);
 		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create the builder of zero validators
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING, ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING,
+					ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
+					BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
-			new LongValue(consensus.initialInflation));
+			new LongValue(consensus.initialInflation), new IntValue(consensus.percentStaked),
+			new IntValue(consensus.buyerSurcharge), new IntValue(consensus.slashingForMisbehaving), new IntValue(consensus.slashingForNotBehaving));
 
 		return node.addConstructorCallTransaction(request);
 	}

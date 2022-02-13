@@ -165,6 +165,30 @@ public class ConsensusParams {
 	 */
 	public final String signature;
 
+	/**
+	 * The amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
+	 * 1000000 = 1%. It defaults to 75%.
+	 */
+	public final int percentStaked;
+
+	/**
+	 * Extra tax paid when a validator acquires the shares of another validator
+	 * (in percent of the offer cost). 1000000 = 1%. It defaults to 50%.
+	 */
+	public final int buyerSurcharge;
+
+	/**
+	 * The percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
+	 * It defaults to 1%.
+	 */
+	public final int slashingForMisbehaving;
+
+	/**
+	 * The percent of stake that gets slashed for validators that do not behave
+	 * (or do not vote). 1000000 means 1%. It defaults to 0.5%.
+	 */
+	public final int slashingForNotBehaving;
+
 	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
@@ -188,6 +212,10 @@ public class ConsensusParams {
 		this.initialRedSupply = builder.initialRedSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.signature = builder.signature;
+		this.percentStaked = builder.percentStaked;
+		this.buyerSurcharge = builder.buyerSurcharge;
+		this.slashingForMisbehaving = builder.slashingForMisbehaving;
+		this.slashingForNotBehaving = builder.slashingForNotBehaving;
 	}
 
 	/**
@@ -218,7 +246,11 @@ public class ConsensusParams {
 			.setFinalSupply(finalSupply)
 			.setInitialRedSupply(initialRedSupply)
 			.setPublicKeyOfGamete(publicKeyOfGamete)
-			.setTicketForNewPoll(ticketForNewPoll);
+			.setTicketForNewPoll(ticketForNewPoll)
+			.setBuyerSurcharge(buyerSurcharge)
+			.setPercentStaked(percentStaked)
+			.setSlashingForMisbehaving(slashingForMisbehaving)
+			.setSlashingForNotBehaving(slashingForNotBehaving);
 	}
 
 	public static class Builder {
@@ -244,6 +276,10 @@ public class ConsensusParams {
 		private BigInteger initialRedSupply = BigInteger.ZERO;
 		private String publicKeyOfGamete = "";
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
+		private int percentStaked = 75_000_000;
+		private int buyerSurcharge = 50_000_000;
+		private int slashingForMisbehaving = 1_000_000;
+		private int slashingForNotBehaving = 500_000;
 
 		public Builder() {
 			TimeZone tz = TimeZone.getTimeZone("UTC");
@@ -467,6 +503,66 @@ public class ConsensusParams {
 		 */
 		public Builder setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;
+			return this;
+		}
+
+		/**
+		 * Sets the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
+		 * 1000000 = 1%. It defaults to 75%.
+		 * 
+		 * @param percentStaked the buyer surcharge to set
+		 * @return this builder
+		 */
+		public Builder setPercentStaked(int percentStaked) {
+			if (percentStaked < 0 || percentStaked > 100_000_000L)
+				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
+
+			this.percentStaked = percentStaked;
+			return this;
+		}
+
+		/**
+		 * Sets the extra tax paid when a validator acquires the shares of another validator
+		 * (in percent of the offer cost). 1000000 = 1%. It defaults to 50%.
+		 * 
+		 * @param buyerSurcharge the buyer surcharge to set
+		 * @return this builder
+		 */
+		public Builder setBuyerSurcharge(int buyerSurcharge) {
+			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000L)
+				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
+
+			this.buyerSurcharge = buyerSurcharge;
+			return this;
+		}
+
+		/**
+		 * Sets the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
+		 * It defaults to 1%.
+		 * 
+		 * @param slashingForMisbehaving the slashing for misbehaving validators
+		 * @return this builder
+		 */
+		public Builder setSlashingForMisbehaving(int slashingForMisbehaving) {
+			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000L)
+				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
+
+			this.slashingForMisbehaving = slashingForMisbehaving;
+			return this;
+		}
+
+		/**
+		 * Sets the percent of stake that gets slashed for each not behaving (not voting) validator.
+		 * 1000000 means 1%. It defaults to 1%.
+		 * 
+		 * @param slashingForNotBehaving the slashing for not behaving validators
+		 * @return this builder
+		 */
+		public Builder setSlashingForNotBehaving(int slashingForNotBehaving) {
+			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000L)
+				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
+
+			this.slashingForNotBehaving = slashingForNotBehaving;
 			return this;
 		}
 

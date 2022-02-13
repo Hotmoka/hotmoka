@@ -62,27 +62,27 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 */
 	private final StorageMap<V, BigInteger> stakes = new StorageTreeMap<>();
 
-	//TODO: transform into consensus parameters
 	/**
 	 * The amount of rewards that gets staked. The rest is sent to the validators immediately.
+	 * 1000000 = 1%.
 	 */
-	private final int percentStaked = 75;
+	private final int percentStaked;
 
 	/**
 	 * Extra tax paid when a validator acquires the shares of another validator
-	 * (in percent of the offer cost). 1000000 = 1%
+	 * (in percent of the offer cost). 1000000 = 1%.
 	 */
-	private final int buyerSurcharge = 50_000_000;
+	private final int buyerSurcharge;
 
 	/**
 	 * The percent of stake that gets slashed for each misbehaving. 1000000 means 1%.
 	 */
-	private final int slashingForMisbehaving = 1_000_000;
+	private final int slashingForMisbehaving;
 
 	/**
 	 * The percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%.
 	 */
-	private final int slashingForNotBehaving = 500_000;
+	private final int slashingForNotBehaving;
 
 	/**
 	 * The amount of coins to pay for starting a new poll among the validators.
@@ -152,6 +152,8 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 */
 	private StorageSetView<Poll<V>> snapshotOfPolls;
 
+	private final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+
 	/**
 	 * Creates the validators initialized with the given accounts.
 	 * 
@@ -168,8 +170,17 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
 	 *                		   as reward to the validators. 1,000,000 means 1%.
 	 *                         Inflation can be negative. For instance, -300,000 means -0.3%
+	 * @param percentStaked the amount of rewards that gets staked. The rest is sent to the validators immediately.
+	 *                      1000000 = 1%
+	 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
+	 *                       (in percent of the offer cost). 1000000 = 1%
+	 * @param shashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+	 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
 	 */
-	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation) {
+	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll,
+			BigInteger finalSupply, long initialInflation, int percentStaked, int buyerSurcharge, int slashingForMisbehaving,
+			int slashingForNotBehaving) {
+
 		super(validators, powers);
 
 		require(ticketForNewPoll != null, "the ticket for new poll must be non-null");
@@ -184,6 +195,10 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		this.initialInflation = initialInflation;
 		this.currentInflation = initialInflation;
 		this.ticketForNewPoll = ticketForNewPoll;
+		this.buyerSurcharge = buyerSurcharge;
+		this.percentStaked = percentStaked;
+		this.slashingForMisbehaving = slashingForMisbehaving;
+		this.slashingForNotBehaving = slashingForNotBehaving;
 		this.numberOfTransactions = ZERO;
 		this.height = ZERO;
 		this.snapshotOfPolls = polls.snapshot();
@@ -268,7 +283,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		// that casts the argument to Validator and calls this method. In this way
 		// only instances of Validator can become shareholders (ie, actual validators)
 
-		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(BigInteger.valueOf(100_000_000L));
+		BigInteger costWithSurchage = offer.cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 		require(costWithSurchage.compareTo(amount) <= 0, "not enough money to accept the offer: you need " + costWithSurchage);
 		super.accept(amount, buyer, offer);
 
@@ -404,7 +419,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 			if (toDistribute.signum() > 0) {
 				// percentStaked of the distribution gets staked for the well-behaving validators, in proportion to their power
-				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(BigInteger.valueOf(100L));
+				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(_100_000_000);
 				getShareholders()
 					.filter(validator -> behavingIDs.contains(validator.id()))
 					.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
@@ -447,7 +462,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 	private void slash(V validator, int percent) {
 		BigInteger oldStakes = getStake(validator);
-		BigInteger newStakes = oldStakes.multiply(BigInteger.valueOf(100_000_000L - percent)).divide(BigInteger.valueOf(100_000_000L));
+		BigInteger newStakes = oldStakes.multiply(BigInteger.valueOf(100_000_000L - percent)).divide(_100_000_000);
 		event(new ValidatorSlashed<V>(validator, oldStakes.subtract(newStakes)));
 
 		if (newStakes.signum() == 0) {

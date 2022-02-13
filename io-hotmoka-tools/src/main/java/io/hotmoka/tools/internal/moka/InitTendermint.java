@@ -88,8 +88,20 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--oblivion" }, description = "how quick the gas consumed at previous rewards is forgotten (0 = never, 1000000 = immediately). Use 0 to keep the gas price constant", defaultValue = "250000") 
 	private long oblivion;
 
-	@Option(names = { "--inflation" }, description = "inflation added to the remuneration of the validators at each block (0 = 0%, 1000000 = 1%)", defaultValue = "1000000") 
+	@Option(names = { "--inflation" }, description = "inflation added to the remuneration of the validators at each block (0 = 0%, 1000000 = 1%)", defaultValue = "1000000")
 	private long inflation;
+
+	@Option(names = { "--percent-staked" }, description = "amount of validators' rewards that gets staked, the rest is sent to the validators immediately (0 = 0%, 1000000 = 1%)", defaultValue = "75000000")
+	private int percentStaked;
+
+	@Option(names = { "--buyer-surcharge" }, description = "extra tax paid when a validator acquires the shares of another validator (in percent of the offer cost) (0 = 0%, 1000000 = 1%)", defaultValue = "50000000")
+	private int buyerSurcharge;
+
+	@Option(names = { "--slashing-for-misbehaving" }, description = "the percent of stake that gets slashed for each misbehaving validator (0 = 0%, 1000000 = 1%)", defaultValue = "1000000")
+	private int slashingForMisbehaving;
+
+	@Option(names = { "--slashing-for-not-behaving" }, description = "the percent of stake that gets slashed for validators that do not behave (or do not vote) (0 = 0%, 1000000 = 1%)", defaultValue = "500000")
+	private int slashingForNotBehaving;
 
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
 	private boolean interactive;
@@ -147,6 +159,10 @@ public class InitTendermint extends AbstractCommand {
 				.ignoreGasPrice(ignoreGasPrice)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
+				.setPercentStaked(percentStaked)
+				.setBuyerSurcharge(buyerSurcharge)
+				.setSlashingForMisbehaving(slashingForMisbehaving)
+				.setSlashingForNotBehaving(slashingForNotBehaving)
 				.setInitialInflation(inflation)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))

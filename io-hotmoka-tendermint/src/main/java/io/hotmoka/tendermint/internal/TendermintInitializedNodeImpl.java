@@ -59,6 +59,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -132,13 +133,17 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
 
 		// we create the builder of the validators
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		BigInteger _200_000 = BigInteger.valueOf(200_000);
 		String builderClassName = ClassType.TENDERMINT_VALIDATORS + "$Builder";
+
 		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
-			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
+				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
-			new LongValue(consensus.initialInflation));
+			new LongValue(consensus.initialInflation), new IntValue(consensus.buyerSurcharge), new IntValue(consensus.percentStaked),
+			new IntValue(consensus.slashingForMisbehaving), new IntValue(consensus.slashingForNotBehaving));
+
 		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 
 		StorageReference builder = node.addConstructorCallTransaction(request);
@@ -149,7 +154,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			String publicKeyBase64 = encoder.encodeToString(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);
 			InstanceMethodCallTransactionRequest addValidator = new InstanceMethodCallTransactionRequest
-				(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
+				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 				addValidatorMethod,
 				builder,
 				new StringValue(publicKeyBase64), new LongValue(power));
