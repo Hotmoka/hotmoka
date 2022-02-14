@@ -242,6 +242,11 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
+	public final @View int getPercentStaked() {
+		return percentStaked;
+	}
+
+	@Override
 	public final @View int getBuyerSurcharge() {
 		return buyerSurcharge;
 	}

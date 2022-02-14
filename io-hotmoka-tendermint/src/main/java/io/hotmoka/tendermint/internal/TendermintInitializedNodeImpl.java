@@ -141,7 +141,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
 				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
-			new LongValue(consensus.initialInflation), new IntValue(consensus.buyerSurcharge), new IntValue(consensus.percentStaked),
+			new LongValue(consensus.initialInflation), new IntValue(consensus.percentStaked), new IntValue(consensus.buyerSurcharge),
 			new IntValue(consensus.slashingForMisbehaving), new IntValue(consensus.slashingForNotBehaving));
 
 		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);

@@ -124,6 +124,14 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	@View long getCurrentInflation();
 
 	/**
+	 * Yields the percent of validators' rewards that gets staked. The rest is sent to the validators immediately.
+	 * 1000000 = 1%.
+	 * 
+	 * @return the percent of validators' reward that gets staked
+	 */
+	@View int getPercentStaked();
+
+	/**
 	 * Yields the extra tax paid when a validator acquires the shares of another validator
 	 * (in percent of the sale offer cost).
 	 * 
