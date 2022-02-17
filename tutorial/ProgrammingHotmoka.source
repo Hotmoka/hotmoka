@@ -551,8 +551,24 @@ accounts programmatically. Its source code can be found at
 
 The first time you run Hotwallet, it will ask you to create a key or import an account
 (see Figure @fig:hotwallet_start).
-By default, Hootwallet will contact our test node at `panarea.hotmoka.io`,
-but this can be changed with the selector in the topmost area of the window.
+By default, Hotwallet will contact our test node at `panarea.hotmoka.io`,
+but this can be changed with the menu item _Networks_.
+
+Hotwallet is available for Google Chrome as well, but currently not yet through its web store.
+Intead, it must be either compiled by hand
+or installed as an unpacked extension. The latter solution is
+the simplest. Namely, in order to install Hotwallet in Chrome as an unpacked extension,
+do the following:
+
+1. Download its latest release in zip format from [https://github.com/Hotmoka/hotwallet-browser/releases](https://github.com/Hotmoka/hotwallet-browser/releases)
+2. Unzip the file (on Linux, run `unzip hotwallet_1.0.1.zip`)
+3. Go to Chrome and select the menu item _More tools_ and subitem _Extensions_
+4. Activate the _Developer mode_ with the switch in the top-right corner of the screen
+5. Click on _Load unpacked_ (left-top corner of the screen) and select the directory
+   where you unzipped the Hotwallet file
+6. The extension should be installed now. If you want to add its small icon to the extensions
+   bar of Chrome, for quick access, click on the icon of the extensions bar
+   that looks like a puzzle piece and activate the pin mode for Hotwallet.
 
 ## Contacting a Hotmoka Test Node
 
