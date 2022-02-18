@@ -194,7 +194,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 */
 	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
 
-	private final static BigInteger _1_000_000 = BigInteger.valueOf(1_000_000L);
+	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -906,8 +906,8 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		Optional<Long> currentInflation = caches.getCurrentInflation();
 
 		if (currentInflation.isPresent())
-			gas = gas.multiply(_1_000_000.add(BigInteger.valueOf(currentInflation.get())))
-					 .divide(_1_000_000);
+			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.get())))
+					 .divide(_100_000_000);
 
 		return gas;
 	}
