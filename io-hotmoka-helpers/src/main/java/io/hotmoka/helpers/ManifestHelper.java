@@ -257,7 +257,7 @@ public class ManifestHelper {
 				String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
 
-				builder.append("   │  │  ├─ id: ").append(id).append(" \n");
+				builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;
@@ -416,9 +416,9 @@ public class ManifestHelper {
 					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
 
 				if (isLast)
-					builder.append("   │     ├─ id: ").append(id).append(" \n");
+					builder.append("   │     ├─ id: ").append(id).append("\n");
 				else
-					builder.append("   │  │  ├─ id: ").append(id).append(" \n");
+					builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;

@@ -54,11 +54,11 @@ sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingHotmoka.md
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
 
-# These can be automatically recomputed with the update script
+# These get automatically recomputed with the update script: do not edit!
 sed -i 's/@hotmoka_version/1.0.7/g' ProgrammingHotmoka.md
 sed -i 's/@takamakaCode/5878d6d66699ffe19f95482c3080356008f917263c68a8a872be3c437020c9eb/g' ProgrammingHotmoka.md
 sed -i 's/@manifest/4cb4ebfcff972f60c22f1bf16950ca11fca32a2d1622b67d2b7f3e63166f37c3#0/g' ProgrammingHotmoka.md
-sed -i 's/@gamete/ce08d392e97600279f8571dd4971e1a1b7422015655001c7cb4abb0159266a86#0/g' ProgrammingHotmoka.md
+sed -i 's/@gamete//g' ProgrammingHotmoka.md
 sed -i 's/@gasStation/4cb4ebfcff972f60c22f1bf16950ca11fca32a2d1622b67d2b7f3e63166f37c3#11/g' ProgrammingHotmoka.md
 sed -i 's/@validators/4cb4ebfcff972f60c22f1bf16950ca11fca32a2d1622b67d2b7f3e63166f37c3#2/g' ProgrammingHotmoka.md
 sed -i 's/@maxFaucet/10000000000000/g' ProgrammingHotmoka.md
@@ -102,6 +102,25 @@ sed -i 's/@tictactoe_object/c13cfe01f846cd1417d96014ce8085d21acb2b80b9ad1dd34952
 sed -i 's/@erc20_address/9d9b8f1a593fda7b6616220b4b74d2ac8abb5e988c1813a3a0a1d9e2ffef8546/g' ProgrammingHotmoka.md
 sed -i 's/@erc20_object/ebe75c48121f18d8bbd7ad8fc35c336e5f81fab918a651e72b51a5aec677745e#0/g' ProgrammingHotmoka.md
 sed -i 's/@server/panarea.hotmoka.io/g' ProgrammingHotmoka.md
+sed -i 's/@new_docker_key/D344Rdcptc6DeUDz94fBst8iCLbXQnRU8MoxFH3ctN8K/g' ProgrammingHotmoka.md
+sed -i 's/@container_id1/8b495e14c5b338c7b38134d762b392dfd84256ea374c82a1b0b2a97b1ecc8385/g' ProgrammingHotmoka.md
+sed -i 's/@docker_takamaka_code/1afad391033c80ceeb71aa4d6fdc629f6fe19209cdbc57cb1f7a34a118759d2d/g' ProgrammingHotmoka.md
+sed -i 's/@docker_manifest/df02c536585de2f9bf521ed9e46fc402682d159f74c91187af604c7ac57da26e#0/g' ProgrammingHotmoka.md
+sed -i 's/@docker_gamete/3fe876e7b634979931e67f5bd70f26e158486e192c06f2c505250215257a36f2#0/g' ProgrammingHotmoka.md
+sed -i 's/@docker_validators/df02c536585de2f9bf521ed9e46fc402682d159f74c91187af604c7ac57da26e#1/g' ProgrammingHotmoka.md
+sed -i 's/@docker_validator0/aa44c2326e0a4886887b8b79c6cdd4297c9bba60db980536124b4f562d3754ef#0/g' ProgrammingHotmoka.md
+sed -i 's/@docker_id_validator0/377BB831A95281854071C3603BAF68951DC02B66/g' ProgrammingHotmoka.md
+sed -i 's/@container_id2/36d3a3e2f17946b540d1c747dd26d01e81df107f1450d2a580b381216f9de6a7/g' ProgrammingHotmoka.md
+sed -i 's/@container_id3/261425a7638c904e9bd8eb87a71366d6ae22e0d203a791566d29b1c393f158e8/g' ProgrammingHotmoka.md
+sed -i 's/@docker_new_account/4e5c6e0e56142fc9fca8d2d41d080aaa41ccdd66835fa5a3e9d7a7478c72b0f3#0/g' ProgrammingHotmoka.md
+sed -i 's/@docker_total_gas_new_account/44596/g' ProgrammingHotmoka.md
+sed -i 's/@docker_reduced_balance/999999998720837/g' ProgrammingHotmoka.md
+sed -i 's/@docker_balance_validator0/11160/g' ProgrammingHotmoka.md
+sed -i 's/@docker_staked_validator0/33480/g' ProgrammingHotmoka.md
+sed -i 's/@docker_diff1/1279163/g' ProgrammingHotmoka.md
+sed -i 's/@docker_diff2/44596/g' ProgrammingHotmoka.md
+sed -i 's/@docker_diff3/44/g' ProgrammingHotmoka.md
+sed -i 's/@docker_sum1/44640/g' ProgrammingHotmoka.md
 
 cp ProgrammingHotmoka.md temp.md
 sed -i "/^\[PDFonly]:/d" ProgrammingHotmoka.md
