@@ -103,7 +103,7 @@ public class BuyValidation extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
-				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100)).divide(BigInteger.valueOf(100L));
+				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 
 				askForConfirmation(gasLimit, costWithSurcharge);
 
@@ -125,7 +125,7 @@ public class BuyValidation extends AbstractCommand {
 
 		private void askForConfirmation(BigInteger gas, BigInteger cost) {
 			if (interactive)
-				yesNo("Do you really want to spend up to " + gas + " gas units and " + cost + " panareas to accept a sale of validation power [Y/N] ");
+				yesNo("Do you really want to spend up to " + gas + " gas units and " + cost + " panareas to accept the sale of validation power [Y/N] ");
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {

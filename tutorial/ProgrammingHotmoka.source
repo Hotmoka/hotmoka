@@ -74,7 +74,8 @@
     - [Manifest and Validators](#manifest-and-validators)
     - [Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
     - [Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain)
-    - [Becoming a Validator](#becoming a validator)
+    - [Shared Entities](#shared-entities)
+    - [Becoming a Validator](#becoming-a-validator)
 9. [Code Verification](#code-verification)
     - [JVM Bytecode Verification](#jvm-bytecode-verification)
     - [Takamaka Bytecode Verification](#takamaka-bytecode-verification)
@@ -7523,7 +7524,7 @@ You can see from the manifest that the initial inflation was 0.1%. It is actuall
 0.1% of @docker_diff2 is @docker_diff3 (approximatively).
 
 We have understood that the validator account receives payments for the validation of transactions.
-But who controls this validator? It turns out that the docker container
+But who controls this validator? It turns out that the Docker container
 creates and stores the key of this validator in its file system.
 You can see it if you access the `chain` volume where the container operates.
 You must be root to do that:
@@ -7558,10 +7559,10 @@ priv_validator_key.json
 ...
 ```
 This file must remain in the node, or otherwise Tendermint cannot vote for validation.
-The docker script magically ensures that this file contains the same key
+The Docker script magically ensures that this file contains the same key
 as `@docker_validator0.pem`, although in a different format.
 
-## Publishing a Tendermint Hotmoka Node on Amazon EC2
+## Starting a Tendermint Hotmoka Node on Amazon EC2
 
 In the previous section,
 we have published a Hotmoka node on our machine (the localhost).
@@ -7681,7 +7682,7 @@ When you do not need the node anymore, turn it off in the remote machine:
 ```shell
 ec2$ docker stop 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
 ```
-As you can see, by using docker containers the installation of a single validator node
+As you can see, by using Docker containers the installation of a single validator node
 is conceptually the same both in your local machine and in Amazon EC2.
 
 > If you do not `docker stop` your container but log out from the EC2 machine, the container will
@@ -7759,7 +7760,339 @@ it will download and replay the transactions again, from scratch. Instead, use t
 `docker run`, as we have already done before. This makes the node resume from its old state, so that
 it will only download and replay the transactions that have been done in the remote node since the stop of the clone.
 
+## Shared Entities
+
+This section describes how the set of validators
+is implemented in Hotmoka. Namely, the validation power of the network is expressed as a
+total quantity shared among all validator nodes. For instance, when we have shown the manifest of the
+nodes, we have seen information about the only validator in the subsequent form:
+
+```shell
+ validator #0: @docker_validator0
+    id: @docker_id_validator0 
+    balance: @docker_balance_validator0
+    staked: @docker_staked_validator0
+    power: 1000000
+```
+
+This means that validator #0 as a _power_ of 1000000. Since it is the only validator of the network,
+the total power of the validators of the network is 1000000.
+Next section will show that this validator can decide to sell part of its power or all its power to
+another validator, resulting in a network with a single (different) validator or with more validators.
+For instance, it might sell 200000 units of power to another validator #1, resulting
+in a network with two validators: validator #0 with 800000 units of power and
+validator #1 with 200000 units of power.
+
+The power of a validator expresses the weight of its votes: in order to validate a transaction,
+at least one third of the validation power must agree on the outcome of the transaction.
+This mechanism is inherited from the underlying Tendermint engine and might be different
+in other Hotmoka nodes in the future. However, the idea that power represents the weight
+of a validator will likely remain.
+
+What said above means that the validators are a sort of _entity_ that shares validation
+power among the single validators. Validation power can be sold and bought. The number of
+the validators and their power is consequently dynamic. In some sense, this mechanism
+resembles the market of shares of a corporation.
+
+[Markdownonly]: <p align="center"><img width="700" src="pics/entities.png" alt="Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes"></p><p align="center">Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes.</p>
+
+[PDFonly]: ![Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes.](pics/entities.png "Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes."){ width=105% }
+
+Hotmoka has an interface that represents entities whose shares can be dynamically sold and bought about _shareholders_.
+Figure @fig:entities_hierarchy shows this `SharedEntity` interface. As you can see in the figure, the notion of validators
+is just a special case of shared entity. It is possible to use shared entities to represent other concepts, such as
+a distributed autonomous organization, or a voting community. Here, however, we focus on their use to represent the set
+of the validators of a proof of stake blockchain.
+
+In general, two concepts are specific to each implementation of shared entities:
+who are the potential shareholders and how offers for selling shares work.
+Therefore, the interface `SharedEntity<S,O>` has two type
+variables: `S` is the type of the shareholders and O is the type of the sale offers of shares.
+The `SharedEntityView` interface at the top of the hierarchy in Figure @fig:entities_hierarchy defines
+the read-only operations on a shared entity. This view is static, in the sense
+that it does not specify the operations for transfers of shares. Therefore, its
+only type parameter is `S`: any contract can play the role of the type for the
+shareholders of the entity. Method `getShares` yields a snapshot of the current
+shares of the entity (who owns how much).
+Method `getShareholders` yields
+the shareholders. It is not `@View` , since it creates a new stream, which is a
+side-effect. Method `isShareholder` checks if an object is a shareholder. Method
+`sharesOf` yields the number of shares that a shareholder owns. As typical in Takamaka,
+the `snapshot` method allows one to create a frozen read-only copy of an entity
+(in constant time), useful when an entity must be queried from a client without
+the risk of race conditions if another client is modifying the same entity concurrently.
+
+The `SharedEntity` subinterface adds methods for transfer of shares.
+It includes an inner class `Offer` that models sale offers: it specifies
+who is the seller of the shares, how many shares are being sold, the requested
+price and the expiration of the offer. Method `isOngoing` checks if an offer has
+not expired yet. Implementations can subclass `Offer` if they need more specific
+offers. Offers can be placed on sale by calling the `place` method with a sale
+offer. This method is annotated as `@FromContract` since the caller must be
+identified as the owner of the shares
+(or otherwise anybody could sell the shares of anybody else) and as
+`@Payable` so that implementations can require to pay a ticket to place shares on
+sale. The sale offer is passed as a parameter to `place`, hence it must have been
+created before calling that method. The set of all sale offers is available through
+`getOffers`. Method `sharesOnSale` yields the cumulative number of shares on
+sale for a given shareholder. Who wants to buy shares calls method `accept` with
+the accepted offer and with itself as `buyer`
+and becomes a new shareholder or increases its cumulative number of shares
+(if it was a shareholder already). Also this method is `@Payable`, since its caller
+must pay `ticket >= offer.cost` coins to the seller. This means that shareholders
+must be able to receive payments and that is why `S extends PayableContract`.
+The `SimpleSharedEntity` class implements the shared entity algorithms, that subclasses
+can redefine if they want.
+
+Hotmoka models validator nodes as
+objects of class `Validator`, that are externally owned accounts with an extra identifier
+(Figure @fig:entities_hierarchy).
+In the specific case of a Hotmoka blockchain built over Tendermint, validators
+are instances of the subclass `TendermintED25519Validator`, whose identifier is derived from their
+ed25519 public key. This identifier is public information, reported
+in the blocks or easily eavesdropped.
+The `Validators` interface in Figure @fig:entities_hierarchy
+extends the `SharedEntity` interface, fixes the shareholders
+to be instances of `Validator` and adds two methods: `getStake` yields the amount of coins
+at stake for each given validator (if the validator misbehaves, its stake will
+be slashed); and `reward`, that is called by the blockchain itself at
+the end of each block creation: it distributes the cost of the gas consumed by
+the transactions in the block, to the well-behaving validators, and slashes the
+stakes of the misbehaving validators.
+
+The `AbstractValidators` class implements the validators’ set and the distribution
+of the reward and is a subclass of `SimpleSharedEntity` (see Figure @fig:entities_hierarchy).
+Shares are voting power in this case. Its subclass `TendermintValidators`
+restricts the type of the validators to be `TendermintED25519Validator`. At each
+block committed, Hotmoka calls the reward method of `Validators` in order
+to reward the validators that behaved correctly and slash those that
+misbehaved, possibly removing them from the validators' set. They are specified by
+two strings that contain the identifiers of the validators, as provided by the
+underlying Tendermint engine. At block creation time, Hotmoka
+calls method `getShareholders` inherited from `SimpleSharedEntity` and informs
+the underlying Tendermint engine about the identifiers of the validator nodes
+for the next blocks. Tendermint expects such validators to mine and vote the
+subsequent blocks, until a change in the validators’ set occurs.
+
 ## Becoming a Validator
+
+Up to now, we have started Tendermint Hotmoka nodes of a blockchain with only a single validator node.
+That is, the network can have more nodes, but only one of them (the one started first) is the only validator of the
+network. All other nodes are simply peers, that verify the transactions but have no voice
+in the network and do not vote for validation.
+
+Assume for instance that Alice follows the instructions in
+[Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
+and starts a Hotmoka node with Docker, that is a network with
+a single node that, moreover, is the only validator. Her node will be publicly accessible
+as `http://alice.hotmoka.io`. The key of the only validator is in the `chain`
+volume of Docker in Alice's machine, as said before.
+Alice moves that key to a safer place, where she can use it to control the validator:
+```shell
+alice.hotmoka.io$ moka create-key
+
+Please specify the password of the new key: queen
+A new key has been created.
+...
+Its entropy has been saved into the file
+  "8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5.pem".
+
+alice.hotmoka.io$ docker run --rm -dit
+    -e KEY_OF_GAMETE=8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
+    -e CHAIN_ID=caterpillar
+    -e INITIAL_SUPPLY=1000000000000000000
+    -p 80:8080
+    -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
+    init
+
+alice.hotmoka.io$ moka bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
+  --url localhost:80
+A new account 21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
+  has been created.
+Its entropy has been saved into the file
+  "21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0.pem".
+
+alice.hotmoka.io$ sudo mv /var/lib/docker/volumes/chain/_data/
+  8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
+```
+After these commands, Alice has two keys in two pem files: the
+key of the gamete `21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0`
+and the key of the validator
+`8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0`.
+
+After some time, Bob starts another node, connected to Alice's node, by following the instructions in
+[Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain).
+Bob's node is publicly accessible as `http://bob.hotmoka.io`.
+```shell
+bob.hotmoka.io$ docker run --rm -dit
+    -e NETWORK_URL=alice.hotmoka.io
+    -p 80:8080
+    -p 26656:26656
+    -v chain:/home/hotmoka/chain
+    hotmoka/tendermint-node:@hotmoka_version
+    start
+
+070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
+```
+
+This second node is just a peer, not a validator. Alice's validator remains the only validator of the network.
+However, the Docker script run by Bob has created a validator's key anyway, inside the Docker container,
+that Bob can use in the future if his node will ever become a validator node. Bob moves that key to his local machine:
+```shell
+bob.hotmoka.io$ docker cp
+  070abbc64316:/home/hotmoka/3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem .
+```
+At the moment, that key is not yet bound to any `Validator` object in blockchain. Note that this key is created
+with an empty password (just the empty string).
+
+Currently, Alice holds 100% of the validation power of the network, that is, 1000000 units of validation power.
+Later, Alice decides to sell 40% of her validation power, that is, 400000 units of validation power.
+She must advertize her intent to sell and the price she requires. That is, she must create an instance
+of the `Offer` class in Figure @fig:entities_hierarchy (with `moka create`)
+and must then use her validator object as caller of method `place` of the validators object
+of the blockchain (with `moka call`). That object is advertized in the manifest of the node:
+```
+validators: @docker_validators
+```
+However, Alice can simplify her work by using the `moka sell-validation` command, that does everything
+at once. There is a little difficulty though. Selling shares is not free, it costs some gas.
+Since the validator object must perform that action, it must have some money to pay for gas.
+If that is not the case, then Alice must
+first charge the validator object ( for instance, from her gamete) and later use it to place the sale offer:
+```shell
+alice.hotmoka.io$ moka send 1000000000
+    8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
+    --payer=21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
+    --url localhost
+
+Please specify the password of the payer account: queen
+
+alice.hotmoka.io$ moka sell-validation
+  8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
+  400000
+  1000000000
+  3600000
+  --url localhost
+
+Please specify the password of the seller validator: 
+Offer 3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0 placed
+```
+Note that `moka sell-validation` works only if the key of the validator is in the directory where
+`moka` is invoked. Without that key, it is impossible to place a sale offer on behalf of the validator.
+The parameters of `moka sell-validation` are the address of the validator that is selling its power
+and will pay for the transaction, the amount of power to sell (400000, that is, 40%),
+the price required for the sale (1000000000 panareas) and the time of validity
+of the sale offer (3600000 milliseconds from the invocation of `moka sell-validation`, that is,
+one hour from then).
+
+Bob can now realize that a sale offer is available. By running `moka info` again he will notice the offer:
+
+```shell
+bob.hotmoka.io$ moka info --url localhost
+
+surcharge for buying validation power: 50000000 (ie. 50.000000%)
+validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
+ id: DF61AC526C5FB6D1F8A2AB00CEDF809B188EA9D3
+ balance: 999915317
+ staked: 95663
+ power: 1000000
+ sale offer #0: 3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
+   power on sale: 400000
+   cost: 1000000000
+   cost with surcharge: 1500000000
+   expiration: Sat Feb 19 16:58:11 CET 2022
+```
+You can see that the new sale offer is visible from the manifest, below the
+validator that is selling its power. Note the _cost with surcharge_ line:
+in order to accept the sale, a buyer must spend not just the cost required by the seller
+(1000000000 panareas in this case) but also a surcharge of 50%, that will get split
+among all validators. The percent of surcharge is specified in the manifest as well:
+```
+surcharge for buying validation power: 50000000 (ie. 50.000000%)
+```
+Everybody with access to the blockchain can now accept that sale offer and become
+validator, as long as it has enough money to cover the cost with surcharge
+(and some extra gas). Bob has such money, since he worked in the last year
+for a company that paid him with panareas. He owns such money into the externally owned
+account `6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0`
+and of course he has the key of that account and knows its password.
+
+It is important that the buyer of the offer be a `Validator`
+object, not just an externally owned account. Bob currently has no such `Validator`
+object. He has only the key generated by the Docker script.
+Hence the first step for Bob is to create a `Validator` object with that key, by letting
+his account pay:
+```shell
+bob.hotmoka.io$ moka create-account 2000000000
+  --create-tendermint-validator
+  --payer 6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0
+  --url localhost
+
+Please specify the password of the payer account: king
+Please specify the password of the new account: bishop
+A new account 85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
+  has been created.
+Its entropy has been saved into the file
+  "85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0.pem".
+```
+Note the `--create-tendermint-validator` switch. Without that, a normal
+externally owned account would have been created. This way, instead, an instance
+of `TendermintED25519Validator` gets created (see Figure @fig:entities_hierarchy).
+Bob can verify this with `moka state`:
+```shell
+bob.hotmoka.io$ moka state
+  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
+  --url localhost
+
+This is the state of object
+  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0@localhost
+
+class io.takamaka.code.governance.tendermint.TendermintED25519Validator
+  id:java.lang.String = "AD81B48A1E1B62C1AEB99A6B06470D22D8C55950"
+  balance:java.math.BigInteger = 2000000000
+  nonce:java.math.BigInteger = 0
+  publicKey:java.lang.String = "RCJQwN9Pgnde5GPURAtH1C6QlnNfDARdAIqepVpyjDs="
+```
+Bob is now ready to buy the validation power currently on sale.
+He just accepts the sale offer
+`3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0`
+by using his validator object as payer:
+```shell
+bob.hotmoka.io$ moka buy-validation
+  85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
+  3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
+  --url localhost
+
+Please specify the password of the buyer validator: bishop
+Do you really want to spend up to 500000 gas units and 1500000000 panareas
+  to accept the sale of validation power [Y/N] Y
+
+Offer accepted
+```
+Finally, both Bob and Alice can verify that there are two validators now in the network,
+and no more sale offers:
+```shell
+alice.hotmoka.io$ moka info --url localhost
+...
+number of validators: 2
+  validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
+    id: DF61AC526C5FB6D1F8A2AB00CEDF809B188EA9D3
+    balance: 2125136981
+    staked: 375760651
+    power: 600000
+  validator #1: 85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
+    id: AD81B48A1E1B62C1AEB99A6B06470D22D8C55950
+    balance: 499950092
+    staked: 0
+    power: 400000
+...
+```
+Future transactions with this network must be validated by both nodes now, since
+neither node reaches one third of total power by itself. If Bob's node does not
+respond or if it validates transactions incorrectly, then the network will hang,
+since it becomes impossible to reach one third of votes.
 
 # Code Verification
 

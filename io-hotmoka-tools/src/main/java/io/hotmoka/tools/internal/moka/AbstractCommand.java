@@ -44,6 +44,7 @@ import io.hotmoka.remote.RemoteNodeConfig;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	protected static final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 	protected static final String ANSI_RESET = "\u001B[0m";
 	protected static final String ANSI_BLACK = "\u001B[30m";
 	protected static final String ANSI_RED = "\u001B[31m";

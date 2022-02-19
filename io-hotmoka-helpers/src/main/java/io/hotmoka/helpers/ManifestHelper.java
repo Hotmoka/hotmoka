@@ -46,7 +46,8 @@ import io.hotmoka.nodes.Node;
  */
 public class ManifestHelper {
 	private final Node node;
-	private final static BigInteger _100_000 = BigInteger.valueOf(100_000);
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 	public final StorageReference gasStation;
 	public final TransactionReference takamakaCode;
 	public final StorageReference manifest;
@@ -290,7 +291,7 @@ public class ManifestHelper {
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSharesOnSale", ClassType.BIG_INTEGER), offer))).value;
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
-						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100)).divide(BigInteger.valueOf(100L));
+						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 						Date expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
 
