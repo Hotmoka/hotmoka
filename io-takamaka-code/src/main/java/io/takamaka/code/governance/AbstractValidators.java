@@ -301,7 +301,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		// if the seller is not a validator anymore, we send to it its staked coins
 		V seller = offer.seller;
 		if (sharesOf(seller).signum() == 0) {
-			seller.receive(stakes.get(seller));
+			seller.receive(getStake(seller));
 			stakes.remove(seller);
 		}
 
@@ -435,7 +435,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(_100_000_000);
 				getShareholders()
 					.filter(validator -> behavingIDs.contains(validator.id()))
-					.forEachOrdered(validator -> stakes.update(validator, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
+					.forEachOrdered(validator -> stakes.update(validator, BigInteger.ZERO, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
 
 				// distribute immediately the rest to the well-behaving validators, in proportion to their power
 				final BigInteger paid = toDistribute.subtract(addedToStakes);
