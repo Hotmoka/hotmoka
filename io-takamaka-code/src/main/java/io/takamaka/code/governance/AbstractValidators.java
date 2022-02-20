@@ -473,7 +473,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		String id = validator.id();
 
 		if (BigInteger.ZERO.equals(alreadyNotBehaving.get(id)))
-			{} //slash(validator, slashingForNotBehaving);
+			slash(validator, slashingForNotBehaving);
 		else
 			alreadyNotBehaving.update(id, BigInteger.valueOf(3L), old -> old.subtract(BigInteger.ONE));
 	}

@@ -129,9 +129,9 @@ class TendermintApplication extends ABCI {
 		String current = Stream.of(currentValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
 		String next = Stream.of(nextValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
 		logger.info("validators remove: " + current + " -> " + next);
-		/*Stream.of(currentValidators)
+		Stream.of(currentValidators)
 			.filter(validator -> isNotContained(validator.address, nextValidators))
-			.forEachOrdered(validator -> removeValidator(validator, builder));*/
+			.forEachOrdered(validator -> removeValidator(validator, builder));
 	}
 
     private static void removeValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
@@ -221,16 +221,8 @@ class TendermintApplication extends ABCI {
     	long now = timeNow(request);
 
     	node.getStore().beginTransaction(now);
-    	logger.info("validators reward: " + behaving + " vs " + misbehaving);
+    	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
-
-    	/*if (validatorsAtLastBeginBlock != null) {
-    		Stream<TendermintValidator> stream = Stream.of(validatorsAtLastBeginBlock);
-    		Stream<String> other = stream.map(validator -> validator.address);
-    		String notBehaving = other.collect(Collectors.joining(" "));
-    		if (validatorsAtLastBeginBlock != null)
-    			logger.info("validators reward: " + behaving + " vs " + misbehaving + " over a total of " + notBehaving);
-    	}*/
 
     	// the ABCI might start too early, before the Tendermint process is up
         if (node.getPoster() != null)
