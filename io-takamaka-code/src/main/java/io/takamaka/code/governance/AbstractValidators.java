@@ -435,7 +435,13 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 				final BigInteger addedToStakes = toDistribute.multiply(BigInteger.valueOf(percentStaked)).divide(_100_000_000);
 				getShareholders()
 					.filter(validator -> behavingIDs.contains(validator.id()))
-					.forEachOrdered(validator -> stakes.update(validator, BigInteger.ZERO, old -> old.add(addedToStakes.multiply(sharesOf(validator)).divide(totalPower))));
+					.forEachOrdered(validator -> {
+						BigInteger toAdd = addedToStakes.multiply(sharesOf(validator)).divide(totalPower);
+						if (stakes.get(validator) == null)
+							stakes.put(validator, toAdd);
+						else
+							stakes.update(validator, toAdd::add);
+					});
 
 				// distribute immediately the rest to the well-behaving validators, in proportion to their power
 				final BigInteger paid = toDistribute.subtract(addedToStakes);
