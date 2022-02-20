@@ -3,7 +3,7 @@
 # starts a validator node and creates a sale offer on behalf of validator #0
 cp 67Zks6FvqBoyfmkfo6hpAaDa7AwYKPs3BDR2WWhigYWr.pem_ 67Zks6FvqBoyfmkfo6hpAaDa7AwYKPs3BDR2WWhigYWr.pem
 echo "Starting Docker container"
-docker run --rm -dit -e KEY_OF_GAMETE=67Zks6FvqBoyfmkfo6hpAaDa7AwYKPs3BDR2WWhigYWr -e CHAIN_ID=test -e INITIAL_SUPPLY=100000000000000000000000000 -p 80:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest init
+docker run --rm -dit -e KEY_OF_GAMETE=67Zks6FvqBoyfmkfo6hpAaDa7AwYKPs3BDR2WWhigYWr -e CHAIN_ID=test -e INITIAL_SUPPLY=100000000000000000000000000 -p 80:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node-arm64:latest init
 echo "Waiting for container to start up"
 sleep 60
 echo "Binding gamete"
