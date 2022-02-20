@@ -7941,6 +7941,9 @@ This second node is just a peer, not a validator. Alice's validator remains the 
 However, the Docker script run by Bob has created a validator's key anyway, inside the Docker container,
 that Bob can use in the future if his node will ever become a validator node. Bob moves that key to his local machine:
 ```shell
+bob.hotmoka.io$ docker exec 070abbc64316 /bin/ls|grep ".pem"
+  3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem
+
 bob.hotmoka.io$ docker cp
   070abbc64316:/home/hotmoka/3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem .
 ```

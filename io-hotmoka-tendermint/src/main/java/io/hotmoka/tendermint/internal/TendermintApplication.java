@@ -221,8 +221,13 @@ class TendermintApplication extends ABCI {
 		node.rewardValidators(behaving, misbehaving);
 
 		// the ABCI might start too early, before the Tendermint process is up
-        if (node.getPoster() != null)
+        if (node.getPoster() != null) {
         	validatorsAtLastBeginBlock = node.getPoster().getTendermintValidators().toArray(TendermintValidator[]::new);
+        	Stream<TendermintValidator> stream = Stream.of(validatorsAtLastBeginBlock);
+        	Stream<String> other = stream.map(validator -> validator.address);
+        	String print = other.collect(Collectors.joining("[", ",", "]"));
+        	logger.info("Validators according to Tendermint: " + print);
+        }
 
         return ResponseBeginBlock.newBuilder().build();
 	}
@@ -257,7 +262,7 @@ class TendermintApplication extends ABCI {
     				if (nextValidators.length == 0)
     					logger.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
     				else {
-    					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
+    					//removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
     					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
     					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
     				}
