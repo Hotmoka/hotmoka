@@ -478,6 +478,10 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	private void slashForNotBehaving(V validator) {
 		String id = validator.id();
 
+		// we tolerate a slight delay before starting slashing for not voting:
+		// this is important for Tendermint nodes, because Tendermint
+		// does not change the set of validators immediately hence a couple
+		// of blocks are created without the vote of a new validator after it gets added
 		if (BigInteger.ZERO.equals(alreadyNotBehaving.get(id)))
 			slash(validator, slashingForNotBehaving);
 		else

@@ -7192,21 +7192,22 @@ qtesla-p-I algorithm and has signed the request accordingly.
 
 Section [Tendermint Nodes](#tendermint-nodes)
 has already presented the implementation of Hotmoka nodes based on Tendermint.
-Each node has the architecture shown in Figure @fig:hotmoka_tendermint and
-runs a node of an actual blockchain. Since the underlying blockchain engine is
-Tendermint, the resulting network is based on a proof of stacke consensus. That is,
-there is a selected subset of the nodes (the _validators_) that decides if transactions
-are legals and which must be included in blockchain. Other nodes can just verify the
+These nodes have the architecture shown in Figure @fig:hotmoka_tendermint and
+form an actual blockchain network. Since the underlying blockchain engine is
+Tendermint, the resulting network is based on a proof of stake consensus. That is,
+there is a selected subset of the nodes (the _validators_) that decide if transactions
+are legal and which must be included in blockchain. Other nodes can just verify the
 transactions.
 
-The methodology in Section [Tendermint Nodes](#tendermint-nodes) is relatively complex. Moreover, it is
+The methodology for starting Tendermint nodes,
+described in Section [Tendermint Nodes](#tendermint-nodes), is relatively complex. Moreover, it is
 fragile, since the node might have a slightly different behavior, depending on the
 exact configuration of the machine and of the exact version of the Java runtime installed
-in the machine. These differences might even compromise the capacity of a netwrok
+in the machine. These differences might even compromise the capacity of a network
 of nodes to reach consensus. There is a simpler and less fragile
 way of installing a Tendermint Hotmoka node, by using the Docker tool.
 We cannot discuss Docker here. We just say that it is a utility to run lightweight
-containers in a machine. The container is a sort of preconfigured
+containers in a machine. A container is a sort of preconfigured
 sandbox, whose configuration is fixed
 and already provided at installation time. Therefore, there is nothing to install if we use
 a Docker container to start the node, not even a Java runtime. Everything is already
@@ -7218,7 +7219,7 @@ only requirement.
 We have provided some preconfigured Docker images in Docker Hub, that you can see
 at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
 images, we can start our own Tendermint Hotmoka node as follow. First, we need to create the
-key pair of the gamete, as we did in the previous section:
+key pair of the gamete, as we did in the previous chapter:
 
 ```shell
 $ moka create-key
@@ -7261,7 +7262,7 @@ Info about the node:
     ...
 ```
 
-> Since `--url loclahost:8080` is the default, you can just type
+> Since `--url localhost:8080` is the default, you can just type
 > `moka info`. The same holds for all other `moka` commands.
 
 In order to use the gamete, we must bind the key to its storage reference:
@@ -7288,7 +7289,7 @@ a Docker image, which is actually specified at the end:
 > If you are using a Linux machine based on the arm64 architecture, use the
 > `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
-> Please refer to Docker documentation to know how this can be accomplished.
+> Please refer to the Docker documentation to know how this can be accomplished.
 
 A specific command of the image is run, specified at the end: it is the `init` command
 that initializes a Tendermint Hotmoka node.
@@ -7454,7 +7455,7 @@ as you want and in general run any transaction you like.
 There is a second account that has been created. Namely, the _validator_ account, at the address
 `@docker_validator0` (this will be different in your node).
 This is an externally owned account that gets remunerated for every non-`@View`
-transaction run in the node and included in blockchain. The previous print out shows that, at
+transaction run in the node and included in blockchain. The previous print-out shows that, at
 the beginning, the balance of the validator is 0. Let us run a transaction and check what happens.
 For instance, let us create a new account by letting the gamete pay (we can do it since
 we hold the keys of the gamete):
@@ -7504,17 +7505,17 @@ The manifest reported above tells us that the gamete has now a reduced balance:
 it paid 1000000000000000 - @docker_reduced_balance that is @docker_diff1 panareas to create the new account.
 Of these, 1234567 went to the balance of the new account. The remaining
 @docker_diff1 - 1234567, that is @docker_diff2, have been paid for gas (it seems that the gas price
-was at one panarea per gas unit). It is important to note that the @docker_diff2 did not go
+was at one panarea per gas unit). It is important to note that the @docker_diff2 panareas did not go
 _immediately_ to the only validator: as shown above, only @docker_balance_validator0 have been paid immediately;
 other @docker_staked_validator0 have been _staked_ for that validator, that is, kept in the validators contract
 as a motivation for the validator to behave correctly. In the future, if the validator misbehaves
 (that is, does not validate the transactions correctly or does not validate them at all) then
 this stake will be reduced by a percent that is called _slashing_. This is reported above
-as 1% of slashing for validators that do not validate correctly and 0.5% slashing for
+as 1% of slashing for validators that do not validate correctly and 0.5% of slashing for
 validators that do not validate at all (for instance, they are down).
 
 The staked amount of panareas will be forwarded to the validator only when it will sell all its
-validation power to another validator and stop being a validator. We will see this later.
+validation power to another validator and stop being a validator.
 
 There is a final remark. We said that @docker_diff2 panareas have been forwarded to the validator
 (immediately or staked). But @docker_balance_validator0 + @docker_staked_validator0
@@ -7535,6 +7536,15 @@ $ sudo ls /var/lib/docker/volumes/chain/_data/
 @docker_validator0.pem
 ...
 ```
+In alternative, you can use the `docker exec` command to run a command inside the container.
+You do not need to be root, but need to remember the id of the running container:
+```shell
+$ docker exec @container_id3
+    /bin/ls | grep ".pem"
+
+@docker_validator0.pem
+```
+
 Who owns that key controls the validator. Therefore, it is not safe to keep it in the
 file system. Instead, move it into a safer place:
 
@@ -7544,12 +7554,12 @@ $ sudo mv /var/lib/docker/volumes/chain/_data/
     my_safe_place/
 ```
 
-We conclude with a final remark about the key of the validator. It _must_ be the same
+As a final remark about the key of the validator, note that it _must_ be the same
 key that the underlying Tendermint engine uses in order to identify the node in the network
 and vote for validation. If that is not the case, the validator account in the
 manifest will not be recognized as a working validator and will be slashed for
 not behaving. Eventually, it will be expulsed from the set of validators.
-Tendermint stores the keys that it uses to identify the node in another file, inside
+Tendermint stores the key that it uses to identify the node in another file, inside
 its configuration, and in JSON format:
 
 ```shell
@@ -7559,7 +7569,7 @@ priv_validator_key.json
 ...
 ```
 This file must remain in the node, or otherwise Tendermint cannot vote for validation.
-The Docker script magically ensures that this file contains the same key
+The Docker script magically ensures that, correctly, this file contains the same key
 as `@docker_validator0.pem`, although in a different format.
 
 ## Starting a Tendermint Hotmoka Node on Amazon EC2
@@ -7704,7 +7714,7 @@ blockchain. It will be a _peer_ of that blockchain network. Note, however, that 
 not be a validator of the blockchain.
 
 In order to achieve that result, we can use the `start` command of the Docker image,
-in the remore EC2 machine:
+in the remote EC2 machine:
 
 ```shell
 ec2$ docker run -dit
@@ -7775,7 +7785,7 @@ nodes, we have seen information about the only validator in the subsequent form:
     power: 1000000
 ```
 
-This means that validator #0 as a _power_ of 1000000. Since it is the only validator of the network,
+This means that validator #0 has a _power_ of 1000000. Since it is the only validator of the network,
 the total power of the validators of the network is 1000000.
 Next section will show that this validator can decide to sell part of its power or all its power to
 another validator, resulting in a network with a single (different) validator or with more validators.
@@ -7784,7 +7794,8 @@ in a network with two validators: validator #0 with 800000 units of power and
 validator #1 with 200000 units of power.
 
 The power of a validator expresses the weight of its votes: in order to validate a transaction,
-at least one third of the validation power must agree on the outcome of the transaction.
+at least two thirds of the validation power must agree on the outcome of the transaction, or
+otherwise the network will hang.
 This mechanism is inherited from the underlying Tendermint engine and might be different
 in other Hotmoka nodes in the future. However, the idea that power represents the weight
 of a validator will likely remain.
@@ -7877,7 +7888,8 @@ subsequent blocks, until a change in the validators’ set occurs.
 ## Becoming a Validator
 
 Up to now, we have started Tendermint Hotmoka nodes of a blockchain with only a single validator node.
-That is, the network can have more nodes, but only one of them (the one started first) is the only validator of the
+That is, the network can have more nodes, but only one of them
+(the one started first) is the validator of the
 network. All other nodes are simply peers, that verify the transactions but have no voice
 in the network and do not vote for validation.
 
@@ -7914,6 +7926,9 @@ A new account 21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
 Its entropy has been saved into the file
   "21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0.pem".
 
+alice.hotmoka.io$ docker exec 21f1fe /bin/ls chain| grep ".pem"
+8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
+
 alice.hotmoka.io$ sudo mv /var/lib/docker/volumes/chain/_data/
   8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
 ```
@@ -7941,13 +7956,14 @@ This second node is just a peer, not a validator. Alice's validator remains the 
 However, the Docker script run by Bob has created a validator's key anyway, inside the Docker container,
 that Bob can use in the future if his node will ever become a validator node. Bob moves that key to his local machine:
 ```shell
-bob.hotmoka.io$ docker exec 070abbc64316 /bin/ls|grep ".pem"
-  3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem
+bob.hotmoka.io$ docker exec 070abbc64316 /bin/ls | grep ".pem"
+
+3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem
 
 bob.hotmoka.io$ docker cp
   070abbc64316:/home/hotmoka/3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem .
 ```
-At the moment, that key is not yet bound to any `Validator` object in blockchain. Note that this key is created
+At the moment, that key is not yet bound to any `Validator` object in blockchain. Note that the Docker script creates this key
 with an empty password (just the empty string).
 
 Currently, Alice holds 100% of the validation power of the network, that is, 1000000 units of validation power.
@@ -7960,10 +7976,12 @@ of the blockchain (with `moka call`). That object is advertized in the manifest 
 validators: @docker_validators
 ```
 However, Alice can simplify her work by using the `moka sell-validation` command, that does everything
-at once. There is a little difficulty though. Selling shares is not free, it costs some gas.
+at once for her. There is a little difficulty though. Selling shares is not free, it costs some gas.
 Since the validator object must perform that action, it must have some money to pay for gas.
-If that is not the case, then Alice must
-first charge the validator object ( for instance, from her gamete) and later use it to place the sale offer:
+Validators usually hold some money, since they are remunerated
+for validation of transactions. However, if
+that is not the case, then Alice must
+first charge the validator object (for instance, from her gamete) and later use it to place the sale offer:
 ```shell
 alice.hotmoka.io$ moka send 1000000000
     8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
@@ -8009,7 +8027,7 @@ validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
 ```
 You can see that the new sale offer is visible from the manifest, below the
 validator that is selling its power. Note the _cost with surcharge_ line:
-in order to accept the sale, a buyer must spend not just the cost required by the seller
+in order to accept the sale, a buyer must spend not only the cost required by the seller
 (1000000000 panareas in this case) but also a surcharge of 50%, that will get split
 among all validators. The percent of surcharge is specified in the manifest as well:
 ```
@@ -8018,7 +8036,7 @@ surcharge for buying validation power: 50000000 (ie. 50.000000%)
 Everybody with access to the blockchain can now accept that sale offer and become
 validator, as long as it has enough money to cover the cost with surcharge
 (and some extra gas). Bob has such money, since he worked in the last year
-for a company that paid him with panareas. He owns such money into the externally owned
+for a company that paid him with panareas. He keeps that money into the externally owned
 account `6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0`
 and of course he has the key of that account and knows its password.
 
@@ -8094,8 +8112,20 @@ number of validators: 2
 ```
 Future transactions with this network must be validated by both nodes now, since
 neither node reaches one third of total power by itself. If Bob's node does not
-respond or if it validates transactions incorrectly, then the network will hang,
-since it becomes impossible to reach one third of votes.
+respond or if it validates transactions incorrectly, then his validator would
+be slashed until its stakes reach zero. At that moment,
+the network will hang, since it becomes impossible to reach the agreement
+of at least two thirds of the full validation power.
+
+If the sale offer of Alice were for just 30% of her validation power then, when
+the stakes of Bob's validator reach zero, that validator would just be removed
+from the set of validators and its validation power would be distributed to the other
+validators, in proportion to their power. That is, Alice's validator would come back to hold 100%
+of the validation power. In that case, the network wouldn't hang.
+
+If the sale offer of Alice were for the full 100% of her validation power, then Bob's
+validator would completely replace Alice's validator and become the only validator of
+the network. Moreover, all staked coins for Alice's validator would be forwarded to it.
 
 # Code Verification
 

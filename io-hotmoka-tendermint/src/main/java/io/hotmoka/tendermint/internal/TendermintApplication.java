@@ -126,9 +126,9 @@ class TendermintApplication extends ABCI {
 	}
 
 	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
-		String current = Stream.of(currentValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
+		/*String current = Stream.of(currentValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
 		String next = Stream.of(nextValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
-		logger.info("validators remove: " + current + " -> " + next);
+		logger.info("validators remove: " + current + " -> " + next);*/
 		Stream.of(currentValidators)
 			.filter(validator -> isNotContained(validator.address, nextValidators))
 			.forEachOrdered(validator -> removeValidator(validator, builder));
