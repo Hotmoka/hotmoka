@@ -152,6 +152,12 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 */
 	private StorageSetView<Poll<V>> snapshotOfPolls;
 
+	/**
+	 * A set of validators id that didn't behave (didn't answer) at the previous reward.
+	 * If this happens again at the next reward, they will be slashed.
+	 */
+	private final StorageSet<String> alreadyNotBehaving = new StorageTreeSet<>();
+
 	private final BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
 	/**
@@ -416,6 +422,11 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 				.map(this::sharesOf)
 				.reduce(ZERO, BigInteger::add);
 
+			getShareholders()
+				.filter(validator -> behavingIDs.contains(validator.id()))
+				.map(Validator::id)
+				.forEachOrdered(alreadyNotBehaving::remove);
+
 			// compute the total amount of staked coins
 			BigInteger totalStaked = stakes.values().reduce(BigInteger.ZERO, BigInteger::add);
 
@@ -459,10 +470,18 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 
 	private void slashForMisbehaving(V validator) {
 		slash(validator, slashingForMisbehaving);
+		alreadyNotBehaving.remove(validator.id());
 	}
 
 	private void slashForNotBehaving(V validator) {
-		slash(validator, slashingForNotBehaving);
+		String id = validator.id();
+
+		if (alreadyNotBehaving.contains(id)) {
+			slash(validator, slashingForNotBehaving);
+			alreadyNotBehaving.remove(id);
+		}
+		else
+			alreadyNotBehaving.add(id);
 	}
 
 	private void slash(V validator, int percent) {

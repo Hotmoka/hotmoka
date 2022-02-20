@@ -98,14 +98,14 @@ class TendermintApplication extends ABCI {
     	return time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
     }
 
-    private static String commaSeparatedSequenceOfMisbehavingValidatorsAddresses(RequestBeginBlock request) {
+    private static String spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(RequestBeginBlock request) {
 		return request.getByzantineValidatorsList().stream()
     		.map(Evidence::getValidator)
     		.map(TendermintApplication::getAddressOfValidator)
     		.collect(Collectors.joining(" "));
 	}
 
-	private static String commaSeparatedSequenceOfBehavingValidatorsAddresses(RequestBeginBlock request) {
+	private static String spaceSeparatedSequenceOfBehavingValidatorsAddresses(RequestBeginBlock request) {
 		return request.getLastCommitInfo().getVotesList().stream()
     		.filter(VoteInfo::getSignedLastBlock)
     		.map(VoteInfo::getValidator)
@@ -126,9 +126,12 @@ class TendermintApplication extends ABCI {
 	}
 
 	private static void removeCurrentValidatorsThatAreNotNextValidators(TendermintValidator[] currentValidators, TendermintValidator[] nextValidators, ResponseEndBlock.Builder builder) {
-		Stream.of(currentValidators)
+		String current = Stream.of(currentValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
+		String next = Stream.of(nextValidators).map(validator -> validator.address).collect(Collectors.joining(",", "[", "]"));
+		logger.info("validators remove: " + current + " -> " + next);
+		/*Stream.of(currentValidators)
 			.filter(validator -> isNotContained(validator.address, nextValidators))
-			.forEachOrdered(validator -> removeValidator(validator, builder));
+			.forEachOrdered(validator -> removeValidator(validator, builder));*/
 	}
 
     private static void removeValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
@@ -213,21 +216,24 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
-		String behaving = commaSeparatedSequenceOfBehavingValidatorsAddresses(request);
-    	String misbehaving = commaSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
+		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
+    	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	long now = timeNow(request);
 
     	node.getStore().beginTransaction(now);
-		node.rewardValidators(behaving, misbehaving);
+    	node.rewardValidators(behaving, misbehaving);
 
-		// the ABCI might start too early, before the Tendermint process is up
-        if (node.getPoster() != null) {
+    	/*if (validatorsAtLastBeginBlock != null) {
+    		Stream<TendermintValidator> stream = Stream.of(validatorsAtLastBeginBlock);
+    		Stream<String> other = stream.map(validator -> validator.address);
+    		String notBehaving = other.collect(Collectors.joining(" "));
+    		if (validatorsAtLastBeginBlock != null)
+    			logger.info("validators reward: " + behaving + " vs " + misbehaving + " over a total of " + notBehaving);
+    	}*/
+
+    	// the ABCI might start too early, before the Tendermint process is up
+        if (node.getPoster() != null)
         	validatorsAtLastBeginBlock = node.getPoster().getTendermintValidators().toArray(TendermintValidator[]::new);
-        	Stream<TendermintValidator> stream = Stream.of(validatorsAtLastBeginBlock);
-        	Stream<String> other = stream.map(validator -> validator.address);
-        	String print = other.collect(Collectors.joining("[", ",", "]"));
-        	logger.info("Validators according to Tendermint: " + print);
-        }
 
         return ResponseBeginBlock.newBuilder().build();
 	}
@@ -252,17 +258,17 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseEndBlock endBlock(RequestEndBlock request) {
     	ResponseEndBlock.Builder builder = ResponseEndBlock.newBuilder();
+    	TendermintValidator[] currentValidators = validatorsAtLastBeginBlock;
 
-    	if (validatorsAtLastBeginBlock != null) {
+    	if (currentValidators != null) {
     		try {
-    			TendermintValidator[] currentValidators = validatorsAtLastBeginBlock;
     			Optional<TendermintValidator[]> validatorsInStore = node.getTendermintValidatorsInStore();
     			if (validatorsInStore.isPresent()) {
     				TendermintValidator[] nextValidators = validatorsInStore.get();
     				if (nextValidators.length == 0)
     					logger.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
     				else {
-    					//removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
+    					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
     					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
     					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
     				}
