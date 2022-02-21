@@ -208,6 +208,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		require(offers.contains(offer), "unknown offer");
 		require(offer.isOngoing(), "the sale offer is not ongoing anymore");
 		require(offer.cost.compareTo(amount) <= 0, "not enough money to accept the offer");
+		require(offer.buyer == null || buyer == offer.buyer, "the sale offer is reserved for another buyer");
 		cleanUpOffers(offer);
 		removeShares(offer.seller, offer.sharesOnSale);
 		addShares(buyer, offer.sharesOnSale);

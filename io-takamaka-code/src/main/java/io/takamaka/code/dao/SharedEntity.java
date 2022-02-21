@@ -113,7 +113,12 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		public final long expiration;
 
 		/**
-		 * Create the description of a sale offer.
+		 * The only buyer that can buy this offer. This is null if everybody can buy this offer.
+		 */
+		public final S buyer;
+
+		/**
+		 * Create a sale offer.
 		 * 
 		 * @param seller the seller of the shares; this must coincide with the caller of the constructor
 		 * @param sharesOnSale the shares on sale, positive
@@ -129,8 +134,30 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 			this.sharesOnSale = sharesOnSale;
 			this.cost = cost;
 			this.expiration = now() + duration;
+			this.buyer = null;
 		}
 
+		/**
+		 * Create a reserved sale offer.
+		 * 
+		 * @param seller the seller of the shares; this must coincide with the caller of the constructor
+		 * @param sharesOnSale the shares on sale, positive
+		 * @param cost the cost, non-negative
+		 * @param duration the duration of validity of the offer, in milliseconds from now, always non-negative
+		 * @param buyer the only buyer allowed for this offer
+		 */
+		public Offer(S seller, BigInteger sharesOnSale, BigInteger cost, long duration, S buyer) {
+			require(sharesOnSale != null && sharesOnSale.signum() > 0, "the shares on sale must be a positive big integer");
+			require(cost != null && cost.signum() >= 0, "the cost must be a non-negative big integer");
+			require(duration >= 0, "the duration cannot be negative");
+
+			this.seller = seller;
+			this.sharesOnSale = sharesOnSale;
+			this.cost = cost;
+			this.expiration = now() + duration;
+			this.buyer = buyer;
+		}
+		
 		/**
 		 * Determines if this offer is ongoing, that is, it is not yet expired.
 		 * 
@@ -138,6 +165,15 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		 */
 		public @View boolean isOngoing() {
 			return now() <= expiration;
+		}
+
+		/**
+		 * Yields the only buyer allowed for this offer.
+		 * 
+		 * @return the buyer, or null if everybody can buy this offer
+		 */
+		public @View S getBuyer() {
+			return buyer;
 		}
 
 		/**

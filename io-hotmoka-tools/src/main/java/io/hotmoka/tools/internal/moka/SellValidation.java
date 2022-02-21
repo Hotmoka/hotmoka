@@ -62,6 +62,9 @@ public class SellValidation extends AbstractCommand {
 	@Parameters(index = "3", description = "the duration of validity of the offer, in milliseconds from now")
     private long duration;
 
+	@Option(names = { "--buyer" }, description = "the reference to the only buyer allowed to accept the sale offer; if not specified, everybody can accept the sale offer")
+    private String buyer;
+
 	@Option(names = { "--password-of-seller" }, description = "the password of the seller validator; if not specified, it will be asked interactively")
     private String passwordOfSeller;
 
@@ -86,6 +89,11 @@ public class SellValidation extends AbstractCommand {
 		private final Node node;
 
 		private Run() throws Exception {
+			checkStorageReference(seller);
+
+			if (buyer != null)
+				checkStorageReference(buyer);
+
 			if (passwordOfSeller != null && interactive)
 				throw new IllegalArgumentException("the password of the seller validator can be provided as command switch only in non-interactive mode");
 
@@ -116,9 +124,16 @@ public class SellValidation extends AbstractCommand {
 
 				askForConfirmation(gasLimit.multiply(BigInteger.TWO));
 
-				ConstructorCallTransactionRequest request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-					new ConstructorSignature(ClassType.SHARED_ENTITY_OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
-					seller, new BigIntegerValue(power), new BigIntegerValue(cost), new LongValue(duration));
+				ConstructorCallTransactionRequest request1;
+				if (buyer == null)
+					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+						new ConstructorSignature(ClassType.SHARED_ENTITY_OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+						seller, new BigIntegerValue(power), new BigIntegerValue(cost), new LongValue(duration));
+				else
+					// the reserved buyer is specified as well
+					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+						new ConstructorSignature(ClassType.SHARED_ENTITY_OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG, ClassType.PAYABLE_CONTRACT),
+						seller, new BigIntegerValue(power), new BigIntegerValue(cost), new LongValue(duration), new StorageReference(buyer));
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				

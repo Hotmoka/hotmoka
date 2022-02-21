@@ -38,6 +38,7 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.nodes.Node;
 
@@ -294,15 +295,21 @@ public class ManifestHelper {
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 						Date expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
+						StorageValue buyer = node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getBuyer", ClassType.PAYABLE_CONTRACT), offer));
 
 						if (isLast) {
 							builder.append("   │  │     ├─ power on sale: ").append(powerOnSale).append("\n");
+							if (buyer instanceof StorageReference) // it might be a NullValue instead
+								builder.append("   │  │     ├─ reserved buyer: ").append(buyer).append("\n");
 							builder.append("   │  │     ├─ cost: ").append(cost).append("\n");
 							builder.append("   │  │     ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
 							builder.append("   │  │     └─ expiration: ").append(expiration).append("\n");
 						}
 						else {
 							builder.append("   │  │  │  ├─ power on sale: ").append(powerOnSale).append("\n");
+							if (buyer instanceof StorageReference)
+								builder.append("   │  │  │  ├─ reserved buyer: ").append(buyer).append("\n");
 							builder.append("   │  │  │  ├─ cost: ").append(cost).append("\n");
 							builder.append("   │  │  │  ├─ cost with surcharge: ").append(costWithSurchage).append("\n");
 							builder.append("   │  │  │  └─ expiration: ").append(expiration).append("\n");
