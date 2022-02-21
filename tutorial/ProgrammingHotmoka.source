@@ -8013,6 +8013,10 @@ the price required for the sale (1000000000 panareas) and the time of validity
 of the sale offer (3600000 milliseconds from the invocation of `moka sell-validation`, that is,
 one hour from then).
 
+> By default, `sell-validation` creates a sale offer that everybody can accept.
+> If one wants to create a sale offer reserved to a specific validator buyer, it is possible to specify
+> the address of that buyer with the `--buyer` switch.
+
 Bob can now realize that a sale offer is available. By running `moka info` again he will notice the offer:
 
 ```shell
