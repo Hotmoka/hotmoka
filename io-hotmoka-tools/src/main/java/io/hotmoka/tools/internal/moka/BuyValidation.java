@@ -117,10 +117,6 @@ public class BuyValidation extends AbstractCommand {
 
 				printCosts(request);
 			}
-			catch (Exception e) {
-				e.printStackTrace();
-				throw e;
-			}
 		}
 
 		private void askForConfirmation(BigInteger gas, BigInteger cost) {
