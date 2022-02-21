@@ -234,10 +234,12 @@ bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato, Luca Olivieri and Fabio Tagliaferro.
 Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
+Section [Shared Entities](#shared-entities) is a shared work
+with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
 &nbsp;
 
-_Verona, January 2022_.
+_Verona, February 2022_.
 
 # Getting Started with Hotmoka
 
@@ -6559,9 +6561,9 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
+import java.util.Base64;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.helpers.InitializedNode;
@@ -6573,12 +6575,10 @@ import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 
 public class Decorators {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(1_000_000_000);
-  public final static BigInteger RED_AMOUNT = BigInteger.ZERO;
+  public final static BigInteger SUPPLY = BigInteger.valueOf(1_000_000_000);
 
   public static void main(String[] args) throws Exception {
     MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder().build();
-    ConsensusParams consensus = new ConsensusParams.Builder().build();
 
     // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
@@ -6589,16 +6589,20 @@ public class Decorators {
     // the path of the user jar to install
     Path familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
-    // create a key pair for the gamete and compute the Base58-encoding of its public key
+    // create a key pair for the gamete and compute the Base64-encoding of its public key
     var signature = SignatureAlgorithmForTransactionRequests.ed25519();
     Entropy entropy = new Entropy();
     KeyPair keys = entropy.keys("password", signature);
-    var publicKeyBase58 = Base58.encode(signature.encodingOf(keys.getPublic()));
+    var publicKeyBase64 = Base64.getEncoder().encodeToString
+      (signature.encodingOf(keys.getPublic()));
+    ConsensusParams consensus = new ConsensusParams.Builder()
+      .setInitialSupply(SUPPLY)
+      .setPublicKeyOfGamete(publicKeyBase64)
+      .build();
 
     try (Node node = MemoryBlockchain.init(config, consensus)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
-      InitializedNode initialized = InitializedNode.of
-        (node, consensus, publicKeyBase58, takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+      InitializedNode initialized = InitializedNode.of(node, consensus, takamakaCodePath);
 
       // second view: store family-0.0.1.jar: the gamete will pay for that
       NodeWithJars nodeWithJars = NodeWithJars.of
@@ -6669,15 +6673,13 @@ whose code is the following:
 ```java
 package runs;
 
-import static java.math.BigInteger.ZERO;
-
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
+import java.util.Base64;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.helpers.InitializedNode;
@@ -6689,12 +6691,10 @@ import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 public class Publisher {
-  public final static BigInteger GREEN_AMOUNT = BigInteger.valueOf(100_000_000);
-  public final static BigInteger RED_AMOUNT = ZERO;
+  public final static BigInteger SUPPLY = BigInteger.valueOf(100_000_000);
 
   public static void main(String[] args) throws Exception {
     TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder().build();
-    ConsensusParams consensus = new ConsensusParams.Builder().build();
     NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().build();
     // the path of the runtime Takamaka jar, inside Maven's cache
     Path takamakaCodePath = Paths.get
@@ -6702,21 +6702,25 @@ public class Publisher {
       "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.VERSION +
       "/io-takamaka-code-" + Constants.VERSION + ".jar");
 
-    // create a key pair for the gamete and compute the Base58-encoding of its public key
+    // create a key pair for the gamete and compute the Base64-encoding of its public key
     var signature = SignatureAlgorithmForTransactionRequests.ed25519();
     Entropy entropy = new Entropy();
     KeyPair keys = entropy.keys("password", signature);
-    var publicKeyBase58 = Base58.encode(signature.encodingOf(keys.getPublic()));
+    var publicKeyBase64 = Base64.getEncoder().encodeToString
+      (signature.encodingOf(keys.getPublic()));
+    ConsensusParams consensus = new ConsensusParams.Builder()
+      .setPublicKeyOfGamete(publicKeyBase64)
+      .setInitialSupply(SUPPLY)
+      .build();
 
     try (Node original = TendermintBlockchain.init(config, consensus);
-         // remove the next three lines if you want to publish an uninitialized node
-         //InitializedNode initialized = InitializedNode.of
-         //  (original, consensus, publicKeyBase58,
-         //  takamakaCodePath, GREEN_AMOUNT, RED_AMOUNT);
+      // remove the next two lines if you want to publish an uninitialized node
+      //InitializedNode initialized = InitializedNode.of
+      //   (original, consensus, takamakaCodePath);
          NodeService service = NodeService.of(serviceConfig, original)) {
 
-        System.out.println("\nPress ENTER to turn off the server and exit this program");
-        System.in.read();
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.in.read();
     }
   }
 }
@@ -7811,7 +7815,8 @@ resembles the market of shares of a corporation.
 
 Hotmoka has an interface that represents entities whose shares can be dynamically sold and bought about _shareholders_.
 Figure @fig:entities_hierarchy shows this `SharedEntity` interface. As you can see in the figure, the notion of validators
-is just a special case of shared entity. It is possible to use shared entities to represent other concepts, such as
+is just a special case of shared entity (see also [[BeniniGMS21]](#references)).
+It is possible to use shared entities to represent other concepts, such as
 a distributed autonomous organization, or a voting community. Here, however, we focus on their use to represent the set
 of the validators of a proof of stake blockchain.
 
