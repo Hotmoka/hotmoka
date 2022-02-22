@@ -5453,9 +5453,9 @@ that should guarantee correctness,
 accessibility, interoperability, management and security
 of the smart contracts that run the tokens.
 Among them, the Ethereum Requests for Comment \#20
-(ERC-20, see <a href="https://eips.ethereum.org/EIPS/eip-20">https://eips.ethereum.org/EIPS/eip-20</a>)
+(ERC-20, see [https://eips.ethereum.org/EIPS/eip-20](https://eips.ethereum.org/EIPS/eip-20))
 and \#721
-(ERC-721, see <a href="https://eips.ethereum.org/EIPS/eip-721">https://eips.ethereum.org/EIPS/eip-721</a>)
+(ERC-721, see [https://eips.ethereum.org/EIPS/eip-721](https://eips.ethereum.org/EIPS/eip-721))
 are the most popular, also outside Ethereum.
 They provide developers with
 a list of rules required for the correct integration of tokens
@@ -5464,8 +5464,8 @@ such as wallets, block explorers, decentralized finance protocols and games.
 
 The most popular implementations of the ERC-20 and ERC-721 standards are in Solidity,
 by OpenZeppelin
-(see <a href="https://docs.openzeppelin.com/contracts/2.x/erc20">https://docs.openzeppelin.com/contracts/2.x/erc20</a>
-and <a href="https://docs.openzeppelin.com/contracts/2.x/erc721">https://docs.openzeppelin.com/contracts/2.x/erc721</a>),
+(see [https://docs.openzeppelin.com/contracts/2.x/erc20](https://docs.openzeppelin.com/contracts/2.x/erc20)
+and [https://docs.openzeppelin.com/contracts/2.x/erc721](https://docs.openzeppelin.com/contracts/2.x/erc721)),
 a team of programmers in the Ethereum community
 who deliver useful and secure smart contracts and libraries, and by
 ConsenSys, later deprecated in favor of OpenZeppelin's.

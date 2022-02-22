@@ -32,7 +32,7 @@ LINE2=$(echo "$RUN"| sed '2!d')
 NEW_DOCKER_KEY=${LINE2:19}
 echo "  new docker key = $NEW_DOCKER_KEY"
 sed -i "/@new_docker_key/s/\/.*\//\/@new_docker_key\/$NEW_DOCKER_KEY\//" create_from_source.sh
-CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest init)
+CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION init)
 echo "  container id = $CONTAINER_ID1"
 sed -i "/@container_id1/s/\/.*\//\/@container_id1\/$CONTAINER_ID1\//" create_from_source.sh
 
@@ -77,7 +77,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID1 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest resume)
+CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID2"
 sed -i "/@container_id2/s/\/.*\//\/@container_id2\/$CONTAINER_ID2\//" create_from_source.sh
 
@@ -88,7 +88,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID2 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest resume)
+CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID3"
 sed -i "/@container_id3/s/\/.*\//\/@container_id3\/$CONTAINER_ID3\//" create_from_source.sh
 
