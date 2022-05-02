@@ -109,9 +109,9 @@ public class ShowAccount extends AbstractCommand {
 		StorageReference reference = account.reference;
 		BigInteger balance = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
 				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE, reference))).value;
-		System.out.println("balance: " + balance + " Panareas");
+		System.out.println("balance: " + balance);
 		BigInteger balanceRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
 				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE_RED, reference))).value;
-		System.out.println("balance red: " + balanceRed + " Panareas");
+		System.out.println("balance red: " + balanceRed);
 	}
 }

@@ -31,7 +31,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "resume-tendermint",
-	description = "Resumes an existing Hotmoka node based on Tendermint",
+	description = "Resumes an existing node based on Tendermint",
 	showDefaultValues = true)
 public class ResumeTendermint extends AbstractCommand {
 
@@ -82,7 +82,7 @@ public class ResumeTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The Hotmoka node has been published at localhost:" + networkConfig.port);
+			System.out.println("The node has been published at localhost:" + networkConfig.port);
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
 		}
 

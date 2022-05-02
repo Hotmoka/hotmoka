@@ -38,7 +38,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "init-memory",
-	description = "Initializes a new Hotmoka node in memory",
+	description = "Initializes a new node in memory",
 	showDefaultValues = true)
 public class InitMemory extends AbstractCommand {
 
@@ -152,7 +152,7 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The Hotmoka node has been published at localhost:" + networkConfig.port);
+			System.out.println("The node has been published at localhost:" + networkConfig.port);
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
 		}
 

@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "start-tendermint",
-	description = "Starts a new Hotmoka node based on Tendermint",
+	description = "Starts a new node based on Tendermint",
 	showDefaultValues = true)
 public class StartTendermint extends AbstractCommand {
 
@@ -106,7 +106,7 @@ public class StartTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The Hotmoka node has been published at localhost:" + networkConfig.port);
+			System.out.println("The node has been published at localhost:" + networkConfig.port);
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
 		}
 	}

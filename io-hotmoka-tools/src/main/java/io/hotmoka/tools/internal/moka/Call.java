@@ -98,7 +98,7 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--print-costs" }, description = "print the incurred gas costs", defaultValue = "true") 
 	private boolean printCosts;
 
-	@Option(names = { "--use-colors" }, description = "use colors in the output of Moka", defaultValue = "true") 
+	@Option(names = { "--use-colors" }, description = "use colors in the output of moka", defaultValue = "true") 
 	private boolean useColors;
 
 	@Override
