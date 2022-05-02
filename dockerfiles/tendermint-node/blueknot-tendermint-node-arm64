@@ -1,0 +1,55 @@
+# In order to create the image:
+#   docker build -t vero4chain/tendermint-node-arm64:latest -f dockerfiles/tendermint-node/blueknot-tendermint-node-arm64 .
+
+# In order to publish a node at port 80:
+#   moka create-key
+#   docker run -dit -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8080 -p 26656:26656 -v chain:/home/blueknot/chain vero4chain/tendermint-node-arm64:latest init
+
+# in the future, move to 11.0.13-jre-slim
+FROM arm64v8/openjdk:11.0.13-jre-slim
+LABEL "maintainer"="fausto.spoto@vero4chain.it"
+
+USER root
+WORKDIR /usr/local/bin
+    
+# install missing packages
+RUN apt-get update \
+  && apt-get install -y wget \
+  && rm -rf /var/lib/apt/lists/*
+
+# install tendermint
+RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.15/tendermint_0.34.15_linux_arm64.tar.gz \
+  && tar -zxvf tendermint_0.34.15_linux_arm64.tar.gz tendermint \
+  && chown root.staff tendermint blueknot \
+  && chmod 755 tendermint \
+  && rm tendermint_*.tar.gz
+
+# create blueknot user
+RUN groupadd -r blueknot \
+  && useradd --no-log-init -r -m -g blueknot blueknot
+
+# create a volume for the chain of this container and make it writable to everyone
+RUN mkdir /home/blueknot/chain \
+  && chmod -R a+w /home/blueknot/chain
+
+# install moka and its alias moka-no-logs that does not report logs
+COPY modules/ /modules/
+# we add /home/blueknot to the classpath in order to find the log4j configuration file
+RUN echo java -Dlog4j.configuration=hotmoka.log4j.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
+  && chmod a+x moka \
+  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka-no-logs \
+  && chmod a+x moka-no-logs
+
+# install the control scripts
+COPY dockerfiles/tendermint-node/help help
+COPY dockerfiles/tendermint-node/init init
+COPY dockerfiles/tendermint-node/resume resume
+COPY dockerfiles/tendermint-node/start start
+RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start
+
+USER blueknot
+WORKDIR /home/blueknot
+COPY --chown=blueknot dockerfiles/log4j.properties hotmoka.log4j.properties
+
+# by default, print a help message
+CMD help

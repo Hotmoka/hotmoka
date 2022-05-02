@@ -18,7 +18,7 @@ SLASHING_FOR_MISBEHAVING=${SLASHING_FOR_MISBEHAVING:-1000000}
 SLASHING_FOR_NOT_BEHAVING=${SLASHING_FOR_NOT_BEHAVING:-500000}
 
 echo
-echo "Starting a Tendermint Hotmoka node as the single initial validator of a brand new blockchain"
+echo "Starting a Tendermint node as the single initial validator of a brand new blockchain"
 echo "  CHAIN_ID=$CHAIN_ID"
 echo "  INITIAL_SUPPLY=$INITIAL_SUPPLY"
 echo "  DELTA_SUPPLY=$DELTA_SUPPLY"

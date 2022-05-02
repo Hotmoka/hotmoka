@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo
-echo "This container runs a Hotmoka node based on Tendermint."
+echo "This container runs a node based on Tendermint."
 echo "It understands the following commands and options"
 echo "(use \"-e option=value\" to set options in docker):"
 echo
@@ -17,7 +17,7 @@ echo "                    (0 = 0%, 1000000 = 1%)"
 echo "      [default: 50000000]"
 echo "    CHAIN_ID: the chain identifier of the new blockchain"
 echo "      [default: the string \"missing\"]"
-echo "    DELTA_SUPPLY: the number of panareas that can be minted during the life of the node,"
+echo "    DELTA_SUPPLY: the number of coins that can be minted during the life of the node,"
 echo "                  as effect of inflation"
 echo "      [default: equal to INITIAL_SUPPLY, hence the supply can double at most]"
 echo "    KEY_OF_GAMETE: the Base58-encoded ed25519 public key of the gamete."
@@ -27,9 +27,9 @@ echo "    INFLATION: the inflation added to the validators' reward at each commi
 echo "               0 means 0%, 1000000 means 1% (this can be negative)."
 echo "               Use 0 to keep the total supply constant"
 echo "      [default: 100000]"
-echo "    INITIAL_GAS_PRICE: the initial price of a unit of gas (in panareas)"
+echo "    INITIAL_GAS_PRICE: the initial price of a unit of gas"
 echo "      [default: 100]"
-echo "    INITIAL_SUPPLY: the initial balance of the node (in panareas),"
+echo "    INITIAL_SUPPLY: the initial balance of the node,"
 echo "                    which goes to the gamete"
 echo "      [default: 100000000000000000000000000000]"
 echo "    MAX_GAS_PER_VIEW: the maximal gas limit allowed when running @View methods"

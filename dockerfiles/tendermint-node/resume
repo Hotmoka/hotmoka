@@ -3,7 +3,7 @@
 MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
 
 echo
-echo "Resuming an already existing Hotmoka node:"
+echo "Resuming an already existing node:"
 echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
 
 # recycle the same Tendermint configuration that was stored inside the chain directory

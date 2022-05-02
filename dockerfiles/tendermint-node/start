@@ -6,7 +6,7 @@ NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 BASE_NETWORK_URL=$(echo $NETWORK_URL | sed s/":.*"/""/g) # remove trailing port, if any
 
 echo
-echo "Starting a Tendermint Hotmoka node connected to the node at $NETWORK_URL:"
+echo "Starting a Tendermint node connected to the node at $NETWORK_URL:"
 echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
 echo "  NETWORK_URL=$NETWORK_URL"
 echo "  BASE_NETWORK_URL=$BASE_NETWORK_URL"
