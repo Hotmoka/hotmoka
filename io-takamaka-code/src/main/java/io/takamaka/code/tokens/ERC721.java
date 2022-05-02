@@ -145,7 +145,7 @@ public class ERC721 extends Contract implements IERC721 {
 	 */
 	protected void _transfer(Contract from, Contract to, BigInteger tokenId) {
 		require(ownerOf(tokenId) == from, "transfer of token that is not own");
-		require(to != null, "transfer to {@code null}");
+		require(to != null, "transfer to null");
 
 		beforeTokenTransfer(from, to, tokenId);
 		clearApproval(tokenId);
@@ -163,8 +163,8 @@ public class ERC721 extends Contract implements IERC721 {
 	@Override @FromContract
 	public void approve(Contract to, BigInteger tokenId) {
 		Contract owner = ownerOf(tokenId);
-		Contract caller = caller();
 		require(owner != to, "approval to current owner");
+		Contract caller = caller();
 		require(caller == owner || isApprovedForAll(owner, caller), "the caller is not owner nor approved for all");
 
 		if (to == null)
@@ -204,7 +204,7 @@ public class ERC721 extends Contract implements IERC721 {
 	}
 
 	@Override @View
-	public final boolean isApprovedForAll(Contract owner, Contract operator) {
+	public boolean isApprovedForAll(Contract owner, Contract operator) {
 		StorageSet<Contract> approvedForAll = operatorApprovals.get(owner);
 		return approvedForAll != null && approvedForAll.contains(operator);
 	}
