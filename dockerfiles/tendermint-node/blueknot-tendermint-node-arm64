@@ -20,7 +20,7 @@ RUN apt-get update \
 # install tendermint
 RUN wget https://github.com/tendermint/tendermint/releases/download/v0.34.15/tendermint_0.34.15_linux_arm64.tar.gz \
   && tar -zxvf tendermint_0.34.15_linux_arm64.tar.gz tendermint \
-  && chown root.staff tendermint blueknot \
+  && chown root.staff tendermint \
   && chmod 755 tendermint \
   && rm tendermint_*.tar.gz
 
