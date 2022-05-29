@@ -273,6 +273,7 @@
                   tomcat-embed-core,
                   tomcat-embed-websocket,
                   slf4j-api,
+                  javax.annotation-api,
 
                   <!-- we exclude all modules that are only used for testing -->
                   junit-jupiter,
@@ -320,7 +321,8 @@
                   spring-websocket,
                   tomcat-embed-core,
                   tomcat-embed-websocket,
-                  slf4j-api
+                  slf4j-api,
+                  javax.annotation-api
                 </includeArtifactIds>
               </configuration>
             </execution>
