@@ -30,9 +30,13 @@ jobs:
         run: mvn -B package -Dmaven.javadoc.skip --file pom.xml
       - name: Tar files
         run: tar -cvf moka.tar modules/* moka moka.bat; gzip moka.tar
+        run: tar --transform='s/moka$/blue/' --transform='s/moka.bat$/blue.bat/' -cvf blue.tar modules/* moka moka.bat; gzip blue.tar
       - name: Upload Artifact
         uses: actions/upload-artifact@v2
         with:
           name: moka
           path: moka.tar.gz
+       with:
+          name: blue
+          path: blue.tar.gz
         if: always()
