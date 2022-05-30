@@ -28,15 +28,19 @@ jobs:
           restore-keys: ${{ runner.os }}-m2
       - name: Build with Maven
         run: mvn -B package -Dmaven.javadoc.skip --file pom.xml
-      - name: Tar files
+      - name: Tar moka
         run: tar -cvf moka.tar modules/* moka moka.bat; gzip moka.tar
+      - name: Tar blue
         run: tar --transform='s/moka$/blue/' --transform='s/moka.bat$/blue.bat/' -cvf blue.tar modules/* moka moka.bat; gzip blue.tar
-      - name: Upload Artifact
+      - name: Upload moka
         uses: actions/upload-artifact@v2
         with:
           name: moka
           path: moka.tar.gz
-       with:
+        if: always()
+      - name: Upload blue
+        uses: actions/upload-artifact@v2
+        with:
           name: blue
           path: blue.tar.gz
         if: always()
