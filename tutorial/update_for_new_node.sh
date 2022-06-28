@@ -1,18 +1,19 @@
 #!/bin/bash
 
-# This script updates the "create_for_hotmoka_from_source.sh" script
-# so that it reflects the content of a Hotmoka node.
+# This script updates the "create_for_XXX_from_source.sh" script
+# so that it reflects the content of a remote node.
 # It is useful after a new node has been deployed, if we want the
 # documentation and the tutorail examples
 # to reflect the actual content of the node.
 
 # Run for instance this way:
-# NETWORK_URL="mynode:myport" SCRIPT="hotmoka" ./update_for_new_hotmoka_node.sh
+# NETWORK_URL="mynode:myport" TYPE="hotmoka" ./update_for_new_node.sh
 
 # by default, it reflects the panarea.hotmoka.io node
 NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 # by default, it modifies the shell script for Hotmoka
 TYPE=${TYPE:=hotmoka}
+TYPE_CAPITALIZED=${TYPE^}
 SCRIPT=create_for_${TYPE}_from_source.sh
 RED='\033[1;31m'
 NC='\033[0m'
@@ -20,13 +21,13 @@ message() {
     printf "${RED}$@${NC}\n"
 }
 
-message "Updating file $SCRIPT by replaying its examples on the $TYPE node at ${NETWORK_URL}"
+message "Updating file $SCRIPT by replaying its examples on the $TYPE_CAPITALIZED node at ${NETWORK_URL}"
 
 echo "  Server = $NETWORK_URL"
 echo "  Script = $SCRIPT"
 sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
-echo "  Hotmoka version = $VERSION"
+echo "  $TYPE_CAPITALIZED version = $VERSION"
 sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' $SCRIPT
 
 message "Starting Docker container"
@@ -36,7 +37,7 @@ LINE2=$(echo "$RUN"| sed '2!d')
 NEW_DOCKER_KEY=${LINE2:19}
 echo "  new docker key = $NEW_DOCKER_KEY"
 sed -i "/@new_docker_key/s/\/.*\//\/@new_docker_key\/$NEW_DOCKER_KEY\//" $SCRIPT
-CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION init)
+CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION init)
 echo "  container id = $CONTAINER_ID1"
 sed -i "/@container_id1/s/\/.*\//\/@container_id1\/$CONTAINER_ID1\//" $SCRIPT
 
@@ -81,7 +82,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID1 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION resume)
+CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID2"
 sed -i "/@container_id2/s/\/.*\//\/@container_id2\/$CONTAINER_ID2\//" $SCRIPT
 
@@ -92,7 +93,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID2 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:$VERSION resume)
+CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID3"
 sed -i "/@container_id3/s/\/.*\//\/@container_id3\/$CONTAINER_ID3\//" $SCRIPT
 
