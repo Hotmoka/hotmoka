@@ -461,7 +461,7 @@ in the command-path of your shell now. You can check that it works, by invoking
 ```shell
 $ moka help
 Usage: moka [COMMAND]
-This is version 1.0.8 of the Hotmoka command-line interface.
+This is version 1.0.8 of the command-line interface.
 Commands:
   bind-key            Binds a key to a reference, so that it becomes an account
   burn                Burns coins from an account, if the node allows it
@@ -473,15 +473,15 @@ Commands:
   faucet              Sets the thresholds for the faucet of the gamete of a node
   import-account      Imports an account
   info                Prints information about a node
-  init-memory         Initializes a new Hotmoka node in memory
-  init-tendermint     Initializes a new Hotmoka node based on Tendermint
+  init-memory         Initializes a new node in memory
+  init-tendermint     Initializes a new node based on Tendermint
   install             Installs a jar in a node
   instrument          Instruments a jar
   mint                Mints new coins for an account, if the node allows it
-  resume-tendermint   Resumes an existing Hotmoka node based on Tendermint
+  resume-tendermint   Resumes an existing node based on Tendermint
   send                Sends units of coin to a payable contract
   show-account        Shows an account
-  start-tendermint    Starts a new Hotmoka node based on Tendermint  
+  start-tendermint    Starts a new node based on Tendermint  
   state               Prints the state of an object
   verify              Verifies a jar
 ```

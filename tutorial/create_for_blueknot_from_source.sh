@@ -50,10 +50,14 @@ sed -i 's/@fig:hotmoka_tendermint/35/g' ProgrammingHotmoka.md
 sed -i 's/@fig:inbound_rules/36/g' ProgrammingHotmoka.md
 sed -i 's/@fig:entities_hierarchy/37/g' ProgrammingHotmoka.md
 
-# These must be edited by hand since, for instance, they depend on accounts created in Mokito
+# These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
+sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
+sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
+sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
+sed -i 's/@app/mokito/g' ProgrammingHotmoka.md
+sed -i 's/@App/Mokito/g' ProgrammingHotmoka.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingHotmoka.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingHotmoka.md
-sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
 
 # These get automatically recomputed with the update script: do not edit!
 sed -i 's/@hotmoka_version/1.0.8/g' ProgrammingHotmoka.md

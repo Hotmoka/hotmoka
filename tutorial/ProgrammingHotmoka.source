@@ -17,8 +17,8 @@
 2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
     - [Hotmoka in a Nutshell](#hotmoka-in-a-nutshell)
     - [Hotmoka Clients](#hotmoka-clients)
-        - [Moka](#moka)
-        - [Mokito](#mokito)
+        - [@Tool](#@tool)
+        - [@App](#@app)
         - [Hotwallet](#hotwallet)
     - [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)
     - [Creation of a First Account](#creation-of-a-first-account)
@@ -185,10 +185,10 @@ in the last years [[BeniniGMS21]](#references)[[CrosaraOST21]](#references)[[Oli
 **Intended Audience**.
 This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
 It goes deep into the inner working of Hotmoka. For instance, it shows how transactions can be
-triggered in code, not just with the Moka client of Hotmoka. Less experienced readers, or
+triggered in code, not just with the @Tool client of Hotmoka. Less experienced readers, or
 developers not interested in writing code that interacts with Hotmoka nodes, can just skip these
-parts and concentrate on the use of the Moka command-line client only. Non-technical users might
-just be happy with the use of Mokito and Hotwallet, the mobile and web clients of Hotmoka, whose
+parts and concentrate on the use of the @Tool command-line client only. Non-technical users might
+just be happy with the use of @App and Hotwallet, the mobile and web clients of Hotmoka, whose
 functionalities are of course limited.
 
 **Contribute to Hotmoka**.
@@ -376,39 +376,39 @@ known as Takamaka. This is done in a way completely different from other blockch
 
 In order to query a Hotmoka node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there are a command-line client, called
-Moka, a mobile client for Android, called Mokito, and a web client that gets installed
-in the browser (Chrome or Firefox), called Hotwallet. Mokito and Hotwallet provide
+@Tool, a mobile client for Android, called @App, and a web client that gets installed
+in the browser (Chrome or Firefox), called Hotwallet. @App and Hotwallet provide
 basic functionalities only (handling accounts, querying the state of the objects in the node,
-running simple transactions), while Moka is the most complete solution, but also the
+running simple transactions), while @Tool is the most complete solution, but also the
 most difficult to use.
 
-### Moka
+### @Tool
 
-You can use the `moka` tool to interact with a Hotmoka node,
+You can use the `@tool` tool to interact with a Hotmoka node,
 install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
 [https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
 Its source code is maintained inside the main distribution of the Hotmoka project, at
 [https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule
 `io-hotmoka-tools`.
-We report below the installation instructions of `moka`.
+We report below the installation instructions of `@tool`.
 In order to run the tool, you need Java JDK version 11 (or higher) installed in your
 computer and a recent version of Maven.
 
 #### Linux and MacOS
 
 You should download and untar the latest release into the directory
-where you want to install `moka`. For instance, assuming that
+where you want to install `@tool`. For instance, assuming that
 the latest version is `@hotmoka_version` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
 ````shell
 $ cd ~/Opt
-$ mkdir moka
-$ cd moka
+$ mkdir @tool
+$ cd @tool
 $ wget https://github.com/Hotmoka/hotmoka/releases/
-     download/v@hotmoka_version/moka_@hotmoka_version.tar.gz
-$ tar zxf moka_@hotmoka_version.tar.gz
+     download/v@hotmoka_version/@tool_@hotmoka_version.tar.gz
+$ tar zxf @tool_@hotmoka_version.tar.gz
 $ export PATH=$PATH:$(pwd)
 ````
 
@@ -418,7 +418,7 @@ $ export PATH=$PATH:$(pwd)
 > the command in a single line, without newlines or spaces: `...releases/download/v...`
 
 The last `export` command expands the command-path of the shell with
-the `~/Opt/moka` directory, so that `moka` can
+the `~/Opt/moka` directory, so that `@tool` can
 be invoked from the command shell, regardless of the current directory.
 You might want to add an `export`
 at the end of your `~/.bashrc` configuration file, so that the command-path
@@ -434,7 +434,7 @@ export PATH=/home/spoto/Opt/moka:$PATH
 You should download and untar the latest release
 ([https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases))
 into the directory
-where you want to install `moka`, by using a software tool such as
+where you want to install `@tool`, by using a software tool such as
 `7zip` or `Cygwin`. After that, you should be able to run the tool
 from the command prompt:
 
@@ -444,25 +444,25 @@ $ moka.bat help
 ```
 
 In the following of this tutorial, remember to use `moka.bat` to invoke the
-tool, where our examples use `moka` instead, which is the Linux name of
+tool, where our examples use `@tool` instead, which is the Linux name of
 the invocation script.
 
 You might want to add, to the command-path,
-the directory where you installed `moka`,
+the directory where you installed `@tool`,
 so that it will be expanded correctly the next time you open
 a command prompt window.
 For that, add that directory to the `PATH` environment variable.
 
-#### First Usage of `moka`
+#### First Usage of `@tool`
 
-The `moka` tool should be
+The `@tool` tool should be
 in the command-path of your shell now. You can check that it works, by invoking
-`moka` as follows:
+`@tool` as follows:
 
 ```shell
-$ moka help
-Usage: moka [COMMAND]
-This is version @hotmoka_version of the Hotmoka command-line interface.
+$ @tool help
+Usage: @tool [COMMAND]
+This is version @hotmoka_version of the command-line interface.
 Commands:
   bind-key            Binds a key to a reference, so that it becomes an account
   burn                Burns coins from an account, if the node allows it
@@ -474,20 +474,20 @@ Commands:
   faucet              Sets the thresholds for the faucet of the gamete of a node
   import-account      Imports an account
   info                Prints information about a node
-  init-memory         Initializes a new Hotmoka node in memory
-  init-tendermint     Initializes a new Hotmoka node based on Tendermint
+  init-memory         Initializes a new node in memory
+  init-tendermint     Initializes a new node based on Tendermint
   install             Installs a jar in a node
   instrument          Instruments a jar
   mint                Mints new coins for an account, if the node allows it
-  resume-tendermint   Resumes an existing Hotmoka node based on Tendermint
+  resume-tendermint   Resumes an existing node based on Tendermint
   send                Sends units of coin to a payable contract
   show-account        Shows an account
-  start-tendermint    Starts a new Hotmoka node based on Tendermint  
+  start-tendermint    Starts a new node based on Tendermint  
   state               Prints the state of an object
   verify              Verifies a jar
 ```
 
-As you can see above, the `moka help` command prints a description
+As you can see above, the `@tool help` command prints a description
 of the available subcommands and exits.
 You can have a detailed help of a specific subcommand
 by specifying the subcommand after `help`.
@@ -495,8 +495,8 @@ For instance, to print the help of the
 `faucet` subcommand, you can type:
 
 ```shell
-$ moka help faucet
-Usage: moka faucet [--interactive] [--max-red=<maxRed>]
+$ @tool help faucet
+Usage: @tool faucet [--interactive] [--max-red=<maxRed>]
                    [--password-of-gamete=<passwordOfGamete>] [--url=<url>] <max>
 Sets the thresholds for the faucet of the gamete of a node
       <max>                the maximal amount of coins sent at each call to the
@@ -513,28 +513,28 @@ Sets the thresholds for the faucet of the gamete of a node
                              Default: localhost:8080
 ```
 
-### Mokito
+### @App
 
-The `moka` tool allows one to perform a large variety of operations
+The `@tool` tool allows one to perform a large variety of operations
 on a Hotmoka node. However, it is a technical tool, meant for developers.
 Most users will only perform simple tasks with a Hotmoka node.
 For them, it is simpler to use a mobile app, with a simpler user
-interface. That app, called `Mokito`, is currently available for Android only.
+interface. That app, called `@App`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
 [https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito). Developers interested in its Kotlin source code
 can find it at
 [https://github.com/Hotmoka/HotmokaAndroid](https://github.com/Hotmoka/HotmokaAndroid),
 together with a small Android service for connecting to a remote Hotmoka node.
 
-The first time you will use Mokito on your mobile device,
+The first time you will use @App on your mobile device,
 it will connect by default to our testnet Hotmoka node
 and show the screen in Figure @fig:mokito_start. This can be changed
 in the preferences section of the app, accessible through the menu in the
 top left area of the app.
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure @fig:mokito_start. The starting screen of the Mokito app"></p><p align="center">Figure @fig:mokito_start. The starting screen of the Mokito app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_start.png" alt="Figure @fig:mokito_start. The starting screen of the @App app"></p><p align="center">Figure @fig:mokito_start. The starting screen of the @App app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_start. The starting screen of the Mokito app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the Mokito app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_start. The starting screen of the @App app.](pics/mokito_start.png "Figure @fig:mokito_start. The starting screen of the @App app."){ width=30% }
 
 ### Hotwallet
 
@@ -591,7 +591,7 @@ the command `moka info` to print information
 about the node at that address, as you can see below:
 
 ```shell
-$ moka info --url @server
+$ @tool info --url @server
 Info about the node:
   takamakaCode: @takamakaCode
   manifest: @manifest
@@ -643,20 +643,20 @@ _storage reference_, such as `@gasStation`.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
 
-We have used the `moka` tool to see the manifest of a node. You can also use the
-Mokito app for that. Namely, tap on the app menu icon on the top-left corner of the screen
+We have used the `@tool` tool to see the manifest of a node. You can also use the
+@App app for that. Namely, tap on the app menu icon on the top-left corner of the screen
 and select _Manifest_ from the menu that will appear (see Figure @fig:mokito_menu).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure @fig:mokito_menu. The menu of the Mokito app"></p><p align="center">Figure @fig:mokito_menu. The menu of the Mokito app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_menu.png" alt="Figure @fig:mokito_menu. The menu of the @App app"></p><p align="center">Figure @fig:mokito_menu. The menu of the @App app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_menu. The menu of the Mokito app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the Mokito app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_menu. The menu of the @App app.](pics/mokito_menu.png "Figure @fig:mokito_menu. The menu of the @App app."){ width=30% }
 
 After tapping on _Manifest_, a new screen will appear, containing the same information
 that we found with `moka info` (see Figure @fig:mokito_manifest).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the Mokito app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app."){ width=30% }
 
 ## Creation of a First Account
 
@@ -683,7 +683,7 @@ inside the `hotmoka_tutorial` directory, so that it will save the _entropy_ of y
 there, which will simplify your subsequent work:
 
 ```shell
-$ moka create-account 50000000000 --payer faucet --url @server
+$ @tool create-account 50000000000 --payer faucet --url @server
 
 Please specify the password of the new account: chocolate
 Free account creation succeeds only if the gamete supports an open unsigned faucet.
@@ -711,12 +711,12 @@ it allows its owner to control your account and spend its coins.
 Note that the password is not written anywhere: if you lose it, there is
 no way to recover that password.
 
-We will see in a moment what is the use of these 36 words passphrase generated by `moka`. For now,
+We will see in a moment what is the use of these 36 words passphrase generated by `@tool`. For now,
 let us check that our account really exists at its address,
 by querying the node with the `moka state` command:
 
 ```shell
-$ moka state @account1
+$ @tool state @account1
   --url @server
 
 This is the state of object
@@ -769,22 +769,22 @@ Whenever your account will run out of coins, you can recharge it with the
 if you want to recharge your account with 200000 extra coins, you can type:
 
 ```shell
-$ moka send 200000
+$ @tool send 200000
     @account1
     --payer faucet --url @server
 ```
 You can then use the `moka state` command to verify that the balance of
 your account has been actually increased with 200000 extra coins.
 
-The creation of a new account from the faucet is possible from the Mokito app as well.
+The creation of a new account from the faucet is possible from the @App app as well.
 Namely, use the menu of the app to tap on the _Accounts_ item to see the
 list of available accounts (Figure @fig:mokito_start). From there, tap on the
 menu icon on the right of the _Faucet_ account and select _Create a new account_
 (see Figure @fig:mokito_new_account).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure @fig:mokito_new_account. The menu for creating a new account with Mokito"></p><p align="center">Figure @fig:mokito_new_account. The menu for creating a new account with Mokito.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_new_account.png" alt="Figure @fig:mokito_new_account. The menu for creating a new account with @App"></p><p align="center">Figure @fig:mokito_new_account. The menu for creating a new account with @App.</p>
 
-[PDFonly]: ![Figure @fig:mokito_new_account. The menu for creating a new account with Mokito.](pics/mokito_new_account.png "Figure @fig:mokito_new_account. The menu for creating a new account with Mokito."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_new_account. The menu for creating a new account with @App.](pics/mokito_new_account.png "Figure @fig:mokito_new_account. The menu for creating a new account with @App."){ width=30% }
 
 A form will appear, where you can specify the
 name for the account, its password and the initial balance (that will be paid by the faucet).
@@ -794,9 +794,9 @@ For instance, you can fill it as in Figure @fig:mokito_elvis_new_account.
 
 [PDFonly]: ![Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis.](pics/mokito_elvis_new_account.png "Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis."){ width=30% }
 
-> The name of the accounts is a feature of Mokito to simplify the identification
+> The name of the accounts is a feature of @App to simplify the identification
 > of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
-> are just identified by their storage reference. For instance, `moka` currently does not
+> are just identified by their storage reference. For instance, `@tool` currently does not
 > allow one to associate names to accounts.
 
 After tapping on the `Create new account` button, the new account will be created and
@@ -807,7 +807,7 @@ and the presence of a 36 words passphrase.
 
 [PDFonly]: ![Figure @fig:mokito_show_elvis. The new account Elvis.](pics/mokito_show_elvis.png "Figure @fig:mokito_show_elvis. The new account Elvis."){ width=30% }
 
-If you go back to the accounts screen (by using the top-left menu of Mokito), you will see that Elvis
+If you go back to the accounts screen (by using the top-left menu of @App), you will see that Elvis
 has been added to your accounts (see Figure @fig:mokito_added_elvis).
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_added_elvis.png" alt="Figure @fig:mokito_added_elvis. The new account Elvis has been imported"></p><p align="center">Figure @fig:mokito_added_elvis. The new account Elvis has been imported.</p>
@@ -816,16 +816,16 @@ has been added to your accounts (see Figure @fig:mokito_added_elvis).
 
 ## Importing Accounts
 
-We have created `@account1` with `moka` and
-`@account_mokito` with Mokito. We might want to _import_ the former in Mokito and the latter
-in `moka`, and we want to import both inside Hotwallet,
+We have created `@account1` with `@tool` and
+`@account_mokito` with @App. We might want to _import_ the former in @App and the latter
+in `@tool`, and we want to import both inside Hotwallet,
 so that we can operate on both accounts with all three tools. In order to import
-`@account_mokito` in `moka`, we can use the `moka import-account` command and insert its 36 words
+`@account_mokito` in `@tool`, we can use the `moka import-account` command and insert its 36 words
 passphrase:
 
 
 ```shell
-$ moka import-account
+$ @tool import-account
 
 Insert the 36 words of the passphrase of the account to import:
 @36words_of_account_mokito
@@ -839,25 +839,25 @@ Its entropy has been saved into the file
 
 [PDFonly]: ![Figure @fig:mokito_accounts_menu. The menu of the accounts screen.](pics/mokito_accounts_menu.png "Figure @fig:mokito_accounts_menu. The menu of the accounts menu."){ width=30% }
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito"></p><p align="center">Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_insert_passphrase.png" alt="Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App"></p><p align="center">Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App.</p>
 
-[PDFonly]: ![Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito.](pics/mokito_insert_passphrase.png "Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in Mokito."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App.](pics/mokito_insert_passphrase.png "Figure @fig:mokito_insert_passphrase. Inserting the 36 words passphrase in @App."){ width=30% }
 
 [Markdownonly]: <p align="center"><img width="300" src="pics/mokito_added_the_boss.png" alt="Figure @fig:mokito_added_the_boss. The new account The Boss has been imported"></p><p align="center">Figure @fig:mokito_added_the_boss. The new account The Boss has been imported.</p>
 
 [PDFonly]: ![Figure @fig:mokito_added_the_boss. The new account The Boss has been imported.](pics/mokito_added_the_boss.png "Figure @fig:mokito_added_the_boss. The new account The Boss has been imported."){ width=30% }
 
-From this moment, it is possible to control that account with `moka` (if we remember
+From this moment, it is possible to control that account with `@tool` (if we remember
 its password, that is, `chocolate`).
 
-Vice versa, with Mokito, go to the accounts page, show its
+Vice versa, with @App, go to the accounts page, show its
 top-right menu and select _Import account_ (see Figure @fig:mokito_accounts_menu).
 In the screen that will appear, insert the name that you want to give to the account,
 its password and its 36 words passphrase
 (Figure @fig:mokito_insert_passphrase).
 Tap on the _Import Account_ button. The new account will show in the list of available accounts
 (Figure @fig:mokito_added_the_boss). From this moment, it will be possible to control the account
-from Mokito.
+from @App.
 
 In Hotwallet, click on the top-right menu ans select _Import account_. From there, you can insert
 the password and the 36 words passphrase of each account and see them imported in Hotwallet. You can see the
@@ -906,7 +906,7 @@ of 10,000 coins, but still wants to remain unknown. He can receive the payment i
 Let us show how the third possibility works. Anonymous starts by creating a new private/public key,
 exactly as one would do in Ethereum and other blockchains. He runs the following command:
 ```shell
-$ moka create-key
+$ @tool create-key
 
 Please specify the password of the new key: kiwis
 A new key @new_key has been created.
@@ -924,7 +924,7 @@ Please pay 10000 coins to the key @new_key.
 Once we receive this email, we use (for instance) our previous account to send 10000 coins to that key:
 
 ```shell
-$ moka send 10000 @new_key
+$ @tool send 10000 @new_key
     --anonymous
     --payer @account1
     --url @server
@@ -944,19 +944,19 @@ from time to time to see if we have paid, by running the command `moka bind-key`
 until it succeeds:
 
 ```shell
-$ moka bind-key @new_key
+$ @tool bind-key @new_key
     --url @server
 
 Cannot bind: nobody has paid anonymously to the key
   @new_key up to now.
 
-$ moka bind-key @new_key
+$ @tool bind-key @new_key
     --url @server
 
 Cannot bind: nobody has paid anonymously to the key
   @new_key up to now.
 
-$ moka bind-key @new_key
+$ @tool bind-key @new_key
     --url @server
 
 A new account @account_anonymous
@@ -986,7 +986,7 @@ hash map, to see if somebody has already bound an account to `@new_key`.
 > if somebody associates a key _K_ to an account _C_, then the public key
 > contained inside _C_ must be _K_.
 
-Anonymous payments are possible with Mokito and Hotwallet as well. Both clients
+Anonymous payments are possible with @App and Hotwallet as well. Both clients
 allow one to create a key and pay to a key.
 
 Should one use anonymous payments, always? The answer is no, since
@@ -1112,7 +1112,7 @@ these kinds of modules (see [[MakB17]](#references) for that).
 Just remember that explicit and
 automatic modules must be put in the module path, while
 unnamed modules must stay in the class path. Eclipse should
-do this automatically for us, as does the `moka` script that we have
+do this automatically for us, as does the `@tool` script that we have
 installed previously.
 
 # A First Takamaka Program
@@ -1299,16 +1299,16 @@ We have generated the jar containing our code and we want to send it now to a Ho
 where it will be installed. This means that it will become available to programmers
 who want to use its classes, directly or as dependencies of their programs.
 In order to install a jar in the Hotmoka node that we have used in the previous chapter,
-we can use the `moka` command-line tool, specifying which account will pay for the
+we can use the `@tool` command-line tool, specifying which account will pay for the
 installation of the jar. The cost of the installation depends on the size of the
-jar and on the number of its dependencies. The `moka` tool uses a heuristics to
+jar and on the number of its dependencies. The `@tool` tool uses a heuristics to
 foresee the cost of installation. Move inside the `hotmoka_tutorial` directory, if you are not
 there already, so that
-`moka` will find your saved entropy there, and run the `moka install` command:
+`@tool` will find your saved entropy there, and run the `moka install` command:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka install family/target/family-0.0.1.jar
+$ @tool install family/target/family-0.0.1.jar
     --payer @account1
     --url @server
 
@@ -1582,7 +1582,7 @@ that it uses to construct a `signer` object that signs with the private key of o
 loaded from disk.
 
 The `loadKeys` method accesses the `.pem` file that we have previously created
-with `moka`. It does it by looking in the parent directory `..`, that is where that file should be.
+with `@tool`. It does it by looking in the parent directory `..`, that is where that file should be.
 
 Like every Hotmoka node, the observable state of the remote node can only evolve through
 *transactions*, that modify its state in an atomic way.
@@ -1590,7 +1590,7 @@ Namely, the code above performs three transactions:
 
 1. A call to the `nonce()` method of our account: this is a progressive counter of the number
    of transactions already performed with our account. It starts from zero, but our account has been
-   already used for other transactions (through the `moka` tool). Hence we better ask the
+   already used for other transactions (through the `@tool` tool). Hence we better ask the
    node about it. As we will see later, this transaction calls a `@View` method. All calls
    to `@View` methods have the nice feature of being *for free*: nobody will pay for them.
    Because of that, we do not need to sign this transaction, or to provide a correct nonce,
@@ -1649,11 +1649,11 @@ has installed it at
 and our code at `@code_family_address`.
 We can use either of them, interchangeably, as class path for the execution of a transaction that
 tries to run the constructor of `Person` and add a brand
-new `Person` object into the store of the node. We can perform this through the `moka` tool:
+new `Person` object into the store of the node. We can perform this through the `@tool` tool:
 
 ```shell
 $ cd hotmoka_tutorial # if you are not already there
-$ moka create
+$ @tool create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --payer @account1
@@ -1732,14 +1732,14 @@ complete without exception:
 $ cd family
 $ mvn clean package
 $ cd ..
-$ moka install family/target/family-0.0.1.jar
+$ @tool install family/target/family-0.0.1.jar
     --payer @account1
     --url @server
 ...
 has been installed at
   @family2_address
 ...
-$ moka create
+$ @tool create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --payer @account1
@@ -1768,7 +1768,7 @@ by using the `moka state` command:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka state @person_object
+$ @tool state @person_object
     --url @server
 
 This is the state of object
@@ -1998,7 +1998,7 @@ specifying our `Person` object as *receiver*.
 > (non-`static`) method.
 
 ```shell
-$ moka call
+$ @tool call
     @person_object
     toString
     --payer @account1
@@ -2063,14 +2063,14 @@ Package the project `family` and try again to call the `toString` method:
 $ cd family
 $ mvn clean package
 $ cd ..
-$ moka install family/target/family-0.0.1.jar
+$ @tool install family/target/family-0.0.1.jar
     --payer @account1
     --url @server
 ...
 has been installed at
   @family_exported_address
 ...
-$ moka create
+$ @tool create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
     --payer @account1
@@ -2081,7 +2081,7 @@ $ moka create
 The new object has been allocated at
   @person3_object
 ...
-$ moka call
+$ @tool call
     @person3_object
     toString
     --payer @account1
@@ -2369,7 +2369,7 @@ node, must receive storage values as parameters and must return storage
 values (if they are not `void` methods). A method that expects a parameter of
 type `java.util.HashSet`, for instance, can be defined and called
 from Takamaka code, inside the node, but cannot be called from outside the node,
-such as, for instance, from the `moka` tool or from our `Family` class. The same
+such as, for instance, from the `@tool` tool or from our `Family` class. The same
 occurs if the method returns a `java.util.HashSet`.
 
 We conclude this section with a formal definition of storage objects.
@@ -2948,7 +2948,7 @@ the nonce of the caller.
 > run-time check.
 
 > If a `@View` method is called through the `moka call` command,
-> the `moka` tool will automatically perform a `runInstanceMethodCallTransaction()`
+> the `@tool` tool will automatically perform a `runInstanceMethodCallTransaction()`
 > internally, to spare gas.
 
 ## The Hierarchy of Contracts
@@ -3325,7 +3325,7 @@ We can now start by installing that jar in the node:
 
 ```shell
 $ cd hotmoka_tutorial   # if not already there
-$ moka install ponzi/target/ponzi-0.0.1.jar
+$ @tool install ponzi/target/ponzi-0.0.1.jar
     --payer @account1
     --url @server
 
@@ -3339,7 +3339,7 @@ ponzi/target/ponzi-0.0.1.jar has been installed at
 We create two more accounts now, letting our first account pay:
 
 ```shell
-$ moka create-account
+$ @tool create-account
     10000000
     --payer @account1
     --url @server
@@ -3359,7 +3359,7 @@ Its entropy has been saved into the file
 "@account2.pem".
 Please take note of the following passphrase of 36 words...
 
-$ moka create-account
+$ @tool create-account
     10000000
     --payer @account1
     --url @server
@@ -3384,7 +3384,7 @@ We let our first account create an instance of `GradualPonzi` in the node now
 and become the first investor of the contract:
 
 ```shell
-$ moka create
+$ @tool create
     io.takamaka.ponzi.GradualPonzi
     --payer @account1
     --classpath @gradual_ponzi_address
@@ -3401,7 +3401,7 @@ The new object has been allocated at
 We let the other two players invest, in sequence, in the `GradualPonzi` contract:
 
 ```shell
-$ moka call
+$ @tool call
     @gradual_ponzi_object
     invest 5000
     --payer @account2
@@ -3411,7 +3411,7 @@ Please specify the password of the payer account: orange
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
-$ moka call
+$ @tool call
     @gradual_ponzi_object
     invest 15000
     --payer @account3
@@ -3427,7 +3427,7 @@ with a too small investment, which leads to an exception,
 since the code of the contract requires a minimum investment:
 
 ```shell
-$ moka call
+$ @tool call
     @gradual_ponzi_object
     invest 500
     --payer @account1
@@ -3457,7 +3457,7 @@ require(amount.compareTo(MINIMUM_INVESTMENT) >= 0,
 Finally, we can check the state of the contract:
 
 ```shell
-$ moka state @gradual_ponzi_object
+$ @tool state @gradual_ponzi_object
     --url @server
 
 This is the state of object
@@ -3477,7 +3477,7 @@ You can see that the contract keeps no balance. Moreover, its `investors` field 
 object, whose state can be further investigated:
 
 ```shell
-$ moka state @gradual_ponzi_list
+$ @tool state @gradual_ponzi_list
     --url @server
 
 This is the state of object
@@ -4008,7 +4008,7 @@ and run the `mvn package` command. A file
 Let us start by installing that jar in the node:
 
 ```shell
-$ moka install tictactoe/target/tictactoe-0.0.1.jar
+$ @tool install tictactoe/target/tictactoe-0.0.1.jar
     --payer @account1
     --url @server
 
@@ -4022,7 +4022,7 @@ at @tictactoe_address
 Then we create an instance of the contract in the node:
 
 ```shell
-$ moka create
+$ @tool create
     io.takamaka.tictactoe.TicTacToe
     --payer @account1
     --classpath @tictactoe_address
@@ -4043,13 +4043,13 @@ We will print the `toString` of the contract after each move.
 The first player starts, by playing at (1,1), and bets 100:
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 100 1 1
     --payer @account1
     --url @server
 
-$ moka call
+$ @tool call
     @tictactoe_object
     toString
     --payer @account1
@@ -4065,13 +4065,13 @@ X| |
 The second player plays after, at (2,1), betting 100:
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 100 2 1
     --payer @account2
     --url @server
 
-$ moka call
+$ @tool call
     @tictactoe_object
     toString
     --payer @account2
@@ -4088,13 +4088,13 @@ X|O|
 The first player replies, playing at (1,2):
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 0 1 2
     --payer @account1
     --url @server
 
-$ moka call
+$ @tool call
     @tictactoe_object
     toString
     --payer @account1
@@ -4110,13 +4110,13 @@ X| |
 Then the second player plays at (2,2):
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 0 2 2
     --payer @account2
     --url @server
 
-$ moka call
+$ @tool call
     @tictactoe_object
     toString
     --payer @account2
@@ -4132,13 +4132,13 @@ X|O|
 The first player wins by playing at (1,3):
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 0 1 3
     --payer @account1
     --url @server
 
-$ moka call
+$ @tool call
     @tictactoe_object
     toString
     --payer @account1
@@ -4152,7 +4152,7 @@ X| |
 ```
 We can verify that the game is over now:
 ```shell
-$ moka state @tictactoe_object
+$ @tool state @tictactoe_object
     --url @server
 
 This is the state of object
@@ -4173,7 +4173,7 @@ the winner and to the creator of the game (that actually coincide, in this speci
 If the second player attempts to play now, the transaction will be rejected, since the game is over:
 
 ```shell
-$ moka call
+$ @tool call
     @tictactoe_object
     play 0 2 3
     --payer @account2
@@ -5644,7 +5644,7 @@ Then you can install that jar in the node, by letting our first account pay:
 
 ```shell
 $ cd ..
-$ moka install erc20/target/erc20-0.0.1.jar
+$ @tool install erc20/target/erc20-0.0.1.jar
     --payer @account1
     --url @server
 
@@ -5663,7 +5663,7 @@ Finally, you can create an instance of the token class, by always letting our fi
 for that:
 
 ```shell
-$ moka create
+$ @tool create
   io.takamaka.erc20.CryptoBuddy
   --payer @account1
   --classpath @erc20_address
@@ -6099,10 +6099,10 @@ for a single Tendermint node, that includes the configuration
 of the node and its private and public validator keys.
 
 Once this is done, you can create a key pair for the gamete
-of the node that you are going to start. You perform this with `moka`:
+of the node that you are going to start. You perform this with `@tool`:
 
 ```shell
-$ moka create-key
+$ @tool create-key
 
 Please specify the password of the new key: king
 A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
@@ -6123,7 +6123,7 @@ be stored inside the node as `takamakaCode`: we use the
 local Maven's cache for that:
 
 ```shell
-$ moka init-tendermint 100000000000000
+$ @tool init-tendermint 100000000000000
     --tendermint-config mytestnet/node0
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
                          @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
@@ -6148,10 +6148,10 @@ The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
 The owner of the key of the gamete can bind it to its address now:
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+  @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
     --url url_of_this_node
 or
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+  @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
     --reference d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
 
 Press enter to exit this program and turn off the node
@@ -6203,7 +6203,7 @@ reference in the node, on your local machine. Open another shell,
 move inside the directory holding the keys of the gamete and digit:
 
 ```shell
-$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+$ @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 A new account d2fc1b34d6e4b2d2d80f7665d5ef4d5eb81e927cebe2240aec4dda7c1173542b#0
   has been created.
@@ -6229,7 +6229,7 @@ execution of the node), in a directory holding the keys of the gamete,
 and type:
 
 ```shell
-$ moka faucet 5000000
+$ @tool faucet 5000000
 
 Please specify the password of the gamete account: king
 ```
@@ -6253,7 +6253,7 @@ consisting of the storage objects created in blockchain.
 Later, you can resume the node from that state, by typing:
 
 ```shell
-$ moka resume-tendermint --tendermint-config mytestnet/node0
+$ @tool resume-tendermint --tendermint-config mytestnet/node0
 ...
 Press enter to exit this program and turn off the node
 ```
@@ -6306,7 +6306,7 @@ this time, but still need a key to control the gamete of the node, that you can 
 exactly as for a Tendermint Hotmoka node:
 
 ```shell
-$ moka create-key
+$ @tool create-key
 
 Please specify the password of the new key: king
 A new key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ has been created.
@@ -6317,7 +6317,7 @@ Its entropy has been saved into the file
 You specify the public component of the key when starting the node:
 
 ```shell
-$ moka init-memory 100000000000000000000000
+$ @tool init-memory 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
                          @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
@@ -6337,9 +6337,9 @@ The Hotmoka node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
 The owner of the key of the gamete can bind it to its address now:
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ --url url_of_this_node
+  @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ --url url_of_this_node
 or
-  moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+  @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
     --reference ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
 
 Press enter to exit this program and turn off the node
@@ -6349,14 +6349,14 @@ Then, in another shell, move in the directory holding the keys of the gamete, bi
 gamete to the keys and open the faucet:
 
 ```shell
-$ moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
+$ @tool bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 A new account ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
   has been created.
 Its entropy has been saved into the file
   "./ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0.pem".
 
-$ moka faucet 5000000000000000
+$ @tool faucet 5000000000000000
 
 Please specify the password of the gamete account: king
 ```
@@ -6506,7 +6506,7 @@ This will hang and print the new log entries as they are generated.
 Assuming that you have a local node running in your machine, try for instance in another shell
 
 ```shell
-$ moka info
+$ @tool info
 ```
 
 You will see in the log all new entries related to the execution of the methods to access
@@ -6549,7 +6549,7 @@ then it initializes the node; subsequently it installs our `family-0.0.1.jar`
 file in the node and finally creates two accounts in the node. We stress the fact that
 these actions
 can be performed in code by using calls to the node interface (Figure @fig:node_hierarchy);
-they can also be performed through the `moka` tool. Here, however, we want to perform them
+they can also be performed through the `@tool` tool. Here, however, we want to perform them
 in code, simplified by using node decorators.
 
 Create the following `Decorators.java` class inside the `runs` package of the `runs` project:
@@ -7082,7 +7082,7 @@ For instance, let us create an account using the default signature algorithm for
 We charge its creation to the faucet of the node:
 
 ```shell
-$ moka create-account 1000000000000 --payer faucet --url @server
+$ @tool create-account 1000000000000 --payer faucet --url @server
 
 Please specify the password of the new account: game
 ...
@@ -7093,7 +7093,7 @@ has been created
 You can check the class of the new account with the `moka state` command:
 
 ```shell
-$ moka state @account4
+$ @tool state @account4
     --url @server
 
 ...
@@ -7110,7 +7110,7 @@ Assume that we want to create an account now, that _always_ uses the `sha256dsa`
 regardless of the default signature algorithm of the node. We can specify that to `moka create-account`:
 
 ```shell
-$ moka create-account 1000000000000
+$ @tool create-account 1000000000000
     --payer faucet --signature sha256dsa --url @server
 
 Please specify the password of the new account: play
@@ -7123,7 +7123,7 @@ sha256dsa algorithm is much longer than that for the ed25519 algorithm.
 You can verify this with the `moka state` command:
 
 ```shell
-$ moka state @account5
+$ @tool state @account5
     --url @server
 
 ...
@@ -7138,7 +7138,7 @@ Note that the class of the account is `ExternallyOwnedAccountSHA256DSA` this tim
 Let us create an account that uses the qtesla-p-I signature algorithm now:
 
 ```
-$ moka create-account 1000000000000
+$ @tool create-account 1000000000000
     --payer faucet --signature qtesla1 --url @server
 
 Please specify the password of the new account: quantum1
@@ -7155,7 +7155,7 @@ command to verify that it has class `ExternallyOwnedAccountQTESLA1`.
 Finally, let us use the previous qtesla-p-I account to create a qtesla-p-III account:
 
 ```shell
-$ moka create-account 100000
+$ @tool create-account 100000
     --payer @account6
     --signature qtesla3 --url @server
 
@@ -7173,12 +7173,12 @@ Note, again, the extremely high gas cost of this creation.
 Regardless of the kind of account, their use it always the same.
 The only difference is to use the right signature algorithm when signing
 a transaction, since it must match that of the caller account. This is automatic, if we
-use the `moka` tool. For instance, let us use our qtesla-p-I account to install
+use the `@tool` tool. For instance, let us use our qtesla-p-I account to install
 the `family-0.0.1.jar` code in the node:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka install family/target/family-0.0.1.jar
+$ @tool install family/target/family-0.0.1.jar
     --payer @account6
     --url @server
 
@@ -7189,7 +7189,7 @@ at @family3_address
 ...
 ```
 
-The `moka` tool has understood that the payer is an account that signs with the
+The `@tool` tool has understood that the payer is an account that signs with the
 qtesla-p-I algorithm and has signed the request accordingly.
 
 # Tendermint Hotmoka Nodes
@@ -7226,7 +7226,7 @@ images, we can start our own Tendermint Hotmoka node as follow. First, we need t
 key pair of the gamete, as we did in the previous chapter:
 
 ```shell
-$ moka create-key
+$ @tool create-key
 
 Please specify the password of the new key: king
 A new key @new_docker_key has been created.
@@ -7255,7 +7255,7 @@ Wait for around 30 seconds, in order to give time to the node to start. After th
 and running in your local machine, as you can verify with `moka info`:
 
 ```shell
-$ moka info --url localhost:8080
+$ @tool info --url localhost:8080
 
 Info about the node:
   takamakaCode: @docker_takamaka_code
@@ -7267,12 +7267,12 @@ Info about the node:
 ```
 
 > Since `--url localhost:8080` is the default, you can just type
-> `moka info`. The same holds for all other `moka` commands.
+> `moka info`. The same holds for all other `@tool` commands.
 
 In order to use the gamete, we must bind the key to its storage reference:
 
 ```shell
-$ moka bind-key @new_docker_key
+$ @tool bind-key @new_docker_key
 
 A new account @docker_gamete
   has been created.
@@ -7334,7 +7334,7 @@ $ docker stop @container_id1
 You can verify that the Tendermint Hotmoka node is not available anymore:
 
 ```shell
-$ moka info --url localhost:8080
+$ @tool info --url localhost:8080
 
 Failed to connect to 'localhost:8080': Connection refused
 ```
@@ -7363,7 +7363,7 @@ $ docker run -dit
 Wait for a few seconds and then verify that the _same_ node is back:
 
 ```shell
-$ moka info --url localhost:8080
+$ @tool info --url localhost:8080
 
 Info about the node:
   takamakaCode: @docker_takamaka_code
@@ -7426,7 +7426,7 @@ $ docker run -dit
 After a few seconds, the node will be up and we can show its manifest:
 
 ```shell
-$ moka info
+$ @tool info
 
 Info about the node:
  takamakaCode: @docker_takamaka_code
@@ -7465,7 +7465,7 @@ For instance, let us create a new account by letting the gamete pay (we can do i
 we hold the keys of the gamete):
 
 ```shell
-$ moka create-account 1234567
+$ @tool create-account 1234567
     --payer @docker_gamete
 
 Please specify the password of the payer account: king
@@ -7482,7 +7482,7 @@ The gas consumed for this transaction has been forwarded to the validators of th
 Since there is only a single validator, everything goes to it, as you can verify:
 
 ```shell
-$ moka info
+$ @tool info
 
 Info about the node:
  takamakaCode: @docker_takamaka_code
@@ -7610,7 +7610,7 @@ and 80 (for clients). At the end, such rules should look as in Figure @fig:inbou
 Create the key of the gamete in your local machine:
 
 ```shell
-$ moka create-key
+$ @tool create-key
 
 Please specify the password of the new key: king
 A new key 9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF has been created.
@@ -7639,7 +7639,7 @@ ec2$ docker run -dit
 Wait for a few seconds and then verify, in your local machine, that the remote node is available:
 
 ```shell
-$ moka info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
+$ @tool info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
 
 Info about the node:
   takamakaCode: c2003c1109c33acaa3d8e081327f35f5cb960e4e8ee6743674087b00cb7bbeb9
@@ -7657,7 +7657,7 @@ Info about the node:
 You can bind the key of the gamete in your local machine now:
 
 ```shell
-$ moka bind-key 9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF
+$ @tool bind-key 9PhEVACUFjTEXwoMETzXwsjSTVe2c9dJMuUymxGTo4vF
     --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
 
 A new account ce1b85355a9237ed701f4ca9c498e77c1f0876535b0dc7716cdd15a72c19a407#0
@@ -7738,7 +7738,7 @@ you can see that a new node has been published, that is part of the blockchain n
 of `panarea.hotmoka.io`:
 
 ```shell
-$ moka info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
+$ @tool info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
 
 Info about the node:
   takamakaCode: @takamakaCode
@@ -7906,7 +7906,7 @@ as `http://alice.hotmoka.io`. The key of the only validator is in the `chain`
 volume of Docker in Alice's machine, as said before.
 Alice moves that key to a safer place, where she can use it to control the validator:
 ```shell
-alice.hotmoka.io$ moka create-key
+alice.hotmoka.io$ @tool create-key
 
 Please specify the password of the new key: queen
 A new key has been created.
@@ -7924,7 +7924,7 @@ alice.hotmoka.io$ docker run --rm -dit
     hotmoka/tendermint-node:@hotmoka_version
     init
 
-alice.hotmoka.io$ moka bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
+alice.hotmoka.io$ @tool bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
   --url localhost:80
 A new account 21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
   has been created.
@@ -7988,14 +7988,14 @@ for validation of transactions. However, if
 that is not the case, then Alice must
 first charge the validator object (for instance, from her gamete) and later use it to place the sale offer:
 ```shell
-alice.hotmoka.io$ moka send 1000000000
+alice.hotmoka.io$ @tool send 1000000000
     8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
     --payer=21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
     --url localhost
 
 Please specify the password of the payer account: queen
 
-alice.hotmoka.io$ moka sell-validation
+alice.hotmoka.io$ @tool sell-validation
   8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
   400000
   1000000000
@@ -8006,7 +8006,7 @@ Please specify the password of the seller validator:
 Offer 3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0 placed
 ```
 Note that `moka sell-validation` works only if the key of the validator is in the directory where
-`moka` is invoked. Without that key, it is impossible to place a sale offer on behalf of the validator.
+`@tool` is invoked. Without that key, it is impossible to place a sale offer on behalf of the validator.
 The parameters of `moka sell-validation` are the address of the validator that is selling its power
 and will pay for the transaction, the amount of power to sell (400000, that is, 40%),
 the price required for the sale (1000000000 panareas) and the time of validity
@@ -8020,7 +8020,7 @@ one hour from then).
 Bob can now realize that a sale offer is available. By running `moka info` again he will notice the offer:
 
 ```shell
-bob.hotmoka.io$ moka info --url localhost
+bob.hotmoka.io$ @tool info --url localhost
 
 surcharge for buying validation power: 50000000 (ie. 50.000000%)
 validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
@@ -8055,7 +8055,7 @@ object. He has only the key generated by the Docker script.
 Hence the first step for Bob is to create a `Validator` object with that key, by letting
 his account pay:
 ```shell
-bob.hotmoka.io$ moka create-account 2000000000
+bob.hotmoka.io$ @tool create-account 2000000000
   --create-tendermint-validator
   --payer 6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0
   --url localhost
@@ -8072,7 +8072,7 @@ externally owned account would have been created. This way, instead, an instance
 of `TendermintED25519Validator` gets created (see Figure @fig:entities_hierarchy).
 Bob can verify this with `moka state`:
 ```shell
-bob.hotmoka.io$ moka state
+bob.hotmoka.io$ @tool state
   85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
   --url localhost
 
@@ -8090,7 +8090,7 @@ He just accepts the sale offer
 `3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0`
 by using his validator object as payer:
 ```shell
-bob.hotmoka.io$ moka buy-validation
+bob.hotmoka.io$ @tool buy-validation
   85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
   3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
   --url localhost
@@ -8104,7 +8104,7 @@ Offer accepted
 Finally, both Bob and Alice can verify that there are two validators now in the network,
 and no more sale offers:
 ```shell
-alice.hotmoka.io$ moka info --url localhost
+alice.hotmoka.io$ @tool info --url localhost
 ...
 number of validators: 2
   validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
@@ -8431,7 +8431,7 @@ caller gets consumed. Hence it is not practical to realize that a
 static constraint does not hold only by trying to install a jar in a node.
 Instead, it is desirable to verify all constraints off-line, fix all
 violations (if any) and only then install the jar in the node. This is
-possible by using the `moka` command-line interface of Hotmoka.
+possible by using the `@tool` command-line interface of Hotmoka.
 Namely, it provides a subcommand that performs the same identical jar
 verification that would be executed when a jar is
 installed in a Hotmoka node.
@@ -8497,7 +8497,7 @@ taken from Maven's cache:
 
 ```shell
 $ cd hotmoka_tutorial
-$ moka verify
+$ @tool verify
     ~/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar
     --init
 Verification succeeded
@@ -8513,7 +8513,7 @@ installation in a Hotmoka node. For that, we run:
 
 ```shell
 $ mkdir instrumented
-$ moka instrument
+$ @tool instrument
     ~/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar
     instrumented/io-takamaka-code-@hotmoka_version.jar
     --init
@@ -8528,7 +8528,7 @@ hence it depends on it. We specify this with the `--libs` option, that must
 refer to an already instrumented jar:
 
 ```shell
-$ moka instrument
+$ @tool instrument
     family/target/family-0.0.1.jar
     instrumented/family-0.0.1.jar
     --libs instrumented/io-takamaka-code-@hotmoka_version.jar
@@ -8542,7 +8542,7 @@ Let us verify the `family_wrong-0.0.1.jar` archive now, that
 (we know) contains a few errors. This time, verification will fail and the errors will
 be printed on the screen:
 ```shell
-$ moka verify
+$ @tool verify
     family_wrong/target/family_wrong-0.0.1.jar
     --libs instrumented/io-takamaka-code-@hotmoka_version.jar 
 
@@ -8563,7 +8563,7 @@ Verification failed because of errors
 
 The same failure occurs with the `instrument` command, that will not generate the instrumented jar:
 ```shell
-$ moka instrument
+$ @tool instrument
     family_wrong/target/family_wrong-0.0.1.jar
     instrumented/family_wrong-0.0.1.jar
     --libs instrumented/io-takamaka-code-@hotmoka_version.jar
