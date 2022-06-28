@@ -26,17 +26,17 @@ import io.takamaka.code.lang.Exported;
 import io.takamaka.code.lang.View;
 
 /**
- * A mutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.
+ * A mutable array of 64 bytes, that can be kept in storage. Unset elements default to 0.
  * The length of the array cannot be changed but its elements can be updated.
  * By iterating on this object, one gets its values, in increasing index order.
  */
 
-public class Bytes32 extends AbstractStorageByteArrayView implements StorageByteArray {
+public class Bytes64 extends AbstractStorageByteArrayView implements StorageByteArray {
 
 	/**
 	 * The immutable size of the array.
 	 */
-	public final static int length = 32;
+	public final static int length = 64;
 
 	// the elements of the array
 	private byte byte0;
@@ -71,12 +71,44 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	private byte byte29;
 	private byte byte30;
 	private byte byte31;
+	private byte byte32;
+	private byte byte33;
+	private byte byte34;
+	private byte byte35;
+	private byte byte36;
+	private byte byte37;
+	private byte byte38;
+	private byte byte39;
+	private byte byte40;
+	private byte byte41;
+	private byte byte42;
+	private byte byte43;
+	private byte byte44;
+	private byte byte45;
+	private byte byte46;
+	private byte byte47;
+	private byte byte48;
+	private byte byte49;
+	private byte byte50;
+	private byte byte51;
+	private byte byte52;
+	private byte byte53;
+	private byte byte54;
+	private byte byte55;
+	private byte byte56;
+	private byte byte57;
+	private byte byte58;
+	private byte byte59;
+	private byte byte60;
+	private byte byte61;
+	private byte byte62;
+	private byte byte63;
 
 	/**
 	 * Builds an empty array of the given length. Its elements are
 	 * initialized to 0.
 	 */
-	public Bytes32() {}
+	public Bytes64() {}
 
 	/**
 	 * Builds an array with the given elements. The resulting
@@ -85,7 +117,7 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	 * 
 	 * @param elements the elements
 	 */
-	public Bytes32(byte[] elements) {
+	public Bytes64(byte[] elements) {
 		if (elements == null)
 			throw new IllegalArgumentException("Expected a non-null array of elements");
 		if (elements.length != length)
@@ -98,10 +130,14 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	/**
 	 * Builds an array with the given elements.
 	 */
-	public Bytes32(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
+	public Bytes64(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
 			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15, byte byte16,
 			byte byte17, byte byte18, byte byte19, byte byte20, byte byte21, byte byte22, byte byte23, byte byte24,
-			byte byte25, byte byte26, byte byte27, byte byte28, byte byte29, byte byte30, byte byte31) {
+			byte byte25, byte byte26, byte byte27, byte byte28, byte byte29, byte byte30, byte byte31,
+			byte byte32, byte byte33, byte byte34, byte byte35, byte byte36, byte byte37, byte byte38, byte byte39,
+			byte byte40, byte byte41, byte byte42, byte byte43, byte byte44, byte byte45, byte byte46, byte byte47, byte byte48,
+			byte byte49, byte byte50, byte byte51, byte byte52, byte byte53, byte byte54, byte byte55, byte byte56,
+			byte byte57, byte byte58, byte byte59, byte byte60, byte byte61, byte byte62, byte byte63) {
 
 		this.byte0 = byte0;
 		this.byte1 = byte1;
@@ -135,6 +171,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		this.byte29 = byte29;
 		this.byte30 = byte30;
 		this.byte31 = byte31;
+		this.byte32 = byte32;
+		this.byte33 = byte33;
+		this.byte34 = byte34;
+		this.byte35 = byte35;
+		this.byte36 = byte36;
+		this.byte37 = byte37;
+		this.byte38 = byte38;
+		this.byte39 = byte39;
+		this.byte40 = byte40;
+		this.byte41 = byte41;
+		this.byte42 = byte42;
+		this.byte43 = byte43;
+		this.byte44 = byte44;
+		this.byte45 = byte45;
+		this.byte46 = byte46;
+		this.byte47 = byte47;
+		this.byte48 = byte48;
+		this.byte49 = byte49;
+		this.byte50 = byte50;
+		this.byte51 = byte51;
+		this.byte52 = byte52;
+		this.byte53 = byte53;
+		this.byte54 = byte54;
+		this.byte55 = byte55;
+		this.byte56 = byte56;
+		this.byte57 = byte57;
+		this.byte58 = byte58;
+		this.byte59 = byte59;
+		this.byte60 = byte60;
+		this.byte61 = byte61;
+		this.byte62 = byte62;
+		this.byte63 = byte63;
 	}
 
 	/**
@@ -143,8 +211,12 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	 * 
 	 * @param initialValue the initial value of the array
 	 */
-	public Bytes32(byte initialValue) {
+	public Bytes64(byte initialValue) {
 		this(initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
+			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
 			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
 			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
 			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue);
@@ -158,7 +230,7 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	 *                 used repeatedly for each element to initialize. Its result
 	 *                 is cast to {@code byte}
 	 */
-	public Bytes32(IntSupplier supplier) {
+	public Bytes64(IntSupplier supplier) {
 		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.getAsInt()));
 	}
 
@@ -171,7 +243,7 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 	 *                 element at index <em>i</em> gets assigned
 	 *                 {@code (byte) supplier.applyAsInt(i)}
 	 */
-	public Bytes32(IntUnaryOperator supplier) {
+	public Bytes64(IntUnaryOperator supplier) {
 		IntStream.range(0, length).forEachOrdered(index -> set(index, (byte) supplier.applyAsInt(index)));
 	}
 
@@ -215,6 +287,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		case 29: return byte29;
 		case 30: return byte30;
 		case 31: return byte31;
+		case 32: return byte32;
+		case 33: return byte33;
+		case 34: return byte34;
+		case 35: return byte35;
+		case 36: return byte36;
+		case 37: return byte37;
+		case 38: return byte38;
+		case 39: return byte39;
+		case 40: return byte40;
+		case 41: return byte41;
+		case 42: return byte42;
+		case 43: return byte43;
+		case 44: return byte44;
+		case 45: return byte45;
+		case 46: return byte46;
+		case 47: return byte47;
+		case 48: return byte48;
+		case 49: return byte49;
+		case 50: return byte50;
+		case 51: return byte51;
+		case 52: return byte52;
+		case 53: return byte53;
+		case 54: return byte54;
+		case 55: return byte55;
+		case 56: return byte56;
+		case 57: return byte57;
+		case 58: return byte58;
+		case 59: return byte59;
+		case 60: return byte60;
+		case 61: return byte61;
+		case 62: return byte62;
+		case 63: return byte63;
 		default: throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -254,6 +358,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		case 29: byte29 = value; return;
 		case 30: byte30 = value; return;
 		case 31: byte31 = value; return;
+		case 32: byte32 = value; return;
+		case 33: byte33 = value; return;
+		case 34: byte34 = value; return;
+		case 35: byte35 = value; return;
+		case 36: byte36 = value; return;
+		case 37: byte37 = value; return;
+		case 38: byte38 = value; return;
+		case 39: byte39 = value; return;
+		case 40: byte40 = value; return;
+		case 41: byte41 = value; return;
+		case 42: byte42 = value; return;
+		case 43: byte43 = value; return;
+		case 44: byte44 = value; return;
+		case 45: byte45 = value; return;
+		case 46: byte46 = value; return;
+		case 47: byte47 = value; return;
+		case 48: byte48 = value; return;
+		case 49: byte49 = value; return;
+		case 50: byte50 = value; return;
+		case 51: byte51 = value; return;
+		case 52: byte52 = value; return;
+		case 53: byte53 = value; return;
+		case 54: byte54 = value; return;
+		case 55: byte55 = value; return;
+		case 56: byte56 = value; return;
+		case 57: byte57 = value; return;
+		case 58: byte58 = value; return;
+		case 59: byte59 = value; return;
+		case 60: byte60 = value; return;
+		case 61: byte61 = value; return;
+		case 62: byte62 = value; return;
+		case 63: byte63 = value; return;
 		default: throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -293,6 +429,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 		case 29: byte29 = (byte) how.applyAsInt(byte29); return;
 		case 30: byte30 = (byte) how.applyAsInt(byte30); return;
 		case 31: byte31 = (byte) how.applyAsInt(byte31); return;
+		case 32: byte32 = (byte) how.applyAsInt(byte32); return;
+		case 33: byte33 = (byte) how.applyAsInt(byte33); return;
+		case 34: byte34 = (byte) how.applyAsInt(byte34); return;
+		case 35: byte35 = (byte) how.applyAsInt(byte35); return;
+		case 36: byte36 = (byte) how.applyAsInt(byte36); return;
+		case 37: byte37 = (byte) how.applyAsInt(byte37); return;
+		case 38: byte38 = (byte) how.applyAsInt(byte38); return;
+		case 39: byte39 = (byte) how.applyAsInt(byte39); return;
+		case 40: byte40 = (byte) how.applyAsInt(byte40); return;
+		case 41: byte41 = (byte) how.applyAsInt(byte41); return;
+		case 42: byte42 = (byte) how.applyAsInt(byte42); return;
+		case 43: byte43 = (byte) how.applyAsInt(byte43); return;
+		case 44: byte44 = (byte) how.applyAsInt(byte44); return;
+		case 45: byte45 = (byte) how.applyAsInt(byte45); return;
+		case 46: byte46 = (byte) how.applyAsInt(byte46); return;
+		case 47: byte47 = (byte) how.applyAsInt(byte47); return;
+		case 48: byte48 = (byte) how.applyAsInt(byte48); return;
+		case 49: byte49 = (byte) how.applyAsInt(byte49); return;
+		case 50: byte50 = (byte) how.applyAsInt(byte50); return;
+		case 51: byte51 = (byte) how.applyAsInt(byte51); return;
+		case 52: byte52 = (byte) how.applyAsInt(byte52); return;
+		case 53: byte53 = (byte) how.applyAsInt(byte53); return;
+		case 54: byte54 = (byte) how.applyAsInt(byte54); return;
+		case 55: byte55 = (byte) how.applyAsInt(byte55); return;
+		case 56: byte56 = (byte) how.applyAsInt(byte56); return;
+		case 57: byte57 = (byte) how.applyAsInt(byte57); return;
+		case 58: byte58 = (byte) how.applyAsInt(byte58); return;
+		case 59: byte59 = (byte) how.applyAsInt(byte59); return;
+		case 60: byte60 = (byte) how.applyAsInt(byte60); return;
+		case 61: byte61 = (byte) how.applyAsInt(byte61); return;
+		case 62: byte62 = (byte) how.applyAsInt(byte62); return;
+		case 63: byte63 = (byte) how.applyAsInt(byte63); return;
 		default: throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -345,6 +513,38 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 			case 29: return byte29;
 			case 30: return byte30;
 			case 31: return byte31;
+			case 32: return byte32;
+			case 33: return byte33;
+			case 34: return byte34;
+			case 35: return byte35;
+			case 36: return byte36;
+			case 37: return byte37;
+			case 38: return byte38;
+			case 39: return byte39;
+			case 40: return byte40;
+			case 41: return byte41;
+			case 42: return byte42;
+			case 43: return byte43;
+			case 44: return byte44;
+			case 45: return byte45;
+			case 46: return byte46;
+			case 47: return byte47;
+			case 48: return byte48;
+			case 49: return byte49;
+			case 50: return byte50;
+			case 51: return byte51;
+			case 52: return byte52;
+			case 53: return byte53;
+			case 54: return byte54;
+			case 55: return byte55;
+			case 56: return byte56;
+			case 57: return byte57;
+			case 58: return byte58;
+			case 59: return byte59;
+			case 60: return byte60;
+			case 61: return byte61;
+			case 62: return byte62;
+			case 63: return byte63;
 			default: {
 				nextKey = length;
 				throw new NoSuchElementException();
@@ -355,8 +555,8 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof Bytes32) {
-			Bytes32 otherAsBytes = (Bytes32) other;
+		if (other instanceof Bytes64) {
+			Bytes64 otherAsBytes = (Bytes64) other;
 			return byte0 == otherAsBytes.byte0 &&
 				byte1 == otherAsBytes.byte1 &&
 				byte2 == otherAsBytes.byte2 &&
@@ -388,7 +588,39 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 				byte28 == otherAsBytes.byte28 &&
 				byte29 == otherAsBytes.byte29 &&
 				byte30 == otherAsBytes.byte30 &&
-				byte31 == otherAsBytes.byte31;
+				byte31 == otherAsBytes.byte31 &&
+				byte32 == otherAsBytes.byte32 &&
+				byte33 == otherAsBytes.byte33 &&
+				byte34 == otherAsBytes.byte34 &&
+				byte35 == otherAsBytes.byte35 &&
+				byte36 == otherAsBytes.byte36 &&
+				byte37 == otherAsBytes.byte37 &&
+				byte38 == otherAsBytes.byte38 &&
+				byte39 == otherAsBytes.byte39 &&
+				byte40 == otherAsBytes.byte40 &&
+				byte41 == otherAsBytes.byte41 &&
+				byte42 == otherAsBytes.byte42 &&
+				byte43 == otherAsBytes.byte43 &&
+				byte44 == otherAsBytes.byte44 &&
+				byte45 == otherAsBytes.byte45 &&
+				byte46 == otherAsBytes.byte46 &&
+				byte47 == otherAsBytes.byte47 &&
+				byte48 == otherAsBytes.byte48 &&
+				byte49 == otherAsBytes.byte49 &&
+				byte50 == otherAsBytes.byte50 &&
+				byte51 == otherAsBytes.byte51 &&
+				byte52 == otherAsBytes.byte52 &&
+				byte53 == otherAsBytes.byte53 &&
+				byte54 == otherAsBytes.byte54 &&
+				byte55 == otherAsBytes.byte55 &&
+				byte56 == otherAsBytes.byte56 &&
+				byte57 == otherAsBytes.byte57 &&
+				byte58 == otherAsBytes.byte58 &&
+				byte59 == otherAsBytes.byte59 &&
+				byte60 == otherAsBytes.byte60 &&
+				byte61 == otherAsBytes.byte61 &&
+				byte62 == otherAsBytes.byte62 &&
+				byte63 == otherAsBytes.byte63;
 		}
 		else
 			return super.equals(other);
@@ -427,19 +659,55 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 			(byte28 << 4) ^
 			(byte29 << 5) ^
 			(byte30 << 6) ^
-			(byte31 << 7);
+			(byte31 << 7) ^
+			(byte32 << 8) ^
+			(byte33 << 9) ^
+			(byte34 << 10) ^
+			(byte35 << 11) ^
+			(byte36 << 12) ^
+			(byte37 << 13) ^
+			(byte38 << 14) ^
+			(byte39 << 15) ^
+			(byte40 << 16) ^
+			(byte41 << 17) ^
+			(byte42 << 18) ^
+			(byte43 << 19) ^
+			(byte44 << 20) ^
+			(byte45 << 21) ^
+			(byte46 << 22) ^
+			(byte47 << 23) ^
+			byte48 ^
+			(byte49 << 1) ^
+			(byte50 << 2) ^
+			(byte51 << 3) ^
+			(byte52 << 4) ^
+			(byte53 << 5) ^
+			(byte54 << 6) ^
+			(byte55 << 7) ^
+			(byte56 << 8) ^
+			(byte57 << 9) ^
+			(byte58 << 10) ^
+			(byte59 << 11) ^
+			(byte60 << 12) ^
+			(byte61 << 13) ^
+			(byte62 << 14) ^
+			(byte63 << 15);
 	}
 
 	@Override
 	public IntStream stream() {
 		return IntStream.of(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
-							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31);
+							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31,
+							byte32, byte33, byte34, byte35, byte36, byte37, byte38, byte39, byte40, byte41, byte42, byte43, byte44, byte45, byte46, byte47,
+							byte48, byte49, byte50, byte51, byte52, byte53, byte54, byte55, byte56, byte57, byte58, byte59, byte60, byte61, byte62, byte63);
 	}
 
 	@Override
 	public byte[] toArray() {
 		return new byte[] { byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
-							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31 };
+							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31,
+							byte32, byte33, byte34, byte35, byte36, byte37, byte38, byte39, byte40, byte41, byte42, byte43, byte44, byte45, byte46, byte47,
+							byte48, byte49, byte50, byte51, byte52, byte53, byte54, byte55, byte56, byte57, byte58, byte59, byte60, byte61, byte62, byte63 };
 	}
 
 	@Override
@@ -450,32 +718,32 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 
 			@Override
 			public Iterator<Byte> iterator() {
-				return Bytes32.this.iterator();
+				return Bytes64.this.iterator();
 			}
 
 			@Override
 			public int length() {
-				return Bytes32.this.length();
+				return Bytes64.this.length();
 			}
 
 			@Override
 			public byte get(int index) {
-				return Bytes32.this.get(index);
+				return Bytes64.this.get(index);
 			}
 
 			@Override
 			public IntStream stream() {
-				return Bytes32.this.stream();
+				return Bytes64.this.stream();
 			}
 
 			@Override
 			public byte[] toArray() {
-				return Bytes32.this.toArray();
+				return Bytes64.this.toArray();
 			}
 
 			@Override
 			public StorageByteArrayView snapshot() {
-				return Bytes32.this.snapshot();
+				return Bytes64.this.snapshot();
 			}
 		}
 
@@ -484,7 +752,9 @@ public class Bytes32 extends AbstractStorageByteArrayView implements StorageByte
 
 	@Override
 	public StorageByteArrayView snapshot() {
-		return new Bytes32Snapshot(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
-			byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31);
+		return new Bytes64Snapshot(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
+			byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31,
+			byte32, byte33, byte34, byte35, byte36, byte37, byte38, byte39, byte40, byte41, byte42, byte43, byte44, byte45, byte46, byte47,
+			byte48, byte49, byte50, byte51, byte52, byte53, byte54, byte55, byte56, byte57, byte58, byte59, byte60, byte61, byte62, byte63);
 	}
 }

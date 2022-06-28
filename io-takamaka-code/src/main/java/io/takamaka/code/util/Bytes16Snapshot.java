@@ -27,18 +27,18 @@ import io.takamaka.code.lang.Immutable;
 import io.takamaka.code.lang.View;
 
 /**
- * An immutable array of 32 bytes, that can be kept in storage. Unset elements default to 0.
+ * An immutable array of 16 bytes, that can be kept in storage. Unset elements default to 0.
  * The length of the array cannot be changed. Its elements cannot be updated.
  * By iterating on this object, one gets its values, in increasing index order.
  */
 
 @Immutable @Exported
-public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
+public final class Bytes16Snapshot extends AbstractStorageByteArrayView {
 
 	/**
 	 * The immutable size of the array.
 	 */
-	public final static int length = 32;
+	public final static int length = 16;
 
 	// the elements of the array
 	private final byte byte0;
@@ -57,22 +57,6 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	private final byte byte13;
 	private final byte byte14;
 	private final byte byte15;
-	private final byte byte16;
-	private final byte byte17;
-	private final byte byte18;
-	private final byte byte19;
-	private final byte byte20;
-	private final byte byte21;
-	private final byte byte22;
-	private final byte byte23;
-	private final byte byte24;
-	private final byte byte25;
-	private final byte byte26;
-	private final byte byte27;
-	private final byte byte28;
-	private final byte byte29;
-	private final byte byte30;
-	private final byte byte31;
 
 	/**
 	 * Builds an array whose elements
@@ -80,10 +64,8 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	 * 
 	 * @param initialValue the initial value of the array
 	 */
-	public Bytes32Snapshot(byte initialValue) {
+	public Bytes16Snapshot(byte initialValue) {
 		this(initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
-			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
-			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue,
 			initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue, initialValue);
 	}
 
@@ -95,12 +77,8 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	 *                 used repeatedly for each element to initialize. Its result
 	 *                 is cast to {@code byte}
 	 */
-	public Bytes32Snapshot(IntSupplier supplier) {
+	public Bytes16Snapshot(IntSupplier supplier) {
 		this((byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
-			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
-			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
-			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
-			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
 			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
 			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(),
 			(byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt(), (byte) supplier.getAsInt());
@@ -115,15 +93,11 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	 *                 element at index <em>i</em> gets assigned
 	 *                 {@code (byte) supplier.applyAsInt(i)}
 	 */
-	public Bytes32Snapshot(IntUnaryOperator supplier) {
+	public Bytes16Snapshot(IntUnaryOperator supplier) {
 		this((byte) supplier.applyAsInt(0), (byte) supplier.applyAsInt(1), (byte) supplier.applyAsInt(2), (byte) supplier.applyAsInt(3),
 			(byte) supplier.applyAsInt(4), (byte) supplier.applyAsInt(5), (byte) supplier.applyAsInt(6), (byte) supplier.applyAsInt(7),
 			(byte) supplier.applyAsInt(8), (byte) supplier.applyAsInt(9), (byte) supplier.applyAsInt(10), (byte) supplier.applyAsInt(11),
-			(byte) supplier.applyAsInt(12), (byte) supplier.applyAsInt(13), (byte) supplier.applyAsInt(14), (byte) supplier.applyAsInt(15),
-			(byte) supplier.applyAsInt(16), (byte) supplier.applyAsInt(17), (byte) supplier.applyAsInt(18), (byte) supplier.applyAsInt(19),
-			(byte) supplier.applyAsInt(20), (byte) supplier.applyAsInt(21), (byte) supplier.applyAsInt(22), (byte) supplier.applyAsInt(23),
-			(byte) supplier.applyAsInt(24), (byte) supplier.applyAsInt(25), (byte) supplier.applyAsInt(26), (byte) supplier.applyAsInt(27),
-			(byte) supplier.applyAsInt(28), (byte) supplier.applyAsInt(29), (byte) supplier.applyAsInt(30), (byte) supplier.applyAsInt(31));
+			(byte) supplier.applyAsInt(12), (byte) supplier.applyAsInt(13), (byte) supplier.applyAsInt(14), (byte) supplier.applyAsInt(15));
 	}
 
 	/**
@@ -133,7 +107,7 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 	 * 
 	 * @param elements the elements
 	 */
-	public Bytes32Snapshot(byte[] elements) {
+	public Bytes16Snapshot(byte[] elements) {
 		if (elements == null)
 			throw new IllegalArgumentException("Expected a non-null array of elements");
 		if (elements.length != length)
@@ -155,31 +129,13 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 		byte13 = elements[13];
 		byte14 = elements[14];
 		byte15 = elements[15];
-		byte16 = elements[16];
-		byte17 = elements[17];
-		byte18 = elements[18];
-		byte19 = elements[19];
-		byte20 = elements[20];
-		byte21 = elements[21];
-		byte22 = elements[22];
-		byte23 = elements[23];
-		byte24 = elements[24];
-		byte25 = elements[25];
-		byte26 = elements[26];
-		byte27 = elements[27];
-		byte28 = elements[28];
-		byte29 = elements[29];
-		byte30 = elements[30];
-		byte31 = elements[31];
 	}
 
 	/**
 	 * Builds an array with the given elements.
 	 */
-	public Bytes32Snapshot(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
-			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15, byte byte16,
-			byte byte17, byte byte18, byte byte19, byte byte20, byte byte21, byte byte22, byte byte23, byte byte24,
-			byte byte25, byte byte26, byte byte27, byte byte28, byte byte29, byte byte30, byte byte31) {
+	public Bytes16Snapshot(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
+			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15) {
 
 		this.byte0 = byte0;
 		this.byte1 = byte1;
@@ -197,22 +153,6 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 		this.byte13 = byte13;
 		this.byte14 = byte14;
 		this.byte15 = byte15;
-		this.byte16 = byte16;
-		this.byte17 = byte17;
-		this.byte18 = byte18;
-		this.byte19 = byte19;
-		this.byte20 = byte20;
-		this.byte21 = byte21;
-		this.byte22 = byte22;
-		this.byte23 = byte23;
-		this.byte24 = byte24;
-		this.byte25 = byte25;
-		this.byte26 = byte26;
-		this.byte27 = byte27;
-		this.byte28 = byte28;
-		this.byte29 = byte29;
-		this.byte30 = byte30;
-		this.byte31 = byte31;
 	}
 
 	@Override @View
@@ -239,22 +179,6 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 		case 13: return byte13;
 		case 14: return byte14;
 		case 15: return byte15;
-		case 16: return byte16;
-		case 17: return byte17;
-		case 18: return byte18;
-		case 19: return byte19;
-		case 20: return byte20;
-		case 21: return byte21;
-		case 22: return byte22;
-		case 23: return byte23;
-		case 24: return byte24;
-		case 25: return byte25;
-		case 26: return byte26;
-		case 27: return byte27;
-		case 28: return byte28;
-		case 29: return byte29;
-		case 30: return byte30;
-		case 31: return byte31;
 		default: throw new ArrayIndexOutOfBoundsException(index);
 		}
 	}
@@ -291,22 +215,6 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 			case 13: return byte13;
 			case 14: return byte14;
 			case 15: return byte15;
-			case 16: return byte16;
-			case 17: return byte17;
-			case 18: return byte18;
-			case 19: return byte19;
-			case 20: return byte20;
-			case 21: return byte21;
-			case 22: return byte22;
-			case 23: return byte23;
-			case 24: return byte24;
-			case 25: return byte25;
-			case 26: return byte26;
-			case 27: return byte27;
-			case 28: return byte28;
-			case 29: return byte29;
-			case 30: return byte30;
-			case 31: return byte31;
 			default: {
 				nextKey = length;
 				throw new NoSuchElementException();
@@ -317,9 +225,9 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 
 	@Override @View
 	public boolean equals(Object other) {
-		if (other instanceof Bytes32Snapshot) {
+		if (other instanceof Bytes16Snapshot) {
 			// optimized for special case
-			Bytes32Snapshot otherAsBytes = (Bytes32Snapshot) other;
+			Bytes16Snapshot otherAsBytes = (Bytes16Snapshot) other;
 			return byte0 == otherAsBytes.byte0 &&
 				byte1 == otherAsBytes.byte1 &&
 				byte2 == otherAsBytes.byte2 &&
@@ -335,23 +243,7 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 				byte12 == otherAsBytes.byte12 &&
 				byte13 == otherAsBytes.byte13 &&
 				byte14 == otherAsBytes.byte14 &&
-				byte15 == otherAsBytes.byte15 &&
-				byte16 == otherAsBytes.byte16 &&
-				byte17 == otherAsBytes.byte17 &&
-				byte18 == otherAsBytes.byte18 &&
-				byte19 == otherAsBytes.byte19 &&
-				byte20 == otherAsBytes.byte20 &&
-				byte21 == otherAsBytes.byte21 &&
-				byte22 == otherAsBytes.byte22 &&
-				byte23 == otherAsBytes.byte23 &&
-				byte24 == otherAsBytes.byte24 &&
-				byte25 == otherAsBytes.byte25 &&
-				byte26 == otherAsBytes.byte26 &&
-				byte27 == otherAsBytes.byte27 &&
-				byte28 == otherAsBytes.byte28 &&
-				byte29 == otherAsBytes.byte29 &&
-				byte30 == otherAsBytes.byte30 &&
-				byte31 == otherAsBytes.byte31;
+				byte15 == otherAsBytes.byte15;
 		}
 		else
 			return super.equals(other);
@@ -375,35 +267,17 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 			(byte12 << 12) ^
 			(byte13 << 13) ^
 			(byte14 << 14) ^
-			(byte15 << 15) ^
-			(byte16 << 16) ^
-			(byte17 << 17) ^
-			(byte18 << 18) ^
-			(byte19 << 19) ^
-			(byte20 << 20) ^
-			(byte21 << 21) ^
-			(byte22 << 22) ^
-			(byte23 << 23) ^
-			byte24 ^
-			(byte25 << 1) ^
-			(byte26 << 2) ^
-			(byte27 << 3) ^
-			(byte28 << 4) ^
-			(byte29 << 5) ^
-			(byte30 << 6) ^
-			(byte31 << 7);
+			(byte15 << 15);
 	}
 
 	@Override
 	public IntStream stream() {
-		return IntStream.of(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
-							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31);
+		return IntStream.of(byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15);
 	}
 
 	@Override
 	public byte[] toArray() {
-		return new byte[] { byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15,
-							byte16, byte17, byte18, byte19, byte20, byte21, byte22, byte23, byte24, byte25, byte26, byte27, byte28, byte29, byte30, byte31 };
+		return new byte[] { byte0, byte1, byte2, byte3, byte4, byte5, byte6, byte7, byte8, byte9, byte10, byte11, byte12, byte13, byte14, byte15 };
 	}
 
 	@Override
