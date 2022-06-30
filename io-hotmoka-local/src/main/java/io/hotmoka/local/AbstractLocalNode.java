@@ -39,10 +39,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
@@ -102,7 +101,7 @@ import io.hotmoka.nodes.ConsensusParams;
  */
 @ThreadSafe
 public abstract class AbstractLocalNode<C extends Config, S extends AbstractStore<C>> extends AbstractNode {
-	protected final static Logger logger = LoggerFactory.getLogger(AbstractLocalNode.class);
+	protected final static Logger logger = Logger.getLogger(AbstractLocalNode.class.getName());
 
 	/**
 	 * The configuration of the node.
@@ -241,7 +240,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			addShutdownHook();
 		}
 		catch (Exception e) {
-			logger.error("failed to create the node", e);
+			logger.log(Level.SEVERE, "failed to create the node", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -300,6 +299,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		logger.info("time spent delivering requests: " + deliverTime + "ms");
 	}
 
+	private static InternalFailureException unexpected(Throwable e) {
+		logger.log(Level.WARNING, "unexpected exception", e);
+		return InternalFailureException.of(e);
+	}
+
 	@Override
 	public final String getNameOfSignatureAlgorithmForRequests() {
 		return caches.getConsensusParams().signature;
@@ -340,8 +344,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			throw e;
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}
 	}
 
@@ -354,7 +357,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			request = caches.getRequest(reference);
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 
@@ -378,8 +381,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}
 
 		if (error != null)
@@ -401,8 +403,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			throw e;
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}
 	}
 
@@ -419,8 +420,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			throw e;
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}
 	}
 
@@ -540,7 +540,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// we just take note of the failure to avoid polling for the response
 			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
 			logger.info(reference + ": checking failed: " + trimmedMessage(e));
-			logger.info("transaction rejected", e);
+			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
 		catch (Exception e) {
@@ -550,7 +550,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
 			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
-			logger.error(reference + ": checking failed with unexpected exception", e);
+			logger.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
@@ -596,12 +596,12 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		catch (TransactionRejectedException e) {
 			store.push(reference, request, trimmedMessage(e));
 			logger.info(reference + ": delivering failed: " + trimmedMessage(e));
-			logger.info("transaction rejected", e);
+			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
 		catch (Exception e) {
 			store.push(reference, request, trimmedMessage(e));
-			logger.error(reference + ": delivering failed with unexpected exception", e);
+			logger.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
@@ -677,7 +677,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 				if (response instanceof MethodCallTransactionFailedResponse) {
 					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
-					logger.error("could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
+					logger.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
 				}
 				else {
 					logger.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumedSinceLastReward);
@@ -693,7 +693,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			}
 		}
 		catch (Exception e) {
-			logger.error("could not reward the validators", e);
+			logger.log(Level.WARNING, "could not reward the validators", e);
 		}
 
 		return false;
@@ -727,8 +727,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}	
 	}
 
@@ -863,8 +862,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			return true;
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw unexpected(e);
 		}
 	}
 

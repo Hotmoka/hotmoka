@@ -22,6 +22,7 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -238,7 +239,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				}
 			}
 			catch (Throwable t) {
-				logger.info("transaction failed", t);
+				logger.log(Level.INFO, "transaction failed", t);
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators

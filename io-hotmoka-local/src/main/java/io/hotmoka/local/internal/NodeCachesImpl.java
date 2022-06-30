@@ -24,10 +24,9 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.SignatureAlgorithm;
@@ -57,7 +56,7 @@ import io.hotmoka.nodes.ConsensusParams;
  * An implementation of the caches of a local node.
  */
 public class NodeCachesImpl implements NodeCaches {
-	protected final static Logger logger = LoggerFactory.getLogger(NodeCachesImpl.class);
+	protected final static Logger logger = Logger.getLogger(NodeCachesImpl.class.getName());
 
 	private final NodeInternal node;
 
@@ -305,7 +304,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.build();
 		}
 		catch (Throwable t) {
-			logger.error("could not reconstruct the consensus parameters from the manifest", t);
+			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", t);
 			throw InternalFailureException.of("could not reconstruct the consensus parameters from the manifest", t);
 		}
 	}

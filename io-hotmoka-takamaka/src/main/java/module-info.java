@@ -22,5 +22,5 @@ module io.hotmoka.takamaka {
 	requires io.hotmoka.stores;
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.local;
-	requires org.slf4j;
+	requires java.logging;
 }

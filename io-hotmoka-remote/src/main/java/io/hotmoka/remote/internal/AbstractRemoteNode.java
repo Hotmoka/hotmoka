@@ -19,6 +19,7 @@ package io.hotmoka.remote.internal;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -265,7 +266,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+            logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -294,7 +295,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -319,7 +320,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -344,7 +345,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -364,7 +365,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -396,7 +397,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }
@@ -425,7 +426,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new InternalFailureException(exceptionResponse.getMessage());
         }
         catch (Exception e) {
-            logger.error("unexpected error", e);
+        	logger.log(Level.WARNING, "unexpected error", e);
             throw new InternalFailureException(e.getMessage());
         }
     }

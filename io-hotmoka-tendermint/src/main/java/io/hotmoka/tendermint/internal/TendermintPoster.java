@@ -30,11 +30,10 @@ import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 
@@ -56,7 +55,7 @@ import io.hotmoka.tendermint.internal.beans.TxError;
  * An object that posts requests to a Tendermint process.
  */
 public class TendermintPoster {
-	private final static Logger logger = LoggerFactory.getLogger(TendermintPoster.class);
+	private final static Logger logger = Logger.getLogger(TendermintPoster.class.getName());
 
 	private final TendermintBlockchainConfig config;
 
@@ -93,7 +92,7 @@ public class TendermintPoster {
 				throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint chain id for this node", e);
+			logger.log(Level.WARNING, "failed posting request", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -122,7 +121,7 @@ public class TendermintPoster {
 			}
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint chain id for this node", e);
+			logger.log(Level.WARNING, "failed getting transaction at " + hash, e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -154,7 +153,7 @@ public class TendermintPoster {
 			}
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint chain id for this node", e);
+			logger.log(Level.WARNING, "failed getting error message at " + hash, e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -190,7 +189,7 @@ public class TendermintPoster {
 			return chainId;
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint chain id for this node", e);
+			logger.log(Level.WARNING, "could not determine the Tendermint chain id for this node", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -213,7 +212,7 @@ public class TendermintPoster {
 			return genesisTime;
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint genesis time for this node", e);
+			logger.log(Level.WARNING, "could not determine the Tendermint genesis time for this node", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -237,7 +236,7 @@ public class TendermintPoster {
 			return id;
 		}
 		catch (Exception e) {
-			logger.error("could not determine the Tendermint ID of this node", e);
+			logger.log(Level.WARNING, "failed determining the Tendermint ID of this node", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -253,7 +252,7 @@ public class TendermintPoster {
 			return response.result.validators.stream().map(TendermintPoster::intoTendermintValidator);
 		}
 		catch (Exception e) {
-			logger.error("the Tendermint validators cannot be retrieved for this node", e);
+			logger.log(Level.WARNING, "failed retrieving the validators of this node", e);
 			throw InternalFailureException.of(e);
 		} 
 	}

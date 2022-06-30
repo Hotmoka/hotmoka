@@ -30,9 +30,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.function.BiConsumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.NetworkExceptionResponse;
@@ -49,7 +48,7 @@ import io.hotmoka.ws.client.WebSocketFrame;
  * A websockets client class to subscribe, send and receive messages from a websockets end-point.
  */
 public class WebSocketClient implements AutoCloseable {
-    private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketClient.class);
+    private final static Logger LOGGER = Logger.getLogger(WebSocketClient.class.getName());
 
     /**
      * The websockets end-point.
@@ -144,7 +143,7 @@ public class WebSocketClient implements AutoCloseable {
 					break;
 
 				case ERROR:
-					LOGGER.error("stomp session error: " + payload);
+					LOGGER.warning("stomp session error: " + payload);
 					// clean-up client resources because the server closed the connection
 					close();
 					break;
@@ -155,17 +154,17 @@ public class WebSocketClient implements AutoCloseable {
 					break;
 
 				default:
-					LOGGER.error("unexpected stomp message " + command);
+					LOGGER.warning("unexpected stomp message " + command);
 				}
 			}
 			catch (Exception e) {
-				LOGGER.error("exception while handling the stomp message", e);
+				LOGGER.log(Level.WARNING, "exception while handling the stomp message", e);
 			}
 		}
 
 		@Override
 		public void onError(WebSocket websocket, WebSocketException cause) throws Exception {
-			LOGGER.error("webSocket session error", cause);
+			LOGGER.log(Level.SEVERE, "webSocket session error", cause);
 			close();
 		}
 	};
@@ -373,7 +372,7 @@ public class WebSocketClient implements AutoCloseable {
     					queue.put(result);
     				}
     				catch (Exception e) {
-    					LOGGER.error("queue put error", e);
+    					LOGGER.log(Level.WARNING, "queue put error", e);
     				}
     			}
     		}));

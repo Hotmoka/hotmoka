@@ -18,9 +18,8 @@ package io.hotmoka.memory.internal;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -32,7 +31,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
  */
 class Mempool {
 	public final static int MAX_CAPACITY = 200_000;
-	private final static Logger logger = LoggerFactory.getLogger(Mempool.class);
+	private final static Logger logger = Logger.getLogger(Mempool.class.getName());
 
 	/**
 	 * The queue of requests to check.
@@ -109,7 +108,7 @@ class Mempool {
 					// already logged
 				}
 	            catch (Throwable t) {
-	            	logger.error("Failed to check transaction request", t);
+	            	logger.log(Level.WARNING, "Failed to check transaction request", t);
 	    		}
 			}
 			catch (InterruptedException e) {
@@ -137,7 +136,7 @@ class Mempool {
 						counter = 0;
 				}
 	            catch (Throwable t) {
-	            	logger.error("Failed delivering transaction", t);
+	            	logger.log(Level.WARNING, "Failed to deliver transaction request", t);
 	    		}
 			}
 			catch (InterruptedException e) {

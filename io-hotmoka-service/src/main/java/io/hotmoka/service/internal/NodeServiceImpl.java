@@ -23,8 +23,9 @@ import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.service.internal.websockets.WebSocketsEventController;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Node.Subscription;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import java.util.logging.Logger;
+
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -33,7 +34,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.Node}.
  */
 public class NodeServiceImpl implements NodeService {
-	private final static Logger LOGGER = LoggerFactory.getLogger(NodeServiceImpl.class);
+	private final static Logger LOGGER = Logger.getLogger(NodeServiceImpl.class.getName());
 	private final ConfigurableApplicationContext context;
 
 	/**
@@ -48,6 +49,8 @@ public class NodeServiceImpl implements NodeService {
 	 * @param node the Hotmoka node
 	 */
     public NodeServiceImpl(NodeServiceConfig config, Node node) {
+		// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
+		System.setProperty("org.springframework.boot.logging.LoggingSystem", "none");
     	this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	this.context.getBean(Application.class).setNode(node);
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);

@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.logging.Level;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
@@ -160,7 +161,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
     public void close() {
     	if (duringTransaction()) {
     		// store closed with yet uncommitted transactions: we abort them
-    		logger.error("store closed with uncommitted transactions: they are being aborted");
+    		logger.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
     	}
 
@@ -168,7 +169,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
     		env.close();
     	}
     	catch (ExodusException e) {
-    		logger.error("failed to close environment", e);
+    		logger.log(Level.WARNING, "failed to close environment", e);
     	}
 
     	super.close();

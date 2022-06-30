@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.local.internal.transactions;
 
 import java.math.BigInteger;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -97,7 +98,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				logger.info("jar store failed", t);
+				logger.log(Level.INFO, "jar store failed", t);
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas
 				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());

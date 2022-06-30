@@ -19,6 +19,7 @@ package io.hotmoka.stores;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
@@ -135,7 +136,7 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 			this.storeOfHistory = storeOfHistory.get();
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception " + e);
+			logger.log(Level.WARNING, "unexpected exception " + e);
 			throw InternalFailureException.of(e);
 		}
 	}

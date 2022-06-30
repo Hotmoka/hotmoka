@@ -31,7 +31,6 @@ module io.hotmoka.service {
     requires transitive io.hotmoka.nodes;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.network;
-    requires org.slf4j;
     requires spring.boot;
     requires spring.boot.autoconfigure;
     requires spring.beans;
@@ -42,6 +41,7 @@ module io.hotmoka.service {
     requires spring.messaging;
     requires com.google.gson;
     requires java.instrument;
+    requires java.logging;
     requires org.apache.tomcat.embed.websocket;
 
     // these make it possible to compile under Eclipse...

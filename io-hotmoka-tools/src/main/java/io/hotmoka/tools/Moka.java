@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tools;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.logging.LogManager;
+
 import io.hotmoka.constants.Constants;
 import io.hotmoka.tools.internal.moka.BindKey;
 import io.hotmoka.tools.internal.moka.Burn;
@@ -84,6 +88,21 @@ import picocli.CommandLine.Command;
 
 	)
 public class Moka {
+
+	static {
+		String current = System.getProperty("java.util.logging.config.file");
+		if (current == null) {
+			// if the property is not set, we provide a default (if it exists)
+			URL resource = Moka.class.getClassLoader().getResource("logging.properties");
+			if (resource != null)
+				try {
+					LogManager.getLogManager().readConfiguration(resource.openStream());
+				}
+				catch (SecurityException | IOException e) {
+					throw new IllegalStateException("Cannot load logging.properties file", e);
+				}
+		}
+	}
 
 	public static void main(String[] args) {
 		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));

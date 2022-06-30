@@ -20,6 +20,5 @@ module io.hotmoka.helpers {
 	requires transitive io.hotmoka.verification;
 	requires io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
-	requires org.slf4j;
 	requires io.hotmoka.constants;
 }

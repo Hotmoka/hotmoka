@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
 import org.apache.maven.model.Model;
@@ -199,6 +201,19 @@ public abstract class TakamakaTest {
 
 	static {
 		try {
+			String current = System.getProperty("java.util.logging.config.file");
+			if (current == null) {
+				// if the property is not set, we provide a default (if it exists)
+				URL resource = TakamakaTest.class.getClassLoader().getResource("logging.properties");
+				if (resource != null)
+					try {
+						LogManager.getLogManager().readConfiguration(resource.openStream());
+					}
+					catch (SecurityException | IOException e) {
+						throw new IllegalStateException("Cannot load logging.properties file", e);
+					}
+			}
+
 			// we access the project.version property from the pom.xml file of the parent project
 			MavenXpp3Reader reader = new MavenXpp3Reader();
 	        Model model = reader.read(new FileReader("../pom.xml"));

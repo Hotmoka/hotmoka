@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.service.internal.websockets.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Logger;
+
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -25,7 +25,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 @Component
 public class WebSocketsEvents {
-    private final static Logger LOGGER = LoggerFactory.getLogger(WebSocketsEvents.class);
+    private final static Logger LOGGER = Logger.getLogger(WebSocketsEvents.class.getName());
 
     @EventListener
     private void handleSessionConnected(SessionConnectEvent event) {

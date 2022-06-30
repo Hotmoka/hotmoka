@@ -25,10 +25,9 @@ import java.util.LinkedList;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.SignatureAlgorithm;
@@ -53,7 +52,7 @@ import io.hotmoka.nodes.OutOfGasError;
  * the validity of all these elements.
  */
 public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
-	protected final static Logger logger = LoggerFactory.getLogger(NonInitialResponseBuilder.class);
+	protected final static Logger logger = Logger.getLogger(NonInitialResponseBuilder.class.getName());
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -409,7 +408,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				this.gas = request.gasLimit;
 			}
 			catch (Throwable t) {
-				logger.error("response creation rejected", t);
+				logger.log(Level.WARNING, "response creation rejected", t);
 				throw wrapAsTransactionRejectedException(t);
 			}
 		}

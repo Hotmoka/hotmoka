@@ -25,10 +25,8 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -49,7 +47,7 @@ import io.hotmoka.verification.VerifiedJar;
  * A class used to perform a re-verification of jars already stored in the node.
  */
 public class Reverification {
-	protected final static Logger logger = LoggerFactory.getLogger(Reverification.class);
+	protected final static Logger logger = Logger.getLogger(Reverification.class.getName());
 
 	/**
 	 * Responses that have been found to have

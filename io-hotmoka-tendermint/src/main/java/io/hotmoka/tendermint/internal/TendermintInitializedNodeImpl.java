@@ -31,10 +31,8 @@ import java.util.Base64.Encoder;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
@@ -79,7 +77,7 @@ import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
  */
 public class TendermintInitializedNodeImpl implements TendermintInitializedNode {
 
-	private final static Logger logger = LoggerFactory.getLogger(TendermintInitializedNodeImpl.class);
+	private final static Logger logger = Logger.getLogger(TendermintInitializedNodeImpl.class.getName());
 
 	/**
 	 * The view that gets extended.

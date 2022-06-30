@@ -34,11 +34,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
@@ -78,7 +77,7 @@ import io.hotmoka.tendermint_abci.Server;
 @ThreadSafe
 public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockchainConfig, Store> implements TendermintBlockchain {
 
-	private final static Logger logger = LoggerFactory.getLogger(TendermintBlockchainImpl.class);
+	private final static Logger logger = Logger.getLogger(TendermintBlockchainImpl.class.getName());
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -123,12 +122,12 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
 		catch (NoSuchFileException e) {
-			logger.error("the creation of the Tendermint blockchain failed", e);
+			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
 			tryClose();
 			throw e;
 		}
 		catch (Exception e) {
-			logger.error("the creation of the Tendermint blockchain failed", e);
+			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
 			tryClose();
 			throw InternalFailureException.of(e);
 		}
@@ -139,7 +138,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			close();
 		}
 		catch (Exception e) {
-			logger.error("cannot close the blockchain", e);
+			logger.log(Level.SEVERE, "cannot close the blockchain", e);
 		}
 	}
 
@@ -165,7 +164,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			caches.recomputeConsensus();
 		}
 		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
-			logger.error("the creation of the Tendermint blockchain failed", e);
+			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
 
 			tryClose();
 
@@ -443,7 +442,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				close();
 			}
 			catch (Exception e) {
-				logger.error("Cannot close the Tendermint process", e);
+				logger.log(Level.SEVERE, "Cannot close the Tendermint process", e);
 			}
 
 			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.maxPingAttempts + " times");

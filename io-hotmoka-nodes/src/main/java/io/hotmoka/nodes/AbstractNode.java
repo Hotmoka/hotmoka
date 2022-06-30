@@ -22,9 +22,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.InternalFailureException;
@@ -44,7 +43,7 @@ import io.hotmoka.beans.values.StorageValue;
  */
 @ThreadSafe
 public abstract class AbstractNode implements Node {
-	protected final static Logger logger = LoggerFactory.getLogger(Node.class);
+	protected final static Logger logger = Logger.getLogger(Node.class.getName());
 
 	/**
 	 * A map from each key of events to the subscription with this node for that key.
@@ -155,14 +154,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			if (e.getCause() != null)
 				throw new TransactionRejectedException(e.getCause());
 
 			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw new TransactionRejectedException(t);
 		}
 	}
@@ -185,14 +184,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			if (e.getCause() != null)
 				throw new TransactionRejectedException(e.getCause());
 
 			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw new TransactionRejectedException(t);
 		}
 	}
@@ -216,14 +215,14 @@ public abstract class AbstractNode implements Node {
 			throw e;
 		}
 		catch (InternalFailureException e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			if (e.getCause() != null)
 				throw new TransactionRejectedException(e.getCause());
 
 			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw new TransactionRejectedException(t);
 		}
 	}

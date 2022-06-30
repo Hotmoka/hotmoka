@@ -20,5 +20,5 @@ module io.hotmoka.stores {
 	requires io.hotmoka.local;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.xodus;
-	requires org.slf4j;
+	requires java.logging;
 }

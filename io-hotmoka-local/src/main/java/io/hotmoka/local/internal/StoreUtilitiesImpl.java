@@ -20,10 +20,9 @@ import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -45,7 +44,7 @@ import io.hotmoka.local.StoreUtilities;
  */
 public class StoreUtilitiesImpl implements StoreUtilities {
 
-	private final static Logger logger = LoggerFactory.getLogger(StoreUtilitiesImpl.class);
+	private final static Logger logger = Logger.getLogger(StoreUtilitiesImpl.class.getName());
 
 	/**
 	 * The node whose store is accessed.
@@ -172,7 +171,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 				.findFirst().get();
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -186,7 +185,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			return updates.stream();
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
 	}
@@ -204,7 +203,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 				.map(update -> (UpdateOfField) update);
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
 	}
@@ -250,7 +249,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 				.forEach(updates::add);
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception", e);
+			logger.log(Level.WARNING, "unexpected exception", e);
 			throw InternalFailureException.of(e);
 		}
 	}
@@ -260,7 +259,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
 	}
@@ -270,7 +269,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
 	}
@@ -280,7 +279,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
 		}
 		catch (Throwable t) {
-			logger.error("unexpected exception", t);
+			logger.log(Level.WARNING, "unexpected exception", t);
 			throw InternalFailureException.of(t);
 		}
 	}

@@ -28,6 +28,7 @@ module io.hotmoka.tools {
 	requires io.hotmoka.helpers;
 	requires io.hotmoka.crypto;
 	requires info.picocli;
+	requires java.logging;
 	opens io.hotmoka.tools to info.picocli; // for injecting CLI options
     opens io.hotmoka.tools.internal.moka to info.picocli; // for injecting CLI options
 }

@@ -19,12 +19,11 @@ package io.hotmoka.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.Optional;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.bouncycastle.util.encoders.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
@@ -67,7 +66,7 @@ import tendermint.crypto.Keys.PublicKey;
  */
 class TendermintApplication extends ABCI {
 
-	private final static Logger logger = LoggerFactory.getLogger(TendermintApplication.class);
+	private final static Logger logger = Logger.getLogger(TendermintApplication.class.getName());
 
 	/**
 	 * The Tendermint blockchain.

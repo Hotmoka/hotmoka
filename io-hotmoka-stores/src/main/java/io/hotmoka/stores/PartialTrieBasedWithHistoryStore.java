@@ -18,6 +18,7 @@ package io.hotmoka.stores;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
@@ -90,7 +91,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 			this.storeOfHistory = storeOfHistory.get();
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception " + e);
+			logger.log(Level.WARNING, "unexpected exception " + e);
 			throw InternalFailureException.of(e);
 		}
 	}

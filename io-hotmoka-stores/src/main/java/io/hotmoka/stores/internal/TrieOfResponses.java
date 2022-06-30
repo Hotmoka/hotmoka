@@ -16,11 +16,10 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
@@ -40,7 +39,7 @@ import io.hotmoka.xodus.env.Transaction;
  */
 public class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
 
-	private final static Logger logger = LoggerFactory.getLogger(TrieOfResponses.class);
+	private final static Logger logger = Logger.getLogger(TrieOfResponses.class.getName());
 
 	/**
 	 * The supporting trie.
@@ -120,12 +119,11 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 				response = replaceJar(trwij, jar);
 			}
 			catch (NoSuchElementException e) {
-				logger.error("cannot find the jar for the transaction response");
+				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
 				throw e;
 			}
 		}
 
-		// we replace the hash of the jar with the actual jar
 		return response;
 	}
 
@@ -141,7 +139,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			return new JarStoreInitialTransactionResponse(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
 		}
 		else {
-			logger.error("unexpected response containing jar, of class " + response.getClass().getName());
+			logger.log(Level.SEVERE, "unexpected response containing jar, of class " + response.getClass().getName());
 			return (TransactionResponse) response;
 		}
 	}

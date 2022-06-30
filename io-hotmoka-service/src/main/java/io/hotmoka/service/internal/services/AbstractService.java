@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.service.internal.services;
 
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
@@ -32,7 +32,7 @@ import io.hotmoka.service.internal.Application;
 import io.hotmoka.nodes.Node;
 
 abstract class AbstractService {
-    private final static Logger LOGGER = LoggerFactory.getLogger(AbstractService.class);
+    private final static Logger LOGGER = Logger.getLogger(AbstractService.class.getName());
 
     private @Autowired Application application;
 
@@ -60,7 +60,7 @@ abstract class AbstractService {
         	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), new ErrorModel(e));
         }
         catch (Exception e) {
-        	LOGGER.error("error during network request", e);
+        	LOGGER.log(Level.WARNING, "error during network request", e);
         	throw new NetworkExceptionResponse(HttpStatus.BAD_REQUEST.name(), new ErrorModel(e));
         }
     }

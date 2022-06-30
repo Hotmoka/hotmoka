@@ -22,9 +22,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
@@ -64,7 +63,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 */
 	private final boolean garbageCollected;
 
-	private final static Logger logger = LoggerFactory.getLogger(PatriciaTrieImpl.class);
+	private final static Logger logger = Logger.getLogger(PatriciaTrieImpl.class.getName());
 
 	/**
 	 * Creates a new Merkle-Patricia trie supported by the underlying store,
@@ -106,7 +105,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return Optional.empty();
 		}
 		catch (Exception e) {
-			logger.error("error while getting key from Patricia trie", e);
+			logger.log(Level.WARNING, "error while getting key from Patricia trie", e);
 			throw InternalFailureException.of("error while getting key from Patricia trie", e);
 		}
 	}
@@ -131,7 +130,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
 		catch (Exception e) {
-			logger.error("error while putting key into Patricia trie", e);
+			logger.log(Level.WARNING, "error while putting key into Patricia trie", e);
 			throw InternalFailureException.of("error while putting key into Patricia trie", e);
 		}
 	}

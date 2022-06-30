@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.memory.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -40,7 +40,7 @@ import io.hotmoka.nodes.ConsensusParams;
  */
 @ThreadSafe
 public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
-	private final static Logger logger = LoggerFactory.getLogger(MemoryBlockchainImpl.class);
+	private final static Logger logger = Logger.getLogger(MemoryBlockchainImpl.class.getName());
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
@@ -60,13 +60,13 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 			this.mempool = new Mempool(new MemoryBlockchainInternalImpl());
 		}
 		catch (Exception e) {
-			logger.error("failed creating memory blockchain", e);
+			logger.log(Level.SEVERE, "failed creating memory blockchain", e);
 
 			try {
 				close();
 			}
 			catch (Exception e1) {
-				logger.error("cannot close the blockchain", e1);
+				logger.log(Level.SEVERE, "cannot close the blockchain", e1);
 				throw InternalFailureException.of(e1);
 			}
 

@@ -22,11 +22,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -47,7 +46,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @ThreadSafe
 public abstract class AbstractStore<C extends Config> implements Store {
-	protected final static Logger logger = LoggerFactory.getLogger(AbstractStore.class);
+	protected final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
 	 * The time spent inside the state procedures, for profiling.
@@ -253,12 +252,12 @@ public abstract class AbstractStore<C extends Config> implements Store {
 		Optional<TransactionResponse> response = node.caches.getResponseUncommitted(reference);
 
 		if (response.isEmpty()) {
-			logger.error("history contains a reference to a transaction not in store");
+			logger.log(Level.WARNING, "history contains a reference to a transaction not in store");
 			throw new InternalFailureException("history contains a reference to a transaction not in store");
 		}
 
 		if (!(response.get() instanceof TransactionResponseWithUpdates)) {
-			logger.error("history contains a reference to a transaction without updates");
+			logger.log(Level.WARNING, "history contains a reference to a transaction without updates");
 			throw new InternalFailureException("history contains a reference to a transaction without updates");
 		}
 

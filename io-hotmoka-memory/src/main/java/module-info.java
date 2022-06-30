@@ -19,6 +19,6 @@ module io.hotmoka.memory {
 	requires io.hotmoka.constants;
 	requires io.hotmoka.local;
 	requires transitive io.hotmoka.nodes;
-	requires org.slf4j;
 	requires io.hotmoka.beans;
+	requires java.logging;
 }

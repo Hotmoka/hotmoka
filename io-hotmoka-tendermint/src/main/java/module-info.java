@@ -29,6 +29,6 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.local;
 	requires com.google.gson;
 	requires com.google.protobuf;
-	requires org.slf4j;
 	requires org.bouncycastle.provider;
+	requires java.logging;
 }

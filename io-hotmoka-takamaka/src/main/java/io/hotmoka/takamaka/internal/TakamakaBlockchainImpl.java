@@ -26,6 +26,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -207,7 +208,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 			return new DeltaGroupExecutionResultImpl(lastHash, responses.stream(), id);
 		}
 		catch (Exception e) {
-			logger.error("unexpected exception " + e);
+			logger.log(Level.WARNING, "unexpected exception " + e);
 			throw InternalFailureException.of(e);
 		}
 		finally {
