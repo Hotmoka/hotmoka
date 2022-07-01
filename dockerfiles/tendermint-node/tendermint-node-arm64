@@ -34,8 +34,8 @@ RUN mkdir /home/hotmoka/chain \
 
 # install moka and its alias moka-no-logs that does not report logs
 COPY modules/ /modules/
-# we add /home/hotmoka to the classpath in order to find the log4j configuration file
-RUN echo java -Dlog4j.configuration=hotmoka.log4j.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
+# we add /home/hotmoka to the classpath in order to find the logging properties file
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
   && chmod a+x moka \
   && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/hotmoka/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka-no-logs \
   && chmod a+x moka-no-logs
@@ -49,7 +49,7 @@ RUN chmod 755 help && chmod 755 init && chmod 755 resume && chmod 755 start
 
 USER hotmoka
 WORKDIR /home/hotmoka
-COPY --chown=hotmoka dockerfiles/log4j.properties hotmoka.log4j.properties
+COPY --chown=hotmoka dockerfiles/logging.properties logging.properties
 
 # by default, print a help message
 CMD help
