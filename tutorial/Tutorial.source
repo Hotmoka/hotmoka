@@ -1,10 +1,10 @@
-[Markdownonly]:<p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
+[Markdownonly]:<p align="center"><img width="320" src="pics/@type_logo.png" alt="@Type logo"></p>
 
 [Markdownonly]:[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
 [Markdownonly]:[![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/parent.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
 [Markdownonly]:[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
-[Markdownonly]:Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
+[Markdownonly]:@Type is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
 [Markdownonly]: The latest version of this document is available for free in PDF, ePub and MOBI format, at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
 
@@ -14,22 +14,22 @@
 
 # Table of Contents
 1. [Introduction](#introduction)
-2. [Getting Started with Hotmoka](#getting-started-with-hotmoka)
-    - [Hotmoka in a Nutshell](#hotmoka-in-a-nutshell)
-    - [Hotmoka Clients](#hotmoka-clients)
+2. [Getting Started with @Type](#getting-started-with-@type)
+    - [@Type in a Nutshell](#@type-in-a-nutshell)
+    - [@Type Clients](#@type-clients)
         - [@Tool](#@tool)
         - [@App](#@app)
         - [Hotwallet](#hotwallet)
-    - [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)
+    - [Contacting a @Type Test Node](#contacting-a-@type-test-node)
     - [Creation of a First Account](#creation-of-a-first-account)
     - [Importing Accounts](#importing-accounts)
     - [Anonymous Payments](#anonymous-payments)
     - [Installation of the Source Code](#installation-of-the-source-code)
 3. [A First Takamaka Program](#a-first-takamaka-program)
     - [Creation of the Eclipse Project](#creation-of-the-eclipse-project)
-    - [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node)
+    - [Installation of the Jar in a @Type Node](#installation-of-the-jar-in-a-@type-node)
     - [Creation of an Object of our Program](#creation-of-an-object-of-our-program)
-    - [Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-node)
+    - [Calling a Method on an Object in a @Type Node](#calling-a-method-on-an-object-in-a-@type-node)
     - [Storage Types and Constraints on Storage Classes](#storage-types-and-constraints-on-storage-classes)
     - [Transactions Can Be Added, Posted and Run](#transactions-can-be-added-posted-and-run)
 4. [The Notion of Smart Contract](#the-notion-of-smart-contract)
@@ -60,20 +60,20 @@
     - [Richer than Expected](#richer-than-expected)
     - [Non-Fungible Tokens (ERC721)](#non-fungible-tokens-erc721)
         - [Implementing Our Own ERC721 Token](#implementing-our-own-erc721-token)
-7. [Hotmoka Nodes](#hotmoka-nodes)
+7. [@Type Nodes](#@type-nodes)
     - [Tendermint Nodes](#tendermint-nodes)
     - [Memory Nodes](#memory-nodes)
     - [Logs](#logs)
     - [Node Decorators](#node-decorators)
-    - [Hotmoka Services](#hotmoka-services)
+    - [@Type Services](#@type-services)
     - [Remote Nodes](#remote-nodes)
         - [Creating Sentry Nodes](#creating-sentry-nodes)
     - [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
-8. [Tendermint Hotmoka Nodes](#tendermint-hotmoka-nodes)
-    - [Starting a Tendermint Hotmoka Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
+8. [Tendermint @Type Nodes](#tendermint-@type-nodes)
+    - [Starting a Tendermint @Type Node with Docker](#starting-a-tendermint-@type-node-with-docker)
     - [Manifest and Validators](#manifest-and-validators)
-    - [Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
-    - [Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain)
+    - [Starting a Tendermint @Type Node on Amazon EC2](#starting-a-tendermint-@type-node-on-amazon-ec2)
+    - [Connecting a Tendermint @Type Node to an Existing Blockchain](#connecting-a-tendermint-@type-node-to-an-existing-blockchain)
     - [Shared Entities](#shared-entities)
     - [Becoming a Validator](#becoming-a-validator)
 9. [Code Verification](#code-verification)
@@ -176,30 +176,30 @@ whose behavior is deterministic and whose methods are guaranteed
 to terminate.
 
 The runtime of the Takamaka programming language
-is included in the Hotmoka project, a framework
+is included in the @Type project, a framework
 for collaborating nodes, whose long-term goal is to unify the programming
 model of blockchain and internet of things.
-The more scientific aspects of Hotmoka and Takamaka have been published
+The more scientific aspects of @Type and Takamaka have been published
 in the last years [[BeniniGMS21]](#references)[[CrosaraOST21]](#references)[[OlivieriST21]](#references)[[Spoto19]](#references)[[Spoto20]](#references).
 
 **Intended Audience**.
-This book is for software developers who want to use Hotmoka nodes and program smart contracts in Takamaka.
-It goes deep into the inner working of Hotmoka. For instance, it shows how transactions can be
-triggered in code, not just with the @Tool client of Hotmoka. Less experienced readers, or
-developers not interested in writing code that interacts with Hotmoka nodes, can just skip these
+This book is for software developers who want to use @Type nodes and program smart contracts in Takamaka.
+It goes deep into the inner working of @Type. For instance, it shows how transactions can be
+triggered in code, not just with the @Tool client of @Type. Less experienced readers, or
+developers not interested in writing code that interacts with @Type nodes, can just skip these
 parts and concentrate on the use of the @Tool command-line client only. Non-technical users might
-just be happy with the use of @App and Hotwallet, the mobile and web clients of Hotmoka, whose
+just be happy with the use of @App and Hotwallet, the mobile and web clients of @Type, whose
 functionalities are of course limited.
 
-**Contribute to Hotmoka**.
-Hotmoka is a complex project, that requires many and different skills. After years of development,
+**Contribute to @Type**.
+@Type is a complex project, that requires many and different skills. After years of development,
 it is ready for the general public. This does not mean that it is bug-free, nor perfect:
 we expect our users to find all sort of bugs and to suggest improvements. Hence, feel
 free to write to us at `info@hotmoka.io`, with bugs and improvement requests.
 If you are a developer, consider the possibility of helping us with the development
 of the project. In particular, the whole ecosystem of applications running
-over Hotmoka is missing at the moment (that is, applications, typically web-based, that
-use Hotmoka as their backend storage). Hotmoka is open-source and non-proprietary,
+over @Type is missing at the moment (that is, applications, typically web-based, that
+use @Type as their backend storage). @Type is open-source and non-proprietary,
 licensed under the terms of the Apache 2.0 License. Therefore, feel free to clone and fork the code.
 
 **The Example Projects of This Book**.
@@ -233,7 +233,7 @@ colleagues who have read and proof-checked this book and its examples, finding
 bugs and inconsistencies; in particular to
 Luca Olivieri and Fabio Tagliaferro.
 Chapter [Tokens](#tokens) is a shared work with Marco Crosara, Filippo Fantinato, Luca Olivieri and Fabio Tagliaferro.
-Chapter [Hotmoka Nodes](#hotmoka-nodes) is a shared work with Dinu Berinde.
+Chapter [@Type Nodes](#@type-nodes) is a shared work with Dinu Berinde.
 Section [Shared Entities](#shared-entities) is a shared work
 with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
@@ -241,36 +241,36 @@ with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
 _Verona, February 2022_.
 
-# Getting Started with Hotmoka
+# Getting Started with @Type
 
-## Hotmoka in a Nutshell
+## @Type in a Nutshell
 
-Hotmoka is the abstract definition of a device that can store
+@Type is the abstract definition of a device that can store
 objects (data structures) in its persistent memory (its _state_)
 and can execute, on those objects,
 code written in a subset of Java called Takamaka. Such a device is
-called a _Hotmoka node_ and such programs are known as
+called a _@Type node_ and such programs are known as
 _smart contracts_, taking that terminology from programs that run inside
-a blockchain. It is well true that Hotmoka nodes can be different from the nodes
+a blockchain. It is well true that @Type nodes can be different from the nodes
 of a blockchain (for instance, they can be an Internet of Things device);
-however, the most prominent application of Hotmoka nodes is, at the
-moment, the construction of blockchains whose nodes are Hotmoka nodes.
+however, the most prominent application of @Type nodes is, at the
+moment, the construction of blockchains whose nodes are @Type nodes.
 
-Every Hotmoka node has its own persistent state, that contains code and
-objects. Since Hotmoka nodes are made for running Java code, the code
+Every @Type node has its own persistent state, that contains code and
+objects. Since @Type nodes are made for running Java code, the code
 inside their state is kept in the standard jar format used by Java, while objects
 are just a collection of values for their fields, with a class tag that identifies
 whose class they belong too and a reference (the _classpath_)
 to the jar where that class is defined.
 While a device of a Internet of Thing network is the sole responsible
-for its own state, things are different if a Hotmoka node that is part of a blockchain.
+for its own state, things are different if a @Type node that is part of a blockchain.
 There, the state is synchronized and identical across all nodes of the blockchain.
 
 In object-oriented programming, the units of code that can be run
 on an object are called _methods_.
 When a method must be run on an object,
 that object is identified as the _receiver_ of the execution of the method.
-The same happens in Hotmoka. That is, when one wants to run a method
+The same happens in @Type. That is, when one wants to run a method
 on an object, that object must have been already allocated
 in the state of the node and must be marked as the receiver of the execution
 of the method. Assume for instance that one wants to run a method
@@ -279,12 +279,12 @@ The code of the method is contained in a jar, previously installed in the state
 of the node, and referred as _classpath_. This is the jar where the class of
 the receiver is defined.
 
-[Markdownonly]: <p align="center"><img width="400" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node"></p><p align="center">Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.</p>
+[Markdownonly]: <p align="center"><img width="400" src="pics/receiver_payer.png" alt="Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a @Type node"></p><p align="center">Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a @Type node.</p>
 
-[PDFonly]: ![Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node.](pics/receiver_payer.png "Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a Hotmoka node."){ width=55% }
+[PDFonly]: ![Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a @Type node.](pics/receiver_payer.png "Figure @fig:receiver_payer. Receiver, payer and classpath for a method call in a @Type node."){ width=55% }
 
-The main difference with standard object-oriented programming is that Hotmoka requires one
-to specify a further object, called _payer_. This is because a Hotmoka node is
+The main difference with standard object-oriented programming is that @Type requires one
+to specify a further object, called _payer_. This is because a @Type node is
 a public service, that can be used by everyone has an internet connection
 that can reach the node. Therefore, that service must be paid with the
 internal cryptocurrency of the node, by providing a measure of execution
@@ -297,11 +297,11 @@ The payer is accessible inside the method as its _caller_.
 > big differences. The first is that the code of the methods is inside
 > a jar _referenced_ by the objects, while Ethereum requires to reinstall
 > the code of the contracts each time a contract is instantiated.
-> More importantly, Hotmoka keeps an explicit class tag inside the objects,
+> More importantly, @Type keeps an explicit class tag inside the objects,
 > while contracts are untyped in Ethereum [[CrafaPZ19]](#references)
 > and are referenced through the untyped `address` type.
 
-Receiver and payer have different roles but are treated identically in Hotmoka:
+Receiver and payer have different roles but are treated identically in @Type:
 they are objects stored in state at their respective state locations, known as
 their _storage references_. For instance the caller in
 Figure @fig:receiver_payer might be allocated at the storage
@@ -311,17 +311,17 @@ that identify the
 transaction that created the object; the second part is a progressive number
 that identifies an object created during that transaction: the first object
 created during the transaction has progressive zero, the second has progressive
-one, and so on. When a method is called on a Hotmoka node, what is actually specified
+one, and so on. When a method is called on a @Type node, what is actually specified
 in the call request are the storage references of the receiver and of the payer
 (plus the actual arguments to the method, if any).
 
-In Hotmoka, a _transaction_ is either
+In @Type, a _transaction_ is either
 
 1. the installation of a jar, that modifies the state of the node, and is paid by a payer account, or
 2. the execution of a method on a receiver, that yields a returned
    value and/or has side-effects that modify the state of the node, and is paid by a payer account.
 
-A Hotmoka node can keep track
+A @Type node can keep track
 of the transactions that it has executed, so that it is possible, for instance,
 to recreate its state by running all the transactions executed in the past, starting from
 the empty state.
@@ -334,47 +334,47 @@ The key used for an account is typically computed by hashing the public key deri
 the private key of the account. In some sense, accounts, in those blockchain, exist
 independently from the state of the blockchain and can be computed offline: just
 create a random private key, compute the associated public key and hence its hash.
-Hotmoka is radically different: an account is an object that must be allocated in
+@Type is radically different: an account is an object that must be allocated in
 state by an explicit transaction (that must be paid, as every transaction).
 The public key is explicitly stored inside the object
 (Base64-encoded in its `publicKey` field, see Figure @fig:receiver_payer).
 That public key was passed as a parameter for the creation of the payer object and
-can be passed again for creating more accounts. That is, it is well possible, in Hotmoka,
+can be passed again for creating more accounts. That is, it is well possible, in @Type,
 to have more accounts in the state of a node, all distinct, but controlled by the same key.
 
 This has a major consequence. In Bitcoin and Ethereum, an account is identified by
 twelve words and a password, by using the BIP39 encoding
 (see Figure 5-6 of [[Antonopoulos17]](#references)). These twelve words are just
 a mnemonic representation of 132 bits: 128 bits for the random entropy used to derive the
-private key of the account and four bits of checksum. In Hotmoka, these 128 bits are
+private key of the account and four bits of checksum. In @Type, these 128 bits are
 not enough, since they identify the key of the account but not the 32 bytes of its
 storage reference (in this representation, the progressive is assumed to be zero).
-As a consequence, accounts in Hotmoka are identified by
+As a consequence, accounts in @Type are identified by
 128+256 bits, plus 12 bits of checksum (and a password), which give rise to 36 words with the BIP39 encoding.
 By specifying those 36 words across different clients, one can control the
 same account with all such clients. As usual, those 36 words must be stored in paper
 and kept in a secure place, since losing them amounts to losing access to the account.
 
 As shown in Figure @fig:receiver_payer, the code of the objects (contracts) installed in
-the state of a Hotmoka node consists in jars (Java archives) written in a subset of Java
+the state of a @Type node consists in jars (Java archives) written in a subset of Java
 known as Takamaka. This is done in a way completely different from other blockchains:
 
-1. In Hotmoka, programmers code the contracts that want to install in the node and nothing more;
+1. In @Type, programmers code the contracts that want to install in the node and nothing more;
    they do _not_ program the encoding of data into the key/value store of the node (its _keeper_,
    as it is called in other blockchains); they do _not_ program the gas metering; they do _not_
    program the authentication of the accounts and the verification of their credentials.
-   Everything is automatic in Hotmoka, exactly as in Ethereum, and differently from other blockchains
+   Everything is automatic in @Type, exactly as in Ethereum, and differently from other blockchains
    that use general purpose languages such as Java for their smart contracts: there, programmers
    must take care of all these details, which is difficult, boring and error-prone. If this is done
    incorrectly, those blockchains will hang.
-2. In Hotmoka, the code installed in the node passes a preliminary verification, that checks the correct
+2. In @Type, the code installed in the node passes a preliminary verification, that checks the correct
    use of some primitives, that we will introduce in the subsequent chapters, and guarantees that the
-   code is deterministic. This excludes an array of errors in Hotmoka, while other blockchains
+   code is deterministic. This excludes an array of errors in @Type, while other blockchains
    will hang if, for instance, the code is non-deterministic.
 
-## Hotmoka Clients
+## @Type Clients
 
-In order to query a Hotmoka node, handle accounts and run transactions on the node,
+In order to query a @Type node, handle accounts and run transactions on the node,
 one needs a client application. Currently, there are a command-line client, called
 @Tool, a mobile client for Android, called @App, and a web client that gets installed
 in the browser (Chrome or Firefox), called Hotwallet. @App and Hotwallet provide
@@ -384,11 +384,11 @@ most difficult to use.
 
 ### @Tool
 
-You can use the `@tool` tool to interact with a Hotmoka node,
+You can use the `@tool` tool to interact with a @Type node,
 install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
 [https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
-Its source code is maintained inside the main distribution of the Hotmoka project, at
+Its source code is maintained inside the main distribution of the @Type project, at
 [https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule
 `io-hotmoka-tools`.
 We report below the installation instructions of `@tool`.
@@ -399,7 +399,7 @@ computer and a recent version of Maven.
 
 You should download and untar the latest release into the directory
 where you want to install `@tool`. For instance, assuming that
-the latest version is `@hotmoka_version` and that
+the latest version is `@version` and that
 you want to install it under `~/Opt/moka`, you can run the following commands:
 
 ````shell
@@ -407,8 +407,8 @@ $ cd ~/Opt
 $ mkdir @tool
 $ cd @tool
 $ wget https://github.com/Hotmoka/hotmoka/releases/
-     download/v@hotmoka_version/@tool_@hotmoka_version.tar.gz
-$ tar zxf @tool_@hotmoka_version.tar.gz
+     download/v@version/@tool_@version.tar.gz
+$ tar zxf @tool_@version.tar.gz
 $ export PATH=$PATH:$(pwd)
 ````
 
@@ -462,7 +462,7 @@ in the command-path of your shell now. You can check that it works, by invoking
 ```shell
 $ @tool help
 Usage: @tool [COMMAND]
-This is version @hotmoka_version of the command-line interface.
+This is version @version of the command-line interface.
 Commands:
   bind-key            Binds a key to a reference, so that it becomes an account
   burn                Burns coins from an account, if the node allows it
@@ -516,18 +516,18 @@ Sets the thresholds for the faucet of the gamete of a node
 ### @App
 
 The `@tool` tool allows one to perform a large variety of operations
-on a Hotmoka node. However, it is a technical tool, meant for developers.
-Most users will only perform simple tasks with a Hotmoka node.
+on a @Type node. However, it is a technical tool, meant for developers.
+Most users will only perform simple tasks with a @Type node.
 For them, it is simpler to use a mobile app, with a simpler user
 interface. That app, called `@App`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
 [https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito). Developers interested in its Kotlin source code
 can find it at
 [https://github.com/Hotmoka/HotmokaAndroid](https://github.com/Hotmoka/HotmokaAndroid),
-together with a small Android service for connecting to a remote Hotmoka node.
+together with a small Android service for connecting to a remote @Type node.
 
 The first time you will use @App on your mobile device,
-it will connect by default to our testnet Hotmoka node
+it will connect by default to our testnet @Type node
 and show the screen in Figure @fig:mokito_start. This can be changed
 in the preferences section of the app, accessible through the menu in the
 top left area of the app.
@@ -557,7 +557,7 @@ accounts programmatically. Its source code can be found at
 
 The first time you run Hotwallet, it will ask you to create a key or import an account
 (see Figure @fig:hotwallet_start).
-By default, Hotwallet will contact our test node at `panarea.hotmoka.io`,
+By default, Hotwallet will contact our test node at `@server`,
 but this can be changed with the menu item _Networks_.
 
 Hotwallet is available for Google Chrome as well, but currently not yet through its web store.
@@ -576,15 +576,15 @@ do the following:
    bar of Chrome, for quick access, click on the icon of the extensions bar
    that looks like a puzzle piece and activate the pin mode for Hotwallet.
 
-## Contacting a Hotmoka Test Node
+## Contacting a @Type Test Node
 
-The examples in this book must be run by a Hotmoka node,
-typically part of a Hotmoka blockchain. We will show you in a later chapter how you
+The examples in this book must be run by a @Type node,
+typically part of a @Type blockchain. We will show you in a later chapter how you
 can install your own local
 node or blockchain. However, for now, it is much simpler to experiment with a node
 that is part of a public
 test blockchain that we provide for experimentation.
-Namely, we have installed a Hotmoka node at the address
+Namely, we have installed a @Type node at the address
 `@server`.
 You can verify that you can contact that node by typing
 the command `moka info` to print information
@@ -638,7 +638,7 @@ another Java object, called `validators`, that keeps information about the valid
 and contains, for instance, the total supply of the cryptocurrency (how much cryptocurrency has
 been minted up to now).
 
-As we said in the previous section, Java objects in the Hotmoka node are identified by their
+As we said in the previous section, Java objects in the @Type node are identified by their
 _storage reference_, such as `@gasStation`.
 You can think at a storage reference as a machine-independent pointer inside the
 memory, or state, of the node.
@@ -654,21 +654,21 @@ and select _Manifest_ from the menu that will appear (see Figure @fig:mokito_men
 After tapping on _Manifest_, a new screen will appear, containing the same information
 that we found with `moka info` (see Figure @fig:mokito_manifest).
 
-[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.</p>
+[Markdownonly]: <p align="center"><img width="300" src="pics/mokito_manifest.png" alt="Figure @fig:mokito_manifest. The manifest of the @Type node, shown in the @App app"></p><p align="center">Figure @fig:mokito_manifest. The manifest of the @Type node, shown in the @App app.</p>
 
-[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the Hotmoka node, shown in the @App app."){ width=30% }
+[PDFonly]: ![Figure @fig:mokito_manifest. The manifest of the @Type node, shown in the @App app.](pics/mokito_manifest.png "Figure @fig:mokito_manifest. The manifest of the @Type node, shown in the @App app."){ width=30% }
 
 ## Creation of a First Account
 
 We need an account in the test network, that we will use later to pay for
-installing code in blockchain and for running transactions. An account in Hotmoka
+installing code in blockchain and for running transactions. An account in @Type
 is something completely different from an account in other blockchains.
 For instance, in Bitcoin and Ethereum accounts do not really exist, in the sense
 that they are just an address derived from a private key, that can be used to control
 information in blockchain. Their creation does not trigger any operation in blockchain,
-it is performed completely off-chain. Instead, in Hotmoka, an account
+it is performed completely off-chain. Instead, in @Type, an account
 is a Java object, more precisely an instance of the `io.takamaka.code.lang.ExternallyOwnedAccount`
-class. That object must be allocated (_created_) in the memory of the Hotmoka node,
+class. That object must be allocated (_created_) in the memory of the @Type node,
 before it can be used. Moreover, such an object is not special in any way:
 for instance, as for all other objects in the storage of the node, we must pay for its creation.
 Currently, we have no accounts and consequently
@@ -736,7 +736,7 @@ class io.takamaka.code.lang.ExternallyOwnedAccount
 ```
 
 Note that the balance and the public key of the account are
-fields of the account object. Moreover, note that Hotmoka knows
+fields of the account object. Moreover, note that @Type knows
 which is the class of the object at that address
 (it is a `io.takamaka.code.lang.ExternallyOwnedAccount`)
 and where that class is defined (inside the jar
@@ -795,7 +795,7 @@ For instance, you can fill it as in Figure @fig:mokito_elvis_new_account.
 [PDFonly]: ![Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis.](pics/mokito_elvis_new_account.png "Figure @fig:mokito_elvis_new_account. The form specifying a new account Elvis."){ width=30% }
 
 > The name of the accounts is a feature of @App to simplify the identification
-> of the accounts. However, keep in mind that accounts have no name in Hotmoka: they
+> of the accounts. However, keep in mind that accounts have no name in @Type: they
 > are just identified by their storage reference. For instance, `@tool` currently does not
 > allow one to associate names to accounts.
 
@@ -868,25 +868,25 @@ Hotwallet requires to insert its password.
 As you have seen, the 36 words and the password of an account are enough for moving accounts around
 different clients. Note that clients do not _contain_ accounts but only the cryptographic information
 needed to access the accounts. If a client is uninstalled, the accounts that it used still exist in the remote
-Hotmoka node and can still be re-imported and used
+@Type node and can still be re-imported and used
 in some other client, if we have written down their 36 words and still remember their passwords.
 
 ## Anonymous Payments
 
-The fact that accounts in Hotmoka are not just identified by their public key, but also by their
+The fact that accounts in @Type are not just identified by their public key, but also by their
 storage reference inside the state of a node, makes it a bit more difficult, but not impossible,
 to execute anonymous transactions. We do not advocate the use of anonymity here, but it is true
 that, sometimes, one wants to remain anonymous and still receive a payment.
 
 > Anonymicity is often used for illegal actions such as ransomware and blackmailing.
 > We are against such actions. This section simply shows that anonymity can be achieved
-> in Hotmoka as well, although it is a bit harder than with other blockchains.
+> in @Type as well, although it is a bit harder than with other blockchains.
 
 Suppose for instance that somebody, whom we call Anonymous, wants to receive from us a payment
 of 10,000 coins, but still wants to remain unknown. He can receive the payment in many ways:
 
 1. He could send us an anonymous email asking us to pay to a specific account, already existing
-   in the state of the node. But this is not anonymous, since, in Hotmoka, an account is an object
+   in the state of the node. But this is not anonymous, since, in @Type, an account is an object
    and there must have been a transaction that created that object, whose payer is likely to be
    Anonymous or somebody in his clique. That is, the identity of Anonymous can
    be inferred from the creator of the account. Therefore, Anonymous discards this possibility.
@@ -914,7 +914,7 @@ Its entropy has been saved into the file
   "./@new_key.pem".
 ```
 Note that there is no `--url` part in the `moka create-key` command, since this operation
-runs completely off-line: no object gets created in the state of any Hotmoka node for now.
+runs completely off-line: no object gets created in the state of any @Type node for now.
 Anonymous pastes the new key into an anonymous email message to us:
 
 ```
@@ -996,7 +996,7 @@ as described in points 1 and 2 considered above, probably without the need of an
 
 ## Installation of the Source Code
 
-You will *not* need to download and install to source code of Hotmoka in this
+You will *not* need to download and install to source code of @Type in this
 book. Nevertheless, an important aspect of blockchain technology is that
 trust is based also on the public availability of its code.
 Moreover, you will need to download the source code if you want to understand
@@ -1004,7 +1004,7 @@ its inner working, or contribute to the development of the project or
 fork the project.
 
 Hence, we show below how to download the source code
-of Hotmoka and of the runtime of the Takamaka language.
+of @Type and of the runtime of the Takamaka language.
 You will need Java JDK version at least 11.
 
 Clone the project with:
@@ -1014,7 +1014,7 @@ $ git clone https://github.com/Hotmoka/hotmoka.git
 ```
 
 then `cd` to the `hotmoka` directory and
-compile, package, test and install the Hotmoka jars:
+compile, package, test and install the @Type jars:
 
 ```shell
 $ mvn clean install
@@ -1023,7 +1023,7 @@ $ mvn clean install
 All tests should pass and all projects should be successfully installed:
 
 ```
-[INFO] Reactor Summary for Hotmoka @hotmoka_version:
+[INFO] Reactor Summary for Hotmoka @version:
 [INFO] 
 [INFO] Hotmoka ............................................ SUCCESS [  0.949 s]
 [INFO] io-takamaka-code ................................... SUCCESS [  2.276 s]
@@ -1048,16 +1048,16 @@ All tests should pass and all projects should be successfully installed:
 > If you are not interested in running the tests, append `-DskipTests` after
 > the word `install`.
 
-[Markdownonly]: <p align="center"><img width="450" src="pics/projects.png" alt="Figure @fig:projects. The Eclipse projects of Hotmoka"></p><p align="center">Figure @fig:projects. The Eclipse projects of Hotmoka.</p>
+[Markdownonly]: <p align="center"><img width="450" src="pics/projects.png" alt="Figure @fig:projects. The Eclipse projects of @Type"></p><p align="center">Figure @fig:projects. The Eclipse projects of @Type.</p>
 
-[PDFonly]: ![Figure @fig:projects. The Eclipse projects of Hotmoka.](pics/projects.png "Figure @fig:projects. The Eclipse projects of Hotmoka."){ width=60% }
+[PDFonly]: ![Figure @fig:projects. The Eclipse projects of @Type.](pics/projects.png "Figure @fig:projects. The Eclipse projects of @Type."){ width=60% }
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
 the parent Maven project contained in the `hotmoka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
-You will then be able to compile, package, test and install the Hotmoka jars inside
+You will then be able to compile, package, test and install the @Type jars inside
 Eclipse itself, by right-clicking on the `parent` project and selecting
 `Run As` and then the `Mavel install` target. You will also be able to run the tests inside
 the Eclipse JUnit runner, by right-clicking on the `io-hotmoka-tests` subproject
@@ -1080,24 +1080,24 @@ bcel-6.2.jar
 spring-beans-5.2.7.RELEASE.jar
 spring-core-5.2.7.RELEASE.jar
 ...
-io-hotmoka-tendermint-abci-@hotmoka_version.jar
-io-hotmoka-toml-@hotmoka_version.jar
-io-hotmoka-ws-client-@hotmoka_version.jar
-io-hotmoka-xodus-@hotmoka_version.jar
+io-hotmoka-tendermint-abci-@version.jar
+io-hotmoka-toml-@version.jar
+io-hotmoka-ws-client-@version.jar
+io-hotmoka-xodus-@version.jar
 ...
 
 modules/explicit:
 bcprov-jdk15on-1.70.jar
-io-hotmoka-local-@hotmoka_version.jar
-io-hotmoka-verification-@hotmoka_version.jar
+io-hotmoka-local-@version.jar
+io-hotmoka-verification-@version.jar
 gson-2.8.6.jar
-io-hotmoka-memory-@hotmoka_version.jar
-io-hotmoka-service-@hotmoka_version.jar
-io-hotmoka-crypto-@hotmoka_version.jar
-io-hotmoka-patricia-@hotmoka_version.jar
-io-hotmoka-tendermint-@hotmoka_version.jar
+io-hotmoka-memory-@version.jar
+io-hotmoka-service-@version.jar
+io-hotmoka-crypto-@version.jar
+io-hotmoka-patricia-@version.jar
+io-hotmoka-tendermint-@version.jar
 ...
-io-takamaka-code-@hotmoka_version.jar
+io-takamaka-code-@version.jar
 it-univr-bcel-1.1.0.jar
 picocli-4.6.1.jar
 
@@ -1118,7 +1118,7 @@ installed previously.
 # A First Takamaka Program
 
 Takamaka is the language that can be used to write
-smart contracts for Hotmoka nodes. Hotmoka
+smart contracts for @Type nodes. @Type
 nodes and Takamaka code have exactly the same
 relation as Ethereum nodes and Solidity code.
 
@@ -1181,7 +1181,7 @@ the content of the `pom.xml` file of the `family` project with the code that fol
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -1204,7 +1204,7 @@ the content of the `pom.xml` file of the `family` project with the code that fol
 that specifies to use Java 11 and provides the dependency
 to `io-takamaka-code`, that is, the run-time classes of the Takamaka smart contracts.
 
-> We are using `@hotmoka_version` here, as version of the Hotmoka and Takamaka runtime
+> We are using `@version` here, as version of the @Type and Takamaka runtime
 > projects. Replace that, if needed, with the latest version of such projects.
 
 Since the `pom.xml` file has changed, Eclipse will normally show an error
@@ -1280,7 +1280,7 @@ $ mvn package
 
 A `family-0.0.1.jar` file should appear inside the `target` directory.
 Only the compiled
-class files will be relevant: Hotmoka nodes will ignore source files, manifest
+class files will be relevant: @Type nodes will ignore source files, manifest
 and any resources in the jar; the same compiled
 `module-info.class` is irrelevant for them.
 All such files can be removed from the jar, to reduce the gas cost of their
@@ -1291,14 +1291,14 @@ The result should look as in Figure @fig:family_jar:
 
 [PDFonly]: ![Figure @fig:family_jar. The `family` Eclipse project, exported in jar.](pics/family_jar.png "Figure @fig:family_jar. The family Eclipse project, exported in jar."){ width=40% }
 
-## Installation of the Jar in a Hotmoka Node
+## Installation of the Jar in a @Type Node
 
 __[See the `runs` project inside the `hotmoka_tutorial` repository]__
 
-We have generated the jar containing our code and we want to send it now to a Hotmoka node,
+We have generated the jar containing our code and we want to send it now to a @Type node,
 where it will be installed. This means that it will become available to programmers
 who want to use its classes, directly or as dependencies of their programs.
-In order to install a jar in the Hotmoka node that we have used in the previous chapter,
+In order to install a jar in the @Type node that we have used in the previous chapter,
 we can use the `@tool` command-line tool, specifying which account will pay for the
 installation of the jar. The cost of the installation depends on the size of the
 jar and on the number of its dependencies. The `@tool` tool uses a heuristics to
@@ -1328,7 +1328,7 @@ later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
 `moka state` command.
 
-The state of the the Hotmoka nodes of the testnet is now as in Figure @fig:state3.
+The state of the the @Type nodes of the testnet is now as in Figure @fig:state3.
 As that figure shows, a dependency has been created, automatically, from `family-0.0.1.jar` to
 `io-takamaka-code.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
 hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
@@ -1340,9 +1340,9 @@ before it can be used as dependency of other jars.
 
 What we have done above is probably enough for most users, but sometimes you need
 to perform the same operation in code, for instance in order to implement a software
-application that connects to a Hotmoka node and runs some transactions.
+application that connects to a @Type node and runs some transactions.
 Therefore, we describe below how you can write a Java program that installs the
-same jar in the Hotmoka node, without using the `moka install` command.
+same jar in the @Type node, without using the `moka install` command.
 A similar translation in code can be performed for all examples in this tutorial,
 but we will report it only for a few of them.
 
@@ -1391,32 +1391,32 @@ the `runs` project, replacing that generated by Eclipse:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-remote</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-helpers</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-memory</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-helpers</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-service</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -1506,7 +1506,7 @@ public class Family {
     	.build();
 
     try (Node node = RemoteNode.of(config)) {
-    	// we get a reference to where io-takamaka-code-@hotmoka_version.jar has been stored
+    	// we get a reference to where io-takamaka-code-@version.jar has been stored
         TransactionReference takamakaCode = node.getTakamakaCode();
 
         // we get the signing algorithm to use for requests
@@ -1571,9 +1571,9 @@ public class Family {
   }
 }
 ```
-As you can see, this class creates an instance of a `RemoteNode`, that represents a Hotmoka
+As you can see, this class creates an instance of a `RemoteNode`, that represents a @Type
 node installed in a remote host. By specifying the URL of the host, the `RemoteNode` object
-exposes all methods of a Hotmoka node. It is an `AutoCloseable` object, hence it is placed inside
+exposes all methods of a @Type node. It is an `AutoCloseable` object, hence it is placed inside
 a try-with-resource statement that guarantees its release at the end of the `try` block.
 By using that remote node, our code collects
 some information about the node: the reference to the `io-takamaka-code` jar already
@@ -1584,7 +1584,7 @@ loaded from disk.
 The `loadKeys` method accesses the `.pem` file that we have previously created
 with `@tool`. It does it by looking in the parent directory `..`, that is where that file should be.
 
-Like every Hotmoka node, the observable state of the remote node can only evolve through
+Like every @Type node, the observable state of the remote node can only evolve through
 *transactions*, that modify its state in an atomic way.
 Namely, the code above performs three transactions:
 
@@ -1617,7 +1617,7 @@ Namely, the code above performs three transactions:
    `family-0.0.1.jar` in a class path, this class path will indirectly include its dependency
    `io-takamaka-code` as well (see Figure @fig:state3).
 
-> As in Ethereum, transactions in Hotmoka are paid
+> As in Ethereum, transactions in @Type are paid
 > in terms of gas consumed for their execution.
 > Calls to `@View` methods do not actually modify the state of the node
 > and are executed locally, on the
@@ -1717,7 +1717,7 @@ public class Person extends Storage {
 > Extending `io.takamaka.code.lang.Storage` is all a programmer needs to do in order to let instances
 > of a class be stored in the store of a node. There is no explicit method to call to keep track
 > of updates to such objects and persist them in the store of the node:
-> Hotmoka nodes will automatically deal with them.
+> @Type nodes will automatically deal with them.
 
 > We can use the `io.takamaka.code.lang.Storage` class and we can run the resulting compiled code
 > since that class is inside `io-takamaka-code`, that has been included in the
@@ -1956,7 +1956,7 @@ We are ready to pay `panarea(gasHelper.getSafeGasPrice())` units of coin for eac
 This price could have been
 specified simply as `gasHelper.getSafeGasPrice()`
 but we used the static method `io.hotmoka.beans.Coin.panarea()`
-to generate a `BigInteger` corresponding to the smallest coin unit of Hotmoka nodes, a *panarea*.
+to generate a `BigInteger` corresponding to the smallest coin unit of @Type nodes, a *panarea*.
 Namely, the following units of coin exist:
 
 | Value (in panas) | Exponent           | Name | Short Name |
@@ -1980,7 +1980,7 @@ New object allocated at
 ```
 The exact address will change at any run.
 
-## Calling a Method on an Object in a Hotmoka Node
+## Calling a Method on an Object in a @Type Node
 
 __[See projects `runs` and `family_exported` inside the `hotmoka_tutorial` repository]__
 
@@ -2030,12 +2030,12 @@ as receiver of `toString()` (the receiver is a particular case of an actual
 argument). That object has been created in store, has escaped the node
 and is available through its storage reference. However, it cannot be passed back
 into the node as argument of a call since it is not _exported_. This is a security feature of
-Hotmoka. Its reason is that the store of a node is public and can be read freely.
-Everybody can see the objects created in the store of a Hotmoka node
+@Type. Its reason is that the store of a node is public and can be read freely.
+Everybody can see the objects created in the store of a @Type node
 and their storage references can be used to invoke their methods and modify their state.
 This is true also for objects meant to be private state components of other objects and that
 are not expected to be freely modifiable from outside the node. Because of this,
-Hotmoka requires that classes, whose instances can be passed into the node as
+@Type requires that classes, whose instances can be passed into the node as
 arguments to methods or constructors,
 must be annotated as `@Exported`. This means that the programmer acknowledges the
 use of these instances from outside the node.
@@ -2398,7 +2398,7 @@ We will see later how to overcome these limitations.
 
 ## Transactions Can Be Added, Posted and Run
 
-We have executed transactions on a Hotmoka node with methods
+We have executed transactions on a @Type node with methods
 `addJarStoreTransaction()`, `addConstructorCallTransaction()`
 and `addInstanceMethodCallTransaction()`. These methods, whose name
 starts with `add`,
@@ -2547,7 +2547,7 @@ the project inside the `hotmoka_tutorial` directory, as a sibling of `family` an
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -2899,7 +2899,7 @@ public BigInteger getCurrentInvestment() {
 
 This solution is perfectly fine but can be improved. Written this way,
 an investor that wants to call `getCurrentInvestment()` must run a
-Hotmoka transaction through the `addInstanceMethodCallTransaction()`
+@Type transaction through the `addInstanceMethodCallTransaction()`
 method of the node, creating a new transaction that ends up in
 the store of the node. That transaction will cost gas, hence its side-effect will
 be to reduce the balance of the calling investor. But the goal of the caller
@@ -2920,7 +2920,7 @@ import io.takamaka.code.lang.View;
   }
 ```
 
-An investor can now call that method through another API method of the Hotmoka
+An investor can now call that method through another API method of the @Type
 nodes, called `runInstanceMethodCallTransaction()`, that does not expand the
 store of the node, but yields the response of the transaction, including the
 returned value of the call. If method
@@ -2982,10 +2982,10 @@ Such _accounts_ are typically controlled by humans, through a wallet, but can be
 subclassed and instantiated freely in Takamaka code. Their constructors
 allow one to build an externally owned account and fund it with an initial
 amount of coins. As we have seen in sections
-[Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node),
+[Installation of the Jar in a @Type Node](#installation-of-the-jar-in-a-@type-node),
 [Creation of an Object of our Program](#creation-of-an-object-of-our-program) and
-[Calling a Method on an Object in a Hotmoka Node](#calling-a-method-on-an-object-in-a-hotmoka-node),
-the methods of Hotmoka nodes that start a transaction require to specify a payer
+[Calling a Method on an Object in a @Type Node](#calling-a-method-on-an-object-in-a-@type-node),
+the methods of @Type nodes that start a transaction require to specify a payer
 for that transaction. Such a payer is required to be an instance of
 `ExternallyOwnedAccount`, or an exception will be thrown. In our previous examples,
 we have used, as payer, an account created by the `moka create-account` command,
@@ -3008,7 +3008,7 @@ or `ExternallyOwnedAccountQTESLA3`. The latter two use a
 quantum-resistant signature algorithm
 (see [Signatures and Quantum-Resistance](#signatures-and-quantum-resistance)
 for more details). This means that it is possible
-to mix many signature algorithms for signing transactions inside the same Hotmoka node,
+to mix many signature algorithms for signing transactions inside the same @Type node,
 as we will show later.
 
 ## Red and Green Balances
@@ -3096,7 +3096,7 @@ that can be used in storage objects, since they are storage objects themselves.
 Such utility classes implement lists, arrays and maps and are
 consequently generally described as *collections*. They have the
 property of being storage classes, hence their instances can be kept in
-the store of a Hotmoka node, *as long as only storage objects are added as elements of
+the store of a @Type node, *as long as only storage objects are added as elements of
 the collection*. As usual with collections, these utility classes
 have generic type, to implement collections of arbitrary, but fixed
 types. This is not problematic, since Java (and hence Takamaka) allows generic types.
@@ -3118,7 +3118,7 @@ fields of a storage class. For that,
 Takamaka provides an implementation of lists with the storage class
 `io.takamaka.code.util.StorageLinkedList<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
-can be stored in a Hotmoka node, *as long as only
+can be stored in a @Type node, *as long as only
 storage objects are added to the list*. Takamaka lists provide
 constant-time access and addition to both ends of a list.
 We refer to the JavaDoc of `StorageLinkedList<E>` for a full description of its methods.
@@ -3508,7 +3508,7 @@ type of the elements of the array. They can be used in Takamaka, but not
 as fields of storage classes. For that, Takamaka provides class
 `io.takamaka.code.util.StorageTreeArray<E>`. Its instances are storage objects and
 can consequently be held in fields of storage classes and
-can be stored in the store of a Hotmoka node, *as long as only
+can be stored in the store of a @Type node, *as long as only
 storage objects are added to the array*. Their size is fixed and decided
 at time of construction. Although we consider `StorageTreeArray<E>` as the storage
 replacement for Java arrays, it must be stated that the complexity of
@@ -3606,7 +3606,7 @@ the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -4236,7 +4236,7 @@ maps are useful in Takamaka code, as we show below.
 
 Java has many implementations of maps, that can be used in Takamaka.
 However, they are not storage objects and consequently cannot be
-stored in a Hotmoka node. This section describes the
+stored in a @Type node. This section describes the
 `io.takamaka.code.util.StorageTreeMap<K,V>` class, that extends `Storage` and
 whose instances can then be held in the store of a node, if keys `K` and
 values `V` can be stored in a node as well.
@@ -4331,7 +4331,7 @@ the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -4710,7 +4710,7 @@ _events_, such as:
 event(new AuctionEnd(winner, highestBid));
 ```
 
-Events are milestones that are saved in the store of a Hotmoka node.
+Events are milestones that are saved in the store of a @Type node.
 From outside the node, it is possible to subscribe to specific events and get
 notified as soon as an event of that kind occurs,
 to trigger actions when that happens. In terms of the
@@ -5564,7 +5564,7 @@ and so on). Use the following `pom.xml`:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -5696,7 +5696,7 @@ an `ERC20` implementation gets modified and some tokens get registered for
 the new owner _C_. However, _C_ is not notified in any way of this transfer.
 This means that our contracts could be richer than we expect, if somebody
 has sent tokens to them, possibly inadvertently. In theory, we could
-scan the whole memory of a Hotmoka node, looking for implementations
+scan the whole memory of a @Type node, looking for implementations
 of the `IERC20` interface, and check if our contracts are registered inside them.
 Needless to say, this is computationally irrealistic.
 Moreover, even if we know that one of our contracts is waiting to receive
@@ -5826,7 +5826,7 @@ and so on). Use the following `pom.xml`:
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
-      <version>@hotmoka_version</version>
+      <version>@version</version>
     </dependency>
   </dependencies>
 
@@ -5902,11 +5902,11 @@ $ mvn package
 Then you can install that jar in the node and create an instance of the token
 exactly as we did for the `CryptoBuddy` ERC20 token before.
 
-# Hotmoka Nodes
+# @Type Nodes
 
-A Hotmoka node is a device that implements an interface for running Java code
+A @Type node is a device that implements an interface for running Java code
 remotely. It can be any kind of device, such as a device of an IoT network,
-but also a node of a blockchain. We have already used instances of Hotmoka nodes,
+but also a node of a blockchain. We have already used instances of @Type nodes,
 namely, instances of `RemoteNode`. But there are other examples of nodes, that we
 will describe in this chapter.
 
@@ -5923,9 +5923,9 @@ That interface can be split in five parts:
 5. A `subscribe` part, that allows users to subscribe listeners of events generated during
    the execution of the transactions.
 
-[Markdownonly]: <p align="center"><img width="800" src="pics/nodes.png" alt="Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes"></p><p align="center">Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes.</p>
+[Markdownonly]: <p align="center"><img width="800" src="pics/nodes.png" alt="Figure @fig:node_hierarchy. The hierarchy of @Type nodes"></p><p align="center">Figure @fig:node_hierarchy. The hierarchy of @Type nodes.</p>
 
-[PDFonly]: ![Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes.](pics/nodes.png "Figure @fig:node_hierarchy. The hierarchy of Hotmoka nodes."){ width=100% }
+[PDFonly]: ![Figure @fig:node_hierarchy. The hierarchy of @Type nodes.](pics/nodes.png "Figure @fig:node_hierarchy. The hierarchy of @Type nodes."){ width=100% }
 
 If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
 of the state, so that it is equivalent to call a method of a node or of any other node of the
@@ -5979,9 +5979,9 @@ so that we (and other programmers who need its service) can use it concurrently.
 This should be possible for all implementations of the `Node` interface,
 such as `MemoryBlockchain`, `TendermintBlockchain` and all present and future implementations.
 In other words, we would like to publish _any_
-Hotmoka node as a service, accessible through the internet. This will be the subject
-of [Hotmoka Services](#hotmoka-services).
-Conversely, once a Hotmoka node has been published at some URL, say
+@Type node as a service, accessible through the internet. This will be the subject
+of [@Type Services](#@type-services).
+Conversely, once a @Type node has been published at some URL, say
 `http://my.company.com`, it will be accessible through some network API, through the
 SOAP or REST protocol, and also through websockets, for subscription to events. This complexity
 might make it awkward, for a programmer, to use the published node.
@@ -6006,30 +6006,30 @@ The nice feature of Tendermint is that it takes care of all
 issues related to networking and consensus, leaving to the
 developer only the task to develop the Tendermint app.
 
-[Markdownonly]: <p align="center"><img width="700" src="pics/hotmoka_tendermint.png" alt="Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint"></p><p align="center">Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint.</p>
+[Markdownonly]: <p align="center"><img width="700" src="pics/hotmoka_tendermint.png" alt="Figure @fig:hotmoka_tendermint. The architecture of the @Type node based on Tendermint"></p><p align="center">Figure @fig:hotmoka_tendermint. The architecture of the @Type node based on Tendermint.</p>
 
-[PDFonly]: ![Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint.](pics/hotmoka_tendermint.png "Figure @fig:hotmoka_tendermint. The architecture of the Hotmoka node based on Tendermint."){ width=80% }
+[PDFonly]: ![Figure @fig:hotmoka_tendermint. The architecture of the @Type node based on Tendermint.](pics/hotmoka_tendermint.png "Figure @fig:hotmoka_tendermint. The architecture of the @Type node based on Tendermint."){ width=80% }
 
-There is a Hotmoka node that implements such a Tendermint app,
+There is a @Type node that implements such a Tendermint app,
 for programming in Takamaka over Tendermint. We have already used that node
 in the previous chapter, since that installed at
-`panarea.hotmoka.io` is a node of that type.
+`@server` is a node of that type.
 Figure @fig:hotmoka_tendermint
-shows the architecture of a Tendermint Hotmoka node.
+shows the architecture of a Tendermint @Type node.
 It consists of a few components.
-The Hotmoka component is the Tendermint app that
+The @Type component is the Tendermint app that
 implements the transactions on the state, resulting from the installation
 of jars and the execution of code written in the Takamaka subset of Java. This part is the same in every
-implementation of a Hotmoka node, not only for this one based on Tendermint.
+implementation of a @Type node, not only for this one based on Tendermint.
 In most cases, as here, the database that contains the state is implemented by
 using the Xodus transactional database by IntelliJ.
 What is specific here, however, is that transactions are put inside a blockchain
 implemented by Tendermint. The communication occurs, internally, through the two TCP ports
 26657 and 26658, that are the standard choice of Tendermint for communicating with an app.
-Clients can contact the Hotmoka node
+Clients can contact the @Type node
 through any port, typically but not exclusively 80 or 8080,
 as a service that implements the interface `Node` in Figure @fig:node_hierarchy.
-The node can live alone but is normally integrated with other Hotmoka nodes based on Tendermint, so that
+The node can live alone but is normally integrated with other @Type nodes based on Tendermint, so that
 they execute and verify the same transactions, reaching the same state at the end. This happens through
 the TCP port 26656, that allows Tendermint instances to _gossip_: they exchange transactions and information on peers
 and finally reach consensus.
@@ -6039,32 +6039,32 @@ are already used by some other service.
 Port 26656 must be the same for all nodes in the network, since they must communicate on
 a standard port.
 
-We can use `panarea.hotmoka.io` to play with
+We can use `@server` to play with
 accounts and Takamaka contracts. However, we might want to
-install our own node, part of the same blockchain network of `panarea.hotmoka.io`
+install our own node, part of the same blockchain network of `@server`
 or part of a brand new blockchain. In the former case, our own node will execute
-the transactions, exactly as `panarea.hotmoka.io`, so that we can be sure that they are
+the transactions, exactly as `@server`, so that we can be sure that they are
 executed according to the rules. In the latter case, we can have our own blockchain that
 executes our transactions only, instead of using a shared blockchain such as that
-at `panarea.hotmoka.io`.
+at `@server`.
 
-This section shows how you can start your own Hotmoka Tendermint node,
+This section shows how you can start your own @Type Tendermint node,
 consisting of a single validator node, hence part of its own blockchain.
 The process is not difficult but is a bit tedious,
 because it requires one to install Tendermint and to create
-its configuration files. Section [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker)
+its configuration files. Section [Starting a Tendermint Node with Docker](#starting-a-tendermint-@type-node-with-docker)
 in the next chapter
 provides a simpler alternative for reaching the same goal, by using the Docker tool.
 
-> We strongly suggest you to use Docker to install Hotmoka nodes, instead of the instructions
+> We strongly suggest you to use Docker to install @Type nodes, instead of the instructions
 > in this section, hence please
-> follow the instructions in [Starting a Tendermint Node with Docker](#starting-a-tendermint-hotmoka-node-with-docker).
+> follow the instructions in [Starting a Tendermint Node with Docker](#starting-a-tendermint-@type-node-with-docker).
 > The current section only exists in order to understand what happens inside the Docker container.
 > If you are not a developer, or if you are not interested in the topic, please skip this section and
 > jump directly to the next chapter.
 
-In order to use a Tendermint Hotmoka node, the Tendermint executable must be
-installed in our machine, or our experiments will fail. The Hotmoka node
+In order to use a Tendermint @Type node, the Tendermint executable must be
+installed in our machine, or our experiments will fail. The @Type node
 works with Tendermint version @tendermint_version, that can be downloaded in executable
 form from [https://github.com/tendermint/tendermint/releases/tag/v@tendermint_version](https://github.com/tendermint/tendermint/releases/tag/v@tendermint_version).
 Be sure that you download the executable for the architecture of your computer
@@ -6082,10 +6082,10 @@ the answer must be
 @tendermint_version
 ```
 
-or similar, as long as the version starts with @tendermint_version. Our Hotmoka node built on Tendermint is known
+or similar, as long as the version starts with @tendermint_version. Our @Type node built on Tendermint is known
 to work on Windows, MacOs and Linux machines.
 
-Before starting a local node of a Hotmoka blockchain based on Tendermint, you
+Before starting a local node of a @Type blockchain based on Tendermint, you
 need to create the Tendermint configuration file. For instance, in order
 to run a single validator node with no non-validator nodes, you can create
 its configuration files as follows:
@@ -6113,7 +6113,7 @@ Its entropy has been saved into the file
 The entropy is a representation of the key pair. The name of the file
 is the Base58-encoded public key of the pair. While the entropy and the password are secret information
 that you should not distribute, the public key can be used to create a new node.
-Namely, you can start a Hotmoka node based on Tendermint,
+Namely, you can start a @Type node based on Tendermint,
 that uses the Tendermint configuration
 directory that you have just created,
 by using the `moka init-tendermint` command. You also need
@@ -6126,7 +6126,7 @@ local Maven's cache for that:
 $ @tool init-tendermint 100000000000000
     --tendermint-config mytestnet/node0
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
+                         @version/io-takamaka-code-@version.jar
     --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 Do you really want to start a new node at this place
@@ -6144,7 +6144,7 @@ The following node has been initialized:
       ...
     ...
 
-The Hotmoka node has been published at localhost:8080
+The node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
 The owner of the key of the gamete can bind it to its address now:
@@ -6214,7 +6214,7 @@ Its entropy has been saved into the file
 This operation has created a pem file whose name is that of the storage reference of the gamete.
 With this file, it is possible to run transactions on behalf of the gamete.
 
-Your computer exports a Hotmoka node now, running on Tendermint.
+Your computer exports a @Type node now, running on Tendermint.
 If your computer is reachable at some address `my.machine`, anybody can contact
 your node at `http://my.machine:8080`, query your node and run transactions on your node.
 However, what has been created is a Tendermint node where all initial coins are inside
@@ -6246,7 +6246,7 @@ re-run the examples of the previous chapters by replacing
 `@server` with `my.machine:8080`: your computer will serve
 the requests and run the transactions.
 
-If you turn off your Hotmoka node based on Tendermint, its state remains saved inside the
+If you turn off your @Type node based on Tendermint, its state remains saved inside the
 `chain` directory: the `chain/blocks` subdirectory is where Tendermint stores the blocks
 of the chain; while `chain/store` contains the Xodus database,
 consisting of the storage objects created in blockchain.
@@ -6258,7 +6258,7 @@ $ @tool resume-tendermint --tendermint-config mytestnet/node0
 Press enter to exit this program and turn off the node
 ```
 
-There is a log file that can be useful to check the state of our Hotmoka-Tendermint app.
+There is a log file that can be useful to check the state of our @Type-Tendermint app.
 Namely, `tendermint.log` contains the log of Tendermint itself. It can be interesting
 to inspect which blocks are committed and when:
 
@@ -6284,7 +6284,7 @@ contains transactions (`validTxs`>0), reflecting the fact that the state has bee
 
 ## Memory Nodes
 
-The Tendermint Hotmoka nodes of the previous section form a real blockchain.
+The Tendermint @Type nodes of the previous section form a real blockchain.
 They are perfect for deploying a blockchain where we can program smart contracts in
 Takamaka. Nevertheless, they are slow for debugging: transactions are committed every few seconds,
 by default. Hence, if we want to see the result of a transaction,
@@ -6299,11 +6299,11 @@ consensus is imposed. But they are very
 handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
-You can start a memory Hotmoka node, with an open faucet, exactly as you did,
+You can start a memory @Type node, with an open faucet, exactly as you did,
 in the previous section, for a Tendermint node, but using the `moka init-memory`
 command instead of `moka init-tendermint`. You do not need any Tendermint configuration
 this time, but still need a key to control the gamete of the node, that you can create
-exactly as for a Tendermint Hotmoka node:
+exactly as for a Tendermint @Type node:
 
 ```shell
 $ @tool create-key
@@ -6320,7 +6320,7 @@ You specify the public component of the key when starting the node:
 $ @tool init-memory 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
-                         @hotmoka_version/io-takamaka-code-@hotmoka_version.jar
+                         @version/io-takamaka-code-@version.jar
     --key-of-gamete FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
 
 Do you really want to start a new node at this place
@@ -6333,7 +6333,7 @@ The following node has been initialized:
     gamete: ee7a549a9419f6178efea6291121535efd71aa6c98233c89a4a0fae700a6efcc#0
     ...
 
-The Hotmoka node has been published at localhost:8080
+The @Type node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
 The owner of the key of the gamete can bind it to its address now:
@@ -6465,7 +6465,7 @@ that its nonce has been increased to four (since it ran the transaction); and th
 
 ## Logs
 
-All Hotmoka nodes generate a `hotmoka.log` log file, that reports which transactions have been
+All @Type nodes generate a `hotmoka.log` log file, that reports which transactions have been
 processed and potential errors. Its content, in the case of a Tendermint node, looks like:
 
 ```
@@ -6512,7 +6512,7 @@ $ @tool info
 You will see in the log all new entries related to the execution of the methods to access
 the information on the node printed by `moka info`.
 
-> Hotmoka nodes started with Docker disable the generation of the log files and dump
+> @Type nodes started with Docker disable the generation of the log files and dump
 > logs to the standard output, where they can be accessed with the `docker logs` command.
 > Therefore, they do not generate a `hotmoka.log` file. See next chapter for information.
 
@@ -6520,7 +6520,7 @@ the information on the node printed by `moka info`.
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
-There are some frequent actions that can be performed on a Hotmoka node.
+There are some frequent actions that can be performed on a @Type node.
 Typically, these actions consist in a sequence of transactions.
 A few examples are:
 
@@ -6534,10 +6534,10 @@ A few examples are:
 3. The initialization of a node. Namely, local nodes start empty, that is,
    their store does not contain anything at the beginning, not even their manifest
    object. This initialization is rather technical and detail might change in future
-   versions of Hotmoka. Performing this initialization by hand leads to fragile
+   versions of @Type. Performing this initialization by hand leads to fragile
    and error-prone code.
 
-In all these examples, Hotmoka provides decorators, that is, implementation of the
+In all these examples, @Type provides decorators, that is, implementation of the
 `Node` interface built from an existing `Node` object. The decorator is just an alias
 to the decorated node, but adds some functionality or performs some action on it.
 Figure @fig:node_hierarchy shows that there are decorators for each of the three
@@ -6642,7 +6642,7 @@ account #1: f0840b73741d3fceefc4e87a4d055a7044dbcbdeb8213636c0d810eba4cf60cc#0
 
 You can see that the use of decorators has avoided us the burden of
 programming transaction requests, explicitly, and makes our code more robust,
-since future versions of Hotmoka will update the implementation of the decorators,
+since future versions of @Type will update the implementation of the decorators,
 while their interface will remain untouched, protecting our code from modifications.
 
 As we have already said, decorators are
@@ -6652,16 +6652,16 @@ views of the same node, just seen through different lenses
 effects. Moreover, it is not necessary to close all such nodes: closing `node` at
 the end of the try-with-resource will actually close all of them, since they are the same node.
 
-## Hotmoka Services
+## @Type Services
 
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
-This section shows how we can publish a Hotmoka node online, by using Java code,
+This section shows how we can publish a @Type node online, by using Java code,
 so that it becomes a
 network service that can be used, concurrently, by many remote clients.
 Namely, we will show how to publish a blockchain node based on Tendermint, but the code
-is similar if you want to publish a memory Hotmoka node or any
-other Hotmoka node.
+is similar if you want to publish a memory @Type node or any
+other @Type node.
 
 Remember that we have already published our nodes online, by using the
 `moka init-tendermint` and `moka init-memory` commands.
@@ -6726,14 +6726,14 @@ public class Publisher {
 }
 ```
 
-We have already seen that `original` is a Hotmoka node based on Tendermint.
+We have already seen that `original` is a @Type node based on Tendermint.
 The subsequent line makes the feat:
 
 ```java
 NodeService service = NodeService.of(serviceConfig, original);
 ```
 
-Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
+Variable `service` holds a @Type _service_, that is, an actual network service that adapts
 the `original` node to a web API that is published at localhost, at port 8080
 (another port number can be selected through the `serviceConfig` object, if needed). The service
 is an `AutoCloseable` object: it starts when it is created and gets shut down 
@@ -6818,8 +6818,8 @@ URL in a browser on your local machine, the response will be positive this time:
 This means that the manifest is allocated, in the store of `original`, at the storage reference
 `f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867#0`.
 
-> A Hotmoka node, once published, can be accessed by many
-> users, _concurrently_. This is not a problem, since Hotmoka nodes are thread-safe and can
+> A @Type node, once published, can be accessed by many
+> users, _concurrently_. This is not a problem, since @Type nodes are thread-safe and can
 > be used in parallel by many users. Of course, this does not mean that there are no
 > race conditions at the application level. As a simple example, if two users operate
 > with the same paying externally owned account, their wallets might suffer from race
@@ -6846,16 +6846,16 @@ Nevertheless, it is not the suggested way to proceed.
 
 A typical solution to this problem is to provide a software SDK, that is, a library
 that takes care of serializing the requests into JSON and deserializing
-the responses from JSON. Roughly speaking, this is the approach taken in Hotmoka.
+the responses from JSON. Roughly speaking, this is the approach taken in @Type.
 More precisely, as this section will show,
 we can forget about the details of the JSON serialization
 and deserialization of requests and responses and only program against the `Node` interface,
-by using an adaptor of a published Hotmoka service into a `Node`. This adaptor is called
-a _remote_ Hotmoka node.
+by using an adaptor of a published @Type service into a `Node`. This adaptor is called
+a _remote_ @Type node.
 
 We have used remote nodes from the very beginning of this tutorial.
-Namely, if you go back to [Installation of the Jar in a Hotmoka Node](#installation-of-the-jar-in-a-hotmoka-node),
-you will see that we have built a Hotmoka node from a remote service:
+Namely, if you go back to [Installation of the Jar in a @Type Node](#installation-of-the-jar-in-a-@type-node),
+you will see that we have built a @Type node from a remote service:
 
 ```java
 RemoteNodeConfig config = new RemoteNodeConfig.Builder()
@@ -6866,7 +6866,7 @@ try (Node node = RemoteNode.of(config)) {
   ...
 }
 ```
-The `RemoteNode.of(...)` method adapts a remote service into a Hotmoka node,
+The `RemoteNode.of(...)` method adapts a remote service into a @Type node,
 so that we can call all methods of that (Figure @fig:node_hierarchy).
 
 By default, a remote node connects to a service by using the HTTP protocol, but
@@ -6889,7 +6889,7 @@ that uses web sockets only for event notification to the subscribed event handle
 
 ### Creating Sentry Nodes
 
-We have seen that a `Node` can be published as a Hotmoka service:
+We have seen that a `Node` can be published as a @Type service:
 on a machine `my.validator.com` we can execute:
 
 ```java
@@ -6910,7 +6910,7 @@ http://my.validator.com:8080
 ```
 
 Moreover, on another machine `my.sentry.com`,
-that Hotmoka service can be adapted into a remote node
+that @Type service can be adapted into a remote node
 that, itself, can be published on that machine:
 
 ```java
@@ -6946,14 +6946,14 @@ This is an effective way to mitigate the problem of DOS attacks to validator nod
 
 The idea of sentry nodes against DOS attacks is not new and is used, for
 instance, in Cosmos networks [[Sentry]](#references).
-However, note how it is easy, with Hotmoka,
+However, note how it is easy, with @Type,
 to build such a network architecture by using network
 services and remote nodes.
 
 ## Signatures and Quantum-Resistance
 
-Hotmoka is agnostic wrt. the algorithm used for signing requests. This means that it is
-possible to deploy Hotmoka nodes that sign requests with distinct signature algorithms.
+@Type is agnostic wrt. the algorithm used for signing requests. This means that it is
+possible to deploy @Type nodes that sign requests with distinct signature algorithms.
 Of course, if nodes must re-execute the same transactions, such as in the case of a
 blockchain, then all nodes of the blockchain must use the same algorithm for
 the transactions signed by each given account, or otherwise
@@ -7059,7 +7059,7 @@ might exhaust the disk space of your computer very quickly. In practice, it is b
 to use a quantum-resistant signature algorithm only for a subset of the transactions, whose
 quantum-resistance is deemed important. Instead, one should use a lighter algorithm
 (such as the default ed25519) for all other transactions. This is possible because
-Hotmoka nodes allow one to mix transactions signed with distinct algorithms.
+@Type nodes allow one to mix transactions signed with distinct algorithms.
 Namely, one can use ed25519 as default algorithm, for all transactions signed
 by instances of `ExternallyOwnedAccount`s,
 with the exception of those transactions that are signed by instances of
@@ -7192,10 +7192,10 @@ at @family3_address
 The `@tool` tool has understood that the payer is an account that signs with the
 qtesla-p-I algorithm and has signed the request accordingly.
 
-# Tendermint Hotmoka Nodes
+# Tendermint @Type Nodes
 
 Section [Tendermint Nodes](#tendermint-nodes)
-has already presented the implementation of Hotmoka nodes based on Tendermint.
+has already presented the implementation of @Type nodes based on Tendermint.
 These nodes have the architecture shown in Figure @fig:hotmoka_tendermint and
 form an actual blockchain network. Since the underlying blockchain engine is
 Tendermint, the resulting network is based on a proof of stake consensus. That is,
@@ -7209,7 +7209,7 @@ fragile, since the node might have a slightly different behavior, depending on t
 exact configuration of the machine and of the exact version of the Java runtime installed
 in the machine. These differences might even compromise the capacity of a network
 of nodes to reach consensus. There is a simpler and less fragile
-way of installing a Tendermint Hotmoka node, by using the Docker tool.
+way of installing a Tendermint @Type node, by using the Docker tool.
 We cannot discuss Docker here. We just say that it is a utility to run lightweight
 containers in a machine. A container is a sort of preconfigured
 sandbox, whose configuration is fixed
@@ -7218,11 +7218,11 @@ a Docker container to start the node, not even a Java runtime. Everything is alr
 prepared inside the container. Well, our machine must have Docker installed, but that is the
 only requirement.
 
-## Starting a Tendermint Hotmoka Node with Docker
+## Starting a Tendermint @Type Node with Docker
 
 We have provided some preconfigured Docker images in Docker Hub, that you can see
 at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
-images, we can start our own Tendermint Hotmoka node as follow. First, we need to create the
+images, we can start our own Tendermint @Type node as follow. First, we need to create the
 key pair of the gamete, as we did in the previous chapter:
 
 ```shell
@@ -7245,7 +7245,7 @@ $ docker run -dit
     -p 8080:8080
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
+    hotmoka/tendermint-node:@version
     init
 
 @container_id1
@@ -7282,21 +7282,21 @@ Its entropy has been saved into the file
 
 That's all. We can now use the gamete to open the faucet of the node (`moka faucet`) and play
 with the node as we did in the previous chapters of this book. Just direct the clients
-to `localhost:8080` instead of `panarea.hotmoka.io`.
+to `localhost:8080` instead of `@server`.
 
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
 a Docker image, which is actually specified at the end:
-`hotmoka/tendermint-node:@hotmoka_version`. Docker will download that image from Docker Hub.
+`hotmoka/tendermint-node:@version`. Docker will download that image from Docker Hub.
 
 > That image assumes that you are using a Linux machine based on the amd64 architecture.
 > If you are using a Linux machine based on the arm64 architecture, use the
-> `hotmoka/tendermint-node-arm64:@hotmoka_version` image. If you are using a Windows machine,
+> `hotmoka/tendermint-node-arm64:@version` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
 > Please refer to the Docker documentation to know how this can be accomplished.
 
 A specific command of the image is run, specified at the end: it is the `init` command
-that initializes a Tendermint Hotmoka node.
+that initializes a Tendermint @Type node.
 Options of `run` are passed to the Docker image as environment variables,
 through the `-e` switch. The `INITIAL_SUPPLY` is the amount of coins
 provided to the gamete initially, that is, the amount of cryptocurrency available
@@ -7306,7 +7306,7 @@ The `CHAIN_ID` is the chain identifier of the blockchain started by the node.
 The `OPEN_UNSIGNED_FAUCET` switch opens a free faucet for getting cryptocurrency for free from the
 gamete: use `false` for that in a real blockchain.
 
-As shown in Figure @fig:hotmoka_tendermint, a Tendermint Hotmoka node communicates
+As shown in Figure @fig:hotmoka_tendermint, a Tendermint @Type node communicates
 to the external world through ports 26656 for gossip and 8080 (or 80 or any other port) for clients.
 Hence those ports must be connected to the Docker image. We do that with the
 `-p` switch. Specifically, port 8080 of the real machine is bound to port 8080 of the Docker image
@@ -7331,7 +7331,7 @@ $ docker stop @container_id1
 
 > The hash will be different in your experiments. Use yours.
 
-You can verify that the Tendermint Hotmoka node is not available anymore:
+You can verify that the Tendermint @Type node is not available anymore:
 
 ```shell
 $ @tool info --url localhost:8080
@@ -7354,7 +7354,7 @@ $ docker run -dit
     -p 8080:8080
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
+    hotmoka/tendermint-node:@version
     resume
 
 @container_id2
@@ -7383,9 +7383,9 @@ $ docker stop @container_id2
 The Docker image contains a `help` command. Try for instance:
 
 ```shell
-$ docker run --rm -it hotmoka/tendermint-node:@hotmoka_version help
+$ docker run --rm -it hotmoka/tendermint-node:@version help
 
-This container runs a Hotmoka node based on Tendermint.
+This container runs a @Type node based on Tendermint.
 It understands the following commands and options:
 
   help:   prints this help
@@ -7403,7 +7403,7 @@ It understands the following commands and options:
 ```
 
 We have already discussed the `help`, `init` and `resume` commands.
-Section [Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain)
+Section [Connecting a Tendermint @Type Node to an Existing Blockchain](#connecting-a-tendermint-@type-node-to-an-existing-blockchain)
 will show an example of use of the `start` command.
 Before that, let us understand better what the manifest of a Tendermint node tells us.
 
@@ -7417,7 +7417,7 @@ $ docker run -dit
     -p 8080:8080
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
+    hotmoka/tendermint-node:@version
     resume
 
 @container_id3
@@ -7576,10 +7576,10 @@ This file must remain in the node, or otherwise Tendermint cannot vote for valid
 The Docker script magically ensures that, correctly, this file contains the same key
 as `@docker_validator0.pem`, although in a different format.
 
-## Starting a Tendermint Hotmoka Node on Amazon EC2
+## Starting a Tendermint @Type Node on Amazon EC2
 
 In the previous section,
-we have published a Hotmoka node on our machine (the localhost).
+we have published a @Type node on our machine (the localhost).
 This might not be the best place where
 the node should be published, since our machine might not allow external internet connections
 and since we might want to turn that machine off after we stop working with it.
@@ -7592,13 +7592,13 @@ require one to pay for their use. Since the micro machine is enough for our purp
 EC2 is a good candidate for experimentation. Nevertheless, what we describe in this section
 can be achieved with any other cloud rental architecture.
 
-Conceptually, there is nothing special with running a Tendermint Hotmoka node
+Conceptually, there is nothing special with running a Tendermint @Type node
 inside an Amazon EC2 machine. Just start a free microservice machine and ssh to it
 in order to install Docker, by following the standard installation instructions for Docker
 in a Linux machine, that you can find at
 [https://docs.docker.com/engine/install/](https://docs.docker.com/engine/install/).
 As Figure @fig:hotmoka_tendermint shows, ports 80 (for instance) and 26656 must be open
-in order for a Tendermint Hotmoka node to work correctly. Therefore, use a browser to access
+in order for a Tendermint @Type node to work correctly. Therefore, use a browser to access
 the Amazon EC2 console, select your micromachine and inspect its security group. Modify its
 inbound rules so that they allow connections to ports 22 (for ssh), 26656 (for gossip)
 and 80 (for clients). At the end, such rules should look as in Figure @fig:inbound_rules.
@@ -7628,7 +7628,7 @@ ec2$ docker run -dit
        -p 80:8080
        -p 26656:26656
        -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@hotmoka_version
+       hotmoka/tendermint-node:@version
        init
 
 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
@@ -7704,16 +7704,16 @@ is conceptually the same both in your local machine and in Amazon EC2.
 > external clients. Of course, if you turn the EC2 machine
 > off from the EC2 management console of Amazon, the node will die and will become unreachable.
 
-## Connecting a Tendermint Hotmoka Node to an Existing Blockchain
+## Connecting a Tendermint @Type Node to an Existing Blockchain
 
 We have started, and subsequently turned off, a blockchain consisting of a single validator
 node, living in splendid isolation. But we might want to do something different.
 Namely, we want now to start a node that _belongs_ to the same blockchain network as
-`panarea.hotmoka.io`. This means that the node will be started and will replay
-all transactions already executed by `panarea.hotmoka.io`, starting from the empty state.
-At the end, our node will be a clone of `panarea.hotmoka.io`, with its same state.
+`@server`. This means that the node will be started and will replay
+all transactions already executed by `@server`, starting from the empty state.
+At the end, our node will be a clone of `@server`, with its same state.
 From that moment on, our node can be used to replay and follow the new transactions that
-reach the blockchain of `panarea.hotmoka.io`, and also to send new transactions to that
+reach the blockchain of `@server`, and also to send new transactions to that
 blockchain. It will be a _peer_ of that blockchain network. Note, however, that it will
 not be a validator of the blockchain.
 
@@ -7722,11 +7722,11 @@ in the remote EC2 machine:
 
 ```shell
 ec2$ docker run -dit
-       -e NETWORK_URL=panarea.hotmoka.io
+       -e NETWORK_URL=@server
        -p 80:8080
        -p 26656:26656
        -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@hotmoka_version
+       hotmoka/tendermint-node:@version
        start
 
 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
@@ -7735,7 +7735,7 @@ ec2$ docker run -dit
 The `start` command needs only an option, the `NETWORK_URL` switch, that
 specifies the URL of a node to clone and become a peer of. If you wait for a few seconds,
 you can see that a new node has been published, that is part of the blockchain network
-of `panarea.hotmoka.io`:
+of `@server`:
 
 ```shell
 $ @tool info --url ec2-34-244-119-200.eu-west-1.compute.amazonaws.com
@@ -7751,10 +7751,10 @@ Info about the node:
       balance: 99999999999999999999...
       maxFaucet: @maxFaucet
 ```
-Note that the information of this node is that of `panarea.hotmoka.io`
+Note that the information of this node is that of `@server`
 (compare it with that
-in section [Contacting a Hotmoka Test Node](#contacting-a-hotmoka-test-node)).
-That is, the started node is a clone of `panarea.hotmoka.io` and can be used at its place.
+in section [Contacting a @Type Test Node](#contacting-a-@type-test-node)).
+That is, the started node is a clone of `@server` and can be used at its place.
 
 > It is possible to start a peer of another node manually, similarly to what
 > we have done in section [Tendermint Nodes](#tendermint-nodes).
@@ -7765,7 +7765,7 @@ That is, the started node is a clone of `panarea.hotmoka.io` and can be used at 
 > might not reach consensus about the effects of the transactions.
 > By using a prepared Docker image, we save us such headache.
 > The interested reader can see the implementation of that image
-> inside the distribution of Hotmoka, in the `dockerfiles` directory.
+> inside the distribution of @Type, in the `dockerfiles` directory.
 
 In general, the `start` command might take a while, since it downloads and replays all transactions
 already executed in the cloned node. Therefore, if you turn the started node off with the `docker stop` command,
@@ -7777,7 +7777,7 @@ it will only download and replay the transactions that have been done in the rem
 ## Shared Entities
 
 This section describes how the set of validators
-is implemented in Hotmoka. Namely, the validation power of the network is expressed as a
+is implemented in @Type. Namely, the validation power of the network is expressed as a
 total quantity shared among all validator nodes. For instance, when we have shown the manifest of the
 nodes, we have seen information about the only validator in the subsequent form:
 
@@ -7801,7 +7801,7 @@ The power of a validator expresses the weight of its votes: in order to validate
 at least two thirds of the validation power must agree on the outcome of the transaction, or
 otherwise the network will hang.
 This mechanism is inherited from the underlying Tendermint engine and might be different
-in other Hotmoka nodes in the future. However, the idea that power represents the weight
+in other @Type nodes in the future. However, the idea that power represents the weight
 of a validator will likely remain.
 
 What said above means that the validators are a sort of _entity_ that shares validation
@@ -7813,7 +7813,7 @@ resembles the market of shares of a corporation.
 
 [PDFonly]: ![Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes.](pics/entities.png "Figure @fig:entities_hierarchy. The hierarchy of entities and validators classes."){ width=105% }
 
-Hotmoka has an interface that represents entities whose shares can be dynamically sold and bought about _shareholders_.
+@Type has an interface that represents entities whose shares can be dynamically sold and bought about _shareholders_.
 Figure @fig:entities_hierarchy shows this `SharedEntity` interface. As you can see in the figure, the notion of validators
 is just a special case of shared entity (see also [[BeniniGMS21]](#references)).
 It is possible to use shared entities to represent other concepts, such as
@@ -7860,10 +7860,10 @@ must be able to receive payments and that is why `S extends PayableContract`.
 The `SimpleSharedEntity` class implements the shared entity algorithms, that subclasses
 can redefine if they want.
 
-Hotmoka models validator nodes as
+@Type models validator nodes as
 objects of class `Validator`, that are externally owned accounts with an extra identifier
 (Figure @fig:entities_hierarchy).
-In the specific case of a Hotmoka blockchain built over Tendermint, validators
+In the specific case of a @Type blockchain built over Tendermint, validators
 are instances of the subclass `TendermintED25519Validator`, whose identifier is derived from their
 ed25519 public key. This identifier is public information, reported
 in the blocks or easily eavesdropped.
@@ -7880,11 +7880,11 @@ The `AbstractValidators` class implements the validators’ set and the distribu
 of the reward and is a subclass of `SimpleSharedEntity` (see Figure @fig:entities_hierarchy).
 Shares are voting power in this case. Its subclass `TendermintValidators`
 restricts the type of the validators to be `TendermintED25519Validator`. At each
-block committed, Hotmoka calls the reward method of `Validators` in order
+block committed, @Type calls the reward method of `Validators` in order
 to reward the validators that behaved correctly and slash those that
 misbehaved, possibly removing them from the validators' set. They are specified by
 two strings that contain the identifiers of the validators, as provided by the
-underlying Tendermint engine. At block creation time, Hotmoka
+underlying Tendermint engine. At block creation time, @Type
 calls method `getShareholders` inherited from `SimpleSharedEntity` and informs
 the underlying Tendermint engine about the identifiers of the validator nodes
 for the next blocks. Tendermint expects such validators to mine and vote the
@@ -7892,21 +7892,21 @@ subsequent blocks, until a change in the validators’ set occurs.
 
 ## Becoming a Validator
 
-Up to now, we have started Tendermint Hotmoka nodes of a blockchain with only a single validator node.
+Up to now, we have started Tendermint @Type nodes of a blockchain with only a single validator node.
 That is, the network can have more nodes, but only one of them
 (the one started first) is the validator of the
 network. All other nodes are simply peers, that verify the transactions but have no voice
 in the network and do not vote for validation.
 
 Assume for instance that Alice follows the instructions in
-[Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
-and starts a Hotmoka node with Docker, that is a network with
+[Starting a Tendermint @Type Node on Amazon EC2](#starting-a-tendermint-@type-node-on-amazon-ec2)
+and starts a @Type node with Docker, that is a network with
 a single node that, moreover, is the only validator. Her node will be publicly accessible
-as `http://alice.hotmoka.io`. The key of the only validator is in the `chain`
+as `http://alice.@type.io`. The key of the only validator is in the `chain`
 volume of Docker in Alice's machine, as said before.
 Alice moves that key to a safer place, where she can use it to control the validator:
 ```shell
-alice.hotmoka.io$ @tool create-key
+alice.@type.io$ @tool create-key
 
 Please specify the password of the new key: queen
 A new key has been created.
@@ -7914,27 +7914,27 @@ A new key has been created.
 Its entropy has been saved into the file
   "8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5.pem".
 
-alice.hotmoka.io$ docker run --rm -dit
+alice.@type.io$ docker run --rm -dit
     -e KEY_OF_GAMETE=8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
     -e CHAIN_ID=caterpillar
     -e INITIAL_SUPPLY=1000000000000000000
     -p 80:8080
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
+    hotmoka/tendermint-node:@version
     init
 
-alice.hotmoka.io$ @tool bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
+alice.@type.io$ @tool bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
   --url localhost:80
 A new account 21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
   has been created.
 Its entropy has been saved into the file
   "21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0.pem".
 
-alice.hotmoka.io$ docker exec 21f1fe /bin/ls chain| grep ".pem"
+alice.@type.io$ docker exec 21f1fe /bin/ls chain| grep ".pem"
 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
 
-alice.hotmoka.io$ sudo mv /var/lib/docker/volumes/chain/_data/
+alice.@type.io$ sudo mv /var/lib/docker/volumes/chain/_data/
   8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0.pem .
 ```
 After these commands, Alice has two keys in two pem files: the
@@ -7943,15 +7943,15 @@ and the key of the validator
 `8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0`.
 
 After some time, Bob starts another node, connected to Alice's node, by following the instructions in
-[Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain).
-Bob's node is publicly accessible as `http://bob.hotmoka.io`.
+[Connecting a Tendermint @Type Node to an Existing Blockchain](#connecting-a-tendermint-@type-node-to-an-existing-blockchain).
+Bob's node is publicly accessible as `http://bob.@type.io`.
 ```shell
-bob.hotmoka.io$ docker run --rm -dit
-    -e NETWORK_URL=alice.hotmoka.io
+bob.@type.io$ docker run --rm -dit
+    -e NETWORK_URL=alice.@type.io
     -p 80:8080
     -p 26656:26656
     -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@hotmoka_version
+    hotmoka/tendermint-node:@version
     start
 
 070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
@@ -7961,11 +7961,11 @@ This second node is just a peer, not a validator. Alice's validator remains the 
 However, the Docker script run by Bob has created a validator's key anyway, inside the Docker container,
 that Bob can use in the future if his node will ever become a validator node. Bob moves that key to his local machine:
 ```shell
-bob.hotmoka.io$ docker exec 070abbc64316 /bin/ls | grep ".pem"
+bob.@type.io$ docker exec 070abbc64316 /bin/ls | grep ".pem"
 
 3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem
 
-bob.hotmoka.io$ docker cp
+bob.@type.io$ docker cp
   070abbc64316:/home/hotmoka/3yk6V6MK5eVANMpZkzEtKuc4D3giZsrxAewzRXsym2jq.pem .
 ```
 At the moment, that key is not yet bound to any `Validator` object in blockchain. Note that the Docker script creates this key
@@ -7988,14 +7988,14 @@ for validation of transactions. However, if
 that is not the case, then Alice must
 first charge the validator object (for instance, from her gamete) and later use it to place the sale offer:
 ```shell
-alice.hotmoka.io$ @tool send 1000000000
+alice.@type.io$ @tool send 1000000000
     8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
     --payer=21f1feb9201e8efcc616662d18382547af876d5ea500e2173e2ed1eb71bdd98e#0
     --url localhost
 
 Please specify the password of the payer account: queen
 
-alice.hotmoka.io$ @tool sell-validation
+alice.@type.io$ @tool sell-validation
   8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
   400000
   1000000000
@@ -8020,7 +8020,7 @@ one hour from then).
 Bob can now realize that a sale offer is available. By running `moka info` again he will notice the offer:
 
 ```shell
-bob.hotmoka.io$ @tool info --url localhost
+bob.@type.io$ @tool info --url localhost
 
 surcharge for buying validation power: 50000000 (ie. 50.000000%)
 validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
@@ -8055,7 +8055,7 @@ object. He has only the key generated by the Docker script.
 Hence the first step for Bob is to create a `Validator` object with that key, by letting
 his account pay:
 ```shell
-bob.hotmoka.io$ @tool create-account 2000000000
+bob.@type.io$ @tool create-account 2000000000
   --create-tendermint-validator
   --payer 6a63266067276577bf2363def73dbd123d77d9ba918642383372402a102a0b13#0
   --url localhost
@@ -8072,7 +8072,7 @@ externally owned account would have been created. This way, instead, an instance
 of `TendermintED25519Validator` gets created (see Figure @fig:entities_hierarchy).
 Bob can verify this with `moka state`:
 ```shell
-bob.hotmoka.io$ @tool state
+bob.@type.io$ @tool state
   85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
   --url localhost
 
@@ -8090,7 +8090,7 @@ He just accepts the sale offer
 `3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0`
 by using his validator object as payer:
 ```shell
-bob.hotmoka.io$ @tool buy-validation
+bob.@type.io$ @tool buy-validation
   85a89fd0baafb4b8313257fb192361bd195fc79126e790215c3ad2791a84c606#0
   3aa23081c5e5b55628c8d2584b2b7ae2dff4551564e5c40f11ec1973a73728af#0
   --url localhost
@@ -8104,7 +8104,7 @@ Offer accepted
 Finally, both Bob and Alice can verify that there are two validators now in the network,
 and no more sale offers:
 ```shell
-alice.hotmoka.io$ @tool info --url localhost
+alice.@type.io$ @tool info --url localhost
 ...
 number of validators: 2
   validator #0: 8418acb720db3097d899586762cee03bb34549a2666969c09c6b964611f6d338#0
@@ -8149,7 +8149,7 @@ once, at compilation time or at jar installation time, and can prove, once and f
 that some errors will never occur, regardless of the execution path that will
 be followed at run time.
 
-Hotmoka nodes apply a combination of static and dynamic verification to the
+@Type nodes apply a combination of static and dynamic verification to the
 Takamaka code that is installed inside their store.
 Static verification runs only once, when a node installs
 a jar in its store, or when classes are loaded for the first time
@@ -8172,7 +8172,7 @@ verification [[JVM-Verification]](#references).
 
 ## Takamaka Bytecode Verification
 
-Hotmoka nodes verify extra constraints, that are not checked as part of the
+@Type nodes verify extra constraints, that are not checked as part of the
 standard JVM bytecode verification. Such extra constraints are mainly related to
 the correct use of Takamaka annotations and contracts, and are
 in part static and in part dynamic. Static constraints are checked when a
@@ -8187,7 +8187,7 @@ Below, remember that `@FromContract` is shorthand for `@FromContract(Contract.cl
 Moreover, note that the constraints related
 to overridden methods follow by Liskov's principle [[LiskovW94]](#references).
 
-Hotmoka nodes verify the following static constraints:
+@Type nodes verify the following static constraints:
 
 1. The `@FromContract(C.class)` annotation is only applied to constructors of a
   (non-strict) subclass of `io.takamaka.code.lang.Storage` or to instance methods of a
@@ -8335,9 +8335,9 @@ Hotmoka nodes verify the following static constraints:
 > executor to line 10, again. And so on, for ever. That is, this code
 > disables the guarantee that Takamaka transactions always terminate,
 > possibly with an `OutOfGasError`. This code could be used for
-> a DOS attack to a Hotmoka node. Although this code cannot be written in Java,
+> a DOS attack to a @Type node. Although this code cannot be written in Java,
 > it is well possible to write it directly, with a bytecode editor,
-> and submit it to a Hotmoka node, that will reject it, thanks to point 19.
+> and submit it to a @Type node, that will reject it, thanks to point 19.
 
 19. If a method or constructor is annotated as `@ThrowsException`, then it is public.
 20. If a method is annotated as `@ThrowsException` and overrides another method,
@@ -8353,22 +8353,22 @@ Hotmoka nodes verify the following static constraints:
 > possible to replace class `io.takamaka.code.lang.Contract`, which could thoroughly
 > revolutionize the execution of the contracts. During the initialization of a node,
 > that occurs once at its start-up, it is however permitted to install the
-> runtime of Takamaka (the `io-takamaka-code-@hotmoka_version.jar` archive used in the examples
+> runtime of Takamaka (the `io-takamaka-code-@version.jar` archive used in the examples
 > in the previous chapters).
 
 23. All referenced classes, constructors, methods and fields must be white-listed.
     Those from classes installed in the store of the node are always white-listed by
     default. Other classes loaded from the Java class path must have been explicitly
-    marked as white-listed in the `io-takamaka-code-whitelisting-@hotmoka_version.jar` archive.
+    marked as white-listed in the `io-takamaka-code-whitelisting-@version.jar` archive.
 
 > Hence, for instance, the classes of the support library `io.takamaka.code.lang.Storage`
 > and `io.takamaka.code.lang.Takamaka` are white-listed, since they
-> are inside `io-takamaka-code-@hotmoka_version.jar`, that is typically installed in the store of a
+> are inside `io-takamaka-code-@version.jar`, that is typically installed in the store of a
 > node during its initialization. Classes from user
 > jars installed in the node are similarly white-listed.
 > Method `java.lang.System.currentTimeMillis()` is not white-listed,
 > since it is loaded from the Java class path and is not annotated as white-listed
-> in `io-takamaka-code-whitelisting-@hotmoka_version.jar`.
+> in `io-takamaka-code-whitelisting-@version.jar`.
 
 24. Bootstrap methods for the `invokedynamic` bytecode use only standard call-site
     resolvers, namely, instances of `java.lang.invoke.LambdaMetafactory.metafactory`
@@ -8424,17 +8424,17 @@ Takamaka verifies the following dynamic constraints:
 
 __[See project `family_wrong` inside the `hotmoka_tutorial` repository]__
 
-If a jar being installed in a Hotmoka node does not satisfy the static
+If a jar being installed in a @Type node does not satisfy the static
 constraints that we have described before, the installation transaction fails with
 a verification exception, no jar is actually installed but the gas of the
 caller gets consumed. Hence it is not practical to realize that a
 static constraint does not hold only by trying to install a jar in a node.
 Instead, it is desirable to verify all constraints off-line, fix all
 violations (if any) and only then install the jar in the node. This is
-possible by using the `@tool` command-line interface of Hotmoka.
+possible by using the `@tool` command-line interface of @Type.
 Namely, it provides a subcommand that performs the same identical jar
 verification that would be executed when a jar is
-installed in a Hotmoka node.
+installed in a @Type node.
 
 Create a `family_wrong-0.0.1.jar` containing
 a wrong version of the `family` project. For that, copy the `family`
@@ -8492,13 +8492,13 @@ $ cd family_wrong
 $ mvn package
 ```
 
-Let us start with the verification of `io-takamaka-code-@hotmoka_version.jar`,
+Let us start with the verification of `io-takamaka-code-@version.jar`,
 taken from Maven's cache:
 
 ```shell
 $ cd hotmoka_tutorial
 $ @tool verify
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/@version/io-takamaka-code-@version.jar
     --init
 Verification succeeded
 ```
@@ -8509,13 +8509,13 @@ switch, we verify the jar as it would be verified before node initialization,
 that is, by considering such packages as legal.
 
 We can generate the instrumented jar, exactly as it would be generated during
-installation in a Hotmoka node. For that, we run:
+installation in a @Type node. For that, we run:
 
 ```shell
 $ mkdir instrumented
 $ @tool instrument
-    ~/.m2/repository/io/hotmoka/io-takamaka-code/@hotmoka_version/io-takamaka-code-@hotmoka_version.jar
-    instrumented/io-takamaka-code-@hotmoka_version.jar
+    ~/.m2/repository/io/hotmoka/io-takamaka-code/@version/io-takamaka-code-@version.jar
+    instrumented/io-takamaka-code-@version.jar
     --init
 ```
 
@@ -8531,7 +8531,7 @@ refer to an already instrumented jar:
 $ @tool instrument
     family/target/family-0.0.1.jar
     instrumented/family-0.0.1.jar
-    --libs instrumented/io-takamaka-code-@hotmoka_version.jar
+    --libs instrumented/io-takamaka-code-@version.jar
 ```
 Verification succeeds this time as well, and an instrumented `family-0.0.1.jar` appears in the
 `instrumented` directory. Note that we have not used the `--init` switch this time, since we
@@ -8544,7 +8544,7 @@ be printed on the screen:
 ```shell
 $ @tool verify
     family_wrong/target/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-@hotmoka_version.jar 
+    --libs instrumented/io-takamaka-code-@version.jar 
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class
@@ -8566,7 +8566,7 @@ The same failure occurs with the `instrument` command, that will not generate th
 $ @tool instrument
     family_wrong/target/family_wrong-0.0.1.jar
     instrumented/family_wrong-0.0.1.jar
-    --libs instrumented/io-takamaka-code-@hotmoka_version.jar
+    --libs instrumented/io-takamaka-code-@version.jar
 
 io/takamaka/family/Person.java field parents:
   type not allowed for a field of a storage class

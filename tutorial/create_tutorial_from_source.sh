@@ -56,7 +56,7 @@ sed -i 's/@fig:inbound_rules/36/g' Tutorial.md
 sed -i 's/@fig:entities_hierarchy/37/g' Tutorial.md
 
 # These get automatically recomputed with the update script: do not edit!
-sed -i 's/@hotmoka_version/1.0.8/g' Tutorial.md
+sed -i 's/@version/1.0.8/g' Tutorial.md
 sed -i 's/@takamakaCode/c445a8f4f684fb50a9c86818515fe181d9711d4369e23e024182a7f5d1e33d67/g' Tutorial.md
 sed -i 's/@manifest/5c8925c53825ecd3334e05925089f1b8d37c77ed1ed47e35a1c25666c093f271#0/g' Tutorial.md
 sed -i 's/@gamete/0c9c4b4f3b112a9232ef307040d28350d6da886391385b59c36a6097cdd0bbdb#0/g' Tutorial.md
@@ -139,6 +139,8 @@ sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
 sed -i 's/@app/mokito/g' ProgrammingHotmoka.md
 sed -i 's/@App/Mokito/g' ProgrammingHotmoka.md
+sed -i 's/@type/hotmoka/g' ProgrammingHotmoka.md
+sed -i 's/@Type/Hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingHotmoka.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingHotmoka.md
 
@@ -149,7 +151,7 @@ sed -i "s/\[Markdownonly]://g" ProgrammingHotmoka.md
 # generate the PDF version now
 sed -i "/^\[Markdownonly]:/d" temp.md
 sed -i "s/\[PDFonly]://g" temp.md
-pandoc temp.md -o ProgrammingHotmoka.tex --include-in-header mystylefile.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
+pandoc temp.md -o ProgrammingHotmoka.tex --include-in-header mystylefile_hotmoka.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 rm temp.md
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' ProgrammingHotmoka.tex
 sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' ProgrammingHotmoka.tex
@@ -187,10 +189,12 @@ cp Tutorial.md ProgrammingBlueknot.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
-sed -i 's/@tool/moka/g' ProgrammingBlueknot.md
-sed -i 's/@Tool/Moka/g' ProgrammingBlueknot.md
-sed -i 's/@app/mokito/g' ProgrammingBlueknot.md
-sed -i 's/@App/Mokito/g' ProgrammingBlueknot.md
+sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
+sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
+sed -i 's/@app/bluewallet/g' ProgrammingBlueknot.md
+sed -i 's/@App/Bluewallet/g' ProgrammingBlueknot.md
+sed -i 's/@type/blueknot/g' ProgrammingBlueknot.md
+sed -i 's/@Type/Blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingBlueknot.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingBlueknot.md
 
@@ -201,7 +205,7 @@ sed -i "s/\[Markdownonly]://g" ProgrammingBlueknot.md
 # generate the PDF version now
 sed -i "/^\[Markdownonly]:/d" temp.md
 sed -i "s/\[PDFonly]://g" temp.md
-pandoc temp.md -o ProgrammingBlueknot.tex --include-in-header mystylefile.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
+pandoc temp.md -o ProgrammingBlueknot.tex --include-in-header mystylefile_blueknot.tex --include-after-body backcover.tex --toc --highlight-style=kate -V geometry:a4paper -V documentclass:book -V pagestyle:headings -V papersize:a4 -V colorlinks:true
 rm temp.md
 sed -i 's/\\begin{verbatim}/\\begin{myverbatim}\n\\begin{verbatim}/g' ProgrammingBlueknot.tex
 sed -i 's/\\end{verbatim}/\\end{verbatim}\n\\end{myverbatim}/g' ProgrammingBlueknot.tex

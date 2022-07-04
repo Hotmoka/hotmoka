@@ -28,7 +28,7 @@ echo "  Script = $SCRIPT"
 sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
-sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' $SCRIPT
+sed -i '/@version/s/\/.*\//\/@version\/'$VERSION'\//' $SCRIPT
 
 message "Starting Docker container"
 DOCKER_TOTAL_SUPPLY=1000000000000000
