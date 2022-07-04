@@ -10,7 +10,7 @@
 
 [Markdownonly]: <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
-[Markdownonly]: <p align="center">Copyright 2022 by Fausto Spoto (fausto.spoto@hotmoka.io).</p>
+[Markdownonly]: <p align="center">Copyright 2022 by Fausto Spoto (@fausto_email).</p>
 
 # Table of Contents
 1. [Introduction](#introduction)
@@ -195,7 +195,7 @@ functionalities are of course limited.
 @Type is a complex project, that requires many and different skills. After years of development,
 it is ready for the general public. This does not mean that it is bug-free, nor perfect:
 we expect our users to find all sort of bugs and to suggest improvements. Hence, feel
-free to write to us at `info@hotmoka.io`, with bugs and improvement requests.
+free to write to us at `@fausto_email`, with bugs and improvement requests.
 If you are a developer, consider the possibility of helping us with the development
 of the project. In particular, the whole ecosystem of applications running
 over @Type is missing at the moment (that is, applications, typically web-based, that
@@ -521,7 +521,7 @@ Most users will only perform simple tasks with a @Type node.
 For them, it is simpler to use a mobile app, with a simpler user
 interface. That app, called `@App`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
-[https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito](https://play.google.com/store/apps/details?id=io.hotmoka.android.mokito). Developers interested in its Kotlin source code
+[https://play.google.com/store/apps/details?id=@app_id_play](https://play.google.com/store/apps/details?id=@app_id_play). Developers interested in its Kotlin source code
 can find it at
 [https://github.com/Hotmoka/HotmokaAndroid](https://github.com/Hotmoka/HotmokaAndroid),
 together with a small Android service for connecting to a remote @Type node.
