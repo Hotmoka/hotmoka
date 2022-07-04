@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# This script updates the "create_for_XXX_from_source.sh" script
+# This script updates the "create_tutorial_from_source.sh" script
 # so that it reflects the content of a remote node.
 # It is useful after a new node has been deployed, if we want the
-# documentation and the tutorail examples
+# documentation and the tutorial examples
 # to reflect the actual content of the node.
 
 # Run for instance this way:
@@ -14,7 +14,7 @@ NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 # by default, it modifies the shell script for Hotmoka
 TYPE=${TYPE:=hotmoka}
 TYPE_CAPITALIZED=${TYPE^}
-SCRIPT=create_for_${TYPE}_from_source.sh
+SCRIPT=create_tutorial_from_source.sh
 RED='\033[1;31m'
 NC='\033[0m'
 message() {
