@@ -205,7 +205,7 @@ licensed under the terms of the Apache 2.0 License. Therefore, feel free to clon
 **The Example Projects of This Book**.
 The experiments that we will perform in this book will
 require one to create Java projects inside a directory that we will name
-`hotmoka_tutorial`. We suggest that you create and
+`@tutorial_name`. We suggest that you create and
 experiment with these projects yourself.
 However, if you have no time and want to jump immediately to the result,
 or if you want to compare your work
@@ -216,13 +216,13 @@ the project of the repository where you can find the related code.
 You can clone that completed tutorial examples repository as follows:
 
 ```shell
-$ git clone https://github.com/Hotmoka/hotmoka_tutorial.git
+$ git clone @tutorial_repo
 ```
 
-This will create the `hotmoka_tutorial` directory. Inside that directory, you will
+This will create the `@tutorial_name` directory. Inside that directory, you will
 find the Java projects of this book, in Maven format.
 You can import all these projects into Eclipse (File &rarr; Import; then specify
-*Existing Maven Projects* and finally select the `hotmoka_tutorial` directory).
+*Existing Maven Projects* and finally select the `@tutorial_name` directory).
 They can be imported similarly in IntelliJ and NetBeans.
 
 **Acknowledgments**.
@@ -239,7 +239,7 @@ with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
 &nbsp;
 
-_Verona, February 2022_.
+_Verona, July 2022_.
 
 # Getting Started with @Type
 
@@ -400,7 +400,7 @@ computer and a recent version of Maven.
 You should download and untar the latest release into the directory
 where you want to install `@tool`. For instance, assuming that
 the latest version is `@version` and that
-you want to install it under `~/Opt/moka`, you can run the following commands:
+you want to install it under `~/Opt/@tool`, you can run the following commands:
 
 ````shell
 $ cd ~/Opt
@@ -418,7 +418,7 @@ $ export PATH=$PATH:$(pwd)
 > the command in a single line, without newlines or spaces: `...releases/download/v...`
 
 The last `export` command expands the command-path of the shell with
-the `~/Opt/moka` directory, so that `@tool` can
+the `~/Opt/@tool` directory, so that `@tool` can
 be invoked from the command shell, regardless of the current directory.
 You might want to add an `export`
 at the end of your `~/.bashrc` configuration file, so that the command-path
@@ -426,7 +426,7 @@ will be expanded correctly the next time you open a shell. For instance, I added
 the following command at the end of my `~/.bashrc`:
 
 ```shell
-export PATH=/home/spoto/Opt/moka:$PATH
+export PATH=/home/spoto/Opt/@tool:$PATH
 ```
 
 #### Windows
@@ -439,11 +439,11 @@ where you want to install `@tool`, by using a software tool such as
 from the command prompt:
 
 ```shell
-$ cd directory-where-you-installed-moka
-$ moka.bat help
+$ cd directory-where-you-installed-@tool
+$ @tool.bat help
 ```
 
-In the following of this tutorial, remember to use `moka.bat` to invoke the
+In the following of this tutorial, remember to use `@tool.bat` to invoke the
 tool, where our examples use `@tool` instead, which is the Linux name of
 the invocation script.
 
@@ -679,7 +679,7 @@ In this test network, we will use the faucet of the gamete instead, that is will
 to send us up to @maxFaucet coins, for free. Namely, you can run the
 following command in order to ask the faucet to create your first externally owned account,
 funded with 50000000000 coins, initially. We will execute the following command-line
-inside the `hotmoka_tutorial` directory, so that it will save the _entropy_ of your account
+inside the `@tutorial_name` directory, so that it will save the _entropy_ of your account
 there, which will simplify your subsequent work:
 
 ```shell
@@ -1137,10 +1137,10 @@ call the `toString()` method on that instance in blockchain.
 
 ## Creation of the Eclipse Project
 
-__[See the `family` project inside the `hotmoka_tutorial` repository]__
+__[See the `family` project inside the `@tutorial_name` repository]__
 
 Let us create a Maven project `family` inside Eclipse,
-in the `hotmoka_tutorial` directory.
+in the `@tutorial_name` directory.
 For that, in the Eclipse's Maven wizard
 (New &rarr; Maven project) specify the options
 *Create a simple project (skip archetype selection)*
@@ -1272,7 +1272,7 @@ This is a plain old Java class and should not need any comment.
 
 Package the project into a jar, by running the following shell command inside
 the directory of the project (that is, the subdirectory `family` of the
-directory `hotmoka_tutorial`):
+directory `@tutorial_name`):
 
 ```shell
 $ mvn package
@@ -1293,7 +1293,7 @@ The result should look as in Figure @fig:family_jar:
 
 ## Installation of the Jar in a @Type Node
 
-__[See the `runs` project inside the `hotmoka_tutorial` repository]__
+__[See the `runs` project inside the `@tutorial_name` repository]__
 
 We have generated the jar containing our code and we want to send it now to a @Type node,
 where it will be installed. This means that it will become available to programmers
@@ -1302,12 +1302,12 @@ In order to install a jar in the @Type node that we have used in the previous ch
 we can use the `@tool` command-line tool, specifying which account will pay for the
 installation of the jar. The cost of the installation depends on the size of the
 jar and on the number of its dependencies. The `@tool` tool uses a heuristics to
-foresee the cost of installation. Move inside the `hotmoka_tutorial` directory, if you are not
+foresee the cost of installation. Move inside the `@tutorial_name` directory, if you are not
 there already, so that
 `@tool` will find your saved entropy there, and run the `moka install` command:
 
 ```shell
-$ cd hotmoka_tutorial
+$ cd @tutorial_name
 $ @tool install family/target/family-0.0.1.jar
     --payer @account1
     --url @server
@@ -1347,7 +1347,7 @@ A similar translation in code can be performed for all examples in this tutorial
 but we will report it only for a few of them.
 
 Let us hence create another Eclipse Maven project
-`runs`, inside `hotmoka_tutorial`,
+`runs`, inside `@tutorial_name`,
 exactly as we did in the previous section for the `family` project.
 Specify Java 11 (or later) in its build configuration.
 Use `io.hotmoka` as Group Id and `runs` as Artifact Id.
@@ -1641,7 +1641,7 @@ obtained before with the `moka install` command: they point to the same jar.
 
 ## Creation of an Object of our Program
 
-__[See projects `runs` and `family_storage` inside the `hotmoka_tutorial` repository]__
+__[See projects `runs` and `family_storage` inside the `@tutorial_name` repository]__
 
 The jar of our program is in the store of the node now: the `moka install` command
 has installed it at
@@ -1652,7 +1652,7 @@ tries to run the constructor of `Person` and add a brand
 new `Person` object into the store of the node. We can perform this through the `@tool` tool:
 
 ```shell
-$ cd hotmoka_tutorial # if you are not already there
+$ cd @tutorial_name # if you are not already there
 $ @tool create
     io.takamaka.family.Person
     "Albert Einstein" 14 4 1879 null null
@@ -1767,7 +1767,7 @@ You can verify that it is actually there and that its fields are correctly initi
 by using the `moka state` command:
 
 ```shell
-$ cd hotmoka_tutorial
+$ cd @tutorial_name
 $ @tool state @person_object
     --url @server
 
@@ -1953,24 +1953,23 @@ constructor of `Person`, the one that assumes `null` as parents. The actual para
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 We provide 50,000 units of gas, which should be enough for a constructor that just initializes a few fields.
 We are ready to pay `panarea(gasHelper.getSafeGasPrice())` units of coin for each unit of gas.
-This price could have been
-specified simply as `gasHelper.getSafeGasPrice()`
-but we used the static method `io.hotmoka.beans.Coin.panarea()`
-to generate a `BigInteger` corresponding to the smallest coin unit of @Type nodes, a *panarea*.
-Namely, the following units of coin exist:
+[Hotmokaonly]:This price could have been specified simply as `gasHelper.getSafeGasPrice()`
+[Hotmokaonly]:but we used the static method `io.hotmoka.beans.Coin.panarea()`
+[Hotmokaonly]:to generate a `BigInteger` corresponding to the smallest coin unit of @Type nodes, a *panarea*.
+[Hotmokaonly]:Namely, the following units of coin exist:
 
-| Value (in panas) | Exponent           | Name | Short Name |
-| --------------------- |:-------------:| ----- | ----- |
-| 1      | 1 | panarea | pana |
-| 1,000  | 10<sup>3</sup> | alicudi | ali |
-| 1,000,000 | 10<sup>6</sup> | filicudi | fili |
-| 1,000,000,000 | 10<sup>9</sup> | stromboli | strom |
-| 1,000,000,000,000 | 10<sup>12</sup> | vulcano | vul |
-| 1,000,000,000,000,000 | 10<sup>15</sup> | salina | sali |
-| 1,000,000,000,000,000,000 | 10<sup>18</sup> | lipari | lipa |
-| 1,000,000,000,000,000,000,000 | 10<sup>21</sup> | moka | moka |
+[Hotmokaonly]:| Value (in panas)      | Exponent           | Name | Short Name |
+[Hotmokaonly]:| --------------------- |:-------------:| ----- | ----- |
+[Hotmokaonly]:| 1      | 1 | panarea | pana |
+[Hotmokaonly]:| 1,000  | 10<sup>3</sup> | alicudi | ali |
+[Hotmokaonly]:| 1,000,000 | 10<sup>6</sup> | filicudi | fili |
+[Hotmokaonly]:| 1,000,000,000 | 10<sup>9</sup> | stromboli | strom |
+[Hotmokaonly]:| 1,000,000,000,000 | 10<sup>12</sup> | vulcano | vul |
+[Hotmokaonly]:| 1,000,000,000,000,000 | 10<sup>15</sup> | salina | sali |
+[Hotmokaonly]:| 1,000,000,000,000,000,000 | 10<sup>18</sup> | lipari | lipa |
+[Hotmokaonly]:| 1,000,000,000,000,000,000,000 | 10<sup>21</sup> | moka | moka |
 
-with corresponding static methods in `io.hotmoka.beans.Coin`.
+[Hotmokaonly]:with corresponding static methods in `io.hotmoka.beans.Coin`.
 
 Run `Family2` from Eclipse.
 You should see the following on the console:
@@ -1982,7 +1981,7 @@ The exact address will change at any run.
 
 ## Calling a Method on an Object in a @Type Node
 
-__[See projects `runs` and `family_exported` inside the `hotmoka_tutorial` repository]__
+__[See projects `runs` and `family_exported` inside the `@tutorial_name` repository]__
 
 In the previous section, we have created an object of class `Person` in the store
 of the node. Let us invoke the
@@ -2518,11 +2517,11 @@ the meaning of different language features of Takamaka.
 
 ## A Simple Ponzi Scheme Contract
 
-__[See project `ponzi_simple` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_simple` inside the `@tutorial_name` repository]__
 
 Create a new Maven Java 11 (or later) project in Eclipse, named `ponzi`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka_tutorial` directory, as a sibling of `family` and
+the project inside the `@tutorial_name` directory, as a sibling of `family` and
 `runs`). Use the following `pom.xml`:
 
 ```xml
@@ -2635,7 +2634,7 @@ saved in the state of the contract, together with the new investor.
 
 ## The `@FromContract` and `@Payable` Annotations
 
-__[See project `ponzi_annotations` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_annotations` inside the `@tutorial_name` repository]__
 
 The previous code of `SimplePonzi.java` is unsatisfactory, for at least two
 reasons, that we will overcome in this section:
@@ -2760,7 +2759,7 @@ he must hold a bit more than `amount` coins at the moment of calling `invest()`.
 
 ## Payable Contracts
 
-__[See project `ponzi_payable` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_payable` inside the `@tutorial_name` repository]__
 
 The `SimplePonzi.java` class is not ready yet. Namely, the code
 of that class specifies that investors have to pay
@@ -2864,7 +2863,7 @@ is `C` or a subclass of `C`. Otherwise, a run-time exception will occur.
 
 ## The `@View` Annotation
 
-__[See project `ponzi_view` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_view` inside the `@tutorial_name` repository]__
 
 Our `SimplePonzi.java` code can still be improved. As it is now,
 an investor must call `invest()` and be ready to pay a sufficiently
@@ -3013,7 +3012,7 @@ as we will show later.
 
 ## Red and Green Balances
 
-__[See project `redgreen` inside the `hotmoka_tutorial` repository]__
+__[See project `redgreen` inside the `@tutorial_name` repository]__
 
 The `Contract` class of Takamaka has a double balance. Namely, it has
 a normal (_green_) balance and an extra, stable _red_ balance.
@@ -3172,7 +3171,7 @@ Next section shows an example of use for `StorageLinkedList`.
 
 ### A Gradual Ponzi Contract
 
-__[See project `ponzi_gradual` inside the `hotmoka_tutorial` repository]__
+__[See project `ponzi_gradual` inside the `@tutorial_name` repository]__
 
 Consider our previous Ponzi contract again. It is somehow irrealistic, since
 an investor gets its investment back in full. In a more realistic scenario,
@@ -3324,7 +3323,7 @@ A file `ponzi-0.0.1.jar` should appear inside `target`.
 We can now start by installing that jar in the node:
 
 ```shell
-$ cd hotmoka_tutorial   # if not already there
+$ cd @tutorial_name   # if not already there
 $ @tool install ponzi/target/ponzi-0.0.1.jar
     --payer @account1
     --url @server
@@ -3540,7 +3539,7 @@ Next section shows an example of use for `StorageTreeArray<E>`.
 
 ### A Tic-Tac-Toe Contract
 
-__[See project `tictactoe` inside the `hotmoka_tutorial` repository]__
+__[See project `tictactoe` inside the `@tutorial_name` repository]__
 
 Tic-tac-toe is a game where two players place, alternately,
 a cross and a circle on a 3x3 board, initially empty. The winner is the
@@ -3581,7 +3580,7 @@ for translating the conceptual representation into the internal one.
 
 Create hence in Eclipse a new Maven Java 11 (or later) project named `tictactoe`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `ponzi` and
+the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi` and
 `runs`). Use the following `pom.xml`:
 
 ```xml
@@ -3827,7 +3826,7 @@ public @View String toString() {
 
 ### A More Realistic Tic-Tac-Toe Contract
 
-__[See project `tictactoe_improved` inside the `hotmoka_tutorial` repository]__
+__[See project `tictactoe_improved` inside the `@tutorial_name` repository]__
 
 The `TicTacToe.java` code implements the rules of a tic-tac-toe game, but has
 a couple of drawbacks that make it still incomplete. Namely:
@@ -4284,7 +4283,7 @@ whose keys are `int` values. We refer to their JavaDoc for further information.
 
 ### A Blind Auction Contract
 
-__[See project `auction` inside the `hotmoka_tutorial` repository]__
+__[See project `auction` inside the `@tutorial_name` repository]__
 
 This section exemplifies the use of class `StorageTreeMap` for writing a smart
 contract that implements a _blind auction_. That contract allows
@@ -4306,7 +4305,7 @@ on purpose, in order to confuse other bidders.
 
 Create in Eclipse a new Maven Java 11 (or later) project named `auction`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
+the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe` and
 `runs`). Use the following `pom.xml`:
 
 ```xml
@@ -4699,7 +4698,7 @@ that some methods are only run at the right moment.
 
 ### Events
 
-__[See project `auction_events` inside the `hotmoka_tutorial` repository]__
+__[See project `auction_events` inside the `@tutorial_name` repository]__
 
 The code in the previous section does not compile since it misses two
 classes `BidIncrease.java` and `AuctionEnd.java`, that we report below.
@@ -4793,7 +4792,7 @@ run `mvn package`. A file `auction-0.0.1.jar` should appear inside `target`.
 
 ### Running the Blind Auction Contract
 
-__[See project `runs` inside the `hotmoka_tutorial` repository]__
+__[See project `runs` inside the `@tutorial_name` repository]__
 
 Go to the `runs` Eclipse project and add the following
 class inside that package:
@@ -5354,7 +5353,7 @@ actual winner: @account2
 
 ### Listening to Events
 
-__[See project `runs` inside the `hotmoka_tutorial` repository]__
+__[See project `runs` inside the `@tutorial_name` repository]__
 
 The `BlindAuction` contract generates events during its execution. If an external tool, such
 as a wallet, wants to listen to such events and trigger some activity when they occur,
@@ -5530,7 +5529,7 @@ is not exceeded and throws an exception otherwise.
 
 ### Implementing Our Own ERC20 Token
 
-__[See project `erc20` inside the `hotmoka_tutorial` repository]__
+__[See project `erc20` inside the `@tutorial_name` repository]__
 
 Let us define a token ledger class that allows only its creator the mint or burn tokens.
 We will call it `CryptoBuddy`. As Figure @fig:erc20_hierarchy shows,
@@ -5539,7 +5538,7 @@ and do not need to reimplement the methods of the `ERC20` interface.
 
 Create in Eclipse a new Maven Java 11 (or later) project named `erc20`.
 You can do this by duplicating the project `family` (make sure to store
-the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe`
+the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe`
 and so on). Use the following `pom.xml`:
 
 ```xml
@@ -5789,7 +5788,7 @@ get their `onReceive` method called whenever new tokens are transferred to them.
 
 ### Implementing Our Own ERC721 Token
 
-__[See project `erc721` inside the `hotmoka_tutorial` repository]__
+__[See project `erc721` inside the `@tutorial_name` repository]__
 
 Let us define a ledger for non-fungible tokens
 that only allows its creator the mint or burn tokens.
@@ -5801,7 +5800,7 @@ in [Implementing Our Own ERC20 Token](#implementing-our-own-erc20-token).
 
 Create in Eclipse a new Maven Java 11 (or later) project named `erc721`.
 You can do this by duplicating the project `erc20` (make sure to store
-the project inside the `hotmoka_tutorial` directory, as a sibling of `family`, `ponzi`, `tictactoe`
+the project inside the `@tutorial_name` directory, as a sibling of `family`, `ponzi`, `tictactoe`
 and so on). Use the following `pom.xml`:
 
 ```xml
@@ -6518,7 +6517,7 @@ the information on the node printed by `moka info`.
 
 ## Node Decorators
 
-__[See project `runs` inside the `hotmoka_tutorial` repository]__
+__[See project `runs` inside the `@tutorial_name` repository]__
 
 There are some frequent actions that can be performed on a @Type node.
 Typically, these actions consist in a sequence of transactions.
@@ -6654,7 +6653,7 @@ the end of the try-with-resource will actually close all of them, since they are
 
 ## @Type Services
 
-__[See project `runs` inside the `hotmoka_tutorial` repository]__
+__[See project `runs` inside the `@tutorial_name` repository]__
 
 This section shows how we can publish a @Type node online, by using Java code,
 so that it becomes a
@@ -6830,7 +6829,7 @@ This means that the manifest is allocated, in the store of `original`, at the st
 
 ## Remote Nodes
 
-__[See project `runs` inside the `hotmoka_tutorial` repository]__
+__[See project `runs` inside the `@tutorial_name` repository]__
 
 We have seen how a service can be published and its methods called through
 a browser. This has been easy for methods such as `getManifest()` and
@@ -7177,7 +7176,7 @@ use the `@tool` tool. For instance, let us use our qtesla-p-I account to install
 the `family-0.0.1.jar` code in the node:
 
 ```shell
-$ cd hotmoka_tutorial
+$ cd @tutorial_name
 $ @tool install family/target/family-0.0.1.jar
     --payer @account6
     --url @server
@@ -8422,7 +8421,7 @@ Takamaka verifies the following dynamic constraints:
 
 ## Command-Line Verification and Instrumentation
 
-__[See project `family_wrong` inside the `hotmoka_tutorial` repository]__
+__[See project `family_wrong` inside the `@tutorial_name` repository]__
 
 If a jar being installed in a @Type node does not satisfy the static
 constraints that we have described before, the installation transaction fails with
@@ -8496,7 +8495,7 @@ Let us start with the verification of `io-takamaka-code-@version.jar`,
 taken from Maven's cache:
 
 ```shell
-$ cd hotmoka_tutorial
+$ cd @tutorial_name
 $ @tool verify
     ~/.m2/repository/io/hotmoka/io-takamaka-code/@version/io-takamaka-code-@version.jar
     --init

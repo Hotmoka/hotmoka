@@ -132,17 +132,20 @@ rm *_copy.fig
 
 # Hotmoka-specific processing now...
 cp Tutorial.md ProgrammingHotmoka.md
+sed -i "s/\[Hotmokaonly]://g" ProgrammingHotmoka.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
 sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
+sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingHotmoka.md
 sed -i 's/@app/mokito/g' ProgrammingHotmoka.md
 sed -i 's/@App/Mokito/g' ProgrammingHotmoka.md
 sed -i 's/@type/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@Type/Hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@fausto_email/fausto.spoto@hotmoka.io/g' ProgrammingHotmoka.md
-sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingHotmoka.md
+sed -i 's/@tutorial_repo/https:\/\/github.com\/Hotmoka\/hotmoka_tutorial.git/g' ProgrammingHotmoka.md
+sed -i 's/@tutorial_name/hotmoka_tutorial/g' ProgrammingHotmoka.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingHotmoka.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingHotmoka.md
 
@@ -189,16 +192,21 @@ ebook-convert ProgrammingHotmoka.epub ProgrammingHotmoka.mobi
 # Blueknot-specific processing now...
 cp Tutorial.md ProgrammingBlueknot.md
 
+# some paragraphs do not exist in the Blueknot version
+sed -i "/^\[Hotmokaonly]:/d" ProgrammingBlueknot.md
+
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
 sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
 sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
+sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingBlueknot.md
 sed -i 's/@app/bluewallet/g' ProgrammingBlueknot.md
 sed -i 's/@App/Bluewallet/g' ProgrammingBlueknot.md
 sed -i 's/@type/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@Type/Blueknot/g' ProgrammingBlueknot.md
-sed -i 's/@fausto_email/fausto.spoto@vero4chain.it/g' ProgrammingHotmoka.md
-sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingHotmoka.md
+sed -i 's/@fausto_email/fausto.spoto@vero4chain.it/g' ProgrammingBlueknot.md
+sed -i 's/@tutorial_repo/https:\/\/github.com\/Vero4Chain\/blueknot_tutorial.git/g' ProgrammingBlueknot.md
+sed -i 's/@tutorial_name/blueknot_tutorial/g' ProgrammingBlueknot.md
 sed -i 's/@account_mokito/701e20be588db820744df467826d67b9fe451406d7f75da6ef8aeb6805a7365f#0/g' ProgrammingBlueknot.md
 sed -i 's/@36words_of_account_mokito/word #1: rail\nword #2: double\nword #3: bag\nword #4: dove\nword #5: fluid\n...\nword #34: bounce\nword #35: deposit\nword #36: hotel/g' ProgrammingBlueknot.md
 
