@@ -102,7 +102,7 @@ sed -i 's/@tictactoe_address/98757bf5de51208bb6f39861b28294300bee0f9b7ce8e3b6b32
 sed -i 's/@tictactoe_object/ca729b6b01fe9235bc3e24d46a88cfbe2719969d380433c9b42b42bf00549796#0/g' Tutorial.md
 sed -i 's/@erc20_address/4ea842ed64da3722f9d876bb6d7cfeeb9efe10bbc37539c901cc2707b7d8d24d/g' Tutorial.md
 sed -i 's/@erc20_object/e975302f0a23d4c157d787424e66f356207b1643063999ed90b80f5d3be0803b#0/g' Tutorial.md
-sed -i 's/@server/panarea.hotmoka.io/g' Tutorial.md
+#sed -i 's/@server/panarea.hotmoka.io/g' Tutorial.md
 sed -i 's/@new_docker_key/BpnB6J5DKbNTN3QRBjXNoZogTeCt7szuLjWGwaw7kqFK/g' Tutorial.md
 sed -i 's/@container_id1/ab3111028e239c0132a603318163b761d40d60732208701d002f8779c5ca9513/g' Tutorial.md
 sed -i 's/@docker_takamaka_code/2c3b2d553c108266d4b942dc9343dd67a366f4bc49f02c667dffa5c01970409d/g' Tutorial.md
@@ -139,6 +139,7 @@ sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
+sed -i 's/@server/panarea.hotmoka.io/g' ProgrammingHotmoka.md
 sed -i 's/@app_repo/https:\/\/github.com\/Hotmoka\/HotmokaAndroid/g' ProgrammingHotmoka.md
 sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingHotmoka.md
 sed -i 's/@app/mokito/g' ProgrammingHotmoka.md
@@ -206,6 +207,7 @@ sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Vero4Chain\/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
 sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
+sed -i 's/@server/blueknot.vero4chain.it/g' ProgrammingBlueknot.md
 sed -i 's/@app_repo/https:\/\/github.com\/Vero4Chain\/BlueknotAndroid/g' ProgrammingBlueknot.md
 sed -i 's/@app_id_play/io.hotmoka.android.mokito/g' ProgrammingBlueknot.md
 sed -i 's/@app/bluewallet/g' ProgrammingBlueknot.md

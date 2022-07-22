@@ -15,6 +15,13 @@ NETWORK_URL=${NETWORK_URL:=panarea.hotmoka.io}
 TYPE=${TYPE:=hotmoka}
 TYPE_CAPITALIZED=${TYPE^}
 SCRIPT=create_tutorial_from_source.sh
+if [ $TYPE == "hotmoka" ]
+then
+    DOCKER_HUB_USER=hotmoka
+else
+    DOCKER_HUB_USER=veroforchain
+fi
+
 RED='\033[1;31m'
 NC='\033[0m'
 message() {
@@ -25,7 +32,9 @@ message "Updating file $SCRIPT by replaying its examples on the $TYPE_CAPITALIZE
 
 echo "  Server = $NETWORK_URL"
 echo "  Script = $SCRIPT"
-sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
+echo "  Docker Hub's user = $DOCKER_HUB_USER"
+
+#sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
 sed -i '/@version/s/\/.*\//\/@version\/'$VERSION'\//' $SCRIPT
@@ -37,7 +46,7 @@ LINE2=$(echo "$RUN"| sed '2!d')
 NEW_DOCKER_KEY=${LINE2:19}
 echo "  new docker key = $NEW_DOCKER_KEY"
 sed -i "/@new_docker_key/s/\/.*\//\/@new_docker_key\/$NEW_DOCKER_KEY\//" $SCRIPT
-CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION init)
+CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION init)
 echo "  container id = $CONTAINER_ID1"
 sed -i "/@container_id1/s/\/.*\//\/@container_id1\/$CONTAINER_ID1\//" $SCRIPT
 
@@ -82,7 +91,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID1 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION resume)
+CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID2"
 sed -i "/@container_id2/s/\/.*\//\/@container_id2\/$CONTAINER_ID2\//" $SCRIPT
 
@@ -93,7 +102,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID2 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain hotmoka/tendermint-node:$VERSION resume)
+CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID3"
 sed -i "/@container_id3/s/\/.*\//\/@container_id3\/$CONTAINER_ID3\//" $SCRIPT
 
