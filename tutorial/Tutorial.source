@@ -6,7 +6,7 @@
 
 [Markdownonly]:@Type is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
 
-[Markdownonly]: The latest version of this document is available for free in PDF, ePub and MOBI format, at <a href="https://github.com/Hotmoka/hotmoka/releases">https://github.com/Hotmoka/hotmoka/releases<a>.
+[Markdownonly]: The latest version of this document is available for free in PDF, ePub and MOBI format, at <a href="@tool_repo/releases">@tool_repo/releases<a>.
 
 [Markdownonly]: <p align="center"><img width="100" src="pics/CC_license.png" alt="This documentation is licensed under a Creative Commons Attribution 4.0 International License"></p><p align="center">This document is licensed under a Creative Commons Attribution 4.0 International License.</p>
 
@@ -387,10 +387,9 @@ most difficult to use.
 You can use the `@tool` tool to interact with a @Type node,
 install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
-[https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
+[@tool_repo/releases](@tool_repo/releases).
 Its source code is maintained inside the main distribution of the @Type project, at
-[https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule
-`io-hotmoka-tools`.
+[@tool_repo](@tool_repo), in the submodule `io-hotmoka-tools`.
 We report below the installation instructions of `@tool`.
 In order to run the tool, you need Java JDK version 11 (or higher) installed in your
 computer and a recent version of Maven.
@@ -406,7 +405,7 @@ you want to install it under `~/Opt/@tool`, you can run the following commands:
 $ cd ~/Opt
 $ mkdir @tool
 $ cd @tool
-$ wget https://github.com/Hotmoka/hotmoka/releases/
+$ wget @tool_repo/releases/
      download/v@version/@tool_@version.tar.gz
 $ tar zxf @tool_@version.tar.gz
 $ export PATH=$PATH:$(pwd)
@@ -432,7 +431,7 @@ export PATH=/home/spoto/Opt/@tool:$PATH
 #### Windows
 
 You should download and untar the latest release
-([https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases))
+([@tool_repo/releases](@tool_repo/releases))
 into the directory
 where you want to install `@tool`, by using a software tool such as
 `7zip` or `Cygwin`. After that, you should be able to run the tool
@@ -523,7 +522,7 @@ interface. That app, called `@App`, is currently available for Android only.
 You can download it from Google Play and install it in your device, from
 [https://play.google.com/store/apps/details?id=@app_id_play](https://play.google.com/store/apps/details?id=@app_id_play). Developers interested in its Kotlin source code
 can find it at
-[https://github.com/Hotmoka/HotmokaAndroid](https://github.com/Hotmoka/HotmokaAndroid),
+[@app_repo](@app_repo),
 together with a small Android service for connecting to a remote @Type node.
 
 The first time you will use @App on your mobile device,
@@ -545,11 +544,11 @@ by MetaMask for Ethereum. You can install Hotwallet inside the Firefox browser
 as an add-on that can be downloaded from
 [https://addons.mozilla.org/en-US/firefox/addon/hotwallet](https://addons.mozilla.org/en-US/firefox/addon/hotwallet).
 Developers interested in its TypeScript source code can find it at
-[https://github.com/Hotmoka/hotwallet-browser](https://github.com/Hotmoka/hotwallet-browser).
+[@hotwallet_repo](@hotwallet_repo).
 There is also a Hotweb3 JavaScript/TypeScript library for connecting web applications to the
 Hotwallet browser extension and use its
 accounts programmatically. Its source code can be found at
-[https://github.com/Hotmoka/hotweb3](https://github.com/Hotmoka/hotweb3).
+[@hotweb3_repo](@hotweb3_repo).
 
 [Markdownonly]: <p align="center"><img width="400" src="pics/hotwallet.png" alt="Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser"></p><p align="center">Figure @fig:hotwallet_start. The starting screen of the Hotwallet extension to the browser.</p>
 
@@ -566,7 +565,7 @@ or installed as an unpacked extension. The latter solution is
 the simplest. Namely, in order to install Hotwallet in Chrome as an unpacked extension,
 do the following:
 
-1. Download its latest release in zip format from [https://github.com/Hotmoka/hotwallet-browser/releases](https://github.com/Hotmoka/hotwallet-browser/releases)
+1. Download its latest release in zip format from [@hotwallet_repo/releases](@hotwallet_repo/releases)
 2. Unzip the file (on Linux, run `unzip hotwallet_1.0.1.zip`)
 3. Go to Chrome and select the menu item _More tools_ and subitem _Extensions_
 4. Activate the _Developer mode_ with the switch in the top-right corner of the screen
@@ -1010,10 +1009,10 @@ You will need Java JDK version at least 11.
 Clone the project with:
 
 ```shell
-$ git clone https://github.com/Hotmoka/hotmoka.git
+$ git clone @tool_repo.git
 ```
 
-then `cd` to the `hotmoka` directory and
+then `cd` to the `@tool` directory and
 compile, package, test and install the @Type jars:
 
 ```shell
@@ -1054,7 +1053,7 @@ All tests should pass and all projects should be successfully installed:
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
-the parent Maven project contained in the `hotmoka` directory that you cloned from
+the parent Maven project contained in the `@tool` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure @fig:projects.
 You will then be able to compile, package, test and install the @Type jars inside
