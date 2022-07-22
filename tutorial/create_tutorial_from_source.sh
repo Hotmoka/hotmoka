@@ -145,6 +145,8 @@ sed -i 's/@app/mokito/g' ProgrammingHotmoka.md
 sed -i 's/@App/Mokito/g' ProgrammingHotmoka.md
 sed -i 's/@type/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@Type/Hotmoka/g' ProgrammingHotmoka.md
+sed -i 's/@docker_hub_user/hotmoka/g' ProgrammingHotmoka.md
+sed -i 's/@docker_user/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@hotwallet_repo/https:\/\/github.com\/Hotmoka\/hotwallet-browser/g' ProgrammingHotmoka.md
 sed -i 's/@hotweb3_repo/https:\/\/github.com\/Hotmoka\/hotweb3/g' ProgrammingHotmoka.md
 sed -i 's/@fausto_email/fausto.spoto@hotmoka.io/g' ProgrammingHotmoka.md
@@ -210,6 +212,8 @@ sed -i 's/@app/bluewallet/g' ProgrammingBlueknot.md
 sed -i 's/@App/Bluewallet/g' ProgrammingBlueknot.md
 sed -i 's/@type/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@Type/Blueknot/g' ProgrammingBlueknot.md
+sed -i 's/@docker_hub_user/veroforchain/g' ProgrammingBlueknot.md
+sed -i 's/@docker_user/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@hotwallet_repo/https:\/\/github.com\/Vero4Chain\/hotwallet-browser/g' ProgrammingBlueknot.md
 sed -i 's/@hotweb3_repo/https:\/\/github.com\/Vero4Chain\/hotweb3/g' ProgrammingBlueknot.md
 sed -i 's/@fausto_email/fausto.spoto@vero4chain.it/g' ProgrammingBlueknot.md

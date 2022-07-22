@@ -7219,7 +7219,7 @@ only requirement.
 ## Starting a Tendermint @Type Node with Docker
 
 We have provided some preconfigured Docker images in Docker Hub, that you can see
-at [https://hub.docker.com/u/hotmoka](https://hub.docker.com/u/hotmoka). By using one of such
+at [https://hub.docker.com/u/@docker_hub_user](https://hub.docker.com/u/@docker_hub_user). By using one of such
 images, we can start our own Tendermint @Type node as follow. First, we need to create the
 key pair of the gamete, as we did in the previous chapter:
 
@@ -7242,8 +7242,8 @@ $ docker run -dit
     -e OPEN_UNSIGNED_FAUCET=true
     -p 8080:8080
     -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@version
+    -v chain:/home/@docker_user/chain
+    @docker_hub_user/tendermint-node:@version
     init
 
 @container_id1
@@ -7285,11 +7285,11 @@ to `localhost:8080` instead of `@server`.
 Let us analyze the options passed to `docker`. The `run -dit` command means that we want to
 instantiate, and run as an interactive daemon,
 a Docker image, which is actually specified at the end:
-`hotmoka/tendermint-node:@version`. Docker will download that image from Docker Hub.
+`@docker_hub_user/tendermint-node:@version`. Docker will download that image from Docker Hub.
 
 > That image assumes that you are using a Linux machine based on the amd64 architecture.
 > If you are using a Linux machine based on the arm64 architecture, use the
-> `hotmoka/tendermint-node-arm64:@version` image. If you are using a Windows machine,
+> `@docker_hub_user/tendermint-node-arm64:@version` image. If you are using a Windows machine,
 > you need to run a Linux image inside a Linux virtual machine, as always in Docker.
 > Please refer to the Docker documentation to know how this can be accomplished.
 
@@ -7311,13 +7311,13 @@ Hence those ports must be connected to the Docker image. We do that with the
 and port 26656 of the real machine is bound to port 26656 of the Docker image. If we prefer to use
 port 80 for clients, we should use `-p 80:8080` instead of `-p 8080:8080`.
 
-Finally, the blocks and state created by the node are saved into a `/home/hotmoka/chain`
+Finally, the blocks and state created by the node are saved into a `/home/@docker_user/chain`
 directory inside the container that is implemented as a Docker volume `chain`. That
 volume is visible in the real machine as `/var/lib/docker/volumes/chain/_data/` and will be
 persisted if we turn the Docker container off.
 
 > The actual directory that contains the volume depends on the specific version of Docker.
-> Currently, it is  `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
+> Currently, it is `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
 > root to access it.
 
 The `docker run` command printed a hash at the end, that identifies the running container.
@@ -7351,8 +7351,8 @@ the right command to resume a previously started and stopped blockchain from its
 $ docker run -dit
     -p 8080:8080
     -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@version
+    -v chain:/home/@docker_user/chain
+    @docker_hub_user/tendermint-node:@version
     resume
 
 @container_id2
@@ -7381,7 +7381,7 @@ $ docker stop @container_id2
 The Docker image contains a `help` command. Try for instance:
 
 ```shell
-$ docker run --rm -it hotmoka/tendermint-node:@version help
+$ docker run --rm -it @docker_hub_user/tendermint-node:@version help
 
 This container runs a @Type node based on Tendermint.
 It understands the following commands and options:
@@ -7414,8 +7414,8 @@ if you have stopped it before:
 $ docker run -dit
     -p 8080:8080
     -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@version
+    -v chain:/home/@docker_user/chain
+    @docker_hub_user/tendermint-node:@version
     resume
 
 @container_id3
@@ -7625,8 +7625,8 @@ ec2$ docker run -dit
        -e CHAIN_ID=caterpillar
        -p 80:8080
        -p 26656:26656
-       -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@version
+       -v chain:/home/@docker_user/chain
+       @docker_hub_user/tendermint-node:@version
        init
 
 5f3799b58c6569b50dbebee6db3061ebf8e3c2c7ac6e0882579129ca66302786
@@ -7723,8 +7723,8 @@ ec2$ docker run -dit
        -e NETWORK_URL=@server
        -p 80:8080
        -p 26656:26656
-       -v chain:/home/hotmoka/chain
-       hotmoka/tendermint-node:@version
+       -v chain:/home/@docker_user/chain
+       @docker_hub_user/tendermint-node:@version
        start
 
 3335d7609ecbd3d6ad42577aee0d0a2fd1bc59ed3c18ae7da2d77febbd776a84
@@ -7918,8 +7918,8 @@ alice.@type.io$ docker run --rm -dit
     -e INITIAL_SUPPLY=1000000000000000000
     -p 80:8080
     -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@version
+    -v chain:/home/@docker_user/chain
+    @docker_hub_user/tendermint-node:@version
     init
 
 alice.@type.io$ @tool bind-key 8oHse15C9pKUuqFLYRQBPgefdGzGq9mpWPF3dRQg27A5
@@ -7948,8 +7948,8 @@ bob.@type.io$ docker run --rm -dit
     -e NETWORK_URL=alice.@type.io
     -p 80:8080
     -p 26656:26656
-    -v chain:/home/hotmoka/chain
-    hotmoka/tendermint-node:@version
+    -v chain:/home/@docker_user/chain
+    @docker_hub_user/tendermint-node:@version
     start
 
 070abbc643163e6273c6d9da98f4a83bd94e178743c31344321a60c41d3c2d21
