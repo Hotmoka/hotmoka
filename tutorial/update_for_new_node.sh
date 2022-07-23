@@ -34,7 +34,7 @@ echo "  Server = $NETWORK_URL"
 echo "  Script = $SCRIPT"
 echo "  Docker Hub's user = $DOCKER_HUB_USER"
 
-#sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
+sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
 sed -i '/@version/s/\/.*\//\/@version\/'$VERSION'\//' $SCRIPT
