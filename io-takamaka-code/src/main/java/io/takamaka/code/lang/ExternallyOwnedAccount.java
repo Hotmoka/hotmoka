@@ -42,7 +42,7 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	/**
 	 * The Base64-encoded public key of the account.
 	 */
-	private final String publicKey;
+	private String publicKey;
 
 	/**
 	 * Creates an externally owned contract with no funds.
@@ -103,6 +103,18 @@ public class ExternallyOwnedAccount extends PayableContract implements Account {
 	 */
 	public @View final String publicKey() {
 		return publicKey;
+	}
+
+	/**
+	 * Changes the public key of this account. Only this same account can call this method on itself.
+	 * 
+	 * @param publicKey the new, Base64-encoded public key that will be assigned to this account.
+	 *                  After this rotation, the new key must be used to control the account
+	 *                  while the old key will not work anymore
+	 */
+	public final @FromContract(ExternallyOwnedAccount.class) void rotatePublicKey(String publicKey) {
+		Takamaka.require(caller() == this, "only this same externally owned account can call this method");
+		this.publicKey = publicKey;
 	}
 
 	/**

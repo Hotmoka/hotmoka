@@ -22,7 +22,6 @@ import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -32,7 +31,6 @@ import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.SignatureAlgorithm;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -40,13 +38,10 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
@@ -409,24 +404,7 @@ public class NodeCachesImpl implements NodeCaches {
 	 */
 	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		// we go straight to the transaction that created the object
-		TransactionResponse response;
-		try {
-			response = node.getResponse(reference.transaction);
-		}
-		catch (TransactionRejectedException e) {
-			throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
-		}
-	
-		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new NoSuchElementException("transaction reference " + reference.transaction + " does not contain updates");
-	
-		String publicKeyEncodedBase64 = ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update instanceof UpdateOfString && update.object.equals(reference))
-			.map(update -> (UpdateOfString) update)
-			.filter(update -> update.getField().equals(FieldSignature.EOA_PUBLIC_KEY_FIELD))
-			.findFirst().get()
-			.value;
-	
+		String publicKeyEncodedBase64 = node.getStoreUtilities().getPublicKeyUncommitted(reference);
 		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
 		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}

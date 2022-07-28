@@ -34,6 +34,7 @@ import io.hotmoka.tools.internal.moka.Instrument;
 import io.hotmoka.tools.internal.moka.Mint;
 import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
 import io.hotmoka.tools.internal.moka.ResumeTendermint;
+import io.hotmoka.tools.internal.moka.RotateKey;
 import io.hotmoka.tools.internal.moka.SellValidation;
 import io.hotmoka.tools.internal.moka.Send;
 import io.hotmoka.tools.internal.moka.ShowAccount;
@@ -69,6 +70,7 @@ import picocli.CommandLine.Command;
 					Instrument.class,
 					Mint.class,
 			        ResumeTendermint.class,
+			        RotateKey.class,
 			        SellValidation.class,
 			        Send.class,
 			        ShowAccount.class,

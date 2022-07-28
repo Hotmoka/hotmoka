@@ -70,7 +70,7 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected abstract void execute() throws Exception;
 
-	protected RemoteNodeConfig remoteNodeConfig(String url) {
+	protected final static RemoteNodeConfig remoteNodeConfig(String url) {
 		return new RemoteNodeConfig.Builder().setURL(url).build();
 	}
 
@@ -175,9 +175,11 @@ public abstract class AbstractCommand implements Runnable {
 
 	protected String ask(String message) {
 		System.out.print(message);
-		@SuppressWarnings("resource")
+		return new String(System.console().readPassword());
+
+		/*@SuppressWarnings("resource")
 		Scanner keyboard = new Scanner(System.in);
-		return keyboard.nextLine();
+		return keyboard.nextLine();*/
 	}
 
 	protected String ensurePassword(String password, String actor, boolean interactive, boolean isFaucet) {
