@@ -41,6 +41,24 @@ public interface IERC20View {
 	@View UnsignedBigInteger balanceOf(Contract account);
 
 	/**
+	 * Returns the number of owners of tokens. This includes also owners of
+	 * zero tokens, but does not include contracts that have never been owners.
+	 * 
+	 * @return the number of owners of tokens
+	 */
+	@View int size();
+
+	/**
+	 * Yields the k-th owner of tokens.
+	 * This is the k-th contract in the token table. 
+	 *
+	 * @param k the rank of the owner, between 0 and {@link #size()}
+	 * @return the {@code k}-th owner of tokens
+	 * @throws IllegalArgumentException if {@code k} is not between 0 and {@code size()-1}
+	 */
+	@View Contract select(int k);
+
+	/**
 	 * Yields a snapshot of this ERC20 token. The snapshot is an immutable
 	 * view of the current total supply and balances.
 	 * 

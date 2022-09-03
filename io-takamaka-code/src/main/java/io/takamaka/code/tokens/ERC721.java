@@ -283,6 +283,16 @@ public class ERC721 extends Contract implements IERC721 {
 		return ownerOf(tokenId, owners);
 	}
 
+    @Override
+	public final @View int size() {
+		return balances.size();
+	}
+
+	@Override
+	public final @View Contract select(int k) {
+		return balances.select(k);
+	}
+
 	private Contract ownerOf(BigInteger tokenId, StorageMapView<BigInteger, Contract> owners) {
 		Contract owner = owners.get(tokenId);
 		require(owner != null, "non-existent token");
@@ -308,6 +318,16 @@ public class ERC721 extends Contract implements IERC721 {
 		public IERC721View snapshot() {
 			return this;
 		}
+
+		@Override @View
+		public int size() {
+			return balances.size();
+		}
+
+		@Override @View
+		public Contract select(int k) {
+			return balances.select(k);
+		}
 	}
 
 	@Override @View
@@ -331,6 +351,16 @@ public class ERC721 extends Contract implements IERC721 {
 		@Override
 		public IERC721View snapshot() {
 			return ERC721.this.snapshot();
+		}
+
+		@Override @View
+		public int size() {
+			return ERC721.this.size();
+		}
+
+		@Override @View
+		public Contract select(int k) {
+			return ERC721.this.select(k);
 		}
 	};
 

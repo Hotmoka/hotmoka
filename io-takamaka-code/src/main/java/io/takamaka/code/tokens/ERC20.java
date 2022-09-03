@@ -186,7 +186,17 @@ public class ERC20 extends Contract implements IERC20 {
         return balances.getOrDefault(account, ZERO);
     }
 
-    /**
+    @Override
+	public final @View int size() {
+		return balances.size();
+	}
+
+	@Override
+	public final @View Contract select(int k) {
+		return balances.select(k);
+	}
+
+	/**
      * See {@link IERC20#transfer(Contract, UnsignedBigInteger)}.
      * The caller must have a balance of at least {@code amount}.
      *
@@ -255,7 +265,17 @@ public class ERC20 extends Contract implements IERC20 {
 			}
 
 			@Override
-			public IERC20View snapshot() {
+			public @View int size() {
+				return balances.size();
+			}
+
+			@Override
+			public @View Contract select(int k) {
+				return balances.select(k);
+			}
+
+			@Override
+			public @View IERC20View snapshot() {
 				return this;
 			}
     	}
@@ -267,18 +287,28 @@ public class ERC20 extends Contract implements IERC20 {
 	protected class IERC20ViewImpl extends Storage implements IERC20View {
 
 		@Override
-		public UnsignedBigInteger totalSupply() {
+		public @View UnsignedBigInteger totalSupply() {
 			return ERC20.this.totalSupply();
 		}
 
 		@Override
-		public UnsignedBigInteger balanceOf(Contract account) {
+		public @View UnsignedBigInteger balanceOf(Contract account) {
 			return ERC20.this.balanceOf(account);
 		}
 
 		@Override
 		public IERC20View snapshot() {
 			return ERC20.this.snapshot();
+		}
+
+		@Override
+		public @View int size() {
+			return ERC20.this.size();
+		}
+
+		@Override
+		public @View Contract select(int k) {
+			return ERC20.this.select(k);
 		}
 	};
 

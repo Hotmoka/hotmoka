@@ -31,6 +31,8 @@ import io.takamaka.code.util.StorageTreeMap;
  * An {@link IERC20} token decorator, that additionally tracks
  * the snapshots performed and makes them accessible by progressive numbers.
  * This mimics the implementation by OpenZeppelin.
+ * Note that all tokens are snapshottable in Hotmoka, hence use this class
+ * only in the very rare case that you need to explicitly refer to snapshots by number.
  */
 public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
 	protected final IERC20 parent;
@@ -60,6 +62,15 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
          */
         @FromContract Snapshot(UnsignedBigInteger id) {
             this.id = id;
+        }
+
+        /**
+         * Yields the id of this snapshot.
+         * 
+         * @return the id of this snapshot
+         */
+        public final @View UnsignedBigInteger getId() {
+        	return id;
         }
     }
 
@@ -148,5 +159,15 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
 	@Override
 	public @View UnsignedBigInteger allowance(Contract owner, Contract spender) {
 		return parent.allowance(owner, spender);
+	}
+
+	@Override
+	public @View int size() {
+		return parent.size();
+	}
+
+	@Override
+	public @View Contract select(int k) {
+		return parent.select(k);
 	}
 }
