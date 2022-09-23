@@ -216,7 +216,7 @@ class ExampleCoinPausable extends TakamakaTest {
 
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
-                _100_000, panarea(1), jar(),
+                _500_000, panarea(1), jar(),
                 new NonVoidMethodSignature(EXCP, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
                 example_token, investor1, ubi_5000);
         // balances = [creator:199999999999999999995000, investor1:500, investor2:0]

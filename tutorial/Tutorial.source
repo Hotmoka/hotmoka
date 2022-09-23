@@ -5495,9 +5495,9 @@ and guarantees that its value is never negative. For instance, the subtraction o
 [PDFonly]: ![Figure @fig:erc20_hierarchy. The hierarchy of the ERC20 token implementations.](pics/erc20.png "Figure @fig:erc20_hierarchy. The hierarchy of the ERC20 token implementations."){ width=100% }
 
 The `snapshot` method, as already seen for collection classes, yields a read-only,
-frozen view of the token ledger. Since it is defined in the topmost interface, all token classes
-can be snapshotted. Snapshots are computable in constant time and their construction
-does not affect other users of the ledger.
+frozen view of the latest state of the token ledger.
+Since it is defined in the topmost interface, all token classes
+can be snapshotted. Snapshots are computable in constant time.
 
 > In the original ERC20 standard and implementation in Ethereum,
 > only specific subclasses allow snapshots, since their creation adds gas costs to all
@@ -5748,7 +5748,7 @@ As in the case of the ERC20 tokens, the interface `IERC721View` contains
 the read-only operations that implement a ledger of non-fungible
 tokens: the `ownerOf` method yields the owner of a given token and
 the `balanceOf` method returns the number of tokens held by a given `account`.
-The `snapshot()` method allows one to create a frozen read-only view of a ledger.
+The `snapshot()` method yields a frozen, read-only view of the latest state of the ledger.
 
 The `IERC721` subinterface adds methods for token transfers.
 Please refer to their description given by the Ethereum standard.

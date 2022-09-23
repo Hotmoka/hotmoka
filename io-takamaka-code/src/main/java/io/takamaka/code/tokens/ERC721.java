@@ -81,6 +81,12 @@ public class ERC721 extends Contract implements IERC721 {
 	private final StorageMap<Contract, StorageSet<Contract>> operatorApprovals = new StorageTreeMap<>();
 
 	/**
+	 * The last snapshot of this contract. This gets updated at every change to {@link #owners}
+	 * or to {@link #balances}.
+	 */
+	private IERC721View snapshot;
+
+	/**
 	 * Builds a collection of non-fungible tokens that does not generate events.
 	 * 
 	 * @param name the name of the collection
@@ -101,6 +107,7 @@ public class ERC721 extends Contract implements IERC721 {
 		this.name = name;
 		this.symbol = symbol;
 		this.generateEvents = generateEvents;
+		updateSnapshot();
 	}
 
 	/**
@@ -155,6 +162,8 @@ public class ERC721 extends Contract implements IERC721 {
 
 		if (to instanceof IERC721Receiver)
 			((IERC721Receiver) to).onReceive(this, from, to, tokenId);
+
+		updateSnapshot();
 
 		if (generateEvents)
 			event(new Transfer(from, to, tokenId));
@@ -244,6 +253,8 @@ public class ERC721 extends Contract implements IERC721 {
 		if (to instanceof IERC721Receiver)
 			((IERC721Receiver) to).onReceive(this, null, to, tokenId);
 
+		updateSnapshot();
+
 		if (generateEvents)
 			event(new Transfer(null, to, tokenId));
 	}
@@ -332,7 +343,15 @@ public class ERC721 extends Contract implements IERC721 {
 
 	@Override @View
 	public IERC721View snapshot() {
-		return new ERC721Snapshot();
+		return snapshot;
+	}
+
+	/**
+	 * Updates the snapshot of this contract. This must be called after changing
+	 * {@link #owners} or {@link #balances}.
+	 */
+	private void updateSnapshot() {
+		this.snapshot = new ERC721Snapshot();
 	}
 
 	@Exported
@@ -381,6 +400,7 @@ public class ERC721 extends Contract implements IERC721 {
 
 		balances.put(owner, balanceOf(owner).subtract(BigInteger.ONE));
 		owners.remove(tokenId);
+		updateSnapshot();
 		if (generateEvents)
 			event(new Transfer(owner, null, tokenId));
 	}

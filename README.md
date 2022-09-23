@@ -195,7 +195,7 @@ functionalities are of course limited.
 Hotmoka is a complex project, that requires many and different skills. After years of development,
 it is ready for the general public. This does not mean that it is bug-free, nor perfect:
 we expect our users to find all sort of bugs and to suggest improvements. Hence, feel
-free to write to us at `info@hotmoka.io`, with bugs and improvement requests.
+free to write to us at `fausto.spoto@hotmoka.io`, with bugs and improvement requests.
 If you are a developer, consider the possibility of helping us with the development
 of the project. In particular, the whole ecosystem of applications running
 over Hotmoka is missing at the moment (that is, applications, typically web-based, that
@@ -239,7 +239,7 @@ with Andrea Benini, Mauro Gambini and Sara Migliorini.
 
 &nbsp;
 
-_Verona, February 2022_.
+_Verona, July 2022_.
 
 # Getting Started with Hotmoka
 
@@ -388,8 +388,7 @@ install code in the node and run transactions in the node.
 The latest version of the tool can be downloaded from
 [https://github.com/Hotmoka/hotmoka/releases](https://github.com/Hotmoka/hotmoka/releases).
 Its source code is maintained inside the main distribution of the Hotmoka project, at
-[https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule
-`io-hotmoka-tools`.
+[https://github.com/Hotmoka/hotmoka](https://github.com/Hotmoka/hotmoka), in the submodule `io-hotmoka-tools`.
 We report below the installation instructions of `moka`.
 In order to run the tool, you need Java JDK version 11 (or higher) installed in your
 computer and a recent version of Maven.
@@ -554,7 +553,7 @@ accounts programmatically. Its source code can be found at
 
 The first time you run Hotwallet, it will ask you to create a key or import an account
 (see Figure 3).
-By default, Hotwallet will contact our test node at `panarea.hotmoka.io`,
+Hotwallet has a default node to contact,
 but this can be changed with the menu item _Networks_.
 
 Hotwallet is available for Google Chrome as well, but currently not yet through its web store.
@@ -581,9 +580,15 @@ can install your own local
 node or blockchain. However, for now, it is much simpler to experiment with a node
 that is part of a public
 test blockchain that we provide for experimentation.
-Namely, we have installed a Hotmoka node at the address
+Namely, we have installed a Hotmoka node for testing at the address
 `panarea.hotmoka.io`.
-You can verify that you can contact that node by typing
+The peculiarity of this node is that it includes a _faucet_ that gives
+away small amounts of coins, when requested. This is good for experimentation
+but, of course, a real node will not include a faucet.
+In a real node, people must grasp some coins because they have been sent by
+some other user or bought from some source online.
+
+You can verify that you can contact the test node by typing
 the command `moka info` to print information
 about the node at that address, as you can see below:
 
@@ -1042,7 +1047,7 @@ Clone the project with:
 $ git clone https://github.com/Hotmoka/hotmoka.git
 ```
 
-then `cd` to the `hotmoka` directory and
+then `cd` to the `moka` directory and
 compile, package, test and install the Hotmoka jars:
 
 ```shell
@@ -1082,7 +1087,7 @@ All tests should pass and all projects should be successfully installed:
 
 If you want to edit the source code inside an IDE, you can import it in Eclipse, NetBeans or IntelliJ.
 In Eclipse, use the File &rarr; Import &rarr; Existing Maven Projects menu item and import
-the parent Maven project contained in the `hotmoka` directory that you cloned from
+the parent Maven project contained in the `moka` directory that you cloned from
 GitHub. This should create, inside Eclipse, also its submodule projects.
 You should see, inside Eclipse's project explorer, something like Figure 15.
 You will then be able to compile, package, test and install the Hotmoka jars inside
@@ -1977,13 +1982,12 @@ constructor of `Person`, the one that assumes `null` as parents. The actual para
 are provided; they must be instances of the `io.hotmoka.beans.values.StorageValue` interface.
 We provide 50,000 units of gas, which should be enough for a constructor that just initializes a few fields.
 We are ready to pay `panarea(gasHelper.getSafeGasPrice())` units of coin for each unit of gas.
-This price could have been
-specified simply as `gasHelper.getSafeGasPrice()`
+This price could have been specified simply as `gasHelper.getSafeGasPrice()`
 but we used the static method `io.hotmoka.beans.Coin.panarea()`
 to generate a `BigInteger` corresponding to the smallest coin unit of Hotmoka nodes, a *panarea*.
 Namely, the following units of coin exist:
 
-| Value (in panas) | Exponent           | Name | Short Name |
+| Value (in panas)      | Exponent           | Name | Short Name |
 | --------------------- |:-------------:| ----- | ----- |
 | 1      | 1 | panarea | pana |
 | 1,000  | 10<sup>3</sup> | alicudi | ali |
@@ -5505,9 +5509,9 @@ and guarantees that its value is never negative. For instance, the subtraction o
 
 
 The `snapshot` method, as already seen for collection classes, yields a read-only,
-frozen view of the token ledger. Since it is defined in the topmost interface, all token classes
-can be snapshotted. Snapshots are computable in constant time and their construction
-does not affect other users of the ledger.
+frozen view of the latest state of the token ledger.
+Since it is defined in the topmost interface, all token classes
+can be snapshotted. Snapshots are computable in constant time.
 
 > In the original ERC20 standard and implementation in Ethereum,
 > only specific subclasses allow snapshots, since their creation adds gas costs to all
@@ -5757,7 +5761,7 @@ As in the case of the ERC20 tokens, the interface `IERC721View` contains
 the read-only operations that implement a ledger of non-fungible
 tokens: the `ownerOf` method yields the owner of a given token and
 the `balanceOf` method returns the number of tokens held by a given `account`.
-The `snapshot()` method allows one to create a frozen read-only view of a ledger.
+The `snapshot()` method yields a frozen, read-only view of the latest state of the ledger.
 
 The `IERC721` subinterface adds methods for token transfers.
 Please refer to their description given by the Ethereum standard.
@@ -6155,7 +6159,7 @@ The following node has been initialized:
       ...
     ...
 
-The Hotmoka node has been published at localhost:8080
+The node has been published at localhost:8080
 Try for instance in a browser: http://localhost:8080/get/manifest
 
 The owner of the key of the gamete can bind it to its address now:
@@ -7240,9 +7244,9 @@ key pair of the gamete, as we did in the previous chapter:
 $ moka create-key
 
 Please specify the password of the new key: king
-A new key 3wGLnxBZBztgnSynjNrQvyNYo6FRvXhFEp5714vzcwwS has been created.
+A new key BpnB6J5DKbNTN3QRBjXNoZogTeCt7szuLjWGwaw7kqFK has been created.
 Its entropy has been saved into the file
-  "./3wGLnxBZBztgnSynjNrQvyNYo6FRvXhFEp5714vzcwwS.pem".
+  "./BpnB6J5DKbNTN3QRBjXNoZogTeCt7szuLjWGwaw7kqFK.pem".
 ```
 
 We can now start a Docker node as a container:
@@ -7250,7 +7254,7 @@ We can now start a Docker node as a container:
 ```shell
 $ docker run -dit
     -e INITIAL_SUPPLY=1000000000000000
-    -e KEY_OF_GAMETE=3wGLnxBZBztgnSynjNrQvyNYo6FRvXhFEp5714vzcwwS
+    -e KEY_OF_GAMETE=BpnB6J5DKbNTN3QRBjXNoZogTeCt7szuLjWGwaw7kqFK
     -e CHAIN_ID=caterpillar
     -e OPEN_UNSIGNED_FAUCET=true
     -p 8080:8080
@@ -7283,7 +7287,7 @@ Info about the node:
 In order to use the gamete, we must bind the key to its storage reference:
 
 ```shell
-$ moka bind-key 3wGLnxBZBztgnSynjNrQvyNYo6FRvXhFEp5714vzcwwS
+$ moka bind-key BpnB6J5DKbNTN3QRBjXNoZogTeCt7szuLjWGwaw7kqFK
 
 A new account 72c5cfc83e00fe711a64a6e03f35c49aa3f6030b67f41bdcc3d2e4bbfa354240#0
   has been created.
@@ -7330,7 +7334,7 @@ volume is visible in the real machine as `/var/lib/docker/volumes/chain/_data/` 
 persisted if we turn the Docker container off.
 
 > The actual directory that contains the volume depends on the specific version of Docker.
-> Currently, it is  `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
+> Currently, it is `/var/lib/docker/volumes/chain/_data/` in Linux machines and you must be
 > root to access it.
 
 The `docker run` command printed a hash at the end, that identifies the running container.

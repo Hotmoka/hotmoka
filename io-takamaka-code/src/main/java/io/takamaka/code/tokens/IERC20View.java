@@ -64,5 +64,5 @@ public interface IERC20View {
 	 * 
 	 * @return the snapshot
 	 */
-	IERC20View snapshot();
+	@View IERC20View snapshot();
 }

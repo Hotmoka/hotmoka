@@ -33,8 +33,7 @@ public interface IERC721View {
 	 * @param owner the owner
 	 * @return the number of tokens owned by (@code owner)
 	 */
-	@View
-	BigInteger balanceOf(Contract owner);
+	@View BigInteger balanceOf(Contract owner);
 
 	/**
 	 * Yields the owner of a given token.
@@ -43,8 +42,7 @@ public interface IERC721View {
 	 * @return the owner of the token with index (@code tokenId)
 	 * @throws RequirementViolationException if the token does not exist
 	 */
-	@View
-	Contract ownerOf(BigInteger tokenId);
+	@View Contract ownerOf(BigInteger tokenId);
 
 	/**
 	 * Returns the number of owners of tokens. This includes also owners of
@@ -69,5 +67,5 @@ public interface IERC721View {
 	 * 
 	 * @return the immutable view
 	 */
-	IERC721View snapshot();
+	@View IERC721View snapshot();
 }

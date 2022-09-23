@@ -65,6 +65,12 @@ public class ERC20 extends Contract implements IERC20 {
     private final boolean generateEvents;
 
     /**
+     * The latest snapshot of this contract. This must be updated
+     * after every modification of {@link #balances} and {@link #totalSupply}.
+     */
+    private IERC20View snapshot;
+
+    /**
      * Sets the values for {@code name} and {@code symbol}, initializes {@code decimals} with a default
      * value of 18. To select a different value for {@code decimals}, use {@link #setDecimals(short)}.
      * The first two of these values are immutable: they can only be set once during construction.
@@ -246,41 +252,44 @@ public class ERC20 extends Contract implements IERC20 {
         return true;
     }
 
-    @Override
+    @Override @View
 	public final IERC20View snapshot() {
+    	return snapshot;
+	}
 
-        @Exported
-    	class SnapshotImpl extends Storage implements IERC20View {
-    		private final UnsignedBigInteger totalSupply = ERC20.this.totalSupply;
-    		private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC20.this.balances.snapshot(); 
+    private void updateShapshot() {
+    	this.snapshot = new SnapshotImpl();
+    }
 
-    		@Override
-			public @View UnsignedBigInteger totalSupply() {
-				return totalSupply;
-			}
+    @Exported
+	protected class SnapshotImpl extends Storage implements IERC20View {
+		private final UnsignedBigInteger totalSupply = ERC20.this.totalSupply;
+		private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC20.this.balances.snapshot(); 
 
-			@Override
-			public @View UnsignedBigInteger balanceOf(Contract account) {
-                return balances.getOrDefault(account, ZERO);
-			}
+		@Override
+		public @View UnsignedBigInteger totalSupply() {
+			return totalSupply;
+		}
 
-			@Override
-			public @View int size() {
-				return balances.size();
-			}
+		@Override
+		public @View UnsignedBigInteger balanceOf(Contract account) {
+            return balances.getOrDefault(account, ZERO);
+		}
 
-			@Override
-			public @View Contract select(int k) {
-				return balances.select(k);
-			}
+		@Override
+		public @View int size() {
+			return balances.size();
+		}
 
-			@Override
-			public @View IERC20View snapshot() {
-				return this;
-			}
-    	}
+		@Override
+		public @View Contract select(int k) {
+			return balances.select(k);
+		}
 
-    	return new SnapshotImpl();
+		@Override
+		public @View IERC20View snapshot() {
+			return this;
+		}
 	}
 
     @Exported
@@ -417,6 +426,7 @@ public class ERC20 extends Contract implements IERC20 {
 
         balances.put(sender, balanceOf(sender).subtract(amount, "transfer rejected: transfer amount exceeds balance"));
         balances.put(recipient, balanceOf(recipient).add(amount));
+        updateShapshot();
 
         event(new Transfer(sender, recipient, amount));
     }
@@ -458,6 +468,7 @@ public class ERC20 extends Contract implements IERC20 {
 
         totalSupply = totalSupply.add(amount);
         balances.put(account, balanceOf(account).add(amount));
+        updateShapshot();
 
         event(new Transfer(null, account, amount));
     }
@@ -477,6 +488,7 @@ public class ERC20 extends Contract implements IERC20 {
 
         balances.put(account, balanceOf(account).subtract(amount, "burn rejected: burn amount exceeds balance"));
         totalSupply = totalSupply.subtract(amount);
+        updateShapshot();
 
         event(new Transfer(account, null, amount));
     }
