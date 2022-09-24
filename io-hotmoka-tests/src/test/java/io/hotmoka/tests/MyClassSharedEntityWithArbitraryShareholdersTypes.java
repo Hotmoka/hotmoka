@@ -47,7 +47,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test about subclassing of the shared entity contract with a specific class for the shareholders.
  */
-class MyClassSharedEntityWithArbitraryShareholdersTypes extends TakamakaTest {
+class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
     private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
     private static final ClassType MY_CLASS_SHARED_ENTITY_1 = new ClassType("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
     private static final ClassType MY_CLASS_SHARED_ENTITY_2 = new ClassType("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");

@@ -45,7 +45,7 @@ import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
 /**
  * A test for the shared entity contract and subclasses.
  */
-class SharedEntity extends TakamakaTest {
+class SharedEntity extends HotmokaTest {
     private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
     private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = new ClassType(SHARED_ENTITY.name + "WithCappedShareholders");
     private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = new ClassType(SHARED_ENTITY.name + "WithIntegralShares");

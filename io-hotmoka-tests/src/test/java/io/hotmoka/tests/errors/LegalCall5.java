@@ -31,9 +31,9 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class LegalCall5 extends TakamakaTest {
+class LegalCall5 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

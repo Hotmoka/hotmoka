@@ -26,9 +26,9 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class IllegalCallToNonWhiteListedMethod10 extends TakamakaTest {
+class IllegalCallToNonWhiteListedMethod10 extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

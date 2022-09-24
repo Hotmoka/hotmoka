@@ -57,7 +57,7 @@ import io.hotmoka.nodes.SideEffectsInViewMethodException;
 /**
  * A test for basic storage and contract Takamaka classes.
  */
-class Basic extends TakamakaTest {
+class Basic extends HotmokaTest {
 	private static final ClassType ALIAS = new ClassType("io.hotmoka.examples.basicdependency.Alias");
 	private static final ClassType SIMPLE = new ClassType("io.hotmoka.examples.basic.Simple");
 	private static final ClassType WITH_LIST = new ClassType("io.hotmoka.examples.basic.WithList");

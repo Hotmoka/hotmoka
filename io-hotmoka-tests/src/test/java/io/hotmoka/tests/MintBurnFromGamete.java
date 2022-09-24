@@ -38,7 +38,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test that the gamete can mint and burn coins of any account, if the consensus allows it to.
  */
-public class MintBurnFromGamete extends TakamakaTest {
+public class MintBurnFromGamete extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

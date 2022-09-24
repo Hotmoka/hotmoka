@@ -42,7 +42,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for inner classes.
  */
-class Inner extends TakamakaTest {
+class Inner extends HotmokaTest {
 	private static final ConstructorSignature TEST_INNER_CONSTRUCTOR = new ConstructorSignature("io.hotmoka.examples.inner.TestInner");
 
 	// do not forget the implicit parameter holding the parent of the inner object

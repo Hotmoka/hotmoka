@@ -22,9 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class IllegalStaticInitialization3 extends TakamakaTest {
+class IllegalStaticInitialization3 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

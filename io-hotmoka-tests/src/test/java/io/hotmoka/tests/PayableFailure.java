@@ -44,7 +44,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for the deserialization of a cyclic data structure.
  */
-class PayableFailure extends TakamakaTest {
+class PayableFailure extends HotmokaTest {
 
 	private final static ClassType C = new ClassType("io.hotmoka.examples.payablefailure.C");
 

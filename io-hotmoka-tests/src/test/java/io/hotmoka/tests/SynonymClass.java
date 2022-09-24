@@ -40,7 +40,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the installation in the node of a class with the same name
  * as a class of the same node.
  */
-class SynonymClass extends TakamakaTest {
+class SynonymClass extends HotmokaTest {
 	private final static ClassType SA = new ClassType("io.hotmoka.crypto.SignatureAlgorithm");
 	private final static NonVoidMethodSignature EMPTY = new NonVoidMethodSignature(SA, "empty", SA);
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);

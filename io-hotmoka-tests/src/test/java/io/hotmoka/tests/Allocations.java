@@ -34,7 +34,7 @@ import io.hotmoka.beans.types.ClassType;
 /**
  * A test for the memory allocation bytecodes.
  */
-class Allocations extends TakamakaTest {
+class Allocations extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

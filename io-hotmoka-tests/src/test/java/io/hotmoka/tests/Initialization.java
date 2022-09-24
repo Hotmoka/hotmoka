@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 /**
  * A test for node initialization.
  */
-class Initialization extends TakamakaTest {
+class Initialization extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

@@ -49,7 +49,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * A test for a class that uses lambda expressions referring to entries.
  */
-class Lambdas extends TakamakaTest {
+class Lambdas extends HotmokaTest {
 	private static final ClassType LAMBDAS = new ClassType("io.hotmoka.examples.lambdas.Lambdas");
 	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
 

@@ -40,7 +40,7 @@ import io.hotmoka.takamaka.beans.requests.MintTransactionRequest;
 /**
  * A test for minting and burning coins in the Takamaka blockchain.
  */
-class MintAndBurn extends TakamakaTest {
+class MintAndBurn extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

@@ -46,7 +46,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test showing that it is possible to have a shared entity with unrelated
  * shareholders' types, since generic types are erased at compilation time.
  */
-class SharedEntityAllowsArbitraryShareholdersTypes extends TakamakaTest {
+class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
     private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
     private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
     private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");

@@ -39,7 +39,7 @@ import io.hotmoka.beans.values.StorageValue;
 /**
  * A test for from contract method.
  */
-class FromContracts extends TakamakaTest {
+class FromContracts extends HotmokaTest {
 	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.examples.fromcontracts.FromContracts");
 
 	@BeforeAll

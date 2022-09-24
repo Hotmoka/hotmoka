@@ -49,7 +49,7 @@ import io.hotmoka.nodes.Node.Subscription;
 /**
  * A test for the remote purchase contract.
  */
-class RemotePurchase extends TakamakaTest {
+class RemotePurchase extends HotmokaTest {
 	private static final ClassType PURCHASE = new ClassType("io.hotmoka.examples.remotepurchase.Purchase");
 	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE.name + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = new VoidMethodSignature(PURCHASE, "confirmReceived");

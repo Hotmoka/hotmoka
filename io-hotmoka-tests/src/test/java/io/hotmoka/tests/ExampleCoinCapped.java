@@ -47,7 +47,7 @@ import io.hotmoka.constants.Constants;
 /**
  * A test for the ExampleCoinCapped contract (a ERC20Capped contract).
  */
-class ExampleCoinCapped extends TakamakaTest {
+class ExampleCoinCapped extends HotmokaTest {
     private static final ClassType EXCC = new ClassType("io.hotmoka.examples.tokens.ExampleCoinCapped");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCC = new ConstructorSignature(EXCC);

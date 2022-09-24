@@ -57,7 +57,7 @@ import io.hotmoka.remote.RemoteNode;
 /**
  * A test for the blind auction contract.
  */
-class BlindAuction extends TakamakaTest {
+class BlindAuction extends HotmokaTest {
 
 	/**
 	 * The number of bids placed by the players.

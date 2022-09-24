@@ -53,7 +53,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token.
  */
-class WTSC2021bis extends TakamakaTest {
+class WTSC2021bis extends HotmokaTest {
 	private static int NUMBER_OF_INVESTORS = 100;
 	private final static int NUMBER_OF_TRANSFERS = 5;
 	private final static int NUMBER_OF_ITERATIONS = 10;

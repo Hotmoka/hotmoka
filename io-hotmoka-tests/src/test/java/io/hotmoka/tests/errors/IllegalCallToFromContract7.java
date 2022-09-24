@@ -16,14 +16,14 @@ limitations under the License.
 
 package io.hotmoka.tests.errors;
 
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
-class IllegalCallToFromContract7 extends TakamakaTest {
+class IllegalCallToFromContract7 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

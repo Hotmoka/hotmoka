@@ -42,7 +42,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for calls to methods on "this".
  */
-class ConstructorOnThis extends TakamakaTest {
+class ConstructorOnThis extends HotmokaTest {
 	private static final ClassType BRIDGE = new ClassType("io.hotmoka.examples.constructoronthis.Bridge");
 	private static final ClassType BRIDGE2 = new ClassType("io.hotmoka.examples.constructoronthis.Bridge2");
 

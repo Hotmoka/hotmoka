@@ -39,7 +39,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for the deserialization of a cyclic data structure.
  */
-class Cycle extends TakamakaTest {
+class Cycle extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

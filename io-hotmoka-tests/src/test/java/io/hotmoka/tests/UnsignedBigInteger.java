@@ -46,7 +46,7 @@ import io.hotmoka.beans.types.ClassType;
 /**
  * A test for the UnsignedBigInteger contract.
  */
-class UnsignedBigInteger extends TakamakaTest {
+class UnsignedBigInteger extends HotmokaTest {
     private static final ClassType UBI = new ClassType("io.takamaka.code.math.UnsignedBigInteger");
     private static final ConstructorSignature CONSTRUCTOR_UBI_BI = new ConstructorSignature(UBI, ClassType.BIG_INTEGER);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);

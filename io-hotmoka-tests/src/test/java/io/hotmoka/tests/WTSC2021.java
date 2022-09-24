@@ -49,7 +49,7 @@ import io.hotmoka.beans.values.StorageValue;
 /**
  * A test for generating many coin transfers and count their speed.
  */
-class WTSC2021 extends TakamakaTest {
+class WTSC2021 extends HotmokaTest {
 	private final static String MY_ACCOUNTS = "io.hotmoka.examples.wtsc2021.MyAccounts";
 	private final static int NUMBER_OF_TRANSFERS = 1000;
 	private static int NUMBER_OF_ACCOUNTS = 500;

@@ -50,7 +50,7 @@ import io.hotmoka.constants.Constants;
 /**
  * A test for the ExampleCoinOZSnapshot contract (a ERC20OZSnapshot contract).
  */
-class ExampleCoinOZSnapshot extends TakamakaTest {
+class ExampleCoinOZSnapshot extends HotmokaTest {
     private static final ClassType EXCOZS = new ClassType("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCOZS = new ConstructorSignature(EXCOZS);

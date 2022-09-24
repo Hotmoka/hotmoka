@@ -63,7 +63,7 @@ import io.hotmoka.service.NodeServiceConfig;
 /**
  * A test for creating a network server from a Hotmoka node.
  */
-class NetworkFromNode extends TakamakaTest {
+class NetworkFromNode extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();

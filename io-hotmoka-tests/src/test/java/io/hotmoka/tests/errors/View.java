@@ -34,9 +34,9 @@ import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.SideEffectsInViewMethodException;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class View extends TakamakaTest {
+class View extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -52,7 +52,7 @@ class View extends TakamakaTest {
 	void callNo1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
 
-		TakamakaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
+		HotmokaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no1", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
@@ -62,7 +62,7 @@ class View extends TakamakaTest {
 	void callNo2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
 
-		TakamakaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
+		HotmokaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no2", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 				c, new IntValue(13), new IntValue(17)));

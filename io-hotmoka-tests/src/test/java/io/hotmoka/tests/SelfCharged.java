@@ -42,7 +42,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test of the @SelfCharged annotation.
  */
-class SelfCharged extends TakamakaTest {
+class SelfCharged extends HotmokaTest {
 	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.examples.selfcharged.SelfChargeable");
 
 	@BeforeAll

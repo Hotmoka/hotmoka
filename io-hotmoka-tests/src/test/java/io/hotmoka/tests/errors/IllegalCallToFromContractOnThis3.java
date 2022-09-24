@@ -27,9 +27,9 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class IllegalCallToFromContractOnThis3 extends TakamakaTest {
+class IllegalCallToFromContractOnThis3 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

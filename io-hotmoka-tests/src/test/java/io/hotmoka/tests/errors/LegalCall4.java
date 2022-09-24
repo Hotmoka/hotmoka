@@ -37,9 +37,9 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class LegalCall4 extends TakamakaTest {
+class LegalCall4 extends HotmokaTest {
 	private static final ClassType C = new ClassType("io.hotmoka.examples.errors.legalcall4.C");
 
 	@BeforeEach

@@ -42,7 +42,7 @@ import static io.hotmoka.beans.types.BasicTypes.LONG;
  * A test showing that it is possible to have a shared entity with unrelated
  * shareholders' types, since generic types are erased at compilation time.
  */
-class SharedEntity2AllowsArbitraryShareholdersTypes extends TakamakaTest {
+class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
     private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
     private static final ClassType SHARED_ENTITY_2 = new ClassType("io.hotmoka.examples.sharedentities.SharedEntity2");
     private static final ClassType SIMPLE_SHARED_ENTITY_2 = new ClassType("io.hotmoka.examples.sharedentities.SimpleSharedEntity2");

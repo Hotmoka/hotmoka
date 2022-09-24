@@ -25,9 +25,9 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class IllegalTypeForStorageField4 extends TakamakaTest {
+class IllegalTypeForStorageField4 extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

@@ -41,7 +41,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for the simple pyramid contract.
  */
-class SimplePyramid extends TakamakaTest {
+class SimplePyramid extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.ponzi.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);

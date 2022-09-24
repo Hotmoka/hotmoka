@@ -44,7 +44,7 @@ import io.hotmoka.nodes.DeserializationError;
 /**
  * A test for the creation of classes with the same name but from different jars.
  */
-class ClassSwap extends TakamakaTest {
+class ClassSwap extends HotmokaTest {
 
 	private static final ConstructorSignature CONSTRUCTOR_C = new ConstructorSignature("C");
 	private static final MethodSignature GET = new NonVoidMethodSignature("C", "get", BasicTypes.INT);

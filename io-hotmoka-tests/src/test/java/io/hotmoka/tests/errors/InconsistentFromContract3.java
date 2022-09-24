@@ -22,9 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class InconsistentFromContract3 extends TakamakaTest {
+class InconsistentFromContract3 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

@@ -46,7 +46,7 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 /**
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.
  */
-class WTSC2020 extends TakamakaTest {
+class WTSC2020 extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(_50_000);
 	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);

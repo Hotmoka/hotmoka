@@ -41,12 +41,12 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
 /**
  * A test of a repeated transaction request. The second request fails.
  */
-class Repeated extends TakamakaTest {
+class Repeated extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

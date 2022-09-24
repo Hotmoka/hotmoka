@@ -47,7 +47,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for generating many coin transfers and count their speed.
  */
-class Bombing extends TakamakaTest {
+class Bombing extends HotmokaTest {
 	private final static int NUMBER_OF_TRANSFERS = 1000;
 	private static int NUMBER_OF_ACCOUNTS = 500;
 

@@ -36,7 +36,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * A test for wrong use of keys for signing a transaction.
  */
-class WrongKey extends TakamakaTest {
+class WrongKey extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

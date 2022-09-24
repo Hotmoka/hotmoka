@@ -33,9 +33,9 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class Exceptions extends TakamakaTest {
+class Exceptions extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

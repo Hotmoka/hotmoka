@@ -38,9 +38,9 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class Encapsulation extends TakamakaTest {
+class Encapsulation extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

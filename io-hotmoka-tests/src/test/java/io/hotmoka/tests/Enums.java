@@ -43,7 +43,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for the use of enumeration types.
  */
-class Enums extends TakamakaTest {
+class Enums extends HotmokaTest {
 	private static final ClassType MY_ENUM = new ClassType("io.hotmoka.examples.enums.MyEnum");
 
 	@BeforeAll

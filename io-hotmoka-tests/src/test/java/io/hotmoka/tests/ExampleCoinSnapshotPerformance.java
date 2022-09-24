@@ -71,7 +71,7 @@ import io.hotmoka.helpers.NonceHelper;
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.
  */
-class ExampleCoinSnapshotPerformance extends TakamakaTest {
+class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	private final static int NUMBER_OF_DAYS = 10;
 	private final static boolean PERFORM_SNAPSHOTS = true;
     private static FileWriter latexFile;

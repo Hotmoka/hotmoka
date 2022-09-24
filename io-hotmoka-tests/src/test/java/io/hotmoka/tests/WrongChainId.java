@@ -36,7 +36,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * A test for the wrong use of the chain identifier in a transaction.
  */
-class WrongChainId extends TakamakaTest {
+class WrongChainId extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

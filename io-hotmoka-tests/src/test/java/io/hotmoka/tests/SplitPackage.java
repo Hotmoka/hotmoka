@@ -34,7 +34,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 /**
  * A test that split packages are not allowed.
  */
-class SplitPackage extends TakamakaTest {
+class SplitPackage extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

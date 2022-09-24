@@ -48,7 +48,7 @@ import io.hotmoka.constants.Constants;
 /**
  * A test for the remote purchase contract.
  */
-class TicTacToe extends TakamakaTest {
+class TicTacToe extends HotmokaTest {
 	private static final ClassType TIC_TAC_TOE = new ClassType("io.hotmoka.examples.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 	private static final IntValue _1 = new IntValue(1);

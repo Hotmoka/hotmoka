@@ -47,7 +47,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for the crowd funding contract.
  */
-class CrowdFunding extends TakamakaTest {
+class CrowdFunding extends HotmokaTest {
 	private static final ClassType CROWD_FUNDING = new ClassType("io.hotmoka.examples.crowdfunding.CrowdFunding");
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = new ConstructorSignature(CROWD_FUNDING);
 

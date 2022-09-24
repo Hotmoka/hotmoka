@@ -68,7 +68,7 @@ import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.VerificationException;
 
-public class NodeFromNetworkWS extends TakamakaTest {
+public class NodeFromNetworkWS extends HotmokaTest {
     private final ClassType HASH_MAP_TESTS = new ClassType("io.hotmoka.examples.javacollections.HashMapTests");
     private final NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
     private final RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()

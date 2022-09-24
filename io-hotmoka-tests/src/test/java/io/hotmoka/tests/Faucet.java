@@ -43,7 +43,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 
-public class Faucet extends TakamakaTest {
+public class Faucet extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

@@ -44,7 +44,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * A test for {@link io.hotmoka.nodes.Node#getRequest(io.hotmoka.beans.references.TransactionReference)}.
  */
-class GetRequest extends TakamakaTest {
+class GetRequest extends HotmokaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll

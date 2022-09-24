@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * A test for the ExampleCoinWithSnapshots contract (a ERC20WithSnapshots contract).
  */
-class ExampleCoinWithSnapshots extends TakamakaTest {
+class ExampleCoinWithSnapshots extends HotmokaTest {
     private static final ClassType EXCWS = new ClassType("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCAS = new ConstructorSignature(EXCWS);

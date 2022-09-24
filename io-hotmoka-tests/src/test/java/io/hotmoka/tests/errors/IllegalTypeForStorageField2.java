@@ -27,9 +27,9 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class IllegalTypeForStorageField2 extends TakamakaTest {
+class IllegalTypeForStorageField2 extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

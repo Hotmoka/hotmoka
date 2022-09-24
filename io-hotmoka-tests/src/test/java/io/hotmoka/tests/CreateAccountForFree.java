@@ -48,7 +48,7 @@ import io.hotmoka.takamaka.TakamakaBlockchain;
 /**
  * A test for creating an account for free in the Takamaka blockchain.
  */
-class CreateAccountForFree extends TakamakaTest {
+class CreateAccountForFree extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {

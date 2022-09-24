@@ -30,9 +30,9 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class Loop1 extends TakamakaTest {
+class Loop1 extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
@@ -48,7 +48,7 @@ class Loop1 extends TakamakaTest {
 	void callLoop() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
 
-		TakamakaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
+		HotmokaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
 			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, loop, new VoidMethodSignature("io.hotmoka.examples.errors.loop1.Loop", "loop")));
 	}
 }

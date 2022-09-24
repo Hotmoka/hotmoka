@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /**
- * MODIFY AT LINE 207 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 241 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -99,7 +99,7 @@ import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import io.hotmoka.verification.VerificationException;
 
-public abstract class TakamakaTest {
+public abstract class HotmokaTest {
 
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
@@ -188,7 +188,7 @@ public abstract class TakamakaTest {
 	 */
 	private final static String hotmokaVersion;
 
-	private final static Logger logger = LoggerFactory.getLogger(TakamakaTest.class);
+	private final static Logger logger = LoggerFactory.getLogger(HotmokaTest.class);
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {
@@ -204,7 +204,7 @@ public abstract class TakamakaTest {
 			String current = System.getProperty("java.util.logging.config.file");
 			if (current == null) {
 				// if the property is not set, we provide a default (if it exists)
-				URL resource = TakamakaTest.class.getClassLoader().getResource("logging.properties");
+				URL resource = HotmokaTest.class.getClassLoader().getResource("logging.properties");
 				if (resource != null)
 					try {
 						LogManager.getLogManager().readConfiguration(resource.openStream());
@@ -468,7 +468,7 @@ public abstract class TakamakaTest {
 	}
 
 	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {
-		TakamakaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+		HotmokaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
 	protected final TransactionReference takamakaCode() {

@@ -44,7 +44,7 @@ import io.hotmoka.beans.values.StringValue;
 /**
  * A test for an externally owned account with an enum field.
  */
-class AccountWithEnum extends TakamakaTest {
+class AccountWithEnum extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

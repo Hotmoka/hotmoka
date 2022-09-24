@@ -42,7 +42,7 @@ import io.hotmoka.constants.Constants;
 /**
  * A test for the remote purchase contract.
  */
-class AbstractFail extends TakamakaTest {
+class AbstractFail extends HotmokaTest {
 	private static final ClassType ABSTRACT_FAIL = new ClassType("io.hotmoka.examples.abstractfail.AbstractFail");
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 

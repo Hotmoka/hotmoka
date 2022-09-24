@@ -34,7 +34,7 @@ import io.hotmoka.nodes.NonWhiteListedCallException;
 /**
  * A test for the Java HashMap class.
  */
-class JavaCollections extends TakamakaTest {
+class JavaCollections extends HotmokaTest {
 	private static final ClassType HASH_MAP_TESTS = new ClassType("io.hotmoka.examples.javacollections.HashMapTests");
 	private static final ClassType HASH_SET_TESTS = new ClassType("io.hotmoka.examples.javacollections.HashSetTests");
 

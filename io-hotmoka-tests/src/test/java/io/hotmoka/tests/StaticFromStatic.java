@@ -37,7 +37,7 @@ import io.hotmoka.beans.values.IntValue;
 /**
  * A test to check if class loaders correctly deal with a static method that calls another static method.
  */
-class StaticFromStatic extends TakamakaTest {
+class StaticFromStatic extends HotmokaTest {
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

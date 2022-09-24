@@ -50,7 +50,7 @@ import io.hotmoka.constants.Constants;
 /**
  * A test for the ExampleCoin contract (a ERC20 contract).
  */
-class ExampleCoin extends TakamakaTest {
+class ExampleCoin extends HotmokaTest {
     private static final ClassType EXAMPLECOIN = new ClassType("io.hotmoka.examples.tokens.ExampleCoin");
     private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXAMPLECOIN = new ConstructorSignature(EXAMPLECOIN);

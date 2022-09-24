@@ -22,9 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.tests.TakamakaTest;
+import io.hotmoka.tests.HotmokaTest;
 
-class SelfChargedNotOnInstance extends TakamakaTest {
+class SelfChargedNotOnInstance extends HotmokaTest {
 	private static final BigInteger _1_000_000_000 = BigInteger.valueOf(1_000_000_000);
 
 	@BeforeEach

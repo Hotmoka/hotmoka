@@ -49,7 +49,7 @@ import io.hotmoka.beans.values.IntValue;
  * latter are executed in real parallelism. A race condition would generate
  * an exception, which makes the test fail.
  */
-class Concurrency extends TakamakaTest {
+class Concurrency extends HotmokaTest {
 
 	/**
 	 * The number of threads that operate concurrently. At least 2 or this test will hang!

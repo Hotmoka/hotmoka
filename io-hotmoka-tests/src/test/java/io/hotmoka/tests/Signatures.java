@@ -51,7 +51,7 @@ import io.hotmoka.crypto.SignatureAlgorithm;
 /**
  * A test for signing transactions with distinct signatures.
  */
-class Signatures extends TakamakaTest {
+class Signatures extends HotmokaTest {
 
 	@BeforeEach
 	void beforeEach() throws Exception {
