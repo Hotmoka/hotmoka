@@ -77,7 +77,7 @@ class TendermintApplication extends ABCI {
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
 	 * that has been executed.
 	 */
-	private volatile TendermintValidator[] validatorsAtLastBeginBlock;
+	private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
@@ -224,8 +224,8 @@ class TendermintApplication extends ABCI {
     	node.rewardValidators(behaving, misbehaving);
 
     	// the ABCI might start too early, before the Tendermint process is up
-        if (node.getPoster() != null)
-        	validatorsAtLastBeginBlock = node.getPoster().getTendermintValidators().toArray(TendermintValidator[]::new);
+        if (node.getPoster() != null && validatorsAtPreviousBlock == null)
+        	validatorsAtPreviousBlock = node.getPoster().getTendermintValidators().toArray(TendermintValidator[]::new);
 
         return ResponseBeginBlock.newBuilder().build();
 	}
@@ -250,7 +250,7 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseEndBlock endBlock(RequestEndBlock request) {
     	ResponseEndBlock.Builder builder = ResponseEndBlock.newBuilder();
-    	TendermintValidator[] currentValidators = validatorsAtLastBeginBlock;
+    	TendermintValidator[] currentValidators = validatorsAtPreviousBlock;
 
     	if (currentValidators != null) {
     		try {
@@ -263,6 +263,7 @@ class TendermintApplication extends ABCI {
     					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
     					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
     					updateValidatorsThatChangedPower(currentValidators, nextValidators, builder);
+    					validatorsAtPreviousBlock = nextValidators;
     				}
     			}
     		}
