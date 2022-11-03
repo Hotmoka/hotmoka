@@ -1,10 +1,13 @@
 #!/bin/bash
 
-# an example of a scfript that starts a brand new Hotmoka blockchain
+# an example of a script that starts a brand new Hotmoka blockchain
 # initially consisting of a single node
 
-DIR=hotmoka_node_info
-VERSION=1.0.10
+# source it as follows (to install version 1.0.10):
+# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s 1.0.10
+
+VERSION=${1:-1.0.10}
+DIR=${2:-hotmoka_node_info}
 
 echo "Starting a brand new Hotmoka blockchain version $VERSION:"
 docker rm hotmoka 2>/dev/null >/dev/null
@@ -28,7 +31,7 @@ LINE2=$(echo "$GAMETE_CREATION"| sed '2!d')
 GAMETE_PUBLIC_KEY_BASE58=${LINE2:19}
 
 echo " * starting docker container"
-docker run -dit --name hotmoka -e KEY_OF_GAMETE=$GAMETE_PUBLIC_KEY_BASE58 -e CHAIN_ID=marabunta -e INITIAL_SUPPLY=10000000000000000000000000000000000 -p 80:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:latest init >/dev/null
+docker run -dit --name hotmoka -e KEY_OF_GAMETE=$GAMETE_PUBLIC_KEY_BASE58 -e CHAIN_ID=marabunta -e INITIAL_SUPPLY=10000000000000000000000000000000000 -p 80:8080 -p 26656:26656 -v chain:/home/hotmoka/chain hotmoka/tendermint-node:${VERSION} init >/dev/null
 
 echo " * waiting for the node to complete initialization"
 sleep 10
