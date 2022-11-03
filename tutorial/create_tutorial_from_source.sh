@@ -207,9 +207,9 @@ sed -i 's/@tool_repo/https:\/\/github.com\/Vero4Chain\/blueknot/g' ProgrammingBl
 sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
 sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
 sed -i 's/@app_repo/https:\/\/github.com\/Vero4Chain\/BlueknotAndroid/g' ProgrammingBlueknot.md
-sed -i 's/@app_id_play/it.vero4chain.android.bluewallet/g' ProgrammingBlueknot.md
-sed -i 's/@app/bluewallet/g' ProgrammingBlueknot.md
-sed -i 's/@App/Bluewallet/g' ProgrammingBlueknot.md
+sed -i 's/@app_id_play/it.vero4chain.android.bluewally/g' ProgrammingBlueknot.md
+sed -i 's/@app/bluewally/g' ProgrammingBlueknot.md
+sed -i 's/@App/Bluewally/g' ProgrammingBlueknot.md
 sed -i 's/@type/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@Type/Blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@docker_hub_user/veroforchain/g' ProgrammingBlueknot.md
