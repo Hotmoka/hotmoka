@@ -19,7 +19,7 @@ RemoteSystemsTempFiles/
 *~
 doc/
 target/
-scripts/hotmoka_node_info/
+scripts/*_node_info/
 .classpath
 .settings/
 .project
