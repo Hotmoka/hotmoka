@@ -7,9 +7,23 @@
 # Docker images are created at the end and pushed to DockerHub
 # (you must have the right to do that)
 
+VERSION=${VERSION:-latest}
+
+case $(uname -m) in
+    arm64)
+	DOCKER_IMAGE_HOTMOKA=hotmoka/tendermint-node-arm64:${VERSION}
+    	DOCKER_IMAGE_BLUEKNOT=veroforchain/tendermint-node-arm64:${VERSION};;
+    aarch64)
+	DOCKER_IMAGE_HOTMOKA=hotmoka/tendermint-node-arm64:${VERSION}
+	DOCKER_IMAGE_BLUEKNOT=veroforchain/tendermint-node-arm64:${VERSION};;
+    x86_64)
+	DOCKER_IMAGE_HOTMOKA=hotmoka/tendermint-node:${VERSION}
+	DOCKER_IMAGE_BLUEKNOT=veroforchain/tendermint-node:${VERSION};;
+esac
+
 mvn clean install -DskipTests
-docker build -t hotmoka/tendermint-node:latest -f dockerfiles/tendermint-node/tendermint-node .
-docker push hotmoka/tendermint-node:latest
-docker build -t veroforchain/tendermint-node:latest -f dockerfiles/tendermint-node/blueknot-tendermint-node .
-docker push veroforchain/tendermint-node:latest
+docker build -t ${DOCKER_IMAGE_HOTMOKA} -f dockerfiles/tendermint-node/tendermint-node .
+docker push ${DOCKER_IMAGE_HOTMOKA}
+docker build -t ${DOCKER_IMAGE_BLUEKNOT} -f dockerfiles/tendermint-node/blueknot-tendermint-node .
+docker push ${DOCKER_IMAGE_BLUEKNOT}
 
