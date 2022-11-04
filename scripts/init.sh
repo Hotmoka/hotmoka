@@ -7,13 +7,10 @@
 # curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s hotmoka 1.0.10
 # or (for a test network):
 # curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s hotmoka 1.0.10 test
-# or (for a production network on arm64):
-# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s hotmoka 1.0.10 false arm64
 
 TYPE=${1:-hotmoka}
 VERSION=${2:-1.0.10}
 TEST=${3:-false}
-ARCH=${4:-""}
 
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
@@ -31,6 +28,12 @@ else
     CHAIN_ID=octopus
     INITIAL_SUPPLY=1000000000000000000000000000000000000000000000000
 fi;
+
+case $(uname -m) in
+    arm64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
+    aarch64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
+    x86_64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION};;
+esac
 
 if [ "$ARCH" = "" ];
 then

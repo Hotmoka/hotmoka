@@ -5,11 +5,8 @@
 
 # source it as follows (to clone the node at panarea.hotmoka.io)
 # curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh | bash -s hotmoka panarea.hotmoka.io
-# or (to specify the architecture)
-# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh | bash -s hotmoka panarea.hotmoka.io arm64
 
 TYPE=${1:-hotmoka}
-ARCH=${3:-""}
 
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
@@ -24,12 +21,11 @@ fi;
 
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
-if [ "$ARCH" = "" ];
-then
-    DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION}
-else
-    DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-${ARCH}:${VERSION}
-fi;
+case $(uname -m) in
+    arm64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
+    aarch64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
+    x86_64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION};;
+esac
 
 echo "Starting a node of the $TYPE_CAPITALIZED blockchain at $NETWORK_URL, version $VERSION:"
 docker rm $TYPE 2>/dev/null >/dev/null
