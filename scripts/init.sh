@@ -4,9 +4,9 @@
 # initially consisting of a single node
 
 # source it as follows (to install version 1.0.10):
-# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s hotmoka 1.0.10
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.10
 # or (for a test network):
-# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init_hotmoka.sh | bash -s hotmoka 1.0.10 test
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.10 test
 
 TYPE=${1:-hotmoka}
 VERSION=${2:-1.0.10}
@@ -38,7 +38,7 @@ esac
 echo "Starting the first node of a brand new $TYPE_CAPITALIZED blockchain version $VERSION:"
 docker rm $TYPE 2>/dev/null >/dev/null
 rm -r $DIR 2>/dev/null
-mkdir $DIR
+mkdir -m700 $DIR
 
 echo " * downloading the blockchain CLI"
 mkdir $DIR/$CLI

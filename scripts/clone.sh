@@ -4,7 +4,7 @@
 # that clones and synchronizes with a remote node
 
 # source it as follows (to clone the node at panarea.hotmoka.io)
-# curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh | bash -s hotmoka panarea.hotmoka.io
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka panarea.hotmoka.io
 
 TYPE=${1:-hotmoka}
 
@@ -30,7 +30,7 @@ esac
 echo "Starting a node of the $TYPE_CAPITALIZED blockchain at $NETWORK_URL, version $VERSION:"
 docker rm $TYPE 2>/dev/null >/dev/null
 rm -r $DIR 2>/dev/null
-mkdir $DIR
+mkdir -m700 $DIR
 
 echo " * starting the docker container"
 docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=$NETWORK_URL -v chain:/home/$TYPE/chain $DOCKER_IMAGE start >/dev/null
