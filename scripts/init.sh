@@ -35,13 +35,6 @@ case $(uname -m) in
     x86_64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION};;
 esac
 
-if [ "$ARCH" = "" ];
-then
-    DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION}
-else
-    DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-${ARCH}:${VERSION}
-fi;
-
 echo "Starting the first node of a brand new $TYPE_CAPITALIZED blockchain version $VERSION:"
 docker rm $TYPE 2>/dev/null >/dev/null
 rm -r $DIR 2>/dev/null
