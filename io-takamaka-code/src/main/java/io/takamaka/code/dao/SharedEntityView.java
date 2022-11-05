@@ -61,6 +61,13 @@ public interface SharedEntityView<S extends Contract> {
 	@View BigInteger sharesOf(S shareholder);
 
 	/**
+	 * Yields the total amount of shares, that is split among all shareholders.
+	 * 
+	 * @return the total amount of shares
+	 */
+	@View BigInteger getTotalShares();
+
+	/**
 	 * Yields a snapshot of this shared entity. The snapshot contains the shares in this entity
 	 * but is independent from this entity: any future modification of this enoty will
 	 * not be seen through the snapshot. A snapshot is always {@link io.takamaka.code.lang.Exported}.

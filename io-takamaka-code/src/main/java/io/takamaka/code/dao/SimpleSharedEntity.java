@@ -169,6 +169,11 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 	}
 
     @Override
+    public @View BigInteger getTotalShares() {
+    	return shares.values().reduce(BigInteger.ZERO, BigInteger::add);
+    }
+
+    @Override
     public @View final boolean isShareholder(Object who) {
     	return snapshotOfShares.containsKey(who);
     }
@@ -244,6 +249,11 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 				return SimpleSharedEntity.this.sharesOf(shareholder);
 			}
 
+			@Override @View
+			public BigInteger getTotalShares() {
+				return SimpleSharedEntity.this.getTotalShares();
+			}
+
 			@Override
 			public SharedEntityView<S> snapshot() {
 				return SimpleSharedEntity.this.snapshot();
@@ -284,7 +294,12 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 				return snapshotOfShares.getOrDefault(shareholder, ZERO);
 			}
 
-			@Override
+			@Override @View
+			public BigInteger getTotalShares() {
+				return snapshotOfShares.values().reduce(BigInteger.ZERO, BigInteger::add);
+			}
+
+			@Override @View
 			public SharedEntityView<S> snapshot() {
 				return this;
 			}
