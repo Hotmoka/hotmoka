@@ -3,13 +3,13 @@
 # an example of a script that starts a brand new blockchain
 # initially consisting of a single node
 
-# source it as follows (to install version 1.0.10):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.10
+# source it as follows (to install version 1.0.11):
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.11
 # or (for a test network):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.10 test
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.11 test
 
 TYPE=${1:-hotmoka}
-VERSION=${2:-1.0.10}
+VERSION=${2:-1.0.11}
 TEST=${3:-false}
 
 TYPE_CAPITALIZED=${TYPE^}
