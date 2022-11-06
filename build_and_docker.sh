@@ -7,7 +7,14 @@
 # Docker images are created at the end and pushed to DockerHub
 # (you must have the right to do that)
 
-VERSION=${VERSION:-latest}
+if [ -z $1 ]
+then
+    VERSION=latest
+else
+    VERSION=$1
+fi;
+
+echo $VERSION
 
 case $(uname -m) in
     arm64)

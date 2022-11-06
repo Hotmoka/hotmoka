@@ -11,6 +11,10 @@ echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
 echo "  NETWORK_URL=$NETWORK_URL"
 echo "  BASE_NETWORK_URL=$BASE_NETWORK_URL"
 echo "  TIMEOUT_COMMIT=$TIMEOUT_COMMIT"
+echo "  PUBLIC_KEY_BASE58=$PUBLIC_KEY_BASE58"
+echo "  PUBLIC_KEY_BASE64=$PUBLIC_KEY_BASE64"
+echo "  CONCATENATED_KEYS_BASE64=$CONCATENATED_KEYS_BASE64"
+echo "  TENDERMINT_ADDRESS=$TENDERMINT_ADDRESS"
 
 # extract information about the remote node, that are needed in order to prepare
 # the Tendermint configuration of the local node
