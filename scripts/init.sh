@@ -90,6 +90,12 @@ ln -s $GAMETE_ADDRESS.pem gamete.pem
 ./${CLI}/${CLI} show-account $GAMETE_ADDRESS | tail -36 >${GAMETE_ADDRESS}_36_words.txt
 cd ..
 
+# useful to fund it, so that it can later sell power
+echo " * providing some funding to the validator account"
+cd $DIR
+./${CLI}/${CLI} send 500000 $VALIDATOR_ADDRESS --interactive=false --password_of_payer=$PASSWORD --payer=$GAMETE_ADDRESS --url $NETWORK_URL >/dev/null
+cd ..
+
 if [ $TEST != false ];
 then
     echo " * opening an unsigned faucet"
@@ -101,6 +107,7 @@ fi;
 echo " * cleaning up"
 rm -r ${DIR}/${CLI}
 rm $DIR/$GAMETE_PUBLIC_KEY_BASE58.pem
+PASSWORD=
 
 echo
 echo "The pem files to control the gamete and the validator have been saved in the directory \"${DIR}\"."
