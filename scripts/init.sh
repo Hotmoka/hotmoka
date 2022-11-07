@@ -93,7 +93,7 @@ cd ..
 # useful to fund it, so that it can later sell power
 echo " * providing some funding to the validator account"
 cd $DIR
-./${CLI}/${CLI} send 500000 $VALIDATOR_ADDRESS --interactive=false --password_of_payer=$PASSWORD --payer=$GAMETE_ADDRESS --url localhost:80 >/dev/null
+./${CLI}/${CLI} send 500000 $VALIDATOR_ADDRESS --interactive=false --password-of-payer=$PASSWORD --payer=$GAMETE_ADDRESS --url localhost:80 >/dev/null
 cd ..
 
 if [ $TEST != false ];
