@@ -31,6 +31,13 @@ echo "Buying some crypto and becoming a validator of the $TYPE_CAPITALIZED block
 rm -r $DIR 2>/dev/null
 mkdir -m700 $DIR
 
+echo " * extracting the pem of the validator key"
+cd $DIR
+docker cp $TYPE:/home/$TYPE/extract/. .
+VALIDATOR_KEY=$(ls *.pem)
+VALIDATOR_KEY_BASE58=${VALIDATOR_KEY::-4}
+cd ..
+
 echo " * downloading the blockchain CLI"
 mkdir $DIR/$CLI
 cd $DIR/$CLI
@@ -55,19 +62,30 @@ rm ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58}.pem
 ./${CLI}/${CLI} show-account $MONEY_ACCOUNT_ADDRESS | tail -36 >${MONEY_ACCOUNT_ADDRESS}_36_words.txt
 cd ..
 
-echo " * extracting the pem of the validator key"
+echo " * creating the validator account"
 cd $DIR
-docker cp $TYPE:/home/$TYPE/extract/. .
-VALIDATOR_KEY=$(ls *.pem)
+# this account will subsequently accept the validation power sell offer: 1000000 should be enough for that
+RUN=$(./${CLI}/${CLI} create-account 1000000 --key-of-new-account ${VALIDATOR_KEY_BASE58} --payer ${MONEY_ACCOUNT_ADDRESS} --password-of-payer=${PASSWORD} --create-tendermint-validator --interactive=false --print-costs=false --url ${NETWORK_URL})
+LINE1=$(echo "$RUN"| sed '1!d')
+VALIDATOR_ACCOUNT_ADDRESS=${LINE1:14:66}
+rm ${VALIDATOR_KEY_BASE58}.pem
+ln -s ${VALIDATOR_ACCOUNT_ADDRESS}.pem validator.pem
+./${CLI}/${CLI} show-account $VALIDATOR_ACCOUNT_ADDRESS | tail -36 >${VALIDATOR_ACCOUNT_ADDRESS}_36_words.txt
+PASSWORD=
+cd ..
+
+echo " * accepting a sell offer of validation power"
+cd $DIR
+read -p "     tell the seller to create a sell offer for $VALIDATOR_ACCOUNT_ADDRESS and insert the address of the offer here: " OFFER_ADDRESS
+./${CLI}/${CLI} buy-validation ${VALIDATOR_ACCOUNT_ADDRESS} ${OFFER_ADDRESS} --password-of-buyer= --interactive=false --print-costs=false --url ${NETWORK_URL} >/dev/null
 cd ..
 
 echo " * cleaning up"
 rm -r ${DIR}/${CLI}
-#rm $DIR/$MONEY_ACCOUNT_PUBLIC_KEY_BASE58.pem
 
 echo
-echo "The pem file of the key to control the node as validator"
-echo "(if it will ever be a validator) has been saved in the directory \"${DIR}\"."
+echo "The pem files to control the money account and the validator have been saved in the directory \"${DIR}\"."
 echo "Move that directory to the clients that need to control the node and delete it from this server."
 echo
-echo "The password of the validator key is empty."
+echo "The password of the money account is what you have chosen above."
+echo "The password of the validator is empty."
