@@ -11,14 +11,13 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/allow.sh) seller validator hotmoka panarea.hotmoka.io
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka panarea.hotmoka.io
 # where seller is the address of the account that sells the money (for instance, the gamete)
 # and validator is the address of the validator that sends part of its power.
 
 TYPE=${3:-hotmoka}
 SELLER_ADDRESS=$1
 VALIDATOR_ADDRESS=$2
-
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
@@ -79,7 +78,7 @@ cd ..
 echo " * creating a sell offer of validation power"
 read -p "     ask the buyer about the address of the validator account that buys the power and enter that address here: " VALIDATOR_BUYER_ACCOUNT
 cd $DIR
-RUN=$(./${CLI}/${CLI} sell-validation $VALIDATOR_ADDRESS $VALIDATION_AMOUNT 0 30000 --buyer $VALIDATOR_BUYER_ACCOUNT --interactive=false --password-of-seller= --print-costs=false --url $NETWORK_URL)
+RUN=$(./${CLI}/${CLI} sell-validation $VALIDATOR_ADDRESS $VALIDATION_AMOUNT 0 100000 --buyer $VALIDATOR_BUYER_ACCOUNT --interactive=false --password-of-seller= --print-costs=false --url $NETWORK_URL)
 LINE1=$(echo "$RUN"| sed '1!d')
 OFFER_ADDRESS=${LINE1:6:66}
 echo "     tell the buyer to accept the sell offer ${OFFER_ADDRESS}"
