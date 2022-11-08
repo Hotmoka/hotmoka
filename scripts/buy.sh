@@ -53,7 +53,7 @@ MONEY_ACCOUNT_CREATION=$(./${CLI}/${CLI} create-key --password-of-new-key=$PASSW
 LINE2=$(echo "$MONEY_ACCOUNT_CREATION"| sed '2!d')
 MONEY_ACCOUNT_PUBLIC_KEY_BASE58=${LINE2:19}
 
-echo "     tell the seller to pay anonymously to the key $MONEY_ACCOUNT_PUBLIC_KEY_BASE58"
+echo "     tell the seller to pay to the key $MONEY_ACCOUNT_PUBLIC_KEY_BASE58"
 
 while true; do
     echo "       waiting..."
@@ -76,7 +76,7 @@ cd ..
 
 echo " * creating the validator account"
 cd $DIR
-# this account will subsequently accept the validation power sell offer: 1000000 should be enough for that
+# this account will subsequently accept the validation power sale offer: 1000000 should be enough for that
 RUN=$(./${CLI}/${CLI} create-account 1000000 --key-of-new-account ${VALIDATOR_KEY_BASE58} --payer ${MONEY_ACCOUNT_ADDRESS} --password-of-payer=${PASSWORD} --create-tendermint-validator --interactive=false --print-costs=false --url ${NETWORK_URL})
 LINE1=$(echo "$RUN"| sed '1!d')
 VALIDATOR_ACCOUNT_ADDRESS=${LINE1:14:66}
@@ -86,10 +86,40 @@ ln -s ${VALIDATOR_ACCOUNT_ADDRESS}.pem validator.pem
 PASSWORD=
 cd ..
 
-echo " * accepting a sell offer of validation power"
+echo " * accepting a sale offer of validation power"
 cd $DIR
-read -p "     tell the seller to create a sell offer for $VALIDATOR_ACCOUNT_ADDRESS and insert the address of the offer here: " OFFER_ADDRESS
-./${CLI}/${CLI} buy-validation ${VALIDATOR_ACCOUNT_ADDRESS} ${OFFER_ADDRESS} --password-of-buyer= --interactive=false --print-costs=false --url ${NETWORK_URL} >/dev/null
+echo "     tell the seller to sell validation power to $VALIDATOR_ACCOUNT_ADDRESS"
+MANIFEST=$(./${CLI}/${CLI} info --url $NETWORK_URL)
+LINE=$(echo "$MANIFEST" | grep "validators" | sed '1!d')
+VALIDATORS_ADDRESS=${LINE: -66}
+
+while [ true ]
+do
+    echo "       waiting..."
+    sleep 10
+
+    RUN=$(./${CLI}/${CLI} call $VALIDATORS_ADDRESS getOffers --use-colors=false --url $NETWORK_URL)
+    OFFERS_ADDRESS=$(echo "$RUN"| sed '1!d')
+    RUN=$(./${CLI}/${CLI} call $OFFERS_ADDRESS size --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --url $NETWORK_URL)
+    NUM_OFFERS=$(echo "$RUN"| sed '1!d')
+    for (( INDEX=0; INDEX<$NUM_OFFERS; INDEX++ ))
+    do
+	RUN=$(./${CLI}/${CLI} call $OFFERS_ADDRESS select $INDEX --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --url $NETWORK_URL)
+	OFFER_ADDRESS=$(echo "$RUN"| sed '1!d')
+	RUN=$(./${CLI}/${CLI} call $OFFER_ADDRESS getBuyer --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --url $NETWORK_URL)
+	BUYER_ADDRESS=$(echo "$RUN"| sed '1!d')
+	if [[ "$BUYER_ADDRESS" == "$VALIDATOR_ACCOUNT_ADDRESS" ]];
+	then
+	    RUN=$(./${CLI}/${CLI} call $OFFER_ADDRESS getCost --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --url $NETWORK_URL)
+	    COST=$(echo "$RUN"| sed '1!d')
+	    if [[ "$COST" == "0" ]];
+	    then
+		./${CLI}/${CLI} buy-validation ${VALIDATOR_ACCOUNT_ADDRESS} ${OFFER_ADDRESS} --password-of-buyer= --interactive=false --print-costs=false --url ${NETWORK_URL} >/dev/null
+		break 2
+	    fi;
+	fi;
+    done
+done
 cd ..
 
 echo " * cleaning up"

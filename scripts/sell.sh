@@ -68,20 +68,17 @@ echo "   -> $VALIDATION_AMOUNT"
 cd ..
 
 echo " * funding the money account"
-read -p "     ask the buyer about the key to pay into and enter that key here: " MONEY_ACCOUNT_PUBLIC_KEY_BASE58
-read -s -p "     enter the password of the seller account: " PASSWORD_OF_SELLER
+read -p "     key to pay into: " MONEY_ACCOUNT_PUBLIC_KEY_BASE58
+read -s -p "     password of the seller account: " PASSWORD_OF_SELLER
 echo
 cd $DIR
 ./${CLI}/${CLI} send $FUND_AMOUNT $MONEY_ACCOUNT_PUBLIC_KEY_BASE58 --anonymous --payer $SELLER_ADDRESS --url $NETWORK_URL --interactive=false --password-of-payer=$PASSWORD_OF_SELLER >/dev/null
 cd ..
 
-echo " * creating a sell offer of validation power"
-read -p "     ask the buyer about the address of the validator account that buys the power and enter that address here: " VALIDATOR_BUYER_ACCOUNT
+echo " * creating a sale offer of validation power"
+read -p "     address of the validator account: " VALIDATOR_BUYER_ACCOUNT
 cd $DIR
-RUN=$(./${CLI}/${CLI} sell-validation $VALIDATOR_ADDRESS $VALIDATION_AMOUNT 0 100000 --buyer $VALIDATOR_BUYER_ACCOUNT --interactive=false --password-of-seller= --print-costs=false --url $NETWORK_URL)
-LINE1=$(echo "$RUN"| sed '1!d')
-OFFER_ADDRESS=${LINE1:6:66}
-echo "     tell the buyer to accept the sell offer ${OFFER_ADDRESS}"
+./${CLI}/${CLI} sell-validation $VALIDATOR_ADDRESS $VALIDATION_AMOUNT 0 100000 --buyer $VALIDATOR_BUYER_ACCOUNT --interactive=false --password-of-seller= --print-costs=false --url $NETWORK_URL >/dev/null
 cd ..
 
 echo " * cleaning up"

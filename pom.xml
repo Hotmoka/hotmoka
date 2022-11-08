@@ -20,27 +20,27 @@
 	<url>https://github.com/Hotmoka/hotmoka</url>
 
     <organization>
-		<url>https://www.hotmoka.io</url>
-		<name>Hotmoka</name>
-	</organization>
-	<inceptionYear>2019</inceptionYear>
+      <url>https://www.hotmoka.io</url>
+      <name>Hotmoka</name>
+    </organization>
+    <inceptionYear>2019</inceptionYear>
 
-	<licenses>
+    <licenses>
       <license>
-		<name>The Apache License, Version 2.0</name>
-		<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-	  </license>
-	</licenses>
+	<name>The Apache License, Version 2.0</name>
+	<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      </license>
+    </licenses>
 
-	<developers>
- 	  <developer>
-		<name>Fausto Spoto</name>
-		<email>fausto.spoto@hotmoka.io</email>
-		<organization>Hotmoka</organization>
-		<organizationUrl>https://www.hotmoka.io</organizationUrl>
-		<timezone>UTC+01:00</timezone>
-	  </developer>
-	</developers>
+    <developers>
+      <developer>
+	<name>Fausto Spoto</name>
+	<email>fausto.spoto@hotmoka.io</email>
+	<organization>Hotmoka</organization>
+	<organizationUrl>https://www.hotmoka.io</organizationUrl>
+	<timezone>UTC+01:00</timezone>
+      </developer>
+    </developers>
 
     <modules>
       <module>io-takamaka-code</module>
@@ -59,9 +59,9 @@
       <module>io-hotmoka-patricia</module>
       <module>io-hotmoka-local</module>
       <module>io-hotmoka-tools</module>
-	  <module>io-hotmoka-stores</module>
+      <module>io-hotmoka-stores</module>
       <module>io-hotmoka-memory</module>
-	  <module>io-hotmoka-xodus</module>
+      <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
       <module>io-hotmoka-toml</module>
@@ -168,37 +168,37 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-		  <version>3.1.0</version>
-		  <configuration>
-		    <failOnError>false</failOnError>
-		    <filesets>
-		      <fileset>
-		        <directory>modules</directory>
-		        <includes>
-		          <include>**/*</include>
-		        </includes>
-		        <followSymlinks>false</followSymlinks>
-		      </fileset>
-		      <fileset>
-		        <directory>docs</directory>
-		        <includes>
-		          <include>**/*</include>
-		        </includes>
-		        <followSymlinks>false</followSymlinks>
-		      </fileset>
-		    </filesets>
-		  </configuration>
+	  <version>3.1.0</version>
+	  <configuration>
+	    <failOnError>false</failOnError>
+	    <filesets>
+	      <fileset>
+		<directory>modules</directory>
+		<includes>
+		  <include>**/*</include>
+		</includes>
+		<followSymlinks>false</followSymlinks>
+	      </fileset>
+	      <fileset>
+		<directory>docs</directory>
+		<includes>
+		  <include>**/*</include>
+		</includes>
+		<followSymlinks>false</followSymlinks>
+	      </fileset>
+	    </filesets>
+	  </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-		  <version>3.8.1</version>
-		  <configuration>
-		    <release>11</release>
-		  </configuration>
+	  <version>3.8.1</version>
+	  <configuration>
+	    <release>11</release>
+	  </configuration>
         </plugin>
         <plugin>
-		  <groupId>org.apache.maven.plugins</groupId>
+	  <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-dependency-plugin</artifactId>
           <version>3.1.2</version>
           <executions>
@@ -345,7 +345,7 @@
             </execution>
           </executions>
         </plugin>
-		<plugin>
+	<plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.22.0</version>
@@ -358,12 +358,12 @@
             <includes>
               <include>*.java</include>
             </includes>
-	        <systemProperties>
+	    <systemProperties>
     	      <property>
-        	     <name>cheapTests</name>
-            	 <value>${cheapTests}</value>
-       	 	  </property>
-         	</systemProperties>
+        	<name>cheapTests</name>
+            	<value>${cheapTests}</value>
+       	      </property>
+            </systemProperties>
      	  </configuration>
         </plugin>
         <plugin>

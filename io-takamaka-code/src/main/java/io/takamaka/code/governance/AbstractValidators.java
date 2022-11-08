@@ -309,15 +309,6 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	}
 
 	@Override
-	public @FromContract(PayableContract.class) int acceptAllAtCostZero(V buyer) {
-		// it is important to redefine this method, so that the same method with
-		// argument of type PayableContract is redefined by the compiler with a bridge method
-		// that casts the argument to Validator and calls this method. In this way
-		// only instances of Validator can become shareholders (ie, actual validators)
-		return super.acceptAllAtCostZero(buyer);
-	}
-
-	@Override
 	@FromContract @Payable public void reward(BigInteger amount, BigInteger minted, String behaving, String misbehaving, BigInteger gasConsumed, BigInteger numberOfTransactionsSinceLastReward) {
 		require(isSystemCall(), "the validators can only be rewarded with a system request");
 
