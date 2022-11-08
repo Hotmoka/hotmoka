@@ -32,6 +32,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.SignatureAlgorithm;
@@ -49,10 +50,12 @@ import picocli.CommandLine.Parameters;
 	showDefaultValues = true)
 public class BuyValidation extends AbstractCommand {
 
+	private final static String OFFER_DEFAULT = "all offers at cost 0 reserved to the buyer";
+
 	@Parameters(index = "0", description = "the reference to the validator that accepts and pays the sale offer of validation power")
     private String buyer;
 
-	@Parameters(index = "1", description = "the reference to the sale offer that gets accepted")
+	@Parameters(index = "1", description = "the reference to the sale offer that gets accepted", defaultValue = OFFER_DEFAULT)
     private String offer;
 
 	@Option(names = { "--password-of-buyer" }, description = "the password of the buyer validator; if not specified, it will be asked interactively")
@@ -92,28 +95,49 @@ public class BuyValidation extends AbstractCommand {
 				StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
 				StorageReference buyer = new StorageReference(BuyValidation.this.buyer);
-				StorageReference offer = new StorageReference(BuyValidation.this.offer);
 				SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				KeyPair keys = readKeys(new Account(buyer), node, passwordOfBuyer);
 				Signer signer = Signer.with(algorithm, keys);				
+				InstanceMethodCallTransactionRequest request;
 
-				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
-				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
-				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
+				if (OFFER_DEFAULT.equals(offer)) {
+					askForConfirmation(gasLimit);
 
-				askForConfirmation(gasLimit, costWithSurcharge);
+					request = new InstanceMethodCallTransactionRequest
+							(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+									new VoidMethodSignature(ClassType.ABSTRACT_VALIDATORS, "acceptAllAtCostZero", ClassType.VALIDATOR),
+									validators, buyer);
 
-				InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
-					(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-					new VoidMethodSignature(ClassType.ABSTRACT_VALIDATORS, "accept", ClassType.BIG_INTEGER, ClassType.VALIDATOR, ClassType.SHARED_ENTITY_OFFER),
-					validators, new BigIntegerValue(costWithSurcharge), buyer, offer);
+					int count = ((IntValue) node.addInstanceMethodCallTransaction(request)).value;
+					if (count == 1)
+						System.out.println("1 offer accepted");
+					else
+						System.out.println(count + " offers accepted");
 
-				node.addInstanceMethodCallTransaction(request);
-				System.out.println("Offer accepted");
+					printCosts(request);
+				}
+				else {
+					int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
+
+					StorageReference offer = new StorageReference(BuyValidation.this.offer);
+
+					BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
+					BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
+
+					askForConfirmation(gasLimit, costWithSurcharge);
+
+					request = new InstanceMethodCallTransactionRequest
+							(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+									new VoidMethodSignature(ClassType.ABSTRACT_VALIDATORS, "accept", ClassType.BIG_INTEGER, ClassType.VALIDATOR, ClassType.SHARED_ENTITY_OFFER),
+									validators, new BigIntegerValue(costWithSurcharge), buyer, offer);
+
+					node.addInstanceMethodCallTransaction(request);
+					System.out.println("Offer accepted");
+				}
 
 				printCosts(request);
 			}
@@ -122,6 +146,11 @@ public class BuyValidation extends AbstractCommand {
 		private void askForConfirmation(BigInteger gas, BigInteger cost) {
 			if (interactive)
 				yesNo("Do you really want to spend up to " + gas + " gas units and " + cost + " panareas to accept the sale of validation power [Y/N] ");
+		}
+
+		private void askForConfirmation(BigInteger gas) {
+			if (interactive)
+				yesNo("Do you really want to spend up to " + gas + " gas units to accept all reserved sale offers of validation power at cost zero [Y/N] ");
 		}
 
 		private void printCosts(TransactionRequest<?>... requests) {

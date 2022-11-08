@@ -223,6 +223,24 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		event(new OfferAccepted<>(buyer, offer));
 	}
 
+    /**
+     * Accepts all sale offers at cost zero for the given {@code buyer}.
+     * 
+     * @param buyer the buyer
+     * @return the number of offers that have been accepted
+     */
+	public @FromContract(PayableContract.class) int acceptAllAtCostZero(S buyer) {
+		int count = 0;
+
+		for (O offer: offers)
+			if (offer.cost.signum() == 0 && offer.buyer == buyer) {
+				accept(BigInteger.ZERO, buyer, offer);
+				count++;
+			}
+
+		return count;
+	}
+
 	@Override
 	public SharedEntityView<S> view() {
 

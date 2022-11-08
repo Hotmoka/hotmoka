@@ -52,10 +52,22 @@ cd $DIR
 MONEY_ACCOUNT_CREATION=$(./${CLI}/${CLI} create-key --password-of-new-key=$PASSWORD --interactive=false)
 LINE2=$(echo "$MONEY_ACCOUNT_CREATION"| sed '2!d')
 MONEY_ACCOUNT_PUBLIC_KEY_BASE58=${LINE2:19}
-read -s -p "     tell the seller to pay anonymously to the key $MONEY_ACCOUNT_PUBLIC_KEY_BASE58 then press ENTER"
-echo
-BINDING=$(./${CLI}/${CLI} bind-key ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --url ${NETWORK_URL})
-LINE1=$(echo "$BINDING"| sed '1!d')
+
+echo "     tell the seller to pay anonymously to the key $MONEY_ACCOUNT_PUBLIC_KEY_BASE58"
+
+while true; do
+    echo "       waiting..."
+    sleep 10
+
+    BINDING=$(./${CLI}/${CLI} bind-key ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --url ${NETWORK_URL} 2>/dev/null)
+    LINE1=$(echo "$BINDING"| sed '1!d')
+
+    if [[ "$LINE1" == *"has been created"* ]];
+    then
+	break
+    fi;
+done
+
 MONEY_ACCOUNT_ADDRESS=${LINE1:14:66}
 ln -s ${MONEY_ACCOUNT_ADDRESS}.pem money.pem
 rm ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58}.pem
