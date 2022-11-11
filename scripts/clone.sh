@@ -42,7 +42,7 @@ docker rm $TYPE 2>/dev/null >/dev/null
 
 if [ ! -z "$3" ]
 then
-	echo "Assuming the pem of $3 to be in the $DIR directory."
+    echo "Assuming the pem of $3 to be in the $DIR directory."
 
     echo " * downloading the blockchain CLI"
     rm -r $DIR/${CLI} 2>/dev/null
@@ -108,4 +108,4 @@ then
 	echo "Move that directory to the clients that need to control the node and delete it from this server."
 	echo
 	echo "The password of the validator key is empty."
-end
+fi;
