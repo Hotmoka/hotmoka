@@ -42,6 +42,8 @@ docker rm $TYPE 2>/dev/null >/dev/null
 
 if [ ! -z "$3" ]
 then
+	echo "Assuming the pem of $3 to be in the $DIR directory."
+
     echo " * downloading the blockchain CLI"
     rm -r $DIR/${CLI} 2>/dev/null
     mkdir $DIR/${CLI}
@@ -70,14 +72,13 @@ then
     rm -r $DIR/${CLI}
 fi;
 
-rm -r $DIR 2>/dev/null
-mkdir -m700 $DIR
-
 echo " * starting the docker container"
 if [ ! -z "$3" ]
 then
     docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 else
+	rm -r $DIR 2>/dev/null
+	mkdir -m700 $DIR
     docker run -dit --name ${TYPE} -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 fi;
 
@@ -92,16 +93,19 @@ do
     echo "     waiting..."
 done
 
-echo " * extracting the pem of the validator key"
-cd $DIR
-docker cp ${TYPE}:/home/${TYPE}/extract/. .
-VALIDATOR_KEY=$(ls *.pem)
-ln -s ${VALIDATOR_KEY} validator_key.pem
-cd ..
+if [ -z "$3" ]
+then
+	echo " * extracting the pem of the validator key"
+	cd $DIR
+	docker cp ${TYPE}:/home/${TYPE}/extract/. .
+	VALIDATOR_KEY=$(ls *.pem)
+	ln -s ${VALIDATOR_KEY} validator_key.pem
+	cd ..
 
-echo
-echo "The pem file of the key to control the node as validator"
-echo "(if it will ever be a validator) has been saved in the directory \"${DIR}\"."
-echo "Move that directory to the clients that need to control the node and delete it from this server."
-echo
-echo "The password of the validator key is empty."
+	echo
+	echo "The pem file of the key to control the node as validator"
+	echo "(if it will ever be a validator) has been saved in the directory \"${DIR}\"."
+	echo "Move that directory to the clients that need to control the node and delete it from this server."
+	echo
+	echo "The password of the validator key is empty."
+end
