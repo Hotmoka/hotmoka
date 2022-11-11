@@ -29,7 +29,7 @@ else
     CLI=blue
 fi;
 
-VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
+VERSION=$(curl --silent http://${NETWORK_URL}/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
 case $(uname -m) in
     arm64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
@@ -43,16 +43,16 @@ docker rm $TYPE 2>/dev/null >/dev/null
 if [ ! -z "$3" ]
 then
     echo " * downloading the blockchain CLI"
-    rm -r $DIR/$CLI 2>/dev/null
-    mkdir $DIR/$CLI
-    cd $DIR/$CLI
+    rm -r $DIR/${CLI} 2>/dev/null
+    mkdir $DIR/${CLI}
+    cd $DIR/${CLI}
     wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
     tar zxf ${CLI}_${VERSION}.tar.gz
     cd ../..
 
     echo " * extracting keys of the previous validator"
     cd $DIR
-    KEYS=$(./${CLI}/${CLI} show-account ${3} --keys --interactive=false --password= --url $NETWORK_URL)
+    KEYS=$(./${CLI}/${CLI} show-account ${3} --keys --interactive=false --password= --url ${NETWORK_URL})
     cd ..
     LINE6=$(echo "$KEYS"| sed '6!d')
     PUBLIC_KEY_BASE58=${LINE6:19}
@@ -67,7 +67,7 @@ then
     echo "   -> Tendermint address of this node as validator: $TENDERMINT_ADDRESS"
 
     KEYS=
-    rm -r $DIR/$CLI
+    rm -r $DIR/${CLI}
 fi;
 
 rm -r $DIR 2>/dev/null
@@ -76,9 +76,9 @@ mkdir -m700 $DIR
 echo " * starting the docker container"
 if [ ! -z "$3" ]
 then
-    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=$NETWORK_URL -e PUBLIC_KEY_BASE58=$PUBLIC_KEY_BASE58 -e PUBLIC_KEY_BASE64=$PUBLIC_KEY_BASE64 -e CONCATENATED_KEYS_BASE64=$CONCATENATED_KEYS_BASE64 -e TENDERMINT_ADDRESS=$TENDERMINT_ADDRESS -v chain:/home/$TYPE/chain $DOCKER_IMAGE start >/dev/null
+    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 else
-    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=$NETWORK_URL -v chain:/home/$TYPE/chain $DOCKER_IMAGE start >/dev/null
+    docker run -dit --name ${TYPE} -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 fi;
 
 CONCATENATED_KEYS_BASE64=
@@ -86,7 +86,7 @@ CONCATENATED_KEYS_BASE64=
 echo " * waiting for the node to complete its initialization"
 sleep 10
 echo "     waiting..."
-while !(docker exec $TYPE bash -c "mkdir -p extract; cp -f *.pem extract" 2>/dev/null)
+while !(docker exec ${TYPE} bash -c "mkdir -p extract; cp -f *.pem extract" 2>/dev/null)
 do
     sleep 10
     echo "     waiting..."
@@ -94,9 +94,9 @@ done
 
 echo " * extracting the pem of the validator key"
 cd $DIR
-docker cp $TYPE:/home/$TYPE/extract/. .
+docker cp ${TYPE}:/home/${TYPE}/extract/. .
 VALIDATOR_KEY=$(ls *.pem)
-ln -s $VALIDATOR_KEY validator_key.pem
+ln -s ${VALIDATOR_KEY} validator_key.pem
 cd ..
 
 echo

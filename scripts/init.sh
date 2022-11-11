@@ -51,7 +51,7 @@ echo " * creating the key of the gamete"
 read -s -p "     choose a password for the gamete: " PASSWORD
 echo
 cd $DIR
-GAMETE_CREATION=$(./${CLI}/${CLI} create-key --password-of-new-key=$PASSWORD --interactive=false)
+GAMETE_CREATION=$(./${CLI}/${CLI} create-key --password-of-new-key=${PASSWORD} --interactive=false)
 cd ..
 LINE2=$(echo "$GAMETE_CREATION"| sed '2!d')
 GAMETE_PUBLIC_KEY_BASE58=${LINE2:19}
@@ -59,9 +59,9 @@ GAMETE_PUBLIC_KEY_BASE58=${LINE2:19}
 echo " * starting the docker container"
 if [ $TEST = false ];
 then
-    docker run -dit --name $TYPE -e KEY_OF_GAMETE=$GAMETE_PUBLIC_KEY_BASE58 -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
+    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
 else
-    docker run -dit --name $TYPE -e KEY_OF_GAMETE=$GAMETE_PUBLIC_KEY_BASE58 -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -e OPEN_UNSIGNED_FAUCET=true -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
+    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -e OPEN_UNSIGNED_FAUCET=true -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
 fi;
 echo " * waiting for the node to complete its initialization"
 sleep 10
@@ -77,36 +77,36 @@ cd $DIR
 docker cp ${TYPE}:/home/${TYPE}/extract/. .
 VALIDATOR_ACCOUNT=$(ls *#?.pem)
 VALIDATOR_ADDRESS=${VALIDATOR_ACCOUNT:0:66}
-ln -s $VALIDATOR_ACCOUNT validator.pem
-./${CLI}/${CLI} show-account $VALIDATOR_ADDRESS | tail -36 >${VALIDATOR_ADDRESS}_36_words.txt
+ln -s ${VALIDATOR_ACCOUNT} validator.pem
+./${CLI}/${CLI} show-account ${VALIDATOR_ADDRESS} | tail -36 >${VALIDATOR_ADDRESS}_36_words.txt
 cd ..
 
 echo " * extracting the pem of the gamete account"
 cd $DIR
-GAMETE_BINDING=$(./${CLI}/${CLI} bind-key $GAMETE_PUBLIC_KEY_BASE58 --url localhost:80)
+GAMETE_BINDING=$(./${CLI}/${CLI} bind-key ${GAMETE_PUBLIC_KEY_BASE58} --url localhost:80)
 LINE1=$(echo "$GAMETE_BINDING"| sed '1!d')
 GAMETE_ADDRESS=${LINE1:14:66}
-ln -s $GAMETE_ADDRESS.pem gamete.pem
-./${CLI}/${CLI} show-account $GAMETE_ADDRESS | tail -36 >${GAMETE_ADDRESS}_36_words.txt
+ln -s ${GAMETE_ADDRESS}.pem gamete.pem
+./${CLI}/${CLI} show-account ${GAMETE_ADDRESS} | tail -36 >${GAMETE_ADDRESS}_36_words.txt
 cd ..
 
 # useful to fund it, so that it can later sell power
 echo " * providing some funding to the validator account"
 cd $DIR
-./${CLI}/${CLI} send 500000 $VALIDATOR_ADDRESS --interactive=false --password-of-payer=$PASSWORD --payer=$GAMETE_ADDRESS --url localhost:80 >/dev/null
+./${CLI}/${CLI} send 500000 ${VALIDATOR_ADDRESS} --interactive=false --password-of-payer=${PASSWORD} --payer=${GAMETE_ADDRESS} --url localhost:80 >/dev/null
 cd ..
 
 if [ $TEST != false ];
 then
     echo " * opening an unsigned faucet"
     cd $DIR
-    ./${CLI}/${CLI} faucet 10000000000000 --interactive=false --password-of-gamete=$PASSWORD --url localhost:80
+    ./${CLI}/${CLI} faucet 10000000000000 --interactive=false --password-of-gamete=${PASSWORD} --url localhost:80
     cd ..
 fi;
 
 echo " * cleaning up"
 rm -r ${DIR}/${CLI}
-rm $DIR/$GAMETE_PUBLIC_KEY_BASE58.pem
+rm $DIR/${GAMETE_PUBLIC_KEY_BASE58}.pem
 PASSWORD=
 
 echo
