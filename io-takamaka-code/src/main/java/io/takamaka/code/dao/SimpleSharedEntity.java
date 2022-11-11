@@ -319,6 +319,7 @@ public class SimpleSharedEntity<S extends PayableContract, O extends Offer<S>> e
 		event(new ShareholderRemoved<>(toRemove));
 		BigInteger total = shares.values().reduce(ZERO, BigInteger::add);
 		if (total.signum() > 0)
+			// TODO: avoid approximation: the last should get all the remaining shares
 			shares.keys().forEachOrdered(shareholder -> shares.update(shareholder, old -> old.add(toDistribute.multiply(old).divide(total))));
 	
 		snapshotOfShares = shares.snapshot();
