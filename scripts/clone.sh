@@ -69,7 +69,7 @@ then
     echo "   -> Tendermint address of this node as validator: $TENDERMINT_ADDRESS"
 
     KEYS=
-    rm -r $DIR/${CLI}
+    rm -r ${DIR}/${CLI}
 fi;
 
 echo " * starting the docker container"
@@ -100,7 +100,6 @@ then
 	docker cp ${TYPE}:/home/${TYPE}/extract/. .
 	VALIDATOR_KEY=$(ls *.pem)
 	ln -s ${VALIDATOR_KEY} validator_key.pem
-	cd ..
 
 	echo
 	echo "The pem file of the key to control the node as validator"
@@ -109,3 +108,5 @@ then
 	echo
 	echo "The password of the validator key is empty."
 fi;
+
+cd ..
