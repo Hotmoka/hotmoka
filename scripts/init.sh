@@ -19,13 +19,24 @@ then
     DOCKER_ID=hotmoka
     CLI=moka
     GITHUB_ID=Hotmoka
-    CHAIN_ID=marabunta
+    if [ $TEST = false ];
+	then
+    	CHAIN_ID=salsa
+	else
+    	CHAIN_ID=marabunta
+    fi;
     INITIAL_SUPPLY=10000000000000000000000000000000000
 else
     DOCKER_ID=veroforchain
     CLI=blue
     GITHUB_ID=Vero4Chain
     CHAIN_ID=octopus
+    if [ $TEST = false ];
+	then
+    	CHAIN_ID=octopus
+	else
+    	CHAIN_ID=squid
+    fi;
     INITIAL_SUPPLY=1000000000000000000000000000000000000000000000000
 fi;
 
