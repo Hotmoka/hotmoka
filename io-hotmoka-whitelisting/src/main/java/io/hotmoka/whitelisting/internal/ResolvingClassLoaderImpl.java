@@ -263,8 +263,19 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 
 	@Override
 	public Optional<Method> resolveInterfaceMethod(Class<?> clazz, String methodName, Class<?>[] args, Class<?> returnType) {
-		Optional<java.lang.reflect.Method> result = resolveMethodExact(clazz, methodName, args, returnType);
-		return result.isPresent() ? result : resolveMethodInInterfacesOf(clazz, methodName, args, returnType);
+		// we first try to resolve the method in Object, since all implementations of the interface must extend Object
+		return resolveInterfaceMethodInObject(methodName, args, returnType)
+			.or(() -> resolveMethodExact(clazz, methodName, args, returnType))
+			.or(() -> resolveMethodInInterfacesOf(clazz, methodName, args, returnType));
+	}
+
+	private Optional<Method> resolveInterfaceMethodInObject(String methodName, Class<?>[] args, Class<?> returnType) {
+		try {
+			return resolveMethodExact(loadClass(Object.class.getName()), methodName, args, returnType);
+		}
+		catch (ClassNotFoundException e) {
+			return Optional.empty();
+		}
 	}
 
 	/**

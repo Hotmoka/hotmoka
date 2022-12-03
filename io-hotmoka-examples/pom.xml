@@ -96,6 +96,18 @@
             </configuration>
           </execution>
 
+		  <execution><id>interfaceoverridesobject1</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>interfaceoverridesobject1</classifier>
+              <includes><include>io/hotmoka/examples/interfaceoverridesobject1/**</include></includes>
+            </configuration>
+          </execution>
+
+		  <execution><id>interfaceoverridesobject2</id><goals><goal>jar</goal></goals><phase>package</phase>
+            <configuration><classifier>interfaceoverridesobject2</classifier>
+              <includes><include>io/hotmoka/examples/interfaceoverridesobject2/**</include></includes>
+            </configuration>
+          </execution>
+
 		  <execution><id>enums</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>enums</classifier>
               <includes><include>io/hotmoka/examples/enums/**</include></includes>
