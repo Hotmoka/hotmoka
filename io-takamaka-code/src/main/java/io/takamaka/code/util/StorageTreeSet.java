@@ -169,9 +169,9 @@ public class StorageTreeSet<V> extends Storage implements StorageSet<V> {
 		// restore red-black tree invariant
 		private Node<V> balance() {
 			Node<V> h = this;
-			if (isRed(right))                    h = h.rotateLeft();
-			if (isRed(left) && isRed(left.left)) h = h.rotateRight();
-			if (isRed(left) && isRed(right))     h = h.flipColors();
+			if (isRed(h.right))                      h = h.rotateLeft();
+			if (isRed(h.left) && isRed(h.left.left)) h = h.rotateRight();
+			if (isRed(h.left) && isRed(h.right))     h = h.flipColors();
 
 			return h.fixSize();
 		}
