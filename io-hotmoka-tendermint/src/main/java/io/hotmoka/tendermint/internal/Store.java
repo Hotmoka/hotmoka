@@ -52,7 +52,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
      * @param nodeInternal the same node, with internal methods
      */
     Store(TendermintBlockchainImpl node, TendermintBlockchainInternal nodeInternal) {
-    	super(node);
+    	super(node, 0L); // deterministic finality: we will never checkout out an old state
 
     	this.nodeInternal = nodeInternal;
 

@@ -44,11 +44,12 @@ public class TrieOfInfo {
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
-	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
-	 *                         this can be true if previous configurations of the trie needn't be
-	 *                         rechecked out in the future
+	 * @param numberOfCommits the current number of commits already executed on the store; this trie
+	 *                        will record which data must be garbage collected (eventually)
+	 *                        as result of the store updates performed during that commit; you can pass
+	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfInfo(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
+	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
@@ -67,7 +68,7 @@ public class TrieOfInfo {
 				}
 			};
 
-			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, garbageCollected);
+			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, numberOfCommits);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -96,9 +97,13 @@ public class TrieOfInfo {
 
 	/**
 	 * Increases the number of commits.
+	 * 
+	 * @return the new (ie, incremented) number of commits
 	 */
-	public void increaseNumberOfCommits() {
-		parent.put((byte) 0, new LongValue(getNumberOfCommits() + 1));
+	public long increaseNumberOfCommits() {
+		long numberOfCommits = getNumberOfCommits() + 1;
+		parent.put((byte) 0, new LongValue(numberOfCommits));
+		return numberOfCommits;
 	}
 
 	/**
@@ -118,5 +123,14 @@ public class TrieOfInfo {
 	 */
 	public void setManifest(StorageReference manifest) {
 		parent.put((byte) 1, manifest);
+	}
+
+	/**
+	 * Garbage-collects all keys that have been updated during the given number of commit.
+	 * 
+	 * @param commitNumber the number of the commit to garbage collect
+	 */
+	public void garbageCollect(long commitNumber) {
+		parent.garbageCollect(commitNumber);
 	}
 }

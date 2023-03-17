@@ -37,13 +37,27 @@ public class TakamakaBlockchainConfig extends Config {
 	public final int pingDelay;
 
 	/**
+	 * The number of last commits that can be checked out, in order to
+	 * change the world-view of the store.
+	 * This entails that such commits are not garbage-collected, until
+	 * new commits get created on top and they end up being deeper.
+	 * This is useful if we expect an old state to be checked out, for
+	 * instance because the blockchain swaps to another history, but we can
+	 * assume a reasonable depth for that to happen. Use -1 if all commits
+	 * could ever be checked out, which effectively disable garbage-collection
+	 * of the store. Defaults to 20.
+	 */
+	public final int checkableDepth;
+
+	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TakamakaBlockchainConfig(io.hotmoka.local.Config superConfig, int maxPingAttemps, int pingDelay) {
+	protected TakamakaBlockchainConfig(io.hotmoka.local.Config superConfig, int maxPingAttemps, int pingDelay, int checkableDepth) {
 		super(superConfig);
 
 		this.maxPingAttempts = maxPingAttemps;
 		this.pingDelay = pingDelay;
+		this.checkableDepth = checkableDepth;
 	}
 
 	/**
@@ -52,6 +66,7 @@ public class TakamakaBlockchainConfig extends Config {
 	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
+		private int checkableDepth = 20;
 
 		/**
 		 * Sets the maximal number of connection attempts to the Tendermint process during ping.
@@ -76,9 +91,29 @@ public class TakamakaBlockchainConfig extends Config {
 			return this;
 		}
 
+		/**
+		 * Sets the maximal checbale depth for the blockain.
+		 * This is the number of last commits that can be checked out, in order to
+		 * change the world-view of the store.
+		 * This entails that such commits are not garbage-collected, until
+		 * new commits get created on top and they end up being deeper.
+		 * This is useful if we expect an old state to be checked out, for
+		 * instance because the blockchain swaps to another history, but we can
+		 * assume a reasonable depth for that to happen. Use -1 if all commits
+		 * could ever be checked out, which effectively disable garbage-collection
+		 * of the store. Defaults to 20.
+		 * 
+		 * @param checkableDepth the checkable depth
+		 * @return this builder
+		 */
+		public Builder setCheckaleDepth(int checkableDepth) {
+			this.checkableDepth = checkableDepth;
+			return this;
+		}
+
 		@Override
 		public TakamakaBlockchainConfig build() {
-			return new TakamakaBlockchainConfig(super.build(), maxPingAttempts, pingDelay);
+			return new TakamakaBlockchainConfig(super.build(), maxPingAttempts, pingDelay, checkableDepth);
 		}
 
 		@Override

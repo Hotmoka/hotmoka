@@ -53,6 +53,13 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	byte[] getRoot();
 
 	/**
+	 * Garbage-collects all keys that have been updated during the given number of commit.
+	 * 
+	 * @param commitNumber the number of the commit to garbage collect
+	 */
+	void garbageCollect(long commitNumber);
+
+	/**
 	 * Yields the Merkle-Patricia trie supported by the underlying store,
 	 * using the given hashing algorithm to hash nodes, keys and the values.
 	 * 
@@ -60,17 +67,17 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
-	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
-	 *                         this can be true if previous configurations of the trie needn't be
-	 *                         rechecked out in the future
+	 * @param numberOfCommits the current number of commits already executed on the store; this trie
+	 *                        will record which data must be garbage collected (eventually)
+	 *                        as result of the store updates performed during that commit; this could
+	 *                        be -1L if the trie is only used or reading
 	 * @return the trie
 	 */
 	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller,
-			boolean garbageCollected) {
+			Unmarshaller<? extends Value> valueUnmarshaller, long numberOfCommits) {
 
-		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, garbageCollected);
+		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, numberOfCommits);
 	}
 }

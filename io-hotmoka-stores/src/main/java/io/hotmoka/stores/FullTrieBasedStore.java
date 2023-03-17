@@ -61,7 +61,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> {
+public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -116,9 +116,22 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	 * should occur, to set the roots of the store.
      * 
      * @param node the node having this store
+	 * @param checkableDepth the number of last commits that can be checked out, in order to
+	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       This entails that such commits are not garbage-collected, until
+	 *                       new commits get created on top and they end up being deeper.
+	 *                       This is useful if we expect an old state to be checked out, for
+	 *                       instance because a blockchain swaps to another history, but we can
+	 *                       assume a reasonable depth for that to happen. Use 0 if the store
+	 *                       is not checkable, so that all its successive commits can be immediately
+	 *                       garbage-collected as soon as a new commit is created on top
+	 *                       (which corresponds to a blockchain that never swaps to a previous
+	 *                       state, because it has deterministic finality). Use a negative
+	 *                       number if all commits must be checkable (hence garbage-collection
+	 *                       is disabled)
      */
-	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node) {
-		super(node);
+	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node, long checkableDepth) {
+		super(node, checkableDepth);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -160,19 +173,19 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
     @Override
 	public Optional<String> getError(TransactionReference reference) {
     	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-    		(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore)).get(reference)));
+    		(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference)));
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore)).get(reference)));
+			(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference)));
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore)).get(object)));
+			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
 	}
 
 	@Override
@@ -196,9 +209,10 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 			super.beginTransaction(now);
 
 			Transaction txn = getCurrentTransaction();
-			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), !(this instanceof CheckableStore));
-			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), !(this instanceof CheckableStore));
-			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore));
+			long numberOfCommits = getNumberOfCommits();
+			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), numberOfCommits);
+			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), numberOfCommits);
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), numberOfCommits);
 		}
 	}
 
@@ -210,7 +224,15 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	}
 
 	@Override
-	protected void checkout(byte[] root) {
+	protected void garbageCollect(long commitNumber) {
+		super.garbageCollect(commitNumber);
+		trieOfErrors.garbageCollect(commitNumber);
+		trieOfRequests.garbageCollect(commitNumber);
+		trieOfHistories.garbageCollect(commitNumber);
+	}
+
+	@Override
+	public void checkout(byte[] root) {
 		synchronized (lock) {
 			super.checkout(root);
 		}

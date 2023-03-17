@@ -51,16 +51,17 @@ public class TrieOfHistories {
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
-	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
-	 *                         this can be true if previous configurations of the trie needn't be
-	 *                         rechecked out in the future
+	 * @param numberOfCommits the current number of commits already executed on the store; this trie
+	 *                        will record which data must be garbage collected (eventually)
+	 *                        as result of the store updates performed during that commit; you can pass
+	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfHistories(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
+	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
+			KeyValueStoreOnXodus keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithm.sha256(StorageReference::toByteArrayWithoutSelector);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, hashingForStorageReferences, hashingForNodes, MarshallableArrayOfTransactionReferences::from, garbageCollected);
+			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes, MarshallableArrayOfTransactionReferences::from, numberOfCommits);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -131,5 +132,14 @@ public class TrieOfHistories {
 				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
 				TransactionReference[]::new));
 		}
+	}
+
+	/**
+	 * Garbage-collects all keys that have been updated during the given number of commit.
+	 * 
+	 * @param commitNumber the number of the commit to garbage collect
+	 */
+	public void garbageCollect(long commitNumber) {
+		parent.garbageCollect(commitNumber);
 	}
 }

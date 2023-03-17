@@ -68,14 +68,25 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	 * should occur, to set the roots of the store.
 	 * 
 	 * @param node the node having this store
+	 * @param checkableDepth the number of last commits that can be checked out, in order to
+	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       This entails that such commits are not garbage-collected, until
+	 *                       new commits get created on top and they end up being deeper.
+	 *                       This is useful if we expect an old state to be checked out, for
+	 *                       instance because a blockchain swaps to another history, but we can
+	 *                       assume a reasonable depth for that to happen. Use 0 if the store
+	 *                       is not checkable, so that all its successive commits can be immediately
+	 *                       garbage-collected as soon as a new commit is created on top
+	 *                       (which corresponds to a blockchain that never swaps to a previous
+	 *                       state, because it has deterministic finality). Use a negative
+	 *                       number if all commits must be checkable (hence garbage-collection
+	 *                       is disabled)
 	 */
-    protected PartialTrieBasedFlatHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedFlatHistoryStore<? extends C>> node) {
-    	super(node);
+    protected PartialTrieBasedFlatHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedFlatHistoryStore<? extends C>> node, long checkableDepth) {
+    	super(node, checkableDepth);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-
     	recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
-
     	this.storeOfHistory = storeOfHistory.get();
     }
 

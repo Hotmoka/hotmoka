@@ -73,6 +73,21 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected final Environment env;
 
     /**
+	 * The number of last commits that can be checked out, in order to
+	 * change the world-view of the store (see {@link #checkout(byte[])}).
+	 * This entails that such commits are not garbage-collected. until
+	 * new commits get created on top and they end up being deeper.
+	 * This is useful if we expect an old state to be checked out, for
+	 * instance because a blockchain swaps to another history, but we can
+	 * assume a reasonable depth for that to happen. Use 0 if the store
+	 * is not checkable, so that all its successive commits can be immediately
+	 * garbage-collected as soon as a new commit is created on top
+	 * (which corresponds to a blockchain that never swaps to a previous
+	 * state, because it has deterministic finality).
+	 */
+	private final long checkableDepth;
+
+	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfResponses;
@@ -123,10 +138,24 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * should occur, to set the roots of the store.
 	 * 
 	 * @param node the node having this store
+	 * @param checkableDepth the number of last commits that can be checked out, in order to
+	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       This entails that such commits are not garbage-collected, until
+	 *                       new commits get created on top and they end up being deeper.
+	 *                       This is useful if we expect an old state to be checked out, for
+	 *                       instance because a blockchain swaps to another history, but we can
+	 *                       assume a reasonable depth for that to happen. Use 0 if the store
+	 *                       is not checkable, so that all its successive commits can be immediately
+	 *                       garbage-collected as soon as a new commit is created on top
+	 *                       (which corresponds to a blockchain that never swaps to a previous
+	 *                       state, because it has deterministic finality). Use a negative
+	 *                       number if all commits must be checkable (hence garbage-collection
+	 *                       is disabled)
 	 */
-    protected PartialTrieBasedStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedStore<? extends C>> node) {
+    protected PartialTrieBasedStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedStore<? extends C>> node, long checkableDepth) {
     	super(node);
 
+    	this.checkableDepth = checkableDepth;
     	this.env = new Environment(config.dir + "/store");
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
@@ -150,6 +179,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		super(parent);
 
 		this.env = parent.env;
+		this.checkableDepth = parent.checkableDepth;
 		this.storeOfResponses = parent.storeOfResponses;
 		this.storeOfInfo = parent.storeOfInfo;
 		this.now = parent.now;
@@ -183,7 +213,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore)).get(reference)));
+			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference)));
 	}
 
 	@Override
@@ -196,7 +226,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	@Override
 	public Optional<StorageReference> getManifest() {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getManifest()));
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest()));
 	}
 
 	@Override
@@ -225,8 +255,9 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	public void beginTransaction(long now) {
 		synchronized (lock) {
 			txn = recordTime(env::beginTransaction);
-			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), !(this instanceof CheckableStore));
-			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore));
+			long numberOfCommits = getNumberOfCommits();
+			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
+			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
 			this.now = now;
 		}
 	}
@@ -241,13 +272,30 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected byte[] commitTransaction() {
 		return recordTime(() -> {
-			trieOfInfo.increaseNumberOfCommits();
+			long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
+			
+			// a negative number means that garbage-collection is disabled
+			if (checkableDepth >= 0L) {
+				long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
+				if (commitToGarbageCollect >= 0L)
+					garbageCollect(commitToGarbageCollect);
+			}
 
 			if (!txn.commit())
 				logger.info("transaction's commit failed");
 
 			return mergeRootsOfTries();
 		});
+	}
+
+	/**
+	 * Garbage-collects all keys updated during the given commit.
+	 * 
+	 * @param commitNumber the number of the commit
+	 */
+	protected void garbageCollect(long commitNumber) {
+		trieOfResponses.garbageCollect(commitNumber);
+		trieOfInfo.garbageCollect(commitNumber);
 	}
 
 	/**
@@ -268,7 +316,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	public long getNumberOfCommits() {
 		return recordTime(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), !(this instanceof CheckableStore)).getNumberOfCommits()));
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits()));
 	}
 
 	/**

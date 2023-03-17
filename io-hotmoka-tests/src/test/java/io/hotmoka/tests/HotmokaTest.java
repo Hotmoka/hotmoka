@@ -80,7 +80,6 @@ import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.NodeWithAccounts;
 import io.hotmoka.helpers.NodeWithJars;
-import io.hotmoka.local.Config;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -116,11 +115,6 @@ public abstract class HotmokaTest {
 	 * with the addition of the jar and accounts that the test needs.
 	 */
 	protected final static Node node;
-
-	/**
-	 * The configuration of the node, if it is not a remote node.
-	 */
-	protected static Config nodeConfig;
 
 	/**
 	 * The consensus parameters of the node.
@@ -305,7 +299,7 @@ public abstract class HotmokaTest {
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
-		nodeConfig = config;
+
 		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
 		tendermintBlockchain = result;
 		return result;
@@ -317,15 +311,12 @@ public abstract class HotmokaTest {
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
-		nodeConfig = config;
-
 		return MemoryBlockchain.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
-		nodeConfig = config;
 		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
 
@@ -368,8 +359,6 @@ public abstract class HotmokaTest {
 	@SuppressWarnings("unused")
 	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
-		nodeConfig = config;
-
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 
 		// we provide an implementation of postTransaction() that just adds the request in the mempool

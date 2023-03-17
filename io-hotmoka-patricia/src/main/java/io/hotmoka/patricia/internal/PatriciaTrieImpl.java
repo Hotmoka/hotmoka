@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -58,10 +59,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private final Unmarshaller<? extends Value> valueUnmarshaller;
 
 	/**
-	 * True if and only if unused nodes must be garbage collected; in general,
-	 * this can be true if previous configurations of the trie needn't be rechecked out in the future.
+	 * The current number of commits already executed on the store; this trie
+	 * will record which data must be garbage collected (eventually)
+	 * as result of the store updates performed during that commit. This might
+	 * be -1L if the trie is only used for reading.
 	 */
-	private final boolean garbageCollected;
+	private final long numberOfCommits;
 
 	private final static Logger logger = Logger.getLogger(PatriciaTrieImpl.class.getName());
 
@@ -74,20 +77,19 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
-	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
-	 *                         this can be true if previous configurations of the trie needn't be
-	 *                         rechecked out in the future
+	 * @param numberOfCommits the current number of commits already executed on the store; this trie
+	 *                        will record which data must be garbage collected (eventually)
+	 *                        as result of the store updates performed during that commit
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller,
-			boolean garbageCollected) {
+			Unmarshaller<? extends Value> valueUnmarshaller, long numberOfCommits) {
 
 		this.store = store;
 		this.hashingForKeys = hashingForKeys;
 		this.hashingForNodes = hashingForNodes;
 		this.valueUnmarshaller = valueUnmarshaller;
-		this.garbageCollected = garbageCollected;
+		this.numberOfCommits = numberOfCommits;
 	}
 
 	@Override
@@ -123,8 +125,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 			else {
 				newRoot = getNodeFromHash(hashOfRoot, 0).put(nibblesOfHashedKey, 0, value);
-				if (garbageCollected)
-					store.remove(hashOfRoot);
+				addGarbageKey(hashOfRoot);
 			}
 
 			store.setRoot(hashingForNodes.hash(newRoot));
@@ -138,6 +139,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	@Override
 	public byte[] getRoot() {
 		return store.getRoot();
+	}
+
+	@Override
+	public void garbageCollect(long commitNumber) {
+		long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
+		for (long num = 0; num < numberOfGarbageKeys; num++)
+			store.remove(getGarbageKey(commitNumber, num));
+
+		removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
 	}
 
 	/**
@@ -413,8 +423,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			else {
 				// there was already a path for this selection: we recur
 				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-				if (garbageCollected)
-					store.remove(children[selection]);
+				addGarbageKey(children[selection]);
 			}
 
 			byte[][] childrenCopy = children.clone();
@@ -504,8 +513,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				if (garbageCollected)
-					store.remove(next);
+				addGarbageKey(next);
 
 				return new Extension(sharedNibbles, hashingForNodes.hash(newNext)).putInStore();
 			}
@@ -647,5 +655,95 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return keyEnd.length;
 		}
 		*/
+	}
+
+	/**
+	 * Yields the number of keys that could be garbage collected for the
+	 * given number of commit.
+	 * 
+	 * @param commitNumber the number of commit
+	 * @return the number of keys
+	 */
+	private long getNumberOfGarbageKeys(long commitNumber) {
+	    try {
+	    	return bytesToLong(store.get(twoLongsToBytes(commitNumber, 0L)));
+	    }
+	    catch (NoSuchElementException e) {
+	    	return 0L;
+	    }
+	}
+
+	/**
+	 * Sets the number of keys that could be garbage collected for the
+	 * given number of commit.
+	 * 
+	 * @param commitNumber the number of commit
+	 * @param newNumberOfGarbageKeys the new number of garbage keys to set
+	 */
+	private void setNumberOfGarbageKeys(long commitNumber, long newNumberOfGarbageKeys) {
+		store.put(twoLongsToBytes(numberOfCommits, 0L), longToBytes(newNumberOfGarbageKeys));
+	}
+
+	/**
+	 * Yields the given key that could be garbage-collected
+	 * because it has been updated during the given number of commit.
+	 * 
+	 * @param numberOfCommit the number of commit
+	 * @param keyNumber the progressive number of the key
+	 * @return the key
+	 * @throws NoSuchElementException if the key does not exist in this trie
+	 */
+	private byte[] getGarbageKey(long commitNumber, long keyNumber) throws NoSuchElementException {
+		return store.get(twoLongsToBytes(commitNumber, keyNumber + 1));
+	}
+
+	/**
+	 * Sets a key that can be garbage-collected, because it has been updated during
+	 * the given number of commit.
+	 * 
+	 * @param commitNumber the number of commit
+	 * @param keyNumber the progressive number of the key updated during the commit
+	 * @param key the updated key
+	 */
+	private void setGarbageKey(long commitNumber, long keyNumber, byte[] key) {
+		store.put(twoLongsToBytes(commitNumber, keyNumber + 1), key);
+	}
+
+	/**
+	 * Takes note that the given key became garbage during an update
+	 * occurred during the current commit.
+	 * 
+	 * @param key the key that became garbage
+	 */
+	private void addGarbageKey(byte[] key) {
+		long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
+		setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
+		setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
+	}
+
+	private static byte[] longToBytes(long l) {
+		ByteBuffer buffer = ByteBuffer.wrap(new byte[Long.BYTES]);
+	    buffer.putLong(l);
+	    return buffer.array();
+	}
+
+	private static byte[] twoLongsToBytes(long l1, long l2) {
+		ByteBuffer buffer = ByteBuffer.wrap(new byte[Long.BYTES * 2]);
+	    buffer.putLong(l1);
+	    buffer.putLong(l2);
+	    return buffer.array();
+	}
+
+	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) {
+		// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
+		for (long num = 0; num <= numberOfGarbageKeys; num++)
+			store.remove(twoLongsToBytes(commitNumber, num));
+	}
+
+	private static long bytesToLong(byte[] bytes) {
+	    ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
+	    buffer.put(bytes);
+	    buffer.flip();
+	    return buffer.getLong();
 	}
 }

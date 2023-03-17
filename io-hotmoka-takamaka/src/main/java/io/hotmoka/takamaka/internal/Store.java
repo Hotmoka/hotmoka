@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.takamaka.internal;
 
 import io.hotmoka.beans.annotations.ThreadSafe;
-import io.hotmoka.local.CheckableStore;
 import io.hotmoka.stores.FullTrieBasedStore;
 import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 
@@ -27,16 +26,18 @@ import io.hotmoka.takamaka.TakamakaBlockchainConfig;
  * hence the integration is easier than with a partial store.
  */
 @ThreadSafe
-class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> implements CheckableStore {
+class Store extends FullTrieBasedStore<TakamakaBlockchainConfig> {
 
 	/**
      * Creates a store for the Takamaka blockchain.
      * It is initialized to the view of the last checked out root.
      * 
      * @param node the node having this store
+     * @param checkableDepth the size of the topmost commits that can be checked out
+     *                       and consequently are not garbage-collected
      */
-    Store(TakamakaBlockchainImpl node) {
-    	super(node);
+    Store(TakamakaBlockchainImpl node, long checkableDepth) {
+    	super(node, checkableDepth);
 
     	setRootsAsCheckedOut();
     }

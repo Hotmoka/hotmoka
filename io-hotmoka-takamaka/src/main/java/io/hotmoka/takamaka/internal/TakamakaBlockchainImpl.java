@@ -253,7 +253,7 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 
 	@Override
 	protected Store mkStore() {
-		return new Store(this);
+		return new Store(this, config.checkableDepth);
 	}
 
 	@Override

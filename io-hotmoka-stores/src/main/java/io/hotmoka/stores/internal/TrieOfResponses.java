@@ -62,16 +62,17 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
-	 * @param garbageCollected true if and only if unused nodes must be garbage collected; in general,
-	 *                         this can be true if previous configurations of the trie needn't be
-	 *                         rechecked out in the future
+	 * @param numberOfCommits the current number of commits already executed on the store; this trie
+	 *                        will record which data must be garbage collected (eventually)
+	 *                        as result of the store updates performed during that commit; you can pass
+	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfResponses(Store store, Transaction txn, byte[] root, boolean garbageCollected) {
+	public TrieOfResponses(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 			this.hashingForJars = HashingAlgorithm.sha256(bytes -> bytes);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, TransactionResponse::from, garbageCollected);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, TransactionResponse::from, numberOfCommits);
 		}
 		catch (Exception e) {
 			throw InternalFailureException.of(e);
@@ -157,5 +158,10 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	@Override
 	public byte[] getRoot() {
 		return parent.getRoot();
+	}
+
+	@Override
+	public void garbageCollect(long commitNumber) {
+		parent.garbageCollect(commitNumber);
 	}
 }

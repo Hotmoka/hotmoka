@@ -26,7 +26,6 @@ import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
-import io.hotmoka.local.CheckableStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.xodus.env.Transaction;
@@ -79,15 +78,26 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 	 * should occur, to set the roots of the store.
      * 
      * @param node the node having this store
+	 * @param checkableDepth the number of last commits that can be checked out, in order to
+	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       This entails that such commits are not garbage-collected, until
+	 *                       new commits get created on top and they end up being deeper.
+	 *                       This is useful if we expect an old state to be checked out, for
+	 *                       instance because a blockchain swaps to another history, but we can
+	 *                       assume a reasonable depth for that to happen. Use 0 if the store
+	 *                       is not checkable, so that all its successive commits can be immediately
+	 *                       garbage-collected as soon as a new commit is created on top
+	 *                       (which corresponds to a blockchain that never swaps to a previous
+	 *                       state, because it has deterministic finality). Use a negative
+	 *                       number if all commits must be checkable (hence garbage-collection
+	 *                       is disabled)
      */
-	protected PartialTrieBasedWithHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedWithHistoryStore<? extends C>> node) {
-		super(node);
+	protected PartialTrieBasedWithHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedWithHistoryStore<? extends C>> node, long checkableDepth) {
+		super(node, checkableDepth);
 
 		try {
 			AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-
 			recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
-
 			this.storeOfHistory = storeOfHistory.get();
 		}
 		catch (Exception e) {
@@ -111,7 +121,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
     @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore)).get(object)));
+			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
 	}
 
 	@Override
@@ -127,7 +137,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 			super.beginTransaction(now);
 
 			Transaction txn = getCurrentTransaction();
-			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), !(this instanceof CheckableStore));
+			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), getNumberOfCommits());
 		}
 	}
 
@@ -136,6 +146,12 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 		synchronized (lock) {
 			return super.commitTransaction();
 		}
+	}
+
+	@Override
+	protected void garbageCollect(long commitNumber) {
+		super.garbageCollect(commitNumber);
+		trieOfHistories.garbageCollect(commitNumber);
 	}
 
 	@Override

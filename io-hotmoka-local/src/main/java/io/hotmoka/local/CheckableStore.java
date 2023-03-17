@@ -25,6 +25,9 @@ public interface CheckableStore extends Store {
 
 	/**
 	 * Resets the store to the view of the world expressed by the given hash.
+	 * This assumes that no commit after the one that created the given hash has
+	 * been garbage-collected, since otherwise some data might be missing for the given hash,
+	 * which might result in missing objects.
 	 * 
 	 * @param hash the hash to reset to
 	 */
