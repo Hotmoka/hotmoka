@@ -19,6 +19,7 @@ package io.hotmoka.crypto;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.internal.SHA256;
+import io.hotmoka.crypto.internal.SHABAL256;
 
 /**
  * An algorithm that hashes values into bytes.
@@ -44,7 +45,7 @@ public interface HashingAlgorithm<T> {
 	int length();
 
 	/**
-	 * Yields a hashing algorithm that uses the SHA256 hashing algorithm.
+	 * Yields the SHA256 hashing algorithm.
 	 * 
 	 * @param <T> the type of values that get hashed
 	 * @param supplier how values get transformed into bytes, before being hashed
@@ -53,5 +54,16 @@ public interface HashingAlgorithm<T> {
 	 */
 	static <T> HashingAlgorithm<T> sha256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return new SHA256<>(supplier);
+	}
+
+	/**
+	 * Yields the SHABAL256 hashing algorithm.
+	 * 
+	 * @param <T> the type of values that get hashed
+	 * @param supplier how values get transformed into bytes, before being hashed
+	 * @return the algorithm
+	 */
+	static <T> HashingAlgorithm<T> shabal256(BytesSupplier<? super T> supplier) {
+		return new SHABAL256<>(supplier);
 	}
 }
