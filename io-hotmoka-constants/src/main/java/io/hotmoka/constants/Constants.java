@@ -24,7 +24,7 @@ public interface Constants {
 	/**
 	 * The version of the Hotmoka code.
 	 */
-	String VERSION = "1.0.11";
+	String VERSION = "1.0.12";
 
 	/**
 	 * The name of the class {@code io.hotmoka.local.internal.runtime.Runtime}.
