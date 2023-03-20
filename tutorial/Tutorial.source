@@ -1,7 +1,7 @@
 [Markdownonly]:<p align="center"><img width="320" src="pics/@type_logo.png" alt="@Type logo"></p>
 
-[Markdownonly]:[![Java-Build Action Status](https://github.com/spoto/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/spoto/hotmoka/actions)
-[Markdownonly]:[![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/parent.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
+[Markdownonly]:[![Java-Build Action Status](https://github.com/Hotmoka/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/Hotmoka/hotmoka/actions)
+[Markdownonly]:[![Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/hotmoka.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
 [Markdownonly]:[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 [Markdownonly]:@Type is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.

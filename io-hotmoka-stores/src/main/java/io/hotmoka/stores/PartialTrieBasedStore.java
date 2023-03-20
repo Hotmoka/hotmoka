@@ -36,7 +36,6 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.AbstractStore;
-import io.hotmoka.local.CheckableStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
