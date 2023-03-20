@@ -12,7 +12,7 @@
     </properties>
 
     <groupId>io.hotmoka</groupId>
-    <artifactId>parent</artifactId>
+    <artifactId>hotmoka</artifactId>
     <packaging>pom</packaging>
     <version>1.0.12</version>
     <name>Hotmoka</name>

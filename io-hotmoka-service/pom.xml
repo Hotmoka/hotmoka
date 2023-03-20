@@ -10,7 +10,7 @@
     <version>${hotmoka.version}</version>
 
     <parent>
-        <artifactId>parent</artifactId>
+        <artifactId>hotmoka</artifactId>
         <groupId>io.hotmoka</groupId>
         <version>1.0.12</version>
     </parent>
