@@ -3,15 +3,15 @@ package io.hotmoka.crypto.internal;
 import java.security.DigestException;
 import java.security.MessageDigest;
 
+import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.BytesSupplier;
-import io.hotmoka.crypto.HashingAlgorithm;
 
 /**
  * The SHABAL256 hashing algorithm.
  * 
  * @param <T> the type of values that get hashed
  */
-public class SHABAL256<T> implements HashingAlgorithm<T>{
+public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 
 	private final MessageDigest digest;
 
@@ -36,6 +36,33 @@ public class SHABAL256<T> implements HashingAlgorithm<T>{
 			}
 		}
 		catch(Exception e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
+
+	@Override
+	public byte[] hash(T what, int start, int length) {
+		if (start < 0)
+			throw new IllegalArgumentException("start cannot be negative");
+
+		if (length < 0)
+			throw new IllegalArgumentException("length cannot be negative");
+
+		try {
+			byte[] bytes = supplier.get(what);
+			if (start + length > bytes.length)
+				throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
+
+			synchronized (digest) {
+				digest.reset();
+				digest.update(bytes, start, length);
+				return digest.digest();
+			}
+		}
+		catch(IllegalArgumentException e) {
+			throw e;
+		}
+		catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
 	}

@@ -23,6 +23,7 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
@@ -54,15 +55,15 @@ public class TrieOfInfo {
 			KeyValueStoreOnXodus keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
 
-			// the hashing algorithm applied to the keys of the trie.
-			HashingAlgorithm<Byte> hashingForKeys = new HashingAlgorithm<>() {
+			// the hashing algorithm applied to the keys of the trie
+			HashingAlgorithm<Byte> hashingForKeys = new AbstractHashingAlgorithm<>() {
 
 				@Override
 				public byte[] hash(Byte key) {
 					return new byte[] { key };
 				}
 
-				@Override
+			    @Override
 				public int length() {
 					return 1;
 				}

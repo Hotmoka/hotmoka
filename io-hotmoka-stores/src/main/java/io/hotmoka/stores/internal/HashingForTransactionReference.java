@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
 /**
  * The hashing algorithm applied to transaction references when used as
@@ -25,14 +25,14 @@ import io.hotmoka.crypto.HashingAlgorithm;
  * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
  * the bytes from that string.
  */
-class HashingForTransactionReference implements HashingAlgorithm<TransactionReference> {
+class HashingForTransactionReference extends AbstractHashingAlgorithm<TransactionReference> {
 
     @Override
     public byte[] hash(TransactionReference reference) {
         return hexStringToByteArray(reference.getHash());
     }
 
-    @Override
+	@Override
     public int length() {
         return 32; // transaction references are assumed to be SHA256 hashes, hence 32 bytes
     }
