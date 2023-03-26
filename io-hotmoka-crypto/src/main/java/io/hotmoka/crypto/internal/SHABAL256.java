@@ -72,6 +72,11 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 		return 32;
 	}
 
+	@Override
+	public SHABAL256<T> clone() {
+		return new SHABAL256<T>(supplier);
+	}
+
 	/**
 	 * This class is a hard-coded 256 bits version of the Shabal hashing digest.
 	 *

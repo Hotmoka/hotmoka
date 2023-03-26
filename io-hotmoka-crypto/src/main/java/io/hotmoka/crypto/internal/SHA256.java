@@ -87,4 +87,15 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	public int length() {
 		return 32;
 	}
+
+	@Override
+	public SHA256<T> clone() {
+		try {
+			return new SHA256<T>(supplier);
+		}
+		catch (NoSuchAlgorithmException e) {
+			// impossible, since this was already created successfully, unless the provider has been removed
+			throw new IllegalStateException("cannot clone SHA256 since the provider is not available");
+		}
+	}
 }

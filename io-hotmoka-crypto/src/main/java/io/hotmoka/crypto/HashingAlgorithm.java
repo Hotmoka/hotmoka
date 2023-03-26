@@ -26,7 +26,7 @@ import io.hotmoka.crypto.internal.SHABAL256;
  *
  * @param <T> the type of values that get hashed.
  */
-public interface HashingAlgorithm<T> {
+public interface HashingAlgorithm<T> extends Cloneable {
 
 	/**
 	 * Hashes the given value into a sequence of bytes.
@@ -61,6 +61,15 @@ public interface HashingAlgorithm<T> {
 	 * @return the length
 	 */
 	int length();
+
+	/**
+	 * Yields a clone of this hashing algorithm. This can be useful
+	 * to run a parallel computation using this algorithm, since otherwise
+	 * a single hashing algorithm object would synchronize the access.
+	 * 
+	 * @return the clone of this algorithm
+	 */
+	HashingAlgorithm<T> clone();
 
 	/**
 	 * Yields the SHA256 hashing algorithm.

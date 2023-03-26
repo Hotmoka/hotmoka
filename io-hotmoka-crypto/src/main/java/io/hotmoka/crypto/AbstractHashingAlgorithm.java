@@ -43,4 +43,14 @@ public abstract class AbstractHashingAlgorithm<T> implements HashingAlgorithm<T>
 
 		return all;
 	}
+
+	/**
+	 * Yields this same instance. Subclasses may redefine.
+	 * 
+	 * @return this same instance
+	 */
+	@Override
+	public AbstractHashingAlgorithm<T> clone() {
+		return this;
+	}
 }
