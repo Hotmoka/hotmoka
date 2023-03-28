@@ -131,7 +131,7 @@ public interface SignatureAlgorithm<T> extends io.hotmoka.beans.SignatureAlgorit
 	}
 
 	/**
-	 * Yields the signature algorithm for the given type of keys.
+	 * Yields the signature algorithm for the given type of values.
 	 * 
 	 * @param <T> the type of the values that get signed
 	 * @param type the type of the algorithm

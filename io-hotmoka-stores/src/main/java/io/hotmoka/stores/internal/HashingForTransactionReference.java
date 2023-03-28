@@ -51,4 +51,9 @@ class HashingForTransactionReference extends AbstractHashingAlgorithm<Transactio
 
         return data;
     }
+
+	@Override
+	public String getName() {
+		return "custom";
+	}
 }

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.internal.SHA256;
@@ -63,6 +65,13 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	int length();
 
 	/**
+	 * Yields the name of the algorithm.
+	 * 
+	 * @return the name of the algorithm
+	 */
+	String getName();
+
+	/**
 	 * Yields a clone of this hashing algorithm. This can be useful
 	 * to run a parallel computation using this algorithm, since otherwise
 	 * a single hashing algorithm object would synchronize the access.
@@ -92,5 +101,50 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 */
 	static <T> HashingAlgorithm<T> shabal256(BytesSupplier<? super T> supplier) {
 		return new SHABAL256<>(supplier);
+	}
+
+	/**
+	 * Yields the hashing algorithm with the given name.
+	 * It looks for a factory method with the given name and invokes it.
+	 * 
+	 * @param <T> the type of the values that get hashed
+	 * @param name the name of the algorithm, case-insensitive
+	 * @param supplier how values get transformed into bytes, before being hashed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	@SuppressWarnings("unchecked")
+	static <T> HashingAlgorithm<T> mk(String name, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		name = name.toLowerCase();
+
+		try {
+			// only sha256, shabal256 are currently found below
+			Method method = HashingAlgorithm.class.getMethod(name, BytesSupplier.class);
+			return (HashingAlgorithm<T>) method.invoke(null, supplier);
+		}
+		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+			throw new NoSuchAlgorithmException("unknown hashing algorithm named " + name, e);
+		}
+	}
+
+	/**
+	 * Yields the hashing algorithm for the given type of values.
+	 * 
+	 * @param <T> the type of the values that get hashed
+	 * @param type the type of the algorithm
+	 * @param supplier how values get transformed into bytes, before being hashed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	static <T> HashingAlgorithm<T> mk(TYPES type, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+		return mk(type.name(), supplier);
+	}
+
+	/**
+	 * The alternatives of hashing algorithms currently implemented.
+	 */
+	enum TYPES {
+		SHA256,
+		SHABAL256
 	}
 }

@@ -67,6 +67,11 @@ public class TrieOfInfo {
 				public int length() {
 					return 1;
 				}
+
+				@Override
+				public String getName() {
+					return "custom";
+				}
 			};
 
 			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, numberOfCommits);

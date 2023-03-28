@@ -89,6 +89,11 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
+	public String getName() {
+		return "sha256";
+	}
+
+	@Override
 	public SHA256<T> clone() {
 		try {
 			return new SHA256<T>(supplier);

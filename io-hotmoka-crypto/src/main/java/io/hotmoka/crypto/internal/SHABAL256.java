@@ -73,6 +73,11 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
+	public String getName() {
+		return "shabal256";
+	}
+
+	@Override
 	public SHABAL256<T> clone() {
 		return new SHABAL256<T>(supplier);
 	}
@@ -121,7 +126,7 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 			if (reset) reset();
 		}
 
-		public Shabal256Digest() {
+		private Shabal256Digest() {
 			this(true);
 		}
 
