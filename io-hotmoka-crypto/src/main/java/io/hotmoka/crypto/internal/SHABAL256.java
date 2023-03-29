@@ -191,6 +191,7 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 		}
 
 		private void shabalDigest(byte[] out, int offset) {
+			var buf = this.buf;
 			buf[ptr++] = (byte) 0x80;
 			for (int i = ptr; i < 64; i++)
 				buf[i] = 0;
@@ -281,6 +282,8 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 		}
 
 		private void core(byte[] data, int off, int num) {
+			var state = this.state;
+
 			// Extracting state vars like this yields roughly a 10%+ performance improvement
 			int A0 = state[ 0];
 			int A1 = state[ 1];
@@ -565,6 +568,8 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 		 * Same as core(buf, 0, 1);
 		 */
 		private void core1() {
+			var state = this.state;
+
 			int A0 = state[ 0];
 			int A1 = state[ 1];
 			int A2 = state[ 2];
