@@ -26,8 +26,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithm;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.verification.TakamakaClassLoader;
 
 /**

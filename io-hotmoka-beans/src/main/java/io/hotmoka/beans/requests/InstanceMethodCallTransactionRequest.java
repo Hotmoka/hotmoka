@@ -271,6 +271,6 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			}
 		}
 		else
-			throw new InternalFailureException("unexpeced request selector " + selector);
+			throw new InternalFailureException("unexpected request selector " + selector);
 	}
 }

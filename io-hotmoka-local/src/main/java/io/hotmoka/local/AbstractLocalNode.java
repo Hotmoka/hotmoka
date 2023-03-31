@@ -962,7 +962,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				close();
 			}
 			catch (Exception e) {
-				throw new RuntimeException(e);
+				throw InternalFailureException.of(e);
 			}
 		}));
 	}

@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.crypto;
+package io.hotmoka.nodes;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
  * An algorithm that signs transaction requests and verifies such signatures back.

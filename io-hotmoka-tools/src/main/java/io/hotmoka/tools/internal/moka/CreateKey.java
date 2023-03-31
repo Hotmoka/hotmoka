@@ -23,7 +23,7 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropy;
 import io.hotmoka.crypto.HashingAlgorithm;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

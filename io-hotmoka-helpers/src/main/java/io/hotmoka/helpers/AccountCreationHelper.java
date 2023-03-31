@@ -42,8 +42,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 
 /**
  * An object that helps with the creation of new accounts.
