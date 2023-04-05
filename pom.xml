@@ -80,7 +80,6 @@
           </property>
         </activation>
         <modules>
-          <module>io-hotmoka-takamaka</module>
           <module>io-hotmoka-examples</module>
           <module>io-hotmoka-tests</module>
         </modules>
@@ -235,7 +234,6 @@
                   io-hotmoka-ws-client,
                   io-hotmoka-stores,
                   io-hotmoka-tools,
-                  io-hotmoka-takamaka,
                   io-hotmoka-local,
 
                   <!-- we exclude all modules that go into the explicit folder -->

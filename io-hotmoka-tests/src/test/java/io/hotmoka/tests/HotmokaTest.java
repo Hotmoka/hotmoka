@@ -33,9 +33,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -89,9 +87,6 @@ import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.takamaka.DeltaGroupExecutionResult;
-import io.hotmoka.takamaka.TakamakaBlockchain;
-import io.hotmoka.takamaka.TakamakaBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
@@ -160,11 +155,6 @@ public abstract class HotmokaTest {
 	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
 	 */
 	protected static TendermintBlockchain tendermintBlockchain;
-
-	/**
-	 * Non-null if the node is based on AILIA's Takamaka blockchain, so that a specific initialization can be run.
-	 */
-	protected static TakamakaBlockchain takamakaBlockchain;
 
 	/**
 	 * The private key of the gamete.
@@ -311,98 +301,6 @@ public abstract class HotmokaTest {
 			.build();
 
 		return MemoryBlockchain.init(config, consensus);
-	}
-
-	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException, IOException {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
-		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
-	}
-
-	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes into an infinite loop!
-	private static class TakamakaBlockchainOneByOne {
-		private static byte[] hash; // used for the simulation of the Takamaka blockchain only
-
-		/**
-		 * This simulates the implementation of postTransaction() in such a way to put
-		 * each request in a distinct delta group. By making this method synchronized,
-		 * we avoid that two delta groups get executed in parallel.
-		 * 
-		 * @param request the request
-		 */
-		private static synchronized void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
-			DeltaGroupExecutionResult result = takamakaBlockchain.execute(hash, System.currentTimeMillis(), Stream.of(request), Stream.of(BigInteger.ZERO), "id");
-			hash = result.getHash();
-			takamakaBlockchain.checkOut(hash);
-		}
-	}
-
-	// this code must stay in its own class, or otherwise the static initialization of TakamakaTest goes
-	// into an infinite loop!
-	private static class TakamakaBlockchainAtEachTimeslot {
-		private final static List<TransactionRequest<?>> mempool = new ArrayList<>();
-
-		/**
-		 * This simulates the implementation of postTransaction() in such a way to put
-		 * each request in a distinct delta group.
-		 * 
-		 * @param request the request
-		 */
-		private static void postTransactionTakamakaBlockchainRequestsOneByOne(TransactionRequest<?> request) {
-			synchronized (mempool) {
-				mempool.add(request);
-			}
-		}
-	}
-
-	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException, IOException {
-		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
-		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
-
-		// we provide an implementation of postTransaction() that just adds the request in the mempool
-		takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainAtEachTimeslot::postTransactionTakamakaBlockchainRequestsOneByOne);
-		TakamakaBlockchain local = takamakaBlockchain;
-
-		// we start a scheduler that checks the mempool every time-slot to see if there are requests to execute
-		Thread scheduler = new Thread(() -> {
-			byte[] hash = null;
-
-			while (true) {
-				try {
-					Thread.sleep(100);
-				}
-				catch (InterruptedException e) {}
-
-				// we check if a previous execute() is still running,
-				// since we cannot run two execute() at the same time
-				if (local.getCurrentExecutionId().isEmpty()) {
-					Stream<TransactionRequest<?>> requests;
-					int size;
-
-					synchronized (mempool) {
-						int mempoolSize = mempool.size();
-						if (mempoolSize == 0)
-							// it is possible, but useless, to start an empty execute()
-							continue;
-
-						// the clone of the mempool is needed or otherwise a concurrent modification exception might occur later
-						requests = new ArrayList<>(mempool).stream();
-						size = mempool.size();
-						mempool.clear();
-					}
-
-					DeltaGroupExecutionResult result = local.execute(hash, System.currentTimeMillis(), requests, Stream.generate(() -> BigInteger.ZERO).limit(size), "id");
-					hash = result.getHash();
-					local.checkOut(hash);
-				}
-			}
-		});
-
-		scheduler.start();
-
-		logger.info("scheduled mempool check every 100 milliseconds");
-		return takamakaBlockchain;
 	}
 
 	@SuppressWarnings("unused")
