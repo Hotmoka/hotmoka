@@ -62,7 +62,7 @@ public class MarshallingContext implements AutoCloseable {
 		else {
 			int next = memoryString.size();
 			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new InternalFailureException("too many strings in the same context");
+				throw new IllegalStateException("too many strings in the same context");
 
 			memoryString.put(s, next);
 
@@ -92,7 +92,7 @@ public class MarshallingContext implements AutoCloseable {
 		else {
 			int next = memoryStorageReference.size();
 			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new InternalFailureException("too many storage references in the same context");
+				throw new IllegalStateException("too many storage references in the same context");
 
 			memoryStorageReference.put(reference, next);
 
@@ -123,7 +123,7 @@ public class MarshallingContext implements AutoCloseable {
 		else {
 			int next = memoryFieldSignature.size();
 			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new InternalFailureException("too many field signatures in the same context");
+				throw new IllegalStateException("too many field signatures in the same context");
 
 			memoryFieldSignature.put(field, next);
 
@@ -155,7 +155,7 @@ public class MarshallingContext implements AutoCloseable {
 		else {
 			int next = memoryTransactionReference.size();
 			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new InternalFailureException("too many transaction references in the same context");
+				throw new IllegalStateException("too many transaction references in the same context");
 
 			memoryTransactionReference.put(transaction, next);
 

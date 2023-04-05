@@ -26,7 +26,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -148,13 +147,6 @@ public abstract class AbstractNode implements Node {
 		catch (TransactionRejectedException e) {
 			throw e;
 		}
-		catch (InternalFailureException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			if (e.getCause() != null)
-				throw new TransactionRejectedException(e.getCause());
-
-			throw new TransactionRejectedException(e);
-		}
 		catch (Throwable t) {
 			logger.log(Level.WARNING, "unexpected exception", t);
 			throw new TransactionRejectedException(t);
@@ -177,13 +169,6 @@ public abstract class AbstractNode implements Node {
 		}
 		catch (TransactionRejectedException | TransactionException e) {
 			throw e;
-		}
-		catch (InternalFailureException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			if (e.getCause() != null)
-				throw new TransactionRejectedException(e.getCause());
-
-			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.log(Level.WARNING, "unexpected exception", t);
@@ -208,13 +193,6 @@ public abstract class AbstractNode implements Node {
 		}
 		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
 			throw e;
-		}
-		catch (InternalFailureException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			if (e.getCause() != null)
-				throw new TransactionRejectedException(e.getCause());
-
-			throw new TransactionRejectedException(e);
 		}
 		catch (Throwable t) {
 			logger.log(Level.WARNING, "unexpected exception", t);

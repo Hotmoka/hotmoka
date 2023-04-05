@@ -29,7 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
@@ -189,7 +188,7 @@ public class Reverification {
 
 	private JarStoreTransactionFailedResponse transformIntoFailed(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) {
 		if (response instanceof JarStoreInitialTransactionResponse)
-			throw new InternalFailureException("the reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
+			throw new RuntimeException("the reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
 
 		// there remains only this possibility:
 		JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
@@ -236,7 +235,7 @@ public class Reverification {
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(reference)
-			.orElseThrow(() -> new InternalFailureException("unknown transaction reference " + reference));
+			.orElseThrow(() -> new RuntimeException("unknown transaction reference " + reference));
 		
 		if (!(response instanceof TransactionResponseWithInstrumentedJar))
 			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");

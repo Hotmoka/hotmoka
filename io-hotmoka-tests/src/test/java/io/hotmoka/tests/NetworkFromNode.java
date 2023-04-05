@@ -38,7 +38,6 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -174,7 +173,7 @@ class NetworkFromNode extends HotmokaTest {
 
 		assertNotNull(errorModel);
 		assertEquals("unexpected null jar", errorModel.message);
-		assertEquals(InternalFailureException.class.getName(), errorModel.exceptionClassName);
+		assertEquals(RuntimeException.class.getName(), errorModel.exceptionClassName);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")

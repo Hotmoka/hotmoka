@@ -27,7 +27,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -134,19 +133,19 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      */
     protected static TransactionRequest<?> requestFromModel(TransactionRestRequestModel<?> restRequestModel) {
         if (restRequestModel == null)
-            throw new InternalFailureException("unexpected null rest request model");
+            throw new RuntimeException("unexpected null rest request model");
 
         if (restRequestModel.type == null)
-            throw new InternalFailureException("unexpected null rest request type model");
+            throw new RuntimeException("unexpected null rest request type model");
 
         if (restRequestModel.transactionRequestModel == null)
-            throw new InternalFailureException("unexpected null rest request object model");
+            throw new RuntimeException("unexpected null rest request object model");
 
         final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         final String serialized = serialize(gson, restRequestModel);
 
         if (serialized == null)
-            throw new InternalFailureException("unexpected null serialized object");
+            throw new RuntimeException("unexpected null serialized object");
         if (restRequestModel.type.equals(ConstructorCallTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
         else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
@@ -162,7 +161,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
             return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
         else
-            throw new InternalFailureException("unexpected transaction request model of class " + restRequestModel.type);
+            throw new RuntimeException("unexpected transaction request model of class " + restRequestModel.type);
     }
 
     /**
@@ -172,12 +171,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      * @return the string
      */
     private static String serialize(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
-        try {
-            return gson.toJsonTree(restRequestModel.transactionRequestModel).toString();
-        }
-        catch (Exception e) {
-            throw new InternalFailureException("unexpected serialization error");
-        }
+    	return gson.toJsonTree(restRequestModel.transactionRequestModel).toString();
     }
 
     /**
@@ -188,19 +182,19 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      */
     protected static TransactionResponse responseFromModel(TransactionRestResponseModel<?> restResponseModel) {
         if (restResponseModel == null)
-            throw new InternalFailureException("unexpected null rest response model");
+            throw new RuntimeException("unexpected null rest response model");
 
         if (restResponseModel.type == null)
-            throw new InternalFailureException("unexpected null rest response type model");
+            throw new RuntimeException("unexpected null rest response type model");
 
         if (restResponseModel.transactionResponseModel == null)
-            throw new InternalFailureException("unexpected null rest response object model");
+            throw new RuntimeException("unexpected null rest response object model");
 
         final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
         final String serialized = serialize(gson, restResponseModel);
 
         if (serialized == null)
-            throw new InternalFailureException("unexpected null serialized object");
+            throw new RuntimeException("unexpected null serialized object");
         else if (restResponseModel.type.equals(JarStoreInitialTransactionResponseModel.class.getName()))
             return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
         else if (restResponseModel.type.equals(GameteCreationTransactionResponseModel.class.getName()))
@@ -226,7 +220,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         else if (restResponseModel.type.equals(MethodCallTransactionExceptionResponseModel.class.getName()))
             return gson.fromJson(serialized, MethodCallTransactionExceptionResponseModel.class).toBean();
         else
-            throw new InternalFailureException("unexpected transaction rest response model of class " + restResponseModel.type);
+            throw new RuntimeException("unexpected transaction rest response model of class " + restResponseModel.type);
     }
 
     /**
@@ -236,12 +230,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      * @return the string
      */
     private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
-        try {
-            return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
-        }
-        catch (Exception e) {
-            throw new InternalFailureException("unexpected serialization error");
-        }
+    	return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
     }
 
     /**
@@ -260,19 +249,23 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         try {
             return what.call();
         }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(TransactionException.class.getName()))
-                throw new TransactionException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(CodeExecutionException.class.getName()))
-                throw new CodeExecutionException(exceptionResponse.getMessage());
+        catch (NetworkExceptionResponse e) {
+            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
+                throw new TransactionRejectedException(e.getMessage());
+            else if (e.getExceptionClassName().equals(TransactionException.class.getName()))
+                throw new TransactionException(e.getMessage());
+            else if (e.getExceptionClassName().equals(CodeExecutionException.class.getName()))
+                throw new CodeExecutionException(e.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(e.getMessage());
+        }
+        catch (RuntimeException e) {
+            logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-            logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+            logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -291,17 +284,21 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         try {
             return what.call();
         }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(TransactionException.class.getName()))
-                throw new TransactionException(exceptionResponse.getMessage());
+        catch (NetworkExceptionResponse e) {
+            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
+                throw new TransactionRejectedException(e.getMessage());
+            else if (e.getExceptionClassName().equals(TransactionException.class.getName()))
+                throw new TransactionException(e.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(e.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -318,15 +315,19 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         try {
             return what.call();
         }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(exceptionResponse.getMessage());
+        catch (NetworkExceptionResponse e) {
+            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
+                throw new TransactionRejectedException(e.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(e.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -343,15 +344,19 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         try {
             return what.call();
         }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
-                throw new NoSuchElementException(exceptionResponse.getMessage());
+        catch (NetworkExceptionResponse e) {
+            if (e.getExceptionClassName().equals(NoSuchElementException.class.getName()))
+                throw new NoSuchElementException(e.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(e.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -367,11 +372,15 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             return what.call();
         }
         catch (NetworkExceptionResponse exceptionResponse) {
-            throw new InternalFailureException(exceptionResponse.getMessage());
+            throw new RuntimeException(exceptionResponse.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -399,11 +408,15 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             else if (exceptionResponse.getExceptionClassName().equals(InterruptedException.class.getName()))
                 throw new InterruptedException(exceptionResponse.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(exceptionResponse.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 
@@ -428,11 +441,15 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             else if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
                 throw new NoSuchElementException(exceptionResponse.getMessage());
             else
-                throw new InternalFailureException(exceptionResponse.getMessage());
+                throw new RuntimeException(exceptionResponse.getMessage());
+        }
+        catch (RuntimeException e) {
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected error", e);
-            throw new InternalFailureException(e.getMessage());
+        	logger.log(Level.WARNING, "unexpected exception", e);
+            throw new RuntimeException(e);
         }
     }
 

@@ -16,9 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
@@ -28,6 +26,7 @@ import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
+import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
@@ -121,7 +120,7 @@ public class UpdateModel {
 	 */
 	public Update toBean() {
 		if (object == null)
-			throw new InternalFailureException("unexpected null update object");
+			throw new RuntimeException("unexpected null update object");
 		else if (className != null)
 			return new ClassTag(object.toBean(), className, jar.toBean());
 		else {
@@ -162,7 +161,7 @@ public class UpdateModel {
 			else if (value instanceof ShortValue)
 				return new UpdateOfShort(object, field, ((ShortValue) value).value);
 			else
-				throw new InternalFailureException("unexpected update value of class " + value.getClass().getName());
+				throw new RuntimeException("unexpected update value of class " + value.getClass().getName());
 		}
 	}
 }

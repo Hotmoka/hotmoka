@@ -22,18 +22,7 @@ package io.hotmoka.beans;
 public class InternalFailureException extends RuntimeException {
 	private static final long serialVersionUID = 3975906281624182199L;
 
-	private InternalFailureException(Throwable t) {
-		super(t.getMessage(), t);
-	}
-
 	public InternalFailureException(String message) {
 		super(message);
-	}
-
-	public static InternalFailureException of(Throwable t) {
-		if (t instanceof InternalFailureException)
-			return (InternalFailureException) t;
-		else
-			return new InternalFailureException(t);
 	}
 }

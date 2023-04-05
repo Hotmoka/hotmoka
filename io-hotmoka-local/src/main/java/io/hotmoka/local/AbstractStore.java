@@ -27,7 +27,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
@@ -253,12 +252,12 @@ public abstract class AbstractStore<C extends Config> implements Store {
 
 		if (response.isEmpty()) {
 			logger.log(Level.WARNING, "history contains a reference to a transaction not in store");
-			throw new InternalFailureException("history contains a reference to a transaction not in store");
+			throw new IllegalStateException("history contains a reference to a transaction not in store");
 		}
 
 		if (!(response.get() instanceof TransactionResponseWithUpdates)) {
 			logger.log(Level.WARNING, "history contains a reference to a transaction without updates");
-			throw new InternalFailureException("history contains a reference to a transaction without updates");
+			throw new IllegalStateException("history contains a reference to a transaction without updates");
 		}
 
 		// we check if there is at least an update for a field of the object

@@ -25,7 +25,6 @@ import java.security.SignatureException;
 import java.util.Arrays;
 
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
@@ -271,6 +270,6 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			}
 		}
 		else
-			throw new InternalFailureException("unexpected request selector " + selector);
+			throw new RuntimeException("unexpected request selector " + selector);
 	}
 }

@@ -26,7 +26,6 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
@@ -397,7 +396,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		@Override
 		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws NoSuchElementException, ClassNotFoundException, IOException {
 			if (cursor >= nibblesOfHashedKey.length)
-				throw new InternalFailureException("inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
+				throw new RuntimeException("inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
 			byte selection = nibblesOfHashedKey[cursor];
 			if (children[selection] == null)
@@ -409,7 +408,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		@Override
 		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws IOException, ClassNotFoundException {
 			if (cursor >= nibblesOfHashedKey.length)
-				throw new InternalFailureException("inconsistent key length in Patricia trie");
+				throw new RuntimeException("inconsistent key length in Patricia trie");
 
 			byte selection = nibblesOfHashedKey[cursor];
 			AbstractNode child;
@@ -496,7 +495,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 					throw new NoSuchElementException("key not found in Patricia trie");
 
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
-				throw new InternalFailureException("inconsistent key length in Patricia trie");
+				throw new RuntimeException("inconsistent key length in Patricia trie");
 
 			return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
 		}
@@ -603,7 +602,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 					throw new NoSuchElementException("key not found in Patricia trie");
 
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
-				throw new InternalFailureException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
+				throw new RuntimeException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
 			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(value))) {
 				return valueUnmarshaller.from(context);

@@ -35,7 +35,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -121,9 +120,12 @@ class Concurrency extends HotmokaTest {
 					throw new RuntimeException(e);
 				}
 			}
-			catch (InvalidKeyException | SignatureException | CodeExecutionException | InternalFailureException e) {
+			catch (InvalidKeyException | SignatureException | CodeExecutionException e) {
 				failed = true;
 				throw new RuntimeException(e);
+			}
+			catch (RuntimeException e) {
+				throw e;
 			}
 			catch (Exception e) {
 				e.printStackTrace();

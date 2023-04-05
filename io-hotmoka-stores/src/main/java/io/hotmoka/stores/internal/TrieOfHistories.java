@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -63,8 +63,8 @@ public class TrieOfHistories {
 			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithm.sha256(StorageReference::toByteArrayWithoutSelector);
 			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes, MarshallableArrayOfTransactionReferences::from, numberOfCommits);
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 

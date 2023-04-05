@@ -18,7 +18,7 @@ package io.hotmoka.remote.internal.websockets.client;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.hotmoka.beans.InternalFailureException;
+
 import io.hotmoka.network.errors.ErrorModel;
 
 /**
@@ -49,7 +49,7 @@ abstract class ResultHandler<T> {
             return gson.fromJson(payload, resultTypeClass);
         }
         catch (Exception e) {
-            throw new InternalFailureException("Error while deserializing model of type " + resultTypeClass.getName());
+            throw new RuntimeException("Error while deserializing model of type " + resultTypeClass.getName());
         }
     }
 

@@ -45,7 +45,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -920,7 +919,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 */
 	private void createSemaphore(TransactionReference reference) {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
-			throw new InternalFailureException("repeated request");
+			throw new IllegalStateException("repeated request");
 	}
 
 	/**

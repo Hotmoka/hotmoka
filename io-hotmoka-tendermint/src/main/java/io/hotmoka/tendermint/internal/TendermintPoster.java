@@ -37,7 +37,6 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
@@ -89,7 +88,7 @@ public class TendermintPoster {
 			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
 			TxError error = parsedResponse.error;
 			if (error != null)
-				throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
+				throw new RuntimeException("Tendermint transaction failed: " + error.message + ": " + error.data);
 		}
 		catch (InterruptedException | TimeoutException | IOException e) {
 			logger.log(Level.WARNING, "failed posting request", e);
@@ -113,7 +112,7 @@ public class TendermintPoster {
 
 			String tx = response.result.tx;
 			if (tx == null)
-				throw new InternalFailureException("no Hotmoka request in Tendermint response");
+				throw new RuntimeException("no Hotmoka request in Tendermint response");
 
 			byte[] decoded = Base64.getDecoder().decode(tx);
 			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(decoded))) {
@@ -144,7 +143,7 @@ public class TendermintPoster {
 				// the Tendermint transaction committed successfully
 				TendermintTxResult tx_result = response.result.tx_result;
 				if (tx_result == null)
-					throw new InternalFailureException("no result for Tendermint transacti)on " + hash);
+					throw new RuntimeException("no result for Tendermint transaction " + hash);
 				else if (tx_result.data != null && !tx_result.data.isEmpty())
 					return Optional.of(new String(Base64.getDecoder().decode(tx_result.data)));
 				else
@@ -188,11 +187,11 @@ public class TendermintPoster {
 		}
 
 		if (response.error != null)
-			throw new IllegalStateException(response.error);
+			throw new RuntimeException(response.error);
 
 		String chainId = response.result.genesis.chain_id;
 		if (chainId == null)
-			throw new IllegalStateException("no chain id in Tendermint response");
+			throw new RuntimeException("no chain id in Tendermint response");
 
 		return chainId;
 	}
@@ -203,21 +202,24 @@ public class TendermintPoster {
 	 * @return the genesis time, in UTC pattern
 	 */
 	String getGenesisTime() {
-		try {
-			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
-			if (response.error != null)
-				throw new InternalFailureException(response.error);
-	
-			String genesisTime = response.result.genesis.genesis_time;
-			if (genesisTime == null)
-				throw new InternalFailureException("no genesis time in Tendermint response");
+		TendermintGenesisResponse response;
 
-			return genesisTime;
+		try {
+			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
-		catch (Exception e) {
+		catch (IOException | TimeoutException | InterruptedException e) {
 			logger.log(Level.WARNING, "could not determine the Tendermint genesis time for this node", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException("unexpected exception", e);
 		}
+
+		if (response.error != null)
+			throw new RuntimeException(response.error);
+
+		String genesisTime = response.result.genesis.genesis_time;
+		if (genesisTime == null)
+			throw new RuntimeException("no genesis time in Tendermint response");
+
+		return genesisTime;
 	}
 
 	/**
@@ -227,37 +229,43 @@ public class TendermintPoster {
 	 * @return the hexadecimal ID of the node
 	 */
 	String getNodeID() {
-		try {
-			TendermintStatusResponse response = gson.fromJson(status(), TendermintStatusResponse.class);
-			if (response.error != null)
-				throw new InternalFailureException(response.error);
-	
-			String id = response.result.node_info.id;
-			if (id == null)
-				throw new InternalFailureException("no node ID in Tendermint response");
+		TendermintStatusResponse response;
 
-			return id;
+		try {
+			response = gson.fromJson(status(), TendermintStatusResponse.class);
 		}
-		catch (Exception e) {
+		catch (IOException | TimeoutException | InterruptedException e) {
 			logger.log(Level.WARNING, "failed determining the Tendermint ID of this node", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException("unexpected exception", e);
 		}
+
+		if (response.error != null)
+			throw new RuntimeException(response.error);
+
+		String id = response.result.node_info.id;
+		if (id == null)
+			throw new RuntimeException("no node ID in Tendermint response");
+
+		return id;
 	}
 
 	Stream<TendermintValidator> getTendermintValidators() {
+		String jsonResponse;
+
 		try {
 			// the parameters of the validators() query seem to be ignored, no count nor total is returned
-			String jsonResponse = validators(1, 100);
-			TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
-			if (response.error != null)
-				throw new InternalFailureException(response.error);
-
-			return response.result.validators.stream().map(TendermintPoster::intoTendermintValidator);
+			jsonResponse = validators(1, 100);
 		}
-		catch (Exception e) {
+		catch (IOException | TimeoutException | InterruptedException e) {
 			logger.log(Level.WARNING, "failed retrieving the validators of this node", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		} 
+
+		TendermintValidatorsResponse response = gson.fromJson(jsonResponse, TendermintValidatorsResponse.class);
+		if (response.error != null)
+			throw new RuntimeException(response.error);
+
+		return response.result.validators.stream().map(TendermintPoster::intoTendermintValidator);
 	}
 
 	/**
@@ -288,13 +296,13 @@ public class TendermintPoster {
 
 	private static TendermintValidator intoTendermintValidator(TendermintValidatorPriority validatorPriority) {
 		if (validatorPriority.address == null)
-			throw new InternalFailureException("unexpected null address in Tendermint validator");
+			throw new RuntimeException("unexpected null address in Tendermint validator");
 		else if (validatorPriority.voting_power <= 0L)
-			throw new InternalFailureException("unexpected non-positive voting power in Tendermint validator");
+			throw new RuntimeException("unexpected non-positive voting power in Tendermint validator");
 		else if (validatorPriority.pub_key.value == null)
-			throw new InternalFailureException("unexpected null public key for Tendermint validator");
+			throw new RuntimeException("unexpected null public key for Tendermint validator");
 		else if (validatorPriority.pub_key.type == null)
-			throw new InternalFailureException("unexpected null public key type for Tendermint validator");
+			throw new RuntimeException("unexpected null public key type for Tendermint validator");
 		else
 			return new TendermintValidator(validatorPriority.address, validatorPriority.voting_power, validatorPriority.pub_key.value, validatorPriority.pub_key.type);
 	}

@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -76,8 +76,8 @@ public class TrieOfInfo {
 
 			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, numberOfCommits);
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("unepected exception", e);
 		}
 	}
 

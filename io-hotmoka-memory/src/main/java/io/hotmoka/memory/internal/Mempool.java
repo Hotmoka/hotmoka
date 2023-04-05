@@ -21,7 +21,6 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 
@@ -78,7 +77,7 @@ class Mempool {
 	 */
 	public void add(TransactionRequest<?> request) {
 		if (!mempool.offer(request))
-			throw new InternalFailureException("mempool overflow");
+			throw new RuntimeException("mempool overflow");
 	}
 
 	/**

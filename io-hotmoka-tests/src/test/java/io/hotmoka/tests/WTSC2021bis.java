@@ -145,7 +145,7 @@ class WTSC2021bis extends HotmokaTest {
     	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
     	Random random = new Random(13011973);
 
-    	// choose 10 receivers randomly and send random tokens to them
+    	// choose 5 receivers randomly and send random tokens to them
     	random.ints(0, NUMBER_OF_INVESTORS).limit(NUMBER_OF_TRANSFERS)
     		.forEach(i -> createTransfer(sender, privateKeyOfSender, investors[i], 10 * (random.nextInt(5) + 1)));
     }

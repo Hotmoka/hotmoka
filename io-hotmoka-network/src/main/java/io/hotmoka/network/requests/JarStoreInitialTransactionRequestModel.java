@@ -51,7 +51,7 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
      */
     public JarStoreInitialTransactionRequest toBean() {
     	if (jar == null)
-    		throw new InternalFailureException("unexpected null jar");
+    		throw new RuntimeException("unexpected null jar");
 
     	return new JarStoreInitialTransactionRequest(decodeBase64(jar),
     		dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));

@@ -33,7 +33,6 @@ import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.remote.internal.websockets.client.stomp.StompCommand;
@@ -308,8 +307,8 @@ public class WebSocketClient implements AutoCloseable {
     					try {
     						handler.accept(this.toModel(result), null);
     					}
-    					catch (InternalFailureException e) {
-    						deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "deserialization error", InternalFailureException.class));
+    					catch (RuntimeException e) {
+    						deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "deserialization error", RuntimeException.class));
     					}
     				}
 
@@ -353,7 +352,7 @@ public class WebSocketClient implements AutoCloseable {
     					deliverInternal(this.toModel(result));
     				}
     				catch (Exception e) {
-    					deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", InternalFailureException.class));
+    					deliverError(new ErrorModel(e.getMessage() != null ? e.getMessage() : "Got a deserialization error", RuntimeException.class));
     				}
     			}
 

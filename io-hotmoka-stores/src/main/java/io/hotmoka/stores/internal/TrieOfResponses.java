@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
@@ -74,8 +74,8 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			this.hashingForJars = HashingAlgorithm.sha256(bytes -> bytes);
 			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, TransactionResponse::from, numberOfCommits);
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 
