@@ -51,7 +51,6 @@ import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BytesSupplier;
 
 /**
@@ -170,7 +169,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
     }
 
     @Override
-    public byte[] encodingOf(PrivateKey privateKey) {
+    public byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException {
     	try {
     		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(privateKey.getEncoded()).getEncoded()));
     		ASN1Encodable privateKey2 = privateKeyInfo.parsePrivateKey();
@@ -178,7 +177,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
     		return privateKeyParams.getEncoded();
     	}
     	catch (IOException e) {
-    		throw InternalFailureException.of("cannot encode the private key", e);
+    		throw new InvalidKeyException("cannot encode the private key", e);
     	}
     }
 

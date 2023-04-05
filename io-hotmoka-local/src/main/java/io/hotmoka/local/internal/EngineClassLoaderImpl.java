@@ -38,7 +38,6 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
@@ -209,8 +208,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		catch (IllegalArgumentException e) {
 			throw e;
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of("failed to construct the classloader", e);
+		catch (NoSuchMethodException | NoSuchFieldException e) {
+			throw new RuntimeException("unexpected class change", e);
 		}
 	}
 

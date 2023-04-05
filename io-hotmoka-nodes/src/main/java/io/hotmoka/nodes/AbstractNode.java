@@ -88,23 +88,18 @@ public abstract class AbstractNode implements Node {
 	 * @param event the event to notify
 	 */
 	protected final void notifyEvent(StorageReference creator, StorageReference event) {
-		try {
-			synchronized (subscriptions) {
-				Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(creator);
-				if (subscriptionsPerKey != null)
-					subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
+		synchronized (subscriptions) {
+			Set<SubscriptionImpl> subscriptionsPerKey = subscriptions.get(creator);
+			if (subscriptionsPerKey != null)
+				subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
 
-				// we forward the event also to the subscriptions for all keys
-				subscriptionsPerKey = subscriptions.get(null);
-				if (subscriptionsPerKey != null)
-					subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
-			}
+			// we forward the event also to the subscriptions for all keys
+			subscriptionsPerKey = subscriptions.get(null);
+			if (subscriptionsPerKey != null)
+				subscriptionsPerKey.forEach(subscription -> subscription.accept(creator, event));
+		}
 
-			logger.info(event + ": notified as event with creator " + creator);
-		}
-		catch (Throwable t) {
-			throw InternalFailureException.of("event handler execution failed", t);
-		}
+		logger.info(event + ": notified as event with creator " + creator);
 	}
 
 	/**

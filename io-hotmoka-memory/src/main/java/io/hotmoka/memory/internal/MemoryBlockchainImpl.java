@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.memory.internal;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,8 +53,9 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
+	 * @throws IOException 
 	 */
-	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusParams consensus) {
+	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusParams consensus) throws IOException {
 		super(config, consensus);
 
 		try {

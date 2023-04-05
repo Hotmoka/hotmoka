@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.nodes;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -189,7 +188,7 @@ public class ConsensusParams {
 	 */
 	public final int slashingForNotBehaving;
 
-	private ConsensusParams(Builder builder) throws NoSuchAlgorithmException {
+	private ConsensusParams(Builder builder) {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
@@ -293,9 +292,8 @@ public class ConsensusParams {
 		 * Builds the parameters.
 		 * 
 		 * @return the parameters
-		 * @throws NoSuchAlgorithmException if the required signature algorithm is not available in the Java installation
 		 */
-		public ConsensusParams build() throws NoSuchAlgorithmException {
+		public ConsensusParams build() {
 			return new ConsensusParams(this);
 		}
 

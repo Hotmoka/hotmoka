@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
@@ -294,7 +293,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException, NoSuchFileException {
+	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException, IOException {
 		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
@@ -306,7 +305,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
+	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException, IOException {
 		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
@@ -315,7 +314,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException {
+	private static Node mkTakamakaBlockchainExecuteOneByOne() throws NoSuchAlgorithmException, IOException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		return takamakaBlockchain = TakamakaBlockchain.init(config, consensus, TakamakaBlockchainOneByOne::postTransactionTakamakaBlockchainRequestsOneByOne);
 	}
@@ -357,7 +356,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException {
+	private static Node mkTakamakaBlockchainExecuteAtEachTimeslot() throws NoSuchAlgorithmException, IOException {
 		TakamakaBlockchainConfig config = new TakamakaBlockchainConfig.Builder().setMaxGasPerViewTransaction(_10_000_000).build();
 		List<TransactionRequest<?>> mempool = TakamakaBlockchainAtEachTimeslot.mempool;
 

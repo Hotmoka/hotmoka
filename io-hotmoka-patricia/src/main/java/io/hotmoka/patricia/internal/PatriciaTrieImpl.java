@@ -106,9 +106,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		catch (NoSuchElementException e) {
 			return Optional.empty();
 		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "error while getting key from Patricia trie", e);
-			throw InternalFailureException.of("error while getting key from Patricia trie", e);
+		catch (IOException | ClassNotFoundException e) {
+			logger.log(Level.WARNING, "unexpected error while getting key from Patricia trie", e);
+			throw new RuntimeException("unexpected error while getting key from Patricia trie", e);
 		}
 	}
 
@@ -130,9 +130,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			store.setRoot(hashingForNodes.hash(newRoot));
 		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "error while putting key into Patricia trie", e);
-			throw InternalFailureException.of("error while putting key into Patricia trie", e);
+		catch (IOException | ClassNotFoundException e) {
+			logger.log(Level.WARNING, "unexpected error while putting key into Patricia trie", e);
+			throw new RuntimeException("unexpected error while putting key into Patricia trie", e);
 		}
 	}
 

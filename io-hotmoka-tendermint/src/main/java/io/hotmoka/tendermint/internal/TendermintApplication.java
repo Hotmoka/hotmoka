@@ -28,7 +28,8 @@ import org.bouncycastle.util.encoders.Hex;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Timestamp;
 
-import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -267,8 +268,8 @@ class TendermintApplication extends ABCI {
     				}
     			}
     		}
-    		catch (Exception e) {
-    			throw InternalFailureException.of("could not determine the new validators set", e);
+    		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}
 

@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
@@ -138,7 +137,7 @@ public class BIP39WordsImpl implements BIP39Words {
         	digest = MessageDigest.getInstance("SHA-256");
         }
         catch (NoSuchAlgorithmException e) {
-        	throw InternalFailureException.of("unexpected exception", e);
+        	throw new RuntimeException("unexpected exception", e);
         }
 
         byte[] merge = new byte[entropy.length + transaction.length];
@@ -177,7 +176,7 @@ public class BIP39WordsImpl implements BIP39Words {
         	digest = MessageDigest.getInstance("SHA-256");
         }
         catch (NoSuchAlgorithmException e) {
-        	throw InternalFailureException.of("unexpected exception", e);
+        	throw new RuntimeException("unexpected exception", e);
         }
 
         var sha256 = digest.digest(data);

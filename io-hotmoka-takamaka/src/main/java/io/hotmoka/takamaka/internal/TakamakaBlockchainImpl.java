@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.takamaka.internal;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -86,8 +87,9 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	 * @param consensus the consensus parameters of the node
 	 * @param postTransaction the function executed when a new transaction is ready
 	 *                        to be added to the queue of the native Takamaka layer
+	 * @throws IOException 
 	 */
-	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) {
+	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, ConsensusParams consensus, Consumer<TransactionRequest<?>> postTransaction) throws IOException {
 		super(config, consensus);
 
 		this.postTransaction = postTransaction;
@@ -100,8 +102,9 @@ public class TakamakaBlockchainImpl extends AbstractLocalNode<TakamakaBlockchain
 	 * @param config the configuration
 	 * @param postTransaction the function executed when a new transaction is ready
 	 *                        to be added to the queue of the native Takamaka layer
+	 * @throws IOException 
 	 */
-	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, Consumer<TransactionRequest<?>> postTransaction) {
+	public TakamakaBlockchainImpl(TakamakaBlockchainConfig config, Consumer<TransactionRequest<?>> postTransaction) throws IOException {
 		super(config);
 
 		this.postTransaction = postTransaction;

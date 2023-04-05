@@ -200,7 +200,7 @@ public class WebSocketClient implements AutoCloseable {
     		latch.await();
     	}
     	catch (InterruptedException e) {
-    		throw InternalFailureException.of("unexpected exception", e);
+    		throw new RuntimeException("unexpected exception", e);
     	}
     }
 

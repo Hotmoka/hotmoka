@@ -105,9 +105,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the node
-	 * @throws NoSuchFileException if some configuration file does not exist
+	 * @throws IOException 
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) throws NoSuchFileException {
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) throws IOException {
 		super(config, consensus);
 
 		try {
@@ -148,8 +148,9 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
 	 * @param config the configuration of the blockchain
+	 * @throws IOException 
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config) {
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config) throws IOException {
 		super(config);
 
 		try {

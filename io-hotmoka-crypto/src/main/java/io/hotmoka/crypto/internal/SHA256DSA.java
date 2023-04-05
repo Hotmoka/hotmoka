@@ -38,7 +38,6 @@ import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BytesSupplier;
 
@@ -120,7 +119,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
 			return mkKeyPairGenerator(random).generateKeyPair();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw InternalFailureException.of("unexpected exception", e);
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 

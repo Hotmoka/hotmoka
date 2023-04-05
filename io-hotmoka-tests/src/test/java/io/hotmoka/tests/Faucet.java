@@ -75,7 +75,7 @@ public class Faucet extends HotmokaTest {
 	}
 
 	@Test
-	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException {
 		StorageReference manifest = node.getManifest();
 		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 

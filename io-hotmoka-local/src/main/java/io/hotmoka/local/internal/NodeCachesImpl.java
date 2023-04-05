@@ -28,8 +28,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.SignatureAlgorithm;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -303,9 +305,9 @@ public class NodeCachesImpl implements NodeCaches {
 				.setSlashingForNotBehaving(slashingForNotBehaving)
 				.build();
 		}
-		catch (Throwable t) {
-			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", t);
-			throw InternalFailureException.of("could not reconstruct the consensus parameters from the manifest", t);
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", e);
+			throw new RuntimeException("could not reconstruct the consensus parameters from the manifest", e);
 		}
 	}
 
@@ -416,8 +418,8 @@ public class NodeCachesImpl implements NodeCaches {
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
 					CodeSignature.GET_GAS_PRICE, getGasStation().get()))).value;
 			}
-			catch (Throwable t) {
-				throw InternalFailureException.of("could not determine the gas price", t);
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new RuntimeException("could not determine the gas price", e);
 			}
 	}
 
@@ -429,8 +431,8 @@ public class NodeCachesImpl implements NodeCaches {
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
 					CodeSignature.GET_CURRENT_INFLATION, getValidators().get()))).value;
 			}
-			catch (Throwable t) {
-				throw InternalFailureException.of("could not determine the current inflation", t);
+			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				throw new RuntimeException("could not determine the current inflation", e);
 			}
 	}
 

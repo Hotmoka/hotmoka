@@ -18,6 +18,7 @@ package io.hotmoka.tools.internal.moka;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
@@ -29,14 +30,12 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.helpers.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
@@ -91,8 +90,8 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws TransactionException
 	 * @throws CodeExecutionException
 	 */
-	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
+	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		var algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
 		var keys = account.keys(password, algorithm);
 
 		try {

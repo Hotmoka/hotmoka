@@ -26,10 +26,6 @@ public class InternalFailureException extends RuntimeException {
 		super(t.getMessage(), t);
 	}
 
-	private InternalFailureException(String message, Throwable t) {
-		super(message + ": " + t.getMessage(), t);
-	}
-
 	public InternalFailureException(String message) {
 		super(message);
 	}
@@ -39,12 +35,5 @@ public class InternalFailureException extends RuntimeException {
 			return (InternalFailureException) t;
 		else
 			return new InternalFailureException(t);
-	}
-
-	public static InternalFailureException of(String message, Throwable t) {
-		if (t instanceof InternalFailureException)
-			return (InternalFailureException) t;
-		else
-			return new InternalFailureException(message, t);
 	}
 }

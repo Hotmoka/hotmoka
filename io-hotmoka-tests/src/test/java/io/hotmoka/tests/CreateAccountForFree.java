@@ -56,7 +56,7 @@ class CreateAccountForFree extends HotmokaTest {
 	}
 
 	@Test @DisplayName("create account")
-	void createAccount() throws TransactionRejectedException {
+	void createAccount() throws TransactionRejectedException, InvalidKeyException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 

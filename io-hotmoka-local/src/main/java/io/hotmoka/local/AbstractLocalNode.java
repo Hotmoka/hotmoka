@@ -201,7 +201,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
-	protected AbstractLocalNode(C config, ConsensusParams consensus) {
+	protected AbstractLocalNode(C config, ConsensusParams consensus) throws IOException {
 		this(config, consensus, true);
 	}
 
@@ -211,38 +211,36 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractLocalNode(C config) {
+	protected AbstractLocalNode(C config) throws IOException {
 		this(config, null, false);
 	}
 
-	private AbstractLocalNode(C config, ConsensusParams consensus, boolean deleteDir) {
-		try {
-			this.config = config;
-			this.storeUtilities = new StoreUtilitiesImpl(internal);
-			this.caches = new NodeCachesImpl(internal, consensus);
-			this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
-			this.gasConsumedSinceLastReward = ZERO;
-			this.coinsSinceLastReward = ZERO;
-			this.coinsSinceLastRewardWithoutInflation = ZERO;
-			this.numberOfTransactionsSinceLastReward = ZERO;
-			this.executor = Executors.newCachedThreadPool();
-			this.semaphores = new ConcurrentHashMap<>();
-			this.checkTime = new AtomicLong();
-			this.deliverTime = new AtomicLong();
-			this.closed = new AtomicBoolean();
+	private AbstractLocalNode(C config, ConsensusParams consensus, boolean deleteDir) throws IOException {
+		this.config = config;
+		this.storeUtilities = new StoreUtilitiesImpl(internal);
+		this.caches = new NodeCachesImpl(internal, consensus);
+		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
+		this.gasConsumedSinceLastReward = ZERO;
+		this.coinsSinceLastReward = ZERO;
+		this.coinsSinceLastRewardWithoutInflation = ZERO;
+		this.numberOfTransactionsSinceLastReward = ZERO;
+		this.executor = Executors.newCachedThreadPool();
+		this.semaphores = new ConcurrentHashMap<>();
+		this.checkTime = new AtomicLong();
+		this.deliverTime = new AtomicLong();
+		this.closed = new AtomicBoolean();
 
-			if (deleteDir) {
+		if (deleteDir) {
+			try {
 				deleteRecursively(config.dir);  // cleans the directory where the node's data live
 				Files.createDirectories(config.dir);
 			}
+			catch (IOException e) {
+			}
+		}
 
-			this.store = mkStore();
-			addShutdownHook();
-		}
-		catch (Exception e) {
-			logger.log(Level.SEVERE, "failed to create the node", e);
-			throw InternalFailureException.of(e);
-		}
+		this.store = mkStore();
+		addShutdownHook();
 	}
 
 	/**
@@ -299,11 +297,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		logger.info("time spent delivering requests: " + deliverTime + "ms");
 	}
 
-	private static InternalFailureException unexpected(Throwable e) {
-		logger.log(Level.WARNING, "unexpected exception", e);
-		return InternalFailureException.of(e);
-	}
-
 	@Override
 	public final String getNameOfSignatureAlgorithmForRequests() {
 		return caches.getConsensusParams().signature;
@@ -343,8 +336,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
 			throw e;
 		}
-		catch (Exception e) {
-			throw unexpected(e);
+		catch (RuntimeException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw e;
 		}
 	}
 
@@ -356,9 +350,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		try {
 			request = caches.getRequest(reference);
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw e;
 		}
 
 		return request.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
@@ -380,8 +374,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
 			error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
 		}
-		catch (Exception e) {
-			throw unexpected(e);
+		catch (RuntimeException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw e;
 		}
 
 		if (error != null)
@@ -402,8 +397,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		catch (NoSuchElementException e) {
 			throw e;
 		}
-		catch (Exception e) {
-			throw unexpected(e);
+		catch (RuntimeException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw e;
 		}
 	}
 
@@ -419,8 +415,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		catch (NoSuchElementException e) {
 			throw e;
 		}
-		catch (Exception e) {
-			throw unexpected(e);
+		catch (RuntimeException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw e;
 		}
 	}
 
@@ -543,7 +540,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			// we wake up who was waiting for the outcome of the request
 			signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
@@ -551,7 +548,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			// we just take note of the failure to avoid polling for the response
 			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
 			logger.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw e;
 		}
 		finally {
 			checkTime.addAndGet(System.currentTimeMillis() - start);
@@ -599,10 +596,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
-		catch (Exception e) {
+		catch (RuntimeException e) {
 			store.push(reference, request, trimmedMessage(e));
 			logger.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw e;
 		}
 		finally {
 			signalSemaphore(reference);
@@ -726,8 +723,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		try {
 			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
 		}
-		catch (Exception e) {
-			throw unexpected(e);
+		catch (RuntimeException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw e;
 		}	
 	}
 
@@ -861,9 +859,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		catch (TransactionRejectedException | NoSuchElementException e) {
 			return true;
 		}
-		catch (Exception e) {
-			throw unexpected(e);
-		}
 	}
 
 	/**
@@ -961,8 +956,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			try {
 				close();
 			}
+			catch (RuntimeException e) {
+				throw e;
+			}
 			catch (Exception e) {
-				throw InternalFailureException.of(e);
+				throw new RuntimeException(e);
 			}
 		}));
 	}

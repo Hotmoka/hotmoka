@@ -77,8 +77,9 @@ public interface SignatureAlgorithm<T> {
 	 * 
 	 * @param publicKey the public key
 	 * @return the encoded bytes of {@code publicKey}
+	 * @throws InvalidKeySpecException if the public key cannot be encoded
 	 */
-	byte[] encodingOf(PublicKey publicKey);
+	byte[] encodingOf(PublicKey publicKey) throws InvalidKeyException;
 
 	/**
 	 * Yields a private key that can be used with this signature, from
@@ -95,8 +96,9 @@ public interface SignatureAlgorithm<T> {
 	 * 
 	 * @param privateKey the private key
 	 * @return the encoded bytes of {@code privateKey}
+	 * @throws InvalidKeyException if the private key cannot be encoded
 	 */
-	byte[] encodingOf(PrivateKey privateKey);
+	byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException;
 
 	/**
 	 * Yields the name of the algorithm.

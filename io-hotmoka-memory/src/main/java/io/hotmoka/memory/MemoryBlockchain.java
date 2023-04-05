@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.memory;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.ConsensusParams;
@@ -36,8 +38,9 @@ public interface MemoryBlockchain extends Node {
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the blockchain
+	 * @throws IOException 
 	 */
-	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusParams consensus) {
+	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusParams consensus) throws IOException {
 		return new MemoryBlockchainImpl(config, consensus);
 	}
 }

@@ -125,9 +125,9 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     		catch (IOException e) {
     			return Optional.empty();
     		}
-    		catch (Exception e) {
+    		catch (ClassNotFoundException e) {
     			logger.warning("unexpected exception " + e);
-    			throw InternalFailureException.of("cannot find the response of transaction " + reference, e);
+    			throw new RuntimeException("cannot get the response of transaction " + reference, e);
     		}
     	});
 	}

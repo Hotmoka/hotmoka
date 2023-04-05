@@ -23,6 +23,7 @@ package io.hotmoka.crypto.internal;
 
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
@@ -36,7 +37,6 @@ import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
@@ -83,7 +83,7 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 			return mkKeyPairGenerator(random).generateKeyPair();
 		}
 		catch (NoSuchProviderException | InvalidAlgorithmParameterException | NoSuchAlgorithmException e) {
-    		throw InternalFailureException.of("unexpected exception", e);
+    		throw new RuntimeException("unexpected exception", e);
     	}
     }
 
@@ -93,12 +93,12 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 	}
 
 	@Override
-	public byte[] encodingOf(PublicKey publicKey) {
+	public byte[] encodingOf(PublicKey publicKey) throws InvalidKeyException {
 		return publicKey.getEncoded();
 	}
 
 	@Override
-	public byte[] encodingOf(PrivateKey privateKey) {
+	public byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException {
 		return privateKey.getEncoded();
 	}
 }
