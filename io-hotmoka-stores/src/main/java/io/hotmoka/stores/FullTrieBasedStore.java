@@ -19,10 +19,8 @@ package io.hotmoka.stores;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -133,25 +131,19 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node, long checkableDepth) {
 		super(node, checkableDepth);
 
-		try {
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
-			recordTime(() -> env.executeInTransaction(txn -> {
-				storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
-				storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
-				storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
-			}));
+		recordTime(() -> env.executeInTransaction(txn -> {
+			storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
+			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
+			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
+		}));
 
-			this.storeOfErrors = storeOfErrors.get();
-			this.storeOfRequests = storeOfRequests.get();
-			this.storeOfHistory = storeOfHistory.get();
-		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
+		this.storeOfErrors = storeOfErrors.get();
+		this.storeOfRequests = storeOfRequests.get();
+		this.storeOfHistory = storeOfHistory.get();
 	}
 
 	/**

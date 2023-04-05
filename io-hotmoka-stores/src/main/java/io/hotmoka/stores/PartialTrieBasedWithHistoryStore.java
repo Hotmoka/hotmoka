@@ -18,10 +18,8 @@ package io.hotmoka.stores;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
@@ -95,15 +93,9 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 	protected PartialTrieBasedWithHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedWithHistoryStore<? extends C>> node, long checkableDepth) {
 		super(node, checkableDepth);
 
-		try {
-			AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-			recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
-			this.storeOfHistory = storeOfHistory.get();
-		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "unexpected exception " + e);
-			throw InternalFailureException.of(e);
-		}
+		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+		recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
+		this.storeOfHistory = storeOfHistory.get();
 	}
 
 	/**

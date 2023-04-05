@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.nodes.NodeInfo;
@@ -61,18 +60,17 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 		try {
 			this.mempool = new Mempool(new MemoryBlockchainInternalImpl());
 		}
-		catch (Exception e) {
-			logger.log(Level.SEVERE, "failed creating memory blockchain", e);
+		catch (RuntimeException e) {
+			logger.log(Level.SEVERE, "failed to create the memory blockchain", e);
 
 			try {
 				close();
 			}
 			catch (Exception e1) {
 				logger.log(Level.SEVERE, "cannot close the blockchain", e1);
-				throw InternalFailureException.of(e1);
 			}
 
-			throw InternalFailureException.of(e);
+			throw e;
 		}
 	}
 

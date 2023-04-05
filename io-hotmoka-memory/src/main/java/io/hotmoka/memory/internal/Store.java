@@ -31,7 +31,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -176,9 +175,9 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 		catch (IOException e) {
 			return Optional.empty();
 		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "cannot find the request of transaction " + reference, e);
-			throw InternalFailureException.of(e);
+		catch (ClassNotFoundException e) {
+			logger.warning("unexpected exception " + e);
+			throw new RuntimeException("cannot find the response of transaction " + reference, e);
 		}
 	}
 
@@ -208,9 +207,9 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					response.into(context);
 				}
 			}
-			catch (Exception e) {
+			catch (IOException e) {
 				logger.log(Level.WARNING, "unexpected exception", e);
-				throw InternalFailureException.of(e);
+				throw new RuntimeException("unexpected exception", e);
 			}
 		});
 	}
@@ -243,9 +242,9 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					request.into(context);
 				}
 			}
-			catch (Exception e) {
+			catch (IOException e) {
 				logger.log(Level.WARNING, "unexpected exception", e);
-				throw InternalFailureException.of(e);
+				throw new RuntimeException("unexpected exception", e);
 			}
 		});
 

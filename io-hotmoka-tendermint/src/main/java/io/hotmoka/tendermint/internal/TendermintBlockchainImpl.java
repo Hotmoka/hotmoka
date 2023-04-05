@@ -40,7 +40,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.annotations.ThreadSafe;
@@ -126,10 +125,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			tryClose();
 			throw e;
 		}
-		catch (Exception e) {
-			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
+		catch (TimeoutException | InterruptedException e) {
+			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
-			throw InternalFailureException.of(e);
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 
@@ -164,12 +163,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 			caches.recomputeConsensus();
 		}
-		catch (Exception e) {// we check if there are events of type ValidatorsUpdate triggered by validators
-			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
-
+		catch (TimeoutException | InterruptedException e) {
+			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
-
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
 	}
 

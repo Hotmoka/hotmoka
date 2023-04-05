@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -448,8 +447,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
 		}
 	}
 }

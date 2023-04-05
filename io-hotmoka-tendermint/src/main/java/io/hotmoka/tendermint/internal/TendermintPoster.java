@@ -91,9 +91,9 @@ public class TendermintPoster {
 			if (error != null)
 				throw new InternalFailureException("Tendermint transaction failed: " + error.message + ": " + error.data);
 		}
-		catch (Exception e) {
+		catch (InterruptedException | TimeoutException | IOException e) {
 			logger.log(Level.WARNING, "failed posting request", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -120,9 +120,9 @@ public class TendermintPoster {
 				return Optional.of(TransactionRequest.from(context));
 			}
 		}
-		catch (Exception e) {
+		catch (IOException | InterruptedException | ClassNotFoundException | TimeoutException e) {
 			logger.log(Level.WARNING, "failed getting transaction at " + hash, e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -152,9 +152,9 @@ public class TendermintPoster {
 					return Optional.empty();
 			}
 		}
-		catch (Exception e) {
+		catch (InterruptedException | TimeoutException | IOException e) {
 			logger.log(Level.WARNING, "failed getting error message at " + hash, e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -177,21 +177,24 @@ public class TendermintPoster {
 	}*/
 
 	String getTendermintChainId() {
-		try {
-			TendermintGenesisResponse response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
-			if (response.error != null)
-				throw new InternalFailureException(response.error);
-	
-			String chainId = response.result.genesis.chain_id;
-			if (chainId == null)
-				throw new InternalFailureException("no chain id in Tendermint response");
+		TendermintGenesisResponse response;
 
-			return chainId;
+		try {
+			response = gson.fromJson(genesis(), TendermintGenesisResponse.class);
 		}
-		catch (Exception e) {
+		catch (IOException | TimeoutException | InterruptedException e) {
 			logger.log(Level.WARNING, "could not determine the Tendermint chain id for this node", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
+
+		if (response.error != null)
+			throw new IllegalStateException(response.error);
+
+		String chainId = response.result.genesis.chain_id;
+		if (chainId == null)
+			throw new IllegalStateException("no chain id in Tendermint response");
+
+		return chainId;
 	}
 
 	/**

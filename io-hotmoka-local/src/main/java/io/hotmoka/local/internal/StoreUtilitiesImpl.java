@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -159,53 +160,35 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 
 	@Override
 	public ClassTag getClassTagUncommitted(StorageReference reference) {
-		try {
-			// we go straight to the transaction that created the object
-			Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.transaction);
-			if (!(response.get() instanceof TransactionResponseWithUpdates))
-				throw new InternalFailureException("transaction reference " + reference.transaction + " does not contain updates");
-	
-			return ((TransactionResponseWithUpdates) response.get()).getUpdates()
-				.filter(update -> update instanceof ClassTag && update.object.equals(reference))
-				.map(update -> (ClassTag) update)
-				.findFirst().get();
-		}
-		catch (Exception e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			throw InternalFailureException.of(e);
-		}
+		// we go straight to the transaction that created the object
+		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.transaction);
+		if (!(response.get() instanceof TransactionResponseWithUpdates))
+			throw new InternalFailureException("transaction reference " + reference.transaction + " does not contain updates");
+
+		return ((TransactionResponseWithUpdates) response.get()).getUpdates()
+			.filter(update -> update instanceof ClassTag && update.object.equals(reference))
+			.map(update -> (ClassTag) update)
+			.findFirst().get();
 	}
 
 	@Override
 	public Stream<Update> getStateCommitted(StorageReference object) {
-		try {
-			Set<Update> updates = new HashSet<>();
-			Stream<TransactionReference> history = getStore().getHistory(object);
-			history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
-			return updates.stream();
-		}
-		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
-			throw InternalFailureException.of(t);
-		}
+		Set<Update> updates = new HashSet<>();
+		Stream<TransactionReference> history = getStore().getHistory(object);
+		history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
+		return updates.stream();
 	}
 
 	@Override
 	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) {
-		try {
-			Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
-			NodeCaches caches = node.getCaches();
+		Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
+		NodeCaches caches = node.getCaches();
 
-			return getStore().getHistoryUncommitted(object)
-				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
-				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.object.equals(object) &&
-						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
-				.map(update -> (UpdateOfField) update);
-		}
-		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
-			throw InternalFailureException.of(t);
-		}
+		return getStore().getHistoryUncommitted(object)
+			.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
+			.filter(update -> update.isEager() && update instanceof UpdateOfField && update.object.equals(object) &&
+					fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+			.map(update -> (UpdateOfField) update);
 	}
 
 	@Override
@@ -248,40 +231,22 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 				.filter(update -> update.object.equals(object) && updates.stream().noneMatch(update::sameProperty))
 				.forEach(updates::add);
 		}
-		catch (Exception e) {
+		catch (TransactionRejectedException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
-			throw InternalFailureException.of(e);
+			throw new RuntimeException(e);
 		}
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
-		try {
-			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
-		}
-		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
-			throw InternalFailureException.of(t);
-		}
+		return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
 	}
 
 	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
-		try {
-			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
-		}
-		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
-			throw InternalFailureException.of(t);
-		}
+		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
 	}
 
 	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
-		try {
-			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
-		}
-		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
-			throw InternalFailureException.of(t);
-		}
+		return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
 	}
 
 	/**
