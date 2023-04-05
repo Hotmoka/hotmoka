@@ -304,7 +304,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) {
+	private static Node mkRemoteNode(Node exposed) throws IOException {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
 		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
 			.setPort(8080)
@@ -322,7 +322,7 @@ public abstract class HotmokaTest {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String url) {
+	private static Node mkRemoteNode(String url) throws IOException {
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(true)
 			.setURL(url).build();

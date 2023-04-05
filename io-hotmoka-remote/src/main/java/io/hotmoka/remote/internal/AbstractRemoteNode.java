@@ -16,8 +16,10 @@ limitations under the License.
 
 package io.hotmoka.remote.internal;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 
@@ -62,6 +64,7 @@ import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.remote.internal.websockets.client.WebSocketClient;
+import io.hotmoka.ws.client.WebSocketException;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
@@ -84,14 +87,16 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      *
      * @param config the configuration of the node
      */
-    protected AbstractRemoteNode(RemoteNodeConfig config) {
+    protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException {
         this.config = config;
-
         try {
-            webSocketClient = new WebSocketClient("ws://" + config.url + "/node");
+        	this.webSocketClient = new WebSocketClient("ws://" + config.url + "/node");
         }
-        catch (Exception e) {
-            throw InternalFailureException.of(e);
+        catch (WebSocketException e) {
+        	throw new IOException(e);
+        }
+        catch (InterruptedException | ExecutionException e) {
+        	throw new RuntimeException("unexpected exception", e);
         }
 
         subscribeToEventsTopic();

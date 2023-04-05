@@ -16,7 +16,8 @@ limitations under the License.
 
 package io.hotmoka.local.internal.transactions;
 
-import io.hotmoka.beans.InternalFailureException;
+import java.io.IOException;
+
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -66,8 +67,8 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 				catch (VerificationException e) {
 					throw e;
 				}
-				catch (Throwable t) {
-					throw InternalFailureException.of(t);
+				catch (IOException t) {
+					throw new RuntimeException("unexpected exception", t);
 				}
 			}
 		}

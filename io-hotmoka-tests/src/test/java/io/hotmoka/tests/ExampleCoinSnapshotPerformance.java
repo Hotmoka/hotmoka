@@ -46,7 +46,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -328,8 +327,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     				break;
     			}
     		}
-    		catch (Exception e) {
-    			throw InternalFailureException.of(e);
+    		catch (InvalidKeyException | SignatureException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    			throw new RuntimeException(e);
     		}
     	}
 

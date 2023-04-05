@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.remote;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.remote.internal.http.HTTPRemoteNodeImpl;
 import io.hotmoka.remote.internal.websockets.WebSocketsRemoteNodeImpl;
@@ -32,8 +34,9 @@ public interface RemoteNode extends Node {
      *
      * @param config the configuration
      * @return the remote node
+     * @throws IOException 
      */
-    static RemoteNode of(RemoteNodeConfig config) {
+    static RemoteNode of(RemoteNodeConfig config) throws IOException {
         // there are two implementations: for websockets or for http connections
         return config.webSockets ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
     }

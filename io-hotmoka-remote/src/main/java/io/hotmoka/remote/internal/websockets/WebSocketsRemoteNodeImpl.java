@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.remote.internal.websockets;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -67,8 +68,9 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      * Builds the remote node.
      *
      * @param config the configuration of the node
+     * @throws IOException 
      */
-    public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) {
+    public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException {
         super(config);
     }
 

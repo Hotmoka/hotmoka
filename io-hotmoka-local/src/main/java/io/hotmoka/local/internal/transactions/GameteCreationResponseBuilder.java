@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.local.internal.transactions;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -61,8 +61,8 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 					classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
 					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
-				catch (Throwable t) {
-					throw InternalFailureException.of(t);
+				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+					throw new RuntimeException("unexpected exception", e);
 				}
 			}
 		}

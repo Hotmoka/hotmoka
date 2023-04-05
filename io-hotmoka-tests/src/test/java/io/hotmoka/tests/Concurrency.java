@@ -108,7 +108,7 @@ class Concurrency extends HotmokaTest {
 				}
 				else {
 					failed = true;
-					throw InternalFailureException.of(e);
+					throw new RuntimeException(e);
 				}
 			}
 			catch (TransactionException e) {
@@ -118,12 +118,12 @@ class Concurrency extends HotmokaTest {
 				}
 				else {
 					failed = true;
-					throw InternalFailureException.of(e);
+					throw new RuntimeException(e);
 				}
 			}
 			catch (InvalidKeyException | SignatureException | CodeExecutionException | InternalFailureException e) {
 				failed = true;
-				throw InternalFailureException.of(e);
+				throw new RuntimeException(e);
 			}
 			catch (Exception e) {
 				e.printStackTrace();

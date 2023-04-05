@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.local.internal;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -163,7 +164,7 @@ public class Reverification {
 				consensus != null && consensus.allowsSelfCharged, consensus != null && consensus.skipsVerification);
 		}
 		catch (IOException e) {
-			throw InternalFailureException.of(e);
+			throw new UncheckedIOException(e);
 		}
 	}
 

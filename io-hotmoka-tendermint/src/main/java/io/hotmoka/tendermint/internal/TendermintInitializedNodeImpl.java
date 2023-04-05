@@ -35,7 +35,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.nodes.NodeInfo;
@@ -175,7 +174,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
         	return SignatureAlgorithmForTransactionRequests.ed25519().publicKeyFromEncoding(encoded);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw InternalFailureException.of(e);
+			throw new RuntimeException("unexpected exception", e);
 		}
         catch (InvalidKeySpecException e) {
         	throw new IllegalArgumentException(e);

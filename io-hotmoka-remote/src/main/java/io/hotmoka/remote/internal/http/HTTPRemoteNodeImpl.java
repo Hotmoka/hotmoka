@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.remote.internal.http;
 
+import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -80,8 +81,9 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
      * Builds the remote node.
      *
      * @param config the configuration of the node
+     * @throws IOException 
      */
-    public HTTPRemoteNodeImpl(RemoteNodeConfig config) {
+    public HTTPRemoteNodeImpl(RemoteNodeConfig config) throws IOException {
         super(config);
 
         this.url = "http://" + config.url;

@@ -22,11 +22,17 @@ import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
 import static java.math.BigInteger.ZERO;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.SignatureException;
 import java.util.Base64;
+import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +43,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.InternalFailureException;
+import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -125,8 +133,10 @@ class WTSC2021bis extends HotmokaTest {
 
 			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
+				| TransactionRejectedException | InterruptedException | ExecutionException
+				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -148,8 +158,8 @@ class WTSC2021bis extends HotmokaTest {
 		try {
 			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, new IntValue(howMuch));
 		}
-		catch (Exception e) {
-			throw InternalFailureException.of(e);
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
+			throw new RuntimeException(e);
 		}
 
     	numberOfTransactions.getAndIncrement();
