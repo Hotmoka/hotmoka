@@ -16,14 +16,13 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 
@@ -58,7 +57,7 @@ public class TransactionRestRequestModel<T> {
      */
     public static TransactionRestRequestModel<?> from(TransactionRequest<?> request) {
         if (request == null)
-            throw new InternalFailureException("unexpected null request");
+            throw new RuntimeException("unexpected null request");
         else if (request instanceof ConstructorCallTransactionRequest)
             return new TransactionRestRequestModel<>(new ConstructorCallTransactionRequestModel((ConstructorCallTransactionRequest) request));
         else if (request instanceof InitializationTransactionRequest)
@@ -76,6 +75,6 @@ public class TransactionRestRequestModel<T> {
         else if (request instanceof StaticMethodCallTransactionRequest)
             return new TransactionRestRequestModel<>(new StaticMethodCallTransactionRequestModel((StaticMethodCallTransactionRequest) request));
         else
-            throw new InternalFailureException("unexpected transaction request of class " + request.getClass().getName());
+            throw new RuntimeException("unexpected transaction request of class " + request.getClass().getName());
     }
 }

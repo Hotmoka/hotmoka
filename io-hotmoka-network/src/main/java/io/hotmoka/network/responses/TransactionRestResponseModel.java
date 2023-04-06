@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.network.responses;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
@@ -62,7 +61,7 @@ public class TransactionRestResponseModel<T> {
      */
     public static TransactionRestResponseModel<?> from(TransactionResponse response) {
         if (response == null)
-            throw new InternalFailureException("unexpected null response");
+            throw new RuntimeException("unexpected null response");
         else if (response instanceof GameteCreationTransactionResponse)
             return new TransactionRestResponseModel<>(new GameteCreationTransactionResponseModel((GameteCreationTransactionResponse) response));
         else if (response instanceof InitializationTransactionResponse)
@@ -88,6 +87,6 @@ public class TransactionRestResponseModel<T> {
         else if (response instanceof MethodCallTransactionExceptionResponse)
             return new TransactionRestResponseModel<>(new MethodCallTransactionExceptionResponseModel((MethodCallTransactionExceptionResponse) response));
         else
-            throw new InternalFailureException("unexpected transaction response of class " + response.getClass().getName());
+            throw new RuntimeException("unexpected transaction response of class " + response.getClass().getName());
     }
 }

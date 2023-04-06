@@ -313,7 +313,7 @@ public abstract class HotmokaTest {
 		NodeService.of(serviceConfig, exposed);
 
 		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
-			// uncomment for using websockets
+			// comment for using http
 			.setWebSockets(true)
 			.setURL("localhost:8080")
 			.build();

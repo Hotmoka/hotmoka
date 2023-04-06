@@ -23,7 +23,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.annotations.Immutable;
@@ -60,7 +59,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			HASHING_FOR_REQUESTS = MessageDigest.getInstance("SHA-256");
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new InternalFailureException("the hashing algorithm for the requests is not available");
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 	

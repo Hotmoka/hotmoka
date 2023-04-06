@@ -30,7 +30,6 @@ import java.util.stream.Collectors;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 
@@ -130,8 +129,8 @@ public class RestClientService {
     		String body = br.lines().collect(Collectors.joining("\n"));
     		return gson.fromJson(body, ErrorModel.class);
     	}
-        catch (Exception e) {
-            return new ErrorModel("Cannot create the error model", InternalFailureException.class);
+        catch (RuntimeException | IOException e) {
+            return new ErrorModel("Cannot create the error model", RuntimeException.class);
         }
     }
 }

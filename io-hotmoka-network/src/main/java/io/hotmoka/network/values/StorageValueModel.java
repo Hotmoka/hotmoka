@@ -18,7 +18,6 @@ package io.hotmoka.network.values;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -70,7 +69,7 @@ public class StorageValueModel {
 	 */
 	public StorageValueModel(StorageValue parent) {
     	if (parent == null)
-    		throw new InternalFailureException("unexpected null storage value");
+    		throw new RuntimeException("unexpected null storage value");
     	else if (parent instanceof StorageReference) {
     		value = null;
     		reference = new StorageReferenceModel((StorageReference) parent);
@@ -151,7 +150,7 @@ public class StorageValueModel {
     		enumElementName = null;
     	}
     	else
-    		throw new InternalFailureException("unexpected storage value of class " + parent.getClass().getName());
+    		throw new RuntimeException("unexpected storage value of class " + parent.getClass().getName());
     }
 
 	public StorageValueModel() {}
@@ -169,7 +168,7 @@ public class StorageValueModel {
             else
             	return reference.toBean();
     	else if (value == null)
-    		throw new InternalFailureException("unexpected null value");
+    		throw new RuntimeException("unexpected null value");
     	else if (type.equals(BIGINTEGER_NAME))
 			return new BigIntegerValue(new BigInteger(value));
 		else if (type.equals(STRING_NAME))
@@ -191,7 +190,7 @@ public class StorageValueModel {
     	else if (type.equals("double"))
             return new DoubleValue(Double.parseDouble(value));
     	else
-        	throw new InternalFailureException("unexpected value type " + type);
+        	throw new RuntimeException("unexpected value type " + type);
     }
 
     /**
@@ -206,9 +205,9 @@ public class StorageValueModel {
     	if (request.method.returnType == null && returnedValue == null)
     		return null;
     	else if (request.method.returnType == null)
-    		throw new InternalFailureException("unexpected non-null return value for void method");
+    		throw new RuntimeException("unexpected non-null return value for void method");
     	else if (returnedValue == null)
-    		throw new InternalFailureException("unexpected null return value for non-void method");
+    		throw new RuntimeException("unexpected null return value for non-void method");
     	else
     		return new StorageValueModel(returnedValue);
     }

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -50,13 +49,13 @@ public abstract class SignatureModel {
 	 */
 	protected static String nameOf(StorageType type) {
     	if (type == null)
-    		throw new InternalFailureException("unexpected null type");
+    		throw new RuntimeException("unexpected null type");
     	else if (type instanceof BasicTypes)
     		return type.toString();
     	else if (type instanceof ClassType)
     		return ((ClassType) type).name;
     	else
-    		throw new InternalFailureException("unexpected storage type of class " + type.getClass().getName());
+    		throw new RuntimeException("unexpected storage type of class " + type.getClass().getName());
     }
 
 	/**
@@ -67,7 +66,7 @@ public abstract class SignatureModel {
 	 */
 	protected static StorageType typeWithName(String name) {
     	if (name == null)
-    		throw new InternalFailureException("unexpected null type name");
+    		throw new RuntimeException("unexpected null type name");
 
     	switch (name) {
     	case "boolean":

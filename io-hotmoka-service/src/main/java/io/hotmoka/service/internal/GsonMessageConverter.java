@@ -16,15 +16,15 @@ limitations under the License.
 
 package io.hotmoka.service.internal;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import io.hotmoka.beans.InternalFailureException;
+import java.nio.charset.StandardCharsets;
+
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.AbstractMessageConverter;
 import org.springframework.util.MimeType;
 
-import java.nio.charset.StandardCharsets;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 /**
  * A websocket message converter implementation class using the GSON library.
@@ -61,9 +61,9 @@ public class GsonMessageConverter extends AbstractMessageConverter {
             else
             	return gson.fromJson(json, targetClass);
         }
-        catch (Exception e) {
+        catch (RuntimeException e) {
             String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
-            throw new InternalFailureException("Error deserializing json message" + exceptionMessage);
+            throw new RuntimeException("Error deserializing json message" + exceptionMessage);
         }
     }
 
@@ -75,9 +75,9 @@ public class GsonMessageConverter extends AbstractMessageConverter {
             else
             	return gson.toJson(payload).getBytes(StandardCharsets.UTF_8);
         }
-        catch (Exception e) {
+        catch (RuntimeException e) {
             String exceptionMessage = e.getMessage() != null ? ": " + e.getMessage() : "";
-            throw new InternalFailureException("Error serializing Java object: " + exceptionMessage);
+            throw new RuntimeException("Error serializing Java object: " + exceptionMessage);
         }
     }
 

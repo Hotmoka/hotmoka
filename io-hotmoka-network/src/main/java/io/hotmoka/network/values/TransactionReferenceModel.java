@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.network.values;
 
-import io.hotmoka.beans.InternalFailureException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 
@@ -46,7 +45,7 @@ public class TransactionReferenceModel {
     		this.hash = reference.getHash();
     	}
     	else
-    		throw new InternalFailureException("unexpected transaction reference of type " + reference.getClass().getName());
+    		throw new RuntimeException("unexpected transaction reference of type " + reference.getClass().getName());
     }
 
     public TransactionReferenceModel() {}
@@ -58,12 +57,12 @@ public class TransactionReferenceModel {
      */
     public TransactionReference toBean() {
     	if (type == null)
-    		throw new InternalFailureException("unexpected null transaction reference type");
+    		throw new RuntimeException("unexpected null transaction reference type");
 
     	switch (type) {
     	case "local": return new LocalTransactionReference(hash);
     	default:
-    		throw new InternalFailureException("unexpected transaction reference type " + type);
+    		throw new RuntimeException("unexpected transaction reference type " + type);
     	}
     }
 }
