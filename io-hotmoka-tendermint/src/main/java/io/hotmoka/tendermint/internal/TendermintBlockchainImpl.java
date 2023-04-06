@@ -187,7 +187,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(TendermintBlockchain.class.getName(), Constants.VERSION, poster.getNodeID());
+		return new NodeInfo(TendermintBlockchain.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 	}
 
 	@Override

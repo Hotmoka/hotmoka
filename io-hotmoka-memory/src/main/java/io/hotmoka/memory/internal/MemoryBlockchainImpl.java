@@ -89,7 +89,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(MemoryBlockchain.class.getName(), Constants.VERSION, "");
+		return new NodeInfo(MemoryBlockchain.class.getName(), Constants.HOTMOKA_VERSION, "");
 	}
 
 	@Override

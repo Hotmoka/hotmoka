@@ -24,7 +24,12 @@ public interface Constants {
 	/**
 	 * The version of the Hotmoka code.
 	 */
-	String VERSION = "1.0.12";
+	String HOTMOKA_VERSION = "1.1.0";
+
+	/**
+	 * The version of the Takamaka code.
+	 */
+	String TAKAMAKA_VERSION = "1.0.12";
 
 	/**
 	 * The name of the class {@code io.hotmoka.local.internal.runtime.Runtime}.

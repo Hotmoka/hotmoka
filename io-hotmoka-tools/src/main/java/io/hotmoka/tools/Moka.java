@@ -82,7 +82,7 @@ import picocli.CommandLine.Command;
 			        State.class,
 			        Verify.class }, 
 
-	description = "This is version " + Constants.VERSION + " of the command-line interface.",
+	description = "This is version " + Constants.HOTMOKA_VERSION + " of the command-line interface.",
 
 	showDefaultValues = true
 
