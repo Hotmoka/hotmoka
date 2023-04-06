@@ -36,11 +36,6 @@
     </plugins>
   </build>
   <dependencies>
-	<dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
     <dependency>
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>

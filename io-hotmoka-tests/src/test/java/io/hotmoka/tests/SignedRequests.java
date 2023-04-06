@@ -12,7 +12,6 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -25,6 +24,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.Signer;
 
 public class SignedRequests {
     private static final KeyPair keyPair;
@@ -47,7 +47,7 @@ public class SignedRequests {
         );
 
         ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -67,7 +67,7 @@ public class SignedRequests {
     public void testNonVoidInstanceMethodCallTransactionRequest() throws Exception {
 
         InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -96,7 +96,7 @@ public class SignedRequests {
 		StorageReference storageReference = new StorageReference(transaction, BigInteger.ZERO);
 
 		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 storageReference,
                 BigInteger.ONE,
                 "chaintest",
@@ -117,7 +117,7 @@ public class SignedRequests {
     public void testNonVoidStaticMethodCallTransactionRequest() throws Exception {
 
         StaticMethodCallTransactionRequest request = new StaticMethodCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -142,7 +142,7 @@ public class SignedRequests {
         );
 
         StaticMethodCallTransactionRequest request = new StaticMethodCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -169,7 +169,7 @@ public class SignedRequests {
         );
 
         StaticMethodCallTransactionRequest request = new StaticMethodCallTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -189,7 +189,7 @@ public class SignedRequests {
     public void testJarStoreTransactionReqest() throws Exception {
 
         JarStoreTransactionRequest request = new JarStoreTransactionRequest(
-                SignedTransactionRequest.Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
+                Signer.with(SignatureAlgorithmForTransactionRequests.ed25519(), keys()),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",

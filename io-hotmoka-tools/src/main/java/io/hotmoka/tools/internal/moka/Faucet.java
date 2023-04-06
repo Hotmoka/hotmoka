@@ -24,7 +24,6 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest.Signer;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -34,6 +33,7 @@ import io.hotmoka.helpers.NonceHelper;
 import io.hotmoka.helpers.SignatureHelper;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

@@ -19,12 +19,12 @@ package io.hotmoka.local;
 import java.math.BigInteger;
 import java.util.Optional;
 
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.nodes.ConsensusParams;
 
 /**

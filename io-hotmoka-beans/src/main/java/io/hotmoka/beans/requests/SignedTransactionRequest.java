@@ -19,12 +19,9 @@ package io.hotmoka.beans.requests;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.SignatureAlgorithm;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -98,27 +95,5 @@ public interface SignedTransactionRequest {
 		 * @throws SignatureException if the request cannot be signed
 		 */
 		byte[] sign(SignedTransactionRequest what) throws InvalidKeyException, SignatureException;
-
-		/**
-		 * Yields a signer for the given algorithm with the given key pair.
-		 * 
-		 * @param signature the signing algorithm
-		 * @param keys the key pair
-		 * @return the signer
-		 */
-		static Signer with(SignatureAlgorithm<SignedTransactionRequest> signature, KeyPair keys) {
-			return with(signature, keys.getPrivate());
-		}
-
-		/**
-		 * Yields a signer for the given algorithm with the given private key.
-		 * 
-		 * @param signature the signing algorithm
-		 * @param key the private key
-		 * @return the signer
-		 */
-		static Signer with(SignatureAlgorithm<SignedTransactionRequest> signature, PrivateKey key) {
-			return what -> signature.sign(what, key);
-		}
 	}
 }

@@ -18,8 +18,13 @@ package io.hotmoka.crypto;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.crypto.internal.ED25519DET;
@@ -33,7 +38,7 @@ import io.hotmoka.crypto.internal.SHA256DSA;
  *
  * @param <T> the type of values that get signed
  */
-public interface SignatureAlgorithm<T> extends io.hotmoka.beans.SignatureAlgorithm<T> {
+public interface SignatureAlgorithm<T> {
 
 	/**
 	 * Yields a signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.
@@ -155,6 +160,82 @@ public interface SignatureAlgorithm<T> extends io.hotmoka.beans.SignatureAlgorit
 		SHA256DSA
 	}
 
+	/**
+	 * Yields a pair of keys (private/public) that can be used with
+	 * this signature algorithm.
+	 * 
+	 * @return the pair of keys
+	 */
+	KeyPair getKeyPair();
+
+    /**
+	 * Yields the signature of the given value, by using the given private key.
+	 * 
+	 * @param what the value to sign
+	 * @param privateKey the private key used for signing
+	 * @return the sequence of bytes
+	 * @throws InvalidKeyException if the provided private key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException;
+
+	/**
+	 * Verifies that the given signature corresponds to the given value, by using
+	 * the given public key.
+	 * 
+	 * @param what the value whose signature gets verified
+	 * @param publicKey the public key; its corresponding private key should have been used for signing
+	 * @param signature the signature to verify
+	 * @return true if and only if the signature matches
+	 * @throws InvalidKeyException if the provided public key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
+
+	/**
+	 * Yields a public key that can be used with this signature, from
+	 * its encoded version as a byte array.
+	 * 
+	 * @param encoding the encoded version of the public key
+	 * @return the public key
+	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 */
+	PublicKey publicKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
+
+	/**
+	 * Yields the encoded bytes of the given public key.
+	 * 
+	 * @param publicKey the public key
+	 * @return the encoded bytes of {@code publicKey}
+	 * @throws InvalidKeySpecException if the public key cannot be encoded
+	 */
+	byte[] encodingOf(PublicKey publicKey) throws InvalidKeyException;
+
+	/**
+	 * Yields a private key that can be used with this signature, from
+	 * its encoded version as a byte array.
+	 * 
+	 * @param encoding the encoded version of the private key
+	 * @return the private key
+	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 */
+	PrivateKey privateKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
+
+	/**
+	 * Yields the encoded bytes of the given private key.
+	 * 
+	 * @param privateKey the private key
+	 * @return the encoded bytes of {@code privateKey}
+	 * @throws InvalidKeyException if the private key cannot be encoded
+	 */
+	byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException;
+
+	/**
+	 * Yields the name of the algorithm.
+	 * 
+	 * @return the name of the algorithm
+	 */
+	String getName();
 	/**
      * Creates a key pair from the given entropy and password.
      * 
