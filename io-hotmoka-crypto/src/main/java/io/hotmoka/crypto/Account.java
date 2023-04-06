@@ -30,7 +30,7 @@ import io.hotmoka.crypto.internal.BIP39WordsImpl;
  * 
  * @param <R> the type of reference that identifies the account
  */
-public abstract class Account<R extends Comparable<? super R>> extends Entropy {
+public abstract class Account<R extends Comparable<? super R>> extends Entropy implements io.hotmoka.crypto.api.Account<R> {
 
 	/**
 	 * The reference of the account.
@@ -43,7 +43,7 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy {
 	 * @param entropy the entropy, from which the key pair can be derived
 	 * @param reference the reference to the account
 	 */
-	protected Account(Entropy entropy, R reference) {
+	protected Account(io.hotmoka.crypto.api.Entropy entropy, R reference) {
 		super(entropy);
 
 		this.reference = reference;
@@ -81,54 +81,27 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy {
 		return reference.toString();
 	}
 
-	/**
-	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
-	 * 
-	 * @param where the directory where the file must be dumped
-	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
+	@Override
 	public String dump(Path where) throws IOException {
 		return super.dump(where, toString());
 	}
 
-	/**
-	 * Dumps the entropy of this account into a PEM file, in the current directory,
-	 * with the name of the reference of this account.
-	 * 
-	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
+	@Override
 	public String dump() throws IOException {
 		return dump(toString());
 	}
 
-	/**
-	 * Removes the PEM file, in the current directory,
-	 * with the name of the reference of this account, if it exists.
-	 * 
-	 * @throws IOException if the PEM file cannot be deleted
-	 */
+	@Override
 	public void delete() throws IOException {
 		delete(toString());
 	}
 
-	/**
-     * Yields the BIP39 words for this account using the given dictionary.
-     * They can be later transformed back into this account by calling the
-     * {@link BIP39Words#toAccount()} method.
-     * 
-     * @param dictionary the dictionary
-     */
-    public BIP39Words bip39Words(BIP39Dictionary dictionary) {
+	@Override
+    public BIP39Words bip39Words(io.hotmoka.crypto.api.BIP39Dictionary dictionary) {
     	return new BIP39WordsImpl(this, dictionary);
     }
 
-    /**
-     * Yields the BIP39 words for this account using the English dictionary.
-     * They can be later transformed back into this account by calling the
-     * {@link BIP39Words#toAccount()} method.
-     */
+	@Override
     public BIP39Words bip39Words() {
     	return new BIP39WordsImpl(this, BIP39Dictionary.ENGLISH_DICTIONARY);
     }

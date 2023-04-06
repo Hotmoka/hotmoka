@@ -30,12 +30,14 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+
 /**
  * The entropy information from which an account can be derived.
  * A key pair can be reconstructed from this entropy, given the password
  * associated to the account.
  */
-public class Entropy implements Comparable<Entropy> {
+public class Entropy implements io.hotmoka.crypto.api.Entropy {
 
 	/**
 	 * The entropy, 16 bytes.
@@ -79,8 +81,8 @@ public class Entropy implements Comparable<Entropy> {
 	 * 
 	 * @param parent the entropy to clone
 	 */
-	public Entropy(Entropy parent) {
-		this.entropy = parent.entropy;
+	public Entropy(io.hotmoka.crypto.api.Entropy parent) {
+		this.entropy = parent.getEntropy();
 	}
 
 	/**
@@ -95,20 +97,12 @@ public class Entropy implements Comparable<Entropy> {
 			throw new IllegalArgumentException("illegal entropy length: 16 bytes expected");
 	}
 
-	/**
-	 * Yields the entropy inside this object.
-	 * 
-	 * @return the entropy (16 bytes)
-	 */
+	@Override
 	public byte[] getEntropy() {
 		return entropy.clone();
 	}
 
-	/**
-	 * Yields the length of the entropy byte array.
-	 * 
-	 * @return the length (currently always 16)
-	 */
+	@Override
 	public int length() {
 		return entropy.length;
 	}
@@ -118,14 +112,7 @@ public class Entropy implements Comparable<Entropy> {
 		return Hex.toHexString(entropy);
 	}
 
-	/**
-	 * Dumps this entropy into a PEM file.
-	 * 
-	 * @param where the directory where the file must be dumped
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
+	@Override
 	public String dump(Path where, String filePrefix) throws IOException {
 		PemObject pemObject = new PemObject("ENTROPY", entropy);
 		String fileName = filePrefix + ".pem";
@@ -138,13 +125,7 @@ public class Entropy implements Comparable<Entropy> {
 		return resolved.toString();
 	}
 
-	/**
-	 * Dumps this entropy into a PEM file in the current directory.
-	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
+	@Override
 	public String dump(String filePrefix) throws IOException {
 		PemObject pemObject = new PemObject("ENTROPY", entropy);
 		String fileName = filePrefix + ".pem";
@@ -157,36 +138,25 @@ public class Entropy implements Comparable<Entropy> {
 		return resolved.toString();
 	}
 
-	/**
-	 * Deletes the PEM file in the current directory.
-	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @throws IOException if the PEM file cannot be deleted
-	 */
+	@Override
 	public void delete(String filePrefix) throws IOException {
 		String fileName = filePrefix + ".pem";
 		Path resolved = Path.of(fileName);
 		Files.delete(resolved);
 	}
 
-	/**
-	 * Constructs the key pair of this entropy, from the given password.
-	 * 
-	 * @param password the password
-	 * @param algorithm the signature algorithm for the keys
-	 * @return the key pair
-	 */
+	@Override
 	public KeyPair keys(String password, SignatureAlgorithm<?> algorithm) {
 		return algorithm.getKeyPair(entropy, password);
 	}
 
 	@Override
-	public int compareTo(Entropy other) {
+	public int compareTo(io.hotmoka.crypto.api.Entropy other) {
 		int diff = getClass().getName().compareTo(other.getClass().getName());
 		if (diff != 0)
 			return diff;
 		else
-			return compareBytes(entropy, other.entropy);
+			return compareBytes(entropy, other.getEntropy());
 	}
 
 	/**

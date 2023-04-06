@@ -27,10 +27,10 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import io.hotmoka.crypto.Account;
-import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BIP39Words;
-import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.api.Account;
+import io.hotmoka.crypto.api.BIP39Dictionary;
+import io.hotmoka.crypto.api.Entropy;
 
 /**
  * An implementation of the BIP39 words computation.
@@ -149,7 +149,7 @@ public class BIP39WordsImpl implements BIP39Words {
         if (!Arrays.equals(checksum, checksumRecomputed))
             throw new IllegalArgumentException("illegal mnemonic phrase: checksum mismatch");
 
-        return accountCreator.apply(new Entropy(entropy), transaction);
+        return accountCreator.apply(new io.hotmoka.crypto.Entropy(entropy), transaction);
     }
 
     @Override

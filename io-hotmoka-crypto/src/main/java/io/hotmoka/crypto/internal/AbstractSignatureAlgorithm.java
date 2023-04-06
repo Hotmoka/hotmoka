@@ -37,7 +37,7 @@ import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-import io.hotmoka.crypto.BIP39Dictionary;
+import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
@@ -89,7 +89,7 @@ abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
 
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, String password) {
-		return getKeyPair(entropy, BIP39Dictionary.ENGLISH_DICTIONARY, password);
+		return getKeyPair(entropy, io.hotmoka.crypto.BIP39Dictionary.ENGLISH_DICTIONARY, password);
 	}
 
 	@Override

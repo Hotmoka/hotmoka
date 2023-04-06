@@ -16,38 +16,12 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.crypto.internal.EnglishDictionary;
 
 /**
  * A dictionary of words for BIP39 encoding.
  */
-public interface BIP39Dictionary {
-
-	/**
-     * Yields the word at the given index inside this dictionary.
-     *
-     * @param index the index of the word, starting at 0
-     * @return the word
-     */
-	String getWord(int index);
-
-	/**
-     * Yields the position of a word inside this dictionary of words.
-     *
-     * @param word to word to search for
-     * @return the position of {@code word} inside this dictionary, starting at 0;
-     *         yields a negative number if {@code word} is not contained in this dictionary
-     */
-	int indexOf(String word);	
-
-	/**
-     * Yields all words in this dictionary, in their order.
-     *
-     * @return the words
-     */
-	Stream<String> getAllWords();
+public interface BIP39Dictionary extends io.hotmoka.crypto.api.BIP39Dictionary {
 
 	/**
 	 * The English BIP39 dictionary.

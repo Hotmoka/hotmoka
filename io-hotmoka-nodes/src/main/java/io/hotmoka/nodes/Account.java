@@ -21,7 +21,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.api.Entropy;
 
 /**
  * The information to control an account of a Hotmoka node.
