@@ -201,7 +201,7 @@ public class InitTendermint extends AbstractCommand {
 					String publicKeyBase58 = Base58.encode(Base64.getDecoder().decode(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58
 					try {
-						Entropy entropy = new Entropy(publicKeyBase58);
+						Entropy entropy = Entropy.of(publicKeyBase58);
 						String fileName = new Account(entropy, validator).dump(dir);
 						entropy.delete(publicKeyBase58);
 						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + fileName + "\".");

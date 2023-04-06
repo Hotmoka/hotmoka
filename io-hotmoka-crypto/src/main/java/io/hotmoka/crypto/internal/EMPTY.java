@@ -32,7 +32,7 @@ import java.util.Arrays;
  * 
  * @param <T> the type of values that get signed
  */
-public class EMPTY<T> extends AbstractSignatureAlgorithm<T> {
+public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	private final static byte[] EMPTY = new byte[0];
 
 	private final KeyPair dummyKeys = new KeyPair(

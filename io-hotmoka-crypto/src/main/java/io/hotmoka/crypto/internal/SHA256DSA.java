@@ -47,7 +47,7 @@ import io.hotmoka.crypto.api.BIP39Dictionary;
  * 
  * @param <T> the type of values that get signed
  */
-public class SHA256DSA<T> extends AbstractSignatureAlgorithm<T> {
+public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 
 	/**
 	 * The actual signing algorithm.

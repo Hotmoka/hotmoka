@@ -49,7 +49,7 @@ import io.hotmoka.crypto.BytesSupplier;
  *
  * @param <T> the type of values that gets signed
  */
-public class QTESLA1<T> extends AbstractSignatureAlgorithm<T> {
+public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
 
     /**
      * How values get transformed into bytes, before being hashed.

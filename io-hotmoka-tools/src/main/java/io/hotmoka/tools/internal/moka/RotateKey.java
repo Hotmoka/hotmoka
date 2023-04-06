@@ -96,7 +96,7 @@ public class RotateKey extends AbstractCommand {
 
 				this.account = new StorageReference(RotateKey.this.account);
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
-				this.entropy = new Entropy();
+				this.entropy = Entropy.of();
 				
 				askForConfirmation();
 				this.request = createRequest();

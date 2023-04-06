@@ -56,7 +56,7 @@ import io.hotmoka.crypto.BytesSupplier;
 /**
  * A signature algorithm that uses the ED25519 cryptography.
  */
-public class ED25519<T> extends AbstractSignatureAlgorithm<T> {
+public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
 
     /**
      * The actual signing algorithm.

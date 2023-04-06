@@ -19,7 +19,7 @@ package io.hotmoka.crypto;
 /**
  * Simple class for translation of byte arrays into and from hexadecimal strings.
  */
-public class Hex {
+public interface Hex {
 
 	public static String toHexString(byte[] data) {
 		return org.bouncycastle.util.encoders.Hex.toHexString(data);
@@ -28,13 +28,4 @@ public class Hex {
 	public static String toHexString(byte[] data, int offset, int length) {
 		return org.bouncycastle.util.encoders.Hex.toHexString(data, offset, length);
 	}
-
-	/**
-     * decode the Hex encoded String data - whitespace will be ignored.
-     *
-     * @return a byte array representing the decoded data.
-     */
-    public static byte[] decode(String data) {
-    	return org.bouncycastle.util.encoders.Hex.decode(data);
-    }
 }

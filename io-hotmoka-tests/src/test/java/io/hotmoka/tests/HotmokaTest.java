@@ -205,7 +205,7 @@ public abstract class HotmokaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-			Entropy entropy = new Entropy(new byte[16]);
+			Entropy entropy = Entropy.of(new byte[16]);
 			String password = "";
 			SignatureAlgorithm<SignedTransactionRequest> localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
 			KeyPair keys = entropy.keys(password, localSignature);

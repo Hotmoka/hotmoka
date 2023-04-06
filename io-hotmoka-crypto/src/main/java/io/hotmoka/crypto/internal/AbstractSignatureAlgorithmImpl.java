@@ -41,9 +41,9 @@ import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.SignatureAlgorithm;
 
 /**
- * Shared code of signature algorithms.
+ * Partial implementation of a signature algorithm.
  */
-abstract class AbstractSignatureAlgorithm<T> implements SignatureAlgorithm<T> {
+public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgorithm<T> {
 	
 	/**
 	 * Creates a key pair generator for this signature algorithm.

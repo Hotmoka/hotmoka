@@ -14,23 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.crypto;
+package io.hotmoka.crypto.internal;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
-import io.hotmoka.crypto.internal.BIP39WordsImpl;
+import io.hotmoka.crypto.api.Account;
+import io.hotmoka.crypto.api.BIP39Dictionary;
+import io.hotmoka.crypto.api.BIP39Words;
+import io.hotmoka.crypto.api.Entropy;
 
 /**
- * The information to control an account.
+ * Partial implementation of the information to control an account.
  * One needs the entropy from which the key pair can be reconstructed and
  * potentially also a reference that might not be derived from the key,
  * such as, in Hotmoka, the address of the account in the store of the node.
  * 
  * @param <R> the type of reference that identifies the account
  */
-public abstract class Account<R extends Comparable<? super R>> extends Entropy implements io.hotmoka.crypto.api.Account<R> {
+public abstract class AbstractAccountImpl<R extends Comparable<? super R>> extends EntropyImpl implements Account<R> {
 
 	/**
 	 * The reference of the account.
@@ -43,7 +46,7 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy i
 	 * @param entropy the entropy, from which the key pair can be derived
 	 * @param reference the reference to the account
 	 */
-	protected Account(io.hotmoka.crypto.api.Entropy entropy, R reference) {
+	protected AbstractAccountImpl(Entropy entropy, R reference) {
 		super(entropy);
 
 		this.reference = reference;
@@ -56,7 +59,7 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy i
 	 * @param reference the reference to the account
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	protected Account(R reference) throws IOException {
+	protected AbstractAccountImpl(R reference) throws IOException {
 		super(reference.toString());
 
 		this.reference = reference;
@@ -70,7 +73,7 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy i
 	 * @param dir the directory where the PEM file must be looked for
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	protected Account(R reference, String dir) throws IOException {
+	protected AbstractAccountImpl(R reference, String dir) throws IOException {
 		super(dir + File.separatorChar + reference.toString());
 
 		this.reference = reference;
@@ -97,29 +100,22 @@ public abstract class Account<R extends Comparable<? super R>> extends Entropy i
 	}
 
 	@Override
-    public BIP39Words bip39Words(io.hotmoka.crypto.api.BIP39Dictionary dictionary) {
+    public BIP39Words bip39Words(BIP39Dictionary dictionary) {
     	return new BIP39WordsImpl(this, dictionary);
     }
 
 	@Override
     public BIP39Words bip39Words() {
-    	return new BIP39WordsImpl(this, BIP39Dictionary.ENGLISH_DICTIONARY);
+    	return new BIP39WordsImpl(this, io.hotmoka.crypto.BIP39Dictionary.ENGLISH_DICTIONARY);
     }
 
     @Override
     public boolean equals(Object other) {
-    	return super.equals(other) && reference.equals(((Account<?>) other).reference);
+    	return super.equals(other) && reference.equals(((AbstractAccountImpl<?>) other).reference);
     }
 
     @Override
     public int hashCode() {
     	return super.hashCode() ^ reference.hashCode();
     }
-
-    /**
-     * Yields a byte representation of the reference of this account.
-     * 
-     * @return the byte representation
-     */
-    public abstract byte[] getReferenceAsBytes();
 }

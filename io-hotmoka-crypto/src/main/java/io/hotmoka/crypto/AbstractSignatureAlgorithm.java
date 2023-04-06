@@ -14,16 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/*
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
 package io.hotmoka.crypto;
 
-import io.hotmoka.crypto.internal.AbstractHashingAlgorithmImpl;
+import io.hotmoka.crypto.internal.AbstractSignatureAlgorithmImpl;
 
 /**
- * A partial implementation of a hashing algorithm, that
- * provides a general implementation for partial hashing.
- * Subclasses might provide better implementations.
- * 
- * @param <T> the type of values that get hashed
+ * Partial implementation of a signature algorithm.
  */
-public abstract class AbstractHashingAlgorithm<T> extends AbstractHashingAlgorithmImpl<T> {
+abstract class AbstractSignatureAlgorithm<T> extends AbstractSignatureAlgorithmImpl<T> {
 }

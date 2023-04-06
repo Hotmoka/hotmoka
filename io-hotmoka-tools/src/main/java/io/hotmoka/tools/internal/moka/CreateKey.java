@@ -51,7 +51,7 @@ public class CreateKey extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", interactive, false);
 			var signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
-			Entropy entropy = new Entropy();
+			Entropy entropy = Entropy.of();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
 			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());
 			var publicKeyBase58 = Base58.encode(publicKeyBytes);

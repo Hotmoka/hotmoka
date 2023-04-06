@@ -60,7 +60,7 @@ import io.hotmoka.crypto.BytesSupplier;
  * sequence of keys of the accounts in the tests and consequently
  * also the gas costs of such accounts when they are put into maps, for instance.
  */
-public class ED25519DET<T> extends AbstractSignatureAlgorithm<T> {
+public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
 
     /**
      * The actual signing algorithm.

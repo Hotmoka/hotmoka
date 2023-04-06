@@ -101,11 +101,11 @@ public class CreateAccount extends AbstractCommand {
 
 				Entropy entropy;
 				if (keyOfNewAccount == null) {
-					entropy = new Entropy();
+					entropy = Entropy.of();
 					publicKey = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount).getPublic();
 				}
 				else {
-					entropy = new Entropy(keyOfNewAccount);
+					entropy = Entropy.of(keyOfNewAccount);
 					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
 				}
 

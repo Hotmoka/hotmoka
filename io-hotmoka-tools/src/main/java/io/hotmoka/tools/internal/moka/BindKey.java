@@ -58,7 +58,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = new StorageReference(reference);
 		}
 
-		Account account = new Account(new Entropy(key), storageReference);
+		Account account = new Account(Entropy.of(key), storageReference);
 		System.out.println("A new account " + account + " has been created.");
 		String fileName = account.dump();
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");

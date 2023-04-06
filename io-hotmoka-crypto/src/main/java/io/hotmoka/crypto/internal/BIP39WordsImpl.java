@@ -149,7 +149,7 @@ public class BIP39WordsImpl implements BIP39Words {
         if (!Arrays.equals(checksum, checksumRecomputed))
             throw new IllegalArgumentException("illegal mnemonic phrase: checksum mismatch");
 
-        return accountCreator.apply(new io.hotmoka.crypto.Entropy(entropy), transaction);
+        return accountCreator.apply(io.hotmoka.crypto.Entropy.of(entropy), transaction);
     }
 
     @Override

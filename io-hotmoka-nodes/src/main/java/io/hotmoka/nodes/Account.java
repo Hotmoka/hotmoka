@@ -28,7 +28,7 @@ import io.hotmoka.crypto.api.Entropy;
  * One needs the entropy from which the key pair can be reconstructed and
  * the storage reference of the account in the store of the node.
  */
-public class Account extends io.hotmoka.crypto.Account<StorageReference> {
+public class Account extends io.hotmoka.crypto.AbstractAccount<StorageReference> {
 
 	/**
 	 * Creates the information to control an account.
