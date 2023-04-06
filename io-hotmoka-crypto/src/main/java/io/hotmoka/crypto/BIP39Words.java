@@ -18,6 +18,7 @@ package io.hotmoka.crypto;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.internal.BIP39WordsImpl;
@@ -62,9 +63,11 @@ public interface BIP39Words {
      * Yields the account reconstructed from these BIP39 mnemonic words.
      * This works only if the words were actually derived from an account.
      *
+     * @param accountCreator a function that creates an account from its entropy and from
+     *                       the byte representation of its reference
      * @return the account
      */
-    Account toAccount();
+    <R extends Comparable<? super R>> Account<R> toAccount(BiFunction<Entropy, byte[], Account<R>> accountCreator);
 
 	/**
 	 * Dumps these words into a file.

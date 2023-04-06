@@ -22,10 +22,10 @@ import java.security.KeyPair;
 import java.util.Base64;
 
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.ManifestHelper;
 import io.hotmoka.helpers.MintBurnHelper;
+import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.remote.RemoteNode;

@@ -18,17 +18,15 @@ package io.hotmoka.crypto.internal;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.BIP39Dictionary;
 import io.hotmoka.crypto.BIP39Words;
@@ -47,14 +45,14 @@ public class BIP39WordsImpl implements BIP39Words {
      * @param account the account
      * @param dictionary the dictionary
      */
-    public BIP39WordsImpl(Account account, BIP39Dictionary dictionary) {
+    public BIP39WordsImpl(Account<?> account, BIP39Dictionary dictionary) {
     	this.dictionary = dictionary;
 
     	byte[] entropy = account.getEntropy();
-    	byte[] transaction = account.reference.transaction.getHashAsBytes();
-    	byte[] merge = new byte[entropy.length + transaction.length];
+    	byte[] reference = account.getReferenceAsBytes();
+    	byte[] merge = new byte[entropy.length + reference.length];
     	System.arraycopy(entropy, 0, merge, 0, entropy.length);
-    	System.arraycopy(transaction, 0, merge, entropy.length, transaction.length);
+    	System.arraycopy(reference, 0, merge, entropy.length, reference.length);
         this.words = words(merge, new ArrayList<>());
     }
 
@@ -86,7 +84,7 @@ public class BIP39WordsImpl implements BIP39Words {
     }
 
     @Override
-    public Account toAccount() {
+    public <R extends Comparable<? super R>> Account<R> toAccount(BiFunction<Entropy, byte[], Account<R>> accountCreator) {
         // each mnemonic word represents 11 bits
         boolean[] bits = new boolean[words.length * 11];
         
@@ -151,7 +149,7 @@ public class BIP39WordsImpl implements BIP39Words {
         if (!Arrays.equals(checksum, checksumRecomputed))
             throw new IllegalArgumentException("illegal mnemonic phrase: checksum mismatch");
 
-        return new Account(new Entropy(entropy), new StorageReference(new LocalTransactionReference(transaction), BigInteger.ZERO));
+        return accountCreator.apply(new Entropy(entropy), transaction);
     }
 
     @Override

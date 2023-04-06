@@ -20,19 +20,18 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.Base64;
 
-import io.hotmoka.crypto.Hex;
-
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.Account;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithm;
 import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;

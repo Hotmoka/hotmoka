@@ -185,21 +185,31 @@ public class Entropy implements Comparable<Entropy> {
 		int diff = getClass().getName().compareTo(other.getClass().getName());
 		if (diff != 0)
 			return diff;
-		else {
-			// the following currently does not work under Android
-			// return Arrays.compare(entropy, other.entropy);
-			diff = entropy.length - other.entropy.length;
+		else
+			return compareBytes(entropy, other.entropy);
+	}
+
+	/**
+	 * Compares two arrays of bytes, lexicographically.
+	 * 
+	 * @param bytes1 the first array of bytes
+	 * @param bytes2 the second array of bytes
+	 * @return the result of the comparison
+	 */
+	private static int compareBytes(byte[] bytes1, byte[] bytes2) {
+		// the following currently does not work under Android
+		// return Arrays.compare(entropy, other.entropy);
+		int diff = bytes1.length - bytes2.length;
+		if (diff != 0)
+			return diff;
+
+		for (int pos = 0; pos < bytes1.length; pos++) {
+			diff = bytes1[pos] - bytes2[pos];
 			if (diff != 0)
 				return diff;
-
-			for (int pos = 0; pos < entropy.length; pos++) {
-				diff = entropy[pos] - other.entropy[pos];
-				if (diff != 0)
-					return diff;
-			}
-
-			return 0;
 		}
+
+		return 0;
 	}
 
 	@Override
