@@ -38,7 +38,7 @@ public abstract class AbstractAccountImpl<R extends Comparable<? super R>> exten
 	/**
 	 * The reference of the account.
 	 */
-	public final R reference;
+	protected final R reference;
 
 	/**
 	 * Creates the information to control an account.
@@ -77,6 +77,11 @@ public abstract class AbstractAccountImpl<R extends Comparable<? super R>> exten
 		super(dir + File.separatorChar + reference.toString());
 
 		this.reference = reference;
+	}
+
+	@Override
+	public R getReference() {
+		return reference;
 	}
 
 	@Override

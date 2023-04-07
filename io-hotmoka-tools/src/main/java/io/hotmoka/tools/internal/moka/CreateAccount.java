@@ -143,10 +143,10 @@ public class CreateAccount extends AbstractCommand {
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
 				return accountCreationHelper.tendermintValidatorFromPayer
-					(payer.reference, keysOfPayer, publicKey, balance, balanceRed, this::askForConfirmation, this::printCosts);
+					(payer.getReference(), keysOfPayer, publicKey, balance, balanceRed, this::askForConfirmation, this::printCosts);
 			else
 				return accountCreationHelper.fromPayer
-					(payer.reference, keysOfPayer, signatureAlgorithmOfNewAccount, publicKey,
+					(payer.getReference(), keysOfPayer, signatureAlgorithmOfNewAccount, publicKey,
 					balance, balanceRed, false, this::askForConfirmation, this::printCosts);
 		}
 

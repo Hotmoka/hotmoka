@@ -91,15 +91,16 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws CodeExecutionException
 	 */
 	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		var algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
+		StorageReference reference = account.getReference();
+		var algorithm = new SignatureHelper(node).signatureAlgorithmFor(reference);
 		var keys = account.keys(password, algorithm);
 
 		try {
 			// we read the classpath of the account object
-			TransactionReference classpath = node.getClassTag(account.reference).jar;
+			TransactionReference classpath = node.getClassTag(reference).jar;
 			// we read the public key stored inside the account in the node (it is Base64-encoded)
 			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account.reference, _100_000, classpath, CodeSignature.PUBLIC_KEY, account.reference))).value;
+				(reference, _100_000, classpath, CodeSignature.PUBLIC_KEY, reference))).value;
 			// we compare it with what we reconstruct from entropy and password
 			String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic()));
 			if (!publicKeyAsGiven.equals(publicKeyAsFound))

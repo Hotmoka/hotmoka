@@ -30,6 +30,13 @@ import java.nio.file.Path;
 public interface Account<R extends Comparable<? super R>> extends Entropy {
 
 	/**
+	 * Yields the reference of the account.
+	 * 
+	 * @return the reference
+	 */
+	R getReference();
+
+	/**
 	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
 	 * 
 	 * @param where the directory where the file must be dumped

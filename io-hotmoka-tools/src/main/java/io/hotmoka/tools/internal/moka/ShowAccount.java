@@ -67,7 +67,7 @@ public class ShowAccount extends AbstractCommand {
 			password = ensurePassword(password, "the account", interactive, false);
 
 		Account account = new Account(reference);
-		System.out.println("reference: " + account.reference);
+		System.out.println("reference: " + account.getReference());
 		System.out.println("entropy: " + Base64.getEncoder().encodeToString(account.getEntropy()));
 
 		if (balances || keys) {
@@ -85,7 +85,7 @@ public class ShowAccount extends AbstractCommand {
 	}
 
 	private void showKeys(Account account, Node node) throws Exception {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.reference);
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.getReference());
 		System.out.println("signature type: " + algorithm.getName());
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());
@@ -105,7 +105,7 @@ public class ShowAccount extends AbstractCommand {
 
 	private void showBalances(Account account, Node node) throws Exception {
 		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference reference = account.reference;
+		StorageReference reference = account.getReference();
 		BigInteger balance = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
 				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE, reference))).value;
 		System.out.println("balance: " + balance);
