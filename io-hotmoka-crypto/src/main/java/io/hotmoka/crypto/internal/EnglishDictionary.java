@@ -19,7 +19,7 @@ package io.hotmoka.crypto.internal;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import io.hotmoka.crypto.BIP39Dictionary;
+import io.hotmoka.crypto.api.BIP39Dictionary;
 
 public final class EnglishDictionary implements BIP39Dictionary {
 

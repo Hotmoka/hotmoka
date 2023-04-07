@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import io.hotmoka.crypto.BIP39Dictionary;
-import io.hotmoka.crypto.BIP39Words;
+import io.hotmoka.crypto.BIP39Dictionaries;
+import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.nodes.Account;
 import picocli.CommandLine.Command;
 
@@ -33,13 +33,13 @@ public class ImportAccount extends AbstractCommand {
 		int pos = 0;
 		while (pos < words.length) {
 			words[pos] = ask("word #" + (pos + 1) + ": ");
-			if (BIP39Dictionary.ENGLISH_DICTIONARY.getAllWords().anyMatch(words[pos]::equals))
+			if (BIP39Dictionaries.ENGLISH_DICTIONARY.getAllWords().anyMatch(words[pos]::equals))
 				pos++;
 			else
 				System.out.println("The word \"" + words[pos] + "\" does not exist in the BIP39 English dictionary. Try again.");
 		}
 
-		var account = BIP39Words.of(words).toAccount(Account::new);
+		var account = BIP39Mnemonics.of(words).toAccount(Account::new);
 		System.out.println("The account " + account + " has been imported.");
 		String fileName = account.dump();
         System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");

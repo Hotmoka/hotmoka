@@ -40,7 +40,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.nodes.Signer;
 
 public class Faucet extends HotmokaTest {

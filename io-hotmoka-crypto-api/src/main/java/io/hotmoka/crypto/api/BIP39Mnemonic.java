@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * A container of BIP39 words. It can be used to represent just the
  * entropy of an account or all the information about an account.
  */
-public interface BIP39Words {
+public interface BIP39Mnemonic {
 
     /**
      * Yields the words in this container, in their order.

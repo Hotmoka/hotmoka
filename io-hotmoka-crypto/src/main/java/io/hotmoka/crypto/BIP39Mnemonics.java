@@ -16,34 +16,37 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import io.hotmoka.crypto.internal.BIP39WordsImpl;
+import io.hotmoka.crypto.api.BIP39Dictionary;
+import io.hotmoka.crypto.api.BIP39Mnemonic;
+import io.hotmoka.crypto.internal.BIP39MnemonicImpl;
 
 /**
- * A container of BIP39 words. It can be used to represent just the
- * entropy of an account or all the information about an account.
+ * A provider of BIP39 mnemonics.
  */
-public interface BIP39Words extends io.hotmoka.crypto.api.BIP39Words {
+public interface BIP39Mnemonics {
 
     /**
-     * Yields the BIP39 words containing the given words from the given dictionary.
+     * Yields the BIP39 mnemonic containing the given words from the given dictionary.
      * If the words were derived from an account, that account can be reconstructed
-     * by calling the {@link #toAccount()} method.
+     * by calling the {@link BIP39Mnemonic#toAccount(java.util.function.BiFunction)} method.
      * 
      * @param words the words, coming from {@code dictionary}
      * @param dictionary the dictionary
+     * @return the mnemonic
      */
-    static BIP39Words of(String[] words, io.hotmoka.crypto.api.BIP39Dictionary dictionary) {
-    	return new BIP39WordsImpl(words, dictionary);
+    static BIP39Mnemonic of(String[] words, BIP39Dictionary dictionary) {
+    	return new BIP39MnemonicImpl(words, dictionary);
     }
 
     /**
-     * Yields the BIP39 words containing the given words from the English BIP39 dictionary.
+     * Yields the BIP39 mnemonic containing the given words from the English BIP39 dictionary.
      * If the words were derived from an account, that account can be reconstructed
-     * by calling the {@link #toAccount()} method.
+     * by calling the {@link BIP39Mnemonic#toAccount(java.util.function.BiFunction)} method.
      * 
      * @param words the words, coming from English BIP39 dictionary
+     * @return the mnemonic
      */
-    static BIP39Words of(String[] words) {
-    	return new BIP39WordsImpl(words, BIP39Dictionary.ENGLISH_DICTIONARY);
+    static BIP39Mnemonic of(String[] words) {
+    	return new BIP39MnemonicImpl(words, BIP39Dictionaries.ENGLISH_DICTIONARY);
     }
 }

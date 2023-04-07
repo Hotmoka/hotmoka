@@ -20,6 +20,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.crypto.internal.ED25519DET;
 import io.hotmoka.crypto.internal.EMPTY;
@@ -28,11 +29,9 @@ import io.hotmoka.crypto.internal.QTESLA3;
 import io.hotmoka.crypto.internal.SHA256DSA;
 
 /**
- * An algorithm that signs values and verifies such signatures back.
- *
- * @param <T> the type of values that get signed
+ * Provider of algorithms that sign values and verify signatures back.
  */
-public interface SignatureAlgorithm<T> extends io.hotmoka.crypto.api.SignatureAlgorithm<T> {
+public interface SignatureAlgorithms {
 
 	/**
 	 * Yields a signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.
@@ -121,7 +120,7 @@ public interface SignatureAlgorithm<T> extends io.hotmoka.crypto.api.SignatureAl
 
 		try {
 			// only sha256dsa, ed25519, empty, qtesla1 and qtesla3 are currently found below
-			Method method = SignatureAlgorithm.class.getMethod(name, BytesSupplier.class);
+			Method method = SignatureAlgorithms.class.getMethod(name, BytesSupplier.class);
 			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {

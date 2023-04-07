@@ -40,7 +40,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.OutOfGasError;

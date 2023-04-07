@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 
 /**
  * A partial implementation of a hashing algorithm, that

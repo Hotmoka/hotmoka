@@ -24,7 +24,8 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -53,7 +54,7 @@ public class TrieOfErrors {
 	public TrieOfErrors(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
+			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
 			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

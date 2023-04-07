@@ -16,12 +16,13 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
+import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.internal.EnglishDictionary;
 
 /**
- * A dictionary of words for BIP39 encoding.
+ * Dictionaries of words for BIP39 encoding.
  */
-public interface BIP39Dictionary extends io.hotmoka.crypto.api.BIP39Dictionary {
+public interface BIP39Dictionaries {
 
 	/**
 	 * The English BIP39 dictionary.

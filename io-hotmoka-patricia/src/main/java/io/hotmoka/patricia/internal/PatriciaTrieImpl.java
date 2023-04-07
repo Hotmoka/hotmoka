@@ -30,7 +30,7 @@ import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;

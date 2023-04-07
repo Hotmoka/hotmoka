@@ -20,9 +20,10 @@ import java.security.KeyPair;
 import java.util.Base64;
 
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -51,7 +52,7 @@ public class CreateKey extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", interactive, false);
 			var signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
-			Entropy entropy = Entropy.of();
+			Entropy entropy = Entropies.random();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
 			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());
 			var publicKeyBase58 = Base58.encode(publicKeyBytes);
@@ -69,7 +70,7 @@ public class CreateKey extends AbstractCommand {
 				System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
 			}
 
-			byte[] hashedKey = HashingAlgorithm.sha256((byte[] bytes) -> bytes).hash(publicKeyBytes);
+			byte[] hashedKey = HashingAlgorithms.sha256((byte[] bytes) -> bytes).hash(publicKeyBytes);
 			String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 			System.out.println("Tendermint-like address: " + hex);
 

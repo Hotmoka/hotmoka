@@ -23,7 +23,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 public class QTESLA1 {
     private final static String data = "HELLO QTESLA SCHEME";
@@ -31,7 +32,7 @@ public class QTESLA1 {
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithm.qtesla1(String::getBytes);
+        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
 
         KeyPair keyPair = qTesla1.getKeyPair();
         byte[] signed = qTesla1.sign(data, keyPair.getPrivate());
@@ -46,7 +47,7 @@ public class QTESLA1 {
     @Test
     @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
-        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithm.qtesla1(String::getBytes);
+        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
 
         KeyPair keyPair = qTesla1.getKeyPair();
         byte[] signed = qTesla1.sign(data, keyPair.getPrivate());

@@ -48,7 +48,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;

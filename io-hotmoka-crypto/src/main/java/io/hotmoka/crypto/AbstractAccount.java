@@ -21,7 +21,7 @@ import java.io.IOException;
 import io.hotmoka.crypto.internal.AbstractAccountImpl;
 
 /**
- * The information to control an account.
+ * Partial implementation of the information to control an account.
  * One needs the entropy from which the key pair can be reconstructed and
  * potentially also a reference that might not be derived from the key,
  * such as, in Hotmoka, the address of the account in the store of the node.

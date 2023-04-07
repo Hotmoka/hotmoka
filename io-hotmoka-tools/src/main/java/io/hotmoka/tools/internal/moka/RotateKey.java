@@ -30,8 +30,9 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelper;
 import io.hotmoka.helpers.NonceHelper;
 import io.hotmoka.helpers.SignatureHelper;
@@ -96,7 +97,7 @@ public class RotateKey extends AbstractCommand {
 
 				this.account = new StorageReference(RotateKey.this.account);
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
-				this.entropy = Entropy.of();
+				this.entropy = Entropies.random();
 				
 				askForConfirmation();
 				this.request = createRequest();

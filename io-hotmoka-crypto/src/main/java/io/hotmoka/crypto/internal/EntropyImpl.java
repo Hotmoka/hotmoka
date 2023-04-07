@@ -30,7 +30,7 @@ import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.bouncycastle.util.io.pem.PemWriter;
 
-import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
@@ -38,7 +38,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
  * A key pair can be reconstructed from this entropy, given the password
  * associated to the account.
  */
-public class EntropyImpl implements Entropy {
+public class EntropyImpl implements Entropy	 {
 
 	/**
 	 * The entropy, 16 bytes.

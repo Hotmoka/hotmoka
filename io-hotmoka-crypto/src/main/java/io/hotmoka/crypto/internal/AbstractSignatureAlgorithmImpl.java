@@ -38,7 +38,7 @@ import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
 import io.hotmoka.crypto.api.BIP39Dictionary;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * Partial implementation of a signature algorithm.
@@ -67,7 +67,7 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 			}
 
 			private byte[] mergeEntropyWithPassword() {
-				var words = new BIP39WordsImpl(entropy, dictionary);
+				var words = new BIP39MnemonicImpl(entropy, dictionary);
 		    	String mnemonic = words.stream().collect(Collectors.joining(" "));
 		    	String salt = String.format("mnemonic%s", password);
 		    	
@@ -89,7 +89,7 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, String password) {
-		return getKeyPair(entropy, io.hotmoka.crypto.BIP39Dictionary.ENGLISH_DICTIONARY, password);
+		return getKeyPair(entropy, io.hotmoka.crypto.BIP39Dictionaries.ENGLISH_DICTIONARY, password);
 	}
 
 	@Override

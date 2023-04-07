@@ -56,7 +56,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node.JarSupplier;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;

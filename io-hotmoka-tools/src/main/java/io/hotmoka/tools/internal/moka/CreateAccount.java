@@ -25,8 +25,9 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AccountCreationHelper;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
@@ -101,11 +102,11 @@ public class CreateAccount extends AbstractCommand {
 
 				Entropy entropy;
 				if (keyOfNewAccount == null) {
-					entropy = Entropy.of();
+					entropy = Entropies.random();
 					publicKey = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount).getPublic();
 				}
 				else {
-					entropy = Entropy.of(keyOfNewAccount);
+					entropy = Entropies.load(keyOfNewAccount);
 					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
 				}
 

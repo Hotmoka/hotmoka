@@ -20,7 +20,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 
 public class SHABAL256vsSHA256 {
 
@@ -29,7 +30,7 @@ public class SHABAL256vsSHA256 {
     void iteratedSHA256() throws Exception {
 		long start = System.currentTimeMillis();
     	byte[] data = "HELLO HASHING".getBytes();
-        HashingAlgorithm<byte[]> sha256 = HashingAlgorithm.sha256((byte[] bytes) -> bytes);
+    	HashingAlgorithm<byte[]> sha256 = HashingAlgorithms.sha256((byte[] bytes) -> bytes);
         for (int i = 0; i < 10_000_000; i++)
         	data = sha256.hash(data);
 
@@ -44,7 +45,7 @@ public class SHABAL256vsSHA256 {
     void iteratedSHABAL256() throws Exception {
 		long start = System.currentTimeMillis();
     	byte[] data = "HELLO HASHING".getBytes();
-        HashingAlgorithm<byte[]> shabal256 = HashingAlgorithm.shabal256((byte[] bytes) -> bytes);
+    	HashingAlgorithm<byte[]> shabal256 = HashingAlgorithms.shabal256((byte[] bytes) -> bytes);
         for (int i = 0; i < 10_000_000; i++)
         	data = shabal256.hash(data);
 

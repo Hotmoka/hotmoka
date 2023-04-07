@@ -22,7 +22,7 @@ import java.nio.file.Path;
 
 import io.hotmoka.crypto.api.Account;
 import io.hotmoka.crypto.api.BIP39Dictionary;
-import io.hotmoka.crypto.api.BIP39Words;
+import io.hotmoka.crypto.api.BIP39Mnemonic;
 import io.hotmoka.crypto.api.Entropy;
 
 /**
@@ -100,13 +100,13 @@ public abstract class AbstractAccountImpl<R extends Comparable<? super R>> exten
 	}
 
 	@Override
-    public BIP39Words bip39Words(BIP39Dictionary dictionary) {
-    	return new BIP39WordsImpl(this, dictionary);
+    public BIP39Mnemonic bip39Words(BIP39Dictionary dictionary) {
+    	return new BIP39MnemonicImpl(this, dictionary);
     }
 
 	@Override
-    public BIP39Words bip39Words() {
-    	return new BIP39WordsImpl(this, io.hotmoka.crypto.BIP39Dictionary.ENGLISH_DICTIONARY);
+    public BIP39Mnemonic bip39Words() {
+    	return new BIP39MnemonicImpl(this, io.hotmoka.crypto.BIP39Dictionaries.ENGLISH_DICTIONARY);
     }
 
     @Override

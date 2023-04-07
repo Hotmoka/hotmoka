@@ -103,7 +103,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 			}
 
 			private byte[] mergeEntropyWithPassword() {
-				var words = new BIP39WordsImpl(entropy, dictionary);
+				var words = new BIP39MnemonicImpl(entropy, dictionary);
 				String mnemonic = words.stream().collect(Collectors.joining(" "));
 				String salt = String.format("mnemonic%s", password);
 

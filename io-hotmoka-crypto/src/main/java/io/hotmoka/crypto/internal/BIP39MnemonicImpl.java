@@ -27,15 +27,15 @@ import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
 
-import io.hotmoka.crypto.BIP39Words;
 import io.hotmoka.crypto.api.Account;
 import io.hotmoka.crypto.api.BIP39Dictionary;
+import io.hotmoka.crypto.api.BIP39Mnemonic;
 import io.hotmoka.crypto.api.Entropy;
 
 /**
  * An implementation of the BIP39 words computation.
  */
-public class BIP39WordsImpl implements BIP39Words {
+public class BIP39MnemonicImpl implements BIP39Mnemonic {
 	private final BIP39Dictionary dictionary;
     private final String[] words;
 
@@ -45,7 +45,7 @@ public class BIP39WordsImpl implements BIP39Words {
      * @param account the account
      * @param dictionary the dictionary
      */
-    public BIP39WordsImpl(Account<?> account, BIP39Dictionary dictionary) {
+    public BIP39MnemonicImpl(Account<?> account, BIP39Dictionary dictionary) {
     	this.dictionary = dictionary;
 
     	byte[] entropy = account.getEntropy();
@@ -62,7 +62,7 @@ public class BIP39WordsImpl implements BIP39Words {
      * @param entropy the entropy
      * @param dictionary the dictionary
      */
-    BIP39WordsImpl(byte[] entropy, BIP39Dictionary dictionary) {
+    BIP39MnemonicImpl(byte[] entropy, BIP39Dictionary dictionary) {
     	this.dictionary = dictionary;
         this.words = words(entropy, new ArrayList<>());
     }
@@ -73,7 +73,7 @@ public class BIP39WordsImpl implements BIP39Words {
      * @param words the words, coming from {@code dictionary}
      * @param dictionary the dictionary
      */
-    public BIP39WordsImpl(String[] words, BIP39Dictionary dictionary) {
+    public BIP39MnemonicImpl(String[] words, BIP39Dictionary dictionary) {
     	this.words = words.clone();
     	this.dictionary = dictionary;
     }
@@ -149,7 +149,7 @@ public class BIP39WordsImpl implements BIP39Words {
         if (!Arrays.equals(checksum, checksumRecomputed))
             throw new IllegalArgumentException("illegal mnemonic phrase: checksum mismatch");
 
-        return accountCreator.apply(io.hotmoka.crypto.Entropy.of(entropy), transaction);
+        return accountCreator.apply(io.hotmoka.crypto.Entropies.of(entropy), transaction);
     }
 
     @Override

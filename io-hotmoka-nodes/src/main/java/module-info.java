@@ -19,4 +19,5 @@ module io.hotmoka.nodes {
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
 	requires java.logging;
+	requires io.hotmoka.crypto.api;
 }

@@ -58,18 +58,18 @@ public interface Account<R extends Comparable<? super R>> extends Entropy {
 	/**
      * Yields the BIP39 words for this account using the given dictionary.
      * They can be later transformed back into this account by calling the
-     * {@link BIP39Words#toAccount()} method.
+     * {@link BIP39Mnemonic#toAccount()} method.
      * 
      * @param dictionary the dictionary
      */
-	BIP39Words bip39Words(BIP39Dictionary dictionary);
+	BIP39Mnemonic bip39Words(BIP39Dictionary dictionary);
 
     /**
      * Yields the BIP39 words for this account using the English dictionary.
      * They can be later transformed back into this account by calling the
-     * {@link BIP39Words#toAccount()} method.
+     * {@link BIP39Mnemonic#toAccount()} method.
      */
-	BIP39Words bip39Words();
+	BIP39Mnemonic bip39Words();
 
     /**
      * Yields a byte representation of the reference of this account.

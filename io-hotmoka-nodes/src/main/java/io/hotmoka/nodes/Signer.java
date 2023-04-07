@@ -20,7 +20,7 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * An object that provides the signature of a request.

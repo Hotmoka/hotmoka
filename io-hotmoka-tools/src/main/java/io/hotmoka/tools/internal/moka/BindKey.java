@@ -24,7 +24,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Entropy;
+import io.hotmoka.crypto.Entropies;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
@@ -58,7 +58,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = new StorageReference(reference);
 		}
 
-		Account account = new Account(Entropy.of(key), storageReference);
+		Account account = new Account(Entropies.load(key), storageReference);
 		System.out.println("A new account " + account + " has been created.");
 		String fileName = account.dump();
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");

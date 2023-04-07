@@ -19,7 +19,7 @@ package io.hotmoka.crypto;
 import io.hotmoka.crypto.internal.AbstractHashingAlgorithmImpl;
 
 /**
- * A partial implementation of a hashing algorithm, that
+ * Partial implementation of a hashing algorithm, that
  * provides a general implementation for partial hashing.
  * Subclasses might provide better implementations.
  * 

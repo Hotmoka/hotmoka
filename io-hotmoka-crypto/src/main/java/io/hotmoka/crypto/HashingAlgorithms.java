@@ -20,15 +20,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.crypto.internal.SHA256;
 import io.hotmoka.crypto.internal.SHABAL256;
 
 /**
- * An algorithm that hashes values into bytes.
- *
- * @param <T> the type of values that get hashed.
+ * A provider of algorithms that hash values into bytes.
  */
-public interface HashingAlgorithm<T> extends io.hotmoka.crypto.api.HashingAlgorithm<T> {
+public interface HashingAlgorithms {
 
 	/**
 	 * Yields the SHA256 hashing algorithm.
@@ -69,7 +68,7 @@ public interface HashingAlgorithm<T> extends io.hotmoka.crypto.api.HashingAlgori
 
 		try {
 			// only sha256, shabal256 are currently found below
-			Method method = HashingAlgorithm.class.getMethod(name, BytesSupplier.class);
+			Method method = HashingAlgorithms.class.getMethod(name, BytesSupplier.class);
 			return (HashingAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {

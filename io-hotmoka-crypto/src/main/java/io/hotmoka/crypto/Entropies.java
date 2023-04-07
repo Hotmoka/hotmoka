@@ -19,14 +19,13 @@ package io.hotmoka.crypto;
 import java.io.IOException;
 import java.security.SecureRandom;
 
+import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.internal.EntropyImpl;
 
 /**
- * The entropy information from which an account can be derived.
- * A key pair can be reconstructed from this entropy, given the password
- * associated to the account.
+ * Provider of entropy information from which an account can be derived.
  */
-public interface Entropy extends io.hotmoka.crypto.api.Entropy {
+public interface Entropies {
 
 	/**
 	 * Yields new, random entropy information.
@@ -34,7 +33,7 @@ public interface Entropy extends io.hotmoka.crypto.api.Entropy {
 	 * @param random the object that is used to generate random entropy
 	 * @return the entropy
 	 */
-	static Entropy of(SecureRandom random) {
+	static Entropy random(SecureRandom random) {
 		return new EntropyImpl(random);
 	}
 
@@ -43,7 +42,7 @@ public interface Entropy extends io.hotmoka.crypto.api.Entropy {
 	 * 
 	 * @return the entropy
 	 */
-	static Entropy of() {
+	static Entropy random() {
 		return new EntropyImpl();
 	};
 
@@ -54,7 +53,7 @@ public interface Entropy extends io.hotmoka.crypto.api.Entropy {
 	 * @return the entropy
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	static Entropy of(String filePrefix) throws IOException {
+	static Entropy load(String filePrefix) throws IOException {
 		return new EntropyImpl(filePrefix);
 	}
 
@@ -64,7 +63,7 @@ public interface Entropy extends io.hotmoka.crypto.api.Entropy {
 	 * @param parent the entropy to clone
 	 * @return the copy
 	 */
-	static Entropy of(io.hotmoka.crypto.api.Entropy parent) {
+	static Entropy copy(Entropy parent) {
 		return new EntropyImpl(parent);
 	}
 

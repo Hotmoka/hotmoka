@@ -70,8 +70,9 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Entropy;
-import io.hotmoka.crypto.SignatureAlgorithm;
+import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.NodeWithAccounts;
 import io.hotmoka.helpers.NodeWithJars;
@@ -205,7 +206,7 @@ public abstract class HotmokaTest {
 	        tendermintBlockchain = null; // Tendermint would reassign
 
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-			Entropy entropy = Entropy.of(new byte[16]);
+	        Entropy entropy = Entropies.of(new byte[16]);
 			String password = "";
 			SignatureAlgorithm<SignedTransactionRequest> localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
 			KeyPair keys = entropy.keys(password, localSignature);

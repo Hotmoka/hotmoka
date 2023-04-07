@@ -22,7 +22,8 @@ import java.util.Optional;
 import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
@@ -58,7 +59,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     	setRootsAsCheckedOut();
 
     	try {
-    		this.hashOfHashes = HashingAlgorithm.sha256(bytes -> bytes);
+    		this.hashOfHashes = HashingAlgorithms.sha256(bytes -> bytes);
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);

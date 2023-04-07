@@ -28,7 +28,8 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.crypto.HashingAlgorithm;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -59,8 +60,8 @@ public class TrieOfHistories {
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithm.sha256(Marshallable::toByteArray);
-			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithm.sha256(StorageReference::toByteArrayWithoutSelector);
+			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
+			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
 			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes, MarshallableArrayOfTransactionReferences::from, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
