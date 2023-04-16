@@ -18,8 +18,8 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 
 /**
  * The {@code null} value stored in blockchain.

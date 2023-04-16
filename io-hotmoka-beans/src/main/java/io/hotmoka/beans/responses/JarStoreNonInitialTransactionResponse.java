@@ -19,8 +19,8 @@ package io.hotmoka.beans.responses;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 

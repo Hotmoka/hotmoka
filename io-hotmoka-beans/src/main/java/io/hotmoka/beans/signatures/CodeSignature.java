@@ -22,11 +22,11 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;

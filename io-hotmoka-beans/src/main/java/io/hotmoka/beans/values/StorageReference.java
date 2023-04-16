@@ -21,10 +21,10 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 

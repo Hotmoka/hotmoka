@@ -19,9 +19,9 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.StorageReference;

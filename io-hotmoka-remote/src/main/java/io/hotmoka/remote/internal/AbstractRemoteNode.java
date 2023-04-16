@@ -26,10 +26,10 @@ import java.util.logging.Level;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;

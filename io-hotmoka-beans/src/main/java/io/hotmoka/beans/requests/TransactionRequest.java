@@ -23,9 +23,9 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;

@@ -18,6 +18,7 @@ module io.hotmoka.remote {
     exports io.hotmoka.remote;
     requires io.hotmoka.nodes;
     requires io.hotmoka.beans;
+    requires io.hotmoka.annotations;
     requires io.hotmoka.network;
     requires io.hotmoka.ws.client;
     requires com.google.gson;

@@ -18,10 +18,10 @@ package io.hotmoka.remote;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.internal.http.HTTPRemoteNodeImpl;
 import io.hotmoka.remote.internal.websockets.WebSocketsRemoteNodeImpl;
-import io.hotmoka.nodes.Node;
 
 /**
  * A node that forwards its calls to a remote network service.

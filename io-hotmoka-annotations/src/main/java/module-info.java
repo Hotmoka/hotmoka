@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.annotations;
-
-/**
- * An annotation that states that the instances of a class can be used
- * concurrently by many threads, without concurrency problems.
- */
-public @interface ThreadSafe {
+module io.hotmoka.annotations {
+	exports io.hotmoka.annotations;
 }

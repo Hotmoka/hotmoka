@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;

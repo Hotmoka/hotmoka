@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
-import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.annotations.Immutable;
 
 /**
  * A response for an initial transaction.

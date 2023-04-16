@@ -19,8 +19,8 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 
 /**
  * An {@code int} value stored in the store of a node.

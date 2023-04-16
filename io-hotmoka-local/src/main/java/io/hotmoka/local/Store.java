@@ -19,7 +19,7 @@ package io.hotmoka.local;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;

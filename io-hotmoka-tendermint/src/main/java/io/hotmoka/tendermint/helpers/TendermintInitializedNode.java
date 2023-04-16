@@ -23,10 +23,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.annotations.ThreadSafe;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.tendermint.TendermintBlockchain;

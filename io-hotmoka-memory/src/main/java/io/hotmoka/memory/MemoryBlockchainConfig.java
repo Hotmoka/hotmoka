@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.memory;
 
-import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.local.Config;
 
 /**

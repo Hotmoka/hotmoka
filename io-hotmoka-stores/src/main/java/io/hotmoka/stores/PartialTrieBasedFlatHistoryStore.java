@@ -19,7 +19,7 @@ package io.hotmoka.stores;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;

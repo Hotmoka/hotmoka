@@ -19,9 +19,9 @@ package io.hotmoka.beans.references;
 import java.io.IOException;
 import java.io.Serializable;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 
 /**
  * A unique identifier for a transaction.

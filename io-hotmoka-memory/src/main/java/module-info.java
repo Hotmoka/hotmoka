@@ -17,6 +17,7 @@ limitations under the License.
 module io.hotmoka.memory {
 	exports io.hotmoka.memory;
 	requires io.hotmoka.constants;
+	requires io.hotmoka.annotations;
 	requires io.hotmoka.local;
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.beans;

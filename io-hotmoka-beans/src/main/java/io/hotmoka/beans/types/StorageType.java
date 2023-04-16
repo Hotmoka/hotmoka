@@ -19,10 +19,10 @@ package io.hotmoka.beans.types;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.constants.Constants;
 
 /**

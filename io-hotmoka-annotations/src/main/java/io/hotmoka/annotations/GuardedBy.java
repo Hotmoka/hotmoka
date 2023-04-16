@@ -5,7 +5,7 @@
  * Official home: http://www.jcip.net
  */
 
-package io.hotmoka.beans.annotations;
+package io.hotmoka.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * </ul>
  */
 @Target( { ElementType.FIELD, ElementType.METHOD })
-@Retention(RetentionPolicy.CLASS)
+@Retention(RetentionPolicy.SOURCE)
 public @interface GuardedBy {
     String value();
 }

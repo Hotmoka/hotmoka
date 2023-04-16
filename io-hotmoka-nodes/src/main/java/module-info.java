@@ -18,6 +18,7 @@ module io.hotmoka.nodes {
 	exports io.hotmoka.nodes;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
+	requires io.hotmoka.annotations;
 	requires java.logging;
 	requires io.hotmoka.crypto.api;
 }

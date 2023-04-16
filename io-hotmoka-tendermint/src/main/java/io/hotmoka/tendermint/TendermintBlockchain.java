@@ -18,7 +18,7 @@ package io.hotmoka.tendermint;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;

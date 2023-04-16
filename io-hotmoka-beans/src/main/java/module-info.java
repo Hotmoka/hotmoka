@@ -15,7 +15,6 @@ limitations under the License.
 */
 
 module io.hotmoka.beans {
-	exports io.hotmoka.beans.annotations;
 	exports io.hotmoka.beans.references;
 	exports io.hotmoka.beans.requests;
 	exports io.hotmoka.beans.responses;
@@ -26,4 +25,5 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.nodes;
 	exports io.hotmoka.beans;
 	requires io.hotmoka.constants;
+	requires io.hotmoka.annotations;
 }

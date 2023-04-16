@@ -18,7 +18,7 @@ package io.hotmoka.tendermint;
 
 import java.nio.file.Path;
 
-import io.hotmoka.beans.annotations.Immutable;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.local.Config;
 
 /**

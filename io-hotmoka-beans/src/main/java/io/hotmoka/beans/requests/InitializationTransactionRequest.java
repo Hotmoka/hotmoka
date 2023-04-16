@@ -18,9 +18,9 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;

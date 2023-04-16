@@ -18,7 +18,7 @@ package io.hotmoka.memory;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.annotations.ThreadSafe;
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;

@@ -21,9 +21,9 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;

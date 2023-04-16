@@ -18,8 +18,8 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 
