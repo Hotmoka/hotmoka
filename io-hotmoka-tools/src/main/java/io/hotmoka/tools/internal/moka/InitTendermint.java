@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 import java.util.Comparator;
 
@@ -113,8 +114,9 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar")
-	private Path takamakaCode;
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node",
+			defaultValue = "modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar")
+	private String takamakaCode;
 
 	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
@@ -172,7 +174,8 @@ public class InitTendermint extends AbstractCommand {
 				.build();
 
 			try (TendermintBlockchain node = TendermintBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus, takamakaCode);
+				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus,
+						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				NodeService service = NodeService.of(networkConfig, initialized)) {
 
 				bindValidators();

@@ -25,7 +25,5 @@ open module io.takamaka.code.tests {
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
 	requires org.junit.jupiter.api;
-	requires maven.model;
-	requires plexus.utils;
 	requires java.logging;
 }

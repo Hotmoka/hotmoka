@@ -164,6 +164,15 @@
       <tag>HEAD</tag>
     </scm>
 
+    <!-- dependencies in the main pom file can be used to resolve conflicting versions in modules -->
+    <dependencies>
+	  <dependency>
+        <groupId>com.google.code.gson</groupId>
+        <artifactId>gson</artifactId>
+        <version>2.8.9</version>
+	  </dependency>
+	</dependencies>
+
     <build>
       <plugins>
         <plugin>
@@ -283,9 +292,7 @@
                   junit-jupiter-engine,
                   junit-jupiter-params,
                   junit-platform-commons,
-                  junit-platform-engine,
-                  maven-model,
-                  plexus-utils
+                  junit-platform-engine
                 </excludeArtifactIds>
               </configuration>
             </execution>
@@ -347,7 +354,7 @@
             </execution>
           </executions>
         </plugin>
-	<plugin>
+	    <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>2.22.0</version>
@@ -360,9 +367,9 @@
             <includes>
               <include>*.java</include>
             </includes>
-	    <systemProperties>
+	        <systemProperties>
     	      <property>
-        	<name>cheapTests</name>
+        	    <name>cheapTests</name>
             	<value>${cheapTests}</value>
        	      </property>
             </systemProperties>

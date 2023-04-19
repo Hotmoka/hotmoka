@@ -16,19 +16,16 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
-import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.hotmoka.verification.TakamakaClassLoader;
@@ -42,14 +39,9 @@ import io.hotmoka.verification.VerifiedJar;
 class DoubleTranslation {
 
 	@Test
-	void translateTwice() throws IOException, XmlPullParserException {
-		// we access the project.version property from the pom.xml file of the parent project
-		MavenXpp3Reader reader = new MavenXpp3Reader();
-        Model model = reader.read(new FileReader("../pom.xml"));
-        String hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
-        String takamakaVersion = (String) model.getProperties().get("takamaka.version");
-        Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + hotmokaVersion + "-lambdas.jar");
-		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
+	void translateTwice() throws IOException {
+		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
+		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);
 		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);

@@ -37,6 +37,10 @@ public class Toml {
 		return parent.getString(key);
 	}
 
+	public Long getLong(String key) {
+		return parent.getLong(key);
+	}
+
 	public Toml getTable(String name) {
 		return new Toml(parent.getTable(name));
 	}

@@ -19,6 +19,7 @@ package io.hotmoka.tools.internal.moka;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -85,8 +86,9 @@ public class InitMemory extends AbstractCommand {
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
 	private Path dir;
 
-	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node", defaultValue = "modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar")
-	private Path takamakaCode;
+	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node",
+			defaultValue = "modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar")
+	private String takamakaCode;
 
 	@Override
 	protected void execute() throws Exception {
@@ -131,7 +133,8 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus, takamakaCode);
+				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus,
+						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				NodeService service = NodeService.of(networkConfig, node)) {
 
 				printManifest();

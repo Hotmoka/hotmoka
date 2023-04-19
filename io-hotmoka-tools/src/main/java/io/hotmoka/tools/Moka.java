@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.logging.LogManager;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.tools.internal.moka.BindKey;
 import io.hotmoka.tools.internal.moka.Burn;
 import io.hotmoka.tools.internal.moka.BuyValidation;
@@ -45,6 +44,7 @@ import io.hotmoka.tools.internal.moka.ShowAccount;
 import io.hotmoka.tools.internal.moka.StartTendermint;
 import io.hotmoka.tools.internal.moka.State;
 import io.hotmoka.tools.internal.moka.Verify;
+import io.hotmoka.tools.internal.moka.Version;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -80,9 +80,10 @@ import picocli.CommandLine.Command;
 			        ShowAccount.class,
 			        StartTendermint.class,
 			        State.class,
-			        Verify.class }, 
+			        Verify.class,
+			        Version.class }, 
 
-	description = "This is version " + Constants.HOTMOKA_VERSION + " of the command-line interface.",
+	description = "This is the command-line interface of Hotmoka.",
 
 	showDefaultValues = true
 

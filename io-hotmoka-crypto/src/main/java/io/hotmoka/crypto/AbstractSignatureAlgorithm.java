@@ -26,5 +26,5 @@ import io.hotmoka.crypto.internal.AbstractSignatureAlgorithmImpl;
 /**
  * Partial implementation of a signature algorithm.
  */
-abstract class AbstractSignatureAlgorithm<T> extends AbstractSignatureAlgorithmImpl<T> {
+public abstract class AbstractSignatureAlgorithm<T> extends AbstractSignatureAlgorithmImpl<T> {
 }

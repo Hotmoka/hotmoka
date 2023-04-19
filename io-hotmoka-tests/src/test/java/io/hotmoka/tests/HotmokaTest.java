@@ -21,7 +21,6 @@ package io.hotmoka.tests;
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.FileReader;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URL;
@@ -40,8 +39,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
-import org.apache.maven.model.Model;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 import org.slf4j.Logger;
@@ -70,6 +67,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -162,16 +160,6 @@ public abstract class HotmokaTest {
 	 */
 	protected static final PrivateKey privateKeyOfGamete;
 
-	/**
-	 * The version of the Takamaka project, as stated in the pom file.
-	 */
-	private final static String takamakaVersion;
-
-	/**
-	 * The version of the Hotmoka project, as stated in the pom file.
-	 */
-	private final static String hotmokaVersion;
-
 	private final static Logger logger = LoggerFactory.getLogger(HotmokaTest.class);
 
 	@BeforeEach
@@ -198,12 +186,7 @@ public abstract class HotmokaTest {
 					}
 			}
 
-			// we access the project.version property from the pom.xml file of the parent project
-			MavenXpp3Reader reader = new MavenXpp3Reader();
-	        Model model = reader.read(new FileReader("../pom.xml"));
-	        takamakaVersion = (String) model.getProperties().get("takamaka.version");
-	        hotmokaVersion = (String) model.getProperties().get("hotmoka.version");
-	        tendermintBlockchain = null; // Tendermint would reassign
+			tendermintBlockchain = null; // Tendermint would reassign
 
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        Entropy entropy = Entropies.of(new byte[16]);
@@ -275,7 +258,7 @@ public abstract class HotmokaTest {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 
-			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + takamakaVersion + ".jar");
+			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 			if (tendermintBlockchain != null)
 				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
 			else
@@ -470,7 +453,7 @@ public abstract class HotmokaTest {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + hotmokaVersion + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

@@ -15,19 +15,19 @@
 
   <dependencies>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-verification</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-instrumentation</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-instrumentation</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-constants</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
@@ -50,10 +50,10 @@
       <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
-    	<groupId>info.picocli</groupId>
-    	<artifactId>picocli</artifactId>
-    	<version>4.6.1</version>
-	</dependency>	
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+      <version>4.7.2</version>
+	</dependency>
   </dependencies>
 
   <build>
