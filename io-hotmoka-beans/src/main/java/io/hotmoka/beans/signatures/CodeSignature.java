@@ -24,12 +24,12 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * The signature of a method or constructor.

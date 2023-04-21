@@ -21,14 +21,14 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An update states that a property of an object has been

@@ -31,7 +31,7 @@ import com.google.protobuf.Timestamp;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.BeanUnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint_abci.ABCI;

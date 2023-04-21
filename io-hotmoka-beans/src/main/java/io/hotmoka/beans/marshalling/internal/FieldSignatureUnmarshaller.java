@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -23,15 +23,17 @@ import java.util.Map;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An unmarshaller for field signatures.
  */
-class FieldSignatureUnmarshaller extends ObjectUnmarshaller<FieldSignature> {
+public class FieldSignatureUnmarshaller extends ObjectUnmarshaller<FieldSignature> {
 
 	private final Map<Integer, FieldSignature> memory = new HashMap<>();
 
-	FieldSignatureUnmarshaller() {
+	public FieldSignatureUnmarshaller() {
 		super(FieldSignature.class);
 	}
 

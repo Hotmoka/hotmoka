@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,15 +22,17 @@ import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An unmarshaller for storage references.
  */
-class StorageReferenceUnmarshaller extends ObjectUnmarshaller<StorageReference> {
+public class StorageReferenceUnmarshaller extends ObjectUnmarshaller<StorageReference> {
 
 	private final Map<Integer, StorageReference> memory = new HashMap<>();
 
-	StorageReferenceUnmarshaller() {
+	public StorageReferenceUnmarshaller() {
 		super(StorageReference.class);
 	}
 

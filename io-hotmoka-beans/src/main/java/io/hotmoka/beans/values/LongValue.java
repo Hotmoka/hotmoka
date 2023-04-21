@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A {@code long} value stored in blockchain.

@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A request for calling a static method of a storage class in a node.

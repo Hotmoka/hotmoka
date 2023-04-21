@@ -21,11 +21,11 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * An update that states that the enumeration

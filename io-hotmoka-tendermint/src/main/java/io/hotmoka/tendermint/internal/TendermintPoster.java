@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
-import io.hotmoka.beans.BeanUnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;

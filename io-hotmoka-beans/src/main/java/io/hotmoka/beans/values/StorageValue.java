@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A value that can be stored in the blockchain, passed as argument to an entry

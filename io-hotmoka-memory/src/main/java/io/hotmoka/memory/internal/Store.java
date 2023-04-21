@@ -32,8 +32,8 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.BeanUnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;

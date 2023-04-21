@@ -24,11 +24,11 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A request of a transaction.

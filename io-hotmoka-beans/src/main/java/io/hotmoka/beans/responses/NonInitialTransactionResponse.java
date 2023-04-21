@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A response for a non-initial transaction.

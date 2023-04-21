@@ -1,19 +1,21 @@
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how a field signature can be marshalled.
  */
-class FieldSignatureMarshaller extends ObjectMarshaller<FieldSignature> {
+public class FieldSignatureMarshaller extends ObjectMarshaller<FieldSignature> {
 	
 	private final Map<FieldSignature, Integer> memory = new HashMap<>();
 
-	FieldSignatureMarshaller() {
+	public FieldSignatureMarshaller() {
 		super(FieldSignature.class);
 	}
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.marshalling;
 
 import java.io.IOException;
-import java.io.OutputStream;
+import java.io.InputStream;
 
 /**
- * A context used during bean marshalling into bytes.
+ * A provider of an un marshalling context.
  */
-public class BeanMarshallingContext extends MarshallingContext {
-
-	public BeanMarshallingContext(OutputStream oos) throws IOException {
-		super(oos);
-		
-		registerObjectMarshaller(new TransactionReferenceMarshaller());
-		registerObjectMarshaller(new StorageReferenceMarshaller());
-		registerObjectMarshaller(new FieldSignatureMarshaller());
-	}
+public interface UnmarshallingContextProvider {
+	UnmarshallingContext mkContext(InputStream os) throws IOException;
 }

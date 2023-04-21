@@ -20,15 +20,15 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanUnmarshaller;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshaller;
+import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A request for calling an instance method of a storage object in a node.

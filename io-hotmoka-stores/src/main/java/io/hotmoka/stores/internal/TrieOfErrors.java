@@ -17,16 +17,15 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -105,11 +104,6 @@ public class TrieOfErrors {
 		 */
 		private static MarshallableString from(UnmarshallingContext context) throws IOException {
 			return new MarshallableString(context.readUTF());
-		}
-
-		@Override
-		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-			return new MarshallingContext(os);
 		}
 	}
 

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling;
 
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.Unmarshaller;
+import io.hotmoka.marshalling.UnmarshallingContext;
+
 /**
- * A context used during bytes unmarshalling into beans.
+ * A function that unmarshals a single marshallable bean.
+ *
+ * @param <T> the type of the marshallable bean
  */
-public class BeanUnmarshallingContext extends UnmarshallingContext {
+public interface BeanUnmarshaller<T extends Marshallable> extends Unmarshaller<T> {
 
-	public BeanUnmarshallingContext(InputStream is) throws IOException {
-		super(is);
-
-		registerObjectUnmarshaller(new StorageReferenceUnmarshaller());
-		registerObjectUnmarshaller(new TransactionReferenceUnmarshaller());
-		registerObjectUnmarshaller(new FieldSignatureUnmarshaller());
+	@Override
+	default UnmarshallingContext mkContext(InputStream is) throws IOException {
+		return new BeanUnmarshallingContext(is);
 	}
 }

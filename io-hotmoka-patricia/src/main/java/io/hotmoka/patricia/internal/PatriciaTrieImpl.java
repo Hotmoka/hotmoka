@@ -20,17 +20,16 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.Marshallable.Unmarshaller;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.Unmarshaller;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;
@@ -344,11 +343,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
 			return this;
-		}
-
-		@Override
-		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-			return new MarshallingContext(os);
 		}
 	}
 

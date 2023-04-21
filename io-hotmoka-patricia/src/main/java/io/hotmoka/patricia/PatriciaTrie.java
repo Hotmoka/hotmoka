@@ -18,9 +18,9 @@ package io.hotmoka.patricia;
 
 import java.util.Optional;
 
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.Unmarshaller;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**

@@ -21,9 +21,9 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * The signature of a method of a class.

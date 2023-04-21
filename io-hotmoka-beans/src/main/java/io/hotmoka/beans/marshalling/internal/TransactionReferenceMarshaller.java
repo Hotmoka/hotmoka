@@ -1,19 +1,21 @@
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how a transaction reference can be marshalled.
  */
-class TransactionReferenceMarshaller extends ObjectMarshaller<TransactionReference> {
+public class TransactionReferenceMarshaller extends ObjectMarshaller<TransactionReference> {
 	
 	private final Map<TransactionReference, Integer> memory = new HashMap<>();
 
-	TransactionReferenceMarshaller() {
+	public TransactionReferenceMarshaller() {
 		super(TransactionReference.class);
 	}
 

@@ -19,8 +19,8 @@ package io.hotmoka.beans.references;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A transaction reference that refers to a transaction in the local store of a node.

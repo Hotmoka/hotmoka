@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.io.Serializable;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A unique identifier for a transaction.

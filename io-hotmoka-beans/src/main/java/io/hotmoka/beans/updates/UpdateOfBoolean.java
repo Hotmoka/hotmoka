@@ -21,11 +21,11 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * An update of a field states that a boolean field of a given storage object has been

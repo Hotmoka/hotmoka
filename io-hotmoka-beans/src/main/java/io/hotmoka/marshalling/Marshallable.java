@@ -14,16 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.marshalling;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * An object that can be marshalled into a stream, in a way
- * more compact than standard Java serialization. TYpically,
+ * An object that can be marshaled into a stream, in a way
+ * more compact than standard Java serialization. Typically,
  * this works because of context information about the structure
  * of the object.
  */
@@ -59,7 +58,9 @@ public abstract class Marshallable {
 	 * @return the marshalling context
 	 * @throws IOException if the marshalling context cannot be created
 	 */
-	protected abstract MarshallingContext createMarshallingContext(OutputStream os) throws IOException;
+	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new MarshallingContext(os);
+	}
 
 	/**
 	 * Marshals this object into a byte array.
@@ -76,36 +77,16 @@ public abstract class Marshallable {
 	}
 
 	/**
-	 * A provider of a marshalling context from its output stream.
-	 */
-	public interface MarshallingContextProvider {
-		MarshallingContext apply(OutputStream os) throws IOException;
-	}
-
-	/**
 	 * Marshals an array of marshallables into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling the array of marshallables
 	 * @throws IOException if some marshallable could not be marshalled
 	 */
 	public static byte[] toByteArray(Marshallable[] marshallables, MarshallingContextProvider contextProvider) throws IOException {
-		try (var baos = new ByteArrayOutputStream(); var context = contextProvider.apply(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = contextProvider.mkContext(baos)) {
 			intoArray(marshallables, context);
 			context.flush();
 			return baos.toByteArray();
 		}
 	}
-
-	/**
-	 * A function that unmarshals a single marshallable.
-	 *
-	 * @param <T> the type of the marshallable
-	 */
-	public interface Unmarshaller<T extends Marshallable> {
-		default UnmarshallingContext mkContext(InputStream is) throws IOException {
-			return new UnmarshallingContext(is);
-		}
-
-		T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
-	}	
 }

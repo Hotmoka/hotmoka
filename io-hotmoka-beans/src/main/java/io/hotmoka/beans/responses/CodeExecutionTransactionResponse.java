@@ -21,9 +21,9 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A response for a transaction that calls a constructor or method.

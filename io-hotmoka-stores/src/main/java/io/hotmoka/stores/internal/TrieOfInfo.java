@@ -19,14 +19,14 @@ package io.hotmoka.stores.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.BeanUnmarshaller;
-import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;

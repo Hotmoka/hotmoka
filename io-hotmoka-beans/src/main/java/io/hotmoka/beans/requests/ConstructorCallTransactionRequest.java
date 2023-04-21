@@ -24,16 +24,16 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A request for calling a constructor of a storage class in a node.

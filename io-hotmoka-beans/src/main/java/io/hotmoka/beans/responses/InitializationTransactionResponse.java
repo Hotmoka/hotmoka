@@ -19,8 +19,8 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A response for a transaction that initializes a node.

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.patricia;
 
-import io.hotmoka.beans.Marshallable;
+import io.hotmoka.marshalling.Marshallable;
 
 /**
  * A node of a Patricia tree.

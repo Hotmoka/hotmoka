@@ -21,9 +21,9 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
-import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * A request signed with a signature of its caller.

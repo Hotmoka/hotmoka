@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
+
 /**
  * A Hotmoka bean that can be marshalled into a stream, in a way
- * more compact than standard Java serialization. TYpically,
+ * more compact than standard Java serialization. Typically,
  * this works because of context information about the structure
  * of the object.
  */

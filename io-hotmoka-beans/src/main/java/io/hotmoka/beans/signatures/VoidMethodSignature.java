@@ -19,9 +19,9 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * The signature of a method of a class, that does not return any value.

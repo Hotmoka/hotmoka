@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.marshalling;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * A context used during object marshalling into bytes.
+ * A context used during object marshaling into bytes.
  */
 public class MarshallingContext implements AutoCloseable {
 	private final ObjectOutputStream oos;

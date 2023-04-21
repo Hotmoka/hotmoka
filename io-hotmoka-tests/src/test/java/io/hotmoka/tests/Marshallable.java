@@ -11,8 +11,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -39,6 +38,7 @@ import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.marshalling.MarshallingContext;
 
 public class Marshallable {
 

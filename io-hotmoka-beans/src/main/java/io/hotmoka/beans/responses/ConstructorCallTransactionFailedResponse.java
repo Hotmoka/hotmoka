@@ -21,13 +21,13 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A response for a failed transaction that should have called a constructor

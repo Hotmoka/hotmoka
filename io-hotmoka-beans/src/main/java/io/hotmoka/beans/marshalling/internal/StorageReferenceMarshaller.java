@@ -1,19 +1,21 @@
-package io.hotmoka.beans;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how a storage reference can be marshalled.
  */
-class StorageReferenceMarshaller extends ObjectMarshaller<StorageReference> {
+public class StorageReferenceMarshaller extends ObjectMarshaller<StorageReference> {
 	
 	private final Map<StorageReference, Integer> memory = new HashMap<>();
 
-	StorageReferenceMarshaller() {
+	public StorageReferenceMarshaller() {
 		super(StorageReference.class);
 	}
 

@@ -21,7 +21,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.marshalling.MarshallingContext;
 
 /**
  * An element of an enumeration stored in blockchain.

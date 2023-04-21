@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * The response of a transaction.

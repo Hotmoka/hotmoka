@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.marshalling;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -24,8 +24,6 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-
-import io.hotmoka.beans.Marshallable.Unmarshaller;
 
 /**
  * A context used during bytes unmarshalling into objects.
