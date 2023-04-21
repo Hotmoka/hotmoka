@@ -21,10 +21,9 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -38,7 +37,7 @@ import io.hotmoka.beans.values.StorageReference;
  * describe the shape of storage objects.
  */
 @Immutable
-public abstract class Update extends Marshallable implements Comparable<Update> {
+public abstract class Update extends BeanMarshallable implements Comparable<Update> {
 
 	/**
 	 * The storage reference of the object whose field is modified.
@@ -55,7 +54,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	}
 
 	@Override
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 
@@ -118,7 +117,7 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		object.intoWithoutSelector(context);
 	}
 

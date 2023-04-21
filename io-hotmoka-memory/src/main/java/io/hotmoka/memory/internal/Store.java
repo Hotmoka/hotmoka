@@ -32,7 +32,7 @@ import java.util.logging.Level;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -199,11 +199,11 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					output.print(request);
 				}
 
-				try (var context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+				try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
 					request.into(context);
 				}
 
-				try (var context = new MarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
+				try (var context = new BeanMarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
 					response.into(context);
 				}
 			}
@@ -238,7 +238,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 					output.print(request);
 				}
 
-				try (var context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+				try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
 					request.into(context);
 				}
 			}

@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 
 /**
  * An {@code int} value stored in the store of a node.
@@ -79,7 +79,7 @@ public final class IntValue extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		if (value >= 0 && value < 255 - SELECTOR)
 			context.writeByte(SELECTOR + 1 + value);
 		else {

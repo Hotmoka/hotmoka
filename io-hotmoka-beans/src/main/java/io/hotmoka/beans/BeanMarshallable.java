@@ -14,13 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.patricia;
+package io.hotmoka.beans;
 
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
+import java.io.IOException;
+import java.io.OutputStream;
 
 /**
- * A node of a Patricia tree.
+ * A Hotmoka bean that can be marshalled into a stream, in a way
+ * more compact than standard Java serialization. TYpically,
+ * this works because of context information about the structure
+ * of the object.
  */
-public abstract class Node extends Marshallable<MarshallingContext> {
+public abstract class BeanMarshallable extends Marshallable<BeanMarshallingContext> {
+
+	@Override
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
+	}
 }

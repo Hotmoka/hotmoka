@@ -25,8 +25,8 @@ import java.security.SignatureException;
 import java.util.Arrays;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -129,7 +129,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(BeanMarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
 
 		// we add the signature
@@ -178,7 +178,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	public void intoWithoutSignature(BeanMarshallingContext context) throws IOException {
 		MethodSignature staticTarget = getStaticTarget();
 		boolean receiveInt = CodeSignature.RECEIVE_INT.equals(staticTarget);
 		boolean receiveLong = CodeSignature.RECEIVE_LONG.equals(staticTarget);

@@ -22,9 +22,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -102,7 +102,7 @@ public class TrieOfHistories {
 	/**
 	 * An array of transaction references that can be marshalled into an object stream.
 	 */
-	private static class MarshallableArrayOfTransactionReferences extends Marshallable {
+	private static class MarshallableArrayOfTransactionReferences extends BeanMarshallable {
 		private final TransactionReference[] transactions;
 
 		private MarshallableArrayOfTransactionReferences(TransactionReference[] transactions) {
@@ -110,7 +110,7 @@ public class TrieOfHistories {
 		}
 
 		@Override
-		public void into(MarshallingContext context) throws IOException {
+		public void into(BeanMarshallingContext context) throws IOException {
 			// we do not try to share repeated transaction references, since they do not occur in histories
 			// and provision for sharing would just make the size of the histories larger
 			context.writeCompactInt(transactions.length);
@@ -137,7 +137,7 @@ public class TrieOfHistories {
 		}
 
 		@Override
-		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 			return new BeanMarshallingContext(os);
 		}
 	}

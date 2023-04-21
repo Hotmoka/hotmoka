@@ -18,13 +18,49 @@ package io.hotmoka.beans;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A context used during bean marshalling into bytes.
  */
 public class BeanMarshallingContext extends MarshallingContext {
+	private final Map<StorageReference, Integer> memoryStorageReference = new HashMap<>();
 
 	public BeanMarshallingContext(OutputStream oos) throws IOException {
 		super(oos);
+	}
+
+	/**
+	 * Writes the given storage reference into the output stream. It uses
+	 * a memory to recycle storage references already written with this context
+	 * and compress them by using their progressive number instead.
+	 * 
+	 * @param reference the storage reference to write
+	 * @throws IOException if the storage reference could not be written
+	 */
+	public void writeStorageReference(StorageReference reference) throws IOException {
+		Integer index = memoryStorageReference.get(reference);
+		if (index != null) {
+			if (index < 254)
+				writeByte(index);
+			else {
+				writeByte(254);
+				writeInt(index);
+			}
+		}
+		else {
+			int next = memoryStorageReference.size();
+			if (next == Integer.MAX_VALUE) // irrealistic
+				throw new IllegalStateException("too many storage references in the same context");
+
+			memoryStorageReference.put(reference, next);
+
+			writeByte(255);
+			reference.transaction.into(this);
+			writeBigInteger(reference.progressive);
+		}
 	}
 }

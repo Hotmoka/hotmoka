@@ -21,16 +21,15 @@ import java.io.OutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 
 /**
  * A unique identifier for a transaction.
  */
 @Immutable
-public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference>, Serializable {
+public abstract class TransactionReference extends BeanMarshallable implements Comparable<TransactionReference>, Serializable {
 	private static final long serialVersionUID = 3206541167819020375L;
 
 	/**
@@ -59,7 +58,7 @@ public abstract class TransactionReference extends Marshallable implements Compa
 	}
 
 	@Override
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

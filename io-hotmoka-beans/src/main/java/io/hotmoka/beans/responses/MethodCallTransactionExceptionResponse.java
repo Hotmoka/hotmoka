@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -130,7 +130,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeBoolean(selfCharged);

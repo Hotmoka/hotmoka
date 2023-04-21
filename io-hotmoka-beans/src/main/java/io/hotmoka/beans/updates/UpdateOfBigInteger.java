@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -100,7 +100,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts do not use the red balance, that remains at 0
 			context.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);

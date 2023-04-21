@@ -79,7 +79,7 @@ public class TrieOfErrors {
 	/**
 	 * A string that can be marshalled into an object stream.
 	 */
-	private static class MarshallableString extends Marshallable {
+	private static class MarshallableString extends Marshallable<MarshallingContext> {
 		private final String s;
 
 		private MarshallableString(String s) {

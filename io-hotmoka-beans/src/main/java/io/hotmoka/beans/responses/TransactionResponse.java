@@ -21,15 +21,14 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 
 /**
  * The response of a transaction.
  */
-public abstract class TransactionResponse extends Marshallable {
+public abstract class TransactionResponse extends BeanMarshallable {
 
 	/**
 	 * Used to marshal requests that are specific to a node.
@@ -101,7 +100,7 @@ public abstract class TransactionResponse extends Marshallable {
 	}
 
 	@Override
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

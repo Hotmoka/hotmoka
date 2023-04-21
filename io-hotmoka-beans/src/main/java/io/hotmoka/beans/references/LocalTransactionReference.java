@@ -19,7 +19,7 @@ package io.hotmoka.beans.references;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 
 /**
@@ -118,7 +118,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		context.writeTransactionReference(this);
 	}
 

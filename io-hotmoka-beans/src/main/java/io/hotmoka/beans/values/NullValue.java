@@ -19,7 +19,7 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 
 /**
  * The {@code null} value stored in blockchain.
@@ -58,7 +58,7 @@ public final class NullValue extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 	}
 }

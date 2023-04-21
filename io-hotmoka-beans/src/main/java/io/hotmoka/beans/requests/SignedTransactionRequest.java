@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -65,7 +66,7 @@ public interface SignedTransactionRequest {
 	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	void intoWithoutSignature(MarshallingContext context) throws IOException;
+	void intoWithoutSignature(BeanMarshallingContext context) throws IOException;
 
 	/**
 	 * Marshals this object into a byte array, without taking its signature into account.
@@ -74,7 +75,7 @@ public interface SignedTransactionRequest {
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	default byte[] toByteArrayWithoutSignature() throws IOException {
-		try (var baos = new ByteArrayOutputStream(); var context = new MarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
 			return baos.toByteArray();

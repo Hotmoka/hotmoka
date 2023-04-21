@@ -25,14 +25,12 @@ import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A context used during object marshalling into bytes.
  */
 public class MarshallingContext implements AutoCloseable {
 	private final ObjectOutputStream oos;
-	private final Map<StorageReference, Integer> memoryStorageReference = new HashMap<>();
 	private final Map<TransactionReference, Integer> memoryTransactionReference = new HashMap<>();
 	private final Map<String, Integer> memoryString = new HashMap<>();
 	private final Map<FieldSignature, Integer> memoryFieldSignature = new HashMap<>();
@@ -68,37 +66,6 @@ public class MarshallingContext implements AutoCloseable {
 
 			oos.writeByte(255);
 			oos.writeUTF(s);
-		}
-	}
-
-	/**
-	 * Writes the given storage reference into the output stream. It uses
-	 * a memory to recycle storage references already written with this context
-	 * and compress them by using their progressive number instead.
-	 * 
-	 * @param reference the storage reference to write
-	 * @throws IOException if the storage reference could not be written
-	 */
-	public void writeStorageReference(StorageReference reference) throws IOException {
-		Integer index = memoryStorageReference.get(reference);
-		if (index != null) {
-			if (index < 254)
-				oos.writeByte(index);
-			else {
-				oos.writeByte(254);
-				oos.writeInt(index);
-			}
-		}
-		else {
-			int next = memoryStorageReference.size();
-			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("too many storage references in the same context");
-
-			memoryStorageReference.put(reference, next);
-
-			oos.writeByte(255);
-			reference.transaction.into(this);
-			writeBigInteger(reference.progressive);
 		}
 	}
 

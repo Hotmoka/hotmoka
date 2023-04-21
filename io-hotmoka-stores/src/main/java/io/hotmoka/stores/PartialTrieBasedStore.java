@@ -26,9 +26,9 @@ import java.util.function.Function;
 import java.util.logging.Level;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -434,14 +434,14 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
 	protected static ByteIterable intoByteArray(TransactionReference[] marshallables) throws UncheckedIOException {
 		try {
-			return ByteIterable.fromBytes(Marshallable.toByteArray(marshallables, MarshallingContext::new));
+			return ByteIterable.fromBytes(Marshallable.toByteArray(marshallables, BeanMarshallingContext::new));
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
+	protected static <T extends Marshallable<?>> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
 		try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
 			return context.readArray(unmarshaller, supplier);
 		}

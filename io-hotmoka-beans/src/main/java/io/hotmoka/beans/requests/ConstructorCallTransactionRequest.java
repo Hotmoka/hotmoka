@@ -24,8 +24,8 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
@@ -121,7 +121,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(BeanMarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
 
 		// we add the signature
@@ -179,7 +179,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	public void intoWithoutSignature(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);

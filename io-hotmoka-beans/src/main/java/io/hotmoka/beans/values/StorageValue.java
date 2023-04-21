@@ -20,10 +20,9 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -33,7 +32,7 @@ import io.hotmoka.beans.types.StorageType;
  * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
-public abstract class StorageValue extends Marshallable implements Comparable<StorageValue> {
+public abstract class StorageValue extends BeanMarshallable implements Comparable<StorageValue> {
 
 	/**
 	 * Yields a storage value from the given string and of the given type.
@@ -122,7 +121,7 @@ public abstract class StorageValue extends Marshallable implements Comparable<St
 	}
 
 	@Override
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

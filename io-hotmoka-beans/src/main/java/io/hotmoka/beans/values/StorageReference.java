@@ -22,8 +22,8 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -109,7 +109,7 @@ public final class StorageReference extends StorageValue implements Serializable
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		intoWithoutSelector(context);
 	}
@@ -121,14 +121,14 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArrayWithoutSelector() throws IOException {
-		try (var baos = new ByteArrayOutputStream(); var context = new MarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSelector(context);
 			context.flush();
 			return baos.toByteArray();
 		}
 	}
 
-	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
+	public final void intoWithoutSelector(BeanMarshallingContext context) throws IOException {
 		context.writeStorageReference(this);
 	}
 

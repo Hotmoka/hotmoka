@@ -19,7 +19,7 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
@@ -86,7 +86,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);

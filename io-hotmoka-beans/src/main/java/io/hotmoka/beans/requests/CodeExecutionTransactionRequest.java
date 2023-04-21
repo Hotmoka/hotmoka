@@ -22,8 +22,8 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -93,7 +93,7 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	}
 
 	@Override
-	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(BeanMarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		intoArray(actuals, context);
 	}

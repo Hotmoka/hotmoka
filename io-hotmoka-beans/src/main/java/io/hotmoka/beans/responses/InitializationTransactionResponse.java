@@ -19,7 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MarshallingContext;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 
 /**
@@ -52,7 +52,7 @@ public class InitializationTransactionResponse extends InitialTransactionRespons
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 	}
 

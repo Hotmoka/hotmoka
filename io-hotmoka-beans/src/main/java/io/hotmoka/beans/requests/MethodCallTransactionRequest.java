@@ -21,8 +21,8 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -97,7 +97,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	}
 
 	@Override
-	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(BeanMarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		method.into(context);
 	}

@@ -24,10 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallable;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -37,7 +36,7 @@ import io.hotmoka.beans.types.StorageType;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature extends Marshallable {
+public abstract class CodeSignature extends BeanMarshallable {
 
 	/**
 	 * The class of the method or constructor.
@@ -410,7 +409,7 @@ public abstract class CodeSignature extends Marshallable {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(BeanMarshallingContext context) throws IOException {
 		definingClass.into(context);
 		context.writeCompactInt(formals.length);
 		for (StorageType formal: formals)
@@ -446,7 +445,7 @@ public abstract class CodeSignature extends Marshallable {
 	}
 
 	@Override
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

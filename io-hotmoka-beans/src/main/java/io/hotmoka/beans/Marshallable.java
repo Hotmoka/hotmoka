@@ -26,7 +26,7 @@ import java.io.OutputStream;
  * this works because of context information about the structure
  * of the object.
  */
-public abstract class Marshallable {
+public abstract class Marshallable<C extends MarshallingContext> {
 
 	/**
 	 * Marshals this object into a given stream. This method in general
@@ -35,7 +35,7 @@ public abstract class Marshallable {
 	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	public abstract void into(MarshallingContext context) throws IOException;
+	public abstract void into(C context) throws IOException;
 
 	/**
 	 * Marshals an array of marshallables into a given stream.
@@ -44,10 +44,10 @@ public abstract class Marshallable {
 	 * @param context the context holding the stream
 	 * @throws IOException if some element could not be marshalled
 	 */
-	public static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
+	public static <C extends MarshallingContext> void intoArray(Marshallable<C>[] marshallables, C context) throws IOException {
 		context.writeCompactInt(marshallables.length);
 
-		for (Marshallable marshallable: marshallables)
+		for (Marshallable<C> marshallable: marshallables)
 			marshallable.into(context);
 	}
 
@@ -58,7 +58,7 @@ public abstract class Marshallable {
 	 * @return the marshalling context
 	 * @throws IOException if the marshalling context cannot be created
 	 */
-	protected abstract MarshallingContext createMarshallingContext(OutputStream os) throws IOException;
+	protected abstract C createMarshallingContext(OutputStream os) throws IOException;
 
 	/**
 	 * Marshals this object into a byte array.
@@ -77,8 +77,8 @@ public abstract class Marshallable {
 	/**
 	 * A provider of a marshalling context from its output stream.
 	 */
-	public interface MarshallingContextProvider {
-		MarshallingContext apply(OutputStream os) throws IOException;
+	public interface MarshallingContextProvider<C extends MarshallingContext> {
+		C apply(OutputStream os) throws IOException;
 	}
 
 	/**
@@ -87,7 +87,7 @@ public abstract class Marshallable {
 	 * @return the byte array resulting from marshalling the array of marshallables
 	 * @throws IOException if some marshallable could not be marshalled
 	 */
-	public static byte[] toByteArray(Marshallable[] marshallables, MarshallingContextProvider contextProvider) throws IOException {
+	public static <C extends MarshallingContext> byte[] toByteArray(Marshallable<C>[] marshallables, MarshallingContextProvider<C> contextProvider) throws IOException {
 		try (var baos = new ByteArrayOutputStream(); var context = contextProvider.apply(baos)) {
 			intoArray(marshallables, context);
 			context.flush();
@@ -100,7 +100,7 @@ public abstract class Marshallable {
 	 *
 	 * @param <T> the type of the marshallable
 	 */
-	public interface Unmarshaller<T extends Marshallable> {
+	public interface Unmarshaller<T extends Marshallable<?>> {
 		T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
 	}
 }
