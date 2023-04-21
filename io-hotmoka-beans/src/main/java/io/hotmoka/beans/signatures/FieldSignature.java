@@ -256,7 +256,7 @@ public final class FieldSignature extends MarshallableBean implements Comparable
 	 * @throws ClassNotFoundException if the field signature could not be unmarshalled
 	 */
 	public static FieldSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		return context.readFieldSignature();
+		return context.readObject(FieldSignature.class);
 	}
 
 	@Override

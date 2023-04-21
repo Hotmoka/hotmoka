@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.BeanMarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -117,7 +117,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     	return recordTimeSynchronized(() -> {
     		try {
     			Path response = getPathFor(reference, "response");
-    			try (UnmarshallingContext context = new UnmarshallingContext(Files.newInputStream(response))) {
+    			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
     				return Optional.of(TransactionResponse.from(context));
     			}
     		}
@@ -168,7 +168,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
-			try (UnmarshallingContext context = new UnmarshallingContext(Files.newInputStream(response))) {
+			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
 				return Optional.of(TransactionRequest.from(context));
 			}
 		}

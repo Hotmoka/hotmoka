@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.BeanMarshallingContext;
+import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -108,7 +109,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readArray((BeanUnmarshaller<Update>) Update::from, Update[]::new));
 		return new GameteCreationTransactionResponse(updates, StorageReference.from(context));
 	}
 }

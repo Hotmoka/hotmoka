@@ -31,7 +31,7 @@ import com.google.protobuf.Timestamp;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint_abci.ABCI;
@@ -202,7 +202,7 @@ class TendermintApplication extends ABCI {
 		ByteString tx = request.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
+        try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
         	node.checkTransaction(TransactionRequest.from(context));
         	responseBuilder.setCode(0);
         }
@@ -236,7 +236,7 @@ class TendermintApplication extends ABCI {
 		ByteString tx = request.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-        try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
+        try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
         	node.deliverTransaction(TransactionRequest.from(context));
         	responseBuilder.setCode(0);
         }

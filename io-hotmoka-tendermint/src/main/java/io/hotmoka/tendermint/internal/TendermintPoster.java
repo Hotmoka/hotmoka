@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 
-import io.hotmoka.beans.UnmarshallingContext;
+import io.hotmoka.beans.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -115,7 +115,7 @@ public class TendermintPoster {
 				throw new RuntimeException("no Hotmoka request in Tendermint response");
 
 			byte[] decoded = Base64.getDecoder().decode(tx);
-			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(decoded))) {
+			try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(decoded))) {
 				return Optional.of(TransactionRequest.from(context));
 			}
 		}

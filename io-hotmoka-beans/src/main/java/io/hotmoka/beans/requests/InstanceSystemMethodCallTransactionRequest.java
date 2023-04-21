@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
+import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -96,7 +97,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		BigInteger gasLimit = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
+		StorageValue[] actuals = context.readArray((BeanUnmarshaller<StorageValue>) StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		StorageReference receiver = StorageReference.from(context);
 

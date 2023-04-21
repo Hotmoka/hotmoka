@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
+import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
@@ -64,7 +65,7 @@ public class TrieOfHistories {
 			KeyValueStoreOnXodus keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
 			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
-			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes, MarshallableArrayOfTransactionReferences::from, numberOfCommits);
+			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes, (BeanUnmarshaller<MarshallableArrayOfTransactionReferences>) MarshallableArrayOfTransactionReferences::from, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);
@@ -132,7 +133,7 @@ public class TrieOfHistories {
 			// we do not share repeated transaction references, since they do not occur in histories
 			// and provision for sharing would just make the size of the histories larger
 			return new MarshallableArrayOfTransactionReferences(context.readArray
-				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
+				((BeanUnmarshaller<TransactionReference>) (_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference"))),
 				TransactionReference[]::new));
 		}
 

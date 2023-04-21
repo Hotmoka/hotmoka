@@ -138,9 +138,8 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * @param context the unmarshalling context
 	 * @return the storage reference
 	 * @throws IOException if the storage reference could not be unmarshalled
-	 * @throws ClassNotFoundException if the storage reference could not be unmarshalled
 	 */
-	public static StorageReference from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		return context.readStorageReference();
+	public static StorageReference from(UnmarshallingContext context) throws IOException {
+		return context.readObject(StorageReference.class);
 	}
 }

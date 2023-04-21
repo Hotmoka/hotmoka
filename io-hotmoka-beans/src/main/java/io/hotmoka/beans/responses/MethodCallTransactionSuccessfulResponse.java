@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.BeanMarshallingContext;
+import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.updates.Update;
@@ -136,7 +137,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static MethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readArray((BeanUnmarshaller<Update>) Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
@@ -146,7 +147,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readArray((BeanUnmarshaller<StorageReference>) StorageReference::from, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;

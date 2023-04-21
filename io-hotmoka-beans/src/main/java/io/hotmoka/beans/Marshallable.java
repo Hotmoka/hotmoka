@@ -18,6 +18,7 @@ package io.hotmoka.beans;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
@@ -101,6 +102,10 @@ public abstract class Marshallable<C extends MarshallingContext> {
 	 * @param <T> the type of the marshallable
 	 */
 	public interface Unmarshaller<T extends Marshallable<?>> {
+		default UnmarshallingContext mkContext(InputStream is) throws IOException {
+			return new UnmarshallingContext(is);
+		}
+
 		T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
-	}
+	}	
 }

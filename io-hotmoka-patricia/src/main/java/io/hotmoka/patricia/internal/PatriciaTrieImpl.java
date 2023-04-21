@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.Marshallable.Unmarshaller;
 import io.hotmoka.beans.MarshallingContext;
-import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
@@ -610,7 +609,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable<?>> implements Pat
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new RuntimeException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (UnmarshallingContext context = new UnmarshallingContext(new ByteArrayInputStream(value))) {
+			try (var context = valueUnmarshaller.mkContext(new ByteArrayInputStream(value))) {
 				return valueUnmarshaller.from(context);
 			}
 		}

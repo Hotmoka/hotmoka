@@ -26,26 +26,38 @@ import java.util.Map;
 import java.util.function.Function;
 
 import io.hotmoka.beans.Marshallable.Unmarshaller;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A context used during bytes unmarshalling into objects.
  */
 public class UnmarshallingContext implements AutoCloseable {
 	private final ObjectInputStream ois;
-	private final Map<Integer, StorageReference> memoryStorageReference = new HashMap<>();
-	private final Map<Integer, TransactionReference> memoryTransactionReference = new HashMap<>();
+	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
 	private final Map<Integer, String> memoryString = new HashMap<>();
-	private final Map<Integer, FieldSignature> memoryFieldSignature = new HashMap<>();
 
 	public UnmarshallingContext(InputStream is) throws IOException {
 		this.ois = new ObjectInputStream(new BufferedInputStream(is));
+	}
+
+	protected void registerObjectUnmarshaller(ObjectUnmarshaller<?> ou) {
+		objectUnmarshallers.put(ou.clazz, ou);
+	}
+
+	/**
+	 * Yields an object unmarshalled from this context.
+	 * 
+	 * @param <C> the type of the object
+	 * @param clazz the class of the object
+	 * @return the unmarshalled object
+	 * @throws IOException if the object could not be unmarshalled
+	 */
+	public <C> C readObject(Class<C> clazz) throws IOException {
+		@SuppressWarnings("unchecked")
+		ObjectUnmarshaller<C> ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
+		if (ou == null)
+			throw new IllegalStateException("missing object unmarshaller for class " + clazz.getName());
+
+		return ou.read(this);
 	}
 
 	/**
@@ -65,73 +77,6 @@ public class UnmarshallingContext implements AutoCloseable {
 			result[pos] = unmarshaller.from(this);
 
 		return result;
-	}
-
-	/**
-	 * Reads a storage reference from this context. It uses progressive counters to
-	 * decompress repeated storage references for the same context.
-	 * 
-	 * @return the storage reference
-	 */
-	public StorageReference readStorageReference() throws ClassNotFoundException, IOException {
-		int selector = ois.readByte();
-		if (selector < 0)
-			selector = 256 + selector;
-
-		if (selector == 255) {
-			StorageReference reference = new StorageReference(TransactionReference.from(this), readBigInteger());
-			memoryStorageReference.put(memoryStorageReference.size(), reference);
-			return reference;
-		}
-		else if (selector == 254)
-			return memoryStorageReference.get(ois.readInt());
-		else
-			return memoryStorageReference.get(selector);
-	}
-
-	/**
-	 * Reads a field signature from this context. It uses progressive counters to
-	 * decompress repeated field signatures for the same context.
-	 * 
-	 * @return the field signature
-	 */
-	public FieldSignature readFieldSignature() throws IOException {
-		int selector = ois.readByte();
-		if (selector < 0)
-			selector = 256 + selector;
-
-		if (selector == 255) {
-			FieldSignature field = new FieldSignature((ClassType) StorageType.from(this), readUTF(), StorageType.from(this));
-			memoryFieldSignature.put(memoryFieldSignature.size(), field);
-			return field;
-		}
-		else if (selector == 254)
-			return memoryFieldSignature.get(ois.readInt());
-		else
-			return memoryFieldSignature.get(selector);
-	}
-
-	/**
-	 * Reads a transaction reference from this context. It uses progressive counters to
-	 * decompress repeated transaction references for the same context.
-	 * 
-	 * @return the transaction reference
-	 */
-	public TransactionReference readTransactionReference() throws IOException {
-		int selector = ois.readByte();
-		if (selector < 0)
-			selector = 256 + selector;
-
-		if (selector == 255) {
-			byte[] bytes = ois.readNBytes(TransactionRequest.REQUEST_HASH_LENGTH);
-			TransactionReference reference = new LocalTransactionReference(bytes);
-			memoryTransactionReference.put(memoryTransactionReference.size(), reference);
-			return reference;
-		}
-		else if (selector == 254)
-			return memoryTransactionReference.get(ois.readInt());
-		else
-			return memoryTransactionReference.get(selector);
 	}
 
 	public byte readByte() throws IOException {

@@ -54,7 +54,7 @@ public abstract class TransactionReference extends MarshallableBean implements C
 	 * @throws IOException if the transaction reference could not be unmarshalled
      */
 	public static TransactionReference from(UnmarshallingContext context) throws IOException {
-		return context.readTransactionReference();
+		return context.readObject(TransactionReference.class);
 	}
 
 	@Override
