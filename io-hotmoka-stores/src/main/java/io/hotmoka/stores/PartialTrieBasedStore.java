@@ -440,7 +440,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		}
 	}
 
-	protected static <T extends Marshallable<?>> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
+	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
 		try (var context = unmarshaller.mkContext(new ByteArrayInputStream(bytes.getBytes()))) {
 			return context.readArray(unmarshaller, supplier);
 		}

@@ -23,9 +23,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
@@ -106,7 +106,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
 		super.into(context);
 		if (events.length > 0)

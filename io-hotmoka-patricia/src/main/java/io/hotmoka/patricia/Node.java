@@ -17,10 +17,9 @@ limitations under the License.
 package io.hotmoka.patricia;
 
 import io.hotmoka.beans.Marshallable;
-import io.hotmoka.beans.MarshallingContext;
 
 /**
  * A node of a Patricia tree.
  */
-public abstract class Node extends Marshallable<MarshallingContext> {
+public abstract class Node extends Marshallable {
 }

@@ -29,9 +29,31 @@ import java.util.Map;
 public class MarshallingContext implements AutoCloseable {
 	private final ObjectOutputStream oos;
 	private final Map<String, Integer> memoryString = new HashMap<>();
+	private final Map<Class<?>, ObjectMarshaller<?>> objectMarshallers = new HashMap<>();
 
 	public MarshallingContext(OutputStream oos) throws IOException {
 		this.oos = new ObjectOutputStream(oos);
+	}
+
+	protected void registerObjectMarshaller(ObjectMarshaller<?> om) {
+		objectMarshallers.put(om.clazz, om);
+	}
+
+	/**
+	 * Yields an object unmarshalled from this context.
+	 * 
+	 * @param <C> the type of the object
+	 * @param clazz the class of the object
+	 * @param value the object to marshal
+	 * @throws IOException if the object could not be unmarshalled
+	 */
+	public <C> void writeObject(Class<C> clazz, C value) throws IOException {
+		@SuppressWarnings("unchecked")
+		ObjectMarshaller<C> om = (ObjectMarshaller<C>) objectMarshallers.get(clazz);
+		if (om == null)
+			throw new IllegalStateException("missing object marshaller for class " + clazz.getName());
+
+		om.write(value, this);
 	}
 
 	/**

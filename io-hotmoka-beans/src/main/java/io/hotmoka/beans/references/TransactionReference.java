@@ -17,12 +17,10 @@ limitations under the License.
 package io.hotmoka.beans.references;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 
 /**
@@ -55,10 +53,5 @@ public abstract class TransactionReference extends MarshallableBean implements C
      */
 	public static TransactionReference from(UnmarshallingContext context) throws IOException {
 		return context.readObject(TransactionReference.class);
-	}
-
-	@Override
-	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
 	}
 }

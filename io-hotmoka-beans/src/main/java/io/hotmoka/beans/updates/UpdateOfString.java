@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
@@ -98,7 +98,7 @@ public final class UpdateOfString extends UpdateOfField {
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);

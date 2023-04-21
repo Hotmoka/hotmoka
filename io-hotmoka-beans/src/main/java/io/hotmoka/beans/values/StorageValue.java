@@ -17,12 +17,10 @@ limitations under the License.
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -118,10 +116,5 @@ public abstract class StorageValue extends MarshallableBean implements Comparabl
 			else
 				return new IntValue(selector - IntValue.SELECTOR - 1);
 		}
-	}
-
-	@Override
-	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
 	}
 }

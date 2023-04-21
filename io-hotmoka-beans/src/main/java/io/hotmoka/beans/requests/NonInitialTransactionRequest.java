@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
@@ -162,7 +161,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	protected void intoWithoutSignature(BeanMarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		caller.intoWithoutSelector(context);
 		context.writeBigInteger(gasLimit);
 		context.writeBigInteger(gasPrice);

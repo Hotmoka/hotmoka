@@ -17,15 +17,14 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.BeanUnmarshaller;
 import io.hotmoka.beans.Marshallable;
+import io.hotmoka.beans.MarshallableBean;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -111,7 +110,7 @@ public class TrieOfHistories {
 		}
 
 		@Override
-		public void into(BeanMarshallingContext context) throws IOException {
+		public void into(MarshallingContext context) throws IOException {
 			// we do not try to share repeated transaction references, since they do not occur in histories
 			// and provision for sharing would just make the size of the histories larger
 			context.writeCompactInt(transactions.length);
@@ -135,11 +134,6 @@ public class TrieOfHistories {
 			return new MarshallableArrayOfTransactionReferences(context.readArray
 				((BeanUnmarshaller<TransactionReference>) (_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference"))),
 				TransactionReference[]::new));
-		}
-
-		@Override
-		protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-			return new BeanMarshallingContext(os);
 		}
 	}
 

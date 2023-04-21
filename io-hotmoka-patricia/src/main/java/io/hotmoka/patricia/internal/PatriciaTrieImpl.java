@@ -35,7 +35,7 @@ import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;
 
-public class PatriciaTrieImpl<Key, Value extends Marshallable<?>> implements PatriciaTrie<Key, Value> {
+public class PatriciaTrieImpl<Key, Value extends Marshallable> implements PatriciaTrie<Key, Value> {
 
 	/**
 	 * The store that supports this trie.

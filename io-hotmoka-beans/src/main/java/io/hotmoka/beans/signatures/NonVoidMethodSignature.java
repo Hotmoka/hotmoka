@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 
@@ -82,7 +82,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		returnType.into(context);

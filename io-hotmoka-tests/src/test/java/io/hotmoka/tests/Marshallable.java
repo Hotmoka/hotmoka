@@ -327,7 +327,7 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             FieldSignature fieldSignature = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
 
-            context.writeFieldSignature(fieldSignature);
+            context.writeObject(FieldSignature.class, fieldSignature);
             context.flush();
             bytes = baos.toByteArray();
         }
@@ -346,7 +346,7 @@ public class Marshallable {
             		new BigInteger("19992")
             );
 
-            context.writeStorageReference(storageReference);
+            context.writeObject(StorageReference.class, storageReference);
             context.flush();
             bytes = baos.toByteArray();
         }
@@ -361,7 +361,7 @@ public class Marshallable {
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             TransactionReference transactionReference = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
-            context.writeTransactionReference(transactionReference);
+            context.writeObject(TransactionReference.class, transactionReference);
             context.flush();
             bytes = baos.toByteArray();
         }
@@ -377,7 +377,7 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             FieldSignature fieldSignature = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
 
-            context.writeFieldSignature(fieldSignature);
+            context.writeObject(FieldSignature.class, fieldSignature);
             context.flush();
             bytes = baos.toByteArray();
         }

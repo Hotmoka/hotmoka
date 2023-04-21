@@ -10,10 +10,10 @@ import io.hotmoka.beans.Marshallable.Unmarshaller;
  *
  * @param <T> the type of the marshallable bean
  */
-public interface BeanUnmarshaller<T extends Marshallable<?>> extends Unmarshaller<T> {
+public interface BeanUnmarshaller<T extends Marshallable> extends Unmarshaller<T> {
 
 	@Override
-	default BeanUnmarshallingContext mkContext(InputStream is) throws IOException {
+	default UnmarshallingContext mkContext(InputStream is) throws IOException {
 		return new BeanUnmarshallingContext(is);
 	}
 }

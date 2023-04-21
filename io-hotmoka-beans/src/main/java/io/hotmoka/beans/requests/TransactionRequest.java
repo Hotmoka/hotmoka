@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -26,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -175,10 +173,5 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	protected static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
 		int signatureLength = context.readCompactInt();
 		return context.readBytes(signatureLength, "signature length mismatch in request");
-	}
-
-	@Override
-	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
 	}
 }

@@ -19,7 +19,7 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
+import io.hotmoka.beans.MarshallingContext;
 
 /**
  * A {@code boolean} value stored in blockchain.
@@ -78,7 +78,7 @@ public final class BooleanValue extends StorageValue {
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		if (value)
 			context.writeByte(SELECTOR_TRUE);
 		else

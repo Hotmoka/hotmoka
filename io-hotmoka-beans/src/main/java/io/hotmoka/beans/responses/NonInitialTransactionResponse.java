@@ -23,8 +23,8 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.updates.Update;
 
 /**
@@ -121,7 +121,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		intoArray(updates, context);
 		context.writeBigInteger(gasConsumedForCPU);
 		context.writeBigInteger(gasConsumedForRAM);

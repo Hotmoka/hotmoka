@@ -17,12 +17,10 @@ limitations under the License.
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.hotmoka.beans.MarshallableBean;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 
 /**
@@ -97,10 +95,5 @@ public abstract class TransactionResponse extends MarshallableBean {
 	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) throws IOException {
 		int instrumentedJarLength = context.readInt();
 		return context.readBytes(instrumentedJarLength, "jar length mismatch in response");
-	}
-
-	@Override
-	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
 	}
 }

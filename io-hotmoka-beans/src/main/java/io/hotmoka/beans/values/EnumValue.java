@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 
 /**
  * An element of an enumeration stored in blockchain.
@@ -92,7 +92,7 @@ public final class EnumValue extends StorageValue {
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeUTF(enumClassName);
 		context.writeUTF(name);

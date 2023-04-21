@@ -66,7 +66,7 @@ public interface SignedTransactionRequest {
 	 * @param context the context holding the stream
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	void intoWithoutSignature(BeanMarshallingContext context) throws IOException;
+	void intoWithoutSignature(MarshallingContext context) throws IOException;
 
 	/**
 	 * Marshals this object into a byte array, without taking its signature into account.

@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.FloatValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -84,7 +84,7 @@ public final class UpdateOfFloat extends UpdateOfField {
 	}
 
 	@Override
-	public void into(BeanMarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeFloat(value);

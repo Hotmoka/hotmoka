@@ -26,7 +26,7 @@ import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 /**
  * A Merkle-Patricia trie.
  */
-public interface PatriciaTrie<Key, Value extends Marshallable<?>> {
+public interface PatriciaTrie<Key, Value extends Marshallable> {
 
 	/**
 	 * Yields the value bound to the given key.
@@ -73,7 +73,7 @@ public interface PatriciaTrie<Key, Value extends Marshallable<?>> {
 	 *                        be -1L if the trie is only used or reading
 	 * @return the trie
 	 */
-	static <Key, Value extends Marshallable<?>> PatriciaTrie<Key, Value> of
+	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller, long numberOfCommits) {

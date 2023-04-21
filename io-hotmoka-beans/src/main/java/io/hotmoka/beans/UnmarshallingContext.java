@@ -32,8 +32,9 @@ import io.hotmoka.beans.Marshallable.Unmarshaller;
  */
 public class UnmarshallingContext implements AutoCloseable {
 	private final ObjectInputStream ois;
-	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
 	private final Map<Integer, String> memoryString = new HashMap<>();
+
+	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
 
 	public UnmarshallingContext(InputStream is) throws IOException {
 		this.ois = new ObjectInputStream(new BufferedInputStream(is));
@@ -70,7 +71,7 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * @throws IOException if some marshallable could not be unmarshalled
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
-	public <T extends Marshallable<?>> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException {
+	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException {
 		int length = readCompactInt();
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
