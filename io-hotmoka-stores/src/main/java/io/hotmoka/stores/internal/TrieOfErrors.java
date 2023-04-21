@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
@@ -104,6 +105,11 @@ public class TrieOfErrors {
 		 */
 		private static MarshallableString from(UnmarshallingContext context) throws IOException {
 			return new MarshallableString(context.readUTF());
+		}
+
+		@Override
+		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+			return new MarshallingContext(os);
 		}
 	}
 

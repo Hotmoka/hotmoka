@@ -20,6 +20,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -344,6 +345,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
 			return this;
+		}
+
+		@Override
+		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+			return new MarshallingContext(os);
 		}
 	}
 

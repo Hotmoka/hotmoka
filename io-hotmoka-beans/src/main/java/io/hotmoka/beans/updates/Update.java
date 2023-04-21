@@ -17,9 +17,11 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
@@ -50,6 +52,11 @@ public abstract class Update extends Marshallable implements Comparable<Update> 
 	 */
 	protected Update(StorageReference object) {
 		this.object = object;
+	}
+
+	@Override
+	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 
 	/**

@@ -17,10 +17,12 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -132,6 +134,11 @@ public class TrieOfHistories {
 			return new MarshallableArrayOfTransactionReferences(context.readArray
 				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
 				TransactionReference[]::new));
+		}
+
+		@Override
+		protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+			return new BeanMarshallingContext(os);
 		}
 	}
 

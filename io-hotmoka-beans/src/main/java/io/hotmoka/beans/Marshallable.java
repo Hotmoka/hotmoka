@@ -52,13 +52,22 @@ public abstract class Marshallable {
 	}
 
 	/**
+	 * Creates a marshalling context for this object.
+	 * 
+	 * @param os the output stream of the context
+	 * @return the marshalling context
+	 * @throws IOException if the marshalling context cannot be created
+	 */
+	protected abstract MarshallingContext createMarshallingContext(OutputStream os) throws IOException;
+
+	/**
 	 * Marshals this object into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling this object
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArray() throws IOException {
-		try (var baos = new ByteArrayOutputStream(); var context = new MarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {
 			into(context);
 			context.flush();
 			return baos.toByteArray();

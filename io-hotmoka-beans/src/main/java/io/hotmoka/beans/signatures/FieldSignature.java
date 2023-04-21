@@ -17,9 +17,11 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.MarshallingContext;
@@ -256,5 +258,10 @@ public final class FieldSignature extends Marshallable implements Comparable<Fie
 	 */
 	public static FieldSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		return context.readFieldSignature();
+	}
+
+	@Override
+	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }
