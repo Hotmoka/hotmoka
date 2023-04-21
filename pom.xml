@@ -34,11 +34,11 @@
 
     <developers>
       <developer>
-	<name>Fausto Spoto</name>
-	<email>fausto.spoto@hotmoka.io</email>
-	<organization>Hotmoka</organization>
-	<organizationUrl>https://www.hotmoka.io</organizationUrl>
-	<timezone>UTC+01:00</timezone>
+	    <name>Fausto Spoto</name>
+	    <email>fausto.spoto@hotmoka.io</email>
+	    <organization>Hotmoka</organization>
+	    <organizationUrl>https://www.hotmoka.io</organizationUrl>
+	    <timezone>UTC+01:00</timezone>
       </developer>
     </developers>
 
@@ -164,40 +164,31 @@
       <tag>HEAD</tag>
     </scm>
 
-    <!-- dependencies in the main pom file can be used to resolve conflicting versions in modules -->
-    <dependencies>
-	  <dependency>
-        <groupId>com.google.code.gson</groupId>
-        <artifactId>gson</artifactId>
-        <version>2.8.9</version>
-	  </dependency>
-	</dependencies>
-
     <build>
       <plugins>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-clean-plugin</artifactId>
-	  <version>3.1.0</version>
-	  <configuration>
-	    <failOnError>false</failOnError>
-	    <filesets>
-	      <fileset>
-		<directory>modules</directory>
-		<includes>
-		  <include>**/*</include>
-		</includes>
-		<followSymlinks>false</followSymlinks>
-	      </fileset>
-	      <fileset>
-		<directory>docs</directory>
-		<includes>
-		  <include>**/*</include>
-		</includes>
-		<followSymlinks>false</followSymlinks>
-	      </fileset>
-	    </filesets>
-	  </configuration>
+	      <version>3.1.0</version>
+	      <configuration>
+	        <failOnError>false</failOnError>
+	        <filesets>
+	          <fileset>
+		        <directory>modules</directory>
+		        <includes>
+		          <include>**/*</include>
+		        </includes>
+		        <followSymlinks>false</followSymlinks>
+	          </fileset>
+	          <fileset>
+		        <directory>docs</directory>
+		        <includes>
+		          <include>**/*</include>
+		        </includes>
+		        <followSymlinks>false</followSymlinks>
+	          </fileset>
+	        </filesets>
+	      </configuration>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -386,32 +377,6 @@
             <autoReleaseAfterClose>true</autoReleaseAfterClose>
           </configuration>
         </plugin>
-        <!-- <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <outputDirectory>docs</outputDirectory>
-            <finalName>hotmoka-${hotmoka.version}</finalName>
-            <additionalJOptions>
-		        <additionalJOption>-Xmaxerrs</additionalJOption>
-        		<additionalJOption>65536</additionalJOption>
-        		<additionalJOption>-Xmaxwarns</additionalJOption>
-        		<additionalJOption>65536</additionalJOption>
-      		</additionalJOptions>
-          </configuration>
-          <executions>
-            <execution>
-              <id>aggregate</id>
-              <goals>
-                <goal>aggregate</goal>
-              </goals>
-              <phase>site</phase>
-              <configuration>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin> -->
       </plugins>
     </build>
 </project>
