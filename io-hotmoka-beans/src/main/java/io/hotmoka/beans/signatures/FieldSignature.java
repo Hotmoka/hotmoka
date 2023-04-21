@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallable;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -34,7 +34,7 @@ import io.hotmoka.constants.Constants;
  * The signature of a field of a class.
  */
 @Immutable
-public final class FieldSignature extends BeanMarshallable implements Comparable<FieldSignature> {
+public final class FieldSignature extends MarshallableBean implements Comparable<FieldSignature> {
 
 	/**
 	 * The field that holds the balance in contracts.

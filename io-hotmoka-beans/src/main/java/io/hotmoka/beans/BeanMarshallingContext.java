@@ -21,6 +21,8 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -28,6 +30,8 @@ import io.hotmoka.beans.values.StorageReference;
  */
 public class BeanMarshallingContext extends MarshallingContext {
 	private final Map<StorageReference, Integer> memoryStorageReference = new HashMap<>();
+	private final Map<FieldSignature, Integer> memoryFieldSignature = new HashMap<>();
+	private final Map<TransactionReference, Integer> memoryTransactionReference = new HashMap<>();
 
 	public BeanMarshallingContext(OutputStream oos) throws IOException {
 		super(oos);
@@ -61,6 +65,68 @@ public class BeanMarshallingContext extends MarshallingContext {
 			writeByte(255);
 			reference.transaction.into(this);
 			writeBigInteger(reference.progressive);
+		}
+	}
+
+	/**
+	 * Writes the given field signature into the output stream. It uses
+	 * a memory to recycle field signatures already written with this context
+	 * and compress them by using their progressive number instead.
+	 * 
+	 * @param field the field signature to write
+	 * @throws IOException if the field signature could not be written
+	 */
+	public void writeFieldSignature(FieldSignature field) throws IOException {
+		Integer index = memoryFieldSignature.get(field);
+		if (index != null) {
+			if (index < 254)
+				writeByte(index);
+			else {
+				writeByte(254);
+				writeInt(index);
+			}
+		}
+		else {
+			int next = memoryFieldSignature.size();
+			if (next == Integer.MAX_VALUE) // irrealistic
+				throw new IllegalStateException("too many field signatures in the same context");
+
+			memoryFieldSignature.put(field, next);
+
+			writeByte(255);
+			field.definingClass.into(this);
+			writeUTF(field.name);
+			field.type.into(this);
+		}
+	}
+
+	/**
+	 * Writes the given transaction reference into the output stream. It uses
+	 * a memory to recycle transaction references already written with this context
+	 * and compress them by using their progressive number instead.
+	 * 
+	 * @param transaction the transaction reference to write
+	 * @throws IOException IOException if the transaction reference could not be written
+	 */
+	public void writeTransactionReference(TransactionReference transaction) throws IOException {
+		Integer index = memoryTransactionReference.get(transaction);
+		if (index != null) {
+			if (index < 254)
+				writeByte(index);
+			else {
+				writeByte(254);
+				writeInt(index);
+			}
+		}
+		else {
+			int next = memoryTransactionReference.size();
+			if (next == Integer.MAX_VALUE) // irrealistic
+				throw new IllegalStateException("too many transaction references in the same context");
+
+			memoryTransactionReference.put(transaction, next);
+
+			writeByte(255);
+			write(transaction.getHashAsBytes());
 		}
 	}
 }

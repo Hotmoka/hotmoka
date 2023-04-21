@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallable;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -36,7 +36,7 @@ import io.hotmoka.beans.types.StorageType;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature extends BeanMarshallable {
+public abstract class CodeSignature extends MarshallableBean {
 
 	/**
 	 * The class of the method or constructor.

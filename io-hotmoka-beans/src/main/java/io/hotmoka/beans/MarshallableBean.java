@@ -25,7 +25,7 @@ import java.io.OutputStream;
  * this works because of context information about the structure
  * of the object.
  */
-public abstract class BeanMarshallable extends Marshallable<BeanMarshallingContext> {
+public abstract class MarshallableBean extends Marshallable<BeanMarshallingContext> {
 
 	@Override
 	protected BeanMarshallingContext createMarshallingContext(OutputStream os) throws IOException {

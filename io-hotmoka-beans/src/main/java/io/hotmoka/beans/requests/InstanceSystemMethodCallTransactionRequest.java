@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallable;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
@@ -77,7 +77,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		context.writeBigInteger(gasLimit);
 		classpath.into(context);
 		context.writeBigInteger(nonce);
-		intoArray(actuals().toArray(BeanMarshallable[]::new), context);
+		intoArray(actuals().toArray(MarshallableBean[]::new), context);
 		method.into(context);
 		receiver.intoWithoutSelector(context);
 	}

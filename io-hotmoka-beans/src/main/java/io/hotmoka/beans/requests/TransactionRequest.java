@@ -25,7 +25,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.BeanMarshallable;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.UnmarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
@@ -38,7 +38,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public abstract class TransactionRequest<R extends TransactionResponse> extends BeanMarshallable {
+public abstract class TransactionRequest<R extends TransactionResponse> extends MarshallableBean {
 
 	/**
 	 * Used to marshal requests that are specific to a node.

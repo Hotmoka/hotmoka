@@ -22,7 +22,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.BeanMarshallable;
+import io.hotmoka.beans.MarshallableBean;
 import io.hotmoka.beans.BeanMarshallingContext;
 import io.hotmoka.beans.Marshallable;
 import io.hotmoka.beans.UnmarshallingContext;
@@ -102,7 +102,7 @@ public class TrieOfHistories {
 	/**
 	 * An array of transaction references that can be marshalled into an object stream.
 	 */
-	private static class MarshallableArrayOfTransactionReferences extends BeanMarshallable {
+	private static class MarshallableArrayOfTransactionReferences extends MarshallableBean {
 		private final TransactionReference[] transactions;
 
 		private MarshallableArrayOfTransactionReferences(TransactionReference[] transactions) {
