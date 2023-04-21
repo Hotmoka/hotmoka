@@ -121,7 +121,7 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArrayWithoutSelector() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new MarshallingContext(baos)) {
 			intoWithoutSelector(context);
 			context.flush();
 			return baos.toByteArray();

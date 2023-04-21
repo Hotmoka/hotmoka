@@ -191,19 +191,19 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 				ensureDeleted(parent);
 				Files.createDirectories(parent);
 
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
+				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
 					output.print(response);
 				}
 
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
 					output.print(request);
 				}
 
-				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+				try (var context = new MarshallingContext(Files.newOutputStream(requestPath))) {
 					request.into(context);
 				}
 
-				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
+				try (var context = new MarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
 					response.into(context);
 				}
 			}
@@ -234,11 +234,11 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 				ensureDeleted(parent);
 				Files.createDirectories(parent);
 
-				try (PrintWriter output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
 					output.print(request);
 				}
 
-				try (MarshallingContext context = new MarshallingContext(Files.newOutputStream(requestPath))) {
+				try (var context = new MarshallingContext(Files.newOutputStream(requestPath))) {
 					request.into(context);
 				}
 			}

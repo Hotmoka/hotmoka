@@ -18,8 +18,7 @@ package io.hotmoka.beans;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-
-import io.hotmoka.beans.values.StorageReference;
+import java.io.OutputStream;
 
 /**
  * An object that can be marshalled into a stream, in a way
@@ -53,31 +52,24 @@ public abstract class Marshallable {
 	}
 
 	/**
-	 * Marshals an array of marshallables into a given stream.
-	 * 
-	 * @param marshallables the array of marshallables
-	 * @param context the context holding the stream
-	 * @throws IOException if some element could not be marshalled
-	 */
-	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
-		context.writeCompactInt(marshallables.length);
-
-		for (StorageReference reference: marshallables)
-			reference.intoWithoutSelector(context);
-	}
-
-	/**
 	 * Marshals this object into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling this object
 	 * @throws IOException if this object cannot be marshalled
 	 */
 	public final byte[] toByteArray() throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new MarshallingContext(baos)) {
 			into(context);
 			context.flush();
 			return baos.toByteArray();
 		}
+	}
+
+	/**
+	 * A provider of a marshalling context from its output stream.
+	 */
+	public interface MarshallingContextProvider {
+		MarshallingContext apply(OutputStream os) throws IOException;
 	}
 
 	/**
@@ -86,8 +78,8 @@ public abstract class Marshallable {
 	 * @return the byte array resulting from marshalling the array of marshallables
 	 * @throws IOException if some marshallable could not be marshalled
 	 */
-	public static byte[] toByteArray(Marshallable[] marshallables) throws IOException {
-		try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); MarshallingContext context = new MarshallingContext(baos)) {
+	public static byte[] toByteArray(Marshallable[] marshallables, MarshallingContextProvider contextProvider) throws IOException {
+		try (var baos = new ByteArrayOutputStream(); var context = contextProvider.apply(baos)) {
 			intoArray(marshallables, context);
 			context.flush();
 			return baos.toByteArray();

@@ -16,11 +16,14 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.MarshallingContext;
 import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A response for a transaction that calls a constructor or method.
@@ -43,5 +46,19 @@ public abstract class CodeExecutionTransactionResponse extends NonInitialTransac
 	@Override
 	public boolean equals(Object other) {
 		return other instanceof CodeExecutionTransactionResponse && super.equals(other);
+	}
+
+	/**
+	 * Marshals an array of marshallables into a given stream.
+	 * 
+	 * @param marshallables the array of marshallables
+	 * @param context the context holding the stream
+	 * @throws IOException if some element could not be marshalled
+	 */
+	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
+		context.writeCompactInt(marshallables.length);
+
+		for (StorageReference reference: marshallables)
+			reference.intoWithoutSelector(context);
 	}
 }
