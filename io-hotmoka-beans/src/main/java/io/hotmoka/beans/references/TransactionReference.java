@@ -17,17 +17,20 @@ limitations under the License.
 package io.hotmoka.beans.references;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.Serializable;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * A unique identifier for a transaction.
  */
 @Immutable
-public abstract class TransactionReference extends MarshallableBean implements Comparable<TransactionReference>, Serializable {
+public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference>, Serializable {
 	private static final long serialVersionUID = 3206541167819020375L;
 
 	/**
@@ -53,5 +56,10 @@ public abstract class TransactionReference extends MarshallableBean implements C
      */
 	public static TransactionReference from(UnmarshallingContext context) throws IOException {
 		return context.readObject(TransactionReference.class);
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }

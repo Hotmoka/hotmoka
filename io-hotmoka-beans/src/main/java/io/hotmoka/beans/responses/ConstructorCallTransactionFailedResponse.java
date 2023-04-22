@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.MarshallingContext;
@@ -157,7 +156,7 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(context.readArray((BeanUnmarshaller<Update>) Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();

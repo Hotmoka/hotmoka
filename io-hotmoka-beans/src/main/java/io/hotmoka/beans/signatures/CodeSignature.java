@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -24,10 +25,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -35,7 +37,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature extends MarshallableBean {
+public abstract class CodeSignature extends Marshallable {
 
 	/**
 	 * The class of the method or constructor.
@@ -441,5 +443,10 @@ public abstract class CodeSignature extends MarshallableBean {
 		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readUTF(), StorageType.from(context), formals);
 		default: throw new IOException("unexpected code signature selector: " + selector);
 		}
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }

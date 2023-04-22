@@ -17,16 +17,19 @@ limitations under the License.
 package io.hotmoka.beans.responses;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * The response of a transaction.
  */
-public abstract class TransactionResponse extends MarshallableBean {
+public abstract class TransactionResponse extends Marshallable {
 
 	/**
 	 * Used to marshal requests that are specific to a node.
@@ -90,6 +93,11 @@ public abstract class TransactionResponse extends MarshallableBean {
 		}
 		default: throw new IOException("unexpected response selector: " + selector);
 		}
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 
 	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) throws IOException {

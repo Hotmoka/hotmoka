@@ -26,7 +26,12 @@ import java.io.IOException;
  */
 public abstract class ObjectUnmarshaller<C> {
 	final Class<C> clazz;
-	
+
+	/**
+	 * Creates the object unmarshaller.
+	 * 
+	 * @param clazz the type for which the unmarshaller is activated
+	 */
 	protected ObjectUnmarshaller(Class<C> clazz) {
 		this.clazz = clazz;
 	}

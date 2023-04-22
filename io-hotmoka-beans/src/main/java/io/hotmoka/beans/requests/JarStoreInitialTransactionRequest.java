@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.marshalling.MarshallingContext;
@@ -135,7 +134,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		int jarLength = context.readInt();
 		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
-		TransactionReference[] dependencies = context.readArray((BeanUnmarshaller<TransactionReference>) TransactionReference::from, TransactionReference[]::new);
+		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);
 	}

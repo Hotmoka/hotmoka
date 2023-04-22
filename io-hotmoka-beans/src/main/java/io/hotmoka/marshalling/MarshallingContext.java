@@ -29,18 +29,28 @@ import java.util.Map;
 public class MarshallingContext implements AutoCloseable {
 	private final ObjectOutputStream oos;
 	private final Map<String, Integer> memoryString = new HashMap<>();
+
+	/**
+	 * Object marshallers for specific classes, if any.
+	 */
 	private final Map<Class<?>, ObjectMarshaller<?>> objectMarshallers = new HashMap<>();
 
 	public MarshallingContext(OutputStream oos) throws IOException {
 		this.oos = new ObjectOutputStream(oos);
 	}
 
+	/**
+	 * Registers an object marshaller. It will be used to marshall its class.
+	 * 
+	 * @param om the object marhaller
+	 */
 	protected void registerObjectMarshaller(ObjectMarshaller<?> om) {
 		objectMarshallers.put(om.clazz, om);
 	}
 
 	/**
-	 * Yields an object unmarshalled from this context.
+	 * Writes the given object into the output stream. This context must have
+	 * an object marshaller registered for the class of the object.
 	 * 
 	 * @param <C> the type of the object
 	 * @param clazz the class of the object
@@ -49,7 +59,7 @@ public class MarshallingContext implements AutoCloseable {
 	 */
 	public <C> void writeObject(Class<C> clazz, C value) throws IOException {
 		@SuppressWarnings("unchecked")
-		ObjectMarshaller<C> om = (ObjectMarshaller<C>) objectMarshallers.get(clazz);
+		var om = (ObjectMarshaller<C>) objectMarshallers.get(clazz);
 		if (om == null)
 			throw new IllegalStateException("missing object marshaller for class " + clazz.getName());
 

@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -74,7 +74,8 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
 			this.hashingForJars = HashingAlgorithms.sha256(bytes -> bytes);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, (BeanUnmarshaller<TransactionResponse>) TransactionResponse::from, numberOfCommits);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
+					TransactionResponse::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

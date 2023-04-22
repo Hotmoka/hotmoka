@@ -32,18 +32,28 @@ public class UnmarshallingContext implements AutoCloseable {
 	private final ObjectInputStream ois;
 	private final Map<Integer, String> memoryString = new HashMap<>();
 
+	/**
+	 * Object marshallers for specific classes, if any.
+	 */
 	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
 
 	public UnmarshallingContext(InputStream is) throws IOException {
 		this.ois = new ObjectInputStream(new BufferedInputStream(is));
 	}
 
+	/**
+	 * Registers an object unmarshaller. It will be used to unmarshall its class.
+	 * 
+	 * @param om the object unmarhaller
+	 */
 	protected void registerObjectUnmarshaller(ObjectUnmarshaller<?> ou) {
 		objectUnmarshallers.put(ou.clazz, ou);
 	}
 
 	/**
 	 * Yields an object unmarshalled from this context.
+	 * This context must have an object unmarshaller registered for the
+	 * class of the object.
 	 * 
 	 * @param <C> the type of the object
 	 * @param clazz the class of the object
@@ -52,7 +62,7 @@ public class UnmarshallingContext implements AutoCloseable {
 	 */
 	public <C> C readObject(Class<C> clazz) throws IOException {
 		@SuppressWarnings("unchecked")
-		ObjectUnmarshaller<C> ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
+		var ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
 		if (ou == null)
 			throw new IllegalStateException("missing object unmarshaller for class " + clazz.getName());
 

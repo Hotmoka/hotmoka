@@ -17,15 +17,17 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -33,7 +35,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * The signature of a field of a class.
  */
 @Immutable
-public final class FieldSignature extends MarshallableBean implements Comparable<FieldSignature> {
+public final class FieldSignature extends Marshallable implements Comparable<FieldSignature> {
 
 	/**
 	 * The field that holds the balance in contracts.
@@ -256,5 +258,10 @@ public final class FieldSignature extends MarshallableBean implements Comparable
 	 */
 	public static FieldSignature from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		return context.readObject(FieldSignature.class);
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }

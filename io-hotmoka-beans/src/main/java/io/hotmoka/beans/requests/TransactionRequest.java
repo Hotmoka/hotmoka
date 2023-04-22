@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
@@ -24,10 +25,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.marshalling.MarshallableBean;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
@@ -36,7 +39,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public abstract class TransactionRequest<R extends TransactionResponse> extends MarshallableBean {
+public abstract class TransactionRequest<R extends TransactionResponse> extends Marshallable {
 
 	/**
 	 * Used to marshal requests that are specific to a node.
@@ -173,5 +176,10 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	protected static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
 		int signatureLength = context.readCompactInt();
 		return context.readBytes(signatureLength, "signature length mismatch in request");
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }

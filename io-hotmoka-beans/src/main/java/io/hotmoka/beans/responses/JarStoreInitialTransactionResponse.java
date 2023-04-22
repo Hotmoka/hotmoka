@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
@@ -133,7 +132,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
 		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
-		Stream<TransactionReference> dependencies = Stream.of(context.readArray((BeanUnmarshaller<TransactionReference>) TransactionReference::from, TransactionReference[]::new));
+		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 

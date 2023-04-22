@@ -16,11 +16,14 @@ limitations under the License.
 
 package io.hotmoka.patricia;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Optional;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.marshalling.Unmarshaller;
+import io.hotmoka.marshalling.UnmarshallingContext;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**
@@ -67,6 +70,7 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
+	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit; this could
@@ -76,8 +80,24 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller, long numberOfCommits) {
+			Unmarshaller<? extends Value> valueUnmarshaller,
+			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 
-		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, numberOfCommits);
+		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, unmarshallingContextSupplier, numberOfCommits);
+	}
+
+	/**
+	 * A function that supplies an unmarshalling context.
+	 */
+	public interface UnmarshallingContextSupplier {
+
+		/**
+		 * Yields the unmarshalling context.
+		 * 
+		 * @param is the input stream of the context
+		 * @return the unmarshalling context
+		 * @throws IOException if the context cannot be created
+		 */
+		UnmarshallingContext get(InputStream is) throws IOException;
 	}
 }

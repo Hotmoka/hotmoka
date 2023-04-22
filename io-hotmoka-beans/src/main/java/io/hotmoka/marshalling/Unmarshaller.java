@@ -17,19 +17,12 @@ limitations under the License.
 package io.hotmoka.marshalling;
 
 import java.io.IOException;
-import java.io.InputStream;
 
 /**
  * A function that unmarshals a single marshallable.
  *
  * @param <T> the type of the marshallable
  */
-public interface Unmarshaller<T extends Marshallable> extends UnmarshallingContextProvider {
-	
-	@Override
-	default UnmarshallingContext mkContext(InputStream is) throws IOException {
-		return new UnmarshallingContext(is);
-	}
-
+public interface Unmarshaller<T extends Marshallable> {
 	T from(UnmarshallingContext context) throws IOException, ClassNotFoundException;
 }

@@ -55,7 +55,7 @@ public class TrieOfErrors {
 		try {
 			KeyValueStoreOnXodus keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, numberOfCommits);
+			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, UnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

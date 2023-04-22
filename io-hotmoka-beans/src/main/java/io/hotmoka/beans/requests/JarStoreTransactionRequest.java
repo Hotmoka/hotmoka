@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -244,7 +243,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 		int jarLength = context.readCompactInt();
 		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
-		TransactionReference[] dependencies = context.readArray((BeanUnmarshaller<TransactionReference>) TransactionReference::from, TransactionReference[]::new);
+		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
 		byte[] signature = unmarshallSignature(context);
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);

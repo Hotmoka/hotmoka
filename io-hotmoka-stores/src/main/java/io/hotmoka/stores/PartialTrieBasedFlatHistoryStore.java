@@ -20,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
@@ -106,7 +105,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		return recordTimeSynchronized(() -> {
 			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray((BeanUnmarshaller<TransactionReference>) TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(historyAsByteArray));
 		});
 	}
 
@@ -115,7 +114,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 		synchronized (lock) {
 			if (duringTransaction()) {
 				ByteIterable historyAsByteArray = storeOfHistory.get(getCurrentTransaction(), intoByteArray(object));
-				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray((BeanUnmarshaller<TransactionReference>) TransactionReference::from, TransactionReference[]::new, historyAsByteArray));
+				return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(historyAsByteArray));
 			}
 			else
 				return getHistory(object);

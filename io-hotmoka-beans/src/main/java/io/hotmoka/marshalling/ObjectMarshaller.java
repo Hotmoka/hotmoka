@@ -26,17 +26,21 @@ import java.io.IOException;
  */
 public abstract class ObjectMarshaller<C> {
 	final Class<C> clazz;
-	
+
+	/**
+	 * Creates the object marshaller.
+	 * 
+	 * @param clazz the type for whic the marshaller is used
+	 */
 	protected ObjectMarshaller(Class<C> clazz) {
 		this.clazz = clazz;
 	}
 
 	/**
-	 * How an object of class <code>C</code> can be marshalled.
+	 * Expresses how an object of class <code>C</code> can be marshalled.
 	 * 
 	 * @param value the value to marshall
 	 * @param context the marshalling context
-	 * @return the unmarshalled object
 	 * @throws IOException if the object could not be marshalled
 	 */
 	public abstract void write(C value, MarshallingContext context) throws IOException;

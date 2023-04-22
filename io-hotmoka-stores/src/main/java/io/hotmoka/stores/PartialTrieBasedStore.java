@@ -17,16 +17,17 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.logging.Level;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -35,7 +36,6 @@ import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.AbstractStore;
 import io.hotmoka.local.Config;
 import io.hotmoka.marshalling.Marshallable;
-import io.hotmoka.marshalling.Unmarshaller;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
@@ -431,18 +431,20 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		}
 	}
 
-	protected static ByteIterable intoByteArray(TransactionReference[] marshallables) throws UncheckedIOException {
-		try {
-			return ByteIterable.fromBytes(Marshallable.toByteArray(marshallables, BeanMarshallingContext::new));
+	protected static ByteIterable intoByteArray(TransactionReference[] references) throws UncheckedIOException {
+		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
+			Marshallable.intoArray(references, context);
+			context.flush();
+			return ByteIterable.fromBytes(baos.toByteArray());
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	protected static <T extends Marshallable> T[] fromByteArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier, ByteIterable bytes) throws UncheckedIOException {
-		try (var context = unmarshaller.mkContext(new ByteArrayInputStream(bytes.getBytes()))) {
-			return context.readArray(unmarshaller, supplier);
+	protected static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {
+		try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
+			return context.readArray(TransactionReference::from, TransactionReference[]::new);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

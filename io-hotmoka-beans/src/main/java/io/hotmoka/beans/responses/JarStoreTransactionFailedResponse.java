@@ -23,7 +23,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.MarshallingContext;
@@ -144,7 +143,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
 	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
-		Stream<Update> updates = Stream.of(context.readArray((BeanUnmarshaller<Update>) Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();

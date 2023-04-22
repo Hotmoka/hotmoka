@@ -75,18 +75,4 @@ public abstract class Marshallable {
 			return baos.toByteArray();
 		}
 	}
-
-	/**
-	 * Marshals an array of marshallables into a byte array.
-	 * 
-	 * @return the byte array resulting from marshalling the array of marshallables
-	 * @throws IOException if some marshallable could not be marshalled
-	 */
-	public static byte[] toByteArray(Marshallable[] marshallables, MarshallingContextProvider contextProvider) throws IOException {
-		try (var baos = new ByteArrayOutputStream(); var context = contextProvider.mkContext(baos)) {
-			intoArray(marshallables, context);
-			context.flush();
-			return baos.toByteArray();
-		}
-	}
 }

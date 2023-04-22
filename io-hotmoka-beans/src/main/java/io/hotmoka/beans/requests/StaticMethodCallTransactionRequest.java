@@ -26,7 +26,6 @@ import java.util.Arrays;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -191,7 +190,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 		BigInteger gasPrice = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray((BeanUnmarshaller<StorageValue>) StorageValue::from, StorageValue[]::new);
+		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		byte[] signature = unmarshallSignature(context);
 

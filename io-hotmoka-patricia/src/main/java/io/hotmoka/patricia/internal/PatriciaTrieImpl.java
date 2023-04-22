@@ -57,6 +57,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private final Unmarshaller<? extends Value> valueUnmarshaller;
 
 	/**
+	 * The supplier of the unmarshalling context for values.
+	 */
+	private final UnmarshallingContextSupplier unmarshallingContextSupplier;
+
+	/**
 	 * The current number of commits already executed on the store; this trie
 	 * will record which data must be garbage collected (eventually)
 	 * as result of the store updates performed during that commit. This might
@@ -75,18 +80,21 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
+	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller, long numberOfCommits) {
+			Unmarshaller<? extends Value> valueUnmarshaller,
+			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 
 		this.store = store;
 		this.hashingForKeys = hashingForKeys;
 		this.hashingForNodes = hashingForNodes;
 		this.valueUnmarshaller = valueUnmarshaller;
+		this.unmarshallingContextSupplier = unmarshallingContextSupplier;
 		this.numberOfCommits = numberOfCommits;
 	}
 
@@ -603,7 +611,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new RuntimeException("inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (var context = valueUnmarshaller.mkContext(new ByteArrayInputStream(value))) {
+			try (var context = unmarshallingContextSupplier.get(new ByteArrayInputStream(value))) {
 				return valueUnmarshaller.from(context);
 			}
 		}

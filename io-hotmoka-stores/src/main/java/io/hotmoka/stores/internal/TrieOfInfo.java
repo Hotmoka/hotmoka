@@ -19,7 +19,7 @@ package io.hotmoka.stores.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
+import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -76,7 +76,7 @@ public class TrieOfInfo {
 				}
 			};
 
-			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, (BeanUnmarshaller<StorageValue>) StorageValue::from, numberOfCommits);
+			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unepected exception", e);

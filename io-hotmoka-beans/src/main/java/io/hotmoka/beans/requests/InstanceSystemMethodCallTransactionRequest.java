@@ -20,13 +20,12 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.marshalling.BeanUnmarshaller;
-import io.hotmoka.beans.marshalling.MarshallableBean;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -78,7 +77,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		context.writeBigInteger(gasLimit);
 		classpath.into(context);
 		context.writeBigInteger(nonce);
-		intoArray(actuals().toArray(MarshallableBean[]::new), context);
+		intoArray(actuals().toArray(Marshallable[]::new), context);
 		method.into(context);
 		receiver.intoWithoutSelector(context);
 	}
@@ -97,7 +96,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		BigInteger gasLimit = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray((BeanUnmarshaller<StorageValue>) StorageValue::from, StorageValue[]::new);
+		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		StorageReference receiver = StorageReference.from(context);
 
