@@ -22,10 +22,10 @@ import java.io.IOException;
  * Knowledge about how an object of a given class can be unmarshalled.
  * This can be used to provide the ability to unmarshall objects of arbitrary classes.
  * 
- * @param <C> the type of the class
+ * @param <C> the type of the class of the unmarshalled objects
  */
 public abstract class ObjectUnmarshaller<C> {
-	final Class<C> clazz;
+	private final Class<C> clazz;
 
 	/**
 	 * Creates the object unmarshaller.
@@ -34,6 +34,15 @@ public abstract class ObjectUnmarshaller<C> {
 	 */
 	protected ObjectUnmarshaller(Class<C> clazz) {
 		this.clazz = clazz;
+	}
+
+	/**
+	 * Yields the class of the objects unmarshalled by this object.
+	 * 
+	 * @return the class
+	 */
+	public Class<C> clazz() {
+		return clazz;
 	}
 
 	/**

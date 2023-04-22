@@ -14,7 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.marshalling {
-	exports io.hotmoka.marshalling;
-	requires transitive io.hotmoka.marshalling.api;
+/**
+ * @author spoto
+ *
+ */
+module io.hotmoka.marshalling.api {
+	//exports io.hotmoka.marshalling.api;
 }

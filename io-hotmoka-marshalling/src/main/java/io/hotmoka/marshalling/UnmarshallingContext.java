@@ -16,49 +16,14 @@ limitations under the License.
 
 package io.hotmoka.marshalling;
 
-import java.io.BufferedInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.math.BigInteger;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.Function;
 
 /**
  * A context used during bytes unmarshalling into objects.
  */
-public class UnmarshallingContext implements AutoCloseable {
-	private final ObjectInputStream ois;
-
-	/**
-	 * A memory to avoid duplicated strings in the marshalled bytes.
-	 */
-	private final Map<Integer, String> memoryString = new HashMap<>();
-
-	/**
-	 * Object marshallers for specific classes, if any.
-	 */
-	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
-
-	/**
-	 * Creates an unmarshalling context.
-	 * 
-	 * @param is the input stream of the context
-	 * @throws IOException if the context cannot be created
-	 */
-	public UnmarshallingContext(InputStream is) throws IOException {
-		this.ois = new ObjectInputStream(new BufferedInputStream(is));
-	}
-
-	/**
-	 * Registers an object unmarshaller. It will be used to unmarshall its class.
-	 * 
-	 * @param om the object unmarhaller
-	 */
-	protected void registerObjectUnmarshaller(ObjectUnmarshaller<?> ou) {
-		objectUnmarshallers.put(ou.clazz, ou);
-	}
+public interface UnmarshallingContext extends AutoCloseable {
 
 	/**
 	 * Yields an object unmarshalled from this context.
@@ -70,14 +35,7 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * @return the unmarshalled object
 	 * @throws IOException if the object could not be unmarshalled
 	 */
-	public <C> C readObject(Class<C> clazz) throws IOException {
-		@SuppressWarnings("unchecked")
-		var ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
-		if (ou == null)
-			throw new IllegalStateException("missing object unmarshaller for class " + clazz.getName());
-
-		return ou.read(this);
-	}
+	<C> C readObject(Class<C> clazz) throws IOException;
 
 	/**
 	 * Yields an array of marshallables unmarshalled from this context.
@@ -89,91 +47,37 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * @throws IOException if some marshallable could not be unmarshalled
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
-	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException {
-		int length = readCompactInt();
-		T[] result = supplier.apply(length);
-		for (int pos = 0; pos < length; pos++)
-			result[pos] = unmarshaller.from(this);
+	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException;
 
-		return result;
-	}
+	byte readByte() throws IOException;
 
-	public byte readByte() throws IOException {
-		return ois.readByte();
-	}
+	char readChar() throws IOException;
 
-	public char readChar() throws IOException {
-		return ois.readChar();
-	}
+	boolean readBoolean() throws IOException;
 
-	public boolean readBoolean() throws IOException {
-		return ois.readBoolean();
-	}
-
-	public int readInt() throws IOException {
-		return ois.readInt();
-	}
+	int readInt() throws IOException;
 
 	/**
-	 * Reads a small integer.
+	 * Reads an optimized integer.
 	 * 
 	 * @return the integer
-	 * @throws IOException if the integer cannot be written
+	 * @throws IOException if the integer cannot be read
 	 */
-	public int readCompactInt() throws IOException {
-		int i = readByte();
-		if (i < 0)
-			i += 256;
+	int readCompactInt() throws IOException;
 
-		if (i == 255)
-			i = readInt();
+	short readShort() throws IOException;
 
-		return i;
-	}
+	long readLong() throws IOException;
 
-	public short readShort() throws IOException {
-		return ois.readShort();
-	}
+	float readFloat() throws IOException;
 
-	public long readLong() throws IOException {
-		return ois.readLong();
-	}
+	double readDouble() throws IOException;
 
-	public float readFloat() throws IOException {
-		return ois.readFloat();
-	}
+	String readUTF() throws IOException;
 
-	public double readDouble() throws IOException {
-		return ois.readDouble();
-	}
+	byte[] readBytes(int length, String errorMessage) throws IOException;
 
-	public String readUTF() throws IOException {
-		return ois.readUTF();
-	}
-
-	public byte[] readBytes(int length, String errorMessage) throws IOException {
-		byte[] bytes = new byte[length];
-		if (length != ois.readNBytes(bytes, 0, length))
-			throw new IOException(errorMessage);
-
-		return bytes;
-	}
-
-	public String readStringShared() throws IOException {
-		int selector = ois.readByte();
-		if (selector < 0)
-			selector = 256 + selector;
-
-		if (selector == 255) {
-			String s = ois.readUTF();
-			memoryString.put(memoryString.size(), s);
-			return s;
-		}
-		else if (selector == 254)
-			return memoryString.get(ois.readInt());
-		else
-			return memoryString.get(selector);
-	}
+	String readStringShared() throws IOException;
 
 	/**
 	 * Reads a big integer, taking into account
@@ -182,27 +86,8 @@ public class UnmarshallingContext implements AutoCloseable {
 	 * @return the big integer
 	 * @throws IOException if the big integer could not be written
 	 */
-	public BigInteger readBigInteger() throws IOException {
-		byte selector = readByte();
-		switch (selector) {
-		case 0: return BigInteger.valueOf(readShort());
-		case 1: return BigInteger.valueOf(readInt());
-		case 2: return BigInteger.valueOf(readLong());
-		case 3: {
-			int numBytes = readCompactInt();
-			return new BigInteger(new String(readBytes(numBytes, "BigInteger length mismatch")));
-		}
-		default: {
-			if (selector - 4 < 0)
-				return BigInteger.valueOf(selector + 252);
-			else
-				return BigInteger.valueOf(selector - 4);
-		}
-		}
-	}
+	BigInteger readBigInteger() throws IOException;
 
 	@Override
-	public void close() throws IOException {
-		ois.close();
-	}
+	void close() throws IOException;
 }

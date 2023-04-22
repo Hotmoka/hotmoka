@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how a field signature can be marshalled.
  */
-public class FieldSignatureMarshaller extends ObjectMarshaller<FieldSignature> {
+public class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSignature> {
 	
 	private final Map<FieldSignature, Integer> memory = new HashMap<>();
 

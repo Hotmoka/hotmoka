@@ -22,12 +22,12 @@ import java.io.InputStream;
 import io.hotmoka.beans.marshalling.internal.FieldSignatureUnmarshaller;
 import io.hotmoka.beans.marshalling.internal.StorageReferenceUnmarshaller;
 import io.hotmoka.beans.marshalling.internal.TransactionReferenceUnmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.AbstractUnmarshallingContext;
 
 /**
  * A context used during bytes unmarshalling into beans.
  */
-public class BeanUnmarshallingContext extends UnmarshallingContext {
+public class BeanUnmarshallingContext extends AbstractUnmarshallingContext {
 
 	public BeanUnmarshallingContext(InputStream is) throws IOException {
 		super(is);

@@ -14,7 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.marshalling {
-	exports io.hotmoka.marshalling;
-	requires transitive io.hotmoka.marshalling.api;
+package io.hotmoka.marshalling;
+
+import java.io.IOException;
+import java.io.OutputStream;
+
+import io.hotmoka.marshalling.internal.MarshallingContextImpl;
+
+/**
+ * Providers of marshalling contexts.
+ */
+public interface MarshallingContexts {
+
+	/**
+	 * Yields a marshalling context that writes to the given output stream.
+	 * 
+	 * @param os the output stream
+	 * @return the marshalling context
+	 * @throws IOException
+	 */
+	static MarshallingContext of(OutputStream os) throws IOException {
+		return new MarshallingContextImpl(os);
+	}
 }

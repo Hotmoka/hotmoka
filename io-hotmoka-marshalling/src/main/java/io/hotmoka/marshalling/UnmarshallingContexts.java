@@ -14,7 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.marshalling {
-	exports io.hotmoka.marshalling;
-	requires transitive io.hotmoka.marshalling.api;
+package io.hotmoka.marshalling;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import io.hotmoka.marshalling.internal.UnmarshallingContextImpl;
+
+/**
+ * Providers of unmarshalling contexts.
+ */
+public interface UnmarshallingContexts {
+
+	/**
+	 * Creates an unmarshalling context.
+	 * 
+	 * @param is the input stream of the context
+	 * @throws IOException if the context cannot be created
+	 */
+	static UnmarshallingContext of(InputStream is) throws IOException {
+		return new UnmarshallingContextImpl(is);
+	}
 }

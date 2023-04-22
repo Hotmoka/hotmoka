@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.marshalling;
+package io.hotmoka.marshalling.internal;
 
-import java.io.IOException;
+import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how an object of a given class can be marshalled.
@@ -24,21 +24,24 @@ import java.io.IOException;
  * 
  * @param <C> the type of the class of the marshalled objects
  */
-public interface ObjectMarshaller<C> {
+public abstract class ObjectMarshallerImpl<C> implements ObjectMarshaller<C> {
 
 	/**
-	 * Yields the class of the marshalled objects.
-	 * 
-	 * @return the class
+	 * The class of the marshalled objects.
 	 */
-	Class<C> clazz();
+	private final Class<C> clazz;
 
 	/**
-	 * Expresses how an object of class <code>C</code> can be marshalled.
+	 * Creates the object marshaller.
 	 * 
-	 * @param value the value to marshall
-	 * @param context the marshalling context
-	 * @throws IOException if the object could not be marshalled
+	 * @param clazz the class of the marshalled objects
 	 */
-	void write(C value, MarshallingContext context) throws IOException;
+	protected ObjectMarshallerImpl(Class<C> clazz) {
+		this.clazz = clazz;
+	}
+
+	@Override
+	public final Class<C> clazz() {
+		return clazz;
+	}
 }

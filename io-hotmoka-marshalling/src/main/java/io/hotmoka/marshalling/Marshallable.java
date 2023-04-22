@@ -20,6 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.marshalling.internal.MarshallingContextImpl;
+
 /**
  * An object that can be marshaled into a stream, in a way
  * more compact than standard Java serialization. Typically,
@@ -76,6 +78,6 @@ public abstract class Marshallable {
 	 * @throws IOException if the marshalling context cannot be created
 	 */
 	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new MarshallingContext(os);
+		return new MarshallingContextImpl(os);
 	}
 }

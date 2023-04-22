@@ -14,7 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.marshalling {
-	exports io.hotmoka.marshalling;
-	requires transitive io.hotmoka.marshalling.api;
+package io.hotmoka.marshalling;
+
+import io.hotmoka.marshalling.internal.ObjectMarshallerImpl;
+
+/**
+ * Partial implementation of an object marshaller, for subclassing.
+ * 
+ * @param <C> the type of the class of the marshalled objects
+ */
+public abstract class AbstractObjectMarshaller<C> extends ObjectMarshallerImpl<C> {
+
+	/**
+	 * Creates the object marshaller.
+	 * 
+	 * @param clazz the class of the marshalled objects
+	 */
+	protected AbstractObjectMarshaller(Class<C> clazz) {
+		super(clazz);
+	}
 }

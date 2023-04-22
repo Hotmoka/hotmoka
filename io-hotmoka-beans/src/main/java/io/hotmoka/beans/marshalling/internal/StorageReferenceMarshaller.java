@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.ObjectMarshaller;
 
 /**
  * Knowledge about how a storage reference can be marshalled.
  */
-public class StorageReferenceMarshaller extends ObjectMarshaller<StorageReference> {
+public class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReference> {
 	
 	private final Map<StorageReference, Integer> memory = new HashMap<>();
 
