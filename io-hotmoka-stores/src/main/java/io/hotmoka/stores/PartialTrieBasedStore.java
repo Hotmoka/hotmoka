@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
@@ -26,7 +25,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -35,7 +33,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.AbstractStore;
 import io.hotmoka.local.Config;
-import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
@@ -425,17 +422,6 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
 		try {
 			return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	protected static ByteIterable intoByteArray(TransactionReference[] references) throws UncheckedIOException {
-		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-			Marshallable.intoArray(references, context);
-			context.flush();
-			return ByteIterable.fromBytes(baos.toByteArray());
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

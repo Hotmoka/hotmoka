@@ -347,7 +347,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 		*/
 
-		protected final AbstractNode putInStore() throws IOException {
+		protected final AbstractNode putInStore() {
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
 			return this;
@@ -617,7 +617,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])

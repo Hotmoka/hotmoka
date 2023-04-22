@@ -206,8 +206,8 @@ public abstract class HotmokaTest {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        // Change this to test with different node implementations
-	        //node = mkMemoryBlockchain();
-	        node = mkTendermintBlockchain();
+	        node = mkMemoryBlockchain();
+	        //node = mkTendermintBlockchain();
 	    	//node = mkTakamakaBlockchainExecuteOneByOne();
 	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //node = mkRemoteNode(mkMemoryBlockchain());

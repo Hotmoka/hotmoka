@@ -133,7 +133,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 				return new LocalTransactionReference(bytesToHex(HASHING_FOR_REQUESTS.digest(bytes)));
 			}
 		}
-		catch(Exception e) {
+		catch (Exception e) {
 			throw new IllegalArgumentException(e);
 		}
 	}

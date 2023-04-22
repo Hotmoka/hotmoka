@@ -30,6 +30,10 @@ import java.util.function.Function;
  */
 public class UnmarshallingContext implements AutoCloseable {
 	private final ObjectInputStream ois;
+
+	/**
+	 * A memory to avoid duplicated strings in the marshalled bytes.
+	 */
 	private final Map<Integer, String> memoryString = new HashMap<>();
 
 	/**
@@ -37,6 +41,12 @@ public class UnmarshallingContext implements AutoCloseable {
 	 */
 	private final Map<Class<?>, ObjectUnmarshaller<?>> objectUnmarshallers = new HashMap<>();
 
+	/**
+	 * Creates an unmarshalling context.
+	 * 
+	 * @param is the input stream of the context
+	 * @throws IOException if the context cannot be created
+	 */
 	public UnmarshallingContext(InputStream is) throws IOException {
 		this.ois = new ObjectInputStream(new BufferedInputStream(is));
 	}

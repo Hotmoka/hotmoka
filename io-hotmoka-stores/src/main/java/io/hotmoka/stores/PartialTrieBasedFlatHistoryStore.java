@@ -24,6 +24,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.Config;
+import io.hotmoka.stores.internal.MarshallableArrayOfTransactionReferences;
 import io.hotmoka.xodus.ByteIterable;
 
 /**
@@ -124,7 +125,8 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		recordTime(() -> {
-			ByteIterable historyAsByteArray = intoByteArray(history.toArray(TransactionReference[]::new));
+			TransactionReference[] references = history.toArray(TransactionReference[]::new);
+			ByteIterable historyAsByteArray = ByteIterable.fromBytes(new MarshallableArrayOfTransactionReferences(references).toByteArray());
 			ByteIterable objectAsByteArray = intoByteArray(object);
 			storeOfHistory.put(getCurrentTransaction(), objectAsByteArray, historyAsByteArray);
 		});
