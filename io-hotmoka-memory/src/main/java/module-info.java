@@ -22,4 +22,5 @@ module io.hotmoka.memory {
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.beans;
 	requires java.logging;
+	requires io.hotmoka.marshalling;
 }

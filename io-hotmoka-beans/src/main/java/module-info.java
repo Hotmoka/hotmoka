@@ -25,7 +25,7 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.values;
 	exports io.hotmoka.beans.nodes;
 	exports io.hotmoka.beans;
-	exports io.hotmoka.marshalling;
+	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
 }

@@ -67,6 +67,8 @@
       <module>io-hotmoka-tendermint</module>
       <module>io-hotmoka-toml</module>
       <module>io-hotmoka-annotations</module>
+      <module>io-hotmoka-marshalling</module>
+      <module>io-hotmoka-marshalling-api</module>
     </modules>
 
     <profiles>
@@ -239,6 +241,8 @@
                   io-hotmoka-tools,
                   io-hotmoka-local,
                   io-hotmoka-annotations,
+                  io-hotmoka-marshalling,
+				  io-hotmoka-marshalling-api,
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
