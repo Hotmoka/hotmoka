@@ -25,7 +25,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An update of a field states that a byte field of a given storage object has been

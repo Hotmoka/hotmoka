@@ -24,7 +24,7 @@ import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * An unmarshaller for transaction references.

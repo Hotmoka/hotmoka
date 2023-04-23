@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A class type that can be used for stored objects in blockchain.

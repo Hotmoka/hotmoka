@@ -23,8 +23,8 @@ import java.io.Serializable;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * A unique identifier for a transaction.

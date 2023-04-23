@@ -20,8 +20,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import io.hotmoka.marshalling.Marshallable;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.Marshallable;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An object that can be marshaled into a stream, in a way

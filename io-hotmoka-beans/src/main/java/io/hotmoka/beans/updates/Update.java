@@ -29,8 +29,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * An update states that a property of an object has been

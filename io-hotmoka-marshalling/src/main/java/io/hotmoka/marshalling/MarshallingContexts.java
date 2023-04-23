@@ -19,6 +19,7 @@ package io.hotmoka.marshalling;
 import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.internal.MarshallingContextImpl;
 
 /**

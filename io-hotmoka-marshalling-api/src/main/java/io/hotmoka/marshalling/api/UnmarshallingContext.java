@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.marshalling;
+package io.hotmoka.marshalling.api;
 
 import java.io.IOException;
 import java.math.BigInteger;

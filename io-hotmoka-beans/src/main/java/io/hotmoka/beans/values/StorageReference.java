@@ -26,8 +26,8 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * A reference to an object of class type that can be stored in the blockchain.

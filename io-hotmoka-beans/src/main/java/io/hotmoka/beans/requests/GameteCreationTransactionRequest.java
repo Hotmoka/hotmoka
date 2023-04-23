@@ -22,8 +22,8 @@ import java.math.BigInteger;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * A request for creating an initial gamete. It is an account of class

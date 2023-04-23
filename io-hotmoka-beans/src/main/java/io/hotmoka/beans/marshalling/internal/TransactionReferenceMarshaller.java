@@ -6,7 +6,7 @@ import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * Knowledge about how a transaction reference can be marshalled.

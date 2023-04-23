@@ -24,7 +24,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An update that states that an object belongs to a given class.

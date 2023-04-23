@@ -27,9 +27,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.marshalling.Marshallable;
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.Unmarshaller;
+import io.hotmoka.marshalling.api.Marshallable;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.Unmarshaller;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;

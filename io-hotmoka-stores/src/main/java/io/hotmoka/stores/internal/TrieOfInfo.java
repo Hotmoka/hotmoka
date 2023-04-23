@@ -26,7 +26,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;

@@ -21,9 +21,9 @@ import java.io.InputStream;
 import java.util.Optional;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.marshalling.Marshallable;
-import io.hotmoka.marshalling.Unmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.Marshallable;
+import io.hotmoka.marshalling.api.Unmarshaller;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**

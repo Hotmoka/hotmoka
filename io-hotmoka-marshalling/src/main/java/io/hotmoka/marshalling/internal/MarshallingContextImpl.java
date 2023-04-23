@@ -23,8 +23,8 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.marshalling.MarshallingContext;
-import io.hotmoka.marshalling.ObjectMarshaller;
+import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.ObjectMarshaller;
 
 /**
  * Implementation of a context used during object marshaling into bytes.

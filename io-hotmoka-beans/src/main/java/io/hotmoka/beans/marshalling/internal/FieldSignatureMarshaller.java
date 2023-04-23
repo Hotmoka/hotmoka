@@ -6,7 +6,7 @@ import java.util.Map;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * Knowledge about how a field signature can be marshalled.

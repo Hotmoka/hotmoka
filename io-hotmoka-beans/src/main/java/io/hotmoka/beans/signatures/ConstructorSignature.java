@@ -21,7 +21,7 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.marshalling.MarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The signature of a constructor of a class.

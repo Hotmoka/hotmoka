@@ -23,7 +23,7 @@ import java.util.Map;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * An unmarshaller for storage references.

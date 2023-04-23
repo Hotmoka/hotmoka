@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.marshalling.internal;
 
-import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.api.ObjectUnmarshaller;
 
 /**
  * Knowledge about how an object of a given class can be unmarshalled.

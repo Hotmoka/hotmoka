@@ -25,10 +25,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import io.hotmoka.marshalling.Marshallable;
-import io.hotmoka.marshalling.ObjectUnmarshaller;
-import io.hotmoka.marshalling.Unmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.Marshallable;
+import io.hotmoka.marshalling.api.ObjectUnmarshaller;
+import io.hotmoka.marshalling.api.Unmarshaller;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * Implementation of a context used during bytes unmarshalling into objects.

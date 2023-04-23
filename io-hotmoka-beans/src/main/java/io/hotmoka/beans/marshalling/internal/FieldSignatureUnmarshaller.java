@@ -24,7 +24,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
-import io.hotmoka.marshalling.UnmarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * An unmarshaller for field signatures.
