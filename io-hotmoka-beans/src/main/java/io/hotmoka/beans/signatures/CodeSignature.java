@@ -29,7 +29,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -37,7 +37,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * The signature of a method or constructor.
  */
 @Immutable
-public abstract class CodeSignature extends Marshallable {
+public abstract class CodeSignature extends AbstractMarshallable {
 
 	/**
 	 * The class of the method or constructor.

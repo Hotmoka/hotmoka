@@ -23,6 +23,7 @@ import java.util.Optional;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.Marshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
@@ -79,7 +80,7 @@ public class TrieOfErrors {
 	/**
 	 * A string that can be marshalled into an object stream.
 	 */
-	private static class MarshallableString extends Marshallable {
+	private static class MarshallableString extends AbstractMarshallable {
 		private final String s;
 
 		private MarshallableString(String s) {

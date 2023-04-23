@@ -23,13 +23,13 @@ import java.util.Map;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An unmarshaller for transaction references.
  */
-public class TransactionReferenceUnmarshaller extends ObjectUnmarshaller<TransactionReference> {
+public class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<TransactionReference> {
 
 	private final Map<Integer, TransactionReference> memory = new HashMap<>();
 

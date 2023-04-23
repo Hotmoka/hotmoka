@@ -28,7 +28,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -38,7 +38,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * describe the shape of storage objects.
  */
 @Immutable
-public abstract class Update extends Marshallable implements Comparable<Update> {
+public abstract class Update extends AbstractMarshallable implements Comparable<Update> {
 
 	/**
 	 * The storage reference of the object whose field is modified.

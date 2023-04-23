@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.patricia;
+package io.hotmoka.marshalling;
 
-import io.hotmoka.marshalling.AbstractMarshallable;
+import io.hotmoka.marshalling.internal.MarshallableImpl;
 
 /**
- * A node of a Patricia tree.
+ * Partial implementation, for subclassing, of an object
+ * that can be marshaled into a stream,
+ * in a way more compact than standard Java serialization. Typically,
+ * this works because of context information about the structure of the object.
  */
-public abstract class Node extends AbstractMarshallable {
+public abstract class AbstractMarshallable extends MarshallableImpl {
 }

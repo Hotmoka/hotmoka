@@ -23,13 +23,13 @@ import java.util.Map;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An unmarshaller for field signatures.
  */
-public class FieldSignatureUnmarshaller extends ObjectUnmarshaller<FieldSignature> {
+public class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
 
 	private final Map<Integer, FieldSignature> memory = new HashMap<>();
 

@@ -25,7 +25,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -33,7 +33,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
-public abstract class StorageValue extends Marshallable implements Comparable<StorageValue> {
+public abstract class StorageValue extends AbstractMarshallable implements Comparable<StorageValue> {
 
 	/**
 	 * Yields a storage value from the given string and of the given type.

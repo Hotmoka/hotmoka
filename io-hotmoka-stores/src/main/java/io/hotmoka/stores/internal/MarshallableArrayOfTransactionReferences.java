@@ -21,14 +21,14 @@ import java.io.IOException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An array of transaction references that can be marshalled into an object stream.
  */
-public class MarshallableArrayOfTransactionReferences extends Marshallable {
+public class MarshallableArrayOfTransactionReferences extends AbstractMarshallable {
 	final TransactionReference[] transactions;
 
 	public MarshallableArrayOfTransactionReferences(TransactionReference[] transactions) {

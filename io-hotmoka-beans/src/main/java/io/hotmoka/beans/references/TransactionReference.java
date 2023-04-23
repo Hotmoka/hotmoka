@@ -22,7 +22,7 @@ import java.io.Serializable;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -30,7 +30,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * A unique identifier for a transaction.
  */
 @Immutable
-public abstract class TransactionReference extends Marshallable implements Comparable<TransactionReference>, Serializable {
+public abstract class TransactionReference extends AbstractMarshallable implements Comparable<TransactionReference>, Serializable {
 	private static final long serialVersionUID = 3206541167819020375L;
 
 	/**

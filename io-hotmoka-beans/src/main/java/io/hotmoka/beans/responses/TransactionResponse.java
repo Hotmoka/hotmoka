@@ -22,14 +22,14 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * The response of a transaction.
  */
-public abstract class TransactionResponse extends Marshallable {
+public abstract class TransactionResponse extends AbstractMarshallable {
 
 	/**
 	 * Used to marshal requests that are specific to a node.

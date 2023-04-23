@@ -22,13 +22,13 @@ import java.util.Map;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.marshalling.ObjectUnmarshaller;
+import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
 /**
  * An unmarshaller for storage references.
  */
-public class StorageReferenceUnmarshaller extends ObjectUnmarshaller<StorageReference> {
+public class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageReference> {
 
 	private final Map<Integer, StorageReference> memory = new HashMap<>();
 

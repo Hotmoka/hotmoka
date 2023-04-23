@@ -29,7 +29,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.marshalling.Marshallable;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.MarshallingContext;
 import io.hotmoka.marshalling.UnmarshallingContext;
 
@@ -39,7 +39,7 @@ import io.hotmoka.marshalling.UnmarshallingContext;
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public abstract class TransactionRequest<R extends TransactionResponse> extends Marshallable {
+public abstract class TransactionRequest<R extends TransactionResponse> extends AbstractMarshallable {
 
 	/**
 	 * Used to marshal requests that are specific to a node.

@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.marshalling;
+package io.hotmoka.marshalling.internal;
 
-import java.io.IOException;
+import io.hotmoka.marshalling.ObjectUnmarshaller;
 
 /**
  * Knowledge about how an object of a given class can be unmarshalled.
@@ -24,21 +24,24 @@ import java.io.IOException;
  * 
  * @param <C> the type of the class of the unmarshalled objects
  */
-public interface ObjectUnmarshaller<C> {
+public abstract class ObjectUnmarshallerImpl<C> implements ObjectUnmarshaller<C> {
 
 	/**
-	 * Yields the class of the objects unmarshalled by this object.
-	 * 
-	 * @return the class
+	 * The class of the unmarshalled objects.
 	 */
-	Class<C> clazz();
+	private final Class<C> clazz;
 
 	/**
-	 * How an object of class <code>C</code> can be unmarshalled.
+	 * Creates the object unmarshaller.
 	 * 
-	 * @param context the unmarshalling context
-	 * @return the unmarshalled object
-	 * @throws IOException if the object could not be unmarshalled
+	 * @param clazz the class of the unmarshalled objects
 	 */
-	C read(UnmarshallingContext context) throws IOException;
+	protected ObjectUnmarshallerImpl(Class<C> clazz) {
+		this.clazz = clazz;
+	}
+
+	@Override
+	public Class<C> clazz() {
+		return clazz;
+	}
 }
