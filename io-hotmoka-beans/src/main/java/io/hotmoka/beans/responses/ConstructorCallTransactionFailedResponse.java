@@ -151,9 +151,8 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

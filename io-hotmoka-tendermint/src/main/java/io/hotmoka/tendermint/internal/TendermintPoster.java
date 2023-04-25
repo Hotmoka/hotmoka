@@ -119,7 +119,7 @@ public class TendermintPoster {
 				return Optional.of(TransactionRequest.from(context));
 			}
 		}
-		catch (IOException | InterruptedException | ClassNotFoundException | TimeoutException e) {
+		catch (IOException | InterruptedException | TimeoutException e) {
 			logger.log(Level.WARNING, "failed getting transaction at " + hash, e);
 			throw new RuntimeException(e);
 		}

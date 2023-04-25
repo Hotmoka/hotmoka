@@ -191,9 +191,8 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();

@@ -91,9 +91,8 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the value
-	 * @throws ClassNotFoundException if the value could not be unmarshalled
 	 */
-	public static StorageValue from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static StorageValue from(UnmarshallingContext context) {
 		byte selector = context.readByte();
 		switch (selector) {
 		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());

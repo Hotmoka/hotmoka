@@ -76,7 +76,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws ClassNotFoundException {
+	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) {
 		int length = readCompactInt();
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)

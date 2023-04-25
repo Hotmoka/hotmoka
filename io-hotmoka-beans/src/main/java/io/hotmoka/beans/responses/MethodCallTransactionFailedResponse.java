@@ -153,9 +153,8 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static MethodCallTransactionFailedResponse from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static MethodCallTransactionFailedResponse from(UnmarshallingContext context) {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

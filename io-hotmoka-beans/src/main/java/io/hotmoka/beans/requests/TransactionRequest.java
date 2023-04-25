@@ -71,9 +71,8 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static TransactionRequest<?> from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static TransactionRequest<?> from(UnmarshallingContext context) {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
@@ -93,7 +92,14 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 			// hence their fully-qualified name must be available after the expansion selector
 
 			String className = context.readUTF();
-			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+			Class<?> clazz;
+			
+			try {
+				clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+			}
+			catch (ClassNotFoundException e) {
+				throw new UncheckedIOException("unknown expansion class " + className + " for transaction requests");
+			}
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
 			if (!TransactionRequest.class.isAssignableFrom(clazz))

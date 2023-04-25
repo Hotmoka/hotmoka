@@ -129,9 +129,8 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static GameteCreationTransactionRequest from(UnmarshallingContext context) {
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger initialAmount = context.readBigInteger();
 		BigInteger redInitialAmount = context.readBigInteger();

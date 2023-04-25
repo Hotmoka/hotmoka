@@ -125,9 +125,8 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) {
 		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));

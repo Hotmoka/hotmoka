@@ -127,9 +127,8 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) {
 		int jarLength = context.readInt();
 		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
 		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
@@ -123,10 +122,8 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the update
-	 * @throws IOException if the update could not be unmarshalled
-	 * @throws ClassNotFoundException if the update could not be unmarshalled
 	 */
-	public static Update from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static Update from(UnmarshallingContext context) {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageType.from(context), TransactionReference.from(context));

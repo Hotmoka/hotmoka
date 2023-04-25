@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import java.io.IOException;
-
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -49,10 +47,8 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the array
-	 * @throws IOException if the array could not be unmarshalled
-	 * @throws ClassNotFoundException if the array could not be unmarshalled
 	 */
-	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws ClassNotFoundException {
+	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) {
 		int size = TransactionRequest.REQUEST_HASH_LENGTH;
 
 		// we do not share repeated transaction references, since they do not occur in histories

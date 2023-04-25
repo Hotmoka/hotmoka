@@ -179,9 +179,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();

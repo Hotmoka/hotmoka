@@ -42,9 +42,8 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static TransactionResponse from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static TransactionResponse from(UnmarshallingContext context) {
 		byte selector = context.readByte();
 
 		switch (selector) {
@@ -69,7 +68,14 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 			// hence their fully-qualified name must be available after the expansion selector
 
 			String className = context.readUTF();
-			Class<?> clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+			Class<?> clazz;
+			
+			try {
+				clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
+			}
+			catch (ClassNotFoundException e) {
+				throw new UncheckedIOException("unknown expansion class " + className + " for transaction responses");
+			}
 
 			// only subclass of TransactionResponse are considered, to block potential call injections
 			if (!TransactionResponse.class.isAssignableFrom(clazz))

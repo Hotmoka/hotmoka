@@ -87,9 +87,8 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) {
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);

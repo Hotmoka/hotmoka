@@ -120,9 +120,8 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	 * @param context the unmarshalling context
 	 * @param selector the selector
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws ClassNotFoundException {
+	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

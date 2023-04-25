@@ -96,9 +96,8 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static InitializationTransactionRequest from(UnmarshallingContext context) {
 		TransactionReference classpath = TransactionReference.from(context);
 		StorageReference manifest = StorageReference.from(context);
 

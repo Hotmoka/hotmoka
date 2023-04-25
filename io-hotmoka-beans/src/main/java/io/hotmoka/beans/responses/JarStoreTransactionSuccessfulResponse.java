@@ -136,9 +136,8 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

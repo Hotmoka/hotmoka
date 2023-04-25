@@ -24,5 +24,5 @@ import io.hotmoka.exceptions.UncheckedIOException;
  * @param <T> the type of the marshallable
  */
 public interface Unmarshaller<T extends Marshallable> {
-	T from(UnmarshallingContext context) throws UncheckedIOException, ClassNotFoundException;
+	T from(UnmarshallingContext context) throws UncheckedIOException;
 }

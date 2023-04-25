@@ -18,7 +18,6 @@ package io.hotmoka.beans.requests;
 
 import static java.math.BigInteger.ZERO;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -223,10 +222,8 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @param context the unmarshalling context
 	 * @param selector the selector
 	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws ClassNotFoundException {
+	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) {
 		if (selector == SELECTOR) {
 			String chainId = context.readUTF();
 			StorageReference caller = StorageReference.from(context);

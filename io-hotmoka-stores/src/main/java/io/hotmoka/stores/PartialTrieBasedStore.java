@@ -430,8 +430,5 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
-		catch (ClassNotFoundException e) {
-			throw new RuntimeException(e);
-		}
 	}
 }

@@ -46,9 +46,8 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @param supplier the creator of the resulting array of marshallables
 	 * @return the array
 	 * @throws UncheckedIOException if some marshallable could not be unmarshalled
-	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
-	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws UncheckedIOException, ClassNotFoundException;
+	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws UncheckedIOException;
 
 	byte readByte() throws UncheckedIOException;
 
@@ -93,7 +92,7 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * optimized representations used for the big integer.
 	 * 
 	 * @return the big integer
-	 * @throws IOException if the big integer could not be written
+	 * @throws UncheckedIOException if the big integer could not be written
 	 */
 	BigInteger readBigInteger() throws UncheckedIOException;
 

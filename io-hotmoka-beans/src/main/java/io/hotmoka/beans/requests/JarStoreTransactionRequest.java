@@ -229,9 +229,8 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
