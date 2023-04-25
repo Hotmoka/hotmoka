@@ -75,6 +75,14 @@ public interface UnmarshallingContext extends AutoCloseable {
 
 	String readUTF() throws IOException;
 
+	/**
+	 * Reads {@code length} bytes from the context.
+	 * 
+	 * @param length the number of bytes to read
+	 * @param errorMessage the message of the exception if it was not possible to read exactly {@code length} bytes
+	 * @return the bytes
+	 * @throws IOException if it was not possible to read {@code length} bytes
+	 */
 	byte[] readBytes(int length, String errorMessage) throws IOException;
 
 	String readStringShared() throws IOException;

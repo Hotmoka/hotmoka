@@ -69,6 +69,7 @@
       <module>io-hotmoka-annotations</module>
       <module>io-hotmoka-marshalling</module>
       <module>io-hotmoka-marshalling-api</module>
+      <module>io-hotmoka-exceptions</module>
     </modules>
 
     <profiles>
@@ -243,6 +244,7 @@
                   io-hotmoka-annotations,
                   io-hotmoka-marshalling,
 				  io-hotmoka-marshalling-api,
+				  io-hotmoka-exceptions,
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
