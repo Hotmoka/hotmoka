@@ -129,7 +129,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(MarshallingContext context) {
 		intoWithoutSignature(context);
 
 		// we add the signature
@@ -178,7 +178,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	public void intoWithoutSignature(MarshallingContext context) {
 		MethodSignature staticTarget = getStaticTarget();
 		boolean receiveInt = CodeSignature.RECEIVE_INT.equals(staticTarget);
 		boolean receiveLong = CodeSignature.RECEIVE_LONG.equals(staticTarget);
@@ -226,7 +226,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException, ClassNotFoundException {
+	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws ClassNotFoundException {
 		if (selector == SELECTOR) {
 			String chainId = context.readUTF();
 			StorageReference caller = StorageReference.from(context);

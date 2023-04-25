@@ -16,8 +16,9 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import java.io.IOException;
 import java.math.BigInteger;
+
+import io.hotmoka.exceptions.UncheckedIOException;
 
 /**
  * A context used during object marshaling into bytes.
@@ -31,9 +32,9 @@ public interface MarshallingContext extends AutoCloseable {
 	 * @param <C> the type of the object
 	 * @param clazz the class of the object
 	 * @param value the object to marshal
-	 * @throws IOException if the object could not be unmarshalled
+	 * @throws UncheckedIOException if the object could not be unmarshalled
 	 */
-	<C> void writeObject(Class<C> clazz, C value) throws IOException;
+	<C> void writeObject(Class<C> clazz, C value) throws UncheckedIOException;
 
 	/**
 	 * Writes the given string into the output stream. It uses a memory
@@ -43,35 +44,35 @@ public interface MarshallingContext extends AutoCloseable {
 	 * @param s the string to write
 	 * @throws IOException if the string could not be written
 	 */
-	void writeStringShared(String s) throws IOException;
+	void writeStringShared(String s) throws UncheckedIOException;
 
-	void writeByte(int b) throws IOException;
+	void writeByte(int b) throws UncheckedIOException;
 
-	void writeChar(int c) throws IOException;
+	void writeChar(int c) throws UncheckedIOException;
 
-	void writeInt(int i) throws IOException;
+	void writeInt(int i) throws UncheckedIOException;
 
 	/**
 	 * Writes the given integer, in a way that compacts small integers.
 	 * 
 	 * @param i the integer
-	 * @throws IOException if the integer cannot be marshalled
+	 * @throws UncheckedIOException if the integer cannot be marshalled
 	 */
-	void writeCompactInt(int i) throws IOException;
+	void writeCompactInt(int i) throws UncheckedIOException;
 
-	void writeUTF(String s) throws IOException;
+	void writeUTF(String s) throws UncheckedIOException;
 
-	void write(byte[] bytes) throws IOException;
+	void write(byte[] bytes) throws UncheckedIOException;
 
-	void writeDouble(double d) throws IOException;
+	void writeDouble(double d) throws UncheckedIOException;
 
-	void writeFloat(float f) throws IOException;
+	void writeFloat(float f) throws UncheckedIOException;
 
-	void writeLong(long l) throws IOException;
+	void writeLong(long l) throws UncheckedIOException;
 
-	void writeShort(int s) throws IOException;
+	void writeShort(int s) throws UncheckedIOException;
 
-	void writeBoolean(boolean b) throws IOException;
+	void writeBoolean(boolean b) throws UncheckedIOException;
 
 	/**
 	 * Writes the given big integer, in a compact way.
@@ -79,10 +80,10 @@ public interface MarshallingContext extends AutoCloseable {
 	 * @param bi the big integer
 	 * @throws IOException if the big integer could not be written
 	 */
-	void writeBigInteger(BigInteger bi) throws IOException;
+	void writeBigInteger(BigInteger bi) throws UncheckedIOException;
 
-	void flush() throws IOException;
+	void flush() throws UncheckedIOException;
 
 	@Override
-	void close() throws IOException;
+	void close() throws UncheckedIOException;
 }

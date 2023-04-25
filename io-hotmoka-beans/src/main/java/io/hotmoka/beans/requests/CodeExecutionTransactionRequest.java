@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -93,7 +92,7 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	}
 
 	@Override
-	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(MarshallingContext context) {
 		super.intoWithoutSignature(context);
 		intoArray(actuals, context);
 	}

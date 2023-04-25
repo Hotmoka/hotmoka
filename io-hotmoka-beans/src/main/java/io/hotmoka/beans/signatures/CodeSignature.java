@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.signatures;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -29,6 +28,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -410,7 +410,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		definingClass.into(context);
 		context.writeCompactInt(formals.length);
 		for (StorageType formal: formals)
@@ -422,9 +422,8 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the code signature
-	 * @throws IOException if the code signature could not be unmarshalled
 	 */
-	public static CodeSignature from(UnmarshallingContext context) throws IOException {
+	public static CodeSignature from(UnmarshallingContext context) {
 		byte selector = context.readByte();
 		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;
@@ -441,12 +440,12 @@ public abstract class CodeSignature extends AbstractMarshallable {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
 		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readUTF(), formals);
 		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readUTF(), StorageType.from(context), formals);
-		default: throw new IOException("unexpected code signature selector: " + selector);
+		default: throw new UncheckedIOException("unexpected code signature selector: " + selector);
 		}
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return new BeanMarshallingContext(os);
 	}
 }

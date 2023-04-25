@@ -26,6 +26,7 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -110,7 +111,7 @@ public final class StorageReference extends StorageValue implements Serializable
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		intoWithoutSelector(context);
 	}
@@ -119,17 +120,20 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * Marshals this object into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling this object
-	 * @throws IOException if this object cannot be marshalled
 	 */
-	public final byte[] toByteArrayWithoutSelector() throws IOException {
+	public final byte[] toByteArrayWithoutSelector() {
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSelector(context);
 			context.flush();
 			return baos.toByteArray();
 		}
+		catch (IOException e) {
+			// impossible for a ByteArrayOutputStream
+			throw new UncheckedIOException("unexpected exception");
+		}
 	}
 
-	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
+	public final void intoWithoutSelector(MarshallingContext context) {
 		context.writeObject(StorageReference.class, this);
 	}
 
@@ -138,9 +142,8 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the storage reference
-	 * @throws IOException if the storage reference could not be unmarshalled
 	 */
-	public static StorageReference from(UnmarshallingContext context) throws IOException {
+	public static StorageReference from(UnmarshallingContext context) {
 		return context.readObject(StorageReference.class);
 	}
 }

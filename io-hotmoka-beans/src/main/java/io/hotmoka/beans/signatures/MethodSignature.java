@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.signatures;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -73,7 +72,7 @@ public abstract class MethodSignature extends CodeSignature {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		super.into(context);
 		context.writeUTF(methodName);
 	}

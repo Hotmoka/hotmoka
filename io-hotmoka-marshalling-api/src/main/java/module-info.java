@@ -16,4 +16,5 @@ limitations under the License.
 
 module io.hotmoka.marshalling.api {
 	exports io.hotmoka.marshalling.api;
+	requires io.hotmoka.exceptions;
 }

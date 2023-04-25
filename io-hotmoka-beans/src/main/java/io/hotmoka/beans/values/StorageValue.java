@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.values;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
@@ -92,10 +91,9 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the value
-	 * @throws IOException if the value could not be unmarshalled
 	 * @throws ClassNotFoundException if the value could not be unmarshalled
 	 */
-	public static StorageValue from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static StorageValue from(UnmarshallingContext context) throws ClassNotFoundException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());
@@ -122,7 +120,7 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return new BeanMarshallingContext(os);
 	}
 }

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -112,7 +111,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		context.writeCompactInt(verificationToolVersion);
 		context.writeInt(instrumentedJar.length);
@@ -126,10 +125,9 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws ClassNotFoundException {
 		int verificationToolVersion = context.readCompactInt();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));

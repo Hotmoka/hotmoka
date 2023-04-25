@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.references;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 
@@ -52,14 +51,13 @@ public abstract class TransactionReference extends AbstractMarshallable implemen
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the transaction reference
-	 * @throws IOException if the transaction reference could not be unmarshalled
      */
-	public static TransactionReference from(UnmarshallingContext context) throws IOException {
+	public static TransactionReference from(UnmarshallingContext context) {
 		return context.readObject(TransactionReference.class);
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return new BeanMarshallingContext(os);
 	}
 }

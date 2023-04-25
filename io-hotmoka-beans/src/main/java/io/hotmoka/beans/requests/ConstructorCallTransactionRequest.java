@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -121,7 +120,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public final void into(MarshallingContext context) throws IOException {
+	public final void into(MarshallingContext context) {
 		intoWithoutSignature(context);
 
 		// we add the signature
@@ -179,7 +178,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	public void intoWithoutSignature(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
@@ -192,10 +191,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();

@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.values;
 
-import java.io.IOException;
-
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -67,7 +65,7 @@ public final class DoubleValue extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		context.writeDouble(value);
 	}

@@ -420,12 +420,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	}
 
 	protected static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
-		try {
-			return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+		return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
 	}
 
 	protected static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {

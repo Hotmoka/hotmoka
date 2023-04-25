@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -103,7 +102,7 @@ public final class UpdateOfEnumLazy extends UpdateOfField {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeUTF(enumClassName);

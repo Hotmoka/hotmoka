@@ -36,7 +36,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		// we do not try to share repeated transaction references, since they do not occur in histories
 		// and provision for sharing would just make the size of the histories larger
 		context.writeCompactInt(transactions.length);
@@ -52,7 +52,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	 * @throws IOException if the array could not be unmarshalled
 	 * @throws ClassNotFoundException if the array could not be unmarshalled
 	 */
-	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws ClassNotFoundException {
 		int size = TransactionRequest.REQUEST_HASH_LENGTH;
 
 		// we do not share repeated transaction references, since they do not occur in histories

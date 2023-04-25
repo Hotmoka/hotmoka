@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.marshalling;
 
-import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.beans.marshalling.internal.FieldSignatureMarshaller;
@@ -29,7 +28,7 @@ import io.hotmoka.marshalling.AbstractMarshallingContext;
  */
 public class BeanMarshallingContext extends AbstractMarshallingContext {
 
-	public BeanMarshallingContext(OutputStream oos) throws IOException {
+	public BeanMarshallingContext(OutputStream oos) {
 		super(oos);
 		
 		registerObjectMarshaller(new TransactionReferenceMarshaller());

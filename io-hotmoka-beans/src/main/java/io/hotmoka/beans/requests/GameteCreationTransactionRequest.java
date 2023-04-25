@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -116,7 +115,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		classpath.into(context);
 		context.writeBigInteger(initialAmount);
@@ -130,10 +129,9 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws ClassNotFoundException {
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger initialAmount = context.readBigInteger();
 		BigInteger redInitialAmount = context.readBigInteger();

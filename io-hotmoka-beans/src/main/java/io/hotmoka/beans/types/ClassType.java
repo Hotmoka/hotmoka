@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.types;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -393,7 +392,7 @@ public final class ClassType implements StorageType {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		if (equals(BIG_INTEGER))
 			context.writeByte(SELECTOR_BIGINTEGER);
 		else if (equals(UNSIGNED_BIG_INTEGER))

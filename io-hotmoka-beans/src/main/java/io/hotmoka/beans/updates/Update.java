@@ -28,6 +28,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -113,7 +114,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		object.intoWithoutSelector(context);
 	}
 
@@ -125,7 +126,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * @throws IOException if the update could not be unmarshalled
 	 * @throws ClassNotFoundException if the update could not be unmarshalled
 	 */
-	public static Update from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static Update from(UnmarshallingContext context) throws ClassNotFoundException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageType.from(context), TransactionReference.from(context));
@@ -169,12 +170,12 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(context), FieldSignature.from(context), context.readUTF());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(context), FieldSignature.from(context));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(context), FieldSignature.from(context));
-		default: throw new IOException("unexpected update selector: " + selector);
+		default: throw new UncheckedIOException("unexpected update selector: " + selector);
 		}
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return new BeanMarshallingContext(os);
 	}
 }

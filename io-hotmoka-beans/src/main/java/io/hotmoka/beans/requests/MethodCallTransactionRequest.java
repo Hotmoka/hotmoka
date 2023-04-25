@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Collectors;
 
@@ -97,7 +96,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	}
 
 	@Override
-	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(MarshallingContext context) {
 		super.intoWithoutSignature(context);
 		method.into(context);
 	}

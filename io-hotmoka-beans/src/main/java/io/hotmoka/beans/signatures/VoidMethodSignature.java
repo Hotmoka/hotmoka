@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.signatures;
 
-import java.io.IOException;
-
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
@@ -64,7 +62,7 @@ public final class VoidMethodSignature extends MethodSignature {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		if (equals(VALIDATORS_REWARD))
 			context.writeByte(SELECTOR_REWARD);
 		else {

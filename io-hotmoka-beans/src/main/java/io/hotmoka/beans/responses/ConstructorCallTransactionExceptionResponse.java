@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -127,7 +126,7 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		intoArrayWithoutSelector(events, context);
@@ -142,10 +141,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the response could not be unmarshalled
 	 * @throws ClassNotFoundException if the response could not be unmarshalled
 	 */
-	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws ClassNotFoundException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

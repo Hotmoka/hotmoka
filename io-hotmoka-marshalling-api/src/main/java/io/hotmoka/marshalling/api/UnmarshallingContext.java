@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.function.Function;
+
+import io.hotmoka.exceptions.UncheckedIOException;
 
 /**
  * A context used during bytes unmarshalling into objects.
@@ -33,9 +34,9 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @param <C> the type of the object
 	 * @param clazz the class of the object
 	 * @return the unmarshalled object
-	 * @throws IOException if the object could not be unmarshalled
+	 * @throws UncheckedIOException if the object could not be unmarshalled
 	 */
-	<C> C readObject(Class<C> clazz) throws IOException;
+	<C> C readObject(Class<C> clazz) throws UncheckedIOException;
 
 	/**
 	 * Yields an array of marshallables unmarshalled from this context.
@@ -44,36 +45,36 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @param unmarshaller the object that unmarshals a single marshallable
 	 * @param supplier the creator of the resulting array of marshallables
 	 * @return the array
-	 * @throws IOException if some marshallable could not be unmarshalled
+	 * @throws UncheckedIOException if some marshallable could not be unmarshalled
 	 * @throws ClassNotFoundException if some marshallable could not be unmarshalled
 	 */
-	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException;
+	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws UncheckedIOException, ClassNotFoundException;
 
-	byte readByte() throws IOException;
+	byte readByte() throws UncheckedIOException;
 
-	char readChar() throws IOException;
+	char readChar() throws UncheckedIOException;
 
-	boolean readBoolean() throws IOException;
+	boolean readBoolean() throws UncheckedIOException;
 
-	int readInt() throws IOException;
+	int readInt() throws UncheckedIOException;
 
 	/**
 	 * Reads an optimized integer.
 	 * 
 	 * @return the integer
-	 * @throws IOException if the integer cannot be read
+	 * @throws UncheckedIOException if the integer cannot be read
 	 */
-	int readCompactInt() throws IOException;
+	int readCompactInt() throws UncheckedIOException;
 
-	short readShort() throws IOException;
+	short readShort() throws UncheckedIOException;
 
-	long readLong() throws IOException;
+	long readLong() throws UncheckedIOException;
 
-	float readFloat() throws IOException;
+	float readFloat() throws UncheckedIOException;
 
-	double readDouble() throws IOException;
+	double readDouble() throws UncheckedIOException;
 
-	String readUTF() throws IOException;
+	String readUTF() throws UncheckedIOException;
 
 	/**
 	 * Reads {@code length} bytes from the context.
@@ -81,11 +82,11 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @param length the number of bytes to read
 	 * @param errorMessage the message of the exception if it was not possible to read exactly {@code length} bytes
 	 * @return the bytes
-	 * @throws IOException if it was not possible to read {@code length} bytes
+	 * @throws UncheckedIOException if it was not possible to read {@code length} bytes
 	 */
-	byte[] readBytes(int length, String errorMessage) throws IOException;
+	byte[] readBytes(int length, String errorMessage) throws UncheckedIOException;
 
-	String readStringShared() throws IOException;
+	String readStringShared() throws UncheckedIOException;
 
 	/**
 	 * Reads a big integer, taking into account
@@ -94,8 +95,8 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @return the big integer
 	 * @throws IOException if the big integer could not be written
 	 */
-	BigInteger readBigInteger() throws IOException;
+	BigInteger readBigInteger() throws UncheckedIOException;
 
 	@Override
-	void close() throws IOException;
+	void close() throws UncheckedIOException;
 }

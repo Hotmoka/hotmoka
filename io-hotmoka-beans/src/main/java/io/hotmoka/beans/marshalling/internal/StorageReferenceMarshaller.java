@@ -1,6 +1,5 @@
 package io.hotmoka.beans.marshalling.internal;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +19,7 @@ public class StorageReferenceMarshaller extends AbstractObjectMarshaller<Storage
 	}
 
 	@Override
-	public void write(StorageReference reference, MarshallingContext context) throws IOException {
+	public void write(StorageReference reference, MarshallingContext context) {
 		Integer index = memory.get(reference);
 		if (index != null) {
 			if (index < 254)

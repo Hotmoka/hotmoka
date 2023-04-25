@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
-import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -98,7 +97,7 @@ public final class UpdateOfString extends UpdateOfField {
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);

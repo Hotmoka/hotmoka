@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.marshalling.internal;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -33,15 +33,13 @@ public abstract class MarshallableImpl implements Marshallable {
 
 	@Override
 	public final byte[] toByteArray() {
-		try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {
-			into(context);
-			context.flush();
-			return baos.toByteArray();
-		}
-		catch (IOException e) {
-			// impossible for a ByteArrayOutputStream
-			throw new RuntimeException("unexpected exception", e);
-		}
+		return UncheckedIOException.wraps(() -> {
+			try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {
+				into(context);
+				context.flush();
+				return baos.toByteArray();
+			}
+		});
 	}
 
 	/**
@@ -49,9 +47,9 @@ public abstract class MarshallableImpl implements Marshallable {
 	 * 
 	 * @param marshallables the array of marshallables
 	 * @param context the context holding the stream
-	 * @throws IOException if some element could not be marshalled
+	 * @throws UncheckedIOException if some elements could not be marshalled
 	 */
-	protected static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
+	protected static void intoArray(Marshallable[] marshallables, MarshallingContext context) {
 		context.writeCompactInt(marshallables.length);
 
 		for (Marshallable marshallable: marshallables)
@@ -63,9 +61,9 @@ public abstract class MarshallableImpl implements Marshallable {
 	 * 
 	 * @param os the output stream of the context
 	 * @return the default marshalling context. Subclasses may provide a more efficient context
-	 * @throws IOException if the marshalling context cannot be created
+	 * @throws UncheckedIOException if the marshalling context cannot be created
 	 */
-	protected MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected MarshallingContext createMarshallingContext(OutputStream os) {
 		return new MarshallingContextImpl(os);
 	}
 }

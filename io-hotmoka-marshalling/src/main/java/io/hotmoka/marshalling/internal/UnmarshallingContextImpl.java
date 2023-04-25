@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.marshalling.internal;
 
 import java.io.BufferedInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.math.BigInteger;
@@ -25,6 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.ObjectUnmarshaller;
 import io.hotmoka.marshalling.api.Unmarshaller;
@@ -50,10 +50,10 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	 * Creates an unmarshalling context.
 	 * 
 	 * @param is the input stream of the context
-	 * @throws IOException if the context cannot be created
+	 * @throws UncheckedIOException if the context cannot be created
 	 */
-	public UnmarshallingContextImpl(InputStream is) throws IOException {
-		this.ois = new ObjectInputStream(new BufferedInputStream(is));
+	public UnmarshallingContextImpl(InputStream is) {
+		this.ois = UncheckedIOException.wraps(() -> new ObjectInputStream(new BufferedInputStream(is)));
 	}
 
 	/**
@@ -66,7 +66,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public <C> C readObject(Class<C> clazz) throws IOException {
+	public <C> C readObject(Class<C> clazz) {
 		@SuppressWarnings("unchecked")
 		var ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
 		if (ou == null)
@@ -76,7 +76,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException, ClassNotFoundException {
+	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws ClassNotFoundException {
 		int length = readCompactInt();
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)
@@ -86,27 +86,27 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public byte readByte() throws IOException {
-		return ois.readByte();
+	public byte readByte() {
+		return UncheckedIOException.wraps(ois::readByte);
 	}
 
 	@Override
-	public char readChar() throws IOException {
-		return ois.readChar();
+	public char readChar() {
+		return UncheckedIOException.wraps(ois::readChar);
 	}
 
 	@Override
-	public boolean readBoolean() throws IOException {
-		return ois.readBoolean();
+	public boolean readBoolean() {
+		return UncheckedIOException.wraps(ois::readBoolean);
 	}
 
 	@Override
-	public int readInt() throws IOException {
-		return ois.readInt();
+	public int readInt() {
+		return UncheckedIOException.wraps(ois::readInt);
 	}
 
 	@Override
-	public int readCompactInt() throws IOException {
+	public int readCompactInt() {
 		int i = readByte();
 		if (i < 0)
 			i += 256;
@@ -118,58 +118,58 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public short readShort() throws IOException {
-		return ois.readShort();
+	public short readShort() {
+		return UncheckedIOException.wraps(ois::readShort);
 	}
 
 	@Override
-	public long readLong() throws IOException {
-		return ois.readLong();
+	public long readLong() {
+		return UncheckedIOException.wraps(ois::readLong);
 	}
 
 	@Override
-	public float readFloat() throws IOException {
-		return ois.readFloat();
+	public float readFloat() {
+		return UncheckedIOException.wraps(ois::readFloat);
 	}
 
 	@Override
-	public double readDouble() throws IOException {
-		return ois.readDouble();
+	public double readDouble() {
+		return UncheckedIOException.wraps(ois::readDouble);
 	}
 
 	@Override
-	public String readUTF() throws IOException {
-		return ois.readUTF();
+	public String readUTF() {
+		return UncheckedIOException.wraps(ois::readUTF);
 	}
 
 	@Override
-	public byte[] readBytes(int length, String errorMessage) throws IOException {
+	public byte[] readBytes(int length, String errorMessage) {
 		byte[] bytes = new byte[length];
-		if (length != ois.readNBytes(bytes, 0, length))
-			throw new IOException(errorMessage);
+		if (length != UncheckedIOException.wraps(() -> ois.readNBytes(bytes, 0, length)))
+			throw new UncheckedIOException(errorMessage);
 
 		return bytes;
 	}
 
 	@Override
-	public String readStringShared() throws IOException {
-		int selector = ois.readByte();
+	public String readStringShared() {
+		int selector = readByte();
 		if (selector < 0)
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			String s = ois.readUTF();
+			String s = readUTF();
 			memoryString.put(memoryString.size(), s);
 			return s;
 		}
 		else if (selector == 254)
-			return memoryString.get(ois.readInt());
+			return memoryString.get(readInt());
 		else
 			return memoryString.get(selector);
 	}
 
 	@Override
-	public BigInteger readBigInteger() throws IOException {
+	public BigInteger readBigInteger() {
 		byte selector = readByte();
 		switch (selector) {
 		case 0: return BigInteger.valueOf(readShort());
@@ -189,7 +189,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public void close() throws IOException {
-		ois.close();
+	public void close() {
+		UncheckedIOException.wraps(ois::close);
 	}
 }

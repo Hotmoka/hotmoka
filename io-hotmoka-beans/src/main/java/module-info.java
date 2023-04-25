@@ -28,4 +28,5 @@ module io.hotmoka.beans {
 	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
+	requires io.hotmoka.exceptions;
 }

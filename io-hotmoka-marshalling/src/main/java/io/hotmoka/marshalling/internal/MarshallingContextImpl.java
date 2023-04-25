@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.marshalling.internal;
 
-import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.ObjectMarshaller;
 
@@ -38,8 +38,8 @@ public class MarshallingContextImpl implements MarshallingContext {
 	 */
 	private final Map<Class<?>, ObjectMarshaller<?>> objectMarshallers = new HashMap<>();
 
-	public MarshallingContextImpl(OutputStream oos) throws IOException {
-		this.oos = new ObjectOutputStream(oos);
+	public MarshallingContextImpl(OutputStream oos) {
+		this.oos = UncheckedIOException.wraps(() -> new ObjectOutputStream(oos));
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public <C> void writeObject(Class<C> clazz, C value) throws IOException {
+	public <C> void writeObject(Class<C> clazz, C value) {
 		@SuppressWarnings("unchecked")
 		var om = (ObjectMarshaller<C>) objectMarshallers.get(clazz);
 		if (om == null)
@@ -62,45 +62,48 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public void writeStringShared(String s) throws IOException {
+	public void writeStringShared(String s) {
 		Integer index = memoryString.get(s);
-		if (index != null) {
-			if (index < 254)
-				oos.writeByte(index);
-			else {
-				oos.writeByte(254);
-				oos.writeInt(index);
+
+		UncheckedIOException.wraps(() -> {
+			if (index != null) {
+				if (index < 254)
+					oos.writeByte(index);
+				else {
+					oos.writeByte(254);
+					oos.writeInt(index);
+				}
 			}
-		}
-		else {
-			int next = memoryString.size();
-			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("too many strings in the same context");
+			else {
+				int next = memoryString.size();
+				if (next == Integer.MAX_VALUE) // irrealistic
+					throw new IllegalStateException("too many strings in the same context");
 
-			memoryString.put(s, next);
+				memoryString.put(s, next);
 
-			oos.writeByte(255);
-			oos.writeUTF(s);
-		}
+				oos.writeByte(255);
+				oos.writeUTF(s);
+			}
+		});
 	}
 
 	@Override
-	public void writeByte(int b) throws IOException {
-		oos.writeByte(b);
+	public void writeByte(int b) {
+		UncheckedIOException.wraps(() -> oos.writeByte(b));
 	}
 
 	@Override
-	public void writeChar(int c) throws IOException {
-		oos.writeChar(c);
+	public void writeChar(int c) {
+		UncheckedIOException.wraps(() -> oos.writeChar(c));
 	}
 
 	@Override
-	public void writeInt(int i) throws IOException {
-		oos.writeInt(i);
+	public void writeInt(int i) {
+		UncheckedIOException.wraps(() -> oos.writeInt(i));
 	}
 
 	@Override
-	public void writeCompactInt(int i) throws IOException {
+	public void writeCompactInt(int i) {
 		if (i < 255)
 			writeByte(i);
 		else {
@@ -110,42 +113,42 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public void writeUTF(String s) throws IOException {
-		oos.writeUTF(s);
+	public void writeUTF(String s) {
+		UncheckedIOException.wraps(() -> oos.writeUTF(s));
 	}
 
 	@Override
-	public void write(byte[] bytes) throws IOException {
-		oos.write(bytes);
+	public void write(byte[] bytes) {
+		UncheckedIOException.wraps(() -> oos.write(bytes));
 	}
 
 	@Override
-	public void writeDouble(double d) throws IOException {
-		oos.writeDouble(d);
+	public void writeDouble(double d) {
+		UncheckedIOException.wraps(() -> oos.writeDouble(d));
 	}
 
 	@Override
-	public void writeFloat(float f) throws IOException {
-		oos.writeFloat(f);
+	public void writeFloat(float f) {
+		UncheckedIOException.wraps(() -> oos.writeFloat(f));
 	}
 
 	@Override
-	public void writeLong(long l) throws IOException {
-		oos.writeLong(l);
+	public void writeLong(long l) {
+		UncheckedIOException.wraps(() -> oos.writeLong(l));
 	}
 
 	@Override
-	public void writeShort(int s) throws IOException {
-		oos.writeShort(s);
+	public void writeShort(int s) {
+		UncheckedIOException.wraps(() -> oos.writeShort(s));
 	}
 
 	@Override
-	public void writeBoolean(boolean b) throws IOException {
-		oos.writeBoolean(b);
+	public void writeBoolean(boolean b) {
+		UncheckedIOException.wraps(() -> oos.writeBoolean(b));
 	}
 
 	@Override
-	public void writeBigInteger(BigInteger bi) throws IOException {
+	public void writeBigInteger(BigInteger bi) {
 		short small = bi.shortValue();
 
 		if (BigInteger.valueOf(small).equals(bi)) {
@@ -173,12 +176,12 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public void flush() throws IOException {
-		oos.flush();
+	public void flush() {
+		UncheckedIOException.wraps(oos::flush);
 	}
 
 	@Override
-	public void close() throws IOException {
-		oos.close();
+	public void close() {
+		UncheckedIOException.wraps(oos::close);
 	}
 }

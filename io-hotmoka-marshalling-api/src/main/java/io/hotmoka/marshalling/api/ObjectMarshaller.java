@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import java.io.IOException;
+import io.hotmoka.exceptions.UncheckedIOException;
 
 /**
  * Knowledge about how an object of a given class can be marshalled.
@@ -38,7 +38,7 @@ public interface ObjectMarshaller<C> {
 	 * 
 	 * @param value the value to marshall
 	 * @param context the marshalling context
-	 * @throws IOException if the object could not be marshalled
+	 * @throws UncheckedIOException if the object could not be marshalled
 	 */
-	void write(C value, MarshallingContext context) throws IOException;
+	void write(C value, MarshallingContext context) throws UncheckedIOException;
 }

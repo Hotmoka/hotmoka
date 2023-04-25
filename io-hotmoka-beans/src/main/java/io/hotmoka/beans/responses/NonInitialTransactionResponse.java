@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -121,7 +120,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	}
 
 	@Override
-	public void into(MarshallingContext context) throws IOException {
+	public void into(MarshallingContext context) {
 		intoArray(updates, context);
 		context.writeBigInteger(gasConsumedForCPU);
 		context.writeBigInteger(gasConsumedForRAM);

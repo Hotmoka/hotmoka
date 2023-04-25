@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -29,6 +28,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -71,10 +71,9 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException if the request could not be unmarshalled
 	 * @throws ClassNotFoundException if the request could not be unmarshalled
 	 */
-	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException, ClassNotFoundException {
+	public static TransactionRequest<?> from(UnmarshallingContext context) throws ClassNotFoundException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
@@ -98,24 +97,24 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 
 			// only subclass of TransactionRequest are considered, to block potential call injections
 			if (!TransactionRequest.class.isAssignableFrom(clazz))
-				throw new IOException("unknown request class " + className);
+				throw new UncheckedIOException("unknown request class " + className);
 
 			Method from;
 			try {
 				from = clazz.getMethod("from", UnmarshallingContext.class);
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new IOException("cannot find method " + className + ".from(UnmarshallingContext)");
+				throw new UncheckedIOException("cannot find method " + className + ".from(UnmarshallingContext)");
 			}
 
 			try {
 				return (TransactionRequest<?>) from.invoke(null, context);
 			}
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new IOException("cannot call method " + className + ".from(UnmarshallingContext)");
+				throw new UncheckedIOException("cannot call method " + className + ".from(UnmarshallingContext)");
 			}
 		}
-		default: throw new IOException("unexpected request selector: " + selector);
+		default: throw new UncheckedIOException("unexpected request selector: " + selector);
 		}
 	}
 
@@ -171,15 +170,14 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the signature
-	 * @throws IOException if the signature could not be unmarshalled
 	 */
-	protected static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
+	protected static byte[] unmarshallSignature(UnmarshallingContext context) {
 		int signatureLength = context.readCompactInt();
 		return context.readBytes(signatureLength, "signature length mismatch in request");
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) {
 		return new BeanMarshallingContext(os);
 	}
 }
