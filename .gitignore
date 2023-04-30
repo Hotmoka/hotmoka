@@ -17,6 +17,7 @@ RemoteSystemsTempFiles/
 *.out
 *.vtc
 *~
+.flattened-pom.xml
 doc/
 target/
 scripts/*_node_info/
