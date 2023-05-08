@@ -61,4 +61,16 @@ public abstract class CheckRunnable {
 			throw e.getCause();
 		}
 	}
+
+	public static void checkInterruptedExceptionIOException(Runnable runnable) throws InterruptedException, IOException {
+		try {
+			runnable.run();
+		}
+		catch (UncheckedInterruptedException e) {
+			throw e.getCause();
+		}
+		catch (UncheckedIOException e) {
+			throw e.getCause();
+		}
+	}
 }

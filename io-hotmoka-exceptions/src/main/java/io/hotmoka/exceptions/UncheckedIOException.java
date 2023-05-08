@@ -24,38 +24,12 @@ import java.io.IOException;
 @SuppressWarnings("serial")
 public class UncheckedIOException extends java.io.UncheckedIOException {
 
-	public UncheckedIOException(IOException cause) {
+	UncheckedIOException(IOException cause) {
 		super(cause);
 	}
 
 	@Override
 	public IOException getCause() {
 		return (IOException) super.getCause();
-	}
-
-	public interface SupplierWithException<T> {
-		T get() throws IOException;
-	}
-
-	public static <T> T wraps(SupplierWithException<T> supplier) {
-		try {
-			return supplier.get();
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
-	}
-
-	public interface CodeWithException {
-		void apply() throws IOException;
-	}
-
-	public static void wraps(CodeWithException code) {
-		try {
-			code.apply();
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
 	}
 }
