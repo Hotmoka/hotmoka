@@ -19,6 +19,7 @@ package io.hotmoka.crypto;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.crypto.internal.SHA256;
@@ -87,6 +88,19 @@ public interface HashingAlgorithms {
 	 */
 	static <T> HashingAlgorithm<T> mk(TYPES type, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
 		return mk(type.name(), supplier);
+	}
+
+	/**
+	 * Determines if a hashing algorithm with the given name exists.
+	 * 
+	 * @param name the name of the hashing algorithm.
+	 * @return true if and only if the name corresponds to one of the algorithms in {@code TYPES}.
+	 */
+	static boolean exists(String name) {
+		return Stream.of(TYPES.values())
+			.map(Enum::name)
+			.map(String::toLowerCase)
+			.anyMatch(name::equals);
 	}
 
 	/**

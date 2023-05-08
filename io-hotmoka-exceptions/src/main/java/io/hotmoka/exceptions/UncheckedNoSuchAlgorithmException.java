@@ -32,13 +32,9 @@ public class UncheckedNoSuchAlgorithmException extends RuntimeException {
 		super(cause);
 	}
 
-	public UncheckedNoSuchAlgorithmException(String message, NoSuchAlgorithmException cause) {
-		super(message, cause);
-	}
-
 	@Override
-	public UncheckedNoSuchAlgorithmException getCause() {
-		return (UncheckedNoSuchAlgorithmException) super.getCause();
+	public NoSuchAlgorithmException getCause() {
+		return (NoSuchAlgorithmException) super.getCause();
 	}
 
 	public interface SupplierWithException<T> {
