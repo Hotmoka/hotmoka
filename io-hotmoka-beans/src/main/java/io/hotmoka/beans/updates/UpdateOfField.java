@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -103,12 +104,12 @@ public abstract class UpdateOfField extends Update {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		super.into(context);
 		field.into(context);
 	}
 
-	protected final void intoWithoutField(MarshallingContext context) {
+	protected final void intoWithoutField(MarshallingContext context) throws IOException {
 		super.into(context);
 	}
 }

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -52,8 +53,9 @@ public abstract class CodeExecutionTransactionResponse extends NonInitialTransac
 	 * 
 	 * @param marshallables the array of marshallables
 	 * @param context the context holding the stream
+	 * @throws IOException if the array cannot be marshalled
 	 */
-	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) {
+	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
 		context.writeCompactInt(marshallables.length);
 
 		for (StorageReference reference: marshallables)

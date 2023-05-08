@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
@@ -243,7 +244,7 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeObject(FieldSignature.class, this);
 	}
 
@@ -252,13 +253,14 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the field signature
+	 * @throws IOException if the field signature could not be unmarshalled
 	 */
-	public static FieldSignature from(UnmarshallingContext context) {
+	public static FieldSignature from(UnmarshallingContext context) throws IOException {
 		return context.readObject(FieldSignature.class);
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

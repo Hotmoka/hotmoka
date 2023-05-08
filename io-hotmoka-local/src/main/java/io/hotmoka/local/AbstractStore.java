@@ -16,12 +16,14 @@ limitations under the License.
 
 package io.hotmoka.local;
 
+import static io.hotmoka.exceptions.CheckRunnable.checkIOException;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,11 +48,6 @@ import io.hotmoka.beans.values.StorageReference;
 @ThreadSafe
 public abstract class AbstractStore<C extends Config> implements Store {
 	protected final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
-
-	/**
-	 * The time spent inside the state procedures, for profiling.
-	 */
-	private final AtomicLong timeSpent = new AtomicLong();
 
 	/**
 	 * The lock for modifications of the store.
@@ -89,11 +86,10 @@ public abstract class AbstractStore<C extends Config> implements Store {
 
 	@Override
 	public void close() {
-		logger.info("Time spent in state procedures: " + timeSpent + "ms");
 	}
 
 	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws IOException {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 
@@ -138,8 +134,9 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 *                replacing its previous history; this is in chronological order,
 	 *                from newest transactions to oldest; hence the last transaction is
 	 *                that when the object has been created
+	 * @throws IOException if there was an I/O error
 	 */
-	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
+	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history) throws IOException;
 
 	/**
 	 * Mark the node as initialized. This happens for initialization requests.
@@ -149,60 +146,22 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	protected abstract void setManifest(StorageReference manifest);
 
 	/**
-	 * Executes the given task, taking note of the time required for it.
-	 * 
-	 * @param task the task
-	 */
-	protected final void recordTime(Runnable task) {
-		long start = System.currentTimeMillis();
-		task.run();
-		timeSpent.addAndGet(System.currentTimeMillis() - start);
-	}
-
-	/**
-	 * Executes the given task, taking note of the time required for it.
-	 * 
-	 * @param task the task
-	 */
-	protected final <T> T recordTime(Supplier<T> task) {
-		long start = System.currentTimeMillis();
-		T result = task.get();
-		timeSpent.addAndGet(System.currentTimeMillis() - start);
-		return result;
-	}
-
-	/**
-	 * Executes the given task, taking note of the time required for it,
-	 * inside a synchronized block on {@link #lock}.
-	 * 
-	 * @param task the task
-	 */
-	protected final <T> T recordTimeSynchronized(Supplier<T> task) {
-		long start = System.currentTimeMillis();
-
-		T result;
-		synchronized (lock) {
-			result = task.get();
-		}
-
-		timeSpent.addAndGet(System.currentTimeMillis() - start);
-		return result;
-	}
-
-	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
 	 * 
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
+	 * @throws IOException if an I/O error occurred
 	 */
-	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) {
-		// we collect the storage references that have been updated in the response; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		response.getUpdates()
-			.map(Update::getObject)
-			.distinct()
-			.forEachOrdered(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates())));
+	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws IOException {
+		checkIOException(() ->
+			// we collect the storage references that have been updated in the response; for each of them,
+			// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+			// in front of such lists and store back the updated lists, replacing the old ones
+			response.getUpdates()
+				.map(Update::getObject)
+				.distinct()
+				.forEachOrdered(uncheck(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates()))))
+		);
 	}
 
 	/**

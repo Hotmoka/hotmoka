@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -25,7 +26,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -105,7 +105,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
 		super.into(context);
 		if (events.length > 0)
@@ -119,9 +119,10 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	 * 
 	 * @param context the unmarshalling context
 	 * @param selector the selector
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response cannot be unmarshalled
 	 */
-	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) {
+	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
@@ -132,7 +133,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else
-			throw new UncheckedIOException("unexpected response selector: " + selector);
+			throw new IOException("unexpected response selector: " + selector);
 
 		StorageReference newObject = StorageReference.from(context);
 		return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);

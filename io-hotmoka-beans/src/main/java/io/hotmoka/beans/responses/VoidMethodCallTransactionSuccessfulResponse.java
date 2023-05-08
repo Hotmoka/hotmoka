@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -26,7 +27,6 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -98,7 +98,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
 
 		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : SELECTOR);
@@ -116,9 +116,10 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	 * 
 	 * @param context the unmarshalling context
 	 * @param selector the selector
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) {
+	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
@@ -135,7 +136,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 			events = Stream.empty();
 		}
 		else
-			throw new UncheckedIOException("unexpected response selector: " + selector);
+			throw new IOException("unexpected response selector: " + selector);
 
 		return new VoidMethodCallTransactionSuccessfulResponse(selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}

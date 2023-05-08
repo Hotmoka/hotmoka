@@ -24,16 +24,8 @@ import java.io.IOException;
 @SuppressWarnings("serial")
 public class UncheckedIOException extends java.io.UncheckedIOException {
 
-	public UncheckedIOException(String message) {
-		super(new IOException(message));
-	}
-
 	public UncheckedIOException(IOException cause) {
 		super(cause);
-	}
-
-	public UncheckedIOException(String message, IOException cause) {
-		super(message, cause);
 	}
 
 	@Override

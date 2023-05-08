@@ -16,20 +16,17 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
+import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 
 /**
- * An unchecked no such algorithm exception.
  */
-@SuppressWarnings("serial")
-public class UncheckedNoSuchAlgorithmException extends RuntimeException {
+public interface ConsumerWithExceptions<T> {
 
-	UncheckedNoSuchAlgorithmException(NoSuchAlgorithmException cause) {
-		super(cause);
-	}
-
-	@Override
-	public NoSuchAlgorithmException getCause() {
-		return (NoSuchAlgorithmException) super.getCause();
-	}
+	/**
+	 * Consumes the given argument.
+	 *
+	 * @param t the argument
+	 */
+	void accept(T t) throws IOException, NoSuchAlgorithmException, InterruptedException;
 }

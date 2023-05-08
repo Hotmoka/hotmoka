@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -88,7 +89,7 @@ public final class UpdateOfInt extends UpdateOfField {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		if (FieldSignature.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
 			intoWithoutField(context);

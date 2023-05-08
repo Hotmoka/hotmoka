@@ -21,6 +21,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -594,6 +595,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			logger.info(reference + ": delivering failed: " + trimmedMessage(e));
 			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
+		}
+		catch (IOException e) {
+			store.push(reference, request, trimmedMessage(e));
+			logger.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
+			throw new UncheckedIOException(e);
 		}
 		catch (RuntimeException e) {
 			store.push(reference, request, trimmedMessage(e));

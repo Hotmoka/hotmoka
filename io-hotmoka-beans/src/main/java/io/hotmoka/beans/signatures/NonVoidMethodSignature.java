@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.signatures;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -81,7 +82,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		returnType.into(context);

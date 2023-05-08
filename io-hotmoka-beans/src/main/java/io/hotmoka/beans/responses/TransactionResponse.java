@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -41,9 +41,10 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 	 * Factory method that unmarshals a response from the given stream.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response cannot be unmarshalled
 	 */
-	public static TransactionResponse from(UnmarshallingContext context) {
+	public static TransactionResponse from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 
 		switch (selector) {
@@ -74,38 +75,38 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 				clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
 			}
 			catch (ClassNotFoundException e) {
-				throw new UncheckedIOException("unknown expansion class " + className + " for transaction responses");
+				throw new IOException("unknown expansion class " + className + " for transaction responses");
 			}
 
 			// only subclass of TransactionResponse are considered, to block potential call injections
 			if (!TransactionResponse.class.isAssignableFrom(clazz))
-				throw new UncheckedIOException("unkown response class " + className);
+				throw new IOException("unkown response class " + className);
 
 			Method from;
 			try {
 				from = clazz.getMethod("from", UnmarshallingContext.class);
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new UncheckedIOException("cannot find method " + className + ".from(UnmarshallingContext)");
+				throw new IOException("cannot find method " + className + ".from(UnmarshallingContext)");
 			}
 
 			try {
 				return (TransactionResponse) from.invoke(null, context);
 			}
 			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new UncheckedIOException("cannot call method " + className + ".from(UnmarshallingContext)");
+				throw new IOException("cannot call method " + className + ".from(UnmarshallingContext)");
 			}
 		}
-		default: throw new UncheckedIOException("unexpected response selector: " + selector);
+		default: throw new IOException("unexpected response selector: " + selector);
 		}
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 
-	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) {
+	protected static byte[] instrumentedJarFrom(UnmarshallingContext context) throws IOException {
 		int instrumentedJarLength = context.readInt();
 		return context.readBytes(instrumentedJarLength, "jar length mismatch in response");
 	}

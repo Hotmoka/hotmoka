@@ -22,46 +22,12 @@ package io.hotmoka.exceptions;
 @SuppressWarnings("serial")
 public class UncheckedInterruptedException extends RuntimeException {
 
-	public UncheckedInterruptedException(String message) {
-		super(new InterruptedException(message));
-	}
-
-	public UncheckedInterruptedException(InterruptedException cause) {
+	UncheckedInterruptedException(InterruptedException cause) {
 		super(cause);
-	}
-
-	public UncheckedInterruptedException(String message, InterruptedException cause) {
-		super(message, cause);
 	}
 
 	@Override
 	public InterruptedException getCause() {
 		return (InterruptedException) super.getCause();
-	}
-
-	public interface SupplierWithException<T> {
-		T get() throws InterruptedException;
-	}
-
-	public static <T> T wraps(SupplierWithException<T> supplier) {
-		try {
-			return supplier.get();
-		}
-		catch (InterruptedException e) {
-			throw new UncheckedInterruptedException(e);
-		}
-	}
-
-	public interface CodeWithException {
-		void apply() throws InterruptedException;
-	}
-
-	public static void wraps(CodeWithException code) {
-		try {
-			code.apply();
-		}
-		catch (InterruptedException e) {
-			throw new UncheckedInterruptedException(e);
-		}
 	}
 }

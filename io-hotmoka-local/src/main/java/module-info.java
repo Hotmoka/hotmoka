@@ -30,5 +30,6 @@ module io.hotmoka.local {
 	requires io.hotmoka.verification;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.whitelisting;
+	requires io.hotmoka.exceptions;
 	requires java.logging;
 }

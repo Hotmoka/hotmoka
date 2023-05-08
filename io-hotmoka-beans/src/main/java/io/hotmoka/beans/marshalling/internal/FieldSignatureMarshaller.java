@@ -1,5 +1,6 @@
 package io.hotmoka.beans.marshalling.internal;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSign
 	}
 
 	@Override
-	public void write(FieldSignature field, MarshallingContext context) {
+	public void write(FieldSignature field, MarshallingContext context) throws IOException {
 		Integer index = memory.get(field);
 		if (index != null) {
 			if (index < 254)

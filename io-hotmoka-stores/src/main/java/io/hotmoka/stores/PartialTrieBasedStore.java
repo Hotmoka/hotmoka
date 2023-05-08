@@ -156,10 +156,10 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
 
-    	recordTime(() -> env.executeInTransaction(txn -> {
+    	env.executeInTransaction(txn -> {
     		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
     		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-    	}));
+    	});
 
     	this.storeOfResponses = storeOfResponses.get();
     	this.storeOfInfo = storeOfInfo.get();
@@ -207,38 +207,42 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference)));
+    	synchronized (lock) {
+    		return env.computeInReadonlyTransaction
+    			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference));
+    	}
 	}
 
 	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		synchronized (lock) {
-			return duringTransaction() ? recordTime(() -> trieOfResponses.get(reference)) : getResponse(reference);
+			return duringTransaction() ? trieOfResponses.get(reference) : getResponse(reference);
 		}
 	}
 
 	@Override
 	public Optional<StorageReference> getManifest() {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest()));
+		synchronized (lock) {
+			return env.computeInReadonlyTransaction
+				(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest());
+		}
 	}
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
 		synchronized (lock) {
-			return duringTransaction() ? recordTime(trieOfInfo::getManifest) : getManifest();
+			return duringTransaction() ? trieOfInfo.getManifest() : getManifest();
 		}
 	}
 
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		recordTime(() -> trieOfResponses.put(reference, response));
+		trieOfResponses.put(reference, response);
 	}
 
 	@Override
 	protected void setManifest(StorageReference manifest) {
-		recordTime(() -> trieOfInfo.setManifest(manifest));
+		trieOfInfo.setManifest(manifest);
 	}
 
 	/**
@@ -249,7 +253,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	public void beginTransaction(long now) {
 		synchronized (lock) {
-			txn = recordTime(env::beginTransaction);
+			txn = env.beginTransaction();
 			long numberOfCommits = getNumberOfCommits();
 			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
 			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
@@ -266,21 +270,19 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
 	protected byte[] commitTransaction() {
-		return recordTime(() -> {
-			long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
-			
-			// a negative number means that garbage-collection is disabled
-			if (checkableDepth >= 0L) {
-				long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
-				if (commitToGarbageCollect >= 0L)
-					garbageCollect(commitToGarbageCollect);
-			}
+		long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
 
-			if (!txn.commit())
-				logger.info("transaction's commit failed");
+		// a negative number means that garbage-collection is disabled
+		if (checkableDepth >= 0L) {
+			long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
+			if (commitToGarbageCollect >= 0L)
+				garbageCollect(commitToGarbageCollect);
+		}
 
-			return mergeRootsOfTries();
-		});
+		if (!txn.commit())
+			logger.info("transaction's commit failed");
+
+		return mergeRootsOfTries();
 	}
 
 	/**
@@ -301,7 +303,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 */
 	protected void checkout(byte[] root) {
 		setRootsTo(root);
-		recordTime(() -> env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(root))));
+		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(root)));
 	}
 
 	/**
@@ -310,8 +312,8 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * @return the number of commits
 	 */
 	public long getNumberOfCommits() {
-		return recordTime(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits()));
+		return env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits());
 	}
 
 	/**
@@ -338,10 +340,10 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	 * Sets the roots of the tries in this store to the previously checked out ones.
 	 */
 	protected final void setRootsAsCheckedOut() {
-		recordTime(() -> env.executeInTransaction(txn -> {
+		env.executeInTransaction(txn -> {
 			ByteIterable root = storeOfInfo.get(txn, ROOT);
 			setRootsTo(root == null ? null : root.getBytes());
-		}));
+		});
 	}
 
 	/**
@@ -370,7 +372,7 @@ public abstract class PartialTrieBasedStore<C extends Config> extends AbstractSt
 	protected byte[] mergeRootsOfTries() {
 		// this can be null if this is called before any new transaction has been executed over this store
 		if (trieOfResponses == null)
-			return recordTime(() -> env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes()));
+			return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
 		byte[] result = new byte[64];
 

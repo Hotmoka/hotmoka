@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local;
 
+import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -117,8 +118,9 @@ public interface Store extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
+	 * @throws IOException if an I/O occurred
 	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws IOException;
 
 	/**
 	 * Pushes into the store the result of executing a successful Hotmoka request.

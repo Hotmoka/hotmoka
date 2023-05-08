@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
@@ -114,7 +115,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeInt(jar.length);
 		context.write(jar);
@@ -127,8 +128,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) {
+	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException {
 		int jarLength = context.readInt();
 		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
 		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);

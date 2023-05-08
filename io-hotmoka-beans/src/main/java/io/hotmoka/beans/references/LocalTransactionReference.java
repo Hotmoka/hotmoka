@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.references;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -117,7 +118,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeObject(TransactionReference.class, this);
 	}
 

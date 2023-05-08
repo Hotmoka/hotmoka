@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
@@ -158,8 +159,9 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * is not marshalled into the stream.
 	 * 
 	 * @param context the context holding the stream
+	 * @throws IOException if the request cannot be unmarshalled
 	 */
-	protected void intoWithoutSignature(MarshallingContext context) {
+	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		caller.intoWithoutSelector(context);
 		context.writeBigInteger(gasLimit);
 		context.writeBigInteger(gasPrice);

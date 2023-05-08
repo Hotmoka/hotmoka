@@ -1,5 +1,6 @@
 package io.hotmoka.beans.marshalling.internal;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +20,7 @@ public class TransactionReferenceMarshaller extends AbstractObjectMarshaller<Tra
 	}
 
 	@Override
-	public void write(TransactionReference transaction, MarshallingContext context) {
+	public void write(TransactionReference transaction, MarshallingContext context) throws IOException {
 		Integer index = memory.get(transaction);
 		if (index != null) {
 			if (index < 254)

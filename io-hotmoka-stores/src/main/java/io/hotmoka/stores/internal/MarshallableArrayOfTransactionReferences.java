@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -34,7 +36,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		// we do not try to share repeated transaction references, since they do not occur in histories
 		// and provision for sharing would just make the size of the histories larger
 		context.writeCompactInt(transactions.length);
@@ -47,8 +49,9 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the array
+	 * @throws IOException if the array could not be unmarshalled
 	 */
-	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) {
+	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException {
 		int size = TransactionRequest.REQUEST_HASH_LENGTH;
 
 		// we do not share repeated transaction references, since they do not occur in histories

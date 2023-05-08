@@ -114,7 +114,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	@Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	return recordTimeSynchronized(() -> {
+		synchronized (lock) {
     		try {
     			Path response = getPathFor(reference, "response");
     			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
@@ -124,7 +124,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
     		catch (IOException e) {
     			return Optional.empty();
     		}
-    	});
+    	}
 	}
 
 	@Override
@@ -139,10 +139,8 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTime(() -> {
-			TransactionReference[] history = histories.get(object);
-			return history == null ? Stream.empty() : Stream.of(history);
-		});
+		TransactionReference[] history = histories.get(object);
+		return history == null ? Stream.empty() : Stream.of(history);
 	}
 
 	@Override
@@ -152,7 +150,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	@Override
 	public Optional<StorageReference> getManifest() {
-		return recordTime(() -> Optional.ofNullable(manifest.get()));
+		return Optional.ofNullable(manifest.get());
 	}
 
 	@Override
@@ -175,70 +173,66 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		recordTime(() -> {
-			try {
-				progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
-				Path requestPath = getPathFor(reference, "request");
-				Path parent = requestPath.getParent();
-				ensureDeleted(parent);
-				Files.createDirectories(parent);
+		try {
+			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
+			Path requestPath = getPathFor(reference, "request");
+			Path parent = requestPath.getParent();
+			ensureDeleted(parent);
+			Files.createDirectories(parent);
 
-				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
-					output.print(response);
-				}
-
-				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-					output.print(request);
-				}
-
-				try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
-					request.into(context);
-				}
-
-				try (var context = new BeanMarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
-					response.into(context);
-				}
+			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
+				output.print(response);
 			}
-			catch (IOException e) {
-				logger.log(Level.WARNING, "unexpected exception", e);
-				throw new RuntimeException("unexpected exception", e);
+
+			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+				output.print(request);
 			}
-		});
+
+			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
+				request.into(context);
+			}
+
+			try (var context = new BeanMarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
+				response.into(context);
+			}
+		}
+		catch (IOException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw new RuntimeException("unexpected exception", e);
+		}
 	}
 
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		recordTime(() -> histories.put(object, history.toArray(TransactionReference[]::new)));
+		histories.put(object, history.toArray(TransactionReference[]::new));
 	}
 
 	@Override
 	protected void setManifest(StorageReference manifest) {
-		recordTime(() -> this.manifest.set(manifest));
+		this.manifest.set(manifest);
 	}
 
 	@Override
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		recordTime(() -> {
-			try {
-				progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
-				Path requestPath = getPathFor(reference, "request");
-				Path parent = requestPath.getParent();
-				ensureDeleted(parent);
-				Files.createDirectories(parent);
+		try {
+			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
+			Path requestPath = getPathFor(reference, "request");
+			Path parent = requestPath.getParent();
+			ensureDeleted(parent);
+			Files.createDirectories(parent);
 
-				try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-					output.print(request);
-				}
+			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
+				output.print(request);
+			}
 
-				try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
-					request.into(context);
-				}
+			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
+				request.into(context);
 			}
-			catch (IOException e) {
-				logger.log(Level.WARNING, "unexpected exception", e);
-				throw new RuntimeException("unexpected exception", e);
-			}
-		});
+		}
+		catch (IOException e) {
+			logger.log(Level.WARNING, "unexpected exception", e);
+			throw new RuntimeException("unexpected exception", e);
+		}
 
 		errors.put(reference, errorMessage);
 	}

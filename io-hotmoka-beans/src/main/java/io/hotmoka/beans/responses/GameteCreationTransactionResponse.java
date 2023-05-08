@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -91,7 +92,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		intoArray(updates, context);
 		gamete.intoWithoutSelector(context);
@@ -102,9 +103,10 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	 * The selector of the response has been already processed.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static GameteCreationTransactionResponse from(UnmarshallingContext context) {
+	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		return new GameteCreationTransactionResponse(updates, StorageReference.from(context));
 	}

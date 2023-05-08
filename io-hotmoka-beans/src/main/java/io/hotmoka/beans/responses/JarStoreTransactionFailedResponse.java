@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
@@ -124,7 +125,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeBigInteger(gasConsumedForPenalty);
@@ -137,9 +138,10 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	 * The selector of the response has been already processed.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) {
+	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

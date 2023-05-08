@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
+
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.NullValue;
@@ -58,7 +60,7 @@ public final class UpdateToNullLazy extends UpdateOfField {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 	}

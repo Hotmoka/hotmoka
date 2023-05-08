@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.types;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -55,7 +56,7 @@ public enum BasicTypes implements StorageType {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte((byte) ordinal());
 	}
 

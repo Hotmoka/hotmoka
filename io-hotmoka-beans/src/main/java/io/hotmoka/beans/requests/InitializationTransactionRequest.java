@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
+
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
@@ -84,7 +86,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		classpath.into(context);
 		manifest.intoWithoutSelector(context);
@@ -96,8 +98,9 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(UnmarshallingContext context) {
+	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
 		TransactionReference classpath = TransactionReference.from(context);
 		StorageReference manifest = StorageReference.from(context);
 

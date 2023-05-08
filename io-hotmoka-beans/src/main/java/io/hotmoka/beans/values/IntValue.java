@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.values;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -78,7 +79,7 @@ public final class IntValue extends StorageValue {
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		if (value >= 0 && value < 255 - SELECTOR)
 			context.writeByte(SELECTOR + 1 + value);
 		else {

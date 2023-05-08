@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -87,7 +88,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
     	super(node, checkableDepth);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-    	recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
+    	env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
     	this.storeOfHistory = storeOfHistory.get();
     }
 
@@ -104,10 +105,13 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTimeSynchronized(() -> {
-			ByteIterable historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
-			return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(historyAsByteArray));
-		});
+		ByteIterable historyAsByteArray;
+
+		synchronized (lock) {
+			historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
+		}
+
+		return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(historyAsByteArray));
 	}
 
 	@Override
@@ -123,12 +127,10 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		recordTime(() -> {
-			TransactionReference[] references = history.toArray(TransactionReference[]::new);
-			ByteIterable historyAsByteArray = ByteIterable.fromBytes(new MarshallableArrayOfTransactionReferences(references).toByteArray());
-			ByteIterable objectAsByteArray = intoByteArray(object);
-			storeOfHistory.put(getCurrentTransaction(), objectAsByteArray, historyAsByteArray);
-		});
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) throws IOException {
+		TransactionReference[] references = history.toArray(TransactionReference[]::new);
+		ByteIterable historyAsByteArray = ByteIterable.fromBytes(new MarshallableArrayOfTransactionReferences(references).toByteArray());
+		ByteIterable objectAsByteArray = intoByteArray(object);
+		storeOfHistory.put(getCurrentTransaction(), objectAsByteArray, historyAsByteArray);
 	}
 }

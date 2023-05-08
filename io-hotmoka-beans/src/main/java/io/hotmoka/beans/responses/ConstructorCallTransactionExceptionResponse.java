@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -126,7 +127,7 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
 		intoArrayWithoutSelector(events, context);
@@ -140,9 +141,10 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	 * The selector of the response has been already processed.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response cannot be unmarshalled
 	 */
-	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) {
+	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();

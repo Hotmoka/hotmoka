@@ -26,7 +26,6 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -111,7 +110,7 @@ public final class StorageReference extends StorageValue implements Serializable
 	}
 
 	@Override
-	public final void into(MarshallingContext context) {
+	public final void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		intoWithoutSelector(context);
 	}
@@ -129,11 +128,11 @@ public final class StorageReference extends StorageValue implements Serializable
 		}
 		catch (IOException e) {
 			// impossible for a ByteArrayOutputStream
-			throw new UncheckedIOException("unexpected exception");
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 
-	public final void intoWithoutSelector(MarshallingContext context) {
+	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
 		context.writeObject(StorageReference.class, this);
 	}
 
@@ -142,8 +141,9 @@ public final class StorageReference extends StorageValue implements Serializable
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the storage reference
+	 * @throws IOException 
 	 */
-	public static StorageReference from(UnmarshallingContext context) {
+	public static StorageReference from(UnmarshallingContext context) throws IOException {
 		return context.readObject(StorageReference.class);
 	}
 }

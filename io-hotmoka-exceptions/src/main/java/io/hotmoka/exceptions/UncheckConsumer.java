@@ -18,19 +18,19 @@ package io.hotmoka.exceptions;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 /**
  */
-public abstract class Uncheck {
+public abstract class UncheckConsumer {
 
-	public static <T, R> Function<T, R> uncheck(FunctionWithExceptions<T, R> wrapped) {
-		return new Function<T, R>() {
+	public static <T> Consumer<T> uncheck(ConsumerWithExceptions<T> wrapped) {
+		return new Consumer<T>() {
 
 			@Override
-			public R apply(T t) {
+			public void accept(T t) {
 				try {
-					return wrapped.apply(t);
+					wrapped.accept(t);
 				}
 				catch (IOException e) {
 					throw new UncheckedIOException(e);

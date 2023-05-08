@@ -22,7 +22,7 @@ import java.util.function.Supplier;
 
 /**
  */
-public abstract class Check {
+public abstract class CheckSupplier {
 
 	public static <R> R checkNoSuchAlgorithmException(Supplier<R> supplier) throws NoSuchAlgorithmException {
 		try {

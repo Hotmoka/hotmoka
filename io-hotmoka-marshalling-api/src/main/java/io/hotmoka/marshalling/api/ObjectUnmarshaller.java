@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import io.hotmoka.exceptions.UncheckedIOException;
+import java.io.IOException;
 
 /**
  * Knowledge about how an object of a given class can be unmarshalled.
@@ -38,7 +38,7 @@ public interface ObjectUnmarshaller<C> {
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the unmarshalled object
-	 * @throws UncheckedIOException if the object could not be unmarshalled
+	 * @throws IOException if the object could not be unmarshalled
 	 */
-	C read(UnmarshallingContext context) throws UncheckedIOException;
+	C read(UnmarshallingContext context) throws IOException;
 }

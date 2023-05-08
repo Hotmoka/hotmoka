@@ -347,7 +347,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 		*/
 
-		protected final AbstractNode putInStore() {
+		protected final AbstractNode putInStore() throws IOException {
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
 			return this;
@@ -391,7 +391,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(MarshallingContext context) {
+		public void into(MarshallingContext context) throws IOException {
 			context.writeByte(0x04);
 			context.writeShort(selector());
 
@@ -489,7 +489,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(MarshallingContext context) {
+		public void into(MarshallingContext context) throws IOException {
 			context.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
 			context.write(next);
 		}
@@ -596,7 +596,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		public void into(MarshallingContext context) {
+		public void into(MarshallingContext context) throws IOException {
 			context.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
 			context.write(value);
 		}
@@ -617,7 +617,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])

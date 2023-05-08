@@ -135,11 +135,11 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 
-		recordTime(() -> env.executeInTransaction(txn -> {
+		env.executeInTransaction(txn -> {
 			storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
 			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
 			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
-		}));
+		});
 
 		this.storeOfErrors = storeOfErrors.get();
 		this.storeOfRequests = storeOfRequests.get();
@@ -164,20 +164,26 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 
     @Override
 	public Optional<String> getError(TransactionReference reference) {
-    	return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-    		(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference)));
+    	synchronized (lock) {
+    		return env.computeInReadonlyTransaction
+   				(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference));
+    	}
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference)));
+		synchronized (lock) {
+			return env.computeInReadonlyTransaction
+				(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference));
+		}
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
+		synchronized (lock) {
+			return env.computeInReadonlyTransaction
+				(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object));
+		}
 	}
 
 	@Override
@@ -190,8 +196,8 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	@Override
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		synchronized (lock) {
-			recordTime(() -> trieOfRequests.put(reference, request));
-			recordTime(() -> trieOfErrors.put(reference, errorMessage));
+			trieOfRequests.put(reference, request);
+			trieOfErrors.put(reference, errorMessage);
 		}
 	}
 
@@ -235,7 +241,7 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 		super.setResponse(reference, request, response);
 	
 		// we also store the request
-		recordTime(() -> trieOfRequests.put(reference, request));
+		trieOfRequests.put(reference, request);
 	}
 
 	@Override

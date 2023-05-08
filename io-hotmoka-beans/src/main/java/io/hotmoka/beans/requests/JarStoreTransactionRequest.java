@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -167,7 +168,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public final void into(MarshallingContext context) {
+	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
 
 		// we add the signature
@@ -214,7 +215,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) {
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
@@ -229,8 +230,9 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
+	 * @throws IOException if the request could noy be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(UnmarshallingContext context) {
+	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();

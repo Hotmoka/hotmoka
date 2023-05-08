@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import io.hotmoka.exceptions.UncheckedIOException;
+import java.io.IOException;
 
 /**
  * An object that can be marshaled into a stream, in a way more compact
@@ -30,14 +30,15 @@ public interface Marshallable {
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
 	 * 
 	 * @param context the context holding the stream
-	 * @throws UncheckedIOException if this object cannot be marshalled
+	 * @throws IOException if this object cannot be marshalled
 	 */
-	void into(MarshallingContext context) throws UncheckedIOException;
+	void into(MarshallingContext context) throws IOException;
 
 	/**
 	 * Marshals this object into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling this object
+	 * @throws IOException if this object cannot be marshalled
 	 */
-	byte[] toByteArray();
+	byte[] toByteArray() throws IOException;
 }

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -70,7 +71,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		caller.intoWithoutSelector(context);
 		context.writeBigInteger(gasLimit);
@@ -87,8 +88,9 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) {
+	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
 		TransactionReference classpath = TransactionReference.from(context);

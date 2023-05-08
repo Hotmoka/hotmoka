@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.responses;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -26,7 +27,6 @@ import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -109,7 +109,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
 		boolean optimized1 = events.length == 1 && !selfCharged;
 		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : (optimized1 ? SELECTOR_ONE_EVENT_NO_SELF_CHARGED : SELECTOR));
@@ -131,9 +131,10 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	 * 
 	 * @param context the unmarshalling context
 	 * @param selector the selector
-	 * @return the request
+	 * @return the response
+	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static MethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) {
+	public static MethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
 		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
@@ -155,7 +156,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 			events = Stream.of(StorageReference.from(context));
 		}
 		else
-			throw new UncheckedIOException("unexpected response selector: " + selector);
+			throw new IOException("unexpected response selector: " + selector);
 
 		return new MethodCallTransactionSuccessfulResponse(result, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}

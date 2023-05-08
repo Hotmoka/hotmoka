@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.marshalling.internal;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<Sto
 	}
 
 	@Override
-	public StorageReference read(UnmarshallingContext context) {
+	public StorageReference read(UnmarshallingContext context) throws IOException {
 		int selector = context.readByte();
 		if (selector < 0)
 			selector = 256 + selector;

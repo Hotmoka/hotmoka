@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.marshalling;
 
+import java.io.IOException;
 import java.io.InputStream;
 
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.marshalling.internal.UnmarshallingContextImpl;
 
@@ -31,9 +31,9 @@ public interface UnmarshallingContexts {
 	 * Creates an unmarshalling context.
 	 * 
 	 * @param is the input stream of the context
-	 * @throws UncheckedIOException if the context cannot be created
+	 * @throws IOException if the context cannot be created
 	 */
-	static UnmarshallingContext of(InputStream is) throws UncheckedIOException {
+	static UnmarshallingContext of(InputStream is) throws IOException {
 		return new UnmarshallingContextImpl(is);
 	}
 }

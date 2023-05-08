@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
@@ -82,7 +83,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) {
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		receiver.intoWithoutSelector(context);
 	}

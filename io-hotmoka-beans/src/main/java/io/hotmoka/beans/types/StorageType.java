@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.beans.types;
 
+import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -48,8 +48,9 @@ public interface StorageType {
 	 * of the marshalled data.
 	 * 
 	 * @param context the context holding the stream
+	 * @throws IOException if the type cannot be marshalled
 	 */
-	void into(MarshallingContext context);
+	void into(MarshallingContext context) throws IOException;
 
 	/**
 	 * Determines if this type is eager.
@@ -71,8 +72,9 @@ public interface StorageType {
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the type
+	 * @throws IOException if the type cannot be marshalled
      */
-	static StorageType from(UnmarshallingContext context) {
+	static StorageType from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassType.SELECTOR:
@@ -143,7 +145,7 @@ public interface StorageType {
 			if (selector >= 0 && selector < 8)
 				return BasicTypes.values()[selector];
 			else
-				throw new UncheckedIOException("unexpected type selector: " + selector);
+				throw new IOException("unexpected type selector: " + selector);
 		}
 	}
 

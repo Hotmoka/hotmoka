@@ -94,7 +94,7 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 		super(node, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-		recordTime(() -> env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn))));
+		env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
 		this.storeOfHistory = storeOfHistory.get();
 	}
 
@@ -112,8 +112,10 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 
     @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
-		return recordTimeSynchronized(() -> env.computeInReadonlyTransaction
-			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
+    	synchronized (lock) {
+    		return env.computeInReadonlyTransaction
+    			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object));
+    	}
 	}
 
 	@Override

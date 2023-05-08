@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.marshalling.api;
 
-import io.hotmoka.exceptions.UncheckedIOException;
+import java.io.IOException;
 
 /**
  * A function that unmarshals a single marshallable.
@@ -24,5 +24,5 @@ import io.hotmoka.exceptions.UncheckedIOException;
  * @param <T> the type of the marshallable
  */
 public interface Unmarshaller<T extends Marshallable> {
-	T from(UnmarshallingContext context) throws UncheckedIOException;
+	T from(UnmarshallingContext context) throws IOException;
 }

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.updates;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
@@ -27,7 +28,6 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.exceptions.UncheckedIOException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -113,7 +113,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	}
 
 	@Override
-	public void into(MarshallingContext context) {
+	public void into(MarshallingContext context) throws IOException {
 		object.intoWithoutSelector(context);
 	}
 
@@ -122,8 +122,9 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the update
+	 * @throws IOException if the update cannot be unmarshalled
 	 */
-	public static Update from(UnmarshallingContext context) {
+	public static Update from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageType.from(context), TransactionReference.from(context));
@@ -167,12 +168,12 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(context), FieldSignature.from(context), context.readUTF());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(context), FieldSignature.from(context));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(context), FieldSignature.from(context));
-		default: throw new UncheckedIOException("unexpected update selector: " + selector);
+		default: throw new IOException("unexpected update selector: " + selector);
 		}
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) {
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
 		return new BeanMarshallingContext(os);
 	}
 }

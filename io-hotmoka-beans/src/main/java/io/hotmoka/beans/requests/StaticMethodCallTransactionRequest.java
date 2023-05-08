@@ -18,6 +18,7 @@ package io.hotmoka.beans.requests;
 
 import static java.math.BigInteger.ZERO;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -133,7 +134,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	}
 
 	@Override
-	public final void into(MarshallingContext context) {
+	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
 	
 		// we add the signature
@@ -143,7 +144,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) {
+	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeUTF(chainId);
 		super.intoWithoutSignature(context);
@@ -179,8 +180,9 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
+	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) {
+	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		String chainId = context.readUTF();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
