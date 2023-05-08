@@ -37,12 +37,12 @@
     <dependency>
 	  <groupId>it.univr.bcel</groupId>
   	  <artifactId>it-univr-bcel</artifactId>
-      <version>1.2.0</version>
+      <version>1.2.1</version>
     </dependency>
 	<dependency>
     	<groupId>org.apache.bcel</groupId>
     	<artifactId>bcel</artifactId>
-    	<version>6.6.1</version>
+    	<version>6.7.0</version>
 	</dependency>
   </dependencies>
 
