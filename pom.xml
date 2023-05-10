@@ -27,8 +27,8 @@
 
     <licenses>
       <license>
-	<name>The Apache License, Version 2.0</name>
-	<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+	    <name>The Apache License, Version 2.0</name>
+	    <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
       </license>
     </licenses>
 
@@ -65,7 +65,6 @@
       <module>io-hotmoka-xodus</module>
       <module>io-hotmoka-tendermint-abci</module>
       <module>io-hotmoka-tendermint</module>
-      <module>io-hotmoka-toml</module>
       <module>io-hotmoka-annotations</module>
       <module>io-hotmoka-marshalling</module>
       <module>io-hotmoka-marshalling-api</module>
@@ -236,7 +235,6 @@
                   io-hotmoka-tendermint-abci,
                   io-hotmoka-tendermint,
                   io-hotmoka-xodus,
-                  io-hotmoka-toml,
                   io-hotmoka-ws-client,
                   io-hotmoka-stores,
                   io-hotmoka-tools,
@@ -248,6 +246,7 @@
 
                   <!-- we exclude all modules that go into the explicit folder -->
                   it-univr-bcel,
+                  toml4j,
                   gson,
                   nv-websocket-client,
                   bcprov-jdk15on,
@@ -289,7 +288,14 @@
                   junit-jupiter-engine,
                   junit-jupiter-params,
                   junit-platform-commons,
-                  junit-platform-engine
+                  junit-platform-engine,
+                  perfmark-api,
+                  annotations,
+                  animal-sniffer-annotations,
+                  commons-compress,
+                  kotlin-logging,
+                  apiguardian-api,
+                  opentest4j
                 </excludeArtifactIds>
               </configuration>
             </execution>
@@ -342,6 +348,7 @@
                 <outputDirectory>${project.parent.basedir}/modules/explicit</outputDirectory>
                 <includeArtifactIds>
                   it-univr-bcel,
+                  toml4j,
                   gson,
                   nv-websocket-client,
                   bcprov-jdk15on,
@@ -359,7 +366,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-surefire-plugin</artifactId>
-          <version>3.0.0-M4</version>
+          <version>3.1.0</version>
           <configuration>
             <includes>
               <include>*.java</include>
@@ -376,7 +383,7 @@
         <plugin>
           <groupId>org.sonatype.plugins</groupId>
           <artifactId>nexus-staging-maven-plugin</artifactId>
-          <version>1.6.8</version>
+          <version>1.6.13</version>
           <extensions>true</extensions>
           <configuration>
             <serverId>ossrh</serverId>

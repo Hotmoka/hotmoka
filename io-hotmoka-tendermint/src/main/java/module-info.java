@@ -19,7 +19,7 @@ module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint.helpers;
 	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.abci;
-	requires io.hotmoka.toml;
+	requires toml4j;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.crypto;

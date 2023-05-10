@@ -24,6 +24,5 @@ open module io.takamaka.code.tests {
 	requires io.hotmoka.constants;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
-	requires org.junit.jupiter.api;
 	requires java.logging;
 }

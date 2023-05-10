@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tendermint.internal;
 
-import io.hotmoka.toml.Toml;
+import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
