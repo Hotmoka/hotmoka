@@ -109,6 +109,7 @@ public abstract class Takamaka {
 	 * with the charged gas only. At its end, the remaining gas is added
 	 * to the available gas to continue the computation.
 	 * 
+	 * @param <T> the type of the result of the call
 	 * @param amount the amount of gas provided to the code
 	 * @param what the code to run
 	 * @return the result of the execution of the code
@@ -129,6 +130,11 @@ public abstract class Takamaka {
 		// Runtime.event(event);
 	}
 
+	/**
+	 * Yields the current time, in milliseconds from midnight, January 1, 1970 UTC.
+	 * 
+	 * @return the current time
+	 */
 	public static @View long now() {
 		// code provided by instrumentation as
 		// return Runtime.now();

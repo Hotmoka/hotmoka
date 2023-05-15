@@ -43,7 +43,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @param value {@link java.math.BigInteger}
      */
     public UnsignedBigInteger(BigInteger value) {
-        require(value.signum() >= 0, "Illegal value: negative value"); // val >= 0
+        require(value.signum() >= 0, "Illegal value: negative value"); // valio.takamaka.code.lang.RequirementViolationException >= 0
         this.value = value;
     }
 
@@ -95,9 +95,9 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * A constructor for internal use, that does not verify that {@code val} is non-negative.
      *
      * @param value the value to allocate (it is assumed that it is non-negative)
-     * @param dummy disambiguator for the homonymous public constructor
+     * @param _dummy disambiguation parameter against the other public constructor
      */
-    private UnsignedBigInteger(BigInteger value, boolean dummy){
+    private UnsignedBigInteger(BigInteger value, boolean _dummy){
         this.value = value;
     }
 
@@ -126,7 +126,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @param other value that will be subtracted from this unsigned big integer
      * @param errorMessage the message of the requirement exception generated if {@code other} is greater than {@code this}
      * @return the difference {@code this} - {@code other}
-     * @throws RequirementViolationException if {@code other} is greater than {@code this}
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code other} is greater than {@code this}
      */
     public UnsignedBigInteger subtract(UnsignedBigInteger other, String errorMessage) {
         BigInteger diff = value.subtract(other.value);
@@ -160,7 +160,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      *
      * @param other value that will be subtracted from this unsigned big integer
      * @return the difference {@code this} - {@code other}
-     * @throws RequirementViolationException if {@code other} is greater than {@code this}
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code other} is greater than {@code this}
      */
     public UnsignedBigInteger subtract(UnsignedBigInteger other) {
         return subtract(other, "Illegal operation: subtraction underflow");
@@ -182,7 +182,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @param other the divisor
      * @param errorMessage the message of the requirement exception generated if {@code other} is zero
      * @return the division {@code this} / {@code other}
-     * @throws RequirementViolationException if {@code other} is zero
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code other} is zero
      */
     public UnsignedBigInteger divide(UnsignedBigInteger other, String errorMessage) {
         require(other.value.signum() != 0, errorMessage); // other.val > 0
@@ -194,7 +194,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      *
      * @param other the divisor
      * @return the division {@code this} / {@code other}
-     * @throws RequirementViolationException if {@code other} is zero
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code other} is zero
      */
     public UnsignedBigInteger divide(UnsignedBigInteger other) {
         return divide(other, "Illegal operation: division by zero");
@@ -206,7 +206,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      * @param divisor the divisor
      * @param errorMessage the message of the requirement exception generated if {@code divisor} is zero
      * @return the remainder {@code this} mod {@code divisor}
-     * @throws RequirementViolationException if {@code divisor} is zero
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code divisor} is zero
      */
     public UnsignedBigInteger mod(UnsignedBigInteger divisor, String errorMessage) {
         require(divisor.value.signum() != 0, errorMessage); // other.val > 0
@@ -218,7 +218,7 @@ public class UnsignedBigInteger extends Storage implements Comparable<UnsignedBi
      *
      * @param divisor the divisor
      * @return the remainder {@code this} mod {@code divisor}
-     * @throws RequirementViolationException if {@code divisor} is zero
+     * @throws io.takamaka.code.lang.RequirementViolationException if {@code divisor} is zero
      */
     public UnsignedBigInteger mod(UnsignedBigInteger divisor) {
         return mod(divisor, "Illegal operation: modulo by zero");

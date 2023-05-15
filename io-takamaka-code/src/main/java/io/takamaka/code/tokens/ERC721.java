@@ -112,6 +112,8 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Yields the token collection name.
+	 * 
+	 * @return the name
 	 */
 	@View
 	public final String name() {
@@ -120,6 +122,8 @@ public class ERC721 extends Contract implements IERC721 {
 
 	/**
 	 * Yields the token collection symbol.
+	 * 
+	 * @return the symbol
 	 */
 	@View
 	public final String symbol() {
@@ -263,6 +267,7 @@ public class ERC721 extends Contract implements IERC721 {
 	 * Returns the Uniform Resource Identifier (URI) for token {@code tokenId}.
 	 * 
 	 * @param tokenId the token whose URI must be returned
+	 * @return the URI, as a string
 	 */
 	@View
 	public String tokenURI(BigInteger tokenId) {
@@ -310,10 +315,18 @@ public class ERC721 extends Contract implements IERC721 {
 		return owner;
 	}
 
+	/**
+	 * Implementation of a snapshot of a token contract.
+	 */
 	@Exported
 	protected class ERC721Snapshot extends Storage implements IERC721View {
 		private final StorageMapView<BigInteger, Contract> owners = ERC721.this.owners.snapshot();
 		private final StorageMapView<Contract, BigInteger> balances = ERC721.this.balances.snapshot();
+
+		/**
+		 * Creates the snapshot.
+		 */
+		protected ERC721Snapshot() {}
 
 		@Override @View
 		public BigInteger balanceOf(Contract owner) {
@@ -354,8 +367,16 @@ public class ERC721 extends Contract implements IERC721 {
 		this.snapshot = new ERC721Snapshot();
 	}
 
+	/**
+	 * Implementation of a view of a token contract.
+	 */
 	@Exported
 	protected class IERC721ViewImpl extends Storage implements IERC721View {
+
+		/**
+		 * Creates the view.
+		 */
+		protected IERC721ViewImpl() {}
 
 		@Override
 		public BigInteger balanceOf(Contract owner) {
@@ -405,6 +426,12 @@ public class ERC721 extends Contract implements IERC721 {
 			event(new Transfer(owner, null, tokenId));
 	}
 
+	/**
+	 * Determines if the given token id exists.
+	 * 
+	 * @param tokenId the token id
+	 * @return true if and only if a token with the given id exists
+	 */
 	@View
 	protected final boolean _exists(BigInteger tokenId) {
 		return owners.containsKey(tokenId);

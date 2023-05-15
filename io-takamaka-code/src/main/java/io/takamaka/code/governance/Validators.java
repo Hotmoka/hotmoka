@@ -209,10 +209,29 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 */
 	@Payable @FromContract PollWithTimeWindow<V> newPoll(BigInteger amount, SimplePoll.Action action, long start, long duration);
 
+	/**
+	 * An event triggered when a validator gets slashed for misbehaving.
+	 *
+	 * @param <V> the type of the slashed validator
+	 */
 	final class ValidatorSlashed<V extends Validator> extends Event {
+
+		/**
+		 * The slashed validator.
+		 */
 		public final V validator;
+
+		/**
+		 * The amount of stakes slashed from the validator.
+		 */
 		public final BigInteger amount;
 
+		/**
+		 * Creates the event.
+		 * 
+		 * @param validator the slashed validator
+		 * @param amount the amount of stakes slashed from the validator
+		 */
 		protected @FromContract ValidatorSlashed(V validator, BigInteger amount) {
 			this.validator = validator;
 			this.amount = amount;

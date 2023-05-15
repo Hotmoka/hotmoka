@@ -43,7 +43,19 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	 * @param <V> the type of the values
 	 */
 	interface Entry<K,V> {
+
+		/**
+		 * Yields the key of the pair.
+		 * 
+		 * @return the key
+		 */
 		K getKey();
+
+		/**
+		 * Yields the value of the pair.
+		 * 
+		 * @return the value
+		 */
 		V getValue();
 	}
 
@@ -75,6 +87,7 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	 * Returns the value associated with the given key.
 	 * 
 	 * @param key the key
+	 * @param _default the default value
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default} if the key is not in the symbol table
 	 * @throws IllegalArgumentException if {@code key} is {@code null}
@@ -85,6 +98,7 @@ public interface StorageMapView<K,V> extends Iterable<StorageMapView.Entry<K,V>>
 	 * Yields the value associated with the given key.
 	 * 
 	 * @param key the key
+	 * @param _default the function yielding the default value
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default.get()} if the key is not in the symbol table
 	 * @throws IllegalArgumentException if {@code key} is {@code null}

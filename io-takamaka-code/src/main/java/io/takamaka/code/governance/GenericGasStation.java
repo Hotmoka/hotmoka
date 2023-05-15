@@ -189,6 +189,11 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 		return oblivion.longValue();
 	}
 
+	/**
+	 * A builder of a gas station.
+	 *
+	 * @param <V> the type of the validators of the node with the resulting gas station
+	 */
 	@Exported
 	public static class Builder<V extends Validator> extends Storage implements Function<Manifest<V>, GasStation<V>> {
 		private final BigInteger initialGasPrice;
@@ -198,6 +203,8 @@ public class GenericGasStation<V extends Validator> extends Contract implements 
 		private final long oblivion;
 
 		/**
+		 * Creates the builder.
+		 * 
 		 * @param initialGasPrice the initial gas price
 		 * @param maxGasPerTransaction the maximal gas limit that can be offered by a transaction request.
 		 *                             Requests with higher gas limits will be rejected

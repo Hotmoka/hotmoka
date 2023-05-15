@@ -21,10 +21,22 @@ package io.takamaka.code.lang;
  */
 @SuppressWarnings("serial")
 public class RequirementViolationException extends RuntimeException {
+
+	/**
+	 * Builds an exception with the given message.
+	 * 
+	 * @param message the message
+	 */
 	public RequirementViolationException(String message) {
 		super(message);
 	}
 
+	/**
+	 * Builds an exception with the given message and cause.
+	 * 
+	 * @param message the message
+	 * @param cause the cause
+	 */
 	public RequirementViolationException(String message, Throwable cause) {
 		super(message, cause);
 	}

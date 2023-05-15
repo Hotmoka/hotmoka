@@ -25,8 +25,17 @@ import io.takamaka.code.lang.FromContract;
  * An event issued when the price of the gas has changed.
  */
 public class GasPriceUpdate extends Event {
+
+	/**
+	 * The new gas price.
+	 */
 	public final BigInteger newGasPrice;
 
+	/**
+	 * Creates the event.
+	 * 
+	 * @param newGasPrice the new gas price
+	 */
 	protected @FromContract GasPriceUpdate(BigInteger newGasPrice) {
 		this.newGasPrice = newGasPrice;
 	}

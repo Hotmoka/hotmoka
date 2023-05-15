@@ -116,8 +116,20 @@ public interface IERC20 extends IERC20View {
      * Note that {@code value} may be zero.
      */
     class Transfer extends Event {
+    	
+    	/**
+    	 * The origin of the tokens.
+    	 */
         public final Contract from;
+
+        /**
+         * The destination of the tokens.
+         */
         public final Contract to;
+
+        /**
+         * The amount of transferred tokens.
+         */
         public final UnsignedBigInteger value;
 
         /**
@@ -139,9 +151,21 @@ public interface IERC20 extends IERC20View {
      * {@link IERC20#approve(Contract, UnsignedBigInteger)}. {@code value} is the new allowance.
      */
     class Approval extends Event {
-        public final Contract owner;
-        public final Contract spender;
-        public final UnsignedBigInteger value;
+
+    	/**
+    	 * The owner.
+    	 */
+    	public final Contract owner;
+
+    	/**
+    	 * The spender.
+    	 */
+    	public final Contract spender;
+
+    	/**
+    	 * The new allowance.
+    	 */
+    	public final UnsignedBigInteger value;
 
         /**
          * Creates the event object.

@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines the run-time library of the Takamaka language.
+ */
 module io.takamaka.code {
 	exports io.takamaka.code.dao;
 	exports io.takamaka.code.lang;

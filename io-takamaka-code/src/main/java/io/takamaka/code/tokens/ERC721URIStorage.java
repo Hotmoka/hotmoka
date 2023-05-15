@@ -91,9 +91,17 @@ public abstract class ERC721URIStorage extends ERC721 implements IERC721URIStora
 		tokenURIs.remove(tokenId);
 	}
 
+	/**
+	 * Implementation of a URI storage snapshot.
+	 */
 	@Exported
 	protected class ERC721URIStorageSnapshot extends ERC721Snapshot implements IERC721URIStorageView {
 		private final StorageMapView<BigInteger, String> tokenURIs = ERC721URIStorage.this.tokenURIs;
+
+		/**
+		 * Creates the snapshot.
+		 */
+		protected ERC721URIStorageSnapshot() {}
 
 		@Override @View
 		public String tokenURI(BigInteger tokenId) {

@@ -53,7 +53,7 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 	 *                      1000000 = 1%
 	 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
 	 *                       (in percent of the offer cost). 1000000 = 1%
-	 * @param shashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+	 * @param slashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
 	 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
 	 */
 	private TendermintValidators(Manifest<TendermintED25519Validator> manifest, TendermintED25519Validator[] validators,
@@ -73,6 +73,9 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 		super.accept(amount, buyer, offer);
 	}
 
+	/**
+	 * The builder  of a tendermint validators object.
+	 */
 	@Exported
 	public static class Builder extends Storage implements Function<Manifest<TendermintED25519Validator>, TendermintValidators> {
 		private final StorageList<TendermintED25519Validator> validators = new StorageLinkedList<>();
@@ -85,6 +88,24 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 		private final int slashingForMisbehaving;
 		private final int slashingForNotBehaving;
 
+		/**
+		 * Creates the builder of a set of validators of a Tendermint blockchain.
+		 * 
+		 * @param ticketForNewPoll the amount of coins to pay for starting a new poll among the validators;
+		 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
+		 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
+		 *                         require to pay this amount for starting a poll
+		 * @param finalSupply the final supply of coins that will be reached, eventually
+		 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
+		 *                		   as reward to the validators. 0 means 0%, 1,000,000 means 1%,
+		 *                  	   Inflation can be negative. For instance, -300,000 means -0.3%
+		 * @param percentStaked the amount of rewards that gets staked. The rest is sent to the validators immediately.
+		 *                      1000000 = 1%
+		 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
+		 *                       (in percent of the offer cost). 1000000 = 1%
+		 * @param slashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+		 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
+		 */
 		public Builder(BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation,
 				int percentStaked, int buyerSurcharge, int slashingForMisbehaving, int slashingForNotBehaving) {
 
@@ -97,6 +118,12 @@ public class TendermintValidators extends AbstractValidators<TendermintED25519Va
 			this.slashingForNotBehaving = slashingForNotBehaving;
 		}
 
+		/**
+		 * Adds a new validator to this builder.
+		 * 
+		 * @param publicKey the public key of the validator
+		 * @param power the power of the added validator
+		 */
 		public void addValidator(String publicKey, long power) {
 			validators.add(new TendermintED25519Validator(publicKey));
 			powers.add(BigInteger.valueOf(power));

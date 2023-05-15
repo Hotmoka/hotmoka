@@ -215,16 +215,43 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
+	/**
+	 * An event triggered when a offer of sale has been placed.
+	 *
+	 * @param <S> the type of the seller contract
+	 */
 	final class OfferPlaced<S extends PayableContract> extends Event {
+
+		/**
+		 * The offer.
+		 */
 		public final Offer<S> offer;
 
+		/**
+		 * Creates the event.
+		 * 
+		 * @param offer the offer
+		 */
 		protected @FromContract OfferPlaced(Offer<S> offer) {
 			this.offer = offer;
 		}
 	}
 
+	/**
+	 * An event triggered when a offer of sale has been accepted.
+	 *
+	 * @param <S> the type of the seller contract
+	 */
 	final class OfferAccepted<S extends PayableContract> extends Event {
+
+		/**
+		 * The offer.
+		 */
 		public final Offer<S> offer;
+
+		/**
+		 * The buyer.
+		 */
 		public final S buyer;
 
 		/**
@@ -239,17 +266,45 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 		}
 	}
 
+	/**
+	 * An event triggered when a new shareholder is added.
+	 *
+	 * @param <S> the type of the shareholder
+	 */
 	final class ShareholderAdded<S extends PayableContract> extends Event {
+
+		/**
+		 * The new shareholder.
+		 */
 		public final S shareholder;
-	
+
+		/**
+		 * Creates the event.
+		 * 
+		 * @param shareholder the new shareholder
+		 */
 		protected @FromContract ShareholderAdded(S shareholder) {
 			this.shareholder = shareholder;
 		}
 	}
 
+	/**
+	 * An event triggered when a shareholder has been removed.
+	 *
+	 * @param <S> the type of the shareholder
+	 */
 	final class ShareholderRemoved<S extends PayableContract> extends Event {
+
+		/**
+		 * The removed shareholder.
+		 */
 		public final S shareholder;
 
+		/**
+		 * Creates the event.
+		 * 
+		 * @param shareholder the removed shareholder
+		 */
 		protected @FromContract ShareholderRemoved(S shareholder) {
 			this.shareholder = shareholder;
 		}

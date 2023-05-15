@@ -38,5 +38,11 @@ import java.lang.annotation.Target;
 @Inherited
 @Documented
 public @interface FromContract {
+
+	/**
+	 * The contract type that is allowed to call a method or constructor annotated with this annotation.
+	 * 
+	 * @return the contract type
+	 */
 	Class<? extends Contract> value() default Contract.class;
 }

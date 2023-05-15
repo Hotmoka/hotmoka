@@ -52,10 +52,20 @@ import io.takamaka.code.util.StorageTreeMap;
  * See {@link IERC20#approve(Contract, UnsignedBigInteger)}.
  */
 public class ERC20 extends Contract implements IERC20 {
+	
+	/**
+	 * The name of the token.
+	 */
     public final String name;
 
+    /**
+     * The symbol used for the token.
+     */
 	public final String symbol;
 
+	/**
+	 * The constant 0.
+	 */
 	public final UnsignedBigInteger ZERO = new UnsignedBigInteger("0");
 
 	private final StorageMap<Contract, UnsignedBigInteger> balances = new StorageTreeMap<>();
@@ -261,10 +271,18 @@ public class ERC20 extends Contract implements IERC20 {
     	this.snapshot = new SnapshotImpl();
     }
 
+    /**
+     * Implementation of a snapshot of an ERC20 token contract.
+     */
     @Exported
 	protected class SnapshotImpl extends Storage implements IERC20View {
 		private final UnsignedBigInteger totalSupply = ERC20.this.totalSupply;
 		private final StorageMapView<Contract, UnsignedBigInteger> balances = ERC20.this.balances.snapshot(); 
+
+		/**
+		 * Creates the snapshot.
+		 */
+		protected SnapshotImpl() {}
 
 		@Override
 		public @View UnsignedBigInteger totalSupply() {
@@ -292,10 +310,18 @@ public class ERC20 extends Contract implements IERC20 {
 		}
 	}
 
+    /**
+     * Implementation of a view of an ERC20 token contract.
+     */
     @Exported
 	protected class IERC20ViewImpl extends Storage implements IERC20View {
 
-		@Override
+    	/**
+    	 * Creates the view.
+    	 */
+    	protected IERC20ViewImpl() {}
+
+    	@Override
 		public @View UnsignedBigInteger totalSupply() {
 			return ERC20.this.totalSupply();
 		}
@@ -383,6 +409,11 @@ public class ERC20 extends Contract implements IERC20 {
 
 	/**
 	 * Internal implementation of the {@link #transferFrom(Contract, Contract, Contract, UnsignedBigInteger)} method.
+	 * 
+	 * @param caller the caller of the transfer
+	 * @param sender origin of the transfer (it cannot be the null account, it must have a balance of at least {@code amount})
+     * @param recipient recipient of the transfer (it cannot be the null account)
+     * @param amount number of tokens to transfer (it cannot be null)
 	 */
 	protected final void transferFrom(Contract caller, Contract sender, Contract recipient, UnsignedBigInteger amount) {
 		_transfer(sender, recipient, amount);

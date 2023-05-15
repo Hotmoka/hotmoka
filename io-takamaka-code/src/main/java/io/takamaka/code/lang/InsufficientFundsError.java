@@ -25,6 +25,11 @@ import java.math.BigInteger;
 @SuppressWarnings("serial")
 public class InsufficientFundsError extends Error {
 
+	/**
+	 * Creates the exception.
+	 * 
+	 * @param amount the missing amount of funds
+	 */
 	public InsufficientFundsError(BigInteger amount) {
 		super("Missing " + amount + " coin units to invoke payable code");
 	}

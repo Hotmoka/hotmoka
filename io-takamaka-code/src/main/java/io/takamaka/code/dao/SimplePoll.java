@@ -46,7 +46,22 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 	 */
 	@Exported
 	public static abstract class Action extends Storage {
+
+		/**
+		 * Creates the action.
+		 */
+		protected Action() {}
+
+		/**
+		 * Yields the description of the aim of the poll.
+		 * 
+		 * @return the description
+		 */
 		public abstract @View String getDescription();
+
+		/**
+		 * The action to run when the goal of the poll has been reached.
+		 */
 		protected abstract void run();
 	}
 
@@ -159,6 +174,13 @@ public class SimplePoll<Voter extends Contract> extends Storage implements Poll<
 		return goalReached() || votersUpToNow.size() == eligibleVoters.size();
 	}
 
+	/**
+	 * Determines if a voter can cast the given amount of votes. It must be
+	 * an eligible voter, must not have voted already and must cast a vote in its allowed range.
+	 * 
+	 * @param voter the voter
+	 * @param votes the amount of votes
+	 */
 	protected void checkIfCanVote(Contract voter, BigInteger votes) {
 		BigInteger max = eligibleVoters.get(voter);
 		require(max != null, "you are not a shareholder");

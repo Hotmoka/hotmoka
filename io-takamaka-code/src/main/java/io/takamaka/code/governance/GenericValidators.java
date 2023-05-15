@@ -50,7 +50,7 @@ public class GenericValidators extends AbstractValidators<Validator> {
 	 *                      1000000 = 1%
 	 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
 	 *                       (in percent of the offer cost). 1000000 = 1%
-	 * @param shashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+	 * @param slashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
 	 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
 	 */
 	protected GenericValidators(Manifest<Validator> manifest, Validator[] validators, BigInteger[] powers, BigInteger ticketForNewPoll,
@@ -105,6 +105,9 @@ public class GenericValidators extends AbstractValidators<Validator> {
 		super.accept(amount, buyer, offer);
 	}
 
+	/**
+	 * The builder of a generic validators object.
+	 */
 	@Exported
 	public static class Builder extends Storage implements Function<Manifest<Validator>, GenericValidators> {
 		private final String publicKeys;
@@ -117,6 +120,29 @@ public class GenericValidators extends AbstractValidators<Validator> {
 		private final int slashingForMisbehaving;
 		private final int slashingForNotBehaving;
 
+		/**
+		 * Creates the builder, from the public keys and powers.
+		 *
+		 * @param publicKeys the public keys of the initial validators,
+		 *                   as a space-separated sequence of Base64-encoded public keys
+		 * @param powers the initial powers of the initial validators,
+		 *               as a space-separated sequence of integers; they must be as many
+		 *               as there are public keys in {@code publicKeys}
+		 * @param ticketForNewPoll the amount of coins to pay for starting a new poll among the validators;
+		 *                         both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
+		 *                         {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
+		 *                         require to pay this amount for starting a poll
+		 * @param finalSupply the final supply of coins that will be reached, eventually
+		 * @param initialInflation the initial inflation applied to the gas consumed by transactions before it gets sent
+		 *                		   as reward to the validators. 1,000,000 means 1%.
+		 *                         Inflation can be negative. For instance, -300,000 means -0.3%
+		 * @param percentStaked the amount of rewards that gets staked. The rest is sent to the validators immediately.
+		 *                      1000000 = 1%
+		 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
+		 *                       (in percent of the offer cost). 1000000 = 1%
+		 * @param slashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+		 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
+		 */
 		public Builder(String publicKeys, String powers, BigInteger ticketForNewPoll, BigInteger finalSupply, long initialInflation,
 				int percentStaked, int buyerSurcharge, int slashingForMisbehaving, int slashingForNotBehaving) {
 

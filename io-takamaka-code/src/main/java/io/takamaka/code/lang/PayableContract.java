@@ -28,6 +28,11 @@ import java.math.BigInteger;
 public abstract class PayableContract extends Contract {
 
 	/**
+	 * Creates the contract.
+	 */
+	protected PayableContract() {}
+
+	/**
 	 * Receives the given amount of coins from the caller of the method.
 	 * 
 	 * @param amount the amount of coins

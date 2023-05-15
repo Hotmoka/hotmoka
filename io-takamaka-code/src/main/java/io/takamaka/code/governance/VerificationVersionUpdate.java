@@ -23,14 +23,28 @@ import io.takamaka.code.lang.View;
  * An event issued when the version of the verification module has been updated.
  */
 public class VerificationVersionUpdate extends ConsensusUpdate {
+
+	/**
+	 * The new verification version.
+	 */
 	public final int newVerificationVersion;
 
+	/**
+	 * Creates the event.
+	 * 
+	 * @param newVerificationVersion the new verification version
+	 */
 	@FromContract VerificationVersionUpdate(int newVerificationVersion) {
 		super("the version of the verification module has been set to " + newVerificationVersion);
 
 		this.newVerificationVersion = newVerificationVersion;
 	}
 
+	/**
+	 * Yields the new verification version.
+	 * 
+	 * @return the new verification version
+	 */
 	public @View int getVerificationVersion() {
 		return newVerificationVersion;
 	}

@@ -32,31 +32,35 @@ public interface Pausable {
      */
     @View boolean paused();
 
-    /*
-     * Puts the objects in puase.
+    /**
+     * Puts the objects in pause.
      * Requirement: the object must not be paused.
      */
     @FromContract void pause();
 
-    /*
+    /**
      * Unpauses the object.
      * Requirement: the contract must be paused.
      */
     @FromContract void unpause();
 
     /**
-     * Emitted when the pause is triggered by {@code account}.
+     * Emitted when a contract is paused.
      */
     class Paused extends Event {
-        public final Contract account;
+
+    	/**
+    	 * The paused contract.
+    	 */
+    	public final Contract contract;
 
         /**
          * Creates the event object.
          *
-         * @param account the account requesting the pause
+         * @param contract the contract that has been paused
          */
-        public @FromContract Paused(Contract account) {
-            this.account = account;
+        public @FromContract Paused(Contract contract) {
+            this.contract = contract;
         }
     }
 
@@ -64,15 +68,19 @@ public interface Pausable {
      * Emitted when the pause is lifted by {@code account}.
      */
     class Unpaused extends Event {
-        public final Contract account;
+
+    	/**
+    	 * The unpaused contract.
+    	 */
+    	public final Contract contract;
 
         /**
-         * Creates the event object.
+         * Creates the event.
          *
-         * @param account the account which removed the pause
+         * @param contract the contract that has been unpaused
          */
-        public @FromContract Unpaused(Contract account) {
-            this.account = account;
+        public @FromContract Unpaused(Contract contract) {
+            this.contract = contract;
         }
     }
 }

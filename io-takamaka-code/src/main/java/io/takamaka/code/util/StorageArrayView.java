@@ -55,6 +55,7 @@ public interface StorageArrayView<V> extends Iterable<V> {
 	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
 	 * @param index the index
+	 * @param _default the default value
 	 * @return the value at the given index if the index has been assigned to a value
 	 *         and {@code _default} otherwise
 	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
@@ -65,6 +66,7 @@ public interface StorageArrayView<V> extends Iterable<V> {
 	 * Yields the value at the given index, if any. This operation runs in logarithmic time.
 	 * 
 	 * @param index the index
+	 * @param _default the function yielding the default value
 	 * @return the value at the given index if the index has been assigned to a value
 	 *         and {@code _default.get()} otherwise
 	 * @throws ArrayIndexOutOfBoundsException if {@code index} is outside the bounds of the array
@@ -83,6 +85,7 @@ public interface StorageArrayView<V> extends Iterable<V> {
 	 * Yields an array containing the elements of this storage array, in their order,
 	 * using the provided generator function to allocate the returned array.
 	 * 
+	 * @param <A> the type of the elements of the resulting array
 	 * @param generator the array generator
 	 * @return the array
 	 * @throws ArrayStoreException if the runtime type of the array returned from the array generator

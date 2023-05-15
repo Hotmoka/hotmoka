@@ -68,6 +68,8 @@ public interface GasStation<V extends Validator> {
 	 * Yields the units of gas that are aimed to be rewarded at each reward.
 	 * If the actual reward is smaller, the price of gas must decrease.
 	 * If it is larger, the price of gas must increase.
+	 * 
+	 * @return the units of gas that are aimed to be rewarded at each reward
 	 */
 	@View BigInteger getTargetGasAtReward();
 

@@ -40,7 +40,19 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	 * @param <V> the type of the values
 	 */
 	interface Entry<V> {
+
+		/**
+		 * Yields the key of the pair.
+		 * 
+		 * @return the key
+		 */
 		int getKey();
+
+		/**
+		 * Yields the value of the key.
+		 * 
+		 * @return the value of the key
+		 */
 		V getValue();
 	}
 
@@ -71,6 +83,7 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	 * Returns the value associated with the given key.
 	 * 
 	 * @param key the key
+	 * @param _default the default value
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default} if the key is not in the symbol table
 	 */
@@ -80,6 +93,7 @@ public interface StorageIntMapView<V> extends Iterable<StorageIntMapView.Entry<V
 	 * Yields the value associated with the given key.
 	 * 
 	 * @param key the key
+	 * @param _default the function yielding the default value
 	 * @return the value associated with the given key if the key is in the symbol table.
 	 *         Yields {@code _default.get()} if the key is not in the symbol table
 	 */

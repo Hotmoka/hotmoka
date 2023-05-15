@@ -107,10 +107,29 @@ public interface IERC721 extends IERC721View {
 	 * Emitted when the {@code tokenId} token is transferred from {@code from} to {@code to}.
 	 */
 	class Transfer extends Event {
+
+		/**
+		 * The origin of the transfer.
+		 */
 		public final Contract from;
+
+		/**
+		 * The destination of the transfer.
+		 */
 		public final Contract to;
+
+		/**
+		 * The amount of transferred tokens.
+		 */
 		public final BigInteger tokenId;
 
+		/**
+		 * Creates the event
+		 * 
+		 * @param from the origin of the transfer
+		 * @param to the destination of the transfer
+		 * @param tokenId the mount of tokens transferred
+		 */
 		@FromContract
 		public Transfer(Contract from, Contract to, BigInteger tokenId) {
 			this.from = from;
@@ -123,10 +142,29 @@ public interface IERC721 extends IERC721View {
 	 * Emitted when {@code owner} enables {@code approved} to manage the {@code tokenId} token.
 	 */
 	class Approval extends Event {
+
+		/**
+		 * The owner.
+		 */
 		public final Contract owner;
+
+		/**
+		 * The approved contract.
+		 */
 		public final Contract approved;
+
+		/**
+		 * The approved amount of tokens.
+		 */
 		public final BigInteger tokenId;
 
+		/**
+		 * Creates the event.
+		 * 
+		 * @param owner the owner
+		 * @param approved the approved contract
+		 * @param tokenId the approved amount of tokens
+		 */
 		@FromContract
 		public Approval(Contract owner, Contract approved, BigInteger tokenId) {
 			this.owner = owner;
@@ -139,7 +177,15 @@ public interface IERC721 extends IERC721View {
 	 * Emitted when {@code owner} enables or disables {@code operator} to manage all its tokens.
 	 */
 	class ApprovalForAll extends Event {
+
+		/**
+		 * The owner of the tokens.
+		 */
 		public final Contract owner;
+
+		/**
+		 * The allowed or disabled operator.
+		 */
 		public final Contract operator;
 
 		/**
@@ -147,6 +193,13 @@ public interface IERC721 extends IERC721View {
 		 */
 		public final boolean approved;
 
+		/**
+		 * Creates the event.
+		 * 
+		 * @param owner the owner of the tokens
+		 * @param operator the allowed or disabled operator
+		 * @param approved true when has been enabled; false when it has been disabled
+		 */
 		@FromContract
 		public ApprovalForAll(Contract owner, Contract operator, boolean approved) {
 			this.owner = owner;

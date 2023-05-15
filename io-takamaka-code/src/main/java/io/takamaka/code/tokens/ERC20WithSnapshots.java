@@ -35,6 +35,10 @@ import io.takamaka.code.util.StorageTreeMap;
  * only in the very rare case that you need to explicitly refer to snapshots by number.
  */
 public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
+
+	/**
+	 * The decorated token.
+	 */
 	protected final IERC20 parent;
     private final StorageMap<UnsignedBigInteger, IERC20View> _snapshots = new StorageTreeMap<>();
     private UnsignedBigInteger _currentSnapshotId = new UnsignedBigInteger(); // Note: First snapshot has the id 1 -> see snapshot()
@@ -53,7 +57,11 @@ public abstract class ERC20WithSnapshots extends Contract implements IERC20 {
      * Emitted when a snapshot identified by {@code id} is created.
      */
     public static class Snapshot extends Event {
-        public final UnsignedBigInteger id;
+
+    	/**
+    	 * The identifier of the snapshot.
+    	 */
+    	public final UnsignedBigInteger id;
 
         /**
          * Allows the {@link ERC20WithSnapshots.Snapshot} event to be issued.

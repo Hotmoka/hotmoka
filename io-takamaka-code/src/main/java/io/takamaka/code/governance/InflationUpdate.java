@@ -23,8 +23,17 @@ import io.takamaka.code.lang.FromContract;
  * An event issued when the inflation has changed.
  */
 public class InflationUpdate extends Event {
+
+	/**
+	 * The new level of inflation.
+	 */
 	public final long newInflation;
 
+	/**
+	 * Creates the event
+	 * 
+	 * @param newInflation the new level of inflation
+	 */
 	protected @FromContract InflationUpdate(long newInflation) {
 		this.newInflation = newInflation;
 	}

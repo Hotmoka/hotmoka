@@ -30,6 +30,7 @@ public interface IERC721URIStorageView extends IERC721View {
 	 * Returns the Uniform Resource Identifier (URI) for token {@code tokenId}.
 	 * 
 	 * @param tokenId the token whose URI must be returned
+	 * @return the URI, as a string
 	 */
 	@View
 	String tokenURI(BigInteger tokenId);
