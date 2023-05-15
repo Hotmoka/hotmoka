@@ -2,45 +2,45 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
+  <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>io-hotmoka-service</artifactId>
-    <packaging>jar</packaging>
-    <name>io-hotmoka-service</name>
-    <version>${hotmoka.version}</version>
+  <artifactId>io-hotmoka-service</artifactId>
+  <packaging>jar</packaging>
+  <name>io-hotmoka-service</name>
+  <version>${hotmoka.version}</version>
 
-    <parent>
-        <artifactId>hotmoka</artifactId>
-        <groupId>io.hotmoka</groupId>
-        <version>1.1.0</version>
-    </parent>
+  <parent>
+    <artifactId>hotmoka</artifactId>
+    <groupId>io.hotmoka</groupId>
+    <version>parent</version>
+  </parent>
 
-    <properties>
-        <spring.boot.version>2.6.7</spring.boot.version>
-        <log4j.version>1.2.16</log4j.version>
-    </properties>
+  <properties>
+    <spring.boot.version>2.6.7</spring.boot.version>
+    <log4j.version>1.2.16</log4j.version>
+  </properties>
 
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>${spring.boot.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
+  <dependencyManagement>
     <dependencies>
-        <dependency>
+      <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-dependencies</artifactId>
+        <version>${spring.boot.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+        <exclusions>
+          <exclusion>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.springframework.boot</groupId>
-                    <artifactId>spring-boot-starter-logging</artifactId>
-                </exclusion>
+            <artifactId>spring-boot-starter-logging</artifactId>
+          </exclusion>
                 <exclusion>
                     <groupId>org.springframework.boot</groupId>
                     <artifactId>spring-boot-starter-json</artifactId>
@@ -72,18 +72,4 @@
 		</dependency>
     </dependencies>
     
-    <build>
-      <plugins>
-		<plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <outputDirectory>
-              ../modules/explicit
-            </outputDirectory>
-          </configuration>
-        </plugin>
-      </plugins>
-    </build>
 </project>

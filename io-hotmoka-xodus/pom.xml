@@ -10,7 +10,7 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
 
   <build>
@@ -40,6 +40,11 @@
       <version>2.0.1</version>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.7</version>
+	</dependency>
   </dependencies>
 
 </project>

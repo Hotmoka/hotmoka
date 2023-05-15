@@ -10,49 +10,7 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
-
-   <build>
-      <plugins>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-jar-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <outputDirectory>
-              ../modules/explicit
-            </outputDirectory>
-          </configuration>
-        </plugin>
-        <plugin>
-          <groupId>org.apache.maven.plugins</groupId>
-          <artifactId>maven-javadoc-plugin</artifactId>
-          <version>3.2.0</version>
-          <configuration>
-            <finalName>io-takamaka-code-${takamaka.version}</finalName>
-            <additionalJOptions>
-		        <additionalJOption>-Xmaxerrs</additionalJOption>
-        		<additionalJOption>65536</additionalJOption>
-        		<additionalJOption>-Xmaxwarns</additionalJOption>
-        		<additionalJOption>65536</additionalJOption>
-      		</additionalJOptions>
-            <!-- Default configuration for all reports -->
-          </configuration>
-          <executions>
-            <execution>
-              <id>aggregate</id>
-              <goals>
-                <goal>aggregate</goal>
-              </goals>
-              <phase>site</phase>
-              <configuration>
-                <!-- Specific configuration for the aggregate report -->
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
-    </build>
 
 </project>

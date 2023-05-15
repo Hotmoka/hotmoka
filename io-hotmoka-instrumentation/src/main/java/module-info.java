@@ -21,5 +21,4 @@ module io.hotmoka.instrumentation {
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.constants;
 	requires it.univr.bcel;
-	requires org.apache.bcel;
 }

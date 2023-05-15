@@ -10,124 +10,125 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
 
   <dependencies>
 	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-constants</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-whitelisting</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-verification</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-instrumentation</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-instrumentation</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-beans</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-crypto</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-nodes</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-nodes</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-helpers</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-memory</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-memory</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-tendermint</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-tendermint</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-service</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-service</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-remote</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-remote</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-       <groupId>org.junit.jupiter</groupId>
-       <artifactId>junit-jupiter-engine</artifactId>
-       <version>5.4.2</version>
-       <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.junit.jupiter</groupId>
-        <artifactId>junit-jupiter</artifactId>
-        <version>5.4.0</version>
-        <scope>test</scope>
-    </dependency>
-    <dependency>
-        <groupId>org.junit.platform</groupId>
-        <artifactId>junit-platform-commons</artifactId>
-        <version>1.5.2</version>
-        <scope>test</scope>
-    </dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-nop</artifactId>
+      <version>2.0.7</version>
+	</dependency>
   </dependencies>
 
   <build>
     <plugins>
-      <plugin>
+	  <!-- useless to install in the local Maven repository -->
+	  <plugin>
         <artifactId>maven-install-plugin</artifactId>
-        <version>3.0.0-M1</version>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
         <version>3.1.1</version>
         <configuration>
           <skip>true</skip>
         </configuration>
-      </plugin>
+	  </plugin>
+	  <!-- do not store the jar in the modules directory, as inherited from parent -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <outputDirectory>target</outputDirectory>
+        </configuration>
+      </plugin>
+      <!-- do not copy the modules only used for testing -->
+      <plugin>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+		  <skip>false</skip>
+		</configuration>
+      </plugin>
+      <!-- no reason to javadoc the tests -->
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>
       </plugin>
     </plugins>
   </build>
+
+  <profiles>
+	<profile>
+	  <id>release</id>
+      <build>
+        <plugins>
+		  <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+	    </plugins>
+      </build>
+    </profile>
+  </profiles>
 
 </project>

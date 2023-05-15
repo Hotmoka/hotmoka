@@ -15,14 +15,5 @@ limitations under the License.
 */
 
 open module io.takamaka.code.tests {
-	requires io.hotmoka.beans;
-	requires io.hotmoka.nodes;
-	requires io.hotmoka.helpers;
-	requires io.hotmoka.local;
-	requires io.hotmoka.crypto;
-	requires io.hotmoka.memory;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.verification;
 	requires java.logging;
 }

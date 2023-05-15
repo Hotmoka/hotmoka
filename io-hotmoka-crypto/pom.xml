@@ -10,31 +10,9 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.8.1</version>
-        <configuration>
-          <release>11</release>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <outputDirectory>
-            ../modules/explicit
-          </outputDirectory>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
@@ -48,4 +26,5 @@
       <type>jar</type>
     </dependency>
   </dependencies>
+
 </project>

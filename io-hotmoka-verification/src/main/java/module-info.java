@@ -19,5 +19,5 @@ module io.hotmoka.verification {
 	exports io.hotmoka.verification.issues;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.whitelisting;
-	requires transitive org.apache.bcel;
+	requires org.apache.bcel;
 }

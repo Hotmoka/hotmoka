@@ -37,7 +37,7 @@ module io.hotmoka.service {
     requires spring.web;
     requires spring.context;
     requires spring.boot.starter.websocket;
-    requires transitive spring.websocket;
+    requires spring.websocket;
     requires spring.messaging;
     requires com.google.gson;
     requires java.instrument;

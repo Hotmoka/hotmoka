@@ -10,55 +10,35 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
 
   <dependencies>
 	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-constants</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-whitelisting</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-verification</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-beans</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
 	  <groupId>it.univr.bcel</groupId>
   	  <artifactId>it-univr-bcel</artifactId>
       <version>1.2.1</version>
     </dependency>
-	<dependency>
-    	<groupId>org.apache.bcel</groupId>
-    	<artifactId>bcel</artifactId>
-    	<version>6.7.0</version>
-	</dependency>
   </dependencies>
-
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
-        <configuration>
-          <outputDirectory>
-            ../modules/explicit
-          </outputDirectory>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
 
 </project>

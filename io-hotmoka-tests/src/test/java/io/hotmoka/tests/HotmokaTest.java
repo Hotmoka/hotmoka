@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /**
- * MODIFY AT LINE 241 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 208 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -28,7 +28,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.InvalidKeyException;
-import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
@@ -191,8 +190,8 @@ public abstract class HotmokaTest {
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        Entropy entropy = Entropies.of(new byte[16]);
 			String password = "";
-			SignatureAlgorithm<SignedTransactionRequest> localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
-			KeyPair keys = entropy.keys(password, localSignature);
+			var localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
+			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
 			consensus = new ConsensusParams.Builder()
 	    			.signRequestsWith("ed25519det") // good for testing
@@ -222,7 +221,7 @@ public abstract class HotmokaTest {
 	        Signer signerOfGamete = Signer.with(signature, privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
-	        TransactionReference takamakaCode = node.getTakamakaCode();
+	        var takamakaCode = node.getTakamakaCode();
 	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 	    		(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 

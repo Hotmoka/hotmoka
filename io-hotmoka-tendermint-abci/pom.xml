@@ -10,19 +10,15 @@
   <parent>
     <groupId>io.hotmoka</groupId>
     <artifactId>hotmoka</artifactId>
-    <version>1.1.0</version>
+    <version>parent</version>
   </parent>
-
-  <properties>
-    <maven.deploy.skip>false</maven.deploy.skip>
-  </properties>
 
   <build>
     <plugins>
 	  <plugin>
 	    <groupId>kr.motd.maven</groupId>
 	    <artifactId>os-maven-plugin</artifactId>
-	    <version>1.6.2</version>
+	    <version>1.7.1</version>
 	    <executions>
 	      <execution>
 	        <phase>initialize</phase>
@@ -51,9 +47,7 @@
         </executions>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
-        <version>3.2.0</version>
         <configuration>
           <outputDirectory>
             ../modules/automatic
@@ -66,9 +60,7 @@
         </configuration>
       </plugin>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.2.0</version>
         <configuration>
           <!-- we do not document auto-generated classes -->
 		  <excludePackageNames>tendermint.abci,tendermint.crypto,tendermint.types,tendermint.version,io.hotmoka.protobuf.tendermint</excludePackageNames>
