@@ -158,6 +158,8 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * Both {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action)} and
 	 * {@link #newPoll(BigInteger, io.takamaka.code.dao.SimplePoll.Action, long, long)}
 	 * require to pay this amount for starting a poll.
+	 * 
+	 * @return the amount of coins needed to start a new poll
 	 */
 	@View BigInteger getTicketForNewPoll();
 
@@ -165,6 +167,8 @@ public interface Validators<V extends Validator> extends SharedEntity<V, Offer<V
 	 * Yields a snapshot of the polls created among these validators,
 	 * that have not been closed yet. Some of these polls might be over.
 	 * These polls, typically, have as action the update of a consensus parameter.
+	 * 
+	 * @return the snapshot
 	 */
 	@View StorageSetView<Poll<V>> getPolls();
 

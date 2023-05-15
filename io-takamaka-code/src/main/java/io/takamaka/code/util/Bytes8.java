@@ -73,6 +73,15 @@ public class Bytes8 extends AbstractStorageByteArrayView implements StorageByteA
 
 	/**
 	 * Builds an array with the given elements.
+	 * 
+	 * @param byte0 the byte number 0
+	 * @param byte1 the byte number 1
+	 * @param byte2 the byte number 2
+	 * @param byte3 the byte number 3
+	 * @param byte4 the byte number 4
+	 * @param byte5 the byte number 5
+	 * @param byte6 the byte number 6
+	 * @param byte7 the byte number 7
 	 */
 	public Bytes8(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7) {
 		this.byte0 = byte0;

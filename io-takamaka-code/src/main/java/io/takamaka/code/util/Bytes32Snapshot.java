@@ -175,6 +175,39 @@ public final class Bytes32Snapshot extends AbstractStorageByteArrayView {
 
 	/**
 	 * Builds an array with the given elements.
+	 * 
+	 * @param byte0 the byte number 0
+	 * @param byte1 the byte number 1
+	 * @param byte2 the byte number 2
+	 * @param byte3 the byte number 3
+	 * @param byte4 the byte number 4
+	 * @param byte5 the byte number 5
+	 * @param byte6 the byte number 6
+	 * @param byte7 the byte number 7
+	 * @param byte8 the byte number 8
+	 * @param byte9 the byte number 9
+	 * @param byte10 the byte number 10
+	 * @param byte11 the byte number 11
+	 * @param byte12 the byte number 12
+	 * @param byte13 the byte number 13
+	 * @param byte14 the byte number 14
+	 * @param byte15 the byte number 15
+	 * @param byte16 the byte number 16
+	 * @param byte17 the byte number 17
+	 * @param byte18 the byte number 18
+	 * @param byte19 the byte number 19
+	 * @param byte20 the byte number 20
+	 * @param byte21 the byte number 21
+	 * @param byte22 the byte number 22
+	 * @param byte23 the byte number 23
+	 * @param byte24 the byte number 24
+	 * @param byte25 the byte number 25
+	 * @param byte26 the byte number 26
+	 * @param byte27 the byte number 27
+	 * @param byte28 the byte number 28
+	 * @param byte29 the byte number 29
+	 * @param byte30 the byte number 30
+	 * @param byte31 the byte number 31
 	 */
 	public Bytes32Snapshot(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
 			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15, byte byte16,

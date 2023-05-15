@@ -88,6 +88,8 @@ public interface SharedEntity<S extends PayableContract, O extends SharedEntity.
 
 	/**
 	 * The description of a sale offer of shares.
+	 * 
+	 * @param <S> the type of the seller contract
 	 */
 	@Exported
 	class Offer<S extends PayableContract> extends Storage {

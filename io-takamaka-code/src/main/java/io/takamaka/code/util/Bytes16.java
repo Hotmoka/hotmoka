@@ -81,6 +81,23 @@ public class Bytes16 extends AbstractStorageByteArrayView implements StorageByte
 
 	/**
 	 * Builds an array with the given elements.
+	 * 
+	 * @param byte0 the byte number 0
+	 * @param byte1 the byte number 1
+	 * @param byte2 the byte number 2
+	 * @param byte3 the byte number 3
+	 * @param byte4 the byte number 4
+	 * @param byte5 the byte number 5
+	 * @param byte6 the byte number 6
+	 * @param byte7 the byte number 7
+	 * @param byte8 the byte number 8
+	 * @param byte9 the byte number 9
+	 * @param byte10 the byte number 10
+	 * @param byte11 the byte number 11
+	 * @param byte12 the byte number 12
+	 * @param byte13 the byte number 13
+	 * @param byte14 the byte number 14
+	 * @param byte15 the byte number 15
 	 */
 	public Bytes16(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
 			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15) {

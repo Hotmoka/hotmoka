@@ -109,6 +109,13 @@ public abstract class Accounts<A extends ExternallyOwnedAccount> extends Contrac
 		this(amount, buildBalances(balances), buildPublicKeys(publicKeys));
 	}
 
+	/**
+	 * Yields a new account with the given initial balance and public key.
+	 * 
+	 * @param balance the balance
+	 * @param publicKey the public key
+	 * @return the account
+	 */
 	protected abstract A mkAccount(BigInteger balance, String publicKey);
 
 	private static BigInteger[] buildBalances(String balancesAsStringSequence) {

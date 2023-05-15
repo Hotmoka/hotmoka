@@ -35,6 +35,8 @@ import java.math.BigInteger;
  */
 public class Coin {
 
+	private Coin() {}
+
 	/**
 	 * Yields the given amount of panareas, as a {@link java.math.BigInteger}.
 	 * Panareas are level 1 coins.

@@ -259,6 +259,71 @@ public final class Bytes64Snapshot extends AbstractStorageByteArrayView {
 
 	/**
 	 * Builds an array with the given elements.
+	 * 
+	 * @param byte0 the byte number 0
+	 * @param byte1 the byte number 1
+	 * @param byte2 the byte number 2
+	 * @param byte3 the byte number 3
+	 * @param byte4 the byte number 4
+	 * @param byte5 the byte number 5
+	 * @param byte6 the byte number 6
+	 * @param byte7 the byte number 7
+	 * @param byte8 the byte number 8
+	 * @param byte9 the byte number 9
+	 * @param byte10 the byte number 10
+	 * @param byte11 the byte number 11
+	 * @param byte12 the byte number 12
+	 * @param byte13 the byte number 13
+	 * @param byte14 the byte number 14
+	 * @param byte15 the byte number 15
+	 * @param byte16 the byte number 16
+	 * @param byte17 the byte number 17
+	 * @param byte18 the byte number 18
+	 * @param byte19 the byte number 19
+	 * @param byte20 the byte number 20
+	 * @param byte21 the byte number 21
+	 * @param byte22 the byte number 22
+	 * @param byte23 the byte number 23
+	 * @param byte24 the byte number 24
+	 * @param byte25 the byte number 25
+	 * @param byte26 the byte number 26
+	 * @param byte27 the byte number 27
+	 * @param byte28 the byte number 28
+	 * @param byte29 the byte number 29
+	 * @param byte30 the byte number 30
+	 * @param byte31 the byte number 31
+	 * @param byte32 the byte number 32
+	 * @param byte33 the byte number 33
+	 * @param byte34 the byte number 34
+	 * @param byte35 the byte number 35
+	 * @param byte36 the byte number 36
+	 * @param byte37 the byte number 37
+	 * @param byte38 the byte number 38
+	 * @param byte39 the byte number 39
+	 * @param byte40 the byte number 40
+	 * @param byte41 the byte number 41
+	 * @param byte42 the byte number 42
+	 * @param byte43 the byte number 43
+	 * @param byte44 the byte number 44
+	 * @param byte45 the byte number 45
+	 * @param byte46 the byte number 46
+	 * @param byte47 the byte number 47
+	 * @param byte48 the byte number 48
+	 * @param byte49 the byte number 49
+	 * @param byte50 the byte number 50
+	 * @param byte51 the byte number 51
+	 * @param byte52 the byte number 52
+	 * @param byte53 the byte number 53
+	 * @param byte54 the byte number 54
+	 * @param byte55 the byte number 55
+	 * @param byte56 the byte number 56
+	 * @param byte57 the byte number 57
+	 * @param byte58 the byte number 58
+	 * @param byte59 the byte number 59
+	 * @param byte60 the byte number 60
+	 * @param byte61 the byte number 61
+	 * @param byte62 the byte number 62
+	 * @param byte63 the byte number 63
 	 */
 	public Bytes64Snapshot(byte byte0, byte byte1, byte byte2, byte byte3, byte byte4, byte byte5, byte byte6, byte byte7,
 			byte byte8, byte byte9, byte byte10, byte byte11, byte byte12, byte byte13, byte byte14, byte byte15, byte byte16,

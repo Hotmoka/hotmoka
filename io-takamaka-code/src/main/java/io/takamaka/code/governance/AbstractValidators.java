@@ -180,7 +180,7 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 	 *                      1000000 = 1%
 	 * @param buyerSurcharge the extra tax paid when a validator acquires the shares of another validator
 	 *                       (in percent of the offer cost). 1000000 = 1%
-	 * @param shashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
+	 * @param slashingForMisbehaving the percent of stake that gets slashed for each misbehaving. 1000000 means 1%
 	 * @param slashingForNotBehaving the percent of stake that gets slashed for not behaving (no vote). 1000000 means 1%
 	 */
 	protected AbstractValidators(Manifest<V> manifest, V[] validators, BigInteger[] powers, BigInteger ticketForNewPoll,
@@ -361,12 +361,24 @@ public abstract class AbstractValidators<V extends Validator> extends SimpleShar
 		return poll;
 	}
 
+	/**
+	 * Transforms a string of powers into an array of big integers.
+	 * 
+	 * @param powersAsStringSequence the string
+	 * @return the array
+	 */
 	protected static BigInteger[] buildPowers(String powersAsStringSequence) {
 		return splitAtSpaces(powersAsStringSequence).stream()
 			.map(BigInteger::new)
 			.toArray(BigInteger[]::new);
 	}
 
+	/**
+	 * Slits the given string at spaces.
+	 * 
+	 * @param s the string
+	 * @return the list of parts
+	 */
 	protected static List<String> splitAtSpaces(String s) {
 		List<String> list = new ArrayList<>();
 		int pos;

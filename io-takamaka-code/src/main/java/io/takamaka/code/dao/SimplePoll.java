@@ -35,6 +35,8 @@ import io.takamaka.code.util.StorageTreeMap;
 /**
  * The implementation of a simple poll among a set of voters. Each voter can vote with a number of votes
  * between one and its power. Once the goal for the poll is reached, an action is run.
+ * 
+ * @param <Voter> the type of the contracts allowed to vote
  */
 @Exported
 public class SimplePoll<Voter extends Contract> extends Storage implements Poll<Voter> {

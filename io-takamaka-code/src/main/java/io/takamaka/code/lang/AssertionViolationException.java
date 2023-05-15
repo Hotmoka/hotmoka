@@ -21,10 +21,22 @@ package io.takamaka.code.lang;
  */
 @SuppressWarnings("serial")
 public class AssertionViolationException extends RuntimeException {
+	
+	/**
+	 * Creates a new exception with the given message.
+	 * 
+	 * @param message the message of the exception
+	 */
 	public AssertionViolationException(String message) {
 		super(message);
 	}
 
+	/**
+	 * Creates a new exception with the given message and cause.
+	 * 
+	 * @param message the message
+	 * @param cause the cause
+	 */
 	public AssertionViolationException(String message, Throwable cause) {
 		super(message, cause);
 	}

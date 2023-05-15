@@ -124,6 +124,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	/**
 	 * Creates a manifest.
 	 * 
+	 * @param genesisTime a string the will be used to report the genesis time of the node
 	 * @param chainId the initial chainId of the node having the manifest
 	 * @param maxErrorLength the maximal length of the error message kept in the store of the node.
 	 *                       Beyond this threshold, the message gets truncated
@@ -200,6 +201,8 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	/**
 	 * Yields the maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
+	 * 
+	 * @return the length
 	 */
 	public final @View int getMaxErrorLength() {
 		return maxErrorLength;
@@ -208,6 +211,8 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	/**
 	 * Yields the maximal number of dependencies per transaction.
 	 * Beyond this threshold, a transaction gets rejected.
+	 * 
+	 * @return the maximal number of dependencies
 	 */
 	public final @View int getMaxDependencies() {
 		return maxDependencies;
@@ -216,6 +221,8 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	/**
 	 * Yields the maximal cumulative size of the dependencies per transaction.
 	 * Beyond this threshold, a transaction gets rejected.
+	 * 
+	 * @return the maximal cumulative size
 	 */
 	public final @View long getMaxCumulativeSizeOfDependencies() {
 		return maxCumulativeSizeOfDependencies;

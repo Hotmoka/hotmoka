@@ -27,6 +27,10 @@ import io.takamaka.code.lang.View;
  * Clients might monitor these events, for instance, to update their consensus cache.
  */
 public class ConsensusUpdate extends Event {
+
+	/**
+	 * A message that describes what has changed.
+	 */
 	public final String message;
 
 	/**

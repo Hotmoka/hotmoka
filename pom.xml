@@ -1,4 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+
+Compilation and installation of all modules in the local repository:
+  mvn clean install
+
+Compilation and installation of all modules in the local repository, without running the tests nor generating Javadocs:
+  mvn clean install -DskipTests -Dmaven.javadoc.skip
+
+Compilation of selected modules, sign with the given key and deploy to Maven Central:
+  mvn clean deploy -Prelease -Dgpg.keyname=5DA0DA74CADE10E6DDE646611983F53632921972
+
+By using the maven-flatten-plugin, this pom.xml allows us to use properties to define
+the versions of the artifacts: the properties will be replaced by their value in the deployed artifacts.
+Moreover, this makes the parent pom useless, hence it is not deployed.
+Note: submodules whose artifact must be deployed on Maven Central must activate the Nexus staging plugin
+(see for instance the pom-xml of the io-hotmoka-websockets-beans submodule).
+
+-->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0                              http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -199,6 +219,10 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
         <version>3.5.0</version>
+        <configuration>
+          <failOnError>false</failOnError>
+		  <failOnWarnings>false</failOnWarnings>
+		</configuration>
         <executions>
           <execution>
             <id>attach-javadocs</id>
