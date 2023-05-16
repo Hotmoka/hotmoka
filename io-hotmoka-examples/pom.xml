@@ -21,19 +21,42 @@
     </dependency>
   </dependencies>
 
+  <profiles>
+	<profile>
+	  <id>release</id>
+      <build>
+	    <plugins>
+          <plugin>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+	    </plugins>
+      </build>
+	</profile>
+  </profiles>
+
   <build>
     <plugins>
-      <plugin>
+      <!-- useless to install in the local Maven repository -->
+	  <plugin>
         <artifactId>maven-install-plugin</artifactId>
-        <version>3.0.0-M1</version>
+        <version>3.1.1</version>
         <configuration>
           <skip>true</skip>
         </configuration>
-      </plugin>
+	  </plugin>
+      <!-- do not copy the modules only used for testing -->
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-gpg-plugin</artifactId>
-        <version>1.6</version>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <configuration>
+		  <skip>false</skip>
+		</configuration>
+      </plugin>
+      <!-- no reason to javadoc the tests -->
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
         <configuration>
           <skip>true</skip>
         </configuration>
@@ -835,15 +858,6 @@
           </execution>
 
         </executions>
-      </plugin>
-
-	  <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>3.5.0</version>
-        <configuration>
-          <skip>true</skip>
-        </configuration>
       </plugin>
     </plugins>
   </build>
