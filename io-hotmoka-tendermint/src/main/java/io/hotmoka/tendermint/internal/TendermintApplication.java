@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import org.bouncycastle.util.encoders.Hex;
 
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -94,7 +93,7 @@ class TendermintApplication extends ABCI {
     }
 
     private static long timeNow(RequestBeginBlock request) {
-    	Timestamp time = request.getHeader().getTime();
+    	var time = request.getHeader().getTime();
     	return time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
     }
 
@@ -199,7 +198,7 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseCheckTx checkTx(RequestCheckTx request) {
-		ByteString tx = request.getTx();
+		var tx = request.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
         try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
@@ -233,7 +232,7 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseDeliverTx deliverTx(RequestDeliverTx request) {
-		ByteString tx = request.getTx();
+		var tx = request.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(tx.toByteArray()))) {
