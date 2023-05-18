@@ -22,7 +22,7 @@ import java.io.IOException;
  * An unchecked I/O exception.
  */
 @SuppressWarnings("serial")
-public class UncheckedIOException extends java.io.UncheckedIOException {
+public class UncheckedIOException extends java.io.UncheckedIOException implements UncheckedException<IOException> {
 
 	UncheckedIOException(IOException cause) {
 		super(cause);

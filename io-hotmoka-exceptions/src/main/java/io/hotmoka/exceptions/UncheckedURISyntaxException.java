@@ -16,20 +16,20 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.security.NoSuchAlgorithmException;
+import java.net.URISyntaxException;
 
 /**
- * An unchecked no such algorithm exception.
+ * An unchecked URI syntax exception.
  */
 @SuppressWarnings("serial")
-public class UncheckedNoSuchAlgorithmException extends RuntimeException implements UncheckedException<NoSuchAlgorithmException> {
+public class UncheckedURISyntaxException extends RuntimeException implements UncheckedException<URISyntaxException> {
 
-	UncheckedNoSuchAlgorithmException(NoSuchAlgorithmException cause) {
+	UncheckedURISyntaxException(URISyntaxException cause) {
 		super(cause);
 	}
 
 	@Override
-	public NoSuchAlgorithmException getCause() {
-		return (NoSuchAlgorithmException) super.getCause();
+	public URISyntaxException getCause() {
+		return (URISyntaxException) super.getCause();
 	}
 }

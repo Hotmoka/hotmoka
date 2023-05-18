@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.exceptions;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
@@ -40,6 +41,9 @@ public abstract class UncheckFunction {
 				}
 				catch (InterruptedException e) {
 					throw new UncheckedInterruptedException(e);
+				}
+				catch (URISyntaxException e) {
+					throw new UncheckedURISyntaxException(e);
 				}
 			}
 		};

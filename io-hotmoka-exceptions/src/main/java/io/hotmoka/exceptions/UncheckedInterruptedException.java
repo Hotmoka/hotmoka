@@ -20,7 +20,7 @@ package io.hotmoka.exceptions;
  * An unchecked interrupted exception.
  */
 @SuppressWarnings("serial")
-public class UncheckedInterruptedException extends RuntimeException {
+public class UncheckedInterruptedException extends RuntimeException implements UncheckedException<InterruptedException> {
 
 	UncheckedInterruptedException(InterruptedException cause) {
 		super(cause);

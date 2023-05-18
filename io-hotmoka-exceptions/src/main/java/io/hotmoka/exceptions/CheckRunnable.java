@@ -16,61 +16,57 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
-
 /**
  */
 public abstract class CheckRunnable {
 
-	public static void checkNoSuchAlgorithmException(Runnable runnable) throws NoSuchAlgorithmException {
+	@SuppressWarnings("unchecked")
+	public static <CX extends Exception, X extends UncheckedException<CX>> void check(Class<X> exception1, Runnable runnable) throws CX {
+
 		try {
 			runnable.run();
 		}
-		catch (UncheckedNoSuchAlgorithmException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else
+				throw t;
 		}
 	}
 
-	public static void checkIOException(Runnable runnable) throws IOException {
+	@SuppressWarnings("unchecked")
+	public static <CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>> void check
+		(Class<X> exception1, Class<Y> exception2, Runnable runnable) throws CX, CY {
+
 		try {
 			runnable.run();
 		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else if (exception2.isInstance(t))
+				throw (CY) t.getCause();
+			else
+				throw t;
 		}
 	}
 
-	public static void checkInterruptedException(Runnable runnable) throws InterruptedException {
-		try {
-			runnable.run();
-		}
-		catch (UncheckedInterruptedException e) {
-			throw e.getCause();
-		}
-	}
+	@SuppressWarnings("unchecked")
+	public static <CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>, CZ extends Exception, Z extends UncheckedException<CZ>> void check
+		(Class<X> exception1, Class<Y> exception2, Class<Z> exception3, Runnable runnable) throws CX, CY, CZ {
 
-	public static void checkNoSuchAlgorithmExceptionIOException(Runnable runnable) throws NoSuchAlgorithmException, IOException {
 		try {
 			runnable.run();
 		}
-		catch (UncheckedNoSuchAlgorithmException e) {
-			throw e.getCause();
-		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
-		}
-	}
-
-	public static void checkInterruptedExceptionIOException(Runnable runnable) throws InterruptedException, IOException {
-		try {
-			runnable.run();
-		}
-		catch (UncheckedInterruptedException e) {
-			throw e.getCause();
-		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else if (exception2.isInstance(t))
+				throw (CY) t.getCause();
+			else if (exception3.isInstance(t))
+				throw (CZ) t.getCause();
+			else
+				throw t;
 		}
 	}
 }

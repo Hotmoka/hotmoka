@@ -16,50 +16,59 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Supplier;
 
 /**
  */
 public abstract class CheckSupplier {
 
-	public static <R> R checkNoSuchAlgorithmException(Supplier<R> supplier) throws NoSuchAlgorithmException {
+	@SuppressWarnings("unchecked")
+	public static <R, CX extends Exception, X extends UncheckedException<CX>> R check(Class<X> exception1, Supplier<R> supplier) throws CX {
+
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedNoSuchAlgorithmException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else
+				throw t;
 		}
 	}
 
-	public static <R> R checkIOException(Supplier<R> supplier) throws IOException {
+	@SuppressWarnings("unchecked")
+	public static <R, CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>> R check
+		(Class<X> exception1, Class<Y> exception2, Supplier<R> supplier) throws CX, CY {
+
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else if (exception2.isInstance(t))
+				throw (CY) t.getCause();
+			else
+				throw t;
 		}
 	}
 
-	public static <R> R checkInterruptedException(Supplier<R> supplier) throws InterruptedException {
-		try {
-			return supplier.get();
-		}
-		catch (UncheckedInterruptedException e) {
-			throw e.getCause();
-		}
-	}
+	@SuppressWarnings("unchecked")
+	public static <R, CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>, CZ extends Exception, Z extends UncheckedException<CZ>> R check
+		(Class<X> exception1, Class<Y> exception2, Class<Z> exception3, Supplier<R> supplier) throws CX, CY, CZ {
 
-	public static <R> R checkNoSuchAlgorithmExceptionIOException(Supplier<R> supplier) throws NoSuchAlgorithmException, IOException {
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedNoSuchAlgorithmException e) {
-			throw e.getCause();
-		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
+		catch (Throwable t) {
+			if (exception1.isInstance(t))
+				throw (CX) t.getCause();
+			else if (exception2.isInstance(t))
+				throw (CY) t.getCause();
+			else if (exception3.isInstance(t))
+				throw (CZ) t.getCause();
+			else
+				throw t;
 		}
 	}
 }
