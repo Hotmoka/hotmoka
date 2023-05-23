@@ -234,8 +234,17 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <outputDirectory>../modules/explicit</outputDirectory>
+        </configuration>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.5.0</version>
+        <!-- attempt to use 3.5.0 runs into a compilation error in Eclipse -->
+        <version>3.1.1</version>
         <executions>
           <execution>
             <id>copy-unnamed-module</id>
@@ -389,14 +398,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
             </configuration>
           </execution>
         </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-jar-plugin</artifactId>
-        <version>3.3.0</version>
-        <configuration>
-          <outputDirectory>../modules/explicit</outputDirectory>
-        </configuration>
       </plugin>
     </plugins>
   </build>

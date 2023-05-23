@@ -36,7 +36,7 @@ public interface ObjectMarshaller<C> {
 	/**
 	 * Expresses how an object of class <code>C</code> can be marshalled.
 	 * 
-	 * @param value the value to marshall
+	 * @param value the value to marshal
 	 * @param context the marshalling context
 	 * @throws IOException if the object could not be marshalled
 	 */
