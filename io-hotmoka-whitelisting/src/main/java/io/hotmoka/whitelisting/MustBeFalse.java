@@ -23,7 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import io.hotmoka.whitelisting.api.WhiteListingWizard;
+import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.internal.checks.MustBeFalseCheck;
 
 /**
  * States that an argument of a method or constructor of a white-listed
@@ -33,19 +34,6 @@ import io.hotmoka.whitelisting.api.WhiteListingWizard;
 @Target(value={ ElementType.PARAMETER })
 @Inherited
 @Documented
-@WhiteListingProofObligation(check = MustBeFalse.Check.class)
+@WhiteListingProofObligation(check = MustBeFalseCheck.class)
 public @interface MustBeFalse {
-	
-	class Check implements WhiteListingPredicate {
-
-		@Override
-		public boolean test(Object value, WhiteListingWizard wizard) {
-			return value.equals(Boolean.FALSE);
-		}
-
-		@Override
-		public String messageIfFailed(String methodName) {
-			return "the actual parameter of " + methodName + " must be false";
-		}
-	}
 }

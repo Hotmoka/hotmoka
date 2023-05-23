@@ -40,9 +40,9 @@ import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.Serializer;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.verification.Dummy;
-import io.hotmoka.whitelisting.WhiteListingPredicate;
-import io.hotmoka.whitelisting.WhiteListingProofObligation;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.api.WhiteListingPredicate;
+import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
  * The creator of a response for a non-initial transaction that executes a method or constructor of Takamaka code.
@@ -250,7 +250,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 
 		/**
 		 * Determines if the given annotation is checked and the given method or constructor
-		 * is assnotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
+		 * is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
 		 *
 		 * @param cause the exception
 		 * @param executable the method or constructor whose execution has thrown the exception

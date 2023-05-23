@@ -23,7 +23,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
 
-import io.hotmoka.whitelisting.MissingWhiteListingAnnotationsError;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
@@ -63,7 +62,7 @@ class WhiteListingWizardImpl implements WhiteListingWizard {
 			classLoader.loadClass(whiteListedRootWithVersion + Object.class.getName());
 		}
 		catch (ClassNotFoundException e) {
-			throw new MissingWhiteListingAnnotationsError(classLoader.getVerificationVersion());
+			throw new IllegalStateException("the white-listing annotations are missing for verification version " + classLoader.getVerificationVersion());
 		}
 	}
 

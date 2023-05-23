@@ -43,7 +43,7 @@ import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedClass;
 import io.hotmoka.verification.VerifiedJar;
 import io.hotmoka.verification.issues.Issue;
-import io.hotmoka.whitelisting.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
  * A class that passed the static Takamaka verification tests.

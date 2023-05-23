@@ -14,9 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.whitelisting;
-
-import io.hotmoka.whitelisting.api.WhiteListingWizard;
+package io.hotmoka.whitelisting.api;
 
 /**
  * A predicate for a value, that must satisfy some property if used
