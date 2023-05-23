@@ -28,6 +28,8 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
+
 /**
  * States that an argument of a method or constructor of a white-listed
  * method has an {@code equals()} and a {@code hashCode} implementation

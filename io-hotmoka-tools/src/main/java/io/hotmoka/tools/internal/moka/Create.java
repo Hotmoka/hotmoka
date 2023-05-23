@@ -48,7 +48,7 @@ import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

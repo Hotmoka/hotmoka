@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,8 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.whitelisting {
-	exports io.hotmoka.whitelisting;
-	requires transitive io.hotmoka.whitelisting.api;
-	requires io.hotmoka.constants;
+/**
+ * This module defines the API of the white-listing utility of Hotmoka.
+ * It is used to define a subset of Java that can be used for Takamaka smart contracts.
+ */
+module io.hotmoka.whitelisting.api {
+	exports io.hotmoka.whitelisting.api;
 }

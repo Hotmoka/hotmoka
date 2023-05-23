@@ -30,8 +30,9 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.whitelisting.ResolvingClassLoader;
-import io.hotmoka.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.ResolvingClassLoaders;
+import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
  * A sealed implementation of a {@link io.hotmoka.whitelisting.ResolvingClassLoader}.
@@ -55,7 +56,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	private final byte[][] jars;
 
 	// getPackageName() not working under Android!
-	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoader.class.getPackage().getName() + '.';
+	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoaders.class.getPackage().getName() + '.';
 
 	private final static String DUMMY_NAME_WITH_SLASHES = Constants.DUMMY_NAME.replace('.', '/') + ".class";
 
@@ -125,11 +126,10 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	}
 
 	private Optional<Class<?>> loadClassFromJarsInNode(String name) {
-		try (InputStream in = getResourceAsStream(name.replace('.', '/') + ".class")) {
+		try (var in = getResourceAsStream(name.replace('.', '/') + ".class")) {
 			if (in != null) {
 				byte[] bytes = in.readAllBytes();
-				Class<?> clazz = defineClass(name, bytes, 0, bytes.length);
-				return Optional.of(clazz);
+				return Optional.of(defineClass(name, bytes, 0, bytes.length));
 			}
 		}
 		catch (IOException | ClassFormatError e) {

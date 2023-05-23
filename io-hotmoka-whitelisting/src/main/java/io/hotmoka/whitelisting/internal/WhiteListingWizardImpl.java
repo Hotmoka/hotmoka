@@ -24,7 +24,7 @@ import java.lang.reflect.Modifier;
 import java.util.Optional;
 
 import io.hotmoka.whitelisting.MissingWhiteListingAnnotationsError;
-import io.hotmoka.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
  * A sealed implementation of a white-listing wizard.

@@ -27,8 +27,9 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
-import io.hotmoka.whitelisting.ResolvingClassLoader;
-import io.hotmoka.whitelisting.WhiteListingWizard;
+import io.hotmoka.whitelisting.ResolvingClassLoaders;
+import io.hotmoka.whitelisting.api.ResolvingClassLoader;
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
@@ -118,7 +119,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 *                            set of white-listing annotations used by the class loader
 	 */
 	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) {
-		this.parent = ResolvingClassLoader.of(jars, verificationVersion);
+		this.parent = ResolvingClassLoaders.of(jars, verificationVersion);
 
 		try {
 			this.contract = loadClass(Constants.CONTRACT_NAME);

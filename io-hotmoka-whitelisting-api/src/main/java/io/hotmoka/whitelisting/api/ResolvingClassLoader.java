@@ -14,33 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.whitelisting;
+package io.hotmoka.whitelisting.api;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Optional;
-import java.util.stream.Stream;
-
-import io.hotmoka.whitelisting.internal.ResolvingClassLoaderImpl;
 
 /**
  * A class loader that implements resolution methods for fields, constructors and methods,
  * according to Java's resolution rules.
  */
 public interface ResolvingClassLoader {
-
-	/**
-	 * Yields an implementation of this interface that loads classes from the given jars, provided as byte arrays.
-	 * 
-	 * @param jars the jars, as byte arrays
-	 * @param verificationVersion the version of the verification module that must b e used; this affects the
-	 *                            set of white-listing annotations used by the class loader
-	 * @return the class loader
-	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, int verificationVersion) {
-		return new ResolvingClassLoaderImpl(jars, verificationVersion);
-	}
 
 	/**
 	 * Yields the version of the verification module that this class loader is using.

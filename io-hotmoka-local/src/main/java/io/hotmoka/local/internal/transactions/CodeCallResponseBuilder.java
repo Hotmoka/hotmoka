@@ -40,9 +40,9 @@ import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.Serializer;
 import io.hotmoka.nodes.NonWhiteListedCallException;
 import io.hotmoka.verification.Dummy;
-import io.hotmoka.whitelisting.ResolvingClassLoader;
 import io.hotmoka.whitelisting.WhiteListingPredicate;
 import io.hotmoka.whitelisting.WhiteListingProofObligation;
+import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 
 /**
  * The creator of a response for a non-initial transaction that executes a method or constructor of Takamaka code.

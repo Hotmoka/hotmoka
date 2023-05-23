@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.whitelisting;
 
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
+
 /**
  * A predicate for a value, that must satisfy some property if used
  * in a white-listed method or constructor.

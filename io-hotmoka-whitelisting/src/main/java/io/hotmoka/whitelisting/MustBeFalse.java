@@ -23,6 +23,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import io.hotmoka.whitelisting.api.WhiteListingWizard;
+
 /**
  * States that an argument of a method or constructor of a white-listed
  * method must be false, for the method to be white-listed.
