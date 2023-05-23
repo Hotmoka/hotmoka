@@ -28,11 +28,11 @@ import io.hotmoka.whitelisting.internal.checks.HasDeterministicTerminatingEquals
 
 /**
  * States that an argument of a method or constructor of a white-listed
- * method has an {@code equals()} implementation that is deterministic and
+ * method has an {@link Object#equals(Object)} implementation that is deterministic and
  * terminating. It checks that the value of the argument
  * is a {@link java.lang.String} or a {@link java.math.BigInteger} or an enumeration
- * or an object that redefines {@code equals()} in a Takamaka class in blockchain
- * (hence not in the Java library) or an object that uses {@link java.lang.Object#equals(Object)}.
+ * or an object that redefines {@link Object#equals(Object)} in a Takamaka class in blockchain
+ * (hence not in the Java library) or an object that uses {@link Object#equals(Object)}.
  * This annotation can also be applied
  * to a method, in which case it refers to the receiver of the method.
  */

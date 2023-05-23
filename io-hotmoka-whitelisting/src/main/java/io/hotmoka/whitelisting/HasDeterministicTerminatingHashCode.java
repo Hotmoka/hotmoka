@@ -28,12 +28,12 @@ import io.hotmoka.whitelisting.internal.checks.HasDeterministicTerminatingHashCo
 
 /**
  * States that an argument of a method or constructor of a white-listed
- * method has a {@code hashCode()} implementation that is deterministic and
+ * method has a {@link Object#hashCode()} implementation that is deterministic and
  * terminating. It checks that the value of the argument
  * is a {@link java.lang.String} or a {@link java.math.BigInteger} or an enumeration
  * or an object
- * that redefines {@code hashCode()} in a Takamaka class in blockchain (hence not in the Java library).
- * This annotation can also be applied
+ * that redefines {@link Object#hashCode()} in a Takamaka class in blockchain
+ * (hence not in the Java library). This annotation can also be applied
  * to a method, in which case it refers to the receiver of the method.
  */
 @Retention(RetentionPolicy.RUNTIME)

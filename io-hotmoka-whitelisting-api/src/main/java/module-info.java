@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module defines the API of the white-listing utility of Hotmoka.
+ * This module defines the API of white-listing in Hotmoka.
  * It is used to define a subset of Java that can be used for Takamaka smart contracts.
  */
 module io.hotmoka.whitelisting.api {

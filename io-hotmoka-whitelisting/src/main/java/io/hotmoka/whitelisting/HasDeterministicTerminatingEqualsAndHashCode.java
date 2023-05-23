@@ -28,7 +28,7 @@ import io.hotmoka.whitelisting.internal.checks.HasDeterministicTerminatingEquals
 
 /**
  * States that an argument of a method or constructor of a white-listed
- * method has an {@code equals()} and a {@code hashCode} implementation
+ * method has an {@link Object#equals(Object)} and a {@link Object#hashCode()} implementation
  * that is deterministic and terminating. It performs both checks of
  * {@link io.hotmoka.whitelisting.HasDeterministicTerminatingEquals} and
  * {@link io.hotmoka.whitelisting.HasDeterministicTerminatingHashCode}.

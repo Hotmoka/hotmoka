@@ -14,6 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines the implementation of white-listing in Hotmoka.
+ * It is used to define a subset of Java that can be used for Takamaka smart contracts.
+ */
 module io.hotmoka.whitelisting {
 	exports io.hotmoka.whitelisting;
 	requires transitive io.hotmoka.whitelisting.api;
