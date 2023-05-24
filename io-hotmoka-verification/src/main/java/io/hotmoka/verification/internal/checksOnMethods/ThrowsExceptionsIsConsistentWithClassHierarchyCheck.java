@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentThrowsExceptionsError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -42,9 +42,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
 			boolean wasThrowsExceptions = annotations.isThrowsExceptions(className, methodName, methodArgs, methodReturnType);
-	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions));
+			isIdenticallyThrowsExceptionsInSupertypesOf(classLoader.loadClass(className), wasThrowsExceptions);
 		}
 	}
 

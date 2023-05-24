@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
@@ -28,7 +27,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -44,8 +43,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasPayable = annotations.isPayable(className, methodName, methodArgs, methodReturnType);
-	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable));
+			isIdenticallyPayableInSupertypesOf(classLoader.loadClass(className), wasPayable);
 		}
 	}
 

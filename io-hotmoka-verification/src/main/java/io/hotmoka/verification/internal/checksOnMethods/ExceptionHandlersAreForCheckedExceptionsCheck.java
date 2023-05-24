@@ -23,7 +23,6 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.errors.UncheckedExceptionHandlerError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -33,7 +32,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethods {
 
-	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public ExceptionHandlersAreForCheckedExceptionsCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		for (CodeExceptionGen exc: method.getExceptionHandlers()) {
@@ -74,11 +73,9 @@ public class ExceptionHandlersAreForCheckedExceptionsCheck extends CheckOnMethod
 			&& methodReturnType instanceof ArrayType && ((ArrayType) methodReturnType).getBasicType() == Type.INT;
 	}
 
-	private boolean canCatchUncheckedExceptions(String exceptionName) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = classLoader.loadClass(exceptionName);
-			return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
-				java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
-		});
+	private boolean canCatchUncheckedExceptions(String exceptionName) throws ClassNotFoundException {
+		Class<?> clazz = classLoader.loadClass(exceptionName);
+		return RuntimeException.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(RuntimeException.class) ||
+			java.lang.Error.class.isAssignableFrom(clazz) || clazz.isAssignableFrom(java.lang.Error.class);
 	}
 }

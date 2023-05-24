@@ -34,7 +34,6 @@ import org.apache.bcel.generic.ReferenceType;
 import io.hotmoka.verification.Bootstraps;
 import io.hotmoka.verification.Dummy;
 import io.hotmoka.verification.Resolver;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 
 /**
  * An utility that implements resolving algorithms for field and methods.
@@ -68,8 +67,7 @@ public class ResolverImpl implements Resolver {
 			String name = fi.getFieldName(cpg);
 			Class<?> type = verifiedClass.jar.bcelToClass.of(fi.getFieldType(cpg));
 	
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> verifiedClass.jar.classLoader.resolveField(((ObjectType) holder).getClassName(), name, type));
+			return verifiedClass.jar.classLoader.resolveField(((ObjectType) holder).getClassName(), name, type);
 		}
 	
 		return Optional.empty();

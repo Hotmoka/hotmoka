@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Optional;
@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -44,8 +44,7 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 
 		if (!Const.CONSTRUCTOR_NAME.equals(methodName) && !method.isPrivate()) {
 			Optional<Class<?>> contractTypeForEntry = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
-
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry));
+			isIdenticallyFromContractInSupertypesOf(classLoader.loadClass(className), contractTypeForEntry);
 		}
 	}
 

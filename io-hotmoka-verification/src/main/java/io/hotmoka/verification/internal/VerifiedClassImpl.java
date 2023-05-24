@@ -42,7 +42,6 @@ import org.apache.bcel.generic.MethodGen;
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.Bootstraps;
 import io.hotmoka.verification.Pushers;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedClass;
 import io.hotmoka.verification.VerifiedJar;
@@ -175,14 +174,13 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param executable the method or constructor whose model is looked for
 	 * @param invoke the call to the method or constructor
 	 * @return the model of its white-listing, if it exists
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) {
+	Optional<? extends Executable> whiteListingModelOf(Executable executable, InvokeInstruction invoke) throws ClassNotFoundException {
 		if (executable instanceof Constructor<?>)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable)));
+			return checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Constructor<?>) executable));
 		else
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable)));
+			return checkINVOKESPECIAL(invoke, jar.classLoader.getWhiteListingWizard().whiteListingModelOf((Method) executable));
 	}
 
 	/**
