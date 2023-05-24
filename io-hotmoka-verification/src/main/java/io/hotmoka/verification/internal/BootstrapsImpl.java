@@ -49,7 +49,6 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.Bootstraps;
-import io.hotmoka.verification.IncompleteClasspathError;
 
 /**
  * An object that provides utility methods about the lambda bootstraps
@@ -283,7 +282,7 @@ public class BootstrapsImpl implements Bootstraps {
 				return Optional.of(Objects.class.getMethod("toString", Object.class));
 			}
 			catch (NoSuchMethodException | SecurityException e) {
-				throw new IncompleteClasspathError(new ClassNotFoundException("java.util.Objects"));
+				throw new RuntimeException("unexpected exception", e);
 			}
 		}
 	

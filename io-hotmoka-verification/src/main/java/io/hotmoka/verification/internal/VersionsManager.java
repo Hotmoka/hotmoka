@@ -50,7 +50,7 @@ import io.hotmoka.verification.internal.checksOnMethods.UsedCodeIsWhiteListedChe
  * The manager of the versions of the verification module. It knows which checks must be
  * applied for each version of the module, and their order.
  */
-class VersionsManager {
+final class VersionsManager {
 
 	/**
 	 * The version of the verification module.
@@ -58,6 +58,9 @@ class VersionsManager {
 	public final int verificationVersion;
 
 	VersionsManager(int verificationVersion) {
+		if (verificationVersion != 0)
+			throw new UnsupportedVerificationVersionError(verificationVersion);
+
 		this.verificationVersion = verificationVersion;
 	}
 
@@ -76,9 +79,6 @@ class VersionsManager {
 			new StorageClassesHaveFieldsOfStorageTypeCheck(builder);
 			new FromContractCodeIsCalledInCorrectContextCheck(builder);
 			break;
-
-		default:
-			throw new UnsupportedVerificationVersionError(verificationVersion);
 		}
 	}
 
@@ -114,9 +114,6 @@ class VersionsManager {
 			new SelfChargedCodeIsInstancePublicMethodOfContractCheck(context, method);
 			new AmountIsNotModifiedInConstructorChaining(context, method);
 			break;
-
-		default:
-			throw new UnsupportedVerificationVersionError(verificationVersion);
 		}
 	}
 }
