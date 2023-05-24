@@ -23,8 +23,18 @@ package io.hotmoka.verification.api;
  */
 public interface Error extends Comparable<Error> {
 	
+	/**
+	 * Yields the description of the program point where the error occurs.
+	 * 
+	 * @return the description
+	 */
 	String getWhere();
 
+	/**
+	 * Yields the message that describes the error.
+	 * 
+	 * @return the message
+	 */
 	String getMessage();
 
 	@Override

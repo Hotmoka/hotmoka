@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-whitelisting</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines the implementation of white-listing in Hotmoka. It is used to define a subset of Java that can be used for Takamaka smart contracts.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

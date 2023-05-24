@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-verification-api</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines the API of the verification algorithms for Takamaka programs.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

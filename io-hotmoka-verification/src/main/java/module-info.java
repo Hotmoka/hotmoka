@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module implements the verification code for Takamaka programs.
+ * This module implements the verification algorithms for Takamaka programs.
  */
 module io.hotmoka.verification {
 	exports io.hotmoka.verification;

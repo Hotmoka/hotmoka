@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module defines the API of the verification code for Takamaka programs.
+ * This module defines the API of the verification algorithms for Takamaka programs.
  */
 module io.hotmoka.verification.api {
 	exports io.hotmoka.verification.api;

@@ -33,9 +33,11 @@ public interface VerifiedJar {
 	boolean hasErrors();
 
 	/**
-	 * Yields the first error that occurred during the verification of the origin jar.
+	 * Yields the first error that occurred during the verification of the origin jar,
+	 * in ascending order.
+	 * 
+	 * @return the first error
 	 */
-	// TODO: remove?
 	Optional<Error> getFirstError();
 
 	/**
@@ -49,7 +51,7 @@ public interface VerifiedJar {
 	 * Performs the given action on each error generated during the verification of the classes of the jar,
 	 * in increasing order.
 	 * 
-	 * @return action the action
+	 * @param action the action
 	 */
 	void forEachError(Consumer<Error> action);
 
