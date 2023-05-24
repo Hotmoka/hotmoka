@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued if {@code @@ThrowsExceptions} is applied to a non-public method or constructor.
+ */
 public class ThrowsExceptionsOnNonPublicError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public ThrowsExceptionsOnNonPublicError(String where, String methodName) {
 		super(where, methodName, -1, "@ThrowsExceptions can only be applied to a public constructor or method");
 	}

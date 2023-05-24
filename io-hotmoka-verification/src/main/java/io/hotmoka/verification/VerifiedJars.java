@@ -38,6 +38,7 @@ public interface VerifiedJars {
 	 * @param duringInitialization true if and only if verification occurs during the initialization of the node
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
+	 * @return the verified jar
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available

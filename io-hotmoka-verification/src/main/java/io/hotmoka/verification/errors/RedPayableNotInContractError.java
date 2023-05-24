@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when {@code @@RedPayable} is not applied to a method or
+ * constructor of a contract or interface,
+ */
 public class RedPayableNotInContractError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public RedPayableNotInContractError(String where, String methodName) {
 		super(where, methodName, -1, "@RedPayable can only be applied to constructors or instance methods of a contract class or of an interface");
 	}

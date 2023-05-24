@@ -18,9 +18,20 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a {@code @@Payable} constructor is not called by constructor chaining
+ * from another {@code @@Payable} constructor.
+ */
 public class IllegalCallToPayableConstructorOnThis extends AbstractErrorImpl {
 
-	public IllegalCallToPayableConstructorOnThis(String where, String methodName, String entryName, int line) {
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
+	public IllegalCallToPayableConstructorOnThis(String where, String methodName, int line) {
 		super(where, methodName, line, "only a @Payable constructor can call another @Payable constructor by chaining");
 	}
 }

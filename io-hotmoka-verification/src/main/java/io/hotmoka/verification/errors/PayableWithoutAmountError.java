@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a {@code @@Payable} method has not a first argument for the paid amount.
+ */
 public class PayableWithoutAmountError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public PayableWithoutAmountError(String where, String methodName) {
 		super(where, methodName, -1, "a @Payable method must have a first argument for the paid amount, of type int, long or BigInteger");
 	}

@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when the paid amount is modified across constructor chaining.
+ */
 public class IllegalModificationOfAmountInConstructorChaining extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
 	public IllegalModificationOfAmountInConstructorChaining(String where, String methodName, int line) {
 		super(where, methodName, line, "the paid amount cannot be changed in constructor chaining");
 	}

@@ -145,7 +145,7 @@ public class Reverification {
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		AbstractJarStoreTransactionRequest jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
+		var jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
@@ -201,9 +201,9 @@ public class Reverification {
 			throw new RuntimeException("the reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
 
 		// there remains only this possibility:
-		JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
+		var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
-		JarStoreTransactionFailedResponse replacement = new JarStoreTransactionFailedResponse(
+		var replacement = new JarStoreTransactionFailedResponse(
 			VerificationException.class.getName(), error,
 			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
 			currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage,
@@ -221,7 +221,7 @@ public class Reverification {
 			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), consensus.verificationVersion);
 		else {
 			// there remains only this possibility
-			JarStoreTransactionSuccessfulResponse currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
+			var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
 			replacement = new JarStoreTransactionSuccessfulResponse(
 				response.getInstrumentedJar(), response.getDependencies(),

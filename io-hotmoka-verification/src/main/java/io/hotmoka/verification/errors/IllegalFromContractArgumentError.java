@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error used if the argument of {@code @@FromContract} is not a contract.
+ */
 public class IllegalFromContractArgumentError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public IllegalFromContractArgumentError(String where, String methodName) {
 		super(where, methodName, -1, "the argument of @FromContract must be a contract");
 	}

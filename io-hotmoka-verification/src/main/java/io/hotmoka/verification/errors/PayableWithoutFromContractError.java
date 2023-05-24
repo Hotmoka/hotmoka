@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when {@code @@Payable} is used without {@code @@FromContract}.
+ */
 public class PayableWithoutFromContractError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public PayableWithoutFromContractError(String where, String methodName) {
 		super(where, methodName, -1, "@Payable can only be applied to a @FromContract method or constructor");
 	}

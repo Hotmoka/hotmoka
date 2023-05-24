@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a field has a name not allowed in Takamaka,
+ * for instance because it starts with an instrumentation prefix.
+ */
 public class IllegalFieldNameError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param fieldName the name of the field where the error occurs
+	 */
 	public IllegalFieldNameError(String where, String fieldName) {
 		super(where, fieldName, "field name \"" + fieldName + "\" is not allowed");
 	}

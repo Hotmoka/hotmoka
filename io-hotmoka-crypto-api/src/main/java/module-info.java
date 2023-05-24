@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines the API of some cryptographic algorithms.
+ */
 module io.hotmoka.crypto.api {
 	exports io.hotmoka.crypto.api;
 }

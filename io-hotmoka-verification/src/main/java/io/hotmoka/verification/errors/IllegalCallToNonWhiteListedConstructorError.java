@@ -18,8 +18,19 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued if a non-white-listed constructor is called.
+ */
 public class IllegalCallToNonWhiteListedConstructorError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 * @param declaringClassName the name of the class declaring the constructor
+	 */
 	public IllegalCallToNonWhiteListedConstructorError(String where, String methodName, int line, String declaringClassName) {
 		super(where, methodName, line, "illegal call to non-white-listed constructor of " + declaringClassName);
 	}

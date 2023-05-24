@@ -22,8 +22,17 @@ package io.hotmoka.verification;
  */
 public class UnsupportedVerificationVersionException extends Exception {
 	private static final long serialVersionUID = -1232455923178336022L;
+
+	/**
+	 * The unsupported verification version.
+	 */
 	public final int verificationVerification;
 
+	/**
+	 * Creates the exception.
+	 * 
+	 * @param verificationVerification the unsupported verification version
+	 */
 	public UnsupportedVerificationVersionException(int verificationVerification) {
 		super("the verification module does not support version " + verificationVerification);
 

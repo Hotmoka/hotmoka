@@ -18,9 +18,21 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a {@code @@FromContract} method or constructor is called
+ * on {@code this} from something that is not {@code @@FromContract} itself.
+ */
 public class IllegalCallToFromContractOnThisError extends AbstractErrorImpl {
 
-	public IllegalCallToFromContractOnThisError(String where, String methodName, String entryName, int line) {
-		super(where, methodName, line, "\"" + entryName + "\" is @FromContract and called on \"this\", hence can only be called from a @FromContract method or constructor");
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param fromContractMethodName the name of the {@code @@FromContract} method
+	 * @param line the program line where the error occurs
+	 */
+	public IllegalCallToFromContractOnThisError(String where, String methodName, String fromContractMethodName, int line) {
+		super(where, methodName, line, "\"" + fromContractMethodName + "\" is @FromContract and called on \"this\", hence can only be called from a @FromContract method or constructor");
 	}
 }

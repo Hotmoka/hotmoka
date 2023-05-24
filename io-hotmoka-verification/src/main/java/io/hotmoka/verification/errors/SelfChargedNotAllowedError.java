@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued if {@code @@SelfCharged} is used in a node that does not allow it.
+ */
 public class SelfChargedNotAllowedError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public SelfChargedNotAllowedError(String where, String methodName) {
 		super(where, methodName, -1, "the @SelfCharged annotation is not allowed");
 	}

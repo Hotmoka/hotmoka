@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error generated when the method {@code caller()} is not called on {@code this}.
+ */
 public class CallerNotOnThisError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
 	public CallerNotOnThisError(String where, String methodName, int line) {
 		super(where, methodName, line, "caller() can only be called on \"this\"");
 	}

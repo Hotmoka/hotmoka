@@ -125,7 +125,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.forEachOrdered(method ->
 					instructionsOf(method)
 						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
-						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
 	
@@ -137,7 +137,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.forEachOrdered(method ->
 					instructionsOf(method)
 						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
-						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
 		});

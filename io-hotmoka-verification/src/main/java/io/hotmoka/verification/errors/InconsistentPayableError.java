@@ -18,9 +18,20 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a redefining method uses {@code @@Payable}}
+ * inconsistently with the redefined method.
+ */
 public class InconsistentPayableError extends AbstractErrorImpl {
 
-	public InconsistentPayableError(String where, String methodName, String clazzWhereItWasDefined) {
-		super(where, methodName, -1, "@Payable is inconsistent with definition of the same method in class " + clazzWhereItWasDefined);
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param classWhereItWasDefined the name of the class where the same method was defined
+	 */
+	public InconsistentPayableError(String where, String methodName, String classWhereItWasDefined) {
+		super(where, methodName, -1, "@Payable is inconsistent with definition of the same method in class " + classWhereItWasDefined);
 	}
 }

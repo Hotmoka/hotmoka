@@ -5,6 +5,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-crypto-api</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines the API of some cryptographic algorithms.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

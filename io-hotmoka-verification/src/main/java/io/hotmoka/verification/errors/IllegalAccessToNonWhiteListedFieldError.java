@@ -18,8 +18,20 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a field of a non-white-listed class is accessed.
+ */
 public class IllegalAccessToNonWhiteListedFieldError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 * @param definingClassName the name of the class that defines the non-white-listed field
+	 * @param fieldName the name of the non-white-listed field
+	 */
 	public IllegalAccessToNonWhiteListedFieldError(String where, String methodName, int line, String definingClassName, String fieldName) {
 		super(where, methodName, line, "illegal access to non-white-listed field " + definingClassName + "." + fieldName);
 	}

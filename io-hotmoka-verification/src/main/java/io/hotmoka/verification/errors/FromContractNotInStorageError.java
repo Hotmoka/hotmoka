@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when {@code @@FromContract} is applied to a constructor or method
+ * of a class that is not storage.
+ */
 public class FromContractNotInStorageError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public FromContractNotInStorageError(String where, String methodName) {
 		super(where, methodName, -1, "@FromContract can only be applied to constructors or instance methods of a storage class or of an interface");
 	}

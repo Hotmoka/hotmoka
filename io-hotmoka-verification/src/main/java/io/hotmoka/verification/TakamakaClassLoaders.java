@@ -30,8 +30,9 @@ public interface TakamakaClassLoaders {
 	 * Yields a class loader with the given jars, given as byte arrays.
 	 * 
 	 * @param jars the jars
-	 * @param verificationVersion the version of the verification module that must b e used; this affects the
+	 * @param verificationVersion the version of the verification module that must be used; this affects the
 	 *                            set of white-listing annotations used by the class loader
+	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
 	static TakamakaClassLoader of(Stream<byte[]> jars, int verificationVersion) throws ClassNotFoundException {

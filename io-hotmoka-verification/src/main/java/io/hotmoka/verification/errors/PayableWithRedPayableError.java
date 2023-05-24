@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when both {@code @@Payable} and {@code @@RedPayable} are used
+ * for the same method or constructor.
+ */
 public class PayableWithRedPayableError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public PayableWithRedPayableError(String where, String methodName) {
 		super(where, methodName, -1, "a @Payable method cannot be at same time declared as @RedPayable");
 	}

@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when the code contains a bootstrap method
+ * of a form not allowed in Takamaka code.
+ */
 public class IllegalBootstrapMethodError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 */
 	public IllegalBootstrapMethodError(String where) {
 		super(where, "Illegal bootstrap method");
 	}

@@ -18,9 +18,19 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a method has a name not allowed in Takamaka,
+ * for instance starting with an instrumentation prefix.
+ */
 public class IllegalMethodNameError extends AbstractErrorImpl {
 
-	public IllegalMethodNameError(String where, String fieldName) {
-		super(where, fieldName, "method name \"" + fieldName + "\" is not allowed");
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
+	public IllegalMethodNameError(String where, String methodName) {
+		super(where, methodName, "method name \"" + methodName + "\" is not allowed");
 	}
 }

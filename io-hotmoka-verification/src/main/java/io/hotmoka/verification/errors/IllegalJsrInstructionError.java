@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a {@code jsr} bytecode is present in the Takamaka code.
+ */
 public class IllegalJsrInstructionError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
 	public IllegalJsrInstructionError(String where, String methodName, int line) {
 		super(where, methodName, line, "bytecode JSR is not allowed");
 	}

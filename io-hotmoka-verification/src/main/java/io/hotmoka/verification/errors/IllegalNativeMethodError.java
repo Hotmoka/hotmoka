@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a native method occurs in Takamaka code.
+ */
 public class IllegalNativeMethodError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public IllegalNativeMethodError(String where, String methodName) {
 		super(where, methodName, -1, "native code is not allowed");
 	}

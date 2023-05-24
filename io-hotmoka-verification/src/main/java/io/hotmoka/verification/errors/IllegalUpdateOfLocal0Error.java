@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when the Takamaka code attempts to modify local variable 0.
+ */
 public class IllegalUpdateOfLocal0Error extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
 	public IllegalUpdateOfLocal0Error(String where, String methodName, int line) {
 		super(where, methodName, line, "local 0 (\"this\") cannot be modified");
 	}

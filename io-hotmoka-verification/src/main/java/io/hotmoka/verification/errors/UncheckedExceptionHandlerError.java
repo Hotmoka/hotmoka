@@ -18,8 +18,19 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when an exception handler for an unchecked exception is used.
+ */
 public class UncheckedExceptionHandlerError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 * @param exceptionName the name of the caught exception
+	 */
 	public UncheckedExceptionHandlerError(String where, String methodName, int line, String exceptionName) {
 		super(where, methodName, line, "exception handler for unchecked exception " + exceptionName);
 	}

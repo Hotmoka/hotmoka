@@ -16,17 +16,31 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
+import java.util.Optional;
+
 /**
  * An exception thrown when the verification of some jar failed.
  */
 public class VerificationException extends Exception {
 	private static final long serialVersionUID = -1232455923178336022L;
+	
+	/**
+	 * The error that caused the exception. This might be {@code null}.
+	 */
 	private final io.hotmoka.verification.api.Error error;
 
+	/**
+	 * Creates a verification exception not referring to any specific error.
+	 */
 	public VerificationException() {
 		this.error = null;
 	}
 
+	/**
+	 * Creates a verification exception referring to a given error.
+	 * 
+	 * @param error the error
+	 */
 	public VerificationException(io.hotmoka.verification.api.Error error) {
 		super(error.toString());
 
@@ -36,9 +50,9 @@ public class VerificationException extends Exception {
 	/**
 	 * Yields the verification error that caused the exception.
 	 * 
-	 * @return the error
+	 * @return the error, if any
 	 */
-	public io.hotmoka.verification.api.Error getError() {
-		return error;
+	public Optional<io.hotmoka.verification.api.Error> getError() {
+		return Optional.ofNullable(error);
 	}
 }

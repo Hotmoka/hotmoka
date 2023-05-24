@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-crypto</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements some cryptographic algorithms, such as hashing and signing.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

@@ -18,8 +18,17 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when {@code @@SelfCharged} is applied to the wrong methods.
+ */
 public class InconsistentSelfChargedError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 */
 	public InconsistentSelfChargedError(String where, String methodName) {
 		super(where, methodName, -1, "the @SelfCharged annotation can only be applied to public instance methods of contracts");
 	}

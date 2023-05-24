@@ -18,8 +18,18 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued if a static initializer is used.
+ */
 public class IllegalStaticInitializationError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 * @param methodName the name of the method where the error occurs
+	 * @param line the program line where the error occurs
+	 */
 	public IllegalStaticInitializationError(String where, String methodName, int line) {
 		super(where, methodName, line, "illegal static initialization: only primitive or string final static fields bound to constants are allowed");
 	}

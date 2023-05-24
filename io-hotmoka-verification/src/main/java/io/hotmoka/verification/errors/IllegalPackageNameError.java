@@ -18,8 +18,16 @@ package io.hotmoka.verification.errors;
 
 import io.hotmoka.verification.internal.AbstractErrorImpl;
 
+/**
+ * An error issued when a package has an illegal name.
+ */
 public class IllegalPackageNameError extends AbstractErrorImpl {
 
+	/**
+	 * Builds the error.
+	 * 
+	 * @param where the description of the program point were the error occurs.
+	 */
 	public IllegalPackageNameError(String where) {
 		super(where, "package name is not allowed");
 	}

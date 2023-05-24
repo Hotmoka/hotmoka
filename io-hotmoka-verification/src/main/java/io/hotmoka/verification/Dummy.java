@@ -19,7 +19,7 @@ package io.hotmoka.verification;
 /**
  * This class is used only in the instrumentation of an entry method or constructor,
  * as an extra type added at the end of its signature: {@code m(formals)} becomes
- * {@code m(formals, Contract, Dummy)}, where the {@link io.takamaka.code.lang.Contract}
+ * {@code m(formals, Contract, Dummy)}, where the {@code io.takamaka.code.lang.Contract}
  * is the caller of the entry. The goal is to avoid signature clashes
  * because of the instrumentation: since this class is not white-listed, it cannot
  * be used by the programmer and the instrumentation cannot lead to signature clashes.

@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements some cryptographic algorithms, such as hashing and signing.
+ */
 module io.hotmoka.crypto {
 	exports io.hotmoka.crypto;
 	requires transitive io.hotmoka.crypto.api;
