@@ -192,8 +192,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The body of the creation of the response.
 		 * 
 		 * @return the response
+		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
-		protected abstract Response body();
+		protected abstract Response body() throws ClassNotFoundException;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.

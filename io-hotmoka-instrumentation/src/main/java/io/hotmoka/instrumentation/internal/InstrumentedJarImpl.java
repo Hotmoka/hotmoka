@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckFunction.uncheck;
+
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -28,6 +31,7 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedClass;
 import io.hotmoka.instrumentation.InstrumentedJar;
@@ -52,16 +56,19 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * 
 	 * @param verifiedJar the jar that contains the classes already verified
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) {
+	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException {
 		if (verifiedJar.hasErrors())
 			throw new VerificationException(verifiedJar.getFirstError().get());
 
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
-		this.classes = verifiedJar.classes()
-			.map(clazz -> InstrumentedClass.of(clazz, gasCostModel))
-			.collect(Collectors.toCollection(TreeSet::new));
+		this.classes = check(UncheckedClassNotFoundException.class, () ->
+			verifiedJar.classes()
+				.map(uncheck(clazz -> InstrumentedClass.of(clazz, gasCostModel)))
+				.collect(Collectors.toCollection(TreeSet::new))
+		);
 	}
 
 	@Override

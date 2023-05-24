@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.apache.bcel.Const;
@@ -63,18 +64,19 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
-	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
 		if (isStorage || classLoader.isInterface(className)) {
 			String name = method.getName();
 			Type[] args = method.getArgumentTypes();
 			Type returnType = method.getReturnType();
-			annotations.getFromContractArgument(className, name, args, returnType).ifPresent(fromContractArgument -> {
+			Optional<Class<?>> ann = annotations.getFromContractArgument(className, name, args, returnType);
+			if (ann.isPresent()) {
 				boolean isPayable = annotations.isPayable(className, name, args, returnType);
 				boolean isRedPayable = annotations.isRedPayable(className, name, args, returnType);
-				instrumentFromContract(method, fromContractArgument, isPayable, isRedPayable);
-			});
+				instrumentFromContract(method, ann.get(), isPayable, isRedPayable);
+			};
 		}
 	}
 
@@ -85,8 +87,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param callerContract the class of the caller contract
 	 * @param isPayable true if and only if the entry is payable
 	 * @param isRedPayable true if and only if the entry is red payable
+	 * @throws ClassNotFoundException if some class of the Takamaka program could not be found
 	 */
-	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) {
+	private void instrumentFromContract(MethodGen method, Class<?> callerContract, boolean isPayable, boolean isRedPayable) throws ClassNotFoundException {
 		// slotForCaller is the local variable used for the extra "caller" parameter;
 		int slotForCaller = addExtraParameters(method);
 		if (!method.isAbstract()) {
@@ -122,8 +125,9 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	 * @param slotForCaller the local variable for the caller implicit argument
 	 * @param isPayable true if and only if the entry is payable
 	 * @param isRedPayable true if and only if the entry is red payable
+	 * @throws ClassNotFoundException 
 	 */
-	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable, boolean isRedPayable) {
+	private void setCallerAndBalance(MethodGen method, Class<?> callerContract, int slotForCaller, boolean isPayable, boolean isRedPayable) throws ClassNotFoundException {
 		InstructionList il = method.getInstructionList();
 		InstructionHandle start = il.getStart();
 

@@ -29,7 +29,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class SelfChargedCodeIsInstancePublicMethodOfContractCheck extends CheckOnMethods {
 
-	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public SelfChargedCodeIsInstancePublicMethodOfContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (annotations.isSelfCharged(className, methodName, methodArgs, methodReturnType))

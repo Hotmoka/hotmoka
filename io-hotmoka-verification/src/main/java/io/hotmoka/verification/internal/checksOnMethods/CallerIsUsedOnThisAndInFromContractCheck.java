@@ -37,7 +37,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
-	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public CallerIsUsedOnThisAndInFromContractCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfFromContract(method);

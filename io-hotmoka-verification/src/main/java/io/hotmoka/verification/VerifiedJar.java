@@ -40,8 +40,9 @@ public interface VerifiedJar {
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if there was a problem accessing the classes on disk
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException {
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
 	}
 

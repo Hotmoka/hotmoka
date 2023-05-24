@@ -28,7 +28,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsNotRedPayableCheck extends CheckOnMethods {
 
-	public PayableCodeIsNotRedPayableCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public PayableCodeIsNotRedPayableCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (annotations.isPayable(className, methodName, methodArgs, methodReturnType)

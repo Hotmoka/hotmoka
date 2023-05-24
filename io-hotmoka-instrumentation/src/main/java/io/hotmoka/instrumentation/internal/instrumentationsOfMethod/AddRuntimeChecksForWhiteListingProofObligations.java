@@ -56,7 +56,6 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
 import io.hotmoka.whitelisting.MustBeFalse;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
@@ -69,7 +68,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 	private final static Type[] CHECK_WHITE_LISTING_PREDICATE_ARGS = new Type[] { Type.OBJECT, Type.CLASS, Type.STRING };
 
-	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
 		if (!method.isAbstract())
@@ -111,8 +110,9 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	 *            proof obligations need to be checked at run time
 	 * @return the invoke instruction that must be used, instead of {@code ins}, to
 	 *         call the freshly added method
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model, String key) {
+	private InvokeInstruction addWhiteListVerificationMethod(InstructionHandle ih, InvokeInstruction ins, Executable model, String key) throws ClassNotFoundException {
 		if (ins instanceof INVOKEDYNAMIC)
 			if (isCallToConcatenationMetaFactory((INVOKEDYNAMIC) ins))
 				return addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation((INVOKEDYNAMIC) ins);
@@ -167,7 +167,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 		return key;
 	}
 
-	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) {
+	private InvokeInstruction addWhiteListVerificationMethodForINVOKEDYNAMICForStringConcatenation(INVOKEDYNAMIC invokedynamic) throws ClassNotFoundException {
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		InstructionList il = new InstructionList();
 		String signature = invokedynamic.getSignature(cpg);
@@ -181,7 +181,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			il.append(InstructionFactory.createLoad(argType, index));
 			index += argType.getSize();
 			if (argType instanceof ObjectType) {
-				Class<?> argClass = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> classLoader.loadClass(((ObjectType) argType).getClassName()));
+				Class<?> argClass = classLoader.loadClass(((ObjectType) argType).getClassName());
 
 				// we check if we can statically verify that the value redefines hashCode or toString
 				if (!redefinesHashCodeOrToString(argClass)) {

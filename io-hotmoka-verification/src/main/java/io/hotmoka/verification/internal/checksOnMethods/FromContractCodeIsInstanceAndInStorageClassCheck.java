@@ -28,7 +28,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMethods {
 
-	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {

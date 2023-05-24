@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.instrumentation {
-	exports io.hotmoka.instrumentation;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.exceptions;
-	requires io.hotmoka.constants;
-	requires it.univr.bcel;
+package io.hotmoka.exceptions;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
+
+/**
+ */
+public interface PredicateWithExceptions<T> {
+	boolean test(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
 }

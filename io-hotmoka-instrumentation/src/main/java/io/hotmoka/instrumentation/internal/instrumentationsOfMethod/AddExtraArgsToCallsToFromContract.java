@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,6 +41,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.Dummy;
@@ -51,13 +55,15 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
-	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			List<InstructionHandle> callsToFromContract = StreamSupport.stream(il.spliterator(), false)
-				.filter(ih -> isCallToFromContract(ih.getInstruction())).collect(Collectors.toList());
+			List<InstructionHandle> callsToFromContract = check(UncheckedClassNotFoundException.class, () ->
+				StreamSupport.stream(il.spliterator(), false)
+					.filter(uncheck(ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
+			);
 
 			for (InstructionHandle ih: callsToFromContract)
 				passExtraArgsToCallToFromContract(il, ih, method.getName());
@@ -71,8 +77,9 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	 * @param il the instructions of the method being instrumented
 	 * @param ih the call to the entry
 	 * @param callee the name of the method where the calls are being looked for
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) {
+	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException {
 		InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
 		Type[] args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
@@ -168,8 +175,9 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	 * 
 	 * @param instruction the instruction
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private boolean isCallToFromContract(Instruction instruction) {
+	private boolean isCallToFromContract(Instruction instruction) throws ClassNotFoundException {
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {

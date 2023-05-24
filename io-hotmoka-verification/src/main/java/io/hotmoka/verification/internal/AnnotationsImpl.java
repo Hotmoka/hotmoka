@@ -56,40 +56,41 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	@Override
-	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.PAYABLE_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.PAYABLE_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.RED_PAYABLE_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.RED_PAYABLE_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.SELF_CHARGED_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.SELF_CHARGED_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getAnnotation(className, methodName, formals, returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent()
 			|| getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.THROWS_EXCEPTIONS_NAME).isPresent();
 	}
 
 	@Override
-	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) {
+	public final boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
 		return getFromContractArgument(className, methodName, formals, returnType).isPresent();
 	}
 
 	@Override
-	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) {
-		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME)
+	public final Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws SecurityException, ClassNotFoundException {
+		Optional<Annotation> annotation = getAnnotation(className, methodName, formals, returnType, Constants.FROM_CONTRACT_NAME);
+		if (annotation.isEmpty())
 			// the method might have been already instrumented, since it comes from
 			// a jar already installed in blockchain; hence we try with the extra parameters added by instrumentation
-			.or(() -> getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.FROM_CONTRACT_NAME));
+			annotation = getAnnotation(className, methodName, expandFormals(formals), returnType, Constants.FROM_CONTRACT_NAME);
 
 		return annotation.map(this::extractContractClass);
 	}
@@ -101,7 +102,7 @@ public class AnnotationsImpl implements Annotations {
 	 * @return the expanded formals
 	 */
 	private static Type[] expandFormals(Type[] formals) {
-		Type[] formalsExpanded = new Type[formals.length + 2];
+		var formalsExpanded = new Type[formals.length + 2];
 		System.arraycopy(formals, 0, formalsExpanded, 0, formals.length);
 		formalsExpanded[formals.length] = CONTRACT_OT;
 		formalsExpanded[formals.length + 1] = DUMMY_OT;
@@ -134,23 +135,24 @@ public class AnnotationsImpl implements Annotations {
 	 * @param returnType the return type of the method or constructor
 	 * @param annotationName the name of the annotation class
 	 * @return the annotation, if any
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 * @throws SecurityException 
 	 */
-	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) {
+	private Optional<Annotation> getAnnotation(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws SecurityException, ClassNotFoundException {
 		if (methodName.equals(Const.CONSTRUCTOR_NAME))
 			return getAnnotationOfConstructor(className, formals, annotationName);
 		else
 			return getAnnotationOfMethod(className, methodName, formals, returnType, annotationName);
 	}
 
-	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) {
+	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws SecurityException, ClassNotFoundException {
 		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
 
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
-			Stream.of(jar.classLoader.loadClass(className).getDeclaredConstructors())
+		return Stream.of(jar.classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
 				.flatMap(constructor -> Stream.of(constructor.getAnnotations()))
 				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
-				.findFirst());
+				.findFirst();
 	}
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) {

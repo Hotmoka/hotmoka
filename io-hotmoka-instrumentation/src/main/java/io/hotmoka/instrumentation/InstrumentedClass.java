@@ -33,8 +33,9 @@ public interface InstrumentedClass extends Comparable<InstrumentedClass> {
 	 * 
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) {
+	static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 		return new InstrumentedClassImpl(clazz, gasCostModel);
 	}
 

@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -34,7 +37,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public ThrowsExceptionsIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && method.isPublic()) {
@@ -45,12 +48,14 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 		}
 	}
 
-	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) {
-		if (Stream.of(clazz.getDeclaredMethods())
+	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) throws ClassNotFoundException {
+		if (check(UncheckedClassNotFoundException.class, () ->
+			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
 						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
-				.anyMatch(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
+		))
 			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

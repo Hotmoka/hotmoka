@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Field;
@@ -36,6 +39,7 @@ import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.Bootstraps;
 import io.hotmoka.verification.Pushers;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
@@ -87,8 +91,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
 	 * @throws VerificationException if the class could not be verified
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Error> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Error> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -262,8 +267,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
+		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 */
-		private Verification(Consumer<Error> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException {
+		private Verification(Consumer<Error> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
@@ -279,12 +285,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 				throw new VerificationException();
 		}
 
-		private void applyAllChecksToTheClass() {
+		private void applyAllChecksToTheClass() throws ClassNotFoundException {
 			versionsManager.applyAllClassChecks(this);
 		}
 
-		private void applyAllChecksToTheMethodsOfTheClass() {
-			Stream.of(methods).forEachOrdered(method -> versionsManager.applyAllMethodChecks(this, method));
+		private void applyAllChecksToTheMethodsOfTheClass() throws ClassNotFoundException {
+			check(UncheckedClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(method -> versionsManager.applyAllMethodChecks(this, method))));
 		}
 
 		/**

@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -33,7 +36,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantMethodHandle;
@@ -46,6 +48,7 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.InstrumentedClass;
@@ -64,7 +67,6 @@ import io.hotmoka.verification.Annotations;
 import io.hotmoka.verification.Bootstraps;
 import io.hotmoka.verification.Pushers;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
 
@@ -91,8 +93,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 	 * 
 	 * @param clazz the class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) {
+	public InstrumentedClassImpl(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 		this.javaClass = new Builder(clazz, gasCostModel).classGen.getJavaClass();
 	}
 
@@ -212,8 +215,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * 
 		 * @param clazz the class to instrument
 		 * @param gasCostModel the gas cost model used for the instrumentation
+		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
-		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) {
+		private Builder(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 			this.verifiedClass = clazz;
 			this.classGen = new ClassGen(clazz.toJavaClass());
 			this.bootstraps = verifiedClass.getBootstraps();
@@ -257,10 +261,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		/**
 		 * Partitions the fields of a storage class into eager and lazy.
 		 * If the class is not storage, it does not do anything.
+		 * 
+		 * @throws ClassNotFoundException if {@code classGen} cannot be found in the Takamaka program
 		 */
-		private void partitionFieldsOfStorageClasses() {
+		private void partitionFieldsOfStorageClasses() throws ClassNotFoundException {
 			if (isStorage)
-				ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true));
+				collectNonTransientInstanceFieldsOf(classLoader.loadClass(classGen.getClassName()), true);
 		}
 
 		/**
@@ -269,7 +275,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 */
 		private void replaceMethods() {
 			classGen.setMethods(new Method[0]);
-			for (MethodGen method: methods) {
+			for (var method: methods) {
 				method.setMaxLocals();
 				method.setMaxStack();
 				removeUselessAttributes(method);
@@ -282,7 +288,7 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		}
 
 		private void removeUselessAttributes(MethodGen method) {
-			for (Attribute attribute: method.getAttributes())
+			for (var attribute: method.getAttributes())
 				if (attribute instanceof Signature)
 					method.removeAttribute(attribute);
 
@@ -546,11 +552,12 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 
 		/**
 		 * Performs method-level instrumentations.
+		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
-		private void methodLevelInstrumentations() {
-			new ArrayList<>(methods).forEach(this::preProcess);
+		private void methodLevelInstrumentations() throws ClassNotFoundException {
+			check(UncheckedClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::preProcess)));
 			new DesugarBootstrapsInvokingEntries(this);
-			new ArrayList<>(methods).forEach(this::postProcess);
+			check(UncheckedClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::postProcess)));
 		}
 
 		/**
@@ -558,8 +565,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * performed before instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
+		 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 		 */
-		private void preProcess(MethodGen method) {
+		private void preProcess(MethodGen method) throws ClassNotFoundException {
 			new AddRuntimeChecksForWhiteListingProofObligations(this, method);
 		}
 
@@ -568,8 +576,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * performed after instrumentation of the bootstraps.
 		 * 
 		 * @param method the method to instrument
+		 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
 		 */
-		private void postProcess(MethodGen method) {
+		private void postProcess(MethodGen method) throws ClassNotFoundException {
 			new InstrumentMethodsOfSupportClasses(this, method);
 			new ReplaceFieldAccessesWithAccessors(this, method);
 			new AddExtraArgsToCallsToFromContract(this, method);

@@ -27,7 +27,6 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
-import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJar;
 
 /**
@@ -59,13 +58,10 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() {
+			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException {
 				try {
-					InstrumentedJar instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
+					var instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);
-				}
-				catch (VerificationException e) {
-					throw e;
 				}
 				catch (IOException t) {
 					throw new RuntimeException("unexpected exception", t);

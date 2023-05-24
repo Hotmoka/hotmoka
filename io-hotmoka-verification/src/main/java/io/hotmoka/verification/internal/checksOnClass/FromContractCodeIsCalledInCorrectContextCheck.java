@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -43,6 +47,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
@@ -57,7 +62,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasses {
 
-	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) {
+	public FromContractCodeIsCalledInCorrectContextCheck(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
 		super(builder);
 
 		// the set of lambda that are unreachable from static methods that are not lambdas themselves: they can call from contract code
@@ -67,73 +72,75 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		if (isStorage)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		// 1) from contract code cannot be called from a static context
-		getMethods()
-			// we do not consider as static those lambdas that are apparently static, just because the compiler
-			// has optimized them into a static lambda, but are actually always called from non-static calling points
-			.filter(method -> (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(this::callsFromContract)
-					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
-			);
-
-		// from contract code called not on this can only be called from a contract
-		getMethods()
-			.filter(method -> !isContract)
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList())))
-					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
-			);
-
-		// from contract code called on this can only be called from a storage class
-		getMethods()
-			.filter(method -> !isStorage)
-			.filter(method -> !method.isStatic())
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(ih -> callsFromContractOnThis(ih, method.getInstructionList()))
-					.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
-			);
-
-		// from contract code called on this can only be called by @FromContract code 
-		getMethods()
-			.filter(method -> !method.isStatic())
-			.forEachOrdered(method -> {
-				boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
-				instructionsOf(method)
-					.filter(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList()))
-					.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue);
-			});
-
-		// from contract payable constructors called on this can only be called from payable constructors
-		getMethods()
-			.filter(method -> !method.isStatic())
-			.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-			.filter(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList()))
-					.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
+		check(UncheckedClassNotFoundException.class, () -> {
+			// 1) from contract code cannot be called from a static context
+			getMethods()
+				// we do not consider as static those lambdas that are apparently static, just because the compiler
+				// has optimized them into a static lambda, but are actually always called from non-static calling points
+				.filter(method -> (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(uncheck(this::callsFromContract))
+						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
 				);
-
-		// from contract red-payable constructors called on this can only be called from red-payable constructors
-		getMethods()
-			.filter(method -> !method.isStatic())
-			.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-			.filter(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))
-			.forEachOrdered(method ->
-				instructionsOf(method)
-					.filter(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList()))
-					.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
-					.forEachOrdered(this::issue)
+	
+			// from contract code called not on this can only be called from a contract
+			getMethods()
+				.filter(method -> !isContract)
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(uncheck(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
+						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
 				);
+	
+			// from contract code called on this can only be called from a storage class
+			getMethods()
+				.filter(method -> !isStorage)
+				.filter(method -> !method.isStatic())
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
+						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
+				);
+	
+			// from contract code called on this can only be called by @FromContract code 
+			getMethods()
+				.filter(method -> !method.isStatic())
+				.forEachOrdered(uncheck(method -> {
+					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
+					instructionsOf(method)
+						.filter(uncheck(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
+						.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue);
+				}));
+	
+			// from contract payable constructors called on this can only be called from payable constructors
+			getMethods()
+				.filter(method -> !method.isStatic())
+				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
+				.filter(uncheck(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
+					);
+	
+			// from contract red-payable constructors called on this can only be called from red-payable constructors
+			getMethods()
+				.filter(method -> !method.isStatic())
+				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
+				.filter(uncheck(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.forEachOrdered(method ->
+					instructionsOf(method)
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
+						.forEachOrdered(this::issue)
+					);
+		});
 	}
 
 	private void computeLambdasUnreachableFromStaticMethods(Set<MethodGen> lambdasUnreachableFromStaticMethods) {
@@ -186,8 +193,9 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	 * 
 	 * @param ih the instruction
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	private boolean callsFromContract(InstructionHandle ih) {
+	private boolean callsFromContract(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		
 		if (instruction instanceof INVOKEDYNAMIC)
@@ -203,7 +211,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			return false;
 	}
 
-	private boolean callsFromContractOnThis(InstructionHandle ih, InstructionList il) {
+	private boolean callsFromContractOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC) && !(instruction instanceof INVOKEDYNAMIC)) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
@@ -222,7 +230,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return false;
 	}
 
-	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) {
+	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof INVOKESPECIAL) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;
@@ -248,7 +256,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		return false;
 	}
 
-	private boolean callsRedPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) {
+	private boolean callsRedPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof INVOKESPECIAL) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;

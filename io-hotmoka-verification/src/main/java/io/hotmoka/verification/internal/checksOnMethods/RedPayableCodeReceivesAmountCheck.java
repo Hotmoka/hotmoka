@@ -31,7 +31,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class RedPayableCodeReceivesAmountCheck extends CheckOnMethods {
 
-	public RedPayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public RedPayableCodeReceivesAmountCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (annotations.isRedPayable(className, methodName, methodArgs, methodReturnType) && !startsWithAmount())

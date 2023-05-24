@@ -27,7 +27,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class ThrowsExceptionsCodeIsPublicCheck extends CheckOnMethods {
 
-	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public ThrowsExceptionsCodeIsPublicCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (!method.isPublic() && annotations.isThrowsExceptions(className, method.getName(), method.getArgumentTypes(), method.getReturnType()))

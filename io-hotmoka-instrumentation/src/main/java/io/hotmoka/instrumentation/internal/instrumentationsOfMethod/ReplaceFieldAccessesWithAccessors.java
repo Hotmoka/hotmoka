@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Optional;
@@ -35,6 +38,7 @@ import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
@@ -44,13 +48,15 @@ import io.hotmoka.verification.ThrowIncompleteClasspathError;
  */
 public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
 
-	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			StreamSupport.stream(il.spliterator(), false).filter(this::isAccessToLazilyLoadedFieldInStorageClass)
-				.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())));
+			check(UncheckedClassNotFoundException.class, () ->
+				StreamSupport.stream(il.spliterator(), false).filter(uncheck(this::isAccessToLazilyLoadedFieldInStorageClass))
+					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())))
+			);
 		}
 	}
 
@@ -60,8 +66,9 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	 * 
 	 * @param ih the instruction
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if the storage class cannot be found in the Takamaka program
 	 */
-	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) {
+	private boolean isAccessToLazilyLoadedFieldInStorageClass(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
@@ -111,31 +118,30 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	 * @param fieldType the type of the field
 	 * @param condition the condition on the modifiers of the field
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code cassName} cannot be found in the Takamaka program
 	 */
-	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = classLoader.loadClass(className);
-			Class<?> previous;
-			
-			do {
-				// these two fields are added by instrumentation hence not found by reflection: they are transient
-				if (clazz == classLoader.getStorage() &&
-						(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
-					return true;
+	private boolean modifiersSatisfy(String className, String fieldName, Class<?> fieldType, Predicate<Integer> condition) throws ClassNotFoundException {
+		Class<?> clazz = classLoader.loadClass(className);
+		Class<?> previous;
 
-				Optional<Field> match = Stream.of(clazz.getDeclaredFields())
+		do {
+			// these two fields are added by instrumentation hence not found by reflection: they are transient
+			if (clazz == classLoader.getStorage() &&
+					(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
+				return true;
+
+			Optional<Field> match = Stream.of(clazz.getDeclaredFields())
 					.filter(field -> field.getName().equals(fieldName) && fieldType == field.getType())
 					.findFirst();
 
-				if (match.isPresent())
-					return condition.test(match.get().getModifiers());
+			if (match.isPresent())
+				return condition.test(match.get().getModifiers());
 
-				previous = clazz;
-				clazz = clazz.getSuperclass();
-			}
-			while (previous != classLoader.getStorage());
+			previous = clazz;
+			clazz = clazz.getSuperclass();
+		}
+		while (previous != classLoader.getStorage());
 
-			return false;
-		});
+		return false;
 	}
 }

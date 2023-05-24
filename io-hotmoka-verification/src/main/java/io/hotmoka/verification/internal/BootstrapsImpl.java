@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Executable;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -48,6 +52,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.Bootstraps;
 
 /**
@@ -84,7 +89,7 @@ public class BootstrapsImpl implements Bootstraps {
 
 	private final static BootstrapMethod[] NO_BOOTSTRAPS = new BootstrapMethod[0];
 
-	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) {
+	BootstrapsImpl(VerifiedClassImpl clazz, MethodGen[] methods) throws ClassNotFoundException {
 		this.verifiedClass = clazz;
 		this.cpg = clazz.getConstantPool();
 		this.bootstrapMethods = computeBootstraps();
@@ -111,7 +116,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public boolean lambdaIsEntry(BootstrapMethod bootstrap) {
+	public boolean lambdaIsEntry(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
@@ -134,7 +139,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public boolean lambdaIsRedPayable(BootstrapMethod bootstrap) {
+	public boolean lambdaIsRedPayable(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		if (bootstrap.getNumBootstrapArguments() == 3) {
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			if (constant instanceof ConstantMethodHandle) {
@@ -298,13 +303,13 @@ public class BootstrapsImpl implements Bootstraps {
 		return bootstraps.isPresent() ? bootstraps.get().getBootstrapMethods() : NO_BOOTSTRAPS;
 	}
 
-	private void collectBootstrapsLeadingToEntries(MethodGen[] methods) {
+	private void collectBootstrapsLeadingToEntries(MethodGen[] methods) throws ClassNotFoundException {
 		int initialSize;
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
-			getBootstraps()
-				.filter(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods))
-				.forEach(bootstrapMethodsLeadingToEntries::add);
+			check(UncheckedClassNotFoundException.class, () -> getBootstraps()
+				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
+				.forEach(bootstrapMethodsLeadingToEntries::add));
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
 	}
@@ -313,15 +318,18 @@ public class BootstrapsImpl implements Bootstraps {
 	 * Collects the lambdas that are called from an {@code @@Entry} method.
 	 * 
 	 * @param methods the methods of the class under verification
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private void collectLambdasOfEntries(MethodGen[] methods) {
+	private void collectLambdasOfEntries(MethodGen[] methods) throws ClassNotFoundException {
 		// we collect all lambdas reachable from the @Entry methods, possibly indirectly
 		// (that is, a lambda can call another lambda); we use a working set that starts
 		// with the @Entry methods
 		LinkedList<MethodGen> ws = new LinkedList<>();
-		Stream.of(methods)
-			.filter(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType()))
-			.forEach(ws::add);
+		check(UncheckedClassNotFoundException.class, () ->
+			Stream.of(methods)
+				.filter(uncheck(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.forEach(ws::add)
+		);
 
 		while (!ws.isEmpty()) {
 			MethodGen current = ws.removeFirst();
@@ -348,13 +356,16 @@ public class BootstrapsImpl implements Bootstraps {
 	 * @param bootstrap the lambda method
 	 * @param methods the methods of the class under verification
 	 * @return true if that condition holds
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, MethodGen[] methods) {
+	private boolean lambdaCallsEntry(BootstrapMethod bootstrap, MethodGen[] methods) throws ClassNotFoundException {
 		Optional<MethodGen> lambda = getLambdaFor(bootstrap, methods);
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
-				return StreamSupport.stream(instructions.spliterator(), false).anyMatch(this::leadsToEntry);
+				return check(UncheckedClassNotFoundException.class, () ->
+					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
+				);
 		}
 
 		return false;
@@ -365,8 +376,9 @@ public class BootstrapsImpl implements Bootstraps {
 	 * 
 	 * @param ih the instruction
 	 * @return true if that condition holds
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private boolean leadsToEntry(InstructionHandle ih) {
+	private boolean leadsToEntry(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 	
 		if (instruction instanceof INVOKEDYNAMIC)

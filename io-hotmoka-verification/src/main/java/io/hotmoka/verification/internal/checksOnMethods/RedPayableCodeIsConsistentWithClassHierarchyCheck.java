@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -23,6 +26,7 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.errors.InconsistentRedPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
@@ -34,7 +38,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public RedPayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public RedPayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
@@ -45,12 +49,14 @@ public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMe
 		}
 	}
 
-	private void isIdenticallyRedPayableInSupertypesOf(Class<?> clazz, boolean wasRedPayable) {
-		if (Stream.of(clazz.getDeclaredMethods())
+	private void isIdenticallyRedPayableInSupertypesOf(Class<?> clazz, boolean wasRedPayable) throws ClassNotFoundException {
+		if (check(UncheckedClassNotFoundException.class, () ->
+			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
 						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
-				.anyMatch(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+		))
 			issue(new InconsistentRedPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

@@ -33,8 +33,9 @@ public interface Annotations {
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isPayable(String className, String methodName, Type[] formals, Type returnType);
+	boolean isPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given constructor or method is annotated as red payable.
@@ -44,8 +45,9 @@ public interface Annotations {
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType);
+	boolean isRedPayable(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given constructor or method is annotated as self charged.
@@ -55,8 +57,9 @@ public interface Annotations {
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType);
+	boolean isSelfCharged(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given constructor or method is annotated as {@code @@ThrowsExceptions}.
@@ -66,8 +69,9 @@ public interface Annotations {
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType);
+	boolean isThrowsExceptions(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
 	 * Determines the argument of the {@code @@FromContract} annotation of the given constructor or method, if any.
@@ -80,8 +84,9 @@ public interface Annotations {
 	 *         this return value will be {@code takamaka.lang.PayableContract.class}. If no argument is specified,
 	 *         the result is {@code io.takamaka.code.lang.Contract}. If the argument cannot be determined, the result
 	 *         is an empty optional
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType);
+	Optional<Class<?>> getFromContractArgument(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given constructor or method is annotated as {@code @@FromContract}.
@@ -91,6 +96,7 @@ public interface Annotations {
 	 * @param formals the types of the formal arguments of the method
 	 * @param returnType the return type of the method
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isFromContract(String className, String methodName, Type[] formals, Type returnType);
+	boolean isFromContract(String className, String methodName, Type[] formals, Type returnType) throws ClassNotFoundException;
 }

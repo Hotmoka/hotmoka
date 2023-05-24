@@ -16,6 +16,11 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -34,7 +39,7 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMethods {
 
-	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public PayableCodeIsConsistentWithClassHierarchyCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
@@ -44,12 +49,14 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 		}
 	}
 
-	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) {
-		if (Stream.of(clazz.getDeclaredMethods())
-				.filter(m -> !Modifier.isPrivate(m.getModifiers())
+	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) throws ClassNotFoundException {
+		Stream<Method> methods = Stream.of(clazz.getDeclaredMethods())
+			.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
-				.anyMatch(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)));
+
+		if (check(UncheckedClassNotFoundException.class, () ->
+			methods.anyMatch(uncheck(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
 			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

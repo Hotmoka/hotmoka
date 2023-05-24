@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -38,6 +41,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -48,15 +52,17 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 
-	public AmountIsNotModifiedInConstructorChaining(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public AmountIsNotModifiedInConstructorChaining(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
-			instructions()
-				.filter(this::callsPayableFromContractConstructorOnThis)
-				.filter(this::amountMightBeChanged)
-				.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
-				.forEachOrdered(this::issue);
+			check(UncheckedClassNotFoundException.class, () ->
+				instructions()
+					.filter(uncheck(this::callsPayableFromContractConstructorOnThis))
+					.filter(this::amountMightBeChanged)
+					.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
+					.forEachOrdered(this::issue)
+			);
 		}
 	}
 
@@ -130,7 +136,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
     	return instructions().filter(ih -> ih.getInstruction() == i).findFirst();
     }
 
-    private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) {
+    private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
 		if (instruction instanceof INVOKESPECIAL) {
 			InvokeInstruction invoke = (InvokeInstruction) instruction;

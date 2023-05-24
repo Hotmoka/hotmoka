@@ -37,9 +37,10 @@ public interface InstrumentedJar {
 	 * 
 	 * @param verifiedJar the jar that contains the classes already verified
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) {
+	static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException {
 		return new InstrumentedJarImpl(verifiedJar, gasCostModel);
 	}
 

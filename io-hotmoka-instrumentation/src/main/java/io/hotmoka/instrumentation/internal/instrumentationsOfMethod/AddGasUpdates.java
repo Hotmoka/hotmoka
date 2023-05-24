@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check;
+
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.Comparator;
@@ -55,9 +58,9 @@ import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 
 /**
  * Adds a gas decrease at the beginning of each basic block of code or
@@ -71,7 +74,13 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 	private final static Type[] ONE_LONG_ARGS = { Type.LONG };
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
-	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) {
+	/**
+	 * 
+	 * @param builder
+	 * @param method
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
+	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
 		if (!method.isAbstract()) {
@@ -80,7 +89,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 			CodeExceptionGen[] ceg = method.getExceptionHandlers();
 
 			dominators.forEach(dominator -> addCpuGasUpdate(dominator, il, ceg, dominators));
-			il.forEach(ih -> addRamGasUpdate(ih, il, ceg));			
+			check(UncheckedClassNotFoundException.class, () -> il.forEach(uncheck(ih -> addRamGasUpdate(ih, il, ceg))));
 		}
 	}
 
@@ -105,7 +114,7 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 						targeter -> targeter instanceof BranchInstruction || targeter instanceof CodeExceptionGen);
 	}
 
-	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) {
+	private void addRamGasUpdate(InstructionHandle ih, InstructionList il, CodeExceptionGen[] ceg) throws ClassNotFoundException {
 		Instruction bytecode = ih.getInstruction();
 
 		if (bytecode instanceof InvokeInstruction) {
@@ -263,14 +272,12 @@ public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInst
 		}
 	}
 
-	private long numberOfInstanceFieldsOf(ObjectType type) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			long size = 0L;
-			for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
-				size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
+	private int numberOfInstanceFieldsOf(ObjectType type) throws ClassNotFoundException {
+		int size = 0;
+		for (Class<?> clazz = classLoader.loadClass(type.getClassName()); clazz != Object.class; clazz = clazz.getSuperclass())
+			size += Stream.of(clazz.getDeclaredFields()).filter(field -> !Modifier.isStatic(field.getModifiers())).count();
 
-			return size;
-		});
+		return size;
 	}
 
 	private void addCpuGasUpdate(InstructionHandle dominator, InstructionList il, CodeExceptionGen[] ceg, SortedSet<InstructionHandle> dominators) {

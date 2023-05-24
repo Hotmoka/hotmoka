@@ -18,6 +18,9 @@ package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
 import java.util.Optional;
 
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check;
+
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.ConstantClass;
@@ -39,6 +42,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import it.univr.bcel.StackMapReplacer;
@@ -52,12 +56,14 @@ import it.univr.bcel.StackMapReplacer;
 public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
-	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) {
+	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
 		builder.super();
-		bootstraps.getBootstrapsLeadingToEntries().forEach(this::desugarBootstrapCallingEntry);
+		check(UncheckedClassNotFoundException.class, () ->
+			bootstraps.getBootstrapsLeadingToEntries().forEach(uncheck(this::desugarBootstrapCallingEntry))
+		);
 	}
 
-	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) {
+	private void desugarBootstrapCallingEntry(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		if (bootstraps.lambdaIsEntry(bootstrap))
 			desugarLambdaEntry(bootstrap);
 		else
