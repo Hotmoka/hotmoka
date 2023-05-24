@@ -40,8 +40,9 @@ public interface VerifiedJars {
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException {
+	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
 	}
 }

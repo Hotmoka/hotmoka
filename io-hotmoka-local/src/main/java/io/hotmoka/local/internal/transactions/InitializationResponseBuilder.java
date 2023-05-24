@@ -23,6 +23,7 @@ import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
  * The creator of a response for a transaction that initializes a node.
@@ -54,7 +55,7 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		return node.getCaches().getClassLoader(request.classpath); // currently not used for this transaction
 	}
 }

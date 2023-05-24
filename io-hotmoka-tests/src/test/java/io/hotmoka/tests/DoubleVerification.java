@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -35,7 +36,7 @@ import io.hotmoka.verification.VerifiedJars;
 class DoubleVerification {
 	
 	@Test
-	void verifyTwice() throws IOException, ClassNotFoundException {
+	void verifyTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		var origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
 		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		var bytesOfOrigin = Files.readAllBytes(origin);

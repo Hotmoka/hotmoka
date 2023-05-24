@@ -26,6 +26,7 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
  * The creator of a response for a transaction that creates a gamete.
@@ -45,7 +46,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

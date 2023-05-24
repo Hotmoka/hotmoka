@@ -46,6 +46,7 @@ import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
@@ -159,8 +160,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 *                 that, at the time of installation, were verified with a version of the verification module older than the current one
 	 * @param consensus the consensus parameters to use for reverification, if that is required
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 

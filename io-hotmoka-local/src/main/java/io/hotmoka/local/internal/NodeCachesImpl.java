@@ -56,6 +56,7 @@ import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
 import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
  * An implementation of the caches of a local node.
@@ -334,8 +335,13 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException {
-		return classLoaders.computeIfAbsent(classpath, _classpath -> new EngineClassLoaderImpl(null, Stream.of(_classpath), node, true, consensus));
+	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException {
+		var classLoader = classLoaders.get(classpath);
+		if (classLoader != null)
+			return classLoader;
+
+		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), node, true, consensus);
+		return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
 	}
 
 	@Override

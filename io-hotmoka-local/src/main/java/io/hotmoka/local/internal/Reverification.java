@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.local.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
@@ -41,10 +38,9 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
-import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 import io.hotmoka.verification.api.VerifiedJar;
@@ -80,15 +76,15 @@ public class Reverification {
 	 * @param node the node
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
+	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) throws ClassNotFoundException {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		this.node = node;
 		this.consensus = consensus;
 
 		var counter = new AtomicInteger();
-		check(UncheckedClassNotFoundException.class, () ->
-			transactions.forEachOrdered(uncheck(dependency -> reverify(dependency, counter)))
-		);
+		for (var dependency: transactions.toArray(TransactionReference[]::new))
+			reverify(dependency, counter);
 	}
 
 	/**
@@ -123,8 +119,9 @@ public class Reverification {
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException {
+	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
 
@@ -145,7 +142,7 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		AbstractJarStoreTransactionRequest jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
@@ -182,13 +179,10 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.verificationVersion;
 	}
 
-	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException {
+	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
-		check(UncheckedClassNotFoundException.class, () ->
-			response.getDependencies()
-				.map(UncheckFunction.uncheck(dependency -> reverify(dependency, counter)))
-				.forEachOrdered(reverifiedDependencies::addAll)
-		);
+		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
+			reverifiedDependencies.addAll(reverify(dependency, counter));
 
 		return reverifiedDependencies;
 	}

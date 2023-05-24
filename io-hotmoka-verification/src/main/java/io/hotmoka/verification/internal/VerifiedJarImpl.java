@@ -33,6 +33,7 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.Annotations;
 import io.hotmoka.verification.api.BcelToClass;
@@ -85,8 +86,9 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if there was a problem accessing the classes on disk
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -172,8 +174,9 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+		 * @throws UnsupportedVerificationVersionException if the verification version is not available
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 			this.duringInitialization = duringInitialization;
 			this.allowSelfCharged = allowSelfCharged;
 			this.versionsManager = new VersionsManager(classLoader.getVerificationVersion());

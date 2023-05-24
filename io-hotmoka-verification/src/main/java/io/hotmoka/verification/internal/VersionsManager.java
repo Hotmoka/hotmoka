@@ -18,7 +18,7 @@ package io.hotmoka.verification.internal;
 
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.UnsupportedVerificationVersionError;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.internal.checksOnClass.BootstrapsAreLegalCheck;
 import io.hotmoka.verification.internal.checksOnClass.FromContractCodeIsCalledInCorrectContextCheck;
 import io.hotmoka.verification.internal.checksOnClass.NamesDontStartWithForbiddenPrefix;
@@ -57,9 +57,9 @@ final class VersionsManager {
 	 */
 	public final int verificationVersion;
 
-	VersionsManager(int verificationVersion) {
+	VersionsManager(int verificationVersion) throws UnsupportedVerificationVersionException {
 		if (verificationVersion != 0)
-			throw new UnsupportedVerificationVersionError(verificationVersion);
+			throw new UnsupportedVerificationVersionException(verificationVersion);
 
 		this.verificationVersion = verificationVersion;
 	}

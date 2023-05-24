@@ -31,6 +31,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -51,7 +52,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, true, consensus);

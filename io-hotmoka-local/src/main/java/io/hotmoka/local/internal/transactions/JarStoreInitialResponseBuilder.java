@@ -27,6 +27,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -47,7 +48,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, true, consensus);
@@ -58,7 +59,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException {
+			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 				try {
 					var instrumentedJar = InstrumentedJar.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);

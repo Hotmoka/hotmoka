@@ -45,6 +45,7 @@ import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.OutOfGasError;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
  * The creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -109,7 +110,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

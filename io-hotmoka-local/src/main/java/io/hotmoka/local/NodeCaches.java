@@ -26,6 +26,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
  * The caches of a local node.
@@ -94,8 +95,9 @@ public interface NodeCaches {
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException;
+	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException;
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.
