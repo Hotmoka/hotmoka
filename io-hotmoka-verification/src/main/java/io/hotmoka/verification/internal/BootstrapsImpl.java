@@ -178,7 +178,7 @@ public class BootstrapsImpl implements Bootstraps {
 	}
 
 	@Override
-	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) {
+	public Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException {
 		Constant constant = cpg.getConstant(bootstrap.getBootstrapMethodRef());
 		if (constant instanceof ConstantMethodHandle) {
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
@@ -237,7 +237,7 @@ public class BootstrapsImpl implements Bootstraps {
 		return Optional.empty();
 	}
 
-	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) {
+	private Optional<? extends Executable> getTargetOfCallSite(BootstrapMethod bootstrap, String className, String methodName, String methodSignature) throws ClassNotFoundException {
 		if ("java.lang.invoke.LambdaMetafactory".equals(className) &&
 				"metafactory".equals(methodName) &&
 				"(Ljava/lang/invoke/MethodHandles$Lookup;Ljava/lang/String;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodType;Ljava/lang/invoke/MethodHandle;Ljava/lang/invoke/MethodType;)Ljava/lang/invoke/CallSite;".equals(methodSignature)) {

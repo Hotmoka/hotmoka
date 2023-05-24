@@ -122,7 +122,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 			return addWhiteListVerificationMethodForNonINVOKEDYNAMIC(ih, ins, model, key);
 	}
 
-	private String keyFor(InstructionHandle ih) {
+	private String keyFor(InstructionHandle ih) throws ClassNotFoundException {
 		InvokeInstruction ins = (InvokeInstruction) ih.getInstruction();
 
 		String key;
@@ -224,8 +224,9 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	 * @param invokedynamic the call instruction whose parameters must be verified
 	 * @param model         the model that contains the proof obligations in order,
 	 *                      for the call, to be white-listed
+	 * @throws ClassNotFoundException 
 	 */
-	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) {
+	private InvokeInstruction addWhiteListVerificationMethod(INVOKEDYNAMIC invokedynamic, Executable model) throws ClassNotFoundException {
 		String verifierName = getNewNameForPrivateMethod(InstrumentationConstants.EXTRA_VERIFIER);
 		InstructionList il = new InstructionList();
 		List<Type> args = new ArrayList<>();

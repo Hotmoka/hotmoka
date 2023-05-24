@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.util.Optional;
@@ -24,11 +27,13 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.FieldInstruction;
 import org.apache.bcel.generic.INVOKESPECIAL;
 import org.apache.bcel.generic.Instruction;
+import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalAccessToNonWhiteListedFieldError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedConstructorError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedMethodError;
@@ -40,40 +45,44 @@ import io.hotmoka.verification.internal.VerifiedClassImpl;
  */
 public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 
-	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) {
+	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
-		instructions().forEach(ih -> {
-			Instruction ins = ih.getInstruction();
-			if (ins instanceof FieldInstruction) {
-				FieldInstruction fi = (FieldInstruction) ins;
-				if (!hasWhiteListingModel(fi))
-					issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
-			}
-			else if (ins instanceof InvokeInstruction) {
-				InvokeInstruction invoke = (InvokeInstruction) ins;
-				if (!hasWhiteListingModel(invoke)) {
-					Optional<? extends Executable> target = resolver.resolvedExecutableFor(invoke);
-					if (target.isPresent()) {
-						Executable executable = target.get();
-						if (executable instanceof Constructor<?>)
-							issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName()));
-						else
-							issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
-					}
-					else {
-						// the call seems not resolvable
-						ReferenceType receiverType = invoke.getReferenceType(cpg);
-						String receiverClassName = receiverType instanceof ObjectType ? ((ObjectType) receiverType).getClassName() : "java.lang.Object";
-						String methodName = invoke.getMethodName(cpg);
+		check(UncheckedClassNotFoundException.class, () ->
+			instructions().forEach(uncheck(this::checkSingleInstruction))
+		);
+	}
 
-						if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
-							issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), receiverClassName));
-						else
-							issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, methodName));
-					}
+	private void checkSingleInstruction(InstructionHandle ih) throws ClassNotFoundException {
+		Instruction ins = ih.getInstruction();
+		if (ins instanceof FieldInstruction) {
+			FieldInstruction fi = (FieldInstruction) ins;
+			if (!hasWhiteListingModel(fi))
+				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
+		}
+		else if (ins instanceof InvokeInstruction) {
+			InvokeInstruction invoke = (InvokeInstruction) ins;
+			if (!hasWhiteListingModel(invoke)) {
+				Optional<? extends Executable> target = resolver.resolvedExecutableFor(invoke);
+				if (target.isPresent()) {
+					Executable executable = target.get();
+					if (executable instanceof Constructor<?>)
+						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName()));
+					else
+						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), executable.getDeclaringClass().getName(), executable.getName()));
+				}
+				else {
+					// the call seems not resolvable
+					ReferenceType receiverType = invoke.getReferenceType(cpg);
+					String receiverClassName = receiverType instanceof ObjectType ? ((ObjectType) receiverType).getClassName() : "java.lang.Object";
+					String methodName = invoke.getMethodName(cpg);
+
+					if (invoke instanceof INVOKESPECIAL && Const.CONSTRUCTOR_NAME.equals(methodName))
+						issue(new IllegalCallToNonWhiteListedConstructorError(inferSourceFile(), methodName, lineOf(ih), receiverClassName));
+					else
+						issue(new IllegalCallToNonWhiteListedMethodError(inferSourceFile(), methodName, lineOf(ih), receiverClassName, methodName));
 				}
 			}
-		});
+		}
 	}
 }

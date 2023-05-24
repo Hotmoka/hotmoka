@@ -28,14 +28,16 @@ public interface BcelToClass {
 	 * 
 	 * @param type the BCEL type
 	 * @return the class tag corresponding to {@code type}
+	 * @throws ClassNotFoundException if {@code type} is a class that cannot be found in the Takamaka program 
 	 */
-	Class<?> of(Type type);
+	Class<?> of(Type type) throws ClassNotFoundException;
 
 	/**
 	 * Computes the Java class tags for the given BCEL types.
 	 * 
 	 * @param types the BCEL types
 	 * @return the class tags corresponding to {@code types}
+	 * @throws ClassNotFoundException if some of the {@code types} is a class that cannot be found in the Takamaka program 
 	 */
-	Class<?>[] of(Type[] types);
+	Class<?>[] of(Type[] types) throws ClassNotFoundException;
 }

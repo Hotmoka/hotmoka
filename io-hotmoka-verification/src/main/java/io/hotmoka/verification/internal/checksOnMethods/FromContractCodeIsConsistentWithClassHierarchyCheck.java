@@ -50,11 +50,14 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 	}
 
 	private void isIdenticallyFromContractInSupertypesOf(Class<?> clazz, Optional<Class<?>> contractTypeForEntry) throws ClassNotFoundException {
+		Class<?> rt = bcelToClass.of(methodReturnType);
+		Class<?>[] args = bcelToClass.of(methodArgs);
+
 		if (check(UncheckedClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
+						&& m.getName().equals(methodName) && m.getReturnType() == rt
+						&& Arrays.equals(m.getParameterTypes(), args))
 				.anyMatch(uncheck(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			))
 			issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));

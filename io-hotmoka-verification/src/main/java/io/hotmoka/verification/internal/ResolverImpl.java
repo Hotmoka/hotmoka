@@ -62,7 +62,7 @@ public class ResolverImpl implements Resolver {
 	}
 
 	@Override
-	public Optional<Field> resolvedFieldFor(FieldInstruction fi) {
+	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws ClassNotFoundException {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType) {
 			String name = fi.getFieldName(cpg);
@@ -76,7 +76,7 @@ public class ResolverImpl implements Resolver {
 	}
 
 	@Override
-	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) {
+	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws ClassNotFoundException {
 		if (invoke instanceof INVOKEDYNAMIC) {
 			Bootstraps bootstraps = verifiedClass.bootstraps;
 			return bootstraps.getTargetOf(bootstraps.getBootstrapFor((INVOKEDYNAMIC) invoke));

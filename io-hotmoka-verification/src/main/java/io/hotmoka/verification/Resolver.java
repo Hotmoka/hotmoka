@@ -33,8 +33,9 @@ public interface Resolver {
 	 * 
 	 * @param fi the instruction
 	 * @return the signature, if any
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	Optional<Field> resolvedFieldFor(FieldInstruction fi);
+	Optional<Field> resolvedFieldFor(FieldInstruction fi) throws ClassNotFoundException;
 
 	/**
 	 * Yields the method or constructor signature that would be accessed by the given instruction.
@@ -42,6 +43,7 @@ public interface Resolver {
 	 * 
 	 * @param invoke the instruction
 	 * @return the signature
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke);
+	Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws ClassNotFoundException;
 }

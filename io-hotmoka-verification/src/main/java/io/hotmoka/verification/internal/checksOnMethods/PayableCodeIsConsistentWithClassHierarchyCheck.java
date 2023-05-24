@@ -50,10 +50,12 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 	}
 
 	private void isIdenticallyPayableInSupertypesOf(Class<?> clazz, boolean wasPayable) throws ClassNotFoundException {
+		Class<?> rt = bcelToClass.of(methodReturnType);
+		Class<?>[] args = bcelToClass.of(methodArgs);
 		Stream<Method> methods = Stream.of(clazz.getDeclaredMethods())
 			.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)));
+						&& m.getName().equals(methodName) && m.getReturnType() == rt
+						&& Arrays.equals(m.getParameterTypes(), args));
 
 		if (check(UncheckedClassNotFoundException.class, () ->
 			methods.anyMatch(uncheck(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))

@@ -27,7 +27,6 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.errors.InconsistentRedPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -43,18 +42,19 @@ public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMe
 
 		if (!methodName.equals(Const.CONSTRUCTOR_NAME) && !method.isPrivate()) {
 			boolean wasRedPayable = annotations.isRedPayable(className, methodName, methodArgs, methodReturnType);
-	
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException
-				(() -> isIdenticallyRedPayableInSupertypesOf(classLoader.loadClass(className), wasRedPayable));
+			isIdenticallyRedPayableInSupertypesOf(classLoader.loadClass(className), wasRedPayable);
 		}
 	}
 
 	private void isIdenticallyRedPayableInSupertypesOf(Class<?> clazz, boolean wasRedPayable) throws ClassNotFoundException {
+		Class<?>[] args = bcelToClass.of(methodArgs);
+		Class<?> rt = bcelToClass.of(methodReturnType);
+
 		if (check(UncheckedClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
+						&& m.getName().equals(methodName) && m.getReturnType() == rt
+						&& Arrays.equals(m.getParameterTypes(), args))
 				.anyMatch(uncheck(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentRedPayableError(inferSourceFile(), methodName, clazz.getName()));

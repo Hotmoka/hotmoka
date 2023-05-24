@@ -118,12 +118,12 @@ public class VerifiedClassImpl implements VerifiedClass {
 	}
 
 	@Override
-	public Field whiteListingModelOf(FieldInstruction fi) {
+	public Field whiteListingModelOf(FieldInstruction fi) throws ClassNotFoundException {
 		return jar.classLoader.getWhiteListingWizard().whiteListingModelOf(resolver.resolvedFieldFor(fi).get()).get();
 	}
 
 	@Override
-	public Executable whiteListingModelOf(InvokeInstruction invoke) {
+	public Executable whiteListingModelOf(InvokeInstruction invoke) throws ClassNotFoundException {
 		return whiteListingModelOf(resolver.resolvedExecutableFor(invoke).get(), invoke).get();
 	}
 
@@ -195,8 +195,9 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param invoke the invoke instruction
 	 * @param model the white-listing model of the invoke
 	 * @return the optional containing the model, or the empty optional if the check fails
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) {
+	private Optional<? extends Executable> checkINVOKESPECIAL(InvokeInstruction invoke, Optional<? extends Executable> model) throws ClassNotFoundException {
 		if (invoke instanceof INVOKESPECIAL &&
 			model.isPresent() &&
 			hasWhiteListingProofObligationOnReceiver(model.get()) &&

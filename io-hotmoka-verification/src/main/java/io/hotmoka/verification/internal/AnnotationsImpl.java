@@ -16,10 +16,13 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckFunction.uncheck;
+
 import java.lang.annotation.Annotation;
-import java.lang.reflect.Modifier;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
@@ -30,9 +33,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.Annotations;
 import io.hotmoka.verification.Dummy;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 
 /**
  * A utility to check the annotations of the methods in a given jar.
@@ -145,8 +148,10 @@ public class AnnotationsImpl implements Annotations {
 			return getAnnotationOfMethod(className, methodName, formals, returnType, annotationName);
 	}
 
-	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws SecurityException, ClassNotFoundException {
-		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
+	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws ClassNotFoundException {
+		Class<?>[] formalsClass = check(UncheckedClassNotFoundException.class, () ->
+			Stream.of(formals).map(uncheck(jar.bcelToClass::of)).toArray(Class[]::new)
+		);
 
 		return Stream.of(jar.classLoader.loadClass(className).getDeclaredConstructors())
 				.filter(constructor -> Arrays.equals(constructor.getParameterTypes(), formalsClass))
@@ -155,40 +160,42 @@ public class AnnotationsImpl implements Annotations {
 				.findFirst();
 	}
 
-	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) {
+	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
 		Class<?> returnTypeClass = jar.bcelToClass.of(returnType);
-		Class<?>[] formalsClass = Stream.of(formals).map(jar.bcelToClass::of).toArray(Class[]::new);
+		Class<?>[] formalsClass = check(UncheckedClassNotFoundException.class, () ->
+			Stream.of(formals).map(uncheck(jar.bcelToClass::of)).toArray(Class[]::new)
+		);
 
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Class<?> clazz = jar.classLoader.loadClass(className);
-			Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
-				.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
+		Class<?> clazz = jar.classLoader.loadClass(className);
+		Optional<Method> definition = Stream.of(clazz.getDeclaredMethods())
+			.filter(m -> m.getName().equals(methodName) && m.getReturnType() == returnTypeClass && Arrays.equals(m.getParameterTypes(), formalsClass))
+			.findFirst();
+
+		if (definition.isPresent()) {
+			Method method = definition.get();
+			Optional<Annotation> explicit = Stream.of(method.getAnnotations())
+				.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
 				.findFirst();
 
-			if (definition.isPresent()) {
-				Method method = definition.get();
-				Optional<Annotation> explicit = Stream.of(method.getAnnotations())
-					.filter(annotation -> annotation.annotationType().getName().equals(annotationName))
-					.findFirst();
+			if (explicit.isPresent())
+				return explicit;
 
-				if (explicit.isPresent())
-					return explicit;
+			Class<?> superclass;
+			if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers()))
+				// bridge synthetic methods are created by compilers to override a method of the superclass,
+				// but they do not put the same annotations as in the superclass while it should be the case
+				return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
 
-				Class<?> superclass;
-				if ((superclass = clazz.getSuperclass()) != null && method.isBridge() && method.isSynthetic() && !Modifier.isPrivate(method.getModifiers()))
-					// bridge synthetic methods are created by compilers to override a method of the superclass,
-					// but they do not put the same annotations as in the superclass while it should be the case
-					return getAnnotationOfMethod(superclass.getName(), methodName, formals, returnType, annotationName);
-
-				return Optional.empty();
-			}
-
-			return Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
+			return Optional.empty();
+		}
+	
+		return check(UncheckedClassNotFoundException.class, () ->
+			Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
 				.filter(Objects::nonNull) // since the superclass might be null
-				.map(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName))
+				.map(uncheck(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName)))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
-				.findFirst();
-		});
+				.findFirst()
+			);
 	}
 }

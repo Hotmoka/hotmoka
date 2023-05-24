@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import java.util.stream.Collectors;
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckFunction.uncheck;
+
 import java.util.stream.Stream;
 
 import org.apache.bcel.generic.ArrayType;
@@ -24,8 +26,8 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.BcelToClass;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.
@@ -47,7 +49,7 @@ public class BcelToClassImpl implements BcelToClass {
 	}
 
 	@Override
-	public final Class<?> of(Type type) {
+	public final Class<?> of(Type type) throws ClassNotFoundException {
 		if (type == BasicType.BOOLEAN)
 			return boolean.class;
 		else if (type == BasicType.BYTE)
@@ -67,7 +69,7 @@ public class BcelToClassImpl implements BcelToClass {
 		else if (type == BasicType.VOID)
 			return void.class;
 		else if (type instanceof ObjectType)
-			return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> jar.classLoader.loadClass(type.toString()));
+			return jar.classLoader.loadClass(type.toString());
 		else { // array
 			Class<?> elementsClass = of(((ArrayType) type).getElementType());
 			// trick: we build an array of 0 elements just to access its class token
@@ -76,10 +78,7 @@ public class BcelToClassImpl implements BcelToClass {
 	}
 
 	@Override
-	public final Class<?>[] of(Type[] types) {
-		return Stream.of(types)
-			.map(this::of)
-			.collect(Collectors.toList())
-			.toArray(new Class<?>[types.length]);
+	public final Class<?>[] of(Type[] types) throws ClassNotFoundException {
+		return check(UncheckedClassNotFoundException.class, () -> Stream.of(types).map(uncheck(this::of))).toArray(Class<?>[]::new);
 	}
 }

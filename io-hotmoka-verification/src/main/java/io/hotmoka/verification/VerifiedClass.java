@@ -45,8 +45,9 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * @param fi the instruction that accesses the field
 	 * @return the model. This must exist, since the class is verified and all accesses have been proved
 	 *         to be white-listed (up to possible proof obligations contained in the model).
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	Field whiteListingModelOf(FieldInstruction fi);
+	Field whiteListingModelOf(FieldInstruction fi) throws ClassNotFoundException;
 
 	/**
 	 * Yields the white-listing model for the method called by the given instruction.
@@ -56,8 +57,9 @@ public interface VerifiedClass extends Comparable<VerifiedClass> {
 	 * @param invoke the instruction that calls the method
 	 * @return the model. This must exist, since the class is verified and all calls have been proved
 	 *         to be white-listed (up to possible proof obligations contained in the model).
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	Executable whiteListingModelOf(InvokeInstruction invoke);
+	Executable whiteListingModelOf(InvokeInstruction invoke) throws ClassNotFoundException;
 
 	/**
 	 * Yields the jar this class belongs to.

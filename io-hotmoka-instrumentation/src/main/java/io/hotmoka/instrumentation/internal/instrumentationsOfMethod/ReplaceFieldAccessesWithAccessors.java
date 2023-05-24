@@ -41,7 +41,6 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.
@@ -55,7 +54,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 			InstructionList il = method.getInstructionList();
 			check(UncheckedClassNotFoundException.class, () ->
 				StreamSupport.stream(il.spliterator(), false).filter(uncheck(this::isAccessToLazilyLoadedFieldInStorageClass))
-					.forEach(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction())))
+					.forEach(io.hotmoka.exceptions.UncheckConsumer.uncheck(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
 			);
 		}
 	}
@@ -94,14 +93,12 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 	 * @return the corresponding accessor call instruction
 	 * @throws ClassNotFoundException 
 	 */
-	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) {
+	private Instruction accessorCorrespondingTo(FieldInstruction fieldInstruction) throws ClassNotFoundException {
 		ObjectType referencedClass = (ObjectType) fieldInstruction.getReferenceType(cpg);
 		Type fieldType = fieldInstruction.getFieldType(cpg);
 		String fieldName = fieldInstruction.getFieldName(cpg);
 		String className = referencedClass.getClassName();
-
-		Optional<Field> resolvedField = ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> 
-		 	classLoader.resolveField(className, fieldName, verifiedClass.getJar().getBcelToClass().of(fieldType)));
+		Optional<Field> resolvedField = classLoader.resolveField(className, fieldName, verifiedClass.getJar().getBcelToClass().of(fieldType));
 		String resolvedClassName = resolvedField.get().getDeclaringClass().getName();
 
 		if (fieldInstruction instanceof GETFIELD)

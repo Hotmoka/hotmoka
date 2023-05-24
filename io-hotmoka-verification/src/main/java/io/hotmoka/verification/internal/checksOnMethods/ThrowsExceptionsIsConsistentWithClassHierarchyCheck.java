@@ -49,11 +49,14 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 	}
 
 	private void isIdenticallyThrowsExceptionsInSupertypesOf(Class<?> clazz, boolean wasThrowsExceptions) throws ClassNotFoundException {
+		Class<?> rt = bcelToClass.of(methodReturnType);
+		Class<?>[] args = bcelToClass.of(methodArgs);
+
 		if (check(UncheckedClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
-						&& m.getName().equals(methodName) && m.getReturnType() == bcelToClass.of(methodReturnType)
-						&& Arrays.equals(m.getParameterTypes(), bcelToClass.of(methodArgs)))
+						&& m.getName().equals(methodName) && m.getReturnType() == rt
+						&& Arrays.equals(m.getParameterTypes(), args))
 				.anyMatch(uncheck(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));

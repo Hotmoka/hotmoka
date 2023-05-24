@@ -77,8 +77,9 @@ public interface Bootstraps {
 	 * 
 	 * @param bootstrap the bootstrap
 	 * @return the target called method or constructor
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap);
+	Optional<? extends Executable> getTargetOf(BootstrapMethod bootstrap) throws ClassNotFoundException;
 
 	/**
 	 * Determines if the given lambda method is a part of an {@code @@Entry} method,

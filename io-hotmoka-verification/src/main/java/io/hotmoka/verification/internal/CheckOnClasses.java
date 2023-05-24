@@ -79,12 +79,12 @@ public abstract class CheckOnClasses {
 			builder.setHasErrors();
 	}
 
-	protected final boolean hasWhiteListingModel(FieldInstruction fi) {
+	protected final boolean hasWhiteListingModel(FieldInstruction fi) throws ClassNotFoundException {
 		Optional<Field> field = resolver.resolvedFieldFor(fi);
 		return field.isPresent() && classLoader.getWhiteListingWizard().whiteListingModelOf(field.get()).isPresent();
 	}
 
-	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) {
+	protected final boolean hasWhiteListingModel(InvokeInstruction invoke) throws ClassNotFoundException {
 		Optional<? extends Executable> executable = resolver.resolvedExecutableFor(invoke);
 		return executable.isPresent() && builder.getVerifiedClass().whiteListingModelOf(executable.get(), invoke).isPresent();
 	}
