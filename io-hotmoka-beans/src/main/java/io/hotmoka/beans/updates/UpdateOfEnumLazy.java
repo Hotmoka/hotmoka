@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -95,11 +93,6 @@ public final class UpdateOfEnumLazy extends UpdateOfField {
 	@Override
 	public boolean isEager() {
 		return false;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(enumClassName)).add(gasCostModel.storageCostOf(name));
 	}
 
 	@Override

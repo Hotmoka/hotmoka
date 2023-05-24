@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -85,11 +84,6 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ Arrays.deepHashCode(actuals);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(actuals().map(actual -> actual.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override

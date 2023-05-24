@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageValue;
@@ -126,15 +125,6 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	@Override
 	public StorageValue getOutcome() throws TransactionException {
 		throw new TransactionException(classNameOfCause, messageOfCause, where);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(gasCostModel.storageCostOf(gasConsumedForPenalty))
-			.add(gasCostModel.storageCostOf(classNameOfCause))
-			.add(gasCostModel.storageCostOf(messageOfCause))
-			.add(gasCostModel.storageCostOf(where));
 	}
 
 	@Override

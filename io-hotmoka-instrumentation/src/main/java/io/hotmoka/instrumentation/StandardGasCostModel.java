@@ -18,9 +18,6 @@ package io.hotmoka.instrumentation;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.GasCostModel;
-import io.hotmoka.beans.references.TransactionReference;
-
 /**
  * A specification of the cost of gas.
  */
@@ -114,30 +111,5 @@ public class StandardGasCostModel implements GasCostModel {
 	@Override
 	public BigInteger cpuBaseTransactionCost() {
 		return BigInteger.valueOf(10);
-	}
-
-	@Override
-	public int storageCostPerSlot() {
-		return 50;
-	}
-
-	@Override
-	public BigInteger storageCostOf(BigInteger value) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(value.bitLength() / 2));
-	}
-
-	@Override
-	public BigInteger storageCostOf(String value) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(value.length() * 50L));
-	}
-
-	@Override
-	public BigInteger storageCostOfBytes(int numBytes) {
-		return BigInteger.valueOf(storageCostPerSlot()).add(BigInteger.valueOf(numBytes * 50L));
-	}
-
-	@Override
-	public BigInteger storageCostOf(TransactionReference transaction) {
-		return BigInteger.valueOf(storageCostPerSlot() * 8L);
 	}
 }

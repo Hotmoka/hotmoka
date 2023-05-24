@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -69,11 +68,6 @@ public final class BigIntegerValue extends StorageValue {
 			return diff;
 		else
 			return value.compareTo(((BigIntegerValue) other).value);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(value));
 	}
 
 	@Override

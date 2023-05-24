@@ -25,7 +25,6 @@ import java.security.SignatureException;
 import java.util.Arrays;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -168,13 +167,6 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public String getChainId() {
 		return chainId;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(gasCostModel.storageCostOfBytes(signature.length))
-			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override

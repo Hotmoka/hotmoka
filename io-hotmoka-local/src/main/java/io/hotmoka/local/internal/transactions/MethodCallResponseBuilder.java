@@ -53,12 +53,12 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	}
 
 	@Override
-	protected final BigInteger gasForStoringFailedResponse() {
+	protected final int gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
 
 		return new MethodCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			false, Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
+			false, Stream.empty(), gas, gas, gas, gas).size();
 	}
 
 	/**

@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -78,6 +77,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
@@ -781,13 +781,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
-	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
+	 * {@code request.size()}, but subclasses might redefine.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the base cost of the transaction
 	 */
-	protected BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
-		return request.size(gasCostModel);
+	protected int getRequestStorageCost(NonInitialTransactionRequest<?> request) {
+		return request.size();
 	}
 
 	/**
@@ -1002,7 +1002,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		}
 
 		@Override
-		public BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request) {
+		public int getRequestStorageCost(NonInitialTransactionRequest<?> request) {
 			return AbstractLocalNode.this.getRequestStorageCost(request);
 		}
 

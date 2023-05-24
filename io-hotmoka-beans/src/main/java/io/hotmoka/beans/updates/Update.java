@@ -21,7 +21,6 @@ import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -101,16 +100,6 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * @param other the other update
 	 */
 	public abstract boolean sameProperty(Update other);
-
-	/**
-	 * Yields the size of this update, in terms of gas units consumed in store.
-	 * 
-	 * @param gasCostModel the model of gas costs
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return object.size(gasCostModel);
-	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {

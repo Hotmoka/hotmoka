@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -92,11 +91,6 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.type.equals(ClassType.BIG_INTEGER);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(value));
 	}
 
 	@Override

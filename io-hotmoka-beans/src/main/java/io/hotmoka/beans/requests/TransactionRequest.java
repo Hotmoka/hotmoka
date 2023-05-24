@@ -130,6 +130,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * 
 	 * @return the transaction reference
 	 */
+	// TODO: remove from here?
 	public final TransactionReference getReference() {
 		try {
 			byte[] bytes = toByteArray();
@@ -150,7 +151,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @param bytes the bytes
 	 * @return the string
 	 */
-	private static String bytesToHex(byte[] bytes) {
+	protected static String bytesToHex(byte[] bytes) {
 	    byte[] hexChars = new byte[bytes.length * 2];
 	    int pos = 0;
 	    for (byte b: bytes) {
@@ -163,14 +164,9 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	}
 
 	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
 	 * The array of hexadecimal digits.
 	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
+	private final static byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
 
 	/**
 	 * Unmarshals the signature from the given stream.

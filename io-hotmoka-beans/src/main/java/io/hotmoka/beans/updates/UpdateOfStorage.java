@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -91,11 +89,6 @@ public final class UpdateOfStorage extends UpdateOfField {
 			return diff;
 		else
 			return value.compareTo(((UpdateOfStorage) other).value);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(value.size(gasCostModel));
 	}
 
 	@Override

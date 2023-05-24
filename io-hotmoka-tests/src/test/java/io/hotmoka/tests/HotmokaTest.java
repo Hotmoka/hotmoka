@@ -177,12 +177,7 @@ public abstract class HotmokaTest {
 				// if the property is not set, we provide a default (if it exists)
 				URL resource = HotmokaTest.class.getClassLoader().getResource("logging.properties");
 				if (resource != null)
-					try {
-						LogManager.getLogManager().readConfiguration(resource.openStream());
-					}
-					catch (SecurityException | IOException e) {
-						throw new IllegalStateException("Cannot load logging.properties file", e);
-					}
+					LogManager.getLogManager().readConfiguration(resource.openStream());
 			}
 
 			tendermintBlockchain = null; // Tendermint would reassign
@@ -207,12 +202,8 @@ public abstract class HotmokaTest {
 	        // Change this to test with different node implementations
 	        node = mkMemoryBlockchain();
 	        //node = mkTendermintBlockchain();
-	    	//node = mkTakamakaBlockchainExecuteOneByOne();
-	        //node = mkTakamakaBlockchainExecuteAtEachTimeslot();
 	        //node = mkRemoteNode(mkMemoryBlockchain());
 	        //node = mkRemoteNode(mkTendermintBlockchain());
-	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteOneByOne());
-	        //node = mkRemoteNode(mkTakamakaBlockchainExecuteAtEachTimeslot());
 	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = mkRemoteNode("localhost:8080");
 

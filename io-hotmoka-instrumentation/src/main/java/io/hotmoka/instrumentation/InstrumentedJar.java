@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJar;

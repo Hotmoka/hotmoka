@@ -18,13 +18,11 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
@@ -395,18 +393,6 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	@Override
 	public int hashCode() {
 		return definingClass.hashCode() ^ Arrays.hashCode(formals);
-	}
-
-	/**
-	 * Yields the size of this code signature, in terms of gas units consumed in store.
-	 * 
-	 * @param gasCostModel the model of the costs
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(definingClass.size(gasCostModel))
-			.add(formals().map(type -> type.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add));
 	}
 
 	@Override

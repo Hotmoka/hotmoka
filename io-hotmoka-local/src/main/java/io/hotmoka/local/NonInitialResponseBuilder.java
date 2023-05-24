@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
@@ -41,6 +40,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.OutOfGasError;
@@ -121,8 +121,8 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 */
 	protected BigInteger minimalGasRequiredForTransaction() {
 		BigInteger result = gasCostModel.cpuBaseTransactionCost();
-		result = result.add(request.size(gasCostModel));
-		result = result.add(gasForStoringFailedResponse());
+		result = result.add(BigInteger.valueOf(request.size()));
+		result = result.add(BigInteger.valueOf(gasForStoringFailedResponse()));
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::cpuCostForLoadingJar).reduce(ZERO, BigInteger::add));
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
 	
@@ -157,7 +157,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * 
 	 * @return the cost
 	 */
-	protected abstract BigInteger gasForStoringFailedResponse();
+	protected abstract int gasForStoringFailedResponse();
 
 	/**
 	 * Determines if the transaction is a view transaction.
@@ -420,7 +420,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorage(node.getRequestStorageCost(request));
+			chargeGasForStorage(BigInteger.valueOf(node.getRequestStorageCost(request)));
 			chargeGasForClassLoader();	
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedPayer);
@@ -533,7 +533,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		 * @param response the response
 		 */
 		protected final void chargeGasForStorageOf(Response response) {
-			chargeGasForStorage(response.size(gasCostModel));
+			chargeGasForStorage(BigInteger.valueOf(response.size()));
 		}
 
 		@Override

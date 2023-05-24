@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.hotmoka.verification.TakamakaClassLoader;

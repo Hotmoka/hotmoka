@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
@@ -89,11 +88,6 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ method.hashCode();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(method.size(gasCostModel));
 	}
 
 	@Override

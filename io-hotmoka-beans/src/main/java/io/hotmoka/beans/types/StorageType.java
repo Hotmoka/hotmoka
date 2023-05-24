@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.beans.types;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -58,14 +56,6 @@ public interface StorageType {
 	 * @return true if and only if this type is eager
 	 */
 	boolean isEager();
-
-	/**
-	 * Yields the size of this type, in terms of gas units consumed in store.
-	 * 
-	 * @param gasCostModel the model of gas costs
-	 * @return the size
-	 */
-	BigInteger size(GasCostModel gasCostModel);
 
 	/**
 	 * Factory method that unmarshals a type from the given stream.

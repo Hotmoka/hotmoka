@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -204,14 +203,6 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ Arrays.hashCode(jar) ^ Arrays.deepHashCode(dependencies) ^ chainId.hashCode() ^ Arrays.hashCode(signature);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(getDependencies().map(gasCostModel::storageCostOf).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOfBytes(getJarLength()))
-			.add(gasCostModel.storageCostOfBytes(signature.length))
-			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override

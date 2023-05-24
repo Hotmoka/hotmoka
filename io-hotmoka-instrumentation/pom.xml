@@ -30,11 +30,6 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
 	  <groupId>it.univr.bcel</groupId>
   	  <artifactId>it-univr-bcel</artifactId>
       <version>1.2.1</version>

@@ -68,9 +68,9 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	protected final BigInteger gasForStoringFailedResponse() {
+	protected final int gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
-		return new JarStoreTransactionFailedResponse("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
+		return new JarStoreTransactionFailedResponse("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size();
 	}
 
 	@Override

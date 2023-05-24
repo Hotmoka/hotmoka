@@ -14,11 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.instrumentation;
 
 import java.math.BigInteger;
-
-import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * A specification of the cost of gas.
@@ -162,46 +160,4 @@ public interface GasCostModel {
 	 * @return the cost
 	 */
 	BigInteger cpuBaseTransactionCost();
-
-	/**
-	 * Yields the storage gas cost for a variable inside a data structure.
-	 * It does not consider what is reachable from that variable but only the slot itself.
-	 * 
-	 * @return the cost
-	 */
-	int storageCostPerSlot();
-
-	/**
-	 * Yields the storage gas cost for a slot containing the given value.
-	 * It considers the value as well.
-	 * 
-	 * @param value the value
-	 * @return the cost
-	 */
-	BigInteger storageCostOf(BigInteger value);
-
-	/**
-	 * Yields the storage gas cost for a slot containing the given value.
-	 * It considers the value as well.
-	 * 
-	 * @param value the value
-	 * @return the cost
-	 */
-	BigInteger storageCostOf(String value);
-
-	/**
-	 * Yields the storage gas cost for installing in store an array of bytes with the given length.
-	 * 
-	 * @param numBytes the number of bytes in the array
-	 * @return the cost
-	 */
-	BigInteger storageCostOfBytes(int numBytes);
-
-	/**
-	 * Yields the storage gas cost for the given transaction reference, if stored in store.
-	 * 
-	 * @param transaction the transaction reference
-	 * @return the cost
-	 */
-	BigInteger storageCostOf(TransactionReference transaction);
 }

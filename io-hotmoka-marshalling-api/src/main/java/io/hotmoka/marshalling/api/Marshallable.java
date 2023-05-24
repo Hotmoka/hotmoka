@@ -38,7 +38,13 @@ public interface Marshallable {
 	 * Marshals this object into a byte array.
 	 * 
 	 * @return the byte array resulting from marshalling this object
-	 * @throws IOException if this object cannot be marshalled
 	 */
-	byte[] toByteArray() throws IOException;
+	byte[] toByteArray();
+
+	/**
+	 * Yields the size of this object, in terms of bytes in marshalled form.
+	 * 
+	 * @return the size
+	 */
+	int size();
 }

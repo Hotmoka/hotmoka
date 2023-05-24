@@ -18,10 +18,8 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -55,11 +53,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * It is relative to the caller.
 	 */
 	public final BigInteger nonce;
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private static final byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
 
 	/**
 	 * Builds the transaction request.
@@ -138,21 +131,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	}
 
 	/**
-	 * Yields the size of this request, in terms of gas units consumed in store.
-	 * 
-	 * @param gasCostModel the model of the costs
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot() * 2L)
-			.add(caller.size(gasCostModel))
-			.add(gasCostModel.storageCostOf(gasLimit))
-			.add(gasCostModel.storageCostOf(gasPrice))
-			.add(gasCostModel.storageCostOf(classpath))
-			.add(gasCostModel.storageCostOf(nonce));
-	}
-
-	/**
 	 * Marshals this object into a given stream. This method in general
 	 * performs better than standard Java serialization, wrt the size of the marshalled data.
 	 * The difference with {@link #into(MarshallingContext)} is that the signature (if any)
@@ -167,23 +145,5 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 		context.writeBigInteger(gasPrice);
 		classpath.into(context);
 		context.writeBigInteger(nonce);
-	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	protected static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
 	}
 }

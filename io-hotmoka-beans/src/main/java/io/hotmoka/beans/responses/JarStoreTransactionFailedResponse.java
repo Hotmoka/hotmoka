@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.updates.Update;
@@ -109,14 +108,6 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(gasCostModel.storageCostOf(gasConsumedForPenalty))
-			.add(gasCostModel.storageCostOf(classNameOfCause))
-			.add(gasCostModel.storageCostOf(messageOfCause));
 	}
 
 	@Override

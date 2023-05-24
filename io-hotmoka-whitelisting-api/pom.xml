@@ -12,14 +12,6 @@
     <version>parent</version>
   </parent>
 
-  <dependencies>
-	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-constants</artifactId>
-        <version>${hotmoka.version}</version>
-    </dependency>
-  </dependencies>
-
   <profiles>
 	<profile>
 	  <id>release</id>

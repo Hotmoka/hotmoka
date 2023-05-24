@@ -53,12 +53,12 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	protected final BigInteger gasForStoringFailedResponse() {
+	protected final int gasForStoringFailedResponse() {
 		BigInteger gas = request.gasLimit;
 
 		return new ConstructorCallTransactionFailedResponse
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			Stream.empty(), gas, gas, gas, gas).size(gasCostModel);
+			Stream.empty(), gas, gas, gas, gas).size();
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import java.io.Serializable;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -102,11 +101,6 @@ public final class StorageReference extends StorageValue implements Serializable
 	@Override
 	public String toString() {
 		return transaction + "#" + progressive.toString(16);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(progressive)).add(gasCostModel.storageCostOf(transaction));
 	}
 
 	@Override

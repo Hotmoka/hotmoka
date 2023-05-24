@@ -31,13 +31,23 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 public abstract class MarshallableImpl implements Marshallable {
 
+	// TODO: check IOException catches
 	@Override
-	public final byte[] toByteArray() throws IOException {
+	public final byte[] toByteArray() {
 		try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {
 			into(context);
 			context.flush();
 			return baos.toByteArray();
 		}
+		catch (IOException e) {
+			// impossible with a ByteArrayOutputStream
+			throw new RuntimeException("unexpected exception", e);
+		}
+	}
+
+	@Override
+	public final int size() {
+		return toByteArray().length;
 	}
 
 	/**

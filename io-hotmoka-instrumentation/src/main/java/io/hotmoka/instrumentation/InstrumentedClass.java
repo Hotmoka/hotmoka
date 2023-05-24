@@ -18,7 +18,6 @@ package io.hotmoka.instrumentation;
 
 import org.apache.bcel.classfile.JavaClass;
 
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.VerifiedClass;
 

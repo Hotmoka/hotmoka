@@ -17,7 +17,6 @@ limitations under the License.
 module io.hotmoka.instrumentation {
 	exports io.hotmoka.instrumentation;
 	requires transitive io.hotmoka.verification;
-	requires transitive io.hotmoka.beans;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.constants;
 	requires it.univr.bcel;

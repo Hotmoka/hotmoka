@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
@@ -74,12 +73,6 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ receiver.hashCode();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(receiver.size(gasCostModel));
 	}
 
 	@Override

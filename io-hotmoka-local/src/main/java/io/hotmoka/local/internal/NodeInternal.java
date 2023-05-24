@@ -16,13 +16,11 @@ limitations under the License.
 
 package io.hotmoka.local.internal;
 
-import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
@@ -34,6 +32,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.local.Config;
 import io.hotmoka.local.NodeCaches;
 import io.hotmoka.local.Store;
@@ -84,12 +83,12 @@ public interface NodeInternal {
 
 	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
-	 * {@code request.size(gasCostModel)}, but subclasses might redefine.
+	 * {@code request.size()}, but subclasses might redefine.
 	 * 
 	 * @param request the request of the transaction
 	 * @return the base cost of the transaction
 	 */
-	BigInteger getRequestStorageCost(NonInitialTransactionRequest<?> request);
+	int getRequestStorageCost(NonInitialTransactionRequest<?> request);
 
 	/**
 	 * Determines if the given initial transaction can still be run after the

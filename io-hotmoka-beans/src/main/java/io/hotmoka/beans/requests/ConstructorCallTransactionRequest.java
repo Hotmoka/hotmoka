@@ -24,7 +24,6 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -168,14 +167,6 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ constructor.hashCode() ^ chainId.hashCode() ^ Arrays.hashCode(signature);
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel)
-			.add(constructor.size(gasCostModel))
-			.add(gasCostModel.storageCostOfBytes(signature.length))
-			.add(gasCostModel.storageCostOf(chainId));
 	}
 
 	@Override

@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -104,20 +103,6 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);
-	}
-
-	/**
-	 * Yields the size of this response, in terms of gas units consumed in store.
-	 * 
-	 * @param gasCostModel the model of the costs
-	 * @return the size
-	 */
-	public BigInteger size(GasCostModel gasCostModel) {
-		return BigInteger.valueOf(gasCostModel.storageCostPerSlot())
-			.add(getUpdates().map(update -> update.size(gasCostModel)).reduce(BigInteger.ZERO, BigInteger::add))
-			.add(gasCostModel.storageCostOf(gasConsumedForCPU))
-			.add(gasCostModel.storageCostOf(gasConsumedForRAM))
-			.add(gasCostModel.storageCostOf(gasConsumedForStorage));
 	}
 
 	@Override

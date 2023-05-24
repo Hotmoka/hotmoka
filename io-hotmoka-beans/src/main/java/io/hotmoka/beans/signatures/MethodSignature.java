@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.GasCostModel;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -65,11 +63,6 @@ public abstract class MethodSignature extends CodeSignature {
 	@Override
 	public int hashCode() {
 		return super.hashCode() ^ methodName.hashCode();
-	}
-
-	@Override
-	public BigInteger size(GasCostModel gasCostModel) {
-		return super.size(gasCostModel).add(gasCostModel.storageCostOf(methodName));
 	}
 
 	@Override
