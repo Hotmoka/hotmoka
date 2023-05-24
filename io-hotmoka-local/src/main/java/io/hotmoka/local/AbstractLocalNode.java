@@ -21,7 +21,6 @@ import static java.math.BigInteger.ZERO;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -596,10 +595,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 			logger.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
-		catch (IOException e) {
+		catch (IOException | ClassNotFoundException e) {
 			store.push(reference, request, trimmedMessage(e));
 			logger.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-			throw new UncheckedIOException(e);
+			throw new RuntimeException(e);
 		}
 		catch (RuntimeException e) {
 			store.push(reference, request, trimmedMessage(e));
@@ -774,8 +773,9 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * 
 	 * @param response the store
 	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
 	 */
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		caches.invalidateIfNeeded(response, classLoader);
 	}
 

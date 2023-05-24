@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tendermint.internal;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -59,6 +62,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
@@ -206,7 +210,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	}
 
 	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		super.invalidateCachesIfNeeded(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
@@ -290,21 +294,24 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param response the response
 	 * @param classLoader the class loader used for the transaction
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
-	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference validators = caches.getValidators().get();
 
-			return events.filter(event -> isValidatorsUpdateEvent(event, classLoader))
-				.map(storeUtilities::getCreatorUncommitted)
-				.anyMatch(validators::equals);
+			return check(UncheckedClassNotFoundException.class, () ->
+				events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
+					.map(storeUtilities::getCreatorUncommitted)
+					.anyMatch(validators::equals)
+			);
 		}
 
 		return false;
 	}
 
-	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
 	}
 

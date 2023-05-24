@@ -43,8 +43,9 @@ public interface NodeCaches {
 	 * 
 	 * @param response the response
 	 * @param classLoader the classloader
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader);
+	void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException;
 
 	/**
 	 * Reconstructs the consensus parameters from information in the manifest.

@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import java.util.Optional;
+
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.errors.FromContractNotInStorageError;
@@ -31,12 +33,14 @@ public class FromContractCodeIsInstanceAndInStorageClassCheck extends CheckOnMet
 	public FromContractCodeIsInstanceAndInStorageClassCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
-		annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType).ifPresent(tag -> {
-			if (!classLoader.getContract().isAssignableFrom(tag))
+		Optional<Class<?>> ann = annotations.getFromContractArgument(className, methodName, methodArgs, methodReturnType);
+		
+		if (ann.isPresent()) {
+			if (!classLoader.getContract().isAssignableFrom(ann.get()))
 				issue(new IllegalFromContractArgumentError(inferSourceFile(), methodName));
 
 			if (method.isStatic() || (!classLoader.isInterface(className) && !classLoader.isStorage(className)))
 				issue(new FromContractNotInStorageError(inferSourceFile(), methodName));
-		});
+		};
 	}
 }

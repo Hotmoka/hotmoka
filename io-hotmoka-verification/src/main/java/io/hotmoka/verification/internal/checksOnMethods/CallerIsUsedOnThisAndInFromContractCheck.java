@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
+
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InvokeInstruction;
@@ -42,15 +46,17 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
 		boolean isFromContract = annotations.isFromContract(className, methodName, methodArgs, methodReturnType) || bootstraps.isPartOfFromContract(method);
 
-		instructions()
-			.filter(this::isCallToStorageCaller)
-			.forEach(ih -> {
-				if (!isFromContract)
-					issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
+		check(UncheckedClassNotFoundException.class, () ->
+			instructions()
+				.filter(uncheck(this::isCallToStorageCaller))
+				.forEach(ih -> {
+					if (!isFromContract)
+						issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));
 
-				if (!previousIsLoad0(ih))
-					issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
-			});
+					if (!previousIsLoad0(ih))
+						issue(new CallerNotOnThisError(inferSourceFile(), methodName, lineOf(ih)));
+				})
+		);
 	}
 
 	private boolean previousIsLoad0(InstructionHandle ih) {
@@ -66,7 +72,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	 */
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + Constants.CONTRACT_NAME.replace('.', '/') + ";";
 
-	private boolean isCallToStorageCaller(InstructionHandle ih) {
+	private boolean isCallToStorageCaller(InstructionHandle ih) throws ClassNotFoundException {
 		Instruction ins = ih.getInstruction();
 		if (ins instanceof InvokeInstruction) {
 			InvokeInstruction invoke = (InvokeInstruction) ins;

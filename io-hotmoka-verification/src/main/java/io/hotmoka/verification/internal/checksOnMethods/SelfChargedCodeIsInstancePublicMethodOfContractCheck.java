@@ -39,7 +39,7 @@ public class SelfChargedCodeIsInstancePublicMethodOfContractCheck extends CheckO
 				issue(new InconsistentSelfChargedError(inferSourceFile(), methodName));
 	}
 
-	private boolean isInPublicInstanceMethodOfContract() {
+	private boolean isInPublicInstanceMethodOfContract() throws ClassNotFoundException {
 		return method.isPublic() && !method.isStatic() && !Const.CONSTRUCTOR_NAME.equals(method.getName()) && classLoader.isContract(className);
 	}
 }

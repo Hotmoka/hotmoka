@@ -707,47 +707,47 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public boolean isStorage(String className) {
+	public boolean isStorage(String className) throws ClassNotFoundException {
 		return parent.isStorage(className);
 	}
 
 	@Override
-	public boolean isContract(String className) {
+	public boolean isContract(String className) throws ClassNotFoundException {
 		return parent.isContract(className);
 	}
 
 	@Override
-	public boolean isConsensusUpdateEvent(String className) {
+	public boolean isConsensusUpdateEvent(String className) throws ClassNotFoundException {
 		return parent.isConsensusUpdateEvent(className);
 	}
 
 	@Override
-	public boolean isGasPriceUpdateEvent(String className) {
+	public boolean isGasPriceUpdateEvent(String className) throws ClassNotFoundException {
 		return parent.isGasPriceUpdateEvent(className);
 	}
 
 	@Override
-	public boolean isInflationUpdateEvent(String className) {
+	public boolean isInflationUpdateEvent(String className) throws ClassNotFoundException {
 		return parent.isInflationUpdateEvent(className);
 	}
 
 	@Override
-	public boolean isValidatorsUpdateEvent(String className) {
+	public boolean isValidatorsUpdateEvent(String className) throws ClassNotFoundException {
 		return parent.isValidatorsUpdateEvent(className);
 	}
 
 	@Override
-	public boolean isa(String className, String superclassName) {
+	public boolean isa(String className, String superclassName) throws ClassNotFoundException {
 		return parent.isa(className, superclassName);
 	}
 
 	@Override
-	public boolean isInterface(String className) {
+	public boolean isInterface(String className) throws ClassNotFoundException {
 		return parent.isInterface(className);
 	}
 
 	@Override
-	public boolean isExported(String className) {
+	public boolean isExported(String className) throws ClassNotFoundException {
 		return parent.isExported(className);
 	}
 

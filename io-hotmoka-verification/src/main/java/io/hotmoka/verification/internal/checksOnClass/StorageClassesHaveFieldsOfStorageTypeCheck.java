@@ -16,35 +16,42 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
+
 
 /**
  * A checks that payable methods have an amount first argument.
  */
 public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
-	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) {
+	public StorageClassesHaveFieldsOfStorageTypeCheck(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
 		super(builder);
 
-		if (classLoader.isStorage(className))
-			ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() ->
-				Stream.of(classLoader.loadClass(className).getDeclaredFields())
+		if (classLoader.isStorage(className)) {
+			Class<?> clazz = classLoader.loadClass(className);
+			check(UncheckedClassNotFoundException.class, () ->
+				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
-					.filter(field -> !isTypeAllowedForStorageFields(field.getType()))
+					.filter(uncheck(field -> !isTypeAllowedForStorageFields(field.getType())))
 					.map(field -> new IllegalTypeForStorageFieldError(inferSourceFile(), field.getName(), field.getType().isEnum()))
-					.forEach(this::issue));
+					.forEach(this::issue)
+			);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean isTypeAllowedForStorageFields(Class<?> type) {
+	private boolean isTypeAllowedForStorageFields(Class<?> type) throws ClassNotFoundException {
 		// we allow Object since it can be the erasure of a generic type: the runtime of Takamaka
 		// will check later if the actual type of the object in this field is allowed;
 		// we also allow interfaces since they cannot extend Storage and only at run time it will

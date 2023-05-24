@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -142,48 +141,48 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final boolean isStorage(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> storage.isAssignableFrom(loadClass(className)));
+	public final boolean isStorage(String className) throws ClassNotFoundException {
+		return storage.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isContract(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> contract.isAssignableFrom(loadClass(className)));
+	public final boolean isContract(String className) throws ClassNotFoundException {
+		return contract.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isConsensusUpdateEvent(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> consensusUpdateEvent.isAssignableFrom(loadClass(className)));
+	public final boolean isConsensusUpdateEvent(String className) throws ClassNotFoundException {
+		return consensusUpdateEvent.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isGasPriceUpdateEvent(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> gasPriceUpdateEvent.isAssignableFrom(loadClass(className)));
+	public final boolean isGasPriceUpdateEvent(String className) throws ClassNotFoundException {
+		return gasPriceUpdateEvent.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isInflationUpdateEvent(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> inflationUpdateEvent.isAssignableFrom(loadClass(className)));
+	public final boolean isInflationUpdateEvent(String className) throws ClassNotFoundException {
+		return inflationUpdateEvent.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isValidatorsUpdateEvent(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> validatorsUpdateEvent.isAssignableFrom(loadClass(className)));
+	public final boolean isValidatorsUpdateEvent(String className) throws ClassNotFoundException {
+		return validatorsUpdateEvent.isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isa(String className, String superclassName) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(superclassName).isAssignableFrom(loadClass(className)));
+	public final boolean isa(String className, String superclassName) throws ClassNotFoundException {
+		return loadClass(superclassName).isAssignableFrom(loadClass(className));
 	}
 
 	@Override
-	public final boolean isExported(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> Stream.of(loadClass(className).getAnnotations()).anyMatch(annotation -> Constants.EXPORTED_NAME.equals(annotation.annotationType().getName())));
+	public final boolean isExported(String className) throws ClassNotFoundException {
+		return Stream.of(loadClass(className).getAnnotations()).anyMatch(annotation -> Constants.EXPORTED_NAME.equals(annotation.annotationType().getName()));
 	}
 
 	@Override
-	public final boolean isInterface(String className) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> loadClass(className).isInterface());
+	public final boolean isInterface(String className) throws ClassNotFoundException {
+		return loadClass(className).isInterface();
 	}
 
 	@Override

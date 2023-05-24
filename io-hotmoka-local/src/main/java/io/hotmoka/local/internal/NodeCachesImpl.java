@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.local.internal;
 
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -160,7 +163,7 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) {
+	public final void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			int versionBefore = consensus.verificationVersion;
 			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
@@ -444,8 +447,9 @@ public class NodeCachesImpl implements NodeCaches {
 	 * @return true if the response changes the value of some consensus parameters; otherwise,
 	 *         it is more efficient to return false, since true might trigger a recomputation
 	 *         of the consensus parameters' cache
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
@@ -457,9 +461,11 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference versions = getVersions().get();
 			StorageReference validators = getValidators().get();
 
-			return events.filter(event -> isConsensusUpdateEvent(event, classLoader))
-				.map(node.getStoreUtilities()::getCreatorUncommitted)
-				.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions));
+			return check(UncheckedClassNotFoundException.class, () ->
+				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
+					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
+			);
 		}
 
 		return false;
@@ -475,7 +481,7 @@ public class NodeCachesImpl implements NodeCaches {
 		return node.getStore().getManifestUncommitted().isPresent();
 	}
 
-	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isConsensusUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 
@@ -485,8 +491,9 @@ public class NodeCachesImpl implements NodeCaches {
 	 * @param response the response
 	 * @param classLoader the class loader used to build the response
 	 * @return true if the response changes the gas price
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
@@ -495,9 +502,11 @@ public class NodeCachesImpl implements NodeCaches {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference gasStation = getGasStation().get();
 
-			return events.filter(event -> isGasPriceUpdateEvent(event, classLoader))
-				.map(node.getStoreUtilities()::getCreatorUncommitted)
-				.anyMatch(gasStation::equals);
+			return check(UncheckedClassNotFoundException.class, () ->
+				events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
+					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.anyMatch(gasStation::equals)
+			);
 		}
 
 		return false;
@@ -509,8 +518,9 @@ public class NodeCachesImpl implements NodeCaches {
 	 * @param response the response
 	 * @param classLoader the class loader used to build the response
 	 * @return true if the response changes the current inflation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) {
+	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
@@ -519,19 +529,21 @@ public class NodeCachesImpl implements NodeCaches {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference validators = getValidators().get();
 
-			return events.filter(event -> isInflationUpdateEvent(event, classLoader))
-				.map(node.getStoreUtilities()::getCreatorUncommitted)
-				.anyMatch(validators::equals);
+			return check(UncheckedClassNotFoundException.class, () ->
+				events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
+					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.anyMatch(validators::equals)
+			);
 		}
 
 		return false;
 	}
 
-	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isGasPriceUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 
-	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) {
+	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isInflationUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
 	}
 }

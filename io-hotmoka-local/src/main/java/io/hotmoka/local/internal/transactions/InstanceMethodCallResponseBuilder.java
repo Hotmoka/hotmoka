@@ -71,7 +71,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 	}
 
-	private void receiverIsExported() throws TransactionRejectedException {
+	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException {
 		enforceExported(request.receiver);
 	}
 

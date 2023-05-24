@@ -108,16 +108,15 @@ public class ResolverImpl implements Resolver {
 	 * @param className the name of the class where the constructor is looked for
 	 * @param args the arguments types of the constructor
 	 * @return the constructor, if any
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<Constructor<?>> result = verifiedClass.jar.classLoader.resolveConstructor(className, args);
-			// we try to add the instrumentation arguments. This is important when
-			// a bootstrap calls an entry of a jar already installed (and instrumented)
-			// in blockchain. In that case, it will find the target only with these
-			// extra arguments added during instrumentation
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveConstructor(className, expandArgsForFromContract(args));
-		});
+	Optional<Constructor<?>> resolveConstructorWithPossiblyExpandedArgs(String className, Class<?>[] args) throws ClassNotFoundException {
+		Optional<Constructor<?>> result = verifiedClass.jar.classLoader.resolveConstructor(className, args);
+		// we try to add the instrumentation arguments. This is important when
+		// a bootstrap calls an entry of a jar already installed (and instrumented)
+		// in blockchain. In that case, it will find the target only with these
+		// extra arguments added during instrumentation
+		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveConstructor(className, expandArgsForFromContract(args));
 	}
 
 	/**
@@ -130,12 +129,11 @@ public class ResolverImpl implements Resolver {
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
-		});
+	Optional<java.lang.reflect.Method> resolveMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveMethod(className, methodName, args, returnType);
+		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 
 	/**
@@ -149,12 +147,11 @@ public class ResolverImpl implements Resolver {
 	 * @param args the arguments types of the method
 	 * @param returnType the return type of the method
 	 * @return the method, if any
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) {
-		return ThrowIncompleteClasspathError.insteadOfClassNotFoundException(() -> {
-			Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
-			return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
-		});
+	Optional<java.lang.reflect.Method> resolveInterfaceMethodWithPossiblyExpandedArgs(String className, String methodName, Class<?>[] args, Class<?> returnType) throws ClassNotFoundException {
+		Optional<java.lang.reflect.Method> result = verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, args, returnType);
+		return result.isPresent() ? result : verifiedClass.jar.classLoader.resolveInterfaceMethod(className, methodName, expandArgsForFromContract(args), returnType);
 	}
 
 	private Class<?>[] expandArgsForFromContract(Class<?>[] args) {

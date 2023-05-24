@@ -43,48 +43,54 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that class extends {@link io.takamaka.code.lang.Storage}
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isStorage(String className);
+	boolean isStorage(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of the contract class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isContract(String className);
+	boolean isContract(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of the consensus update event class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isConsensusUpdateEvent(String className);
+	boolean isConsensusUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of the gas price update event class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isGasPriceUpdateEvent(String className);
+	boolean isGasPriceUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of the inflation update event class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isInflationUpdateEvent(String className);
+	boolean isInflationUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of the validators update event class.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isValidatorsUpdateEvent(String className);
+	boolean isValidatorsUpdateEvent(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is an instance of another class.
@@ -92,24 +98,27 @@ public interface TakamakaClassLoader extends ResolvingClassLoader {
 	 * @param className the class
 	 * @param superclassName the potential superclass of {@code className}
 	 * @return true if and only if {@code className} is a subclass of {@code superclassName}
+	 * @throws ClassNotFoundException if {@code className} or {@code superclassName} cannot be found in the Takamaka program
 	 */
-	boolean isa(String className, String superclassName);
+	boolean isa(String className, String superclassName) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is annotated as {@code @@Exported}.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isExported(String className);
+	boolean isExported(String className) throws ClassNotFoundException;
 
 	/**
 	 * Checks if a class is actually an interface.
 	 * 
 	 * @param className the name of the class
 	 * @return true if and only if that condition holds
+	 * @throws ClassNotFoundException if {@code className} cannot be found in the Takamaka program
 	 */
-	boolean isInterface(String className);
+	boolean isInterface(String className) throws ClassNotFoundException;
 
 	/**
 	 * Determines if a field of a storage class, having the given field, is lazily loaded.
