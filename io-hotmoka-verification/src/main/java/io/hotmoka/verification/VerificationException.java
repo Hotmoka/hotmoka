@@ -16,7 +16,10 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-public class VerificationException extends RuntimeException {
+/**
+ * An exception thrown when the verification of some jar failed.
+ */
+public class VerificationException extends Exception {
 	private static final long serialVersionUID = -1232455923178336022L;
 	private final io.hotmoka.verification.api.Error error;
 

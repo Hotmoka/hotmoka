@@ -28,6 +28,7 @@ import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
+import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -59,7 +60,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 		return new ResponseCreator() {
 
 			@Override
-			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException {
+			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
 				try {
 					var instrumentedJar = InstrumentedJar.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);

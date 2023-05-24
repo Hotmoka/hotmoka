@@ -28,6 +28,7 @@ import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
+import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -38,7 +39,7 @@ import io.hotmoka.verification.VerifiedJars;
 class DoubleTranslation {
 
 	@Test
-	void translateTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+	void translateTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
 		var origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
 		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		var bytesOfClasspath = Files.readAllBytes(classpath);

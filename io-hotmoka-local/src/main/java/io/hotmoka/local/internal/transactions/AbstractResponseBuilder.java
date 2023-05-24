@@ -43,6 +43,7 @@ import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
+import io.hotmoka.verification.VerificationException;
 
 /**
  * A generic implementation of the creator of a response.
@@ -196,8 +197,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the response
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 * @throws UnsupportedVerificationVersionException if the verification version is not available
+		 * @throws VerificationException if the verification of a jar failed, before being installed in the node
 		 */
-		protected abstract Response body() throws ClassNotFoundException, UnsupportedVerificationVersionException;
+		protected abstract Response body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException;
 
 		/**
 		 * Yields the UTC time when the transaction is being run.

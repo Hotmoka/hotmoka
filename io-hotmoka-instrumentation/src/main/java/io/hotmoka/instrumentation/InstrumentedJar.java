@@ -40,7 +40,7 @@ public interface InstrumentedJar {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException {
+	static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
 		return new InstrumentedJarImpl(verifiedJar, gasCostModel);
 	}
 

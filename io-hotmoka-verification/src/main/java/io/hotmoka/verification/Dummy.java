@@ -25,7 +25,7 @@ package io.hotmoka.verification;
  * be used by the programmer and the instrumentation cannot lead to signature clashes.
  * Moreover, the value passed for this extra parameter can be used to signal something to the callee.
  */
-public final class Dummy { //TODO: where should this class go?
+public final class Dummy {
 	
 	/**
 	 * This value is passed to a from contract method to signal that it has

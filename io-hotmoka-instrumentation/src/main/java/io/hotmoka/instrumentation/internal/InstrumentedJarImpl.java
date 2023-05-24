@@ -59,7 +59,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */
-	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException {
+	public InstrumentedJarImpl(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
 		if (verifiedJar.hasErrors())
 			throw new VerificationException(verifiedJar.getFirstError().get());
 
