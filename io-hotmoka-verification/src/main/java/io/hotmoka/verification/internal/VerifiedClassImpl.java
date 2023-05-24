@@ -40,12 +40,11 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
-import io.hotmoka.verification.Bootstraps;
-import io.hotmoka.verification.Pushers;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.VerifiedClass;
-import io.hotmoka.verification.VerifiedJar;
-import io.hotmoka.verification.errors.Error;
+import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.Pushers;
+import io.hotmoka.verification.api.VerifiedClass;
+import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
@@ -77,7 +76,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	/**
 	 * The utility that can be used to resolve targets of calls and field accesses in this class.
 	 */
-	public final ResolverImpl resolver;
+	public final Resolver resolver;
 
 	/**
 	 * Builds and verifies a class from the given class file.
@@ -92,7 +91,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @throws VerificationException if the class could not be verified
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Error> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -100,7 +99,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		MethodGen[] methods = Stream.of(clazz.getMethods()).map(method -> new MethodGen(method, className, cpg)).toArray(MethodGen[]::new);
 		this.bootstraps = new BootstrapsImpl(this, methods);
 		this.pushers = new PushersImpl(this);
-		this.resolver = new ResolverImpl(this);
+		this.resolver = new Resolver(this);
 
 		if (!skipsVerification)
 			new Verification(issueHandler, methods, duringInitialization, allowSelfCharged, versionsManager);
@@ -231,7 +230,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
-		final Consumer<Error> issueHandler;
+		final Consumer<AbstractErrorImpl> issueHandler;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -268,7 +267,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @throws VerificationException if some verification error occurs
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 */
-		private Verification(Consumer<Error> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
+		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();

@@ -34,8 +34,8 @@ import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
-import io.hotmoka.verification.Annotations;
 import io.hotmoka.verification.Dummy;
+import io.hotmoka.verification.api.Annotations;
 
 /**
  * A utility to check the annotations of the methods in a given jar.

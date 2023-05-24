@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.errors;
-
-import io.hotmoka.verification.internal.AbstractErrorImpl;
-
-public class IllegalModificationOfAmountInConstructorChaining extends AbstractErrorImpl {
-
-	public IllegalModificationOfAmountInConstructorChaining(String where, String methodName, int line) {
-		super(where, methodName, line, "the paid amount cannot be changed in constructor chaining");
-	}
+/**
+ * This module defines the API of the verification code for Takamaka programs.
+ */
+module io.hotmoka.verification.api {
+	exports io.hotmoka.verification.api;
+	
+	requires io.hotmoka.whitelisting.api;
+	requires transitive org.apache.bcel;
 }

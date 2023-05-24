@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class RedPayableNotInContractError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class RedPayableNotInContractError extends AbstractErrorImpl {
 
 	public RedPayableNotInContractError(String where, String methodName) {
 		super(where, methodName, -1, "@RedPayable can only be applied to constructors or instance methods of a contract class or of an interface");

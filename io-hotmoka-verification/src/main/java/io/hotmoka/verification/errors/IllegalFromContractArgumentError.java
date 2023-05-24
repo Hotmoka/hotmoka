@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalFromContractArgumentError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalFromContractArgumentError extends AbstractErrorImpl {
 
 	public IllegalFromContractArgumentError(String where, String methodName) {
 		super(where, methodName, -1, "the argument of @FromContract must be a contract");

@@ -24,7 +24,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;

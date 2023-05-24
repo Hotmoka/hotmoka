@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalCallToFromContractOnThisError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalCallToFromContractOnThisError extends AbstractErrorImpl {
 
 	public IllegalCallToFromContractOnThisError(String where, String methodName, String entryName, int line) {
 		super(where, methodName, line, "\"" + entryName + "\" is @FromContract and called on \"this\", hence can only be called from a @FromContract method or constructor");

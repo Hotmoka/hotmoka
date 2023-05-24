@@ -63,11 +63,11 @@ import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddRuntimeCh
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.InstrumentMethodsOfSupportClasses;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.ReplaceFieldAccessesWithAccessors;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.SetCallerAndBalanceAtTheBeginningOfFromContracts;
-import io.hotmoka.verification.Annotations;
-import io.hotmoka.verification.Bootstraps;
-import io.hotmoka.verification.Pushers;
-import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.VerifiedClass;
+import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.verification.api.Pushers;
+import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
 
 /**

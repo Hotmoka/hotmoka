@@ -35,7 +35,7 @@ import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.ReturnInstruction;
 
-import io.hotmoka.verification.Pushers;
+import io.hotmoka.verification.api.Pushers;
 
 public class PushersImpl implements Pushers {
 

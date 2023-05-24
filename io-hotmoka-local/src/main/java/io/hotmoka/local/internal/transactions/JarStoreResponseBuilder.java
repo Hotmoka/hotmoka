@@ -31,7 +31,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.VerifiedJars;
 
 /**
  * The creator of a response for a transaction that installs a jar in the node.
@@ -90,9 +90,9 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				VerifiedJar verifiedJar = VerifiedJar.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged, consensus.skipsVerification);
-				InstrumentedJar instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
-				byte[] instrumentedBytes = instrumentedJar.toBytes();
+				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged, consensus.skipsVerification);
+				var instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
+				var instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion,  updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
 				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());

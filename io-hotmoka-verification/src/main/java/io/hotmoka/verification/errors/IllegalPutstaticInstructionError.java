@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalPutstaticInstructionError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalPutstaticInstructionError extends AbstractErrorImpl {
 
 	public IllegalPutstaticInstructionError(String where, String methodName, int line) {
 		super(where, methodName, line, "static fields cannot be updated");

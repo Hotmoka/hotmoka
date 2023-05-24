@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class UncheckedExceptionHandlerError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class UncheckedExceptionHandlerError extends AbstractErrorImpl {
 
 	public UncheckedExceptionHandlerError(String where, String methodName, int line, String exceptionName) {
 		super(where, methodName, line, "exception handler for unchecked exception " + exceptionName);

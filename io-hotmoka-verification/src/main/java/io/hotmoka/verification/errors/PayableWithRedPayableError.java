@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class PayableWithRedPayableError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class PayableWithRedPayableError extends AbstractErrorImpl {
 
 	public PayableWithRedPayableError(String where, String methodName) {
 		super(where, methodName, -1, "a @Payable method cannot be at same time declared as @RedPayable");

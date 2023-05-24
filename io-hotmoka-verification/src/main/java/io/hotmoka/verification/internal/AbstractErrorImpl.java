@@ -14,69 +14,73 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.errors;
+package io.hotmoka.verification.internal;
 
 import static java.util.Comparator.comparing;
 
 import java.util.Comparator;
 
 /**
- * A blocking error generated during the verification of the class files of a Takamaka program.
+ * Partial implementation of a blocking error generated
+ * during the verification of the class files of a Takamaka program.
  * If an error occurs, then instrumentation cannot proceed and will be aborted.
  * Errors are first ordered by where they occur, then by class name and finally by message.
  */
-public abstract class Error implements Comparable<Error> {
-	public final String where;
-	public final String message;
-	private final static Comparator<Error> comparator =
-		comparing((Error issue) -> issue.where)
-		.thenComparing(issue -> issue.getClass().getName())
-		.thenComparing(issue -> issue.message);
+public abstract class AbstractErrorImpl implements io.hotmoka.verification.api.Error {
+	private final String where;
+	private final String message;
+
+	private final static Comparator<io.hotmoka.verification.api.Error> comparator =
+		comparing(io.hotmoka.verification.api.Error::getWhere)
+			.thenComparing(issue -> issue.getClass().getName())
+			.thenComparing(io.hotmoka.verification.api.Error::getMessage);
 
 	/**
-	 * Creates an issue at the given class.
+	 * Creates an error at the given class.
 	 * 
 	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param message the message of the issue
 	 */
-	protected Error(String where, String message) {
+	protected AbstractErrorImpl(String where, String message) {
 		this.where = where;
 		this.message = message;
 	}
 
 	/**
-	 * Creates an issue at the given program field.
+	 * Creates an error at the given program field.
 	 * 
 	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param fieldName the name of the field where the issue occurs
 	 * @param message the message of the issue
 	 */
-	protected Error(String where, String fieldName, String message) {
+	protected AbstractErrorImpl(String where, String fieldName, String message) {
 		this.where = where + " field " + fieldName;
 		this.message = message;
 	}
 
 	/**
-	 * Creates an issue at the given program line.
+	 * Creates an error at the given program line.
 	 * 
 	 * @param where a string that lets the user identify the class where the issue occurs
 	 * @param methodName the name of the method where the issue occurs
 	 * @param line the line where the issue occurs. Use -1 if the issue is related to the method as a whole
 	 * @param message the message of the issue
 	 */
-	protected Error(String where, String methodName, int line, String message) {
+	protected AbstractErrorImpl(String where, String methodName, int line, String message) {
 		this.where = where + (line >= 0 ? (":" + line) : (" method " + methodName));
 		this.message = message;
 	}
 
 	@Override
-	public final int compareTo(Error other) {
+	public final int compareTo(io.hotmoka.verification.api.Error other) {
 		return comparator.compare(this, other);
 	}
 
 	@Override
 	public final boolean equals(Object other) {
-		return other instanceof Error && getClass() == other.getClass() && where.equals(((Error) other).where) && message.equals(((Error) other).message);
+		return other instanceof io.hotmoka.verification.api.Error && getClass() == other.getClass()
+			&& where.equals(((io.hotmoka.verification.api.Error) other).getWhere())
+			&& message.equals(((io.hotmoka.verification.api.Error) other).getMessage());
 	}
 
 	@Override
@@ -87,5 +91,13 @@ public abstract class Error implements Comparable<Error> {
 	@Override
 	public final String toString() {
 		return where + ": " + message;
+	}
+
+	public String getWhere() {
+		return where;
+	}
+
+	public String getMessage() {
+		return message;
 	}
 }

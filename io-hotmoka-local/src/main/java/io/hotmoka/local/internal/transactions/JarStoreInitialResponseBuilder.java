@@ -27,7 +27,7 @@ import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.InitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.VerifiedJars;
 
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
@@ -60,7 +60,7 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 			@Override
 			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException {
 				try {
-					var instrumentedJar = InstrumentedJar.of(VerifiedJar.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
+					var instrumentedJar = InstrumentedJar.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
 					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);
 				}
 				catch (IOException t) {

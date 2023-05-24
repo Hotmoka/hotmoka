@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class InconsistentSelfChargedError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class InconsistentSelfChargedError extends AbstractErrorImpl {
 
 	public InconsistentSelfChargedError(String where, String methodName) {
 		super(where, methodName, -1, "the @SelfCharged annotation can only be applied to public instance methods of contracts");

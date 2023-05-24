@@ -20,9 +20,11 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -31,13 +33,13 @@ import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
-import io.hotmoka.verification.Annotations;
-import io.hotmoka.verification.BcelToClass;
-import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.VerifiedClass;
-import io.hotmoka.verification.VerifiedJar;
-import io.hotmoka.verification.errors.Error;
+import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.Error;
+import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerifiedClass;
+import io.hotmoka.verification.api.VerifiedJar;
 
 /**
  * An implementation of a jar that has undergone static verification before
@@ -67,13 +69,13 @@ public class VerifiedJarImpl implements VerifiedJar {
 	private final SortedSet<VerifiedClass> classes = new TreeSet<>();
 
 	/**
-	 * The ordered set of errors and warnings generated while verifying the classes of the jar.
+	 * The ordered set of errors generated while verifying the classes of the jar.
 	 */
-	private final SortedSet<Error> issues = new TreeSet<>();
+	private final SortedSet<io.hotmoka.verification.api.Error> errors = new TreeSet<>();
 
 	/**
 	 * Creates a verified jar from the given file. This verification
-	 * might fail if at least a class did not verify. In that case, the issues generated
+	 * might fail if at least a class did not verify. In that case, the errors generated
 	 * during verification will contain at least an error.
 	 * 
 	 * @param origin the jar file to verify, given as an array of bytes
@@ -98,25 +100,27 @@ public class VerifiedJarImpl implements VerifiedJar {
 
 	@Override
 	public final boolean hasErrors() {
-		return getFirstError().isPresent();
+		return !errors.isEmpty();
 	}
 
 	@Override
-	public Optional<io.hotmoka.verification.errors.Error> getFirstError() {
-		return issues()
-				.filter(issue -> issue instanceof io.hotmoka.verification.errors.Error)
-				.map(issue -> (io.hotmoka.verification.errors.Error) issue)
-				.findFirst();
+	public void forEachError(Consumer<Error> action) {
+		errors.forEach(action);
+	}
+
+	@Override
+	public Optional<io.hotmoka.verification.api.Error> getFirstError() {
+		try {
+			return Optional.of(errors.first());
+		}
+		catch (NoSuchElementException e) {
+			return Optional.empty();
+		}
 	}
 
 	@Override
 	public Stream<VerifiedClass> classes() {
 		return classes.stream();
-	}
-
-	@Override
-	public Stream<Error> issues() {
-		return issues.stream();
 	}
 
 	@Override
@@ -199,7 +203,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws ClassNotFoundException {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, issues::add, duringInitialization, allowSelfCharged, skipsVerification));
+				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, allowSelfCharged, skipsVerification));
 			}
 			catch (IOException e) {
 				throw new UncheckedIOException(e);

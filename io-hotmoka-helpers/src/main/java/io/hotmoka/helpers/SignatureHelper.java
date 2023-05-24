@@ -28,7 +28,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * An helper to determine the signature algorithm to use for an externally owned account.

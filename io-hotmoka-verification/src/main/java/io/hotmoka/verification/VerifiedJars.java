@@ -17,16 +17,15 @@ limitations under the License.
 package io.hotmoka.verification;
 
 import java.io.IOException;
-import java.util.Optional;
-import java.util.stream.Stream;
 
-import io.hotmoka.verification.errors.Error;
+import io.hotmoka.verification.api.TakamakaClassLoader;
+import io.hotmoka.verification.api.VerifiedJar;
 import io.hotmoka.verification.internal.VerifiedJarImpl;
 
 /**
- * A jar that has undergone static verification, before being installed into blockchain.
+ * A provider of jars that have undergone static verification, before being installed into blockchain.
  */
-public interface VerifiedJar {
+public interface VerifiedJars {
 
 	/**
 	 * Creates a verified jar from the given file. This verification
@@ -45,52 +44,4 @@ public interface VerifiedJar {
 	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
 	}
-
-	/**
-	 * Determines if the verification of at least one class of the jar failed with an error.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	boolean hasErrors();
-
-	/**
-	 * Yields the first error (hence not a warning) that occurred during the verification of the origin jar.
-	 */
-	Optional<io.hotmoka.verification.errors.Error> getFirstError();
-
-	/**
-	 * Yields the stream of the classes of the jar that passed verification.
-	 * 
-	 * @return the classes, in increasing order
-	 */
-	Stream<VerifiedClass> classes();
-
-	/**
-	 * Yields the issues generated during the verification of the classes of the jar.
-	 * 
-	 * @return the issues, in increasing order
-	 */
-	Stream<Error> issues();
-
-	/**
-	 * Yields the class loader used to load this jar.
-	 * 
-	 * @return the class loader
-	 */
-	TakamakaClassLoader getClassLoader();
-
-	/**
-	 * Yields the utility object that can be used to check the annotations in the methods in this jar.
-	 * 
-	 * @return the utility object
-	 */
-	Annotations getAnnotations();
-
-	/**
-	 * Yields the utility object that can be used to transform BCEL types into their corresponding
-	 * Java class tag, by using the class loader of this jar.
-	 * 
-	 * @return the utility object
-	 */
-	BcelToClass getBcelToClass();
 }

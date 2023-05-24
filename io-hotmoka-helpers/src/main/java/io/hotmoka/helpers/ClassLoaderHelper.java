@@ -32,7 +32,8 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * A helper class for building class loaders for the jar installed at a given
@@ -84,6 +85,6 @@ public class ClassLoaderHelper {
 		int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
-		return TakamakaClassLoader.of(jars.stream(), verificationVersion);
+		return TakamakaClassLoaders.of(jars.stream(), verificationVersion);
 	}
 }

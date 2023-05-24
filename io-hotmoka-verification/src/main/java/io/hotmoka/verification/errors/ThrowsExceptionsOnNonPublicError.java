@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class ThrowsExceptionsOnNonPublicError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class ThrowsExceptionsOnNonPublicError extends AbstractErrorImpl {
 
 	public ThrowsExceptionsOnNonPublicError(String where, String methodName) {
 		super(where, methodName, -1, "@ThrowsExceptions can only be applied to a public constructor or method");

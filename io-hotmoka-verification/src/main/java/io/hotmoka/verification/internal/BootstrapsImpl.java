@@ -53,7 +53,7 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
-import io.hotmoka.verification.Bootstraps;
+import io.hotmoka.verification.api.Bootstraps;
 
 /**
  * An object that provides utility methods about the lambda bootstraps

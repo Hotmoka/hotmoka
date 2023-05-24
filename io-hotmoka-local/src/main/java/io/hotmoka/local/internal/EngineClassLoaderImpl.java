@@ -45,7 +45,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
 /**
@@ -237,7 +238,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		return TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
+		return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
 	}
 
 	private final static int CLASS_END_LENGTH = ".class".length();

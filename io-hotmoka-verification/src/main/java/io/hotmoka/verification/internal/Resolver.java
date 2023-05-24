@@ -31,14 +31,13 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.hotmoka.verification.Bootstraps;
 import io.hotmoka.verification.Dummy;
-import io.hotmoka.verification.Resolver;
+import io.hotmoka.verification.api.Bootstraps;
 
 /**
- * An utility that implements resolving algorithms for field and methods.
+ * A utility that implements resolving algorithms for field and methods.
  */
-public class ResolverImpl implements Resolver {
+public class Resolver {
 
 	/**
 	 * The class for which resolution is performed.
@@ -55,12 +54,19 @@ public class ResolverImpl implements Resolver {
 	 * 
 	 * @param clazz the class, the targets of whose instructions will be resolved
 	 */
-	ResolverImpl(VerifiedClassImpl clazz) {
+	Resolver(VerifiedClassImpl clazz) {
 		this.verifiedClass = clazz;
 		this.cpg = clazz.getConstantPool();
 	}
 
-	@Override
+
+	/**
+	 * Yields the field signature that would be accessed by the given instruction.
+	 * 
+	 * @param fi the instruction
+	 * @return the signature, if any
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public Optional<Field> resolvedFieldFor(FieldInstruction fi) throws ClassNotFoundException {
 		ReferenceType holder = fi.getReferenceType(cpg);
 		if (holder instanceof ObjectType) {
@@ -73,7 +79,14 @@ public class ResolverImpl implements Resolver {
 		return Optional.empty();
 	}
 
-	@Override
+	/**
+	 * Yields the method or constructor signature that would be accessed by the given instruction.
+	 * At run time, that signature or one of its redefinitions (for non-private non-final methods) will be called.
+	 * 
+	 * @param invoke the instruction
+	 * @return the signature
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public Optional<? extends Executable> resolvedExecutableFor(InvokeInstruction invoke) throws ClassNotFoundException {
 		if (invoke instanceof INVOKEDYNAMIC) {
 			Bootstraps bootstraps = verifiedClass.bootstraps;

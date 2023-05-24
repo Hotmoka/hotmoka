@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class InconsistentRedPayableError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class InconsistentRedPayableError extends AbstractErrorImpl {
 
 	public InconsistentRedPayableError(String where, String methodName, String clazzWhereItWasDefined) {
 		super(where, methodName, -1, "@RedPayable is inconsistent with definition of the same method in class " + clazzWhereItWasDefined);

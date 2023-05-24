@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalStaticInitializationError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalStaticInitializationError extends AbstractErrorImpl {
 
 	public IllegalStaticInitializationError(String where, String methodName, int line) {
 		super(where, methodName, line, "illegal static initialization: only primitive or string final static fields bound to constants are allowed");

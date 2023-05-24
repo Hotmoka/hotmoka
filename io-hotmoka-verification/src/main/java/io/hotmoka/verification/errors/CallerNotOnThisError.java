@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class CallerNotOnThisError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class CallerNotOnThisError extends AbstractErrorImpl {
 
 	public CallerNotOnThisError(String where, String methodName, int line) {
 		super(where, methodName, line, "caller() can only be called on \"this\"");

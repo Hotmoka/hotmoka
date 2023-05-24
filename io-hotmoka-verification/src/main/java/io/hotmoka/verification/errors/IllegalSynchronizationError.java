@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalSynchronizationError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalSynchronizationError extends AbstractErrorImpl {
 
 	public IllegalSynchronizationError(String where, String methodName) {
 		super(where, methodName, -1, "synchronized methods are not allowed");

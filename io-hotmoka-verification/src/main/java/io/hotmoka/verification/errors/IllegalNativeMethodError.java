@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalNativeMethodError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalNativeMethodError extends AbstractErrorImpl {
 
 	public IllegalNativeMethodError(String where, String methodName) {
 		super(where, methodName, -1, "native code is not allowed");

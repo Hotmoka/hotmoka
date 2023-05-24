@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalCallToNonWhiteListedMethodError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalCallToNonWhiteListedMethodError extends AbstractErrorImpl {
 
 	public IllegalCallToNonWhiteListedMethodError(String where, String methodName, int line, String declaringClassName, String calledMethodName) {
 		super(where, methodName, line, "illegal call to non-white-listed method " + declaringClassName + "." + calledMethodName);

@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalCallToNonWhiteListedConstructorError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalCallToNonWhiteListedConstructorError extends AbstractErrorImpl {
 
 	public IllegalCallToNonWhiteListedConstructorError(String where, String methodName, int line, String declaringClassName) {
 		super(where, methodName, line, "illegal call to non-white-listed constructor of " + declaringClassName);

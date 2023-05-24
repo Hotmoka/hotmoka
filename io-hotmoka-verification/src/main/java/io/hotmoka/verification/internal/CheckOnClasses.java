@@ -37,10 +37,9 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.Annotations;
-import io.hotmoka.verification.BcelToClass;
-import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.errors.Error;
+import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.verification.api.BcelToClass;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
  * A verification check on a class.
@@ -50,7 +49,7 @@ public abstract class CheckOnClasses {
 	protected final TakamakaClassLoader classLoader;
 	protected final BootstrapsImpl bootstraps;
 	protected final PushersImpl pushers;
-	protected final ResolverImpl resolver;
+	protected final Resolver resolver;
 	protected final Annotations annotations;
 	protected final BcelToClass bcelToClass;
 	protected final boolean duringInitialization;
@@ -73,9 +72,9 @@ public abstract class CheckOnClasses {
 		this.allowSelfCharged = builder.allowSelfCharged;
 	}
 
-	protected final void issue(Error issue) {
+	protected final void issue(AbstractErrorImpl issue) {
 		builder.issueHandler.accept(issue);
-		if (issue instanceof io.hotmoka.verification.errors.Error)
+		if (issue instanceof io.hotmoka.verification.internal.AbstractErrorImpl)
 			builder.setHasErrors();
 	}
 

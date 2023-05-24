@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.api.VerifiedJar;
 
 /**
  * An instrumented jar file, built from another, verified jar file. This means

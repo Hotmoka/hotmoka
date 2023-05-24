@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalFinalizerError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalFinalizerError extends AbstractErrorImpl {
 
 	public IllegalFinalizerError(String where, String methodName) {
 		super(where, methodName, -1, "finalizers are not allowed");

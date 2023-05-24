@@ -14,9 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements the verification code for Takamaka programs.
+ */
 module io.hotmoka.verification {
 	exports io.hotmoka.verification;
 	exports io.hotmoka.verification.errors;
+	requires transitive io.hotmoka.verification.api;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;

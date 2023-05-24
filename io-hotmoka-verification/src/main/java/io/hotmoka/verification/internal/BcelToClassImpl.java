@@ -27,7 +27,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
-import io.hotmoka.verification.BcelToClass;
+import io.hotmoka.verification.api.BcelToClass;
 
 /**
  * A utility that transforms a BCEL type into its corresponding class tag.

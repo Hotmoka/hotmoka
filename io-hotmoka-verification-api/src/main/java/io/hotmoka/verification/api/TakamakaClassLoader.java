@@ -14,29 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification;
+package io.hotmoka.verification.api;
 
-import java.util.stream.Stream;
-
-import io.hotmoka.verification.internal.TakamakaClassLoaderImpl;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.
  */
 public interface TakamakaClassLoader extends ResolvingClassLoader {
-
-	/**
-	 * Builds a class loader with the given jars, given as byte arrays.
-	 * 
-	 * @param jars the jars
-	 * @param verificationVersion the version of the verification module that must b e used; this affects the
-	 *                            set of white-listing annotations used by the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 */
-	static TakamakaClassLoader of(Stream<byte[]> jars, int verificationVersion) throws ClassNotFoundException {
-		return new TakamakaClassLoaderImpl(jars, verificationVersion);
-	}
 
 	/**
 	 * Determines if a class is an instance of the storage class.

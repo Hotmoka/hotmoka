@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalBootstrapMethodError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalBootstrapMethodError extends AbstractErrorImpl {
 
 	public IllegalBootstrapMethodError(String where) {
 		super(where, "Illegal bootstrap method");

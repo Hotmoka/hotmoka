@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalCallToPayableConstructorOnThis extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalCallToPayableConstructorOnThis extends AbstractErrorImpl {
 
 	public IllegalCallToPayableConstructorOnThis(String where, String methodName, String entryName, int line) {
 		super(where, methodName, line, "only a @Payable constructor can call another @Payable constructor by chaining");

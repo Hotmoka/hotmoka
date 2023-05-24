@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalJsrInstructionError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalJsrInstructionError extends AbstractErrorImpl {
 
 	public IllegalJsrInstructionError(String where, String methodName, int line) {
 		super(where, methodName, line, "bytecode JSR is not allowed");

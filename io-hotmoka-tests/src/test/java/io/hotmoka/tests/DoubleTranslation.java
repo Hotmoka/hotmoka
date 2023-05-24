@@ -18,18 +18,16 @@ package io.hotmoka.tests;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.instrumentation.StandardGasCostModel;
-import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.VerifiedJars;
 
 /**
  * This test tries to translate the same jar twice. This checks
@@ -40,13 +38,13 @@ class DoubleTranslation {
 
 	@Test
 	void translateTwice() throws IOException, ClassNotFoundException {
-		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
-		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
-		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
-		byte[] bytesOfOrigin = Files.readAllBytes(origin);
-		TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	VerifiedJar verifiedJar = VerifiedJar.of(bytesOfOrigin, classLoader, false, false, false);
-    	GasCostModel costModel = new StandardGasCostModel();
+		var origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
+		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+		var bytesOfClasspath = Files.readAllBytes(classpath);
+		var bytesOfOrigin = Files.readAllBytes(origin);
+		var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
+    	var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
+    	var costModel = new StandardGasCostModel();
 		InstrumentedJar.of(verifiedJar, costModel);
     	InstrumentedJar.of(verifiedJar, costModel);
 	}

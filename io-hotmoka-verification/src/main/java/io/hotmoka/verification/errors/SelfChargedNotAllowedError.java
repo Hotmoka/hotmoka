@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class SelfChargedNotAllowedError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class SelfChargedNotAllowedError extends AbstractErrorImpl {
 
 	public SelfChargedNotAllowedError(String where, String methodName) {
 		super(where, methodName, -1, "the @SelfCharged annotation is not allowed");

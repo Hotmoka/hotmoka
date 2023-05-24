@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class InconsistentThrowsExceptionsError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class InconsistentThrowsExceptionsError extends AbstractErrorImpl {
 
 	public InconsistentThrowsExceptionsError(String where, String methodName, String clazzWhereItWasDefined) {
 		super(where, methodName, -1, "@ThrowsExceptions is inconsistent with definition of the same method in class " + clazzWhereItWasDefined);

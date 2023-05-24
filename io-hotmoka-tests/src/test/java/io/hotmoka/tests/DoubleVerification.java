@@ -18,15 +18,14 @@ package io.hotmoka.tests;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.TakamakaClassLoaders;
+import io.hotmoka.verification.VerifiedJars;
 
 /**
  * This test tries to verify the same jar twice. This checks
@@ -37,12 +36,12 @@ class DoubleVerification {
 	
 	@Test
 	void verifyTwice() throws IOException, ClassNotFoundException {
-		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
-		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
-		byte[] bytesOfOrigin = Files.readAllBytes(origin);
-		byte[] bytesOfClasspath = Files.readAllBytes(classpath);
-    	TakamakaClassLoader classLoader = TakamakaClassLoader.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false, false);
-    	VerifiedJar.of(bytesOfOrigin, classLoader, false, false, false);
+		var origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
+		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+		var bytesOfOrigin = Files.readAllBytes(origin);
+		var bytesOfClasspath = Files.readAllBytes(classpath);
+    	var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
 	}
 }

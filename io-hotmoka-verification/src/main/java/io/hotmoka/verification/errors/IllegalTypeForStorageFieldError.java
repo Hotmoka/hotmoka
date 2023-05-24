@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalTypeForStorageFieldError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalTypeForStorageFieldError extends AbstractErrorImpl {
 
 	public IllegalTypeForStorageFieldError(String where, String fieldName, boolean fieldIsEnum) {
 		super(where, fieldName, "type not allowed for a field of a storage class"

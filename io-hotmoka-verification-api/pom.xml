@@ -2,9 +2,9 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-verification</artifactId>
+  <artifactId>io-hotmoka-verification-api</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-verification</name>
+  <name>io-hotmoka-verification-api</name>
   <version>${hotmoka.version}</version>
 
   <parent>
@@ -14,27 +14,12 @@
   </parent>
 
   <dependencies>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-verification-api</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-constants</artifactId>
+      <artifactId>io-hotmoka-whitelisting-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-whitelisting</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-	<dependency>
       <groupId>org.apache.bcel</groupId>
       <artifactId>bcel</artifactId>
       <version>6.7.0</version>

@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalMethodNameError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalMethodNameError extends AbstractErrorImpl {
 
 	public IllegalMethodNameError(String where, String fieldName) {
 		super(where, fieldName, "method name \"" + fieldName + "\" is not allowed");

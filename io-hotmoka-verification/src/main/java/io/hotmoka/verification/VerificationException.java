@@ -16,17 +16,15 @@ limitations under the License.
 
 package io.hotmoka.verification;
 
-import io.hotmoka.verification.errors.Error;
-
 public class VerificationException extends RuntimeException {
 	private static final long serialVersionUID = -1232455923178336022L;
-	private final Error error;
+	private final io.hotmoka.verification.api.Error error;
 
 	public VerificationException() {
 		this.error = null;
 	}
 
-	public VerificationException(Error error) {
+	public VerificationException(io.hotmoka.verification.api.Error error) {
 		super(error.toString());
 
 		this.error = error;
@@ -37,7 +35,7 @@ public class VerificationException extends RuntimeException {
 	 * 
 	 * @return the error
 	 */
-	public Error getError() {
+	public io.hotmoka.verification.api.Error getError() {
 		return error;
 	}
 }

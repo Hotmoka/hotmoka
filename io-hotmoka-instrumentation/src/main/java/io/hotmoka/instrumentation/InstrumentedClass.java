@@ -19,7 +19,7 @@ package io.hotmoka.instrumentation;
 import org.apache.bcel.classfile.JavaClass;
 
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
-import io.hotmoka.verification.VerifiedClass;
+import io.hotmoka.verification.api.VerifiedClass;
 
 /**
  * An instrumented class file. For instance, it instruments storage

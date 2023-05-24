@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalFieldNameError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalFieldNameError extends AbstractErrorImpl {
 
 	public IllegalFieldNameError(String where, String fieldName) {
 		super(where, fieldName, "field name \"" + fieldName + "\" is not allowed");

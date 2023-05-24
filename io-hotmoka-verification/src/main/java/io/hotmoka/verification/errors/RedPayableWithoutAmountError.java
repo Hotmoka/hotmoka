@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class RedPayableWithoutAmountError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class RedPayableWithoutAmountError extends AbstractErrorImpl {
 
 	public RedPayableWithoutAmountError(String where, String methodName) {
 		super(where, methodName, -1, "a @RedPayable method must have a first argument for the payed amount, of type int, long or BigInteger");

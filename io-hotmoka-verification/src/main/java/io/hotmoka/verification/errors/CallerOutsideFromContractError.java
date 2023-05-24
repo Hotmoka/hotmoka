@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class CallerOutsideFromContractError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class CallerOutsideFromContractError extends AbstractErrorImpl {
 
 	public CallerOutsideFromContractError(String where, String methodName, int line) {
 		super(where, methodName, line, "caller() can only be used inside a @FromContract method or constructor");

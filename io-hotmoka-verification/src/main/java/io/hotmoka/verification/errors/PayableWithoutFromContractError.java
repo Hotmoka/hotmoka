@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class PayableWithoutFromContractError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class PayableWithoutFromContractError extends AbstractErrorImpl {
 
 	public PayableWithoutFromContractError(String where, String methodName) {
 		super(where, methodName, -1, "@Payable can only be applied to a @FromContract method or constructor");

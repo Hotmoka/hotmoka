@@ -19,7 +19,7 @@ package io.hotmoka.verification.internal.checksOnClass;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.verification.VerifiedClass;
+import io.hotmoka.verification.api.VerifiedClass;
 import io.hotmoka.verification.errors.IllegalFieldNameError;
 import io.hotmoka.verification.errors.IllegalMethodNameError;
 import io.hotmoka.verification.internal.CheckOnClasses;

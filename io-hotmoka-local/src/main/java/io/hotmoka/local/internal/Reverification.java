@@ -44,9 +44,10 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.verification.TakamakaClassLoader;
+import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.VerifiedJars;
+import io.hotmoka.verification.api.VerifiedJar;
 
 /**
  * A class used to perform a re-verification of jars already stored in the node.
@@ -139,7 +140,7 @@ public class Reverification {
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
 		if (vj.hasErrors())
-			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().message));
+			return List.of(transformIntoFailed(response, transaction, vj.getFirstError().get().getMessage()));
 		else
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
@@ -165,13 +166,14 @@ public class Reverification {
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
 			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
 
-		TakamakaClassLoader tcl = TakamakaClassLoader.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
+		var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
 
 		try {
-			return VerifiedJar.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
+			return VerifiedJars.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
 				consensus != null && consensus.allowsSelfCharged, consensus != null && consensus.skipsVerification);
 		}
 		catch (IOException e) {
+			// TODO
 			throw new UncheckedIOException(e);
 		}
 	}

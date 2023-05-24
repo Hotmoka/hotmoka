@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalRetInstructionError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalRetInstructionError extends AbstractErrorImpl {
 
 	public IllegalRetInstructionError(String where, String methodName, int line) {
 		super(where, methodName, line, "bytecode RET is not allowed");

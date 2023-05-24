@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalPackageNameError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalPackageNameError extends AbstractErrorImpl {
 
 	public IllegalPackageNameError(String where) {
 		super(where, "package name is not allowed");

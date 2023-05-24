@@ -36,7 +36,7 @@ import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedClass;
 import io.hotmoka.instrumentation.InstrumentedJar;
 import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.VerifiedJar;
+import io.hotmoka.verification.api.VerifiedJar;
 
 /**
  * An instrumented jar file, built from another, verified jar file. This means

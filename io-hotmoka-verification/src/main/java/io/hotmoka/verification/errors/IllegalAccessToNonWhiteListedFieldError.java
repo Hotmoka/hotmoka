@@ -16,7 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.errors;
 
-public class IllegalAccessToNonWhiteListedFieldError extends Error {
+import io.hotmoka.verification.internal.AbstractErrorImpl;
+
+public class IllegalAccessToNonWhiteListedFieldError extends AbstractErrorImpl {
 
 	public IllegalAccessToNonWhiteListedFieldError(String where, String methodName, int line, String definingClassName, String fieldName) {
 		super(where, methodName, line, "illegal access to non-white-listed field " + definingClassName + "." + fieldName);

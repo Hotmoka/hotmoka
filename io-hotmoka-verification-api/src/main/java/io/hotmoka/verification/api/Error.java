@@ -14,13 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification.errors;
+package io.hotmoka.verification.api;
 
-import io.hotmoka.verification.internal.AbstractErrorImpl;
+/**
+ * A blocking error generated during the verification of the class files of a Takamaka program.
+ * If an error occurs, then instrumentation cannot proceed and will be aborted.
+ * Errors are first ordered by where they occur, then by class name and finally by message.
+ */
+public interface Error extends Comparable<Error> {
+	
+	String getWhere();
 
-public class IllegalModificationOfAmountInConstructorChaining extends AbstractErrorImpl {
+	String getMessage();
 
-	public IllegalModificationOfAmountInConstructorChaining(String where, String methodName, int line) {
-		super(where, methodName, line, "the paid amount cannot be changed in constructor chaining");
-	}
+	@Override
+	boolean equals(Object other);
+
+	@Override
+	int hashCode();
+
+	@Override
+	String toString();
 }
