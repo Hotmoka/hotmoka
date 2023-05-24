@@ -54,7 +54,7 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
 		return node.getCaches().getClassLoader(request.classpath); // currently not used for this transaction
 	}
 }

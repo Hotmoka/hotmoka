@@ -15,19 +15,24 @@
 
   <dependencies>
 	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-constants</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-whitelisting</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-exceptions</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
-    	<groupId>org.apache.bcel</groupId>
-    	<artifactId>bcel</artifactId>
-    	<version>6.7.0</version>
+      <groupId>org.apache.bcel</groupId>
+      <artifactId>bcel</artifactId>
+      <version>6.7.0</version>
 	</dependency>
   </dependencies>
 

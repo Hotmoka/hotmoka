@@ -45,7 +45,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

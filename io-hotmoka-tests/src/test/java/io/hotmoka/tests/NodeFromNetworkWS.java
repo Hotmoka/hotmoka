@@ -65,7 +65,6 @@ import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetworkWS extends HotmokaTest {
@@ -262,7 +261,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             remoteNode.getResponse(future.getReferenceOfRequest());
         }
         catch (TransactionRejectedException e) {
-            assertTrue(e.getMessage().contains(IncompleteClasspathError.class.getName()));
+            assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
             return;
         }
 
@@ -332,7 +331,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             remoteNode.getPolledResponse(future.getReferenceOfRequest());
         }
         catch (TransactionRejectedException e) {
-            assertTrue(e.getMessage().contains(IncompleteClasspathError.class.getName()));
+            assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
             return;
         }
 
@@ -371,7 +370,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
                     ));
         }
         catch (TransactionRejectedException e) {
-            assertTrue(e.getMessage().contains(IncompleteClasspathError.class.getName()));
+            assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
             return;
         }
 
@@ -436,7 +435,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             future.get();
         }
         catch (TransactionRejectedException e) {
-            assertTrue(e.getMessage().contains(IncompleteClasspathError.class.getName()));
+            assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
             return;
         }
 

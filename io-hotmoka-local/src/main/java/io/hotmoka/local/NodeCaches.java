@@ -92,8 +92,9 @@ public interface NodeCaches {
 	 * 
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath);
+	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException;
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.

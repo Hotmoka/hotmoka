@@ -64,8 +64,9 @@ public class ClassLoaderHelper {
 	 * 
 	 * @param jar the reference inside the node
 	 * @return the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
 		List<TransactionReference> ws = new ArrayList<>();
 		Set<TransactionReference> seen = new HashSet<>();
 		List<byte[]> jars = new ArrayList<>();

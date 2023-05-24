@@ -157,8 +157,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param reverify true if and only if the class loader must reverify jars installed in the store of the node
 	 *                 that, at the time of installation, were verified with a version of the verification module older than the current one
 	 * @param consensus the consensus parameters to use for reverification, if that is required
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -221,9 +222,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param start an initial jar. This can be {@code null}
 	 * @param node the node for which the class loader is created
 	 * @return the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) {
-		AtomicInteger counter = new AtomicInteger();
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException {
+		var counter = new AtomicInteger();
 
 		if (start != null) {
 			jars.add(start);

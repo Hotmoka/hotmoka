@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.verification {
-	exports io.hotmoka.verification;
-	exports io.hotmoka.verification.errors;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.exceptions;
-	requires transitive org.apache.bcel;
+package io.hotmoka.exceptions;
+
+/**
+ * An unchecked class not found exception.
+ */
+@SuppressWarnings("serial")
+public class UncheckedClassNotFoundException extends RuntimeException implements UncheckedException<ClassNotFoundException> {
+
+	UncheckedClassNotFoundException(ClassNotFoundException cause) {
+		super(cause);
+	}
+
+	@Override
+	public ClassNotFoundException getCause() {
+		return (ClassNotFoundException) super.getCause();
+	}
 }

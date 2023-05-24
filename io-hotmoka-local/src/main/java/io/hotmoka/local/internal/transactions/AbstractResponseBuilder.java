@@ -122,8 +122,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * Creates the class loader for computing the response.
 	 * 
 	 * @return the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	protected abstract EngineClassLoader mkClassLoader();
+	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException;
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not

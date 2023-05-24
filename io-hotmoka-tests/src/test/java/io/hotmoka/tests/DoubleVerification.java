@@ -36,7 +36,7 @@ import io.hotmoka.verification.VerifiedJar;
 class DoubleVerification {
 	
 	@Test
-	void verifyTwice() throws IOException {
+	void verifyTwice() throws IOException, ClassNotFoundException {
 		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
 		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		byte[] bytesOfOrigin = Files.readAllBytes(origin);

@@ -182,8 +182,8 @@ public final class LRUCache<K, V> {
 		head = tail = null;
 	}
 
-	public interface ValueSupplier<K,V> {
-		V supply(K key) throws Exception;
+	public interface ValueSupplier<K,V,E extends Exception> {
+		V supply(K key) throws E;
 	}
 
 	/**
@@ -194,7 +194,7 @@ public final class LRUCache<K, V> {
 	 * @param supplier the supplier that produces the value to put in cache
 	 * @return the current (old or computed) value in cache for {@code key} at the end of the method
 	 */
-	public V computeIfAbsent(K key, ValueSupplier<K,V> supplier) throws Exception {
+	public <E extends Exception> V computeIfAbsent(K key, ValueSupplier<K,V,E> supplier) throws E {
 		V old = get(key);
 		if (old == null) {
 			V _new = supplier.supply(key);

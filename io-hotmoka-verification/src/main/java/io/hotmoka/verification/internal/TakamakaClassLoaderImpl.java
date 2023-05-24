@@ -24,7 +24,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
@@ -117,29 +116,24 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 * @param jars the jars
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) throws ClassNotFoundException {
 		this.parent = ResolvingClassLoaders.of(jars, verificationVersion);
-
-		try {
-			this.contract = loadClass(Constants.CONTRACT_NAME);
-			this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
-			this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
-			this.gamete = loadClass(Constants.GAMETE_NAME);
-			this.account = loadClass(Constants.ACCOUNT_NAME);
-			this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
-			this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
-			this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
-			this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
-			this.storage = loadClass(Constants.STORAGE_NAME);
-			this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
-			this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
-			this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
-			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
-		}
-		catch (ClassNotFoundException e) {
-			throw new IncompleteClasspathError(e);
-		}
+		this.contract = loadClass(Constants.CONTRACT_NAME);
+		this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
+		this.abstractValidators = loadClass(Constants.ABSTRACT_VALIDATORS_NAME);
+		this.gamete = loadClass(Constants.GAMETE_NAME);
+		this.account = loadClass(Constants.ACCOUNT_NAME);
+		this.accountED25519 = loadClass(Constants.ACCOUNT_ED25519_NAME);
+		this.accountQTESLA1 = loadClass(Constants.ACCOUNT_QTESLA1_NAME);
+		this.accountQTESLA3 = loadClass(Constants.ACCOUNT_QTESLA3_NAME);
+		this.accountSHA256DSA = loadClass(Constants.ACCOUNT_SHA256DSA_NAME);
+		this.storage = loadClass(Constants.STORAGE_NAME);
+		this.consensusUpdateEvent = loadClass(Constants.CONSENSUS_UPDATE_NAME);
+		this.gasPriceUpdateEvent = loadClass(Constants.GAS_PRICE_UPDATE_NAME);
+		this.inflationUpdateEvent = loadClass(Constants.INFLATION_UPDATE_NAME);
+		this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
 	}
 
 	@Override

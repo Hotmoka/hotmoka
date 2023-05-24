@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.local.internal;
 
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
@@ -38,6 +41,8 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.VerificationException;
@@ -73,13 +78,16 @@ public class Reverification {
 	 * @param transactions the transactions
 	 * @param node the node
 	 * @param consensus the consensus parameters to use for reverification
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) throws ClassNotFoundException {
 		this.node = node;
 		this.consensus = consensus;
 
-		AtomicInteger counter = new AtomicInteger();
-		transactions.forEachOrdered(dependency -> reverify(dependency, counter));
+		var counter = new AtomicInteger();
+		check(UncheckedClassNotFoundException.class, () ->
+			transactions.forEachOrdered(uncheck(dependency -> reverify(dependency, counter)))
+		);
 	}
 
 	/**
@@ -113,8 +121,9 @@ public class Reverification {
 	 * @param transaction the transaction
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) {
+	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException {
 		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
 
@@ -135,14 +144,14 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		AbstractJarStoreTransactionRequest jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
-		List<byte[]> jars = new ArrayList<>();
+		var jars = new ArrayList<byte[]>();
 		jars.add(jar);
 
 		// ... and the instrumented jars of its dependencies: since we have already considered the case
@@ -171,9 +180,14 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.verificationVersion;
 	}
 
-	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) {
+	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException {
 		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
-		response.getDependencies().map(dependency -> reverify(dependency, counter)).forEachOrdered(reverifiedDependencies::addAll);
+		check(UncheckedClassNotFoundException.class, () ->
+			response.getDependencies()
+				.map(UncheckFunction.uncheck(dependency -> reverify(dependency, counter)))
+				.forEachOrdered(reverifiedDependencies::addAll)
+		);
+
 		return reverifiedDependencies;
 	}
 

@@ -45,6 +45,9 @@ public abstract class UncheckConsumer {
 				catch (URISyntaxException e) {
 					throw new UncheckedURISyntaxException(e);
 				}
+				catch (ClassNotFoundException e) {
+					throw new UncheckedClassNotFoundException(e);
+				}
 			}
 		};
 	}

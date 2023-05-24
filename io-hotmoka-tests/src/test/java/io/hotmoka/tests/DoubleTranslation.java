@@ -39,7 +39,7 @@ import io.hotmoka.verification.VerifiedJar;
 class DoubleTranslation {
 
 	@Test
-	void translateTwice() throws IOException {
+	void translateTwice() throws IOException, ClassNotFoundException {
 		Path origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
 		Path classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		byte[] bytesOfClasspath = Files.readAllBytes(classpath);

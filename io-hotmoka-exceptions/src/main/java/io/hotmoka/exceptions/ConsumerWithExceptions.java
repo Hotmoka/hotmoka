@@ -29,5 +29,5 @@ public interface ConsumerWithExceptions<T> {
 	 *
 	 * @param t the argument
 	 */
-	void accept(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException;
+	void accept(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
 }

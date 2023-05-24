@@ -109,7 +109,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

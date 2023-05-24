@@ -45,6 +45,9 @@ public abstract class UncheckFunction {
 				catch (URISyntaxException e) {
 					throw new UncheckedURISyntaxException(e);
 				}
+				catch (ClassNotFoundException e) {
+					throw new UncheckedClassNotFoundException(e);
+				}
 			}
 		};
 	}

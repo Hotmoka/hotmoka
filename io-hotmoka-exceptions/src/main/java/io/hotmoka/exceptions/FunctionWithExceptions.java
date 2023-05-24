@@ -23,5 +23,5 @@ import java.security.NoSuchAlgorithmException;
 /**
  */
 public interface FunctionWithExceptions<T, R> {
-	R apply(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException;
+	R apply(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
 }
