@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.verification.IncompleteClasspathError;
 import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
@@ -137,7 +138,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 			this.validatorsUpdateEvent = loadClass(Constants.VALIDATORS_UPDATE_NAME);
 		}
 		catch (ClassNotFoundException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new IncompleteClasspathError(e);
 		}
 	}
 
