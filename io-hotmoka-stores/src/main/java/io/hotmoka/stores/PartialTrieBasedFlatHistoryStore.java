@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -127,7 +126,7 @@ public abstract class PartialTrieBasedFlatHistoryStore<C extends Config> extends
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) throws IOException {
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		TransactionReference[] references = history.toArray(TransactionReference[]::new);
 		ByteIterable historyAsByteArray = ByteIterable.fromBytes(new MarshallableArrayOfTransactionReferences(references).toByteArray());
 		ByteIterable objectAsByteArray = intoByteArray(object);

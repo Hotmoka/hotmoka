@@ -18,10 +18,10 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.FromContractNotInStorageError;
+import io.hotmoka.verification.errors.IllegalFromContractArgumentError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.FromContractNotInStorageError;
-import io.hotmoka.verification.issues.IllegalFromContractArgumentError;
 
 /**
  * A check that {@code @@FromContract} is applied only to instance methods or constructors of storage classes or interfaces.

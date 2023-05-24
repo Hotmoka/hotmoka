@@ -37,7 +37,7 @@ import io.hotmoka.verification.TakamakaClassLoader;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedClass;
 import io.hotmoka.verification.VerifiedJar;
-import io.hotmoka.verification.issues.Issue;
+import io.hotmoka.verification.errors.Error;
 
 /**
  * An implementation of a jar that has undergone static verification before
@@ -69,7 +69,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	/**
 	 * The ordered set of errors and warnings generated while verifying the classes of the jar.
 	 */
-	private final SortedSet<Issue> issues = new TreeSet<>();
+	private final SortedSet<Error> issues = new TreeSet<>();
 
 	/**
 	 * Creates a verified jar from the given file. This verification
@@ -101,10 +101,10 @@ public class VerifiedJarImpl implements VerifiedJar {
 	}
 
 	@Override
-	public Optional<io.hotmoka.verification.issues.Error> getFirstError() {
+	public Optional<io.hotmoka.verification.errors.Error> getFirstError() {
 		return issues()
-				.filter(issue -> issue instanceof io.hotmoka.verification.issues.Error)
-				.map(issue -> (io.hotmoka.verification.issues.Error) issue)
+				.filter(issue -> issue instanceof io.hotmoka.verification.errors.Error)
+				.map(issue -> (io.hotmoka.verification.errors.Error) issue)
 				.findFirst();
 	}
 
@@ -114,7 +114,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	}
 
 	@Override
-	public Stream<Issue> issues() {
+	public Stream<Error> issues() {
 		return issues.stream();
 	}
 

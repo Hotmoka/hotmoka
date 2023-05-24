@@ -137,7 +137,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 *                that when the object has been created
 	 * @throws IOException if there was an I/O error
 	 */
-	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history) throws IOException;
+	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 
 	/**
 	 * Mark the node as initialized. This happens for initialization requests.

@@ -22,9 +22,9 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalTypeForStorageFieldError;
 
 /**
  * A checks that payable methods have an amount first argument.

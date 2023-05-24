@@ -18,9 +18,9 @@ package io.hotmoka.verification.internal.checksOnClass;
 
 import java.util.Optional;
 
+import io.hotmoka.verification.errors.IllegalBootstrapMethodError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalBootstrapMethodError;
 
 /**
  * A check that lambda bootstraps are only among those allowed by Takamaka.

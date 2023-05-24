@@ -24,9 +24,9 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.verification.errors.InconsistentThrowsExceptionsError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.InconsistentThrowsExceptionsError;
 
 /**
  * A check that {@code @@ThrowsExceptions} methods only redefine {@code @@ThrowsExceptions} methods and that

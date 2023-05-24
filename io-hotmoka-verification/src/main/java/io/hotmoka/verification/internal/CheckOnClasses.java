@@ -40,7 +40,7 @@ import org.apache.bcel.generic.MethodGen;
 import io.hotmoka.verification.Annotations;
 import io.hotmoka.verification.BcelToClass;
 import io.hotmoka.verification.TakamakaClassLoader;
-import io.hotmoka.verification.issues.Issue;
+import io.hotmoka.verification.errors.Error;
 
 /**
  * A verification check on a class.
@@ -73,9 +73,9 @@ public abstract class CheckOnClasses {
 		this.allowSelfCharged = builder.allowSelfCharged;
 	}
 
-	protected final void issue(Issue issue) {
+	protected final void issue(Error issue) {
 		builder.issueHandler.accept(issue);
-		if (issue instanceof io.hotmoka.verification.issues.Error)
+		if (issue instanceof io.hotmoka.verification.errors.Error)
 			builder.setHasErrors();
 	}
 

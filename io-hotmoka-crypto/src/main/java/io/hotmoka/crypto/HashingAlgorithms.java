@@ -19,6 +19,7 @@ package io.hotmoka.crypto;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
@@ -38,7 +39,7 @@ public interface HashingAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
-	static <T> HashingAlgorithm<T> sha256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> HashingAlgorithm<T> sha256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new SHA256<>(supplier);
 	}
 
@@ -49,7 +50,7 @@ public interface HashingAlgorithms {
 	 * @param supplier how values get transformed into bytes, before being hashed
 	 * @return the algorithm
 	 */
-	static <T> HashingAlgorithm<T> shabal256(BytesSupplier<? super T> supplier) {
+	static <T> HashingAlgorithm<T> shabal256(Function<? super T, byte[]> supplier) {
 		return new SHABAL256<>(supplier);
 	}
 
@@ -64,12 +65,12 @@ public interface HashingAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> HashingAlgorithm<T> mk(String name, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> HashingAlgorithm<T> mk(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
 			// only sha256, shabal256 are currently found below
-			Method method = HashingAlgorithms.class.getMethod(name, BytesSupplier.class);
+			Method method = HashingAlgorithms.class.getMethod(name, Function.class);
 			return (HashingAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
@@ -86,7 +87,7 @@ public interface HashingAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> HashingAlgorithm<T> mk(TYPES type, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> HashingAlgorithm<T> mk(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return mk(type.name(), supplier);
 	}
 

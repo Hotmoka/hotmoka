@@ -19,10 +19,10 @@ package io.hotmoka.verification.internal.checksOnMethods;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.InconsistentSelfChargedError;
+import io.hotmoka.verification.errors.SelfChargedNotAllowedError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.InconsistentSelfChargedError;
-import io.hotmoka.verification.issues.SelfChargedNotAllowedError;
 
 /**
  * A checks that {@code @@SelfCharged} is applied to instance public methods of contracts only.

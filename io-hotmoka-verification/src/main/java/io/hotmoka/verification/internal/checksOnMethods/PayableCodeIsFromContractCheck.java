@@ -18,10 +18,10 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.PayableNotInContractError;
+import io.hotmoka.verification.errors.PayableWithoutFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.PayableNotInContractError;
-import io.hotmoka.verification.issues.PayableWithoutFromContractError;
 
 /**
  * A check that {@code @@Payable} is applied only to from contract code of contracts.

@@ -27,13 +27,13 @@ import org.apache.bcel.generic.PUTSTATIC;
 import org.apache.bcel.generic.RET;
 import org.apache.bcel.generic.StoreInstruction;
 
+import io.hotmoka.verification.errors.IllegalJsrInstructionError;
+import io.hotmoka.verification.errors.IllegalPutstaticInstructionError;
+import io.hotmoka.verification.errors.IllegalRetInstructionError;
+import io.hotmoka.verification.errors.IllegalSynchronizationError;
+import io.hotmoka.verification.errors.IllegalUpdateOfLocal0Error;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalJsrInstructionError;
-import io.hotmoka.verification.issues.IllegalPutstaticInstructionError;
-import io.hotmoka.verification.issues.IllegalRetInstructionError;
-import io.hotmoka.verification.issues.IllegalSynchronizationError;
-import io.hotmoka.verification.issues.IllegalUpdateOfLocal0Error;
 
 /**
  * A check that the method has no unusual bytecodes, such as {@code jsr}, {@code ret}

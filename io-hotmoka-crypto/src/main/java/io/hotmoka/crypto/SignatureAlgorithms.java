@@ -19,6 +19,7 @@ package io.hotmoka.crypto;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.internal.ED25519;
@@ -41,7 +42,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256withDSA algorithm
 	 */
-	static <T> SignatureAlgorithm<T> sha256dsa(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> sha256dsa(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new SHA256DSA<>(supplier);
 	}
 
@@ -53,7 +54,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
-	static <T> SignatureAlgorithm<T> ed25519(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> ed25519(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new ED25519<>(supplier);
 	}
 
@@ -64,7 +65,7 @@ public interface SignatureAlgorithms {
 	 * sequence of keys of the accounts in the tests and consequently
 	 * also the gas costs of such accounts when they are put into maps, for instance.
 	 */
-	static <T> SignatureAlgorithm<T> ed25519det(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> ed25519det(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new ED25519DET<>(supplier);
 	}
 
@@ -76,7 +77,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-I algorithm
 	 */
-	static <T> SignatureAlgorithm<T> qtesla1(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> qtesla1(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new QTESLA1<>(supplier);
 	}
 
@@ -88,7 +89,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
 	 */
-	static <T> SignatureAlgorithm<T> qtesla3(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> qtesla3(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new QTESLA3<>(supplier);
 	}
 
@@ -100,7 +101,7 @@ public interface SignatureAlgorithms {
 	 *                 this is not actually used by this algorithm
 	 * @return the algorithm
 	 */
-	static <T> SignatureAlgorithm<T> empty(BytesSupplier<? super T> supplier) {
+	static <T> SignatureAlgorithm<T> empty(Function<? super T, byte[]> supplier) {
 		return new EMPTY<>();
 	}
 
@@ -115,12 +116,12 @@ public interface SignatureAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> SignatureAlgorithm<T> mk(String name, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> mk(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
 			// only sha256dsa, ed25519, empty, qtesla1 and qtesla3 are currently found below
-			Method method = SignatureAlgorithms.class.getMethod(name, BytesSupplier.class);
+			Method method = SignatureAlgorithms.class.getMethod(name, Function.class);
 			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
@@ -137,7 +138,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> SignatureAlgorithm<T> mk(TYPES type, BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> mk(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return mk(type.name(), supplier);
 	}
 

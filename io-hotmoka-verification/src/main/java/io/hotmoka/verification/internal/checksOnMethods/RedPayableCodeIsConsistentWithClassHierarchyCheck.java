@@ -24,9 +24,9 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.verification.errors.InconsistentRedPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.InconsistentRedPayableError;
 
 /**
  * A check that {@code @@RedPayable} methods only redefine {@code @@RedPayable} methods and that

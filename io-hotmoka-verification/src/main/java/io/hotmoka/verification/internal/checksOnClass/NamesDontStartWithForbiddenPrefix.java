@@ -20,10 +20,10 @@ import org.apache.bcel.classfile.Field;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.VerifiedClass;
+import io.hotmoka.verification.errors.IllegalFieldNameError;
+import io.hotmoka.verification.errors.IllegalMethodNameError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalFieldNameError;
-import io.hotmoka.verification.issues.IllegalMethodNameError;
 
 /**
  * A check that field and method names do not start with the

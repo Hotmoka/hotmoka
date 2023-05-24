@@ -18,9 +18,9 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.IllegalNativeMethodError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalNativeMethodError;
 
 /**
  * A check that the method is not native.

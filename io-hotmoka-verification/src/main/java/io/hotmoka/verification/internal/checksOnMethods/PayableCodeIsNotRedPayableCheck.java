@@ -18,9 +18,9 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.PayableWithRedPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.PayableWithRedPayableError;
 
 /**
  * A check that {@code @@Payable} and {@code @@RedPayable} are not applied together to the same

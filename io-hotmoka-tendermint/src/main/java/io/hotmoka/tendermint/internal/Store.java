@@ -18,6 +18,7 @@ package io.hotmoka.tendermint.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
@@ -59,7 +60,7 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     	setRootsAsCheckedOut();
 
     	try {
-    		this.hashOfHashes = HashingAlgorithms.sha256(bytes -> bytes);
+    		this.hashOfHashes = HashingAlgorithms.sha256(Function.identity());
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);

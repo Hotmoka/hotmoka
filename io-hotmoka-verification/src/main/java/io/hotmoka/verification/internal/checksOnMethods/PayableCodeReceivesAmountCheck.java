@@ -22,9 +22,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.errors.PayableWithoutAmountError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.PayableWithoutAmountError;
 
 /**
  * A checks that payable methods have an amount first argument.

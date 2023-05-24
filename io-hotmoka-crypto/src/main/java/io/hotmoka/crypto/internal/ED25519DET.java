@@ -39,6 +39,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.function.Function;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1OctetString;
@@ -50,8 +51,6 @@ import org.bouncycastle.crypto.util.PrivateKeyInfoFactory;
 import org.bouncycastle.crypto.util.SubjectPublicKeyInfoFactory;
 import org.bouncycastle.jcajce.spec.EdDSAParameterSpec;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-
-import io.hotmoka.crypto.BytesSupplier;
 
 /**
  * A signature algorithm that uses the ED25519 cryptography. It generates
@@ -80,9 +79,9 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
     /**
      * How values get transformed into bytes, before being hashed.
      */
-    private final BytesSupplier<? super T> supplier;
+    private final Function<? super T, byte[]> supplier;
 
-    public ED25519DET(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+    public ED25519DET(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
     		this.signature = Signature.getInstance("Ed25519");
@@ -114,7 +113,7 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
         byte[] bytes;
 
         try {
-            bytes = supplier.get(what);
+            bytes = supplier.apply(what);
         }
         catch (Exception e) {
             throw new SignatureException("cannot transform value into bytes before signing", e);
@@ -132,7 +131,7 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
         byte[] bytes;
 
         try {
-            bytes = supplier.get(what);
+            bytes = supplier.apply(what);
         }
         catch (Exception e) {
             throw new SignatureException("cannot transform value into bytes before verifying the signature", e);

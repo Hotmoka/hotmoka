@@ -24,9 +24,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.verification.errors.UncheckedExceptionHandlerError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.UncheckedExceptionHandlerError;
 
 /**
  * A check that the exception handlers of a method are only for checked exceptions.

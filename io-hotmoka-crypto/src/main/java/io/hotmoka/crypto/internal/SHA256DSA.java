@@ -31,6 +31,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
@@ -38,7 +39,6 @@ import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
-import io.hotmoka.crypto.BytesSupplier;
 import io.hotmoka.crypto.api.BIP39Dictionary;
 
 /**
@@ -62,14 +62,14 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	/**
 	 * How values get transformed into bytes, before being hashed.
 	 */
-	private final BytesSupplier<? super T> supplier;
+	private final Function<? super T, byte[]> supplier;
 
 	/**
 	 * The key factory.
 	 */
 	private final KeyFactory keyFactory;
 
-	public SHA256DSA(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	public SHA256DSA(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
 		this.keyPairGenerator = mkKeyPairGenerator(CryptoServicesRegistrar.getSecureRandom());
 		this.supplier = supplier;
@@ -133,7 +133,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 		byte[] bytes;
 
 		try {
-			bytes = supplier.get(what);
+			bytes = supplier.apply(what);
 		}
 		catch (Exception e) {
 			throw new SignatureException("cannot transform value into bytes before signing", e);
@@ -151,7 +151,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 		byte[] bytes;
 
 		try {
-			bytes = supplier.get(what);
+			bytes = supplier.apply(what);
 		}
 		catch (Exception e) {
 			throw new SignatureException("cannot transform value into bytes before verifying the signature", e);

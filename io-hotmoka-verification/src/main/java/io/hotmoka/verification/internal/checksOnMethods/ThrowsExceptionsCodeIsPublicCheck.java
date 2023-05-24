@@ -18,9 +18,9 @@ package io.hotmoka.verification.internal.checksOnMethods;
 
 import org.apache.bcel.generic.MethodGen;
 
+import io.hotmoka.verification.errors.ThrowsExceptionsOnNonPublicError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.ThrowsExceptionsOnNonPublicError;
 
 /**
  * A checks that {@code @@ThrowsExceptions} methods are public.

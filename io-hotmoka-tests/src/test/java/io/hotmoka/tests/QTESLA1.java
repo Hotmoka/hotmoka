@@ -32,7 +32,7 @@ public class QTESLA1 {
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
+    	SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
 
         KeyPair keyPair = qTesla1.getKeyPair();
         byte[] signed = qTesla1.sign(data, keyPair.getPrivate());

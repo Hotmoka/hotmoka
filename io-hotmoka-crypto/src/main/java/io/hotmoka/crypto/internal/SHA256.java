@@ -18,9 +18,9 @@ package io.hotmoka.crypto.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
-import io.hotmoka.crypto.BytesSupplier;
 
 /**
  * The SHA256 hashing algorithm.
@@ -34,9 +34,9 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	/**
 	 * How values get transformed into bytes, before being hashed.
 	 */
-	private final BytesSupplier<? super T> supplier;
+	private final Function<? super T, byte[]> supplier;
 
-	public SHA256(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+	public SHA256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		this.digest = MessageDigest.getInstance("SHA-256");
 		this.supplier = supplier;
 	}
@@ -44,7 +44,7 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	@Override
 	public byte[] hash(T what) {
 		try {
-			byte[] bytes = supplier.get(what);
+			byte[] bytes = supplier.apply(what);
 
 			synchronized (digest) {
 				digest.reset();
@@ -65,7 +65,7 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 			throw new IllegalArgumentException("length cannot be negative");
 	
 		try {
-			byte[] bytes = supplier.get(what);
+			byte[] bytes = supplier.apply(what);
 			if (start + length > bytes.length)
 				throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
 	

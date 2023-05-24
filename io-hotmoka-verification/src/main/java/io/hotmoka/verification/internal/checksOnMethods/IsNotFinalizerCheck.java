@@ -19,9 +19,9 @@ package io.hotmoka.verification.internal.checksOnMethods;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.errors.IllegalFinalizerError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalFinalizerError;
 
 /**
  * A check that the method is not a finalizer.

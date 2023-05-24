@@ -16,7 +16,7 @@ limitations under the License.
 
 module io.hotmoka.verification {
 	exports io.hotmoka.verification;
-	exports io.hotmoka.verification.issues;
+	exports io.hotmoka.verification.errors;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.whitelisting;
 	requires transitive org.apache.bcel;

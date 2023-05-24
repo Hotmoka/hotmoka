@@ -29,11 +29,11 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
+import io.hotmoka.verification.errors.IllegalAccessToNonWhiteListedFieldError;
+import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedConstructorError;
+import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedMethodError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalAccessToNonWhiteListedFieldError;
-import io.hotmoka.verification.issues.IllegalCallToNonWhiteListedConstructorError;
-import io.hotmoka.verification.issues.IllegalCallToNonWhiteListedMethodError;
 
 /**
  * A check that a method calls white-listed methods only and accesses white-listed fields only.

@@ -31,6 +31,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.function.Function;
 
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -42,8 +43,6 @@ import org.bouncycastle.pqc.crypto.util.PublicKeyFactory;
 import org.bouncycastle.pqc.jcajce.provider.BouncyCastlePQCProvider;
 import org.bouncycastle.pqc.jcajce.spec.QTESLAParameterSpec;
 
-import io.hotmoka.crypto.BytesSupplier;
-
 /**
  * A signature algorithm that signs data with the qTESLA-p-I signature scheme.
  *
@@ -54,7 +53,7 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
     /**
      * How values get transformed into bytes, before being hashed.
      */
-    private final BytesSupplier<? super T> supplier;
+    private final Function<? super T, byte[]> supplier;
 
     /**
      * The key pair generator.
@@ -71,7 +70,7 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
      */
     private final QTESLASigner signer;
 
-    public QTESLA1(BytesSupplier<? super T> supplier) throws NoSuchAlgorithmException {
+    public QTESLA1(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
     		this.supplier = supplier;
@@ -104,7 +103,7 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
         byte[] bytes;
 
         try {
-            bytes = supplier.get(what);
+            bytes = supplier.apply(what);
         }
         catch (Exception e) {
             throw new SignatureException("cannot transform value into bytes before signing", e);
@@ -127,7 +126,7 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
         byte[] bytes;
 
         try {
-            bytes = supplier.get(what);
+            bytes = supplier.apply(what);
         }
         catch (Exception e) {
             throw new SignatureException("cannot transform value into bytes before verifying the signature", e);

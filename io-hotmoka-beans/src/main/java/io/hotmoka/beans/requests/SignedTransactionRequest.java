@@ -74,11 +74,15 @@ public interface SignedTransactionRequest {
 	 * @return the byte array resulting from marshalling this object
 	 * @throws IOException if this object cannot be marshalled
 	 */
-	default byte[] toByteArrayWithoutSignature() throws IOException {
+	default byte[] toByteArrayWithoutSignature() {
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
 			return baos.toByteArray();
+		}
+		catch (IOException e) {
+			// impossible with a byte array output stream
+			throw new RuntimeException("unexpected exception", e);
 		}
 	}
 

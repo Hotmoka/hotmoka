@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
+import io.hotmoka.verification.errors.IllegalPackageNameError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalPackageNameError;
 
 /**
  * A check that class packages in Takamaka code are allowed.

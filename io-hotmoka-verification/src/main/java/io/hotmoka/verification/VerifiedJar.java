@@ -20,8 +20,8 @@ import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.verification.errors.Error;
 import io.hotmoka.verification.internal.VerifiedJarImpl;
-import io.hotmoka.verification.issues.Issue;
 
 /**
  * A jar that has undergone static verification, before being installed into blockchain.
@@ -55,7 +55,7 @@ public interface VerifiedJar {
 	/**
 	 * Yields the first error (hence not a warning) that occurred during the verification of the origin jar.
 	 */
-	Optional<io.hotmoka.verification.issues.Error> getFirstError();
+	Optional<io.hotmoka.verification.errors.Error> getFirstError();
 
 	/**
 	 * Yields the stream of the classes of the jar that passed verification.
@@ -69,7 +69,7 @@ public interface VerifiedJar {
 	 * 
 	 * @return the issues, in increasing order
 	 */
-	Stream<Issue> issues();
+	Stream<Error> issues();
 
 	/**
 	 * Yields the class loader used to load this jar.

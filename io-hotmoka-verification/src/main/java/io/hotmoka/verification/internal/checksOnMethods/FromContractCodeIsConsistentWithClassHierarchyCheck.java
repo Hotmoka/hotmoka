@@ -25,9 +25,9 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
 import io.hotmoka.verification.ThrowIncompleteClasspathError;
+import io.hotmoka.verification.errors.InconsistentFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.InconsistentFromContractError;
 
 /**
  * A checks that {@code @@FromContract} methods only redefine {@code @@FromContract} methods and that

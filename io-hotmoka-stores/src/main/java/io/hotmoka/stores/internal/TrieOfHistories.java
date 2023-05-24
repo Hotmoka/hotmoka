@@ -24,8 +24,7 @@ import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.marshalling.api.Marshallable;
+import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -55,9 +54,9 @@ public class TrieOfHistories {
 	 */
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			KeyValueStoreOnXodus keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<io.hotmoka.patricia.Node> hashingForNodes = HashingAlgorithms.sha256(Marshallable::toByteArray);
-			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
+			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
+			var hashingForNodes = HashingAlgorithms.sha256(Node::toByteArray);
+			var hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
 			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes,
 					MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
@@ -74,7 +73,7 @@ public class TrieOfHistories {
 		TransactionReference[] transactions = result.get().transactions;
 		// histories always end with the transaction that created the object,
 		// hence with the transaction of the same storage reference of the object
-		TransactionReference[] withLast = new TransactionReference[transactions.length + 1];
+		var withLast = new TransactionReference[transactions.length + 1];
 		System.arraycopy(transactions, 0, withLast, 0, transactions.length);
 		withLast[transactions.length] = key.transaction;
 		return Stream.of(withLast);
@@ -84,8 +83,8 @@ public class TrieOfHistories {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
-		TransactionReference[] transactionsAsArray = history.toArray(TransactionReference[]::new);
-		TransactionReference[] withoutLast = new TransactionReference[transactionsAsArray.length - 1];
+		var transactionsAsArray = history.toArray(TransactionReference[]::new);
+		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
 		parent.put(key, new MarshallableArrayOfTransactionReferences(withoutLast));
 	}

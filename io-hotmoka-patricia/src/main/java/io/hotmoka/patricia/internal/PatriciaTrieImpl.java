@@ -347,7 +347,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 		*/
 
-		protected final AbstractNode putInStore() throws IOException {
+		protected final AbstractNode putInStore() {
 			// we bind it to its hash in the store
 			store.put(hashingForNodes.hash(this), toByteArray());
 			return this;

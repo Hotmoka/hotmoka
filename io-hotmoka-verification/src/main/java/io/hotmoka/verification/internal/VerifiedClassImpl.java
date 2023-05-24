@@ -42,7 +42,7 @@ import io.hotmoka.verification.ThrowIncompleteClasspathError;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedClass;
 import io.hotmoka.verification.VerifiedJar;
-import io.hotmoka.verification.issues.Issue;
+import io.hotmoka.verification.errors.Error;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
@@ -88,7 +88,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
 	 * @throws VerificationException if the class could not be verified
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Issue> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<Error> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -227,7 +227,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		/**
 		 * The handler that must be notified of issues found in the class.
 		 */
-		final Consumer<Issue> issueHandler;
+		final Consumer<Error> issueHandler;
 
 		/**
 		 * True if and only if the code verification occurs during blockchain initialization.
@@ -263,7 +263,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 */
-		private Verification(Consumer<Issue> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException {
+		private Verification(Consumer<Error> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();

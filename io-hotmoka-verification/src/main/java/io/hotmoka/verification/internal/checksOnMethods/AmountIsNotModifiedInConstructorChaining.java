@@ -38,9 +38,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalModificationOfAmountInConstructorChaining;
 
 /**
  * A checks that {@code @@Payable} or {@code @@RedPayable} constructor-chaining calls pass exactly

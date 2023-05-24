@@ -43,12 +43,12 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.verification.errors.IllegalCallToFromContractError;
+import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
+import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
+import io.hotmoka.verification.errors.IllegalCallToRedPayableConstructorOnThis;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
-import io.hotmoka.verification.issues.IllegalCallToFromContractError;
-import io.hotmoka.verification.issues.IllegalCallToFromContractOnThisError;
-import io.hotmoka.verification.issues.IllegalCallToPayableConstructorOnThis;
-import io.hotmoka.verification.issues.IllegalCallToRedPayableConstructorOnThis;
 
 /**
  * A check that {@link io.takamaka.code.lang.FromContract} methods or constructors are called only from instance methods of contracts.
