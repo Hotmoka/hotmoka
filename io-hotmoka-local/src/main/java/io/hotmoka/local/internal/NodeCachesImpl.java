@@ -19,6 +19,8 @@ package io.hotmoka.local.internal;
 import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
@@ -335,7 +337,7 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		var classLoader = classLoaders.get(classpath);
 		if (classLoader != null)
 			return classLoader;

@@ -18,6 +18,7 @@ package io.hotmoka.local.internal.transactions;
 
 import static io.hotmoka.local.internal.runtime.Runtime.responseCreators;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -126,8 +127,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
+	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException;
+	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException;
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not

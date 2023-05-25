@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local.internal.transactions;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.logging.Level;
 import java.util.stream.Stream;
@@ -52,7 +53,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, true, consensus);

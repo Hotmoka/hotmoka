@@ -19,7 +19,6 @@ package io.hotmoka.verification.internal;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.SortedSet;
@@ -30,6 +29,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.apache.bcel.Repository;
+import org.apache.bcel.classfile.ClassFormatException;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.util.ClassLoaderRepository;
 
@@ -84,7 +84,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param duringInitialization true if and only if verification occurs during the node initialization
 	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
-	 * @throws IOException if there was a problem accessing the classes on disk
+	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
@@ -175,6 +175,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 * @throws UnsupportedVerificationVersionException if the verification version is not available
+		 * @throws IOException if an I/O error occurred while accessing the classes
 		 */
 		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 			this.duringInitialization = duringInitialization;
@@ -183,15 +184,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 			this.skipsVerification = skipsVerification;
 
 			// parsing and verification of the class files
-			try (ZipInputStream zis = new ZipInputStream(new ByteArrayInputStream(origin))) {
+			try (var zis = new ZipInputStream(new ByteArrayInputStream(origin))) {
 				// we cannot proceed in parallel since the BCEL library is not thread-safe
 				ZipEntry entry;
     			while ((entry = zis.getNextEntry()) != null)
     				if (entry.getName().endsWith(".class") && !entry.getName().equals("module-info.class"))
     					buildVerifiedClass(entry, zis).ifPresent(classes::add);
-			}
-			catch (UncheckedIOException e) {
-				throw e.getCause();
 			}
 		}
 
@@ -202,14 +200,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * @param input the stream of the jar in the entry
 		 * @return the BCEL class, if the class for {@code entry} did verify
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+		 * @throws IOException if the entry cannot be accessed correctly
 		 */
-		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws ClassNotFoundException {
+		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws ClassNotFoundException, ClassFormatException, IOException {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
 				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, allowSelfCharged, skipsVerification));
-			}
-			catch (IOException e) {
-				throw new UncheckedIOException(e);
 			}
 			catch (VerificationException e) {
 				return Optional.empty();

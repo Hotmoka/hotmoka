@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.local.internal.transactions;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
@@ -55,7 +57,7 @@ public class InitializationResponseBuilder extends InitialResponseBuilder<Initia
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		return node.getCaches().getClassLoader(request.classpath); // currently not used for this transaction
 	}
 }

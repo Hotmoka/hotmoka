@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local.internal.transactions;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
@@ -46,7 +47,7 @@ public class GameteCreationResponseBuilder extends InitialResponseBuilder<Gamete
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

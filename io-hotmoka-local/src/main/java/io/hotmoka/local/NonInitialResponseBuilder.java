@@ -19,6 +19,7 @@ package io.hotmoka.local;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -110,7 +111,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		return node.getCaches().getClassLoader(request.classpath);
 	}
 

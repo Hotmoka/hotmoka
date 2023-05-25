@@ -161,8 +161,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param consensus the consensus parameters to use for reverification, if that is required
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
+	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Optional;
 
@@ -96,8 +97,9 @@ public interface NodeCaches {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
+	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException;
+	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException;
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.
