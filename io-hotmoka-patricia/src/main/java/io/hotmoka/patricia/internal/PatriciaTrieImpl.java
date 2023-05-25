@@ -226,7 +226,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @throws IOException if the node could not be unmarshalled
 	 */
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, IOException {
-		try (ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
+		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
 	}

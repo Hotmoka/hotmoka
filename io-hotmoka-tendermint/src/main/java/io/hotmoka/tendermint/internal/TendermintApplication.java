@@ -17,13 +17,12 @@ limitations under the License.
 package io.hotmoka.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.bouncycastle.util.encoders.Hex;
 
 import com.google.protobuf.ByteString;
 
@@ -89,7 +88,7 @@ class TendermintApplication extends ABCI {
     }
 
     private static String getAddressOfValidator(Validator validator) {
-    	return Hex.toHexString(validator.getAddress().toByteArray()).toUpperCase();
+    	return toHexString(validator.getAddress().toByteArray()).toUpperCase();
     }
 
     private static long timeNow(RequestBeginBlock request) {
@@ -178,6 +177,29 @@ class TendermintApplication extends ABCI {
     private ByteString trimmedMessage(Throwable t) {
 		return ByteString.copyFromUtf8(node.trimmedMessage(t));
     }
+
+	/**
+	 * Translates an array of bytes into a hexadecimal string.
+	 * 
+	 * @param bytes the bytes
+	 * @return the string
+	 */
+	private static String toHexString(byte[] bytes) {
+	    var hexChars = new byte[bytes.length * 2];
+	    int pos = 0;
+	    for (byte b: bytes) {
+	        int v = b & 0xFF;
+	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
+	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
+	    }
+	
+	    return new String(hexChars, StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * The array of hexadecimal digits.
+	 */
+	private final static byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
 
 	@Override
 	protected ResponseInitChain initChain(RequestInitChain request) {
@@ -281,7 +303,7 @@ class TendermintApplication extends ABCI {
     	node.commitTransactionAndCheckout();
     	// hash of the store, used for consensus
     	byte[] hash = store.getHash();
-    	logger.info("Committed state with hash = " + Hex.toHexString(hash).toUpperCase());
+    	logger.info("Committed state with hash = " + toHexString(hash).toUpperCase());
     	return ResponseCommit.newBuilder()
        		.setData(ByteString.copyFrom(hash))
        		.build();

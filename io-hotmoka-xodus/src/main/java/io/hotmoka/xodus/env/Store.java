@@ -30,6 +30,7 @@ public class Store {
 	}
 
 	public void put(Transaction txn, ByteIterable key, ByteIterable value) {
+		// TODO: should this throw an IOException?
 		if (!parent.put(txn.toNative(), key.toNative(), value.toNative()))
 			logger.error("couldn't write key " + key + " into the Xodus store");
 	}
@@ -39,6 +40,7 @@ public class Store {
 	}
 
 	public void remove(Transaction txn, ByteIterable key) {
+		// TODO: should this throw an IOException?
 		if (!parent.delete(txn.toNative(), key.toNative()))
 			logger.error("couldn't delete key " + key + " from the Xodus store");
 	}

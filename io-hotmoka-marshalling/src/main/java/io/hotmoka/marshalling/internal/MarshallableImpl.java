@@ -31,7 +31,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 public abstract class MarshallableImpl implements Marshallable {
 
-	// TODO: check IOException catches
 	@Override
 	public final byte[] toByteArray() {
 		try (var baos = new ByteArrayOutputStream(); var context = createMarshallingContext(baos)) {

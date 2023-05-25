@@ -20,17 +20,14 @@ module io.hotmoka.tendermint {
 	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
 	requires io.hotmoka.tendermint.abci;
 	requires toml4j;
-	requires io.hotmoka.beans;
 	requires io.hotmoka.stores;
-	requires io.hotmoka.crypto;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
-	requires transitive io.hotmoka.nodes;
+	requires io.hotmoka.nodes;
 	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.local;
 	requires com.google.gson;
 	requires com.google.protobuf;
-	requires org.bouncycastle.provider;
 	requires java.logging;
 }

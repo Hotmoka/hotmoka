@@ -132,16 +132,11 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 */
 	// TODO: remove from here?
 	public final TransactionReference getReference() {
-		try {
-			byte[] bytes = toByteArray();
+		byte[] bytes = toByteArray();
 
-			synchronized (HASHING_FOR_REQUESTS) {
-				HASHING_FOR_REQUESTS.reset();
-				return new LocalTransactionReference(bytesToHex(HASHING_FOR_REQUESTS.digest(bytes)));
-			}
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException(e);
+		synchronized (HASHING_FOR_REQUESTS) {
+			HASHING_FOR_REQUESTS.reset();
+			return new LocalTransactionReference(bytesToHex(HASHING_FOR_REQUESTS.digest(bytes)));
 		}
 	}
 
@@ -152,7 +147,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @return the string
 	 */
 	protected static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
+	    var hexChars = new byte[bytes.length * 2];
 	    int pos = 0;
 	    for (byte b: bytes) {
 	        int v = b & 0xFF;

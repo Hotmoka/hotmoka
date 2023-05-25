@@ -183,8 +183,8 @@ public abstract class HotmokaTest {
 			tendermintBlockchain = null; // Tendermint would reassign
 
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
-	        Entropy entropy = Entropies.of(new byte[16]);
-			String password = "";
+	        var entropy = Entropies.of(new byte[16]);
+			var password = "";
 			var localSignature = SignatureAlgorithmForTransactionRequests.mk("ed25519det");
 			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
@@ -209,11 +209,11 @@ public abstract class HotmokaTest {
 
 	        signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
 	        initializeNodeIfNeeded();
-	        Signer signerOfGamete = Signer.with(signature, privateKeyOfGamete);
+	        var signerOfGamete = Signer.with(signature, privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();
-	        StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 	    		(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -230,7 +230,7 @@ public abstract class HotmokaTest {
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
-	        NodeWithAccounts local = NodeWithAccounts.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
+	        var local = NodeWithAccounts.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -248,7 +248,7 @@ public abstract class HotmokaTest {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 
-			Path takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 			if (tendermintBlockchain != null)
 				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
 			else
@@ -258,14 +258,12 @@ public abstract class HotmokaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException, IOException {
-		TendermintBlockchainConfig config = new TendermintBlockchainConfig.Builder()
+		var config = new TendermintBlockchainConfig.Builder()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
-		TendermintBlockchain result = TendermintBlockchain.init(config, consensus);
-		tendermintBlockchain = result;
-		return result;
+		return tendermintBlockchain = TendermintBlockchain.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
@@ -280,13 +278,13 @@ public abstract class HotmokaTest {
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws IOException {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		NodeServiceConfig serviceConfig = new NodeServiceConfig.Builder()
+		var serviceConfig = new NodeServiceConfig.Builder()
 			.setPort(8080)
 			.setSpringBannerModeOn(false).build();
 
 		NodeService.of(serviceConfig, exposed);
 
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+		var remoteNodeConfig = new RemoteNodeConfig.Builder()
 			// comment for using http
 			.setWebSockets(true)
 			.setURL("localhost:8080")
@@ -297,7 +295,7 @@ public abstract class HotmokaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) throws IOException {
-		RemoteNodeConfig remoteNodeConfig = new RemoteNodeConfig.Builder()
+		var remoteNodeConfig = new RemoteNodeConfig.Builder()
 			//.setWebSockets(true)
 			.setURL(url).build();
 		return RemoteNode.of(remoteNodeConfig);
