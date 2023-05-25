@@ -247,6 +247,11 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
         <artifactId>maven-dependency-plugin</artifactId>
         <!-- attempt to use 3.5.0 runs into a compilation error in Eclipse -->
         <version>3.1.1</version>
+        <configuration>
+		  <includeScope>
+		    runtime <!-- so that test or provided dependencies are not considered -->
+		  </includeScope>
+		</configuration>
         <executions>
           <execution>
             <id>copy-unnamed-module</id>
@@ -300,7 +305,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 bcel,
                 io-hotmoka-tendermint-abci,
                 io-hotmoka-xodus,
-                commons-cli,
                 grpc-stub,
                 protobuf-java,
                 spring-aop,
@@ -308,7 +312,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 spring-boot,
                 spring-boot-autoconfigure,
                 spring-boot-starter,
-                spring-boot-starter-json,
                 spring-boot-starter-tomcat,
                 spring-boot-starter-web,
                 spring-boot-starter-websocket,
@@ -322,28 +325,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 spring-websocket,
                 tomcat-embed-core,
                 tomcat-embed-websocket,
-                javax.annotation-api,
-
-                <!-- we exclude all modules that are only used for testing -->
-                apiguardian-api,
-                byte-buddy,
-                byte-buddy-agent,
-                junit-jupiter,
-                junit-jupiter-api,
-                junit-jupiter-engine,
-                junit-jupiter-params,
-                junit-platform-commons,
-                junit-platform-engine,
-                mockito-core,
-                objenesis,
-                opentest4j,
-                junit-jupiter,
-                perfmark-api,
-                annotations,
-                animal-sniffer-annotations,
-                commons-compress,
-                kotlin-logging,
-                opentest4j
+                javax.annotation-api
               </excludeArtifactIds>
             </configuration>
           </execution>
@@ -359,7 +341,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 bcel,
                 io-hotmoka-tendermint-abci,
                 io-hotmoka-xodus,
-                commons-cli,
                 grpc-stub,
                 protobuf-java,
                 spring-aop,

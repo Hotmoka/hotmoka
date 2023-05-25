@@ -65,17 +65,17 @@ public class GasCounter {
 	 * @param requests the requests
 	 */
 	public GasCounter(Node node, TransactionRequest<?>... requests) {
-		TransactionReference[] references = Stream.of(requests).map(TransactionRequest::getReference).toArray(TransactionReference[]::new);
-		BigInteger forPenalty = BigInteger.ZERO;
-		BigInteger forCPU = BigInteger.ZERO;
-		BigInteger forRAM = BigInteger.ZERO;
-		BigInteger forStorage = BigInteger.ZERO;
+		var references = Stream.of(requests).map(TransactionRequest::getReference).toArray(TransactionReference[]::new);
+		var forPenalty = BigInteger.ZERO;
+		var forCPU = BigInteger.ZERO;
+		var forRAM = BigInteger.ZERO;
+		var forStorage = BigInteger.ZERO;
 
-		for (TransactionReference reference: references)
+		for (var reference: references)
 			try {
 				TransactionResponse response = node.getResponse(reference);
 				if (response instanceof NonInitialTransactionResponse) {
-					NonInitialTransactionResponse responseWithGas = (NonInitialTransactionResponse) response;
+					var responseWithGas = (NonInitialTransactionResponse) response;
 					forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
 					forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
 					forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);

@@ -61,14 +61,12 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Entropies;
-import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.InitializedNode;
 import io.hotmoka.helpers.NodeWithAccounts;
@@ -609,7 +607,7 @@ public abstract class HotmokaTest {
 	protected static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
 		try {
 			// we ask the account: 10,000 units of gas should be enough to run the method
-			ClassTag classTag = node.getClassTag(account);
+			var classTag = node.getClassTag(account);
 			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(account, _100_000, classTag.jar, CodeSignature.BALANCE, account))).value;
 		}
