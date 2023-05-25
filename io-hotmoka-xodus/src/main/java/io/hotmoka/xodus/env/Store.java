@@ -16,13 +16,13 @@ limitations under the License.
 
 package io.hotmoka.xodus.env;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.xodus.ByteIterable;
 
 public class Store {
-	protected final static Logger logger = LoggerFactory.getLogger(Store.class);
+	protected final static Logger LOGGER = Logger.getLogger(Store.class.getName());
 	private final jetbrains.exodus.env.Store parent;
 
 	Store(jetbrains.exodus.env.Store parent) {
@@ -32,7 +32,7 @@ public class Store {
 	public void put(Transaction txn, ByteIterable key, ByteIterable value) {
 		// TODO: should this throw an IOException?
 		if (!parent.put(txn.toNative(), key.toNative(), value.toNative()))
-			logger.error("couldn't write key " + key + " into the Xodus store");
+			LOGGER.log(Level.SEVERE, "couldn't write key " + key + " into the Xodus store");
 	}
 
 	public ByteIterable get(Transaction txn, ByteIterable key) {
@@ -42,6 +42,6 @@ public class Store {
 	public void remove(Transaction txn, ByteIterable key) {
 		// TODO: should this throw an IOException?
 		if (!parent.delete(txn.toNative(), key.toNative()))
-			logger.error("couldn't delete key " + key + " from the Xodus store");
+			LOGGER.log(Level.SEVERE, "couldn't delete key " + key + " from the Xodus store");
 	}
 }

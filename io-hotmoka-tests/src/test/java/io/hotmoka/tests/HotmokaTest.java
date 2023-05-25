@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /**
- * MODIFY AT LINE 208 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 200 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -35,13 +35,13 @@ import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.logging.Level;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.Coin;
@@ -157,11 +157,11 @@ public abstract class HotmokaTest {
 	 */
 	protected static final PrivateKey privateKeyOfGamete;
 
-	private final static Logger logger = LoggerFactory.getLogger(HotmokaTest.class);
+	private final static Logger LOGGER = Logger.getLogger(HotmokaTest.class.getName());
 
 	@BeforeEach
 	void logTestName(TestInfo testInfo) {
-		logger.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + '.' + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
+		LOGGER.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + '.' + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
 	}
 
 	public interface TestBody {
@@ -592,7 +592,7 @@ public abstract class HotmokaTest {
 			return nonce;
 		}
 		catch (Exception e) {
-			logger.error("failed computing nonce", e);
+			LOGGER.log(Level.SEVERE, "failed computing nonce", e);
 			throw new TransactionRejectedException("cannot compute the nonce of " + account);
 		}
 	}
@@ -612,7 +612,7 @@ public abstract class HotmokaTest {
 				(account, _100_000, classTag.jar, CodeSignature.BALANCE, account))).value;
 		}
 		catch (Exception e) {
-			logger.error("failed computing the balance", e);
+			LOGGER.log(Level.SEVERE, "failed computing the balance", e);
 			throw new TransactionRejectedException("cannot compute the balance of " + account);
 		}
 	}
