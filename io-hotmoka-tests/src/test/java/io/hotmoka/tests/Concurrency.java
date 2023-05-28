@@ -24,7 +24,6 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -136,11 +135,11 @@ class Concurrency extends HotmokaTest {
 	@Test @DisplayName("More threads generate transactions concurrently")
 	void concurrently() throws InterruptedException, ExecutionException {
 		// we create an array of THREAD_NUMBER workers
-		Worker[] workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
+		var workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
 
-		ExecutorService customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);
-		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
-		customThreadPool.shutdownNow();
+		try (var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS)) {
+			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
+		}
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));
