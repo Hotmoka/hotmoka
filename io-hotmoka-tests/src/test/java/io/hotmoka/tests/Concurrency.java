@@ -136,10 +136,9 @@ class Concurrency extends HotmokaTest {
 	void concurrently() throws InterruptedException, ExecutionException {
 		// we create an array of THREAD_NUMBER workers
 		var workers = IntStream.range(0, NUMBER_OF_THREADS).mapToObj(Worker::new).toArray(Worker[]::new);
-
-		try (var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS)) {
-			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
-		}
+		var customThreadPool = new ForkJoinPool(NUMBER_OF_THREADS);
+		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_THREADS).parallel().forEach(i -> workers[i].run())).get();
+		customThreadPool.shutdown();
 
 		// the workers are expected to throw no exceptions, or otherwise that is typically sign of a race condition
 		assertTrue(Stream.of(workers).noneMatch(worker -> worker.failed));
