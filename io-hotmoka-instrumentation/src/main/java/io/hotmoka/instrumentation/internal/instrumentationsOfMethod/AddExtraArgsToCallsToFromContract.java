@@ -37,7 +37,6 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
@@ -80,24 +79,24 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
 	private void passExtraArgsToCallToFromContract(InstructionList il, InstructionHandle ih, String callee) throws ClassNotFoundException {
-		InvokeInstruction invoke = (InvokeInstruction) ih.getInstruction();
-		Type[] args = invoke.getArgumentTypes(cpg);
+		var invoke = (InvokeInstruction) ih.getInstruction();
+		var args = invoke.getArgumentTypes(cpg);
 		String methodName = invoke.getMethodName(cpg);
-		Type returnType = invoke.getReturnType(cpg);
+		var returnType = invoke.getReturnType(cpg);
 		int slots = Stream.of(args).mapToInt(Type::getSize).sum();
 		
 		if (invoke instanceof INVOKEDYNAMIC) {
-			INVOKEDYNAMIC invokedynamic = (INVOKEDYNAMIC) invoke;
-			ConstantInvokeDynamic cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
+			var invokedynamic = (INVOKEDYNAMIC) invoke;
+			var cid = (ConstantInvokeDynamic) cpg.getConstant(invokedynamic.getIndex());
 
 			// this is an invokedynamic that calls a @FromContract: we must capture the calling contract
-			Type[] expandedArgs = new Type[args.length + 1];
+			var expandedArgs = new Type[args.length + 1];
 			System.arraycopy(args, 0, expandedArgs, 1, args.length);
 			expandedArgs[0] = new ObjectType(className);
-			ConstantInvokeDynamic expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(),
+			var expandedCid = new ConstantInvokeDynamic(cid.getBootstrapMethodAttrIndex(),
 				cpg.addNameAndType(methodName, Type.getMethodSignature(returnType, expandedArgs)));
 			int index = addInvokeDynamicToConstantPool(expandedCid);
-			INVOKEDYNAMIC copied = (INVOKEDYNAMIC) invokedynamic.copy();
+			var copied = (INVOKEDYNAMIC) invokedynamic.copy();
 			copied.setIndex(index);
 			ih.setInstruction(copied);
 
@@ -114,13 +113,13 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 
 			// we push back the previous arguments of the invokedynamic
 			offset = 0;
-			for (Type arg: args) {
+			for (var arg: args) {
 				il.insert(ih, InstructionFactory.createLoad(arg, usedLocals + offset));
 				offset += arg.getSize();
 			}
 		}
 		else {
-			Type[] expandedArgs = new Type[args.length + 2];
+			var expandedArgs = new Type[args.length + 2];
 			System.arraycopy(args, 0, expandedArgs, 0, args.length);
 			expandedArgs[args.length] = CONTRACT_OT;
 			expandedArgs[args.length + 1] = DUMMY_OT;
@@ -131,7 +130,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 
 			if (onThis) {
 				// the call is on "this": it inherits our caller
-				Type[] ourArgs = method.getArgumentTypes();
+				var ourArgs = method.getArgumentTypes();
 				if (annotations.isFromContract(className, method.getName(), ourArgs, method.getReturnType())) {
 					int ourArgsSlots = Stream.of(ourArgs).mapToInt(Type::getSize).sum();
 					// the call is inside a @FromContract: its last one minus argument is the caller: we pass it
@@ -181,8 +180,8 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstrapMethodsThatWillRequireExtraThis.contains(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
 		else if (instruction instanceof InvokeInstruction) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			ReferenceType receiver = invoke.getReferenceType(cpg);
+			var invoke = (InvokeInstruction) instruction;
+			var receiver = invoke.getReferenceType(cpg);
 			// we do not consider calls added by instrumentation
 			if (receiver instanceof ObjectType && !receiver.equals(RUNTIME_OT))
 				return annotations.isFromContract(((ObjectType) receiver).getClassName(),
