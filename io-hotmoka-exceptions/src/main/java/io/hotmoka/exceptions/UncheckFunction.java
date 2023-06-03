@@ -26,7 +26,7 @@ import java.util.function.Function;
 public abstract class UncheckFunction {
 
 	public static <T, R> Function<T, R> uncheck(FunctionWithExceptions<T, R> wrapped) {
-		return new Function<T, R>() {
+		return new Function<>() {
 
 			@Override
 			public R apply(T t) {

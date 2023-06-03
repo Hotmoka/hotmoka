@@ -19,19 +19,19 @@ package io.hotmoka.exceptions;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
-import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  */
-public abstract class UncheckPredicate {
+public abstract class UncheckSupplier {
 
-	public static <T> Predicate<T> uncheck(PredicateWithExceptions<T> wrapped) {
-		return new Predicate<>() {
+	public static <T> Supplier<T> uncheck(SupplierWithExceptions<T> wrapped) {
+		return new Supplier<>() {
 
 			@Override
-			public boolean test(T t) {
+			public T get() {
 				try {
-					return wrapped.test(t);
+					return wrapped.get();
 				}
 				catch (IOException e) {
 					throw new UncheckedIOException(e);

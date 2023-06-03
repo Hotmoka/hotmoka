@@ -26,7 +26,7 @@ import java.util.function.Consumer;
 public abstract class UncheckConsumer {
 
 	public static <T> Consumer<T> uncheck(ConsumerWithExceptions<T> wrapped) {
-		return new Consumer<T>() {
+		return new Consumer<>() {
 
 			@Override
 			public void accept(T t) {
