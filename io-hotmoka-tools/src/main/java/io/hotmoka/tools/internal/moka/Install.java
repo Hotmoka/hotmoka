@@ -50,7 +50,7 @@ public class Install extends AbstractCommand {
 	@Parameters(description = "the jar to install")
 	private Path jar;
 
-	@Option(names = { "--payer" }, description = "the reference to the account that pays for the call and becomes caller inside the method; it can be left blank for @View calls, in which case the manifest is used as caller")
+	@Option(names = { "--payer" }, description = "the reference to the account that pays for installing the jar")
 	private String payer;
 
 	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
@@ -85,12 +85,12 @@ public class Install extends AbstractCommand {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				checkStorageReference(payer);
-				StorageReference payer = new StorageReference(Install.this.payer);
+				var payer = new StorageReference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				GasHelper gasHelper = new GasHelper(node);
-				NonceHelper nonceHelper = new NonceHelper(node);
-				byte[] bytes = Files.readAllBytes(jar);
+				var gasHelper = new GasHelper(node);
+				var nonceHelper = new NonceHelper(node);
+				var bytes = Files.readAllBytes(jar);
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
 				if (libs != null)
@@ -110,7 +110,7 @@ public class Install extends AbstractCommand {
 
 				askForConfirmation(gas);
 
-				JarStoreTransactionRequest request = new JarStoreTransactionRequest(
+				var request = new JarStoreTransactionRequest(
 					Signer.with(signature, keys),
 					payer,
 					nonceHelper.getNonceOf(payer),

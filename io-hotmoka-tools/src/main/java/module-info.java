@@ -31,4 +31,5 @@ module io.hotmoka.tools {
 	requires java.logging;
 	opens io.hotmoka.tools to info.picocli; // for injecting CLI options
     opens io.hotmoka.tools.internal.moka to info.picocli; // for injecting CLI options
+    requires jdk.unsupported;
 }

@@ -63,14 +63,14 @@ echo "      [default: panarea.hotmoka.io]"
 echo "    TIMEOUT_COMMIT: commit timeout in seconds, which determines the block creation time"
 echo "      [default: 5]"
 echo "    PUBLIC_KEY_BASE58: the base58-encoded public key of the node if it becomes a validator"
-echo "      [default: a new automatically-generated public key]
+echo "      [default: a new automatically-generated public key]"
 echo "    PUBLIC_KEY_BASE64: the base64-encoded public key of the node if it becomes a validator"
-echo "      [default: a new automatically-generated private key]
+echo "      [default: a new automatically-generated private key]"
 echo "    CONCATENATED_KEYS_BASE64: the base64-encoded concatenation of the private and public keys"
 echo "                              of the node if it becomes a validator"
-echo "      [default: a new automatically-generated concatenation key]
+echo "      [default: a new automatically-generated concatenation key]"
 echo "    TENDERMINT_ADDRESS: the Tendermint address of the node if it becomes a validator"
-echo "      [default: a new automatically-generated Tendermint address]
+echo "      [default: a new automatically-generated Tendermint address]"
 echo
 echo "  resume: resumes a node whose container was previously turned off with \"docker stop\""
 echo "    MAX_GAS_PER_VIEW: the maximal gas limit allowed when running @View methods"
