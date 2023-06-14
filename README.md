@@ -1,8 +1,8 @@
 <p align="center"><img width="320" src="pics/hotmoka_logo.png" alt="Hotmoka logo"></p>
 
 [![Java-Build Action Status](https://github.com/Hotmoka/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/Hotmoka/hotmoka/actions)
-[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-constants.svg?label=Hotmoka@Maven%20Central)](https://search.maven.org/search?q=g:%22io.hotmoka%22)
-[![Takamaka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-takamaka-code.svg?label=Takamaka@Maven%20Central)](https://search.maven.org/search?q=a:%22io-takamaka-code%22)
+[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-constants.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=io.hotmoka)
+[![Takamaka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-takamaka-code.svg?label=Takamaka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=io-takamaka-code)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 Hotmoka is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
