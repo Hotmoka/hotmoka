@@ -1,7 +1,7 @@
 [Markdownonly]:<p align="center"><img width="320" src="pics/@type_logo.png" alt="@Type logo"></p>
 
 [Markdownonly]:[![Java-Build Action Status](https://github.com/Hotmoka/hotmoka/workflows/Java-Build/badge.svg)](https://github.com/Hotmoka/hotmoka/actions)
-[Markdownonly]:[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-constants.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=io.hotmoka)
+[Markdownonly]:[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-constants.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=g:io.hotmoka)
 [Markdownonly]:[![Takamaka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-takamaka-code.svg?label=Takamaka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=io-takamaka-code)
 [Markdownonly]:[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
