@@ -28,4 +28,8 @@ public interface Hex {
 	public static String toHexString(byte[] data, int offset, int length) {
 		return org.bouncycastle.util.encoders.Hex.toHexString(data, offset, length);
 	}
+
+	public static byte[] fromHexString(String hex) {
+		return org.bouncycastle.util.encoders.Hex.decode(hex);
+	}
 }
