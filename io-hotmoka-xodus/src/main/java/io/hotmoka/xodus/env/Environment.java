@@ -46,8 +46,16 @@ public class Environment {
 		parent.executeInTransaction(txn -> executable.accept(new Transaction(txn)));
 	}
 
+	public void executeInReadonlyTransaction(Consumer<Transaction> executable) {
+		parent.executeInReadonlyTransaction(txn -> executable.accept(new Transaction(txn)));
+	}
+
 	public <T> T computeInReadonlyTransaction(Function<Transaction, T> computable) {
 		return parent.computeInReadonlyTransaction(txn -> computable.apply(new Transaction(txn)));
+	}
+
+	public <T> T computeInTransaction(Function<Transaction, T> computable) {
+		return parent.computeInTransaction(txn -> computable.apply(new Transaction(txn)));
 	}
 
 	public Store openStoreWithoutDuplicates(String name, Transaction txn) {
