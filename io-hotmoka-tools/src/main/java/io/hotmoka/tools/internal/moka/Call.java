@@ -44,9 +44,9 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelper;
-import io.hotmoka.helpers.GasHelper;
-import io.hotmoka.helpers.NonceHelper;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
@@ -222,8 +222,8 @@ public class Call extends AbstractCommand {
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
-				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
-				BigInteger nonce = new NonceHelper(node).getNonceOf(payer);
+				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
+				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
 				BigInteger gasPrice = getGasPrice();
 
 				if (isStatic)
@@ -254,7 +254,7 @@ public class Call extends AbstractCommand {
 
 		private BigInteger getGasPrice() throws Exception {
 			if ("the current price".equals(Call.this.gasPrice))
-				return new GasHelper(node).getGasPrice();
+				return GasHelpers.of(node).getGasPrice();
 			else {
 				BigInteger gasPrice;
 

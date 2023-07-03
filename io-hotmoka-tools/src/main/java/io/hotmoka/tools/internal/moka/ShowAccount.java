@@ -30,7 +30,7 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.remote.RemoteNode;
@@ -85,7 +85,7 @@ public class ShowAccount extends AbstractCommand {
 	}
 
 	private void showKeys(Account account, Node node) throws Exception {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(account.getReference());
+		SignatureAlgorithm<SignedTransactionRequest> algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(account.getReference());
 		System.out.println("signature type: " + algorithm.getName());
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());

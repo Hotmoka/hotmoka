@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers;
+package io.hotmoka.helpers.internal;
 
 import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
 import static io.hotmoka.beans.types.ClassType.GAMETE;
@@ -40,14 +40,20 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
+import io.hotmoka.helpers.api.GasHelper;
+import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.Signer;
 
 /**
- * An object that helps with sending coins to accounts.
+ * Implementation of an object that helps with sending coins to accounts.
  */
-public class SendCoinsHelper {
+public class SendCoinsHelperImpl implements SendCoinsHelper {
 	private final Node node;
 	private final StorageReference manifest;
 	private final TransactionReference takamakaCode;
@@ -64,39 +70,29 @@ public class SendCoinsHelper {
 	 * @throws TransactionException if some transaction fails
 	 * @throws TransactionRejectedException if some transaction fails
 	 */
-	public SendCoinsHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public SendCoinsHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
-		this.nonceHelper = new NonceHelper(node);
-		this.gasHelper = new GasHelper(node);
+		this.nonceHelper = NonceHelpers.of(node);
+		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
-	/**
-	 * Sends coins to an account, by letting another account pay.
-	 * 
-	 * @param payer the sender of the coins
-	 * @param keysOfPayer the keys of the {@code payer}
-	 * @param destination the destination account
-	 * @param amount the balance to transfer
-	 * @param amountRed the red balance to transfer
-	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
-	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 */
-	public void fromPayer(StorageReference payer, KeyPair keysOfPayer,
+	@Override
+	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
-		Signer signer = Signer.with(signature, keysOfPayer);
+		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
+		var signer = Signer.with(signature, keysOfPayer);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);
 
-		InstanceMethodCallTransactionRequest request1 = new InstanceMethodCallTransactionRequest
+		var request1 = new InstanceMethodCallTransactionRequest
 			(signer,
 			payer, nonceHelper.getNonceOf(payer),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -108,7 +104,7 @@ public class SendCoinsHelper {
 		requestsHandler.accept(new TransactionRequest<?>[] { request1 });
 
 		if (amountRed.signum() > 0) {
-			InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
+			var request2 = new InstanceMethodCallTransactionRequest
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
 				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -121,27 +117,19 @@ public class SendCoinsHelper {
 		}
 	}
 
-	/**
-	 * Sends coins to an account, by letting the faucet of the node pay.
-	 * 
-	 * @param destination the destination account
-	 * @param amount the balance to transfer
-	 * @param amountRed the red balance to transfer
-	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
-	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
-	 */
-	public void fromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
+	@Override
+	public void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
 		gasHandler.accept(_100_000);
 
 		// we use the empty signature algorithm, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
-		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest
+		var request = new InstanceMethodCallTransactionRequest
 			(Signer.with(signature, signature.getKeyPair()),
 			gamete, nonceHelper.getNonceOf(gamete),
 			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,

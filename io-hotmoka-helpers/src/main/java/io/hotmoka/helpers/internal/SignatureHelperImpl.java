@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers;
+package io.hotmoka.helpers.internal;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -23,33 +23,29 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.helpers.ClassLoaderHelper;
+import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
- * An helper to determine the signature algorithm to use for an externally owned account.
+ * Implementation of a helper to determine the signature algorithm to use for an externally owned account.
  */
-public class SignatureHelper {
+public class SignatureHelperImpl implements SignatureHelper {
 	private final Node node;
 	private final ClassLoaderHelper classLoaderHelper;
 
-	public SignatureHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.classLoaderHelper = new ClassLoaderHelper(node);
 	}
 
-	/**
-	 * Yields the signature algorithm to use for signing transactions on behalf of the given account.
-	 * 
-	 * @param account the account
-	 * @return the algorithm
-	 */
+	@Override
 	public SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
-		ClassTag tag = node.getClassTag(account);
+		var tag = node.getClassTag(account);
 
 		// first we try without the class loader, that does not work under Android...
 		if (tag.clazz.equals(ClassType.EOA_ED25519))

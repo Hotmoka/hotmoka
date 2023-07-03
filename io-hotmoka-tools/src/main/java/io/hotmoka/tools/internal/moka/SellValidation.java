@@ -34,9 +34,9 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.GasHelper;
-import io.hotmoka.helpers.NonceHelper;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
@@ -109,18 +109,18 @@ public class SellValidation extends AbstractCommand {
 			passwordOfSeller = ensurePassword(passwordOfSeller, "the seller validator", interactive, false);
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
-				GasHelper gasHelper = new GasHelper(node);
-				NonceHelper nonceHelper = new NonceHelper(node);
+				var gasHelper = GasHelpers.of(node);
+				var nonceHelper = NonceHelpers.of(node);
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
-				StorageReference validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
-				StorageReference seller = new StorageReference(SellValidation.this.seller);
-				SignatureAlgorithm<SignedTransactionRequest> algorithm = new SignatureHelper(node).signatureAlgorithmFor(seller);
+				var seller = new StorageReference(SellValidation.this.seller);
+				SignatureAlgorithm<SignedTransactionRequest> algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				KeyPair keys = readKeys(new Account(seller), node, passwordOfSeller);
-				Signer signer = Signer.with(algorithm, keys);
+				var signer = Signer.with(algorithm, keys);
 
 				askForConfirmation(gasLimit.multiply(BigInteger.TWO));
 

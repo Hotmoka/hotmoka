@@ -35,7 +35,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.OutOfGasError;
@@ -92,7 +92,7 @@ public abstract class AbstractCommand implements Runnable {
 	 */
 	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		StorageReference reference = account.getReference();
-		var algorithm = new SignatureHelper(node).signatureAlgorithmFor(reference);
+		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(reference);
 		var keys = account.keys(password, algorithm);
 
 		try {

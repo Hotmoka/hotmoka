@@ -27,8 +27,9 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.helpers.InitializedNode;
+import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelper;
+import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -133,9 +134,9 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = InitializedNode.of(node, consensus,
+				var initialized = this.initialized = InitializedNodes.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				NodeService service = NodeService.of(networkConfig, node)) {
+				var service = NodeService.of(networkConfig, node)) {
 
 				printManifest();
 				printBanner();

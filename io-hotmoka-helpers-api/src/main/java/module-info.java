@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,15 +15,13 @@ limitations under the License.
 */
 
 /**
- * This module defines helper classes that provide frequently used sets of Hotmoka transactions.
+ * This module defines the API of the helper classes that provide
+ * frequently used sets of Hotmoka transactions.
  */
-module io.hotmoka.helpers {
-	exports io.hotmoka.helpers;
-	requires transitive io.hotmoka.helpers.api;
-	requires transitive io.hotmoka.nodes;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.beans;
-	requires transitive io.hotmoka.crypto;
-	requires io.hotmoka.constants;
+module io.hotmoka.helpers.api {
+	exports io.hotmoka.helpers.api;
+
 	requires io.hotmoka.annotations;
+	requires transitive io.hotmoka.beans;
+	requires io.hotmoka.nodes;
 }

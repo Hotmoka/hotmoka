@@ -31,9 +31,9 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.GasHelper;
-import io.hotmoka.helpers.NonceHelper;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
@@ -88,8 +88,8 @@ public class Install extends AbstractCommand {
 				var payer = new StorageReference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				var gasHelper = new GasHelper(node);
-				var nonceHelper = new NonceHelper(node);
+				var gasHelper = GasHelpers.of(node);
+				var nonceHelper = NonceHelpers.of(node);
 				var bytes = Files.readAllBytes(jar);
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
@@ -98,7 +98,7 @@ public class Install extends AbstractCommand {
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
-				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
+				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger gas;
 				if ("heuristic".equals(gasLimit))
 					gas = _100_000.add(gasForTransactionWhosePayerHasSignature(signature.getName(), node)).add(BigInteger.valueOf(200).multiply(BigInteger.valueOf(bytes.length)));

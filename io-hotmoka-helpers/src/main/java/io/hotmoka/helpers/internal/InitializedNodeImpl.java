@@ -58,7 +58,8 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.helpers.InitializedNode;
+import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
+import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.Node;
 
@@ -79,13 +80,13 @@ public class InitializedNodeImpl implements InitializedNode {
 	private final StorageReference gamete;
 
 	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		BigInteger _200_000 = BigInteger.valueOf(200_000);
-		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
+		var _200_000 = BigInteger.valueOf(200_000);
+		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create the builder of zero validators
-		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING,
 					ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
@@ -98,8 +99,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
-		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
+		var _100_000 = BigInteger.valueOf(100_000);
+		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
@@ -158,14 +159,14 @@ public class InitializedNodeImpl implements InitializedNode {
 		// we create the builder of the gas station
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
-		BigInteger _1_000_000 = BigInteger.valueOf(1_000_000);
-		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
+		var _1_000_000 = BigInteger.valueOf(1_000_000);
+		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
-		ClassType function = new ClassType(Function.class.getName());
+		var function = new ClassType(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
-		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.STRING, BasicTypes.INT,
 				BasicTypes.INT, BasicTypes.LONG,

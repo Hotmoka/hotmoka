@@ -33,6 +33,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
 
@@ -62,7 +63,7 @@ public class MintBurnHelper {
 		this.node = node;
 		StorageReference manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
-		this.nonceHelper = new NonceHelper(node);
+		this.nonceHelper = NonceHelpers.of(node);
 		this.accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _1_000_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

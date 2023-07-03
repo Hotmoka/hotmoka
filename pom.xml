@@ -95,6 +95,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-beans</module>
     <module>io-hotmoka-nodes</module>
     <module>io-hotmoka-helpers</module>
+    <module>io-hotmoka-helpers-api</module>
     <module>io-hotmoka-network</module>
     <module>io-hotmoka-service</module>
     <module>io-hotmoka-ws-client</module>
@@ -281,6 +282,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-remote,
                 io-hotmoka-nodes,
                 io-hotmoka-helpers,
+                io-hotmoka-helpers-api,
                 io-hotmoka-memory,
                 io-hotmoka-patricia,
                 io-hotmoka-service,

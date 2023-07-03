@@ -14,16 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package io.hotmoka.helpers;
+
+import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.helpers.internal.NonceHelperImpl;
+import io.hotmoka.nodes.Node;
+
 /**
- * This module defines helper classes that provide frequently used sets of Hotmoka transactions.
+ * Providers of objects that help with nonce operations.
  */
-module io.hotmoka.helpers {
-	exports io.hotmoka.helpers;
-	requires transitive io.hotmoka.helpers.api;
-	requires transitive io.hotmoka.nodes;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.beans;
-	requires transitive io.hotmoka.crypto;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.annotations;
+public class NonceHelpers {
+	private NonceHelpers() {}
+
+	/**
+	 * Yields an object that helps with nonce operations.
+	 * 
+	 * @param node the node whose accounts are considered
+	 * @return the nonce helper
+	 */
+	public static NonceHelper of(Node node) {
+		return new NonceHelperImpl(node);
+	}
 }

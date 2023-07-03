@@ -22,31 +22,23 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.NoSuchElementException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.helpers.internal.NodeWithJarsImpl;
+import io.hotmoka.helpers.api.JarsNode;
+import io.hotmoka.helpers.internal.JarsNodeImpl;
 import io.hotmoka.nodes.Node;
 
 /**
- * A node that provides access to a set of previously installed jars,
+ * Providers of nodes that provide access to a set of previously installed jars,
  */
 @ThreadSafe
-public interface NodeWithJars extends Node {
+public class JarsNodes {
 
-	/**
-	 * Yields the references, in the store of the node, where the {@code it}th jar has been installed.
-	 * 
-	 * @param i the jar number
-	 * @return the reference to the jar, in the store of the node
-	 * @throws NoSuchElementException if the {@code i}th installed jar does not exist
-	 */
-	TransactionReference jar(int i) throws NoSuchElementException;
+	private JarsNodes() {}
 
 	/**
 	 * Installs the given set of jars in the parent node and
@@ -69,7 +61,7 @@ public interface NodeWithJars extends Node {
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
 	 * @throws ClassNotFoundException 
      */
-	static NodeWithJars of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
-		return new NodeWithJarsImpl(parent, payer, privateKeyOfPayer, jars);
+	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

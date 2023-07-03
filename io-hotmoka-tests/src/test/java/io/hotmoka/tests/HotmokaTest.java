@@ -68,9 +68,10 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.InitializedNode;
-import io.hotmoka.helpers.NodeWithAccounts;
-import io.hotmoka.helpers.NodeWithJars;
+import io.hotmoka.helpers.AccountsNodes;
+import io.hotmoka.helpers.InitializedNodes;
+import io.hotmoka.helpers.JarsNodes;
+import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.nodes.ConsensusParams;
@@ -135,7 +136,7 @@ public abstract class HotmokaTest {
 	 * The node under test. This is a view of {@linkplain #node},
 	 * with the addition of some initial accounts, recreated before each test.
 	 */
-	private NodeWithAccounts nodeWithAccountsView;
+	private AccountsNode nodeWithAccountsView;
 
 	/**
 	 * The nonce of each externally owned account used in the test.
@@ -228,7 +229,7 @@ public abstract class HotmokaTest {
 				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
-	        var local = NodeWithAccounts.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
+	        var local = AccountsNodes.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);
 	        localGamete = local.account(0);
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
@@ -250,7 +251,7 @@ public abstract class HotmokaTest {
 			if (tendermintBlockchain != null)
 				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
 			else
-				InitializedNode.of(node, consensus, takamakaCode);
+				InitializedNodes.of(node, consensus, takamakaCode);
 		}
 	}
 
@@ -266,7 +267,7 @@ public abstract class HotmokaTest {
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException, IOException {
-		MemoryBlockchainConfig config = new MemoryBlockchainConfig.Builder()
+		var config = new MemoryBlockchainConfig.Builder()
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
@@ -300,19 +301,19 @@ public abstract class HotmokaTest {
 	}
 
 	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
-		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins);
+		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
-		nodeWithAccountsView = NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
+		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
 	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
-	protected final static NodeWithAccounts mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
-		return NodeWithAccounts.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
+	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
+		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
 	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
@@ -320,11 +321,11 @@ public abstract class HotmokaTest {
 	}
 
 	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
-		nodeWithAccountsView = NodeWithAccounts.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
+		nodeWithAccountsView = AccountsNodes.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
 	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {
-		HotmokaTest.jar = NodeWithJars.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
+		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
 	protected final TransactionReference takamakaCode() {

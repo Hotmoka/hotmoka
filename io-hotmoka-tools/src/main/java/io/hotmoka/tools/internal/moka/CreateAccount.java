@@ -28,7 +28,8 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.AccountCreationHelper;
+import io.hotmoka.helpers.AccountCreationHelpers;
+import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
@@ -110,7 +111,7 @@ public class CreateAccount extends AbstractCommand {
 					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
 				}
 
-				accountCreationHelper = new AccountCreationHelper(node);
+				accountCreationHelper = AccountCreationHelpers.of(node);
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				Account account = new Account(entropy, accountReference);
 	            System.out.println("A new account " + account + " has been created.");
@@ -125,9 +126,9 @@ public class CreateAccount extends AbstractCommand {
 			
 			try {
 				if (createTendermintValidator)
-					return accountCreationHelper.tendermintValidatorFromFaucet(publicKey, balance, balanceRed, this::printCosts);
+					return accountCreationHelper.tendermintValidatorPaidByFaucet(publicKey, balance, balanceRed, this::printCosts);
 				else
-					return accountCreationHelper.fromFaucet(signatureAlgorithmOfNewAccount, publicKey, balance,  balanceRed, this::printCosts);
+					return accountCreationHelper.paidByFaucet(signatureAlgorithmOfNewAccount, publicKey, balance,  balanceRed, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))
@@ -142,10 +143,10 @@ public class CreateAccount extends AbstractCommand {
 			Account payer = new Account(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
-				return accountCreationHelper.tendermintValidatorFromPayer
+				return accountCreationHelper.tendermintValidatorPaidBy
 					(payer.getReference(), keysOfPayer, publicKey, balance, balanceRed, this::askForConfirmation, this::printCosts);
 			else
-				return accountCreationHelper.fromPayer
+				return accountCreationHelper.paidBy
 					(payer.getReference(), keysOfPayer, signatureAlgorithmOfNewAccount, publicKey,
 					balance, balanceRed, false, this::askForConfirmation, this::printCosts);
 		}

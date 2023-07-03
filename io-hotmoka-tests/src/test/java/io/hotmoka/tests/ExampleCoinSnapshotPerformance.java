@@ -63,8 +63,9 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.helpers.NodeWithAccounts;
-import io.hotmoka.helpers.NonceHelper;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.nodes.Signer;
 
 /**
@@ -189,7 +190,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(ClassType.UNSIGNED_BIG_INTEGER, "toBigInteger", ClassType.BIG_INTEGER);
         private final static ClassType CREATOR = new ClassType("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
-        private final NonceHelper nonceHelper = new NonceHelper(node);
+        private final NonceHelper nonceHelper = NonceHelpers.of(node);
 		private StorageReference creator; // the creator (and owner) of the contract
         private PrivateKey privateKeyOfCreator;
         private StorageReference[] investors;
@@ -202,7 +203,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private final AtomicInteger numberOfBurns = new AtomicInteger();
     	private final AtomicInteger numberOfMints = new AtomicInteger();
     	private final AtomicInteger numberOfTransactions = new AtomicInteger();
-		private NodeWithAccounts nodeWithAccounts;
+		private AccountsNode nodeWithAccounts;
 
     	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;

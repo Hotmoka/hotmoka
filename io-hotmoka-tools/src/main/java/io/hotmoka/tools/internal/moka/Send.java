@@ -23,8 +23,8 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.helpers.AccountCreationHelper;
-import io.hotmoka.helpers.SendCoinsHelper;
+import io.hotmoka.helpers.AccountCreationHelpers;
+import io.hotmoka.helpers.SendCoinsHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
@@ -107,27 +107,27 @@ public class Send extends AbstractCommand {
 		}
 
 		private void sendCoinsFromPayer() throws Exception {
-			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
-			StorageReference payer = new StorageReference(Send.this.payer);
+			var sendCoinsHelper = SendCoinsHelpers.of(node);
+			var payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
-			sendCoinsHelper.fromPayer(payer, keysOfPayer, new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
 		}
 
 		private StorageReference sendCoinsToPublicKey() throws Exception {
-			AccountCreationHelper accountCreationHelper = new AccountCreationHelper(node);
-			StorageReference payer = new StorageReference(Send.this.payer);
+			var accountCreationHelper = AccountCreationHelpers.of(node);
+			var payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
 			var signatureAlgorithmForNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
-			return accountCreationHelper.fromPayer(payer, keysOfPayer, signatureAlgorithmForNewAccount,
+			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
 				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
 				amount, amountRed, anonymous, this::askForConfirmation, this::printCosts);
 		}
 
 		private void sendCoinsFromFaucet() throws Exception {
-			SendCoinsHelper sendCoinsHelper = new SendCoinsHelper(node);
+			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			
 			try {
-				sendCoinsHelper.fromFaucet(new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+				sendCoinsHelper.sendFromFaucet(new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))

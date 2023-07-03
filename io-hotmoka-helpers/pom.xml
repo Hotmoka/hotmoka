@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-helpers</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines helper classes that provide frequently used sets of Hotmoka transactions.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -14,30 +15,35 @@
   </parent>
 
   <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
 	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-beans</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-annotations</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-nodes</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-nodes</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-verification</artifactId>
-        <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
-     <dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-hotmoka-crypto</artifactId>
-        <version>${hotmoka.version}</version>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>
 

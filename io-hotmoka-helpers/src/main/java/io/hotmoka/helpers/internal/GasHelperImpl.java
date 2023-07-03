@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers;
+package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
 
@@ -27,12 +27,13 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.nodes.Node;
 
 /**
  * An object that helps with gas operations.
  */
-public class GasHelper {
+public class GasHelperImpl implements GasHelper {
 	private final Node node;
 	private final StorageReference gasStation;
 
@@ -41,26 +42,22 @@ public class GasHelper {
 	 * 
 	 * @param node the node whose gas is considered
 	 */
-	public GasHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public GasHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		var _100_000 = BigInteger.valueOf(100_000);
 
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
 	}
 
-	/**
-	 * Yields the gas price for a transaction.
-	 * 
-	 * @return the gas price
-	 */
+	@Override
 	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference manifest = node.getManifest();
-		BigInteger _100_000 = BigInteger.valueOf(100_000);
+		var _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).value;
@@ -74,13 +71,7 @@ public class GasHelper {
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
 	}
 
-	/**
-	 * Yields a safe gas price for a transaction, that should be valid
-	 * for a little time, also in case of small changes in the gas price.
-	 * This is simply the double of {@link #getGasPrice()}.
-	 * 
-	 * @return a safe gas price
-	 */
+	@Override
 	public BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return BigInteger.TWO.multiply(getGasPrice());
 	}

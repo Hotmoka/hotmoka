@@ -33,9 +33,9 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.GasHelper;
-import io.hotmoka.helpers.NonceHelper;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
@@ -123,10 +123,10 @@ public class RotateKey extends AbstractCommand {
 			KeyPair keys = readKeys(new Account(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
-			SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(account);
-			BigInteger nonce = new NonceHelper(node).getNonceOf(account);
+			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
+			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
 			BigInteger gasPrice = getGasPrice();
-			var signatureAlgorithmOfAccount = new SignatureHelper(node).signatureAlgorithmFor(account);
+			var signatureAlgorithmOfAccount = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			PublicKey publicKey = entropy.keys(passwordOfAccount, signatureAlgorithmOfAccount).getPublic();
 			String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithmOfAccount.encodingOf(publicKey));
 
@@ -145,7 +145,7 @@ public class RotateKey extends AbstractCommand {
 
 		private BigInteger getGasPrice() throws Exception {
 			if ("the current price".equals(RotateKey.this.gasPrice))
-				return new GasHelper(node).getGasPrice();
+				return GasHelpers.of(node).getGasPrice();
 			else {
 				BigInteger gasPrice;
 

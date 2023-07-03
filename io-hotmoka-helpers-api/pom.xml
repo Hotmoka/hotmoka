@@ -1,0 +1,52 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>io-hotmoka-helpers-api</artifactId>
+  <packaging>jar</packaging>
+  <name>io-hotmoka-helpers-api</name>
+  <version>${hotmoka.version}</version>
+  <description>This module defines the API of the helper classes that provide frequently used sets of Hotmoka transactions.</description>
+
+  <parent>
+    <groupId>io.hotmoka</groupId>
+    <artifactId>hotmoka</artifactId>
+    <version>parent</version>
+  </parent>
+
+  <dependencies>
+  <dependency>
+  	<groupId>io.hotmoka</groupId>
+  	<artifactId>io-hotmoka-annotations</artifactId>
+  	<version>${hotmoka.version}</version>
+  </dependency>
+  <dependency>
+  	<groupId>io.hotmoka</groupId>
+  	<artifactId>io-hotmoka-beans</artifactId>
+  	<version>${hotmoka.version}</version>
+  </dependency>
+  <dependency>
+  	<groupId>io.hotmoka</groupId>
+  	<artifactId>io-hotmoka-nodes</artifactId>
+  	<version>${hotmoka.version}</version>
+  </dependency>
+  </dependencies>
+
+  <profiles>
+	<profile>
+	  <id>release</id>
+      <build>
+	    <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <configuration>
+              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+            </configuration>
+          </plugin>
+	    </plugins>
+      </build>
+	</profile>
+  </profiles>
+
+</project>

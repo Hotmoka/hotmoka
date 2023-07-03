@@ -61,7 +61,9 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.helpers.InitializedNode;
+import io.hotmoka.helpers.InitializedNodes;
+import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
+import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -70,7 +72,7 @@ import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
- * Compared to the {@link io.hotmoka.nodes.views.InitializedNode} interface, this
+ * Compared to the {@link io.hotmoka.helpers.api.views.InitializedNode} interface, this
  * class feeds the initialized node with the chain identifier and the
  * validators set of the underlying Tendermint network.
  */
@@ -113,7 +115,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			.setGenesisTime(poster.getGenesisTime())
 			.build();
 
-		this.parent = InitializedNode.of(parent, consensus, takamakaCode,
+		this.parent = InitializedNodes.of(parent, consensus, takamakaCode,
 			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
@@ -133,7 +135,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		BigInteger _200_000 = BigInteger.valueOf(200_000);
 		String builderClassName = ClassType.TENDERMINT_VALIDATORS + "$Builder";
 
-		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
 				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),

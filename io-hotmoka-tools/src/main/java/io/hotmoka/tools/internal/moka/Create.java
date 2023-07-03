@@ -40,9 +40,9 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelper;
-import io.hotmoka.helpers.GasHelper;
-import io.hotmoka.helpers.NonceHelper;
-import io.hotmoka.helpers.SignatureHelper;
+import io.hotmoka.helpers.GasHelpers;
+import io.hotmoka.helpers.NonceHelpers;
+import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.Signer;
@@ -101,11 +101,11 @@ public class Create extends AbstractCommand {
 			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
-				StorageReference payer = new StorageReference(Create.this.payer);
+				var payer = new StorageReference(Create.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				GasHelper gasHelper = new GasHelper(node);
-				NonceHelper nonceHelper = new NonceHelper(node);
+				var gasHelper = GasHelpers.of(node);
+				var nonceHelper = NonceHelpers.of(node);
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
@@ -115,7 +115,7 @@ public class Create extends AbstractCommand {
 				this.constructor = askForConstructor();
 				askForConfirmation();
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
-				SignatureAlgorithm<SignedTransactionRequest> signature = new SignatureHelper(node).signatureAlgorithmFor(payer);
+				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
 				ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
 						Signer.with(signature, keys),
