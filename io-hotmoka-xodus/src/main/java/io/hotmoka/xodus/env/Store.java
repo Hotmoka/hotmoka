@@ -20,6 +20,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.xodus.ByteIterable;
+import io.hotmoka.xodus.ExodusException;
 
 public class Store {
 	protected final static Logger LOGGER = Logger.getLogger(Store.class.getName());
@@ -29,19 +30,32 @@ public class Store {
 		this.parent = parent;
 	}
 
-	public void put(Transaction txn, ByteIterable key, ByteIterable value) {
-		// TODO: should this throw an IOException?
-		if (!parent.put(txn.toNative(), key.toNative(), value.toNative()))
-			LOGGER.log(Level.SEVERE, "couldn't write key " + key + " into the Xodus store");
+	public void put(Transaction txn, ByteIterable key, ByteIterable value) throws ExodusException {
+		try {
+			if (!parent.put(txn.toNative(), key.toNative(), value.toNative()))
+				LOGGER.log(Level.SEVERE, "couldn't write key " + key + " into the Xodus store");
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public ByteIterable get(Transaction txn, ByteIterable key) {
-		return ByteIterable.fromNative(parent.get(txn.toNative(), key.toNative()));
+	public ByteIterable get(Transaction txn, ByteIterable key) throws ExodusException {
+		try {
+			return ByteIterable.fromNative(parent.get(txn.toNative(), key.toNative()));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public void remove(Transaction txn, ByteIterable key) {
-		// TODO: should this throw an IOException?
-		if (!parent.delete(txn.toNative(), key.toNative()))
-			LOGGER.log(Level.SEVERE, "couldn't delete key " + key + " from the Xodus store");
+	public void remove(Transaction txn, ByteIterable key) throws ExodusException {
+		try {
+			if (!parent.delete(txn.toNative(), key.toNative()))
+				LOGGER.log(Level.SEVERE, "couldn't delete key " + key + " from the Xodus store");
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 }

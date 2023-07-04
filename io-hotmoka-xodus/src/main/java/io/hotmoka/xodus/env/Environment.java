@@ -38,27 +38,57 @@ public class Environment {
 		}
 	}
 
-	public Transaction beginTransaction() {
-		return new Transaction(parent.beginTransaction());
+	public Transaction beginTransaction() throws ExodusException {
+		try {
+			return new Transaction(parent.beginTransaction());
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public void executeInTransaction(Consumer<Transaction> executable) {
-		parent.executeInTransaction(txn -> executable.accept(new Transaction(txn)));
+	public void executeInTransaction(Consumer<Transaction> executable) throws ExodusException {
+		try {
+			parent.executeInTransaction(txn -> executable.accept(new Transaction(txn)));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public void executeInReadonlyTransaction(Consumer<Transaction> executable) {
-		parent.executeInReadonlyTransaction(txn -> executable.accept(new Transaction(txn)));
+	public void executeInReadonlyTransaction(Consumer<Transaction> executable) throws ExodusException {
+		try {
+			parent.executeInReadonlyTransaction(txn -> executable.accept(new Transaction(txn)));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public <T> T computeInReadonlyTransaction(Function<Transaction, T> computable) {
-		return parent.computeInReadonlyTransaction(txn -> computable.apply(new Transaction(txn)));
+	public <T> T computeInReadonlyTransaction(Function<Transaction, T> computable) throws ExodusException {
+		try {
+			return parent.computeInReadonlyTransaction(txn -> computable.apply(new Transaction(txn)));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public <T> T computeInTransaction(Function<Transaction, T> computable) {
-		return parent.computeInTransaction(txn -> computable.apply(new Transaction(txn)));
+	public <T> T computeInTransaction(Function<Transaction, T> computable) throws ExodusException {
+		try {
+			return parent.computeInTransaction(txn -> computable.apply(new Transaction(txn)));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 
-	public Store openStoreWithoutDuplicates(String name, Transaction txn) {
-		return new Store(parent.openStore(name, StoreConfig.WITHOUT_DUPLICATES, txn.toNative()));
+	public Store openStoreWithoutDuplicates(String name, Transaction txn) throws ExodusException {
+		try {
+			return new Store(parent.openStore(name, StoreConfig.WITHOUT_DUPLICATES, txn.toNative()));
+		}
+		catch (jetbrains.exodus.ExodusException e) {
+			throw new ExodusException(e);
+		}
 	}
 }
