@@ -41,7 +41,7 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
-import io.hotmoka.helpers.ManifestHelper;
+import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.ConsensusParams;
@@ -241,7 +241,7 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(initialized));
+			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(initialized));
 		}
 
 		private void dumpInstructionsToBindGamete() {

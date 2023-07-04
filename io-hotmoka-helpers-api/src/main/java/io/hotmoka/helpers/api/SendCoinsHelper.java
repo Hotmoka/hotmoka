@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.function.Consumer;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -32,6 +33,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * An object that helps with sending coins to accounts.
  */
+@ThreadSafe
 public interface SendCoinsHelper {
 
 	/**
@@ -44,6 +46,13 @@ public interface SendCoinsHelper {
 	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
 	 */
 	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
@@ -58,6 +67,13 @@ public interface SendCoinsHelper {
 	 * @param amountRed the red balance to transfer
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 */
 	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)

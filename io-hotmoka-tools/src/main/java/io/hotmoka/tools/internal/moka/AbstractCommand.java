@@ -35,6 +35,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
@@ -133,41 +134,20 @@ public abstract class AbstractCommand implements Runnable {
 		}
 	}
 
-	/**
-	 * A counter of the gas consumed for the execution of a set of requests.
-	 */
-	private static class MyGasCounter extends io.hotmoka.helpers.GasCounter {
-
-		/**
-		 * Creates the counter of the gas consumed for the execution of a set of requests.
-		 * 
-		 * @param node the node that executed the requests
-		 * @param requests the requests
-		 */
-		public MyGasCounter(Node node, TransactionRequest<?>... requests) {
-			super(node, requests);
-		}
-
-		@Override
-		public String toString() {
-			String result = ANSI_CYAN + "Total gas consumed: " + forCPU.add(forRAM).add(forStorage).add(forPenalty) + "\n";
-			result += ANSI_GREEN + "  for CPU: " + forCPU + "\n";
-			result += "  for RAM: " + forRAM + "\n";
-			result += "  for storage: " + forStorage + "\n";
-			result += "  for penalty: " + forPenalty + ANSI_RESET;
-
-			return result;
-		}
-	}
-
 	protected void printCosts(Node node, TransactionRequest<?>... requests) {
-		System.out.println(new MyGasCounter(node, requests));
+		var gasCounter = GasCounters.of(node, requests);
+		String result = ANSI_CYAN + "Total gas consumed: " + gasCounter.total() + "\n";
+		result += ANSI_GREEN + "  for CPU: " + gasCounter.forCPU() + "\n";
+		result += "  for RAM: " + gasCounter.forRAM() + "\n";
+		result += "  for storage: " + gasCounter.forStorage() + "\n";
+		result += "  for penalty: " + gasCounter.forPenalty() + ANSI_RESET;
+		System.out.println(result);
 	}
 
 	protected void yesNo(String message) {
 		System.out.print(message);
 		@SuppressWarnings("resource")
-		Scanner keyboard = new Scanner(System.in);
+		var keyboard = new Scanner(System.in);
 		String answer = keyboard.nextLine();
 		if (!"Y".equals(answer))
 			throw new CommandException("Stopped");

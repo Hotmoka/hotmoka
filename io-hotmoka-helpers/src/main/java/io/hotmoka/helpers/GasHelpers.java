@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -35,6 +35,9 @@ public class GasHelpers {
 	 * 
 	 * @param node the node whose gas is considered
 	 * @return the gas helper
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
 	public static GasHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return new GasHelperImpl(node);

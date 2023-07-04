@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package io.hotmoka.helpers.api;
 
 import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -28,6 +29,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 /**
  * A helper to determine the signature algorithm to use for an externally owned account.
  */
+@ThreadSafe
 public interface SignatureHelper {
 
 	/**
@@ -35,6 +37,11 @@ public interface SignatureHelper {
 	 * 
 	 * @param account the account
 	 * @return the algorithm
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
+	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
 	 */
 	SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException;
 }

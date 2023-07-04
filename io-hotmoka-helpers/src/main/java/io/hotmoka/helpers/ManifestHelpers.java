@@ -16,29 +16,32 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.helpers.api.SignatureHelper;
-import io.hotmoka.helpers.internal.SignatureHelperImpl;
+import io.hotmoka.helpers.api.ManifestHelper;
+import io.hotmoka.helpers.internal.ManifestHelperImpl;
 import io.hotmoka.nodes.Node;
 
 /**
- * Providers of helpers to determine the signature algorithm to use for an externally owned account.
+ * Providers of helpers for accessing the manifest of a node.
  */
-public class SignatureHelpers {
-	private SignatureHelpers() {}
+@ThreadSafe
+public class ManifestHelpers {
+
+	private ManifestHelpers() {}
 
 	/**
-	 * Yields a signature helper for the given node.
+	 * Yields an object that helps with the access to the manifest of a node.
 	 * 
-	 * @param node the node
-	 * @return the signature helper
+	 * @param node the node whose manifest is considered
+	 * @return the helper
 	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
 	 * @throws TransactionException if some transaction that installs the jars fails
 	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
 	 */
-	public static SignatureHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return new SignatureHelperImpl(node);
+	public static ManifestHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return new ManifestHelperImpl(node);
 	}
 }

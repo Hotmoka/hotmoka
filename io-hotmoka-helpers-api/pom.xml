@@ -15,21 +15,26 @@
   </parent>
 
   <dependencies>
-  <dependency>
-  	<groupId>io.hotmoka</groupId>
-  	<artifactId>io-hotmoka-annotations</artifactId>
-  	<version>${hotmoka.version}</version>
-  </dependency>
-  <dependency>
-  	<groupId>io.hotmoka</groupId>
-  	<artifactId>io-hotmoka-beans</artifactId>
-  	<version>${hotmoka.version}</version>
-  </dependency>
-  <dependency>
-  	<groupId>io.hotmoka</groupId>
-  	<artifactId>io-hotmoka-nodes</artifactId>
-  	<version>${hotmoka.version}</version>
-  </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+  	  <artifactId>io-hotmoka-annotations</artifactId>
+  	  <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+  	  <groupId>io.hotmoka</groupId>
+  	  <artifactId>io-hotmoka-beans</artifactId>
+  	  <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+  	  <groupId>io.hotmoka</groupId>
+  	  <artifactId>io-hotmoka-nodes</artifactId>
+  	  <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+  	  <groupId>io.hotmoka</groupId>
+  	  <artifactId>io-hotmoka-verification-api</artifactId>
+  	  <version>${hotmoka.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

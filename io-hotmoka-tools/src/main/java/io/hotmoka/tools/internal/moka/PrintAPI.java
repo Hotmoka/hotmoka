@@ -30,7 +30,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.helpers.ClassLoaderHelper;
+import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -40,7 +40,7 @@ class PrintAPI {
 	private final WhiteListingWizard whiteListingWizard;
 
 	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(tag.jar);
+		TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(tag.jar);
 		this.clazz = classloader.loadClass(tag.clazz.name);
 		this.whiteListingWizard = classloader.getWhiteListingWizard();
 		printConstructors();

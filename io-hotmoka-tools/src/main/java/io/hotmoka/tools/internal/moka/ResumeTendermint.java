@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.helpers.ManifestHelper;
+import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -87,7 +87,7 @@ public class ResumeTendermint extends AbstractCommand {
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\nThe following node has been restarted:\n" + new ManifestHelper(node));
+			System.out.println("\nThe following node has been restarted:\n" + ManifestHelpers.of(node));
 		}
 	}
 }

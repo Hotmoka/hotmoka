@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -58,8 +58,8 @@ public class AccountsNodes {
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
-	 * @throws ClassNotFoundException 
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
      */
 	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), false, funds);
@@ -85,7 +85,7 @@ public class AccountsNodes {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
      */
 	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, containerClassName, classpath, false, funds);
@@ -108,7 +108,7 @@ public class AccountsNodes {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
      */
 	public static AccountsNode ofGreenRed(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), true, funds);

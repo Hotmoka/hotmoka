@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class JarsNodes {
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
-	 * @throws ClassNotFoundException 
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
      */
 	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);

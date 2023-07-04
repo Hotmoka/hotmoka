@@ -43,7 +43,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.ClassLoaderHelper;
+import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -126,7 +126,7 @@ public class Call extends AbstractCommand {
 				else
 					this.classpath = new LocalTransactionReference(Call.this.classpath);
 
-				this.classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
+				this.classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.receiver = computeReceiver();
 				this.clazz = getClassOfReceiver();
 				this.whiteListingWizard = classloader.getWhiteListingWizard();

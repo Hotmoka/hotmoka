@@ -14,23 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers.api;
+package io.hotmoka.helpers;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.helpers.internal.GasCounterImpl;
 import io.hotmoka.nodes.Node;
 
 /**
- * A node where the jar with the basic Takamaka classes have been installed,
- * along with a gamete and a manifest.
+ * Providers of counters of the gas consumed for the execution of a set of requests.
  */
 @ThreadSafe
-public interface InitializedNode extends Node {
+public class GasCounters {
+
+	private GasCounters() {}
 
 	/**
-	 * Yields the storage reference of the gamete that has been created.
+	 * Yields a counter of the gas consumed for the execution of a set of requests.
 	 * 
-	 * @return the storage reference of the gamete
+	 * @param node the node that executed the requests
+	 * @param requests the requests
+	 * @return the gas counter
 	 */
-	StorageReference gamete();
+	public static GasCounter of(Node node, TransactionRequest<?>... requests) {
+		return new GasCounterImpl(node, requests);
+	}
 }

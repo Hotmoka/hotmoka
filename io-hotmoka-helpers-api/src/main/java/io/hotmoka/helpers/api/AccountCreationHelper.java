@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.function.Consumer;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -35,6 +36,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 /**
  * An object that helps with the creation of new accounts.
  */
+@ThreadSafe
 public interface AccountCreationHelper {
 
 	/**
@@ -46,6 +48,11 @@ public interface AccountCreationHelper {
 	 * @param balanceRed the red balance of the new account
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
@@ -65,6 +72,13 @@ public interface AccountCreationHelper {
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the account
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws ClassNotFoundException if the class of the payer is unknown
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
@@ -81,6 +95,12 @@ public interface AccountCreationHelper {
 	 * @param balanceRed the red balance of the new validator
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the validator
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
@@ -97,6 +117,13 @@ public interface AccountCreationHelper {
 	 * @param gasHandler a handler called with the total gas used for this operation. This can be useful for logging
 	 * @param requestsHandler a handler called with the paid requests used for this operation. This can be useful for logging or computing costs
 	 * @return the storage reference of the new validator
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InvalidKeyException if the key is invalid
+	 * @throws SignatureException if some signature failed
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws ClassNotFoundException if the class of the payer is unknown
 	 */
 	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,

@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers;
+package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -40,30 +39,31 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.nodes.Node;
 
 /**
- * An object that helps with the access to the manifest of a node.
+ * Implementation of an object that helps with the access to the manifest of a node.
  */
-public class ManifestHelper {
+public class ManifestHelperImpl implements ManifestHelper {
 	private final Node node;
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
-	public final StorageReference gasStation;
-	public final TransactionReference takamakaCode;
-	public final StorageReference manifest;
-	public final StorageReference versions;
-	public final StorageReference validators;
-	public final StorageReference initialValidators;
-	public final StorageReference accountsLedger;
-	public final StorageReference gamete;
+	private final StorageReference gasStation;
+	private final TransactionReference takamakaCode;
+	private final StorageReference manifest;
+	private final StorageReference versions;
+	private final StorageReference validators;
+	private final StorageReference initialValidators;
+	private final StorageReference accountsLedger;
+	private final StorageReference gamete;
 
 	/**
 	 * Creates an object that helps with the access to the manifest of a node.
 	 * 
 	 * @param node the node whose manifest is considered
 	 */
-	public ManifestHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public ManifestHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();
@@ -81,14 +81,55 @@ public class ManifestHelper {
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 	}
 
-	public String getChainId() throws NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	@Override
+	public TransactionReference getTakamakaCode() {
+		return takamakaCode;
+	}
+
+	@Override
+	public StorageReference getAccountsLedger() {
+		return accountsLedger;
+	}
+
+	@Override
+	public StorageReference getInitialValidators() {
+		return initialValidators;
+	}
+
+	@Override
+	public StorageReference getValidators() {
+		return validators;
+	}
+
+	@Override
+	public StorageReference getManifest() {
+		return manifest;
+	}
+
+	@Override
+	public StorageReference getVersions() {
+		return versions;
+	}
+
+	@Override
+	public StorageReference getGamete() {
+		return gamete;
+	}
+
+	@Override
+	public StorageReference getGasStation() {
+		return gasStation;
+	}
+
+	@Override
+	public String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
+		var builder = new StringBuilder();
 
 		try {
 			builder.append("├─ takamakaCode: ").append(takamakaCode).append("\n");
@@ -197,13 +238,13 @@ public class ManifestHelper {
 			
 			builder.append("   ├─ validators: ").append(validators).append("\n");
 
-			StorageReference shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			var shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), validators));
 
 			int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 
-			StorageReference offers = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			var offers = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY, "getOffers", ClassType.STORAGE_SET_VIEW), validators));
 
 			int numOfOffers = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -231,16 +272,16 @@ public class ManifestHelper {
 
 			builder.append("   │  ├─ number of validators: ").append(numOfValidators).append("\n");
 
-			StorageReference[] validatorsArray = new StorageReference[numOfValidators];
+			var validatorsArray = new StorageReference[numOfValidators];
 			for (int num = 0; num < numOfValidators; num++)
 				validatorsArray[num] = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 			Map<StorageReference, SortedSet<StorageReference>> offersPerValidator = new HashMap<>();
 			for (int num = 0; num < numOfOffers; num++) {
-				StorageReference offer = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var offer = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), offers, new IntValue(num)));
-				StorageReference seller = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var seller = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSeller", ClassType.PAYABLE_CONTRACT), offer));
 
 				// the set of offers might contain expired offers since it gets updated lazily
@@ -293,7 +334,7 @@ public class ManifestHelper {
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
-						Date expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+						var expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
 						StorageValue buyer = node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getBuyer", ClassType.PAYABLE_CONTRACT), offer));
@@ -377,7 +418,7 @@ public class ManifestHelper {
 				builder.append("   │  ├─ number of polls: ").append(numOfPolls).append("\n");
 
 			for (int num = 0; num < numOfPolls; num++) {
-				StorageReference poll = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var poll = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), polls, new IntValue(num)));
 
 				boolean isLast = num == numOfPolls - 1;
@@ -410,7 +451,7 @@ public class ManifestHelper {
 				builder.append("   │  ├─ number of initial validators: ").append(numOfInitialValidators).append("\n");
 
 			for (int num = 0; num < numOfInitialValidators; num++) {
-				StorageReference validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 				boolean isLast = num == numOfInitialValidators - 1;

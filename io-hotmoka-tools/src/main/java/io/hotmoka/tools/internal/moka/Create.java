@@ -39,7 +39,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.ClassLoaderHelper;
+import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -109,7 +109,7 @@ public class Create extends AbstractCommand {
 				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
-				TakamakaClassLoader classloader = new ClassLoaderHelper(node).classloaderFor(classpath);
+				TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.clazz = classloader.loadClass(className);
 				this.whiteListingWizard = classloader.getWhiteListingWizard();
 				this.constructor = askForConstructor();
@@ -117,7 +117,7 @@ public class Create extends AbstractCommand {
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
 				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-				ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
+				var request = new ConstructorCallTransactionRequest(
 						Signer.with(signature, keys),
 						payer,
 						nonceHelper.getNonceOf(payer),

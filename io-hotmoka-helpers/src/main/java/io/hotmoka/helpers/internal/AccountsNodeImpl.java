@@ -111,8 +111,8 @@ public class AccountsNodeImpl implements AccountsNode {
 	 * @throws CodeExecutionException if some transaction that creates the accounts throws an exception
 	 * @throws SignatureException if some request could not be signed
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
-	 * @throws NoSuchAlgorithmException 
-	 * @throws ClassNotFoundException 
+	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
+	 * @throws ClassNotFoundException if the class of the payer cannot be determined
 	 */
 	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 		this.parent = parent;

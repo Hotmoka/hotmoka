@@ -28,7 +28,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.GasHelpers;
-import io.hotmoka.helpers.ManifestHelper;
+import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
@@ -76,8 +76,8 @@ public class Faucet extends AbstractCommand {
 		}
 
 		private void openFaucet() throws Exception {
-			ManifestHelper manifestHelper = new ManifestHelper(node);
-			StorageReference gamete = manifestHelper.gamete;
+			var manifestHelper = ManifestHelpers.of(node);
+			StorageReference gamete = manifestHelper.getGamete();
 			KeyPair keys;
 
 			try {

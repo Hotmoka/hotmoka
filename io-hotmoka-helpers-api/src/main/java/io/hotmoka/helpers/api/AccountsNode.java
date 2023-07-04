@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ public interface AccountsNode extends Node {
 	/**
 	 * Yields the accounts.
 	 * 
-	 * @return the references to the accounts. This is an instance of {@link io.takamaka.code.lang.Accounts}
+	 * @return the references to the accounts. This is an instance of {@code io.takamaka.code.lang.Accounts}
 	 */
 	Stream<StorageReference> accounts();
 
@@ -55,7 +55,7 @@ public interface AccountsNode extends Node {
 	 * Yields the {@code i}th account.
 	 * 
 	 * @param i the account number
-	 * @return the reference to the account, in the store of the node. This is an {@link io.takamaka.code.lang.ExternallyOwnedAccount}
+	 * @return the reference to the account, in the store of the node. This is an {@code io.takamaka.code.lang.ExternallyOwnedAccount}
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
 	 */
 	StorageReference account(int i) throws NoSuchElementException;

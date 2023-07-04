@@ -19,27 +19,28 @@ package io.hotmoka.helpers;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.helpers.api.SendCoinsHelper;
-import io.hotmoka.helpers.internal.SendCoinsHelperImpl;
+import io.hotmoka.helpers.api.ClassLoaderHelper;
+import io.hotmoka.helpers.internal.ClassLoaderHelperImpl;
 import io.hotmoka.nodes.Node;
 
 /**
- * Providers of objects that help with sending coins to accounts.
+ * Providers of helpers for building class loaders for the jar installed at a given
+ * transaction reference inside a node.
  */
-public class SendCoinsHelpers {
+public class ClassLoaderHelpers {
 
-	private SendCoinsHelpers() {}
+	private ClassLoaderHelpers() {}
 
 	/**
-	 * Yields an object that helps with sending coins to accounts.
+	 * Yields a helper object for building class loaders for jars installed in the given node.
 	 * 
-	 * @param node the node whose accounts are considered
+	 * @param node the node
 	 * @return the helper object
-	 * @throws CodeExecutionException if some transaction fails
-	 * @throws TransactionException if some transaction fails
-	 * @throws TransactionRejectedException if some transaction fails
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
-	public static SendCoinsHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return new SendCoinsHelperImpl(node);
+	public static ClassLoaderHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return new ClassLoaderHelperImpl(node);
 	}
 }

@@ -14,13 +14,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.helpers;
+package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
@@ -31,15 +29,16 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
- * A helper class for building class loaders for the jar installed at a given
+ * Implementation of a helper object for building class loaders for the jar installed at a given
  * transaction reference inside a node.
  */
-public class ClassLoaderHelper {
+public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	private final Node node;
 	private final StorageReference manifest;
 	private final TransactionReference takamakaCode;
@@ -50,8 +49,11 @@ public class ClassLoaderHelper {
 	 * Creates the helper class for building class loaders for jars installed in the given node.
 	 * 
 	 * @param node the node
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
-	public ClassLoaderHelper(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public ClassLoaderHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -59,24 +61,17 @@ public class ClassLoaderHelper {
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_VERSIONS, manifest));
 	}
 
-	/**
-	 * Yields the class loader for the jar installed at the given reference
-	 * (including its dependencies).
-	 * 
-	 * @param jar the reference inside the node
-	 * @return the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 */
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
-		List<TransactionReference> ws = new ArrayList<>();
-		Set<TransactionReference> seen = new HashSet<>();
-		List<byte[]> jars = new ArrayList<>();
+	@Override
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		var ws = new ArrayList<TransactionReference>();
+		var seen = new HashSet<TransactionReference>();
+		var jars = new ArrayList<byte[]>();
 		ws.add(jar);
 		seen.add(jar);
 
 		do {
 			TransactionReference current = ws.remove(ws.size() - 1);
-			AbstractJarStoreTransactionRequest request = (AbstractJarStoreTransactionRequest) node.getRequest(current);
+			var request = (AbstractJarStoreTransactionRequest) node.getRequest(current);
 			jars.add(request.getJar());
 			request.getDependencies().filter(seen::add).forEachOrdered(ws::add);
 		}

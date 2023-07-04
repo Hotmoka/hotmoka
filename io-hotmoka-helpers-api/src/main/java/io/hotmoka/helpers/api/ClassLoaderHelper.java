@@ -16,38 +16,30 @@ limitations under the License.
 
 package io.hotmoka.helpers.api;
 
-import java.math.BigInteger;
-
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
- * An object that helps with gas operations.
+ * A helper object for building class loaders for the jar installed at a given
+ * transaction reference inside a node.
  */
 @ThreadSafe
-public interface GasHelper {
+public interface ClassLoaderHelper {
 
 	/**
-	 * Yields the gas price for a transaction.
+	 * Yields the class loader for the jar installed at the given reference
+	 * (including its dependencies).
 	 * 
-	 * @return the gas price
+	 * @param jar the reference inside the node
+	 * @return the class loader
+	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
-	BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException;
-
-	/**
-	 * Yields a safe gas price for a transaction, that should be valid
-	 * for a little time, also in case of small changes in the gas price.
-	 * This is simply the double of {@link #getGasPrice()}.
-	 * 
-	 * @return a safe gas price
-	 * @throws TransactionRejectedException if some transaction was rejected
-	 * @throws TransactionException if some transaction failed
-	 * @throws CodeExecutionException if some transaction generated an exception
-	 */
-	BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	TakamakaClassLoader classloaderFor(TransactionReference jar) throws TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException;
 }

@@ -25,7 +25,8 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.helpers.ClassLoaderHelper;
+import io.hotmoka.helpers.ClassLoaderHelpers;
+import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
@@ -40,7 +41,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 
 	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;
-		this.classLoaderHelper = new ClassLoaderHelper(node);
+		this.classLoaderHelper = ClassLoaderHelpers.of(node);
 	}
 
 	@Override

@@ -41,6 +41,9 @@ public class GasHelperImpl implements GasHelper {
 	 * Creates an object that helps with gas operations.
 	 * 
 	 * @param node the node whose gas is considered
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
 	public GasHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		this.node = node;

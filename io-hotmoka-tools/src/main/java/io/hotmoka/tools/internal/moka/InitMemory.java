@@ -28,7 +28,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.helpers.ManifestHelper;
+import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
@@ -161,7 +161,7 @@ public class InitMemory extends AbstractCommand {
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			System.out.println("\nThe following node has been initialized:\n" + new ManifestHelper(node));
+			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(node));
 		}
 
 		private void dumpInstructionsToBindGamete() {

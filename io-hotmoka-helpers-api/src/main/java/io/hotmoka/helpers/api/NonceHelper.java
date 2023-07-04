@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package io.hotmoka.helpers.api;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 
+import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -27,6 +28,7 @@ import io.hotmoka.beans.values.StorageReference;
 /**
  * An object that helps with nonce operations.
  */
+@ThreadSafe
 public interface NonceHelper {
 
 	/**
@@ -34,6 +36,10 @@ public interface NonceHelper {
 	 * 
 	 * @param account the account
 	 * @return the nonce of {@code account}
+	 * @throws TransactionRejectedException if some transaction was rejected
+	 * @throws TransactionException if some transaction failed
+	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws NoSuchElementException if the class of the account cannot be determined
 	 */
 	BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException;
 }

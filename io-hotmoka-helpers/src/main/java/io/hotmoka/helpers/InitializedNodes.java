@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class InitializedNodes {
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
 	 * @param takamakaCode the jar containing the basic Takamaka classes
-	 * @return a decorated view of {@code parent}
+	 * @return an initialized view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
@@ -74,6 +74,7 @@ public class InitializedNodes {
 	 *                                    if this is {@code null}, a generic empty validators set is created
 	 * @param producerOfGasStation an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
 	 *                             if this is {@code null}, a generic gas station is created
+	 * @return an initialized view of {@code parent}
 	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
 	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
 	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
@@ -100,6 +101,12 @@ public class InitializedNodes {
 		 * @param consensus the consensus parameters of the node
 		 * @param takamakaCodeReference the reference to the transaction that installed the Takamaka base classes in the node
 		 * @return the reference of the object
+		 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+		 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+		 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
+		 * @throws SignatureException if some initialization request could not be signed
+		 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
+		 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 		 */
 		StorageReference apply(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
 	}

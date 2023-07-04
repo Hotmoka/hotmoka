@@ -23,8 +23,8 @@ import java.util.Base64;
 
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.helpers.ManifestHelper;
-import io.hotmoka.helpers.MintBurnHelper;
+import io.hotmoka.helpers.ManifestHelpers;
+import io.hotmoka.helpers.MintBurnHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
@@ -75,8 +75,8 @@ public class Burn extends AbstractCommand {
 		}
 
 		private void burn() throws Exception {
-			ManifestHelper manifestHelper = new ManifestHelper(node);
-			StorageReference gamete = manifestHelper.gamete;
+			var manifestHelper = ManifestHelpers.of(node);
+			StorageReference gamete = manifestHelper.getGamete();
 			KeyPair keys;
 
 			try {
@@ -90,7 +90,7 @@ public class Burn extends AbstractCommand {
 			// from Base58 to Base64
 			String publicKeyOfAccountBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(keyOfAccount));
 
-			StorageReference account = new MintBurnHelper(node).burn(keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
+			StorageReference account = MintBurnHelpers.of(node).burn(keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
 
 			System.out.println("Burned " + amount + " coins from account " + account);
 		}
