@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -55,8 +54,8 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args));
 
-		if (check(UncheckedClassNotFoundException.class, () ->
-			methods.anyMatch(uncheck(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
+		if (check2(ClassNotFoundException.class, () ->
+			methods.anyMatch(uncheck2(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
 			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	
 		Class<?> superclass = clazz.getSuperclass();

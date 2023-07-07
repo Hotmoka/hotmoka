@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.lang.reflect.Executable;
 import java.util.HashSet;
@@ -52,7 +52,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.api.Bootstraps;
 
 /**
@@ -307,8 +306,8 @@ public class BootstrapsImpl implements Bootstraps {
 		int initialSize;
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
-			check(UncheckedClassNotFoundException.class, () -> getBootstraps()
-				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
+			check2(ClassNotFoundException.class, () -> getBootstraps()
+				.filter(uncheck2(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
 				.forEach(bootstrapMethodsLeadingToEntries::add));
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
@@ -325,9 +324,9 @@ public class BootstrapsImpl implements Bootstraps {
 		// (that is, a lambda can call another lambda); we use a working set that starts
 		// with the @Entry methods
 		LinkedList<MethodGen> ws = new LinkedList<>();
-		check(UncheckedClassNotFoundException.class, () ->
+		check2(ClassNotFoundException.class, () ->
 			Stream.of(methods)
-				.filter(uncheck(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck2(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEach(ws::add)
 		);
 
@@ -363,8 +362,8 @@ public class BootstrapsImpl implements Bootstraps {
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
-				return check(UncheckedClassNotFoundException.class, () ->
-					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
+				return check2(ClassNotFoundException.class, () ->
+					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck2(this::leadsToEntry))
 				);
 		}
 

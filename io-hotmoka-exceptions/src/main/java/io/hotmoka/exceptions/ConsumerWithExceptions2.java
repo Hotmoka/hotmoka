@@ -17,8 +17,14 @@ limitations under the License.
 package io.hotmoka.exceptions;
 
 /**
- * A predicate that might throw exceptions.
+ * A consumer that might throw exceptions.
  */
-public interface PredicateWithExceptions<T> {
-	boolean test(T t) throws Exception;
+public interface ConsumerWithExceptions2<T> {
+
+	/**
+	 * Consumes the given argument.
+	 *
+	 * @param t the argument
+	 */
+	void accept(T t) throws Exception;
 }

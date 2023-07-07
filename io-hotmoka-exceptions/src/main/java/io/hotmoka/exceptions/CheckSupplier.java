@@ -23,6 +23,54 @@ import java.util.function.Supplier;
 public abstract class CheckSupplier {
 
 	@SuppressWarnings("unchecked")
+	public static <R, E extends Exception> R check2(Class<E> exception, Supplier<R> supplier) throws E {
+		try {
+			return supplier.get();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception.isInstance(cause))
+				throw (E) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <R, E1 extends Exception, E2 extends Exception> R check2(Class<E1> exception1, Class<E2> exception2, Supplier<R> supplier) throws E1, E2 {
+		try {
+			return supplier.get();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (E1) cause;
+			else if (exception2.isInstance(cause))
+				throw (E2) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <R, E1 extends Exception, E2 extends Exception, E3 extends Exception> R check2(Class<E1> exception1, Class<E2> exception2, Class<E3> exception3, Supplier<R> supplier) throws E1, E2, E3 {
+		try {
+			return supplier.get();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (E1) cause;
+			else if (exception2.isInstance(cause))
+				throw (E2) cause;
+			else if (exception3.isInstance(cause))
+				throw (E3) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	public static <R, CX extends Exception, X extends UncheckedException<CX>> R check(Class<X> exception1, Supplier<R> supplier) throws CX {
 
 		try {

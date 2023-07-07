@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -52,12 +51,12 @@ public class FromContractCodeIsConsistentWithClassHierarchyCheck extends CheckOn
 		Class<?> rt = bcelToClass.of(methodReturnType);
 		Class<?>[] args = bcelToClass.of(methodArgs);
 
-		if (check(UncheckedClassNotFoundException.class, () ->
+		if (check2(ClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
+				.anyMatch(uncheck2(m -> !compatibleFromContracts(contractTypeForEntry, annotations.getFromContractArgument(clazz.getName(), methodName, methodArgs, methodReturnType))))
 			))
 			issue(new InconsistentFromContractError(inferSourceFile(), methodName, clazz.getName()));
 

@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -27,7 +27,6 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalStaticInitializationError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -47,9 +46,9 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 				// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
 				// in such classes, hence we do at least avoid the existence of extra static fields
 				Class<?> clazz = classLoader.loadClass(className);
-				check(UncheckedClassNotFoundException.class, () ->
+				check2(ClassNotFoundException.class, () ->
 					Stream.of(clazz.getDeclaredFields())
-						.filter(uncheck(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
+						.filter(uncheck2(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 								&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field))))
 						.findAny()
 						.ifPresent(field -> issue(new IllegalStaticInitializationError(inferSourceFile(), methodName, lineOf(instructions().findFirst().get()))))
@@ -60,9 +59,9 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 	}
 
 	private boolean hasExplicitConstantValue(Field field) throws ClassNotFoundException {
-		return check(UncheckedClassNotFoundException.class, () ->
+		return check2(ClassNotFoundException.class, () ->
 			getFields()
-				.filter(uncheck(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType()))
+				.filter(uncheck2(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType()))
 				.allMatch(f -> f.getConstantValue() != null)
 		);
 	}

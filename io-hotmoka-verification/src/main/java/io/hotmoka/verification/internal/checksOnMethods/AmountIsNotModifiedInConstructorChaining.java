@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -41,7 +41,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalModificationOfAmountInConstructorChaining;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -56,9 +55,9 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
-			check(UncheckedClassNotFoundException.class, () ->
+			check2(ClassNotFoundException.class, () ->
 				instructions()
-					.filter(uncheck(this::callsPayableFromContractConstructorOnThis))
+					.filter(uncheck2(this::callsPayableFromContractConstructorOnThis))
 					.filter(this::amountMightBeChanged)
 					.map(ih -> new IllegalModificationOfAmountInConstructorChaining(inferSourceFile(), method.getName(), lineOf(method, ih)))
 					.forEachOrdered(this::issue)

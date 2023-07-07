@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import org.apache.bcel.Const;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.InconsistentRedPayableError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -50,12 +49,12 @@ public class RedPayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMe
 		Class<?>[] args = bcelToClass.of(methodArgs);
 		Class<?> rt = bcelToClass.of(methodReturnType);
 
-		if (check(UncheckedClassNotFoundException.class, () ->
+		if (check2(ClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck2(m -> wasRedPayable != annotations.isRedPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentRedPayableError(inferSourceFile(), methodName, clazz.getName()));
 	

@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.UncheckConsumer.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -47,7 +47,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
@@ -72,7 +71,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		if (isStorage)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		check(UncheckedClassNotFoundException.class, () -> {
+		check2(ClassNotFoundException.class, () -> {
 			// 1) from contract code cannot be called from a static context
 			getMethods()
 				// we do not consider as static those lambdas that are apparently static, just because the compiler
@@ -80,7 +79,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> (method.isStatic() && !lambdasUnreachableFromStaticMethods.contains(method)))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(uncheck(this::callsFromContract))
+						.filter(uncheck2(this::callsFromContract))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -90,7 +89,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !isContract)
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(uncheck(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
+						.filter(uncheck2(ih -> callsFromContract(ih) && (method.isStatic() || !callsFromContractOnThis(ih, method.getInstructionList()))))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -101,7 +100,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !method.isStatic())
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck2(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -109,10 +108,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			// from contract code called on this can only be called by @FromContract code 
 			getMethods()
 				.filter(method -> !method.isStatic())
-				.forEachOrdered(uncheck(method -> {
+				.forEachOrdered(uncheck2(method -> {
 					boolean isInsideFromContract = bootstraps.isPartOfFromContract(method) || annotations.isFromContract(className, method.getName(), method.getArgumentTypes(), method.getReturnType());
 					instructionsOf(method)
-						.filter(uncheck(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(uncheck2(ih -> !isInsideFromContract && callsFromContractOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractOnThisError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue);
 				}));
@@ -121,10 +120,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			getMethods()
 				.filter(method -> !method.isStatic())
 				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck2(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck2(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
@@ -133,10 +132,10 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 			getMethods()
 				.filter(method -> !method.isStatic())
 				.filter(method -> method.getName().equals(Const.CONSTRUCTOR_NAME))
-				.filter(uncheck(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck2(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck2(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);

@@ -16,37 +16,22 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Predicate;
 
 /**
  */
 public abstract class UncheckPredicate {
 
-	public static <T> Predicate<T> uncheck(PredicateWithExceptions<T> wrapped) {
+	public static <T> Predicate<T> uncheck2(PredicateWithExceptions<T> wrapped) {
 		return new Predicate<>() {
-
+	
 			@Override
 			public boolean test(T t) {
 				try {
 					return wrapped.test(t);
 				}
-				catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-				catch (NoSuchAlgorithmException e) {
-					throw new UncheckedNoSuchAlgorithmException(e);
-				}
-				catch (InterruptedException e) {
-					throw new UncheckedInterruptedException(e);
-				}
-				catch (URISyntaxException e) {
-					throw new UncheckedURISyntaxException(e);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UncheckedClassNotFoundException(e);
+				catch (Exception e) {
+					throw new UncheckedException2(e);
 				}
 			}
 		};

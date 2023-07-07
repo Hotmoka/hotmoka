@@ -21,6 +21,54 @@ package io.hotmoka.exceptions;
 public abstract class CheckRunnable {
 
 	@SuppressWarnings("unchecked")
+	public static <E extends Exception> void check2(Class<E> exception, Runnable runnable) throws E {
+		try {
+			runnable.run();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception.isInstance(cause))
+				throw (E) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <E1 extends Exception, E2 extends Exception> void check2(Class<E1> exception1, Class<E2> exception2, Runnable runnable) throws E1, E2 {
+		try {
+			runnable.run();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (E1) cause;
+			else if (exception2.isInstance(cause))
+				throw (E2) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <E1 extends Exception, E2 extends Exception, E3 extends Exception> void check2(Class<E1> exception1, Class<E2> exception2, Class<E3> exception3, Runnable runnable) throws E1, E2, E3 {
+		try {
+			runnable.run();
+		}
+		catch (UncheckedException2 e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (E1) cause;
+			else if (exception2.isInstance(cause))
+				throw (E2) cause;
+			else if (exception3.isInstance(cause))
+				throw (E3) cause;
+			else
+				throw e;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
 	public static <CX extends Exception, X extends UncheckedException<CX>> void check(Class<X> exception1, Runnable runnable) throws CX {
 
 		try {

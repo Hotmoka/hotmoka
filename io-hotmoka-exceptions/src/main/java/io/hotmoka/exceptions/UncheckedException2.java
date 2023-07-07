@@ -17,8 +17,18 @@ limitations under the License.
 package io.hotmoka.exceptions;
 
 /**
- * A predicate that might throw exceptions.
+ * A wrapper for an exception that has been made into unchecked.
  */
-public interface PredicateWithExceptions<T> {
-	boolean test(T t) throws Exception;
+public final class UncheckedException2 extends RuntimeException {
+
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Creates the exception.
+	 * 
+	 * @param cause the wrapped cause
+	 */
+	public UncheckedException2(Exception cause) {
+		super(cause);
+	}
 }
