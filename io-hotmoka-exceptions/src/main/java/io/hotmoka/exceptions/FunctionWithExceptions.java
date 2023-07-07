@@ -18,7 +18,18 @@ package io.hotmoka.exceptions;
 
 /**
  * A function that might throw exceptions.
+ * 
+ * @param <T> the type of the parameter of the function
+ * @param <R> the type of the result of the function
  */
 public interface FunctionWithExceptions<T, R> {
-	R apply(T t) throws Exception;
+
+	/**
+	 * Applies the function.
+	 * 
+	 * @param t the argument to the function
+	 * @return the result of the function
+	 * @throws any exception thrown by the function
+	 */
+	R apply(T t) throws Throwable;
 }

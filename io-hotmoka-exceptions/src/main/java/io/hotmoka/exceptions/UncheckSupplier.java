@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Supplier;
 
 /**
@@ -27,6 +24,18 @@ import java.util.function.Supplier;
  */
 public abstract class UncheckSupplier {
 
+	private UncheckSupplier() {}
+
+	/**
+	 * Transforms a supplier with exceptions into a supplier without checked
+	 * exceptions. This means that all checked exceptions get wrapped into
+	 * a {@link UncheckedException}. They can later be recovered through
+	 * a method from {@link CheckRunnable} or {@link CheckSupplier}.
+	 * 
+	 * @param <T> the type of the supplied value
+	 * @param wrapped the supplier with exceptions
+	 * @return the supplier without exceptions
+	 */
 	public static <T> Supplier<T> uncheck(SupplierWithExceptions<T> wrapped) {
 		return new Supplier<>() {
 
@@ -35,20 +44,11 @@ public abstract class UncheckSupplier {
 				try {
 					return wrapped.get();
 				}
-				catch (IOException e) {
-					throw new UncheckedIOException(e);
+				catch (RuntimeException | Error e) {
+					throw e;
 				}
-				catch (NoSuchAlgorithmException e) {
-					throw new UncheckedNoSuchAlgorithmException(e);
-				}
-				catch (InterruptedException e) {
-					throw new UncheckedInterruptedException(e);
-				}
-				catch (URISyntaxException e) {
-					throw new UncheckedURISyntaxException(e);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UncheckedClassNotFoundException(e);
+				catch (Throwable e) {
+					throw new UncheckedException(e);
 				}
 			}
 		};

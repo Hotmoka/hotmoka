@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.util.Optional;
@@ -57,7 +57,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
 		builder.super();
-		check2(ClassNotFoundException.class, () ->
+		check(ClassNotFoundException.class, () ->
 			bootstraps.getBootstrapsLeadingToEntries().forEach(uncheck(this::desugarBootstrapCallingEntry))
 		);
 	}
@@ -71,7 +71,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 
 	private void desugarLambdaCallingEntry(BootstrapMethod bootstrap) {
 		int[] args = bootstrap.getBootstrapArguments();
-		ConstantMethodHandle mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
+		var mh = (ConstantMethodHandle) cpg.getConstant(args[1]);
 		int invokeKind = mh.getReferenceKind();
 
 		if (invokeKind == Const.REF_invokeStatic) {

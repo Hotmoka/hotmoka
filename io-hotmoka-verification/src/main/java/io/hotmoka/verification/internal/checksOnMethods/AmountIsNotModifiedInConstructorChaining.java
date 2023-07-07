@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.util.ArrayList;
@@ -55,7 +55,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 		super(builder, method);
 
 		if (Const.CONSTRUCTOR_NAME.equals(methodName) && methodArgs.length > 0 && annotations.isPayable(className, methodName, methodArgs, methodReturnType)) {
-			check2(ClassNotFoundException.class, () ->
+			check(ClassNotFoundException.class, () ->
 				instructions()
 					.filter(uncheck(this::callsPayableFromContractConstructorOnThis))
 					.filter(this::amountMightBeChanged)
@@ -74,7 +74,7 @@ public class AmountIsNotModifiedInConstructorChaining extends CheckOnMethods {
 	 */
 	private boolean amountMightBeChanged(InstructionHandle ih) {
 		Instruction instruction = ih.getInstruction();
-		InvokeInstruction invoke = (InvokeInstruction) instruction;
+		var invoke = (InvokeInstruction) instruction;
 		Type[] argumentTypes = invoke.getArgumentTypes(cpg);
 		int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
 

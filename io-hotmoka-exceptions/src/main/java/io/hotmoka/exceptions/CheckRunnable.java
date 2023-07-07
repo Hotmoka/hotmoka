@@ -17,104 +17,90 @@ limitations under the License.
 package io.hotmoka.exceptions;
 
 /**
+ * Methods that check an unchecked exception thrown by a runnable.
  */
 public abstract class CheckRunnable {
 
+	private CheckRunnable() {}
+
+	/**
+	 * Runs a runnable and makes an unchecked exception type into checked.
+	 * 
+	 * @param <T> the type of the exception
+	 * @param exception the class of the exception
+	 * @param runnable the runnable
+	 * @throws T if the runnable throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <E extends Exception> void check2(Class<E> exception, Runnable runnable) throws E {
+	public static <T extends Throwable> void check(Class<T> exception, Runnable runnable) throws T {
 		try {
 			runnable.run();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception.isInstance(cause))
-				throw (E) cause;
+				throw (T) cause;
 			else
 				throw e;
 		}
 	}
 
+	/**
+	 * Runs a runnable and makes two unchecked exception types into checked.
+	 * 
+	 * @param <T1> the first type of the exception
+	 * @param <T2> the second type of the exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param runnable the runnable
+	 * @throws T1 if the runnable throws an unchecked exception with this cause
+	 * @throws T2 if the runnable throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <E1 extends Exception, E2 extends Exception> void check2(Class<E1> exception1, Class<E2> exception2, Runnable runnable) throws E1, E2 {
+	public static <T1 extends Throwable, T2 extends Throwable> void check(Class<T1> exception1, Class<T2> exception2, Runnable runnable) throws T1, T2 {
 		try {
 			runnable.run();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception1.isInstance(cause))
-				throw (E1) cause;
+				throw (T1) cause;
 			else if (exception2.isInstance(cause))
-				throw (E2) cause;
+				throw (T2) cause;
 			else
 				throw e;
 		}
 	}
 
+	/**
+	 * Runs a runnable and makes three unchecked exception types into checked.
+	 * 
+	 * @param <T1> the first type of the exception
+	 * @param <T2> the second type of the exception
+	 * @param <T3> the third type of the exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param exception3 the class of the third exception
+	 * @param runnable the runnable
+	 * @throws T1 if the runnable throws an unchecked exception with this cause
+	 * @throws T2 if the runnable throws an unchecked exception with this cause
+	 * @throws T3 if the runnable throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <E1 extends Exception, E2 extends Exception, E3 extends Exception> void check2(Class<E1> exception1, Class<E2> exception2, Class<E3> exception3, Runnable runnable) throws E1, E2, E3 {
+	public static <T1 extends Throwable, T2 extends Throwable, T3 extends Throwable> void check(Class<T1> exception1, Class<T2> exception2, Class<T3> exception3, Runnable runnable) throws T1, T2, T3 {
 		try {
 			runnable.run();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception1.isInstance(cause))
-				throw (E1) cause;
+				throw (T1) cause;
 			else if (exception2.isInstance(cause))
-				throw (E2) cause;
+				throw (T2) cause;
 			else if (exception3.isInstance(cause))
-				throw (E3) cause;
+				throw (T3) cause;
 			else
 				throw e;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <CX extends Exception, X extends UncheckedException<CX>> void check(Class<X> exception1, Runnable runnable) throws CX {
-
-		try {
-			runnable.run();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else
-				throw t;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>> void check
-		(Class<X> exception1, Class<Y> exception2, Runnable runnable) throws CX, CY {
-
-		try {
-			runnable.run();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else if (exception2.isInstance(t))
-				throw (CY) t.getCause();
-			else
-				throw t;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>, CZ extends Exception, Z extends UncheckedException<CZ>> void check
-		(Class<X> exception1, Class<Y> exception2, Class<Z> exception3, Runnable runnable) throws CX, CY, CZ {
-
-		try {
-			runnable.run();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else if (exception2.isInstance(t))
-				throw (CY) t.getCause();
-			else if (exception3.isInstance(t))
-				throw (CZ) t.getCause();
-			else
-				throw t;
 		}
 	}
 }

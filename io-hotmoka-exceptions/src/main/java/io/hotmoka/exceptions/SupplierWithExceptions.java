@@ -16,11 +16,10 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
-
 /**
+ * A supplier that might throw exceptions.
+ * 
+ * @param <T> the type of the supplied value
  */
 public interface SupplierWithExceptions<T> {
 
@@ -28,6 +27,7 @@ public interface SupplierWithExceptions<T> {
 	 * Supplies a value.
 	 *
 	 * @return the supplied value
+	 * @throws any exception thrown by the supplier
 	 */
-	T get() throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
+	T get() throws Throwable;
 }

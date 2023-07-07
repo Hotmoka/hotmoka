@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.io.IOException;
@@ -53,7 +53,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
@@ -469,7 +468,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference versions = getVersions().get();
 			StorageReference validators = getValidators().get();
 
-			return check2(ClassNotFoundException.class, () ->
+			return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
@@ -510,7 +509,7 @@ public class NodeCachesImpl implements NodeCaches {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference gasStation = getGasStation().get();
 
-			return check2(UncheckedClassNotFoundException.class, () ->
+			return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(gasStation::equals)
@@ -537,7 +536,7 @@ public class NodeCachesImpl implements NodeCaches {
 			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
 			StorageReference validators = getValidators().get();
 
-			return check2(UncheckedClassNotFoundException.class, () ->
+			return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(validators::equals)

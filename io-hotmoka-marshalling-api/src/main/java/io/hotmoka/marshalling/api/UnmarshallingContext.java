@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.function.Function;
 
-import io.hotmoka.exceptions.UncheckedIOException;
-
 /**
  * A context used during bytes unmarshalling into objects.
  */
@@ -62,7 +60,7 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * Reads an optimized integer.
 	 * 
 	 * @return the integer
-	 * @throws UncheckedIOException if the integer cannot be read
+	 * @throws IOException if the integer cannot be read
 	 */
 	int readCompactInt() throws IOException;
 

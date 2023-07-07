@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Field;
@@ -24,7 +24,6 @@ import java.lang.reflect.Modifier;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalTypeForStorageFieldError;
 import io.hotmoka.verification.internal.CheckOnClasses;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
@@ -39,7 +38,7 @@ public class StorageClassesHaveFieldsOfStorageTypeCheck extends CheckOnClasses {
 
 		if (classLoader.isStorage(className)) {
 			Class<?> clazz = classLoader.loadClass(className);
-			check2(UncheckedClassNotFoundException.class, () ->
+			check(ClassNotFoundException.class, () ->
 				Stream.of(clazz.getDeclaredFields())
 					.filter(field -> !Modifier.isTransient(field.getModifiers()) && !Modifier.isStatic(field.getModifiers()))
 					.filter(uncheck(field -> !isTypeAllowedForStorageFields(field.getType())))

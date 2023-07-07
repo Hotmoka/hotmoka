@@ -18,6 +18,8 @@ package io.hotmoka.exceptions;
 
 /**
  * A consumer that might throw exceptions.
+ * 
+ * @param <T> the type of the consumed value
  */
 public interface ConsumerWithExceptions<T> {
 
@@ -25,6 +27,7 @@ public interface ConsumerWithExceptions<T> {
 	 * Consumes the given argument.
 	 *
 	 * @param t the argument
+	 * @throws any exception thrown by the consumer
 	 */
-	void accept(T t) throws Exception;
+	void accept(T t) throws Throwable;
 }

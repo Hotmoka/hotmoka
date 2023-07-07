@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.local;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.io.IOException;
@@ -153,7 +153,7 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @throws IOException if an I/O error occurred
 	 */
 	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws IOException {
-		check2(IOException.class, () ->
+		check(IOException.class, () ->
 			// we collect the storage references that have been updated in the response; for each of them,
 			// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 			// in front of such lists and store back the updated lists, replacing the old ones

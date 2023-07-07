@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Constructor;
@@ -287,7 +287,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		}
 
 		private void applyAllChecksToTheMethodsOfTheClass() throws ClassNotFoundException {
-			check2(ClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(method -> versionsManager.applyAllMethodChecks(this, method))));
+			check(ClassNotFoundException.class, () -> Stream.of(methods).forEachOrdered(uncheck(method -> versionsManager.applyAllMethodChecks(this, method))));
 		}
 
 		/**

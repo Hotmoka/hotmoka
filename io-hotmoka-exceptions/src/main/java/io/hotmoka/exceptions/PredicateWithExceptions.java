@@ -18,7 +18,17 @@ package io.hotmoka.exceptions;
 
 /**
  * A predicate that might throw exceptions.
+ * 
+ * @param <T> the type of the tested value
  */
 public interface PredicateWithExceptions<T> {
-	boolean test(T t) throws Exception;
+
+	/**
+	 * Applies the test.
+	 * 
+	 * @param t the argument to the test
+	 * @return true if and only if the test is true for {@code t}
+	 * @throws any exception thrown by the test
+	 */
+	boolean test(T t) throws Throwable;
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.util.stream.Stream;
@@ -78,6 +78,6 @@ public class BcelToClassImpl implements BcelToClass {
 
 	@Override
 	public final Class<?>[] of(Type[] types) throws ClassNotFoundException {
-		return check2(ClassNotFoundException.class, () -> Stream.of(types).map(uncheck(this::of))).toArray(Class<?>[]::new);
+		return check(ClassNotFoundException.class, () -> Stream.of(types).map(uncheck(this::of))).toArray(Class<?>[]::new);
 	}
 }

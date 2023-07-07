@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines methods for dealing with functional interfaces that might throw exceptions.
+ */
 module io.hotmoka.exceptions {
 	exports io.hotmoka.exceptions;
 }

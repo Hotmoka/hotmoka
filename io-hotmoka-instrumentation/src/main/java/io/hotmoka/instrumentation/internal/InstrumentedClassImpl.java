@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Field;
@@ -554,9 +554,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
 		private void methodLevelInstrumentations() throws ClassNotFoundException {
-			check2(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::preProcess)));
+			check(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::preProcess)));
 			new DesugarBootstrapsInvokingEntries(this);
-			check2(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::postProcess)));
+			check(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::postProcess)));
 		}
 
 		/**

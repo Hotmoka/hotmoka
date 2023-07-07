@@ -19,104 +19,96 @@ package io.hotmoka.exceptions;
 import java.util.function.Supplier;
 
 /**
+ * Methods that check an unchecked exception thrown by a supplier.
  */
 public abstract class CheckSupplier {
 
+	private CheckSupplier() {}
+
+	/**
+	 * Runs a supplier and makes an unchecked exception into checked.
+	 * 
+	 * @param <R> the type of the return type of the supplied value
+	 * @param <T> the type of the exception
+	 * @param exception the class of the exception
+	 * @param supplier the supplier
+	 * @return the supplied value
+	 * @throws T if the supplier throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <R, E extends Exception> R check2(Class<E> exception, Supplier<R> supplier) throws E {
+	public static <R, T extends Throwable> R check(Class<T> exception, Supplier<R> supplier) throws T {
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception.isInstance(cause))
-				throw (E) cause;
+				throw (T) cause;
 			else
 				throw e;
 		}
 	}
 
+	/**
+	 * Runs a supplier and makes two unchecked exceptions into checked.
+	 * 
+	 * @param <R> the type of the return type of the supplied value
+	 * @param <T1> the type of the first exception
+	 * @param <T2> the type of the second exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param supplier the supplier
+	 * @return the supplied value
+	 * @throws T1 if the supplier throws an unchecked exception with this cause
+	 * @throws T2 if the supplier throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <R, E1 extends Exception, E2 extends Exception> R check2(Class<E1> exception1, Class<E2> exception2, Supplier<R> supplier) throws E1, E2 {
+	public static <R, T1 extends Throwable, T2 extends Throwable> R check(Class<T1> exception1, Class<T2> exception2, Supplier<R> supplier) throws T1, T2 {
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception1.isInstance(cause))
-				throw (E1) cause;
+				throw (T1) cause;
 			else if (exception2.isInstance(cause))
-				throw (E2) cause;
+				throw (T2) cause;
 			else
 				throw e;
 		}
 	}
 
+	/**
+	 * Runs a supplier and makes three unchecked exceptions into checked.
+	 * 
+	 * @param <R> the type of the return type of the supplied value
+	 * @param <T1> the type of the first exception
+	 * @param <T2> the type of the second exception
+	 * @param <T3> the type of the third exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param exception3 the class of the third exception
+	 * @param supplier the supplier
+	 * @return the supplied value
+	 * @throws T1 if the supplier throws an unchecked exception with this cause
+	 * @throws T2 if the supplier throws an unchecked exception with this cause
+	 * @throws T3 if the supplier throws an unchecked exception with this cause
+	 */
 	@SuppressWarnings("unchecked")
-	public static <R, E1 extends Exception, E2 extends Exception, E3 extends Exception> R check2(Class<E1> exception1, Class<E2> exception2, Class<E3> exception3, Supplier<R> supplier) throws E1, E2, E3 {
+	public static <R, T1 extends Throwable, T2 extends Throwable, T3 extends Throwable> R check(Class<T1> exception1, Class<T2> exception2, Class<T3> exception3, Supplier<R> supplier) throws T1, T2, T3 {
 		try {
 			return supplier.get();
 		}
-		catch (UncheckedException2 e) {
+		catch (UncheckedException e) {
 			var cause = e.getCause();
 			if (exception1.isInstance(cause))
-				throw (E1) cause;
+				throw (T1) cause;
 			else if (exception2.isInstance(cause))
-				throw (E2) cause;
+				throw (T2) cause;
 			else if (exception3.isInstance(cause))
-				throw (E3) cause;
+				throw (T3) cause;
 			else
 				throw e;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <R, CX extends Exception, X extends UncheckedException<CX>> R check(Class<X> exception1, Supplier<R> supplier) throws CX {
-
-		try {
-			return supplier.get();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else
-				throw t;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <R, CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>> R check
-		(Class<X> exception1, Class<Y> exception2, Supplier<R> supplier) throws CX, CY {
-
-		try {
-			return supplier.get();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else if (exception2.isInstance(t))
-				throw (CY) t.getCause();
-			else
-				throw t;
-		}
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <R, CX extends Exception, X extends UncheckedException<CX>, CY extends Exception, Y extends UncheckedException<CY>, CZ extends Exception, Z extends UncheckedException<CZ>> R check
-		(Class<X> exception1, Class<Y> exception2, Class<Z> exception3, Supplier<R> supplier) throws CX, CY, CZ {
-
-		try {
-			return supplier.get();
-		}
-		catch (Throwable t) {
-			if (exception1.isInstance(t))
-				throw (CX) t.getCause();
-			else if (exception2.isInstance(t))
-				throw (CY) t.getCause();
-			else if (exception3.isInstance(t))
-				throw (CZ) t.getCause();
-			else
-				throw t;
 		}
 	}
 }

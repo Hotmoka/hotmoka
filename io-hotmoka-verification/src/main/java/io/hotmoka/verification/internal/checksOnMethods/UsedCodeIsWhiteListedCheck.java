@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Constructor;
@@ -47,7 +47,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
-		check2(ClassNotFoundException.class, () ->
+		check(ClassNotFoundException.class, () ->
 			instructions().forEach(uncheck(this::checkSingleInstruction))
 		);
 	}
@@ -60,7 +60,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 				issue(new IllegalAccessToNonWhiteListedFieldError(inferSourceFile(), methodName, lineOf(ih), fi.getLoadClassType(cpg).getClassName(), fi.getFieldName(cpg)));
 		}
 		else if (ins instanceof InvokeInstruction) {
-			InvokeInstruction invoke = (InvokeInstruction) ins;
+			var invoke = (InvokeInstruction) ins;
 			if (!hasWhiteListingModel(invoke)) {
 				Optional<? extends Executable> target = resolver.resolvedExecutableFor(invoke);
 				if (target.isPresent()) {

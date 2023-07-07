@@ -24,6 +24,18 @@ import java.util.function.Predicate;
  */
 public abstract class UncheckPredicate {
 
+	private UncheckPredicate() {}
+
+	/**
+	 * Transforms a predicate with exceptions into a predicate without checked
+	 * exceptions. This means that all checked exceptions get wrapped into
+	 * a {@link UncheckedException}. They can later be recovered through
+	 * a method from {@link CheckRunnable} or {@link CheckSupplier}.
+	 * 
+	 * @param <T> the type of the tested value
+	 * @param wrapped the predicate with exceptions
+	 * @return the predicate without exceptions
+	 */
 	public static <T> Predicate<T> uncheck(PredicateWithExceptions<T> wrapped) {
 		return new Predicate<>() {
 	
@@ -32,8 +44,11 @@ public abstract class UncheckPredicate {
 				try {
 					return wrapped.test(t);
 				}
-				catch (Exception e) {
-					throw new UncheckedException2(e);
+				catch (RuntimeException | Error e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					throw new UncheckedException(e);
 				}
 			}
 		};

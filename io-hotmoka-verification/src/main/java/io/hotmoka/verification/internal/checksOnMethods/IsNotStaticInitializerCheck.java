@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Field;
@@ -46,7 +46,7 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 				// an explicit constant initializer. This check is necessary since we cannot forbid static initializers
 				// in such classes, hence we do at least avoid the existence of extra static fields
 				Class<?> clazz = classLoader.loadClass(className);
-				check2(ClassNotFoundException.class, () ->
+				check(ClassNotFoundException.class, () ->
 					Stream.of(clazz.getDeclaredFields())
 						.filter(uncheck(field -> Modifier.isStatic(field.getModifiers()) && !field.isSynthetic() && !field.isEnumConstant()
 								&& !(Modifier.isFinal(field.getModifiers()) && hasExplicitConstantValue(field))))
@@ -59,7 +59,7 @@ public class IsNotStaticInitializerCheck extends CheckOnMethods {
 	}
 
 	private boolean hasExplicitConstantValue(Field field) throws ClassNotFoundException {
-		return check2(ClassNotFoundException.class, () ->
+		return check(ClassNotFoundException.class, () ->
 			getFields()
 				.filter(uncheck(f -> f.isStatic() && f.getName().equals(field.getName()) && bcelToClass.of(f.getType()) == field.getType()))
 				.allMatch(f -> f.getConstantValue() != null)

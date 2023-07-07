@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Field;
@@ -51,7 +51,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			check2(ClassNotFoundException.class, () ->
+			check(ClassNotFoundException.class, () ->
 				StreamSupport.stream(il.spliterator(), false).filter(uncheck(this::isAccessToLazilyLoadedFieldInStorageClass))
 					.forEach(io.hotmoka.exceptions.UncheckConsumer.uncheck(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
 			);
@@ -70,8 +70,8 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 		Instruction instruction = ih.getInstruction();
 
 		if (instruction instanceof GETFIELD || instruction instanceof PUTFIELD) {
-			FieldInstruction fi = (FieldInstruction) instruction;
-			ObjectType receiverType = (ObjectType) fi.getReferenceType(cpg);
+			var fi = (FieldInstruction) instruction;
+			var receiverType = (ObjectType) fi.getReferenceType(cpg);
 			String receiverClassName = receiverType.getClassName();
 			Class<?> fieldType;
 			// we do not consider field accesses added by instrumentation in class Storage

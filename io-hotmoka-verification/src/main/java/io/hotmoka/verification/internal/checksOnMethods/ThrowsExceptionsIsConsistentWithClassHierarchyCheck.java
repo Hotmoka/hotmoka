@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Modifier;
@@ -49,7 +49,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 		Class<?> rt = bcelToClass.of(methodReturnType);
 		Class<?>[] args = bcelToClass.of(methodArgs);
 
-		if (check2(ClassNotFoundException.class, () ->
+		if (check(ClassNotFoundException.class, () ->
 			Stream.of(clazz.getDeclaredMethods())
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt

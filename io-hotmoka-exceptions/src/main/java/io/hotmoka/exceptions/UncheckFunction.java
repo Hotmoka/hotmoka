@@ -24,6 +24,19 @@ import java.util.function.Function;
  */
 public abstract class UncheckFunction {
 
+	private UncheckFunction() {}
+
+	/**
+	 * Transforms a function with exceptions into a function without checked
+	 * exceptions. This means that all checked exceptions get wrapped into
+	 * a {@link UncheckedException}. They can later be recovered through
+	 * a method from {@link CheckRunnable} or {@link CheckSupplier}.
+	 * 
+	 * @param <T> the type of the parameter of the function
+	 * @param <R> the type of the result of the function
+	 * @param wrapped the function with exceptions
+	 * @return the function without exceptions
+	 */
 	public static <T, R> Function<T, R> uncheck(FunctionWithExceptions<T, R> wrapped) {
 		return new Function<>() {
 
@@ -32,8 +45,11 @@ public abstract class UncheckFunction {
 				try {
 					return wrapped.apply(t);
 				}
-				catch (Exception e) {
-					throw new UncheckedException2(e);
+				catch (RuntimeException | Error e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					throw new UncheckedException(e);
 				}
 			}
 		};

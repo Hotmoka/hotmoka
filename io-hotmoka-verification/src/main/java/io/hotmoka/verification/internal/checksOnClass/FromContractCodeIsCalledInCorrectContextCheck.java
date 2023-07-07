@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
@@ -71,7 +71,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		if (isStorage)
 			computeLambdasUnreachableFromStaticMethods(lambdasUnreachableFromStaticMethods);
 
-		check2(ClassNotFoundException.class, () -> {
+		check(ClassNotFoundException.class, () -> {
 			// 1) from contract code cannot be called from a static context
 			getMethods()
 				// we do not consider as static those lambdas that are apparently static, just because the compiler

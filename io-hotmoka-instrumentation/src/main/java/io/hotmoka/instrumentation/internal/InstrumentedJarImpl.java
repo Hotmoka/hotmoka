@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.io.ByteArrayOutputStream;
@@ -63,7 +63,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 			throw new VerificationException(verifiedJar.getFirstError().get());
 
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
-		this.classes = check2(ClassNotFoundException.class, () ->
+		this.classes = check(ClassNotFoundException.class, () ->
 			verifiedJar.classes()
 				.map(uncheck(clazz -> InstrumentedClass.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))
@@ -72,7 +72,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 
 	@Override
 	public void dump(Path destination) throws IOException {
-		try (JarOutputStream instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
+		try (var instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
 			classes.forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
 		}
 		catch (UncheckedIOException e) {
@@ -82,8 +82,8 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 
 	@Override
 	public byte[] toBytes() {
-		ByteArrayOutputStream byteArray = new ByteArrayOutputStream();
-		try (JarOutputStream instrumentedJar = new JarOutputStream(byteArray)) {
+		var byteArray = new ByteArrayOutputStream();
+		try (var instrumentedJar = new JarOutputStream(byteArray)) {
 			classes.forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
 		}
 		catch (UncheckedIOException e) {
@@ -110,7 +110,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	private static void dumpInstrumentedClass(InstrumentedClass instrumentedClass, JarOutputStream instrumentedJar) {
 		try {
 			// add the same entry to the resulting jar
-			JarEntry entry = new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class");
+			var entry = new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class");
 			entry.setTime(0L); // we set the timestamp to 0, so that the result is deterministic
 			instrumentedJar.putNextEntry(entry);
 	

@@ -24,6 +24,18 @@ import java.util.function.Consumer;
  */
 public abstract class UncheckConsumer {
 
+	private UncheckConsumer() {}
+
+	/**
+	 * Transforms a consumer with exceptions into a consumer without checked
+	 * exceptions. This means that all checked exceptions get wrapped into
+	 * a {@link UncheckedException}. They can later be recovered through
+	 * a method from {@link CheckRunnable} or {@link CheckSupplier}.
+	 * 
+	 * @param <T> the type of the consumed value
+	 * @param wrapped the consumer with exceptions
+	 * @return the consumer without exceptions
+	 */
 	public static <T> Consumer<T> uncheck(ConsumerWithExceptions<T> wrapped) {
 		return new Consumer<>() {
 	
@@ -32,8 +44,11 @@ public abstract class UncheckConsumer {
 				try {
 					wrapped.accept(t);
 				}
-				catch (Exception e) {
-					throw new UncheckedException2(e);
+				catch (RuntimeException | Error e) {
+					throw e;
+				}
+				catch (Throwable e) {
+					throw new UncheckedException(e);
 				}
 			}
 		};

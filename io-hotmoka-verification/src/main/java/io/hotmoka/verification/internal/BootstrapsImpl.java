@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check2;
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Executable;
@@ -306,7 +306,7 @@ public class BootstrapsImpl implements Bootstraps {
 		int initialSize;
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
-			check2(ClassNotFoundException.class, () -> getBootstraps()
+			check(ClassNotFoundException.class, () -> getBootstraps()
 				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
 				.forEach(bootstrapMethodsLeadingToEntries::add));
 		}
@@ -323,8 +323,8 @@ public class BootstrapsImpl implements Bootstraps {
 		// we collect all lambdas reachable from the @Entry methods, possibly indirectly
 		// (that is, a lambda can call another lambda); we use a working set that starts
 		// with the @Entry methods
-		LinkedList<MethodGen> ws = new LinkedList<>();
-		check2(ClassNotFoundException.class, () ->
+		var ws = new LinkedList<MethodGen>();
+		check(ClassNotFoundException.class, () ->
 			Stream.of(methods)
 				.filter(uncheck(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEach(ws::add)
@@ -362,7 +362,7 @@ public class BootstrapsImpl implements Bootstraps {
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
-				return check2(ClassNotFoundException.class, () ->
+				return check(ClassNotFoundException.class, () ->
 					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
 				);
 		}

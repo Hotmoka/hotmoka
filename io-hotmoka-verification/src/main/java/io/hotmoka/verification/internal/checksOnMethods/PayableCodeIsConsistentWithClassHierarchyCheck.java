@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckSupplier.check2;
+import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Method;
@@ -54,7 +54,7 @@ public class PayableCodeIsConsistentWithClassHierarchyCheck extends CheckOnMetho
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args));
 
-		if (check2(ClassNotFoundException.class, () ->
+		if (check(ClassNotFoundException.class, () ->
 			methods.anyMatch(uncheck(m -> wasPayable != annotations.isPayable(clazz.getName(), methodName, methodArgs, methodReturnType)))))
 			issue(new InconsistentPayableError(inferSourceFile(), methodName, clazz.getName()));
 	

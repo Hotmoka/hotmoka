@@ -16,6 +16,19 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-public interface UncheckedException<T extends Exception> {
-	public T getCause();
+/**
+ * A wrapper for an exception that has been made into unchecked.
+ */
+public final class UncheckedException extends RuntimeException {
+
+	private static final long serialVersionUID = 1L;
+
+	/**
+	 * Creates the exception.
+	 * 
+	 * @param cause the wrapped cause
+	 */
+	public UncheckedException(Throwable cause) {
+		super(cause);
+	}
 }
