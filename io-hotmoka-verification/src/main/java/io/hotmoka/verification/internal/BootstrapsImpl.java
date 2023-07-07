@@ -18,7 +18,7 @@ package io.hotmoka.verification.internal;
 
 import static io.hotmoka.exceptions.CheckRunnable.check2;
 import static io.hotmoka.exceptions.CheckSupplier.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Executable;
 import java.util.HashSet;
@@ -307,7 +307,7 @@ public class BootstrapsImpl implements Bootstraps {
 		do {
 			initialSize = bootstrapMethodsLeadingToEntries.size();
 			check2(ClassNotFoundException.class, () -> getBootstraps()
-				.filter(uncheck2(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
+				.filter(uncheck(bootstrap -> lambdaIsEntry(bootstrap) || lambdaCallsEntry(bootstrap, methods)))
 				.forEach(bootstrapMethodsLeadingToEntries::add));
 		}
 		while (bootstrapMethodsLeadingToEntries.size() > initialSize);
@@ -326,7 +326,7 @@ public class BootstrapsImpl implements Bootstraps {
 		LinkedList<MethodGen> ws = new LinkedList<>();
 		check2(ClassNotFoundException.class, () ->
 			Stream.of(methods)
-				.filter(uncheck2(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
+				.filter(uncheck(method -> verifiedClass.jar.annotations.isFromContract(verifiedClass.getClassName(), method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEach(ws::add)
 		);
 
@@ -363,7 +363,7 @@ public class BootstrapsImpl implements Bootstraps {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
 				return check2(ClassNotFoundException.class, () ->
-					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck2(this::leadsToEntry))
+					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
 				);
 		}
 

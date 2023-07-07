@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.verification.internal.checksOnMethods;
 
 import static io.hotmoka.exceptions.CheckSupplier.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -54,7 +54,7 @@ public class ThrowsExceptionsIsConsistentWithClassHierarchyCheck extends CheckOn
 				.filter(m -> !Modifier.isPrivate(m.getModifiers())
 						&& m.getName().equals(methodName) && m.getReturnType() == rt
 						&& Arrays.equals(m.getParameterTypes(), args))
-				.anyMatch(uncheck2(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
+				.anyMatch(uncheck(m -> wasThrowsExceptions != annotations.isThrowsExceptions(clazz.getName(), methodName, methodArgs, methodReturnType)))
 		))
 			issue(new InconsistentThrowsExceptionsError(inferSourceFile(), methodName, clazz.getName()));
 	

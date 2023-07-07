@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.local.internal;
 
 import static io.hotmoka.exceptions.CheckSupplier.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -470,7 +470,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference validators = getValidators().get();
 
 			return check2(ClassNotFoundException.class, () ->
-				events.filter(uncheck2(event -> isConsensusUpdateEvent(event, classLoader)))
+				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
 			);
@@ -511,7 +511,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference gasStation = getGasStation().get();
 
 			return check2(UncheckedClassNotFoundException.class, () ->
-				events.filter(uncheck2(event -> isGasPriceUpdateEvent(event, classLoader)))
+				events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(gasStation::equals)
 			);
@@ -538,7 +538,7 @@ public class NodeCachesImpl implements NodeCaches {
 			StorageReference validators = getValidators().get();
 
 			return check2(UncheckedClassNotFoundException.class, () ->
-				events.filter(uncheck2(event -> isInflationUpdateEvent(event, classLoader)))
+				events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(validators::equals)
 			);

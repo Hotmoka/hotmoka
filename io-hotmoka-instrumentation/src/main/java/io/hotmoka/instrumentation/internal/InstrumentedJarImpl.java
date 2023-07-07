@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.io.ByteArrayOutputStream;
@@ -31,7 +31,6 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentedClass;
 import io.hotmoka.instrumentation.InstrumentedJar;
@@ -64,7 +63,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 			throw new VerificationException(verifiedJar.getFirstError().get());
 
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
-		this.classes = check(UncheckedClassNotFoundException.class, () ->
+		this.classes = check2(ClassNotFoundException.class, () ->
 			verifiedJar.classes()
 				.map(uncheck(clazz -> InstrumentedClass.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))

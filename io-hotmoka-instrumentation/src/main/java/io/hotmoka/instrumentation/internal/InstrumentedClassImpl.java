@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Field;
@@ -48,7 +48,6 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.GasCostModel;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.InstrumentedClass;
@@ -555,9 +554,9 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 */
 		private void methodLevelInstrumentations() throws ClassNotFoundException {
-			check(UncheckedClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::preProcess)));
+			check2(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::preProcess)));
 			new DesugarBootstrapsInvokingEntries(this);
-			check(UncheckedClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::postProcess)));
+			check2(ClassNotFoundException.class, () -> new ArrayList<>(methods).forEach(uncheck(this::postProcess)));
 		}
 
 		/**

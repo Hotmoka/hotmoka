@@ -16,16 +16,15 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Consumer;
 
 /**
+ * This class provides a method to transform a consumer with exceptions
+ * into a consumer, by unchecking its exceptions.
  */
 public abstract class UncheckConsumer {
 
-	public static <T> Consumer<T> uncheck2(ConsumerWithExceptions2<T> wrapped) {
+	public static <T> Consumer<T> uncheck(ConsumerWithExceptions<T> wrapped) {
 		return new Consumer<>() {
 	
 			@Override
@@ -35,33 +34,6 @@ public abstract class UncheckConsumer {
 				}
 				catch (Exception e) {
 					throw new UncheckedException2(e);
-				}
-			}
-		};
-	}
-
-	public static <T> Consumer<T> uncheck(ConsumerWithExceptions<T> wrapped) {
-		return new Consumer<>() {
-
-			@Override
-			public void accept(T t) {
-				try {
-					wrapped.accept(t);
-				}
-				catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-				catch (NoSuchAlgorithmException e) {
-					throw new UncheckedNoSuchAlgorithmException(e);
-				}
-				catch (InterruptedException e) {
-					throw new UncheckedInterruptedException(e);
-				}
-				catch (URISyntaxException e) {
-					throw new UncheckedURISyntaxException(e);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UncheckedClassNotFoundException(e);
 				}
 			}
 		};

@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.instrumentation.internal.instrumentationsOfClass;
 
-import java.util.Optional;
-
+import static io.hotmoka.exceptions.CheckRunnable.check2;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-import static io.hotmoka.exceptions.CheckRunnable.check;
+
+import java.util.Optional;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
@@ -42,7 +42,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import it.univr.bcel.StackMapReplacer;
@@ -58,7 +57,7 @@ public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Buil
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
 		builder.super();
-		check(UncheckedClassNotFoundException.class, () ->
+		check2(ClassNotFoundException.class, () ->
 			bootstraps.getBootstrapsLeadingToEntries().forEach(uncheck(this::desugarBootstrapCallingEntry))
 		);
 	}

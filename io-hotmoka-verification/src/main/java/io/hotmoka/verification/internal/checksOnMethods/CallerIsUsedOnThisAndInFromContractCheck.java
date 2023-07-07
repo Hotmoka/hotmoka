@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.verification.internal.checksOnMethods;
 
 import static io.hotmoka.exceptions.CheckRunnable.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
@@ -47,7 +47,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 
 		check2(ClassNotFoundException.class, () ->
 			instructions()
-				.filter(uncheck2(this::isCallToStorageCaller))
+				.filter(uncheck(this::isCallToStorageCaller))
 				.forEach(ih -> {
 					if (!isFromContract)
 						issue(new CallerOutsideFromContractError(inferSourceFile(), methodName, lineOf(ih)));

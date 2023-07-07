@@ -16,12 +16,9 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
-
 /**
+ * A function that might throw exceptions.
  */
 public interface FunctionWithExceptions<T, R> {
-	R apply(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
+	R apply(T t) throws Exception;
 }

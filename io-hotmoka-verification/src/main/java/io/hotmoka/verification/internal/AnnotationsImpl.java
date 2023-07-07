@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.CheckSupplier.check2;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 
 import java.lang.annotation.Annotation;
@@ -33,7 +33,6 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.Dummy;
 import io.hotmoka.verification.api.Annotations;
 
@@ -149,7 +148,7 @@ public class AnnotationsImpl implements Annotations {
 	}
 
 	private Optional<Annotation> getAnnotationOfConstructor(String className, Type[] formals, String annotationName) throws ClassNotFoundException {
-		Class<?>[] formalsClass = check(UncheckedClassNotFoundException.class, () ->
+		Class<?>[] formalsClass = check2(ClassNotFoundException.class, () ->
 			Stream.of(formals).map(uncheck(jar.bcelToClass::of)).toArray(Class[]::new)
 		);
 
@@ -162,7 +161,7 @@ public class AnnotationsImpl implements Annotations {
 
 	private Optional<Annotation> getAnnotationOfMethod(String className, String methodName, Type[] formals, Type returnType, String annotationName) throws ClassNotFoundException {
 		Class<?> returnTypeClass = jar.bcelToClass.of(returnType);
-		Class<?>[] formalsClass = check(UncheckedClassNotFoundException.class, () ->
+		Class<?>[] formalsClass = check2(ClassNotFoundException.class, () ->
 			Stream.of(formals).map(uncheck(jar.bcelToClass::of)).toArray(Class[]::new)
 		);
 
@@ -189,7 +188,7 @@ public class AnnotationsImpl implements Annotations {
 			return Optional.empty();
 		}
 	
-		return check(UncheckedClassNotFoundException.class, () ->
+		return check2(ClassNotFoundException.class, () ->
 			Stream.concat(Stream.of(clazz.getSuperclass()), Stream.of(clazz.getInterfaces()))
 				.filter(Objects::nonNull) // since the superclass might be null
 				.map(uncheck(where -> getAnnotationOfMethod(where.getName(), methodName, formals, returnType, annotationName)))

@@ -16,12 +16,11 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
 /**
+ * This class provides a method to transform a function with exceptions
+ * into a function, by unchecking its exceptions.
  */
 public abstract class UncheckFunction {
 
@@ -33,20 +32,8 @@ public abstract class UncheckFunction {
 				try {
 					return wrapped.apply(t);
 				}
-				catch (IOException e) {
-					throw new UncheckedIOException(e);
-				}
-				catch (NoSuchAlgorithmException e) {
-					throw new UncheckedNoSuchAlgorithmException(e);
-				}
-				catch (InterruptedException e) {
-					throw new UncheckedInterruptedException(e);
-				}
-				catch (URISyntaxException e) {
-					throw new UncheckedURISyntaxException(e);
-				}
-				catch (ClassNotFoundException e) {
-					throw new UncheckedClassNotFoundException(e);
+				catch (Exception e) {
+					throw new UncheckedException2(e);
 				}
 			}
 		};

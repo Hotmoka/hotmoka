@@ -16,11 +16,8 @@ limitations under the License.
 
 package io.hotmoka.exceptions;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.security.NoSuchAlgorithmException;
-
 /**
+ * A consumer that might throw exceptions.
  */
 public interface ConsumerWithExceptions<T> {
 
@@ -29,5 +26,5 @@ public interface ConsumerWithExceptions<T> {
 	 *
 	 * @param t the argument
 	 */
-	void accept(T t) throws IOException, NoSuchAlgorithmException, InterruptedException, URISyntaxException, ClassNotFoundException;
+	void accept(T t) throws Exception;
 }

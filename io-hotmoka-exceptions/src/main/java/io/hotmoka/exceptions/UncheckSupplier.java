@@ -22,6 +22,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.function.Supplier;
 
 /**
+ * This class provides a method to transform a supplier with exceptions
+ * into a supplier, by unchecking its exceptions.
  */
 public abstract class UncheckSupplier {
 

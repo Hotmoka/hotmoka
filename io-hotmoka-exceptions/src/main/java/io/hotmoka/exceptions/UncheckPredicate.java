@@ -19,10 +19,12 @@ package io.hotmoka.exceptions;
 import java.util.function.Predicate;
 
 /**
+ * This class provides a method to transform a predicate with exceptions
+ * into a predicate, by unchecking its exceptions.
  */
 public abstract class UncheckPredicate {
 
-	public static <T> Predicate<T> uncheck2(PredicateWithExceptions<T> wrapped) {
+	public static <T> Predicate<T> uncheck(PredicateWithExceptions<T> wrapped) {
 		return new Predicate<>() {
 	
 			@Override

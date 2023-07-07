@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tendermint.internal;
 
 import static io.hotmoka.exceptions.CheckSupplier.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -302,7 +302,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			StorageReference validators = caches.getValidators().get();
 
 			return check2(UncheckedClassNotFoundException.class, () ->
-				events.filter(uncheck2(event -> isValidatorsUpdateEvent(event, classLoader)))
+				events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
 					.map(storeUtilities::getCreatorUncommitted)
 					.anyMatch(validators::equals)
 			);

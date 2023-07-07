@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import static io.hotmoka.exceptions.CheckRunnable.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -38,7 +38,6 @@ import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.instrumentation.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 
@@ -52,8 +51,8 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 
 		if (!method.isAbstract()) {
 			InstructionList il = method.getInstructionList();
-			check2(UncheckedClassNotFoundException.class, () ->
-				StreamSupport.stream(il.spliterator(), false).filter(uncheck2(this::isAccessToLazilyLoadedFieldInStorageClass))
+			check2(ClassNotFoundException.class, () ->
+				StreamSupport.stream(il.spliterator(), false).filter(uncheck(this::isAccessToLazilyLoadedFieldInStorageClass))
 					.forEach(io.hotmoka.exceptions.UncheckConsumer.uncheck(ih -> ih.setInstruction(accessorCorrespondingTo((FieldInstruction) ih.getInstruction()))))
 			);
 		}

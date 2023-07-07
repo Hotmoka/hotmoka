@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnMethods;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.lang.reflect.Constructor;
@@ -33,7 +33,6 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
 import io.hotmoka.verification.errors.IllegalAccessToNonWhiteListedFieldError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedConstructorError;
 import io.hotmoka.verification.errors.IllegalCallToNonWhiteListedMethodError;
@@ -48,7 +47,7 @@ public class UsedCodeIsWhiteListedCheck extends CheckOnMethods {
 	public UsedCodeIsWhiteListedCheck(VerifiedClassImpl.Verification builder, MethodGen method) throws ClassNotFoundException {
 		super(builder, method);
 
-		check(UncheckedClassNotFoundException.class, () ->
+		check2(ClassNotFoundException.class, () ->
 			instructions().forEach(uncheck(this::checkSingleInstruction))
 		);
 	}

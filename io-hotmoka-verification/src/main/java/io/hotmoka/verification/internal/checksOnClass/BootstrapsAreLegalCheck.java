@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.verification.internal.checksOnClass;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
+import static io.hotmoka.exceptions.CheckRunnable.check2;
 import static io.hotmoka.exceptions.UncheckFunction.uncheck;
-import io.hotmoka.exceptions.UncheckedClassNotFoundException;
+
 import java.util.Optional;
 
 import io.hotmoka.verification.errors.IllegalBootstrapMethodError;
@@ -33,7 +33,7 @@ public class BootstrapsAreLegalCheck extends CheckOnClasses {
 	public BootstrapsAreLegalCheck(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
 		super(builder);
 
-		check(UncheckedClassNotFoundException.class, () ->
+		check2(ClassNotFoundException.class, () ->
 			bootstraps.getBootstraps()
 				.map(uncheck(bootstraps::getTargetOf))
 				.filter(Optional::isEmpty)

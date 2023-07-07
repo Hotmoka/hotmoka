@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.instrumentation.internal.instrumentationsOfMethod;
 
 import static io.hotmoka.exceptions.CheckSupplier.check2;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck2;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -60,7 +60,7 @@ public class AddExtraArgsToCallsToFromContract extends InstrumentedClassImpl.Bui
 			InstructionList il = method.getInstructionList();
 			List<InstructionHandle> callsToFromContract = check2(ClassNotFoundException.class, () ->
 				StreamSupport.stream(il.spliterator(), false)
-					.filter(uncheck2(ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
+					.filter(uncheck(ih -> isCallToFromContract(ih.getInstruction()))).collect(Collectors.toList())
 			);
 
 			for (InstructionHandle ih: callsToFromContract)
