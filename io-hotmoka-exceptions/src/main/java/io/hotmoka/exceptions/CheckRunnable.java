@@ -103,4 +103,87 @@ public abstract class CheckRunnable {
 				throw e;
 		}
 	}
+
+	/**
+	 * Runs a runnable and makes four unchecked exception types into checked.
+	 * 
+	 * @param <T1> the first type of the exception
+	 * @param <T2> the second type of the exception
+	 * @param <T3> the third type of the exception
+	 * @param <T4> the fourth type of the exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param exception3 the class of the third exception
+	 * @param exception4 the class of the fourth exception
+	 * @param runnable the runnable
+	 * @throws T1 if the runnable throws an unchecked exception with this cause
+	 * @throws T2 if the runnable throws an unchecked exception with this cause
+	 * @throws T3 if the runnable throws an unchecked exception with this cause
+	 * @throws T4 if the runnable throws an unchecked exception with this cause
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T1 extends Throwable, T2 extends Throwable, T3 extends Throwable, T4 extends Throwable>
+			void check(Class<T1> exception1, Class<T2> exception2, Class<T3> exception3, Class<T4> exception4, Runnable runnable) throws T1, T2, T3, T4 {
+
+		try {
+			runnable.run();
+		}
+		catch (UncheckedException e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (T1) cause;
+			else if (exception2.isInstance(cause))
+				throw (T2) cause;
+			else if (exception3.isInstance(cause))
+				throw (T3) cause;
+			else if (exception4.isInstance(cause))
+				throw (T4) cause;
+			else
+				throw e;
+		}
+	}
+
+	/**
+	 * Runs a runnable and makes five unchecked exception types into checked.
+	 * 
+	 * @param <T1> the first type of the exception
+	 * @param <T2> the second type of the exception
+	 * @param <T3> the third type of the exception
+	 * @param <T4> the fourth type of the exception
+	 * @param <T5> the fifth type of the exception
+	 * @param exception1 the class of the first exception
+	 * @param exception2 the class of the second exception
+	 * @param exception3 the class of the third exception
+	 * @param exception4 the class of the fourth exception
+	 * @param exception5 the class of the fifth exception
+	 * @param runnable the runnable
+	 * @throws T1 if the runnable throws an unchecked exception with this cause
+	 * @throws T2 if the runnable throws an unchecked exception with this cause
+	 * @throws T3 if the runnable throws an unchecked exception with this cause
+	 * @throws T4 if the runnable throws an unchecked exception with this cause
+	 * @throws T5 if the runnable throws an unchecked exception with this cause
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T1 extends Throwable, T2 extends Throwable, T3 extends Throwable, T4 extends Throwable, T5 extends Throwable>
+			void check(Class<T1> exception1, Class<T2> exception2, Class<T3> exception3, Class<T4> exception4, Class<T5> exception5, Runnable runnable) throws T1, T2, T3, T4, T5 {
+
+		try {
+			runnable.run();
+		}
+		catch (UncheckedException e) {
+			var cause = e.getCause();
+			if (exception1.isInstance(cause))
+				throw (T1) cause;
+			else if (exception2.isInstance(cause))
+				throw (T2) cause;
+			else if (exception3.isInstance(cause))
+				throw (T3) cause;
+			else if (exception4.isInstance(cause))
+				throw (T4) cause;
+			else if (exception5.isInstance(cause))
+				throw (T5) cause;
+			else
+				throw e;
+		}
+	}
 }
