@@ -27,7 +27,7 @@ public interface ConsumerWithExceptions<T> {
 	 * Consumes the given argument.
 	 *
 	 * @param t the argument
-	 * @throws any exception thrown by the consumer
+	 * @throws Throwable any exception thrown by the consumer
 	 */
 	void accept(T t) throws Throwable;
 }

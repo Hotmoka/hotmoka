@@ -29,7 +29,7 @@ public interface FunctionWithExceptions<T, R> {
 	 * 
 	 * @param t the argument to the function
 	 * @return the result of the function
-	 * @throws any exception thrown by the function
+	 * @throws Throwable any exception thrown by the function
 	 */
 	R apply(T t) throws Throwable;
 }

@@ -27,7 +27,7 @@ public interface SupplierWithExceptions<T> {
 	 * Supplies a value.
 	 *
 	 * @return the supplied value
-	 * @throws any exception thrown by the supplier
+	 * @throws Throwable any exception thrown by the supplier
 	 */
 	T get() throws Throwable;
 }

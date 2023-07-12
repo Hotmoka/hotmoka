@@ -28,7 +28,7 @@ public interface PredicateWithExceptions<T> {
 	 * 
 	 * @param t the argument to the test
 	 * @return true if and only if the test is true for {@code t}
-	 * @throws any exception thrown by the test
+	 * @throws Throwable any exception thrown by the test
 	 */
 	boolean test(T t) throws Throwable;
 }
