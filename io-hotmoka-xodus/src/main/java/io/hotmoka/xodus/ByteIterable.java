@@ -47,4 +47,18 @@ public class ByteIterable {
 	public byte[] getBytes() {
 		return parent.getBytesUnsafe();
 	}
+
+	public int getLength() {
+		return parent.getLength();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof ByteIterable && parent.equals(((ByteIterable) other).parent);
+	}
+
+	@Override
+	public int hashCode() {
+		return parent.hashCode();
+	}
 }
