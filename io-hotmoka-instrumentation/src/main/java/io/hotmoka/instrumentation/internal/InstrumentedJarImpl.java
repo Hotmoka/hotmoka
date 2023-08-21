@@ -74,10 +74,8 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	@Override
 	public void dump(Path destination) throws IOException {
 		try (var instrumentedJar = new JarOutputStream(new FileOutputStream(destination.toFile()))) {
-			classes.forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
-		}
-		catch (UncheckedIOException e) {
-			throw e.getCause();
+			for (var clazz: classes)
+				dumpInstrumentedClass(clazz, instrumentedJar);
 		}
 	}
 
@@ -85,13 +83,12 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	public byte[] toBytes() {
 		var byteArray = new ByteArrayOutputStream();
 		try (var instrumentedJar = new JarOutputStream(byteArray)) {
-			classes.forEach(clazz -> dumpInstrumentedClass(clazz, instrumentedJar));
-		}
-		catch (UncheckedIOException e) {
-			throw new IllegalStateException(e.getCause());
+			for (var clazz: classes)
+				dumpInstrumentedClass(clazz, instrumentedJar);
 		}
 		catch (IOException e) {
-			throw new IllegalStateException(e);
+			// this should not happen with a ByteArrayOutputStream
+			throw new RuntimeException("Unexpected exception", e);
 		}
 
 		return byteArray.toByteArray();
@@ -107,19 +104,15 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 	 * 
 	 * @param instrumentedClass the class
 	 * @param instrumentedJar the jar where the instrumented class must be dumped
+	 * @throws IOException if an I/O error occurs
 	 */
-	private static void dumpInstrumentedClass(InstrumentedClass instrumentedClass, JarOutputStream instrumentedJar) {
-		try {
-			// add the same entry to the resulting jar
-			var entry = new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class");
-			entry.setTime(0L); // we set the timestamp to 0, so that the result is deterministic
-			instrumentedJar.putNextEntry(entry);
-	
-			// dumps the class into the jar file
-			instrumentedClass.toJavaClass().dump(instrumentedJar);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
+	private static void dumpInstrumentedClass(InstrumentedClass instrumentedClass, JarOutputStream instrumentedJar) throws IOException {
+		// add the same entry to the resulting jar
+		var entry = new JarEntry(instrumentedClass.getClassName().replace('.', '/') + ".class");
+		entry.setTime(0L); // we set the timestamp to 0, so that the result is deterministic
+		instrumentedJar.putNextEntry(entry);
+
+		// dumps the class into the jar file
+		instrumentedClass.toJavaClass().dump(instrumentedJar);
 	}
 }
