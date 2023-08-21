@@ -18,12 +18,12 @@ package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.function.Function;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -52,7 +52,7 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	public TrieOfRequests(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			var hashingForNodes = HashingAlgorithms.sha256(Node::toByteArray);
+			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
 			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
 				TransactionRequest::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}

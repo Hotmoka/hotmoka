@@ -79,7 +79,7 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 */
 	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
-			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<? super Node> hashingForNodes,
+			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<byte[]> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 

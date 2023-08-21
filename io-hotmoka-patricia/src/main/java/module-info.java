@@ -16,8 +16,8 @@ limitations under the License.
 
 module io.hotmoka.patricia {
 	exports io.hotmoka.patricia;
-	requires transitive io.hotmoka.beans;
-	requires transitive io.hotmoka.crypto;
+	requires io.hotmoka.crypto;
+	requires io.hotmoka.marshalling;
 	requires transitive io.hotmoka.marshalling.api;
 	requires java.logging;
 }

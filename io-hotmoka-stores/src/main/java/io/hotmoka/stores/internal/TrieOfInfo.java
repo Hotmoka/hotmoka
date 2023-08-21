@@ -18,6 +18,7 @@ package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.function.Function;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.values.LongValue;
@@ -25,7 +26,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.patricia.Node;
 import io.hotmoka.patricia.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -54,7 +54,7 @@ public class TrieOfInfo {
 	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
-			var hashingForNodes = HashingAlgorithms.sha256(Node::toByteArray);
+			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
 
 			// the hashing algorithm applied to the keys of the trie
 			var hashingForKeys = new AbstractHashingAlgorithm<Byte>() {

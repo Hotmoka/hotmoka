@@ -19,8 +19,7 @@ package io.hotmoka.patricia;
 import java.util.NoSuchElementException;
 
 /**
- * An abstraction of a store that persists the nodes
- * of a Patricia tree.
+ * An abstraction of a store that persists the nodes of a Patricia tree.
  */
 public interface KeyValueStore {
 
