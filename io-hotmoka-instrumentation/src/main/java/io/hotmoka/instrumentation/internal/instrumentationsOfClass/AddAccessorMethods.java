@@ -27,13 +27,14 @@ import org.apache.bcel.generic.InstructionList;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 
 /**
  * An instrumentation that adds accessor methods for the fields of the class being instrumented.
  */
-public class AddAccessorMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class AddAccessorMethods extends ClassLevelInstrumentation {
 	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
 
 	public AddAccessorMethods(InstrumentedClassImpl.Builder builder) {

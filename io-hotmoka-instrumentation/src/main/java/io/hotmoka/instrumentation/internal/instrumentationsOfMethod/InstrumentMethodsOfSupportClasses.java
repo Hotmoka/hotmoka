@@ -28,13 +28,14 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.
  */
-public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentation {
 	private final static ObjectType STORAGE_OT = new ObjectType(Constants.STORAGE_NAME);
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
@@ -60,10 +61,10 @@ public class InstrumentMethodsOfSupportClasses extends InstrumentedClassImpl.Bui
 				il.append(factory.createInvoke(Object.class.getName(), Const.CONSTRUCTOR_NAME, Type.VOID, Type.NO_ARGS, Const.INVOKESPECIAL));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(false));
-				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
+				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationFields.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createInvoke(Constants.RUNTIME_NAME, "getNextStorageReference", Type.OBJECT, Type.NO_ARGS, Const.INVOKESTATIC));
-				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
+				il.append(factory.createPutField(Constants.STORAGE_NAME, InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));
 				il.append(InstructionConst.RETURN);
 				method.setInstructionList(il);
 			}

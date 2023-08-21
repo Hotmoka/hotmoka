@@ -49,7 +49,7 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.nodes.DeserializationError;
@@ -389,7 +389,7 @@ public class UpdatesExtractorFromRAM {
 							throw new IllegalStateException("cannot access field " + field.getDeclaringClass().getName() + "." + field.getName(), e);
 						}
 
-						String oldName = InstrumentationConstants.OLD_PREFIX + field.getName();
+						String oldName = InstrumentationFields.OLD_PREFIX + field.getName();
 						try {
 							Field oldField = field.getDeclaringClass().getDeclaredField(oldName);
 							oldField.setAccessible(true); // it is always private

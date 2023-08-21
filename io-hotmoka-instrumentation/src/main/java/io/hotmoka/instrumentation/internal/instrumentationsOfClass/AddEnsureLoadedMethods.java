@@ -31,13 +31,15 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
  */
-public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 	private final static Type[] DESERIALIZE_LAST_UPDATE_ARGS = { ObjectType.OBJECT, Type.STRING, Type.STRING, Type.STRING };
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
@@ -93,7 +95,7 @@ public class AddEnsureLoadedMethods extends InstrumentedClassImpl.Builder.ClassL
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));
 		il.insert(_return, InstructionConst.DUP2);
 		il.insert(_return, factory.createPutField(className, fieldName, type));
-		il.insert(_return, factory.createPutField(className, InstrumentationConstants.OLD_PREFIX + fieldName, type));
+		il.insert(_return, factory.createPutField(className, InstrumentationFields.OLD_PREFIX + fieldName, type));
 
 		MethodGen ensureLoaded = new MethodGen(PRIVATE_SYNTHETIC, BasicType.VOID, Type.NO_ARGS, null,
 				InstrumentationConstants.ENSURE_LOADED_PREFIX + fieldName, className, il, cpg);

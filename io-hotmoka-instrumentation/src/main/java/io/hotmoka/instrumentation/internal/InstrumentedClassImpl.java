@@ -48,9 +48,8 @@ import org.apache.bcel.generic.InstructionFactory;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.MethodGen;
 
-import io.hotmoka.instrumentation.GasCostModel;
-import io.hotmoka.instrumentation.InstrumentationConstants;
-import io.hotmoka.instrumentation.InstrumentedClass;
+import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddAccessorMethods;
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddConstructorForDeserializationFromStore;
 import io.hotmoka.instrumentation.internal.instrumentationsOfClass.AddEnsureLoadedMethods;

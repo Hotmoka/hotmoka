@@ -76,8 +76,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.instrumentation.GasCostModel;
-import io.hotmoka.instrumentation.StandardGasCostModel;
+import io.hotmoka.instrumentation.GasCostModels;
+import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.local.internal.LRUCache;
 import io.hotmoka.local.internal.NodeCachesImpl;
 import io.hotmoka.local.internal.NodeInternal;
@@ -125,7 +125,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	/**
 	 * The gas model of the node.
 	 */
-	private final GasCostModel gasCostModel = new StandardGasCostModel();
+	private final GasCostModel gasCostModel = GasCostModels.standard();
 
 	/**
 	 * A map that provides a semaphore for each currently executing transaction.

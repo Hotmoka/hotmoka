@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,14 +15,9 @@ limitations under the License.
 */
 
 /**
- * This module implements the instrumentation of Takamaka code before being installed in a Hotmoka node.
+ * This module defines the API of the instrumentation of Takamaka code before being installed in a Hotmoka node.
  */
-module io.hotmoka.instrumentation {
-	exports io.hotmoka.instrumentation;
-	requires transitive io.hotmoka.instrumentation.api;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.exceptions;
-	requires io.hotmoka.constants;
-	requires it.univr.bcel;
+module io.hotmoka.instrumentation.api {
+	exports io.hotmoka.instrumentation.api;
+	requires transitive it.univr.bcel;
 }

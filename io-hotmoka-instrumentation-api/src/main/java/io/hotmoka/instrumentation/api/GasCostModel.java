@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.instrumentation;
+package io.hotmoka.instrumentation.api;
 
 import java.math.BigInteger;
 

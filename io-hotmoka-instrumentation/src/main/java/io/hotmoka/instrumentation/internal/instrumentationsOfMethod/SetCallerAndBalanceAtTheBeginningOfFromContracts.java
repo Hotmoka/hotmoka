@@ -47,8 +47,7 @@ import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentationConstants;
-import io.hotmoka.instrumentation.internal.HeightAtBytecode;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
@@ -361,5 +360,31 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 		}
 
 		return slotsForParameters + 1;
+	}
+
+	private static class HeightAtBytecode {
+		private final InstructionHandle ih;
+		private final int stackHeightBeforeBytecode;
+
+		private HeightAtBytecode(InstructionHandle ih, int stackHeightBeforeBytecode) {
+			this.ih = ih;
+			this.stackHeightBeforeBytecode = stackHeightBeforeBytecode;
+		}
+
+		@Override
+		public String toString() {
+			return ih + " with " + stackHeightBeforeBytecode + " stack elements";
+		}
+
+		@Override
+		public boolean equals(Object other) {
+			return other instanceof HeightAtBytecode && ((HeightAtBytecode) other).ih == ih
+				&& ((HeightAtBytecode) other).stackHeightBeforeBytecode == stackHeightBeforeBytecode;
+		}
+
+		@Override
+		public int hashCode() {
+			return ih.getPosition() ^ stackHeightBeforeBytecode;
+		}
 	}
 }

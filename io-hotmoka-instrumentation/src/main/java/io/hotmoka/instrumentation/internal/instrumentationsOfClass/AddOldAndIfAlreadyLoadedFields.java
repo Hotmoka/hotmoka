@@ -23,13 +23,15 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 
 /**
  * An instrumentation that adds fields for the old value and the loading state of the fields of a storage class.
  */
-public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class AddOldAndIfAlreadyLoadedFields extends ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
 	public AddOldAndIfAlreadyLoadedFields(InstrumentedClassImpl.Builder builder) {
@@ -48,7 +50,7 @@ public class AddOldAndIfAlreadyLoadedFields extends InstrumentedClassImpl.Builde
 	 * @param field the field of the storage class
 	 */
 	private void addOldFieldFor(Field field) {
-		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), InstrumentationConstants.OLD_PREFIX + field.getName(), cpg).getField());
+		addField(new FieldGen(PRIVATE_SYNTHETIC_TRANSIENT, Type.getType(field.getType()), InstrumentationFields.OLD_PREFIX + field.getName(), cpg).getField());
 	}
 
 	/**

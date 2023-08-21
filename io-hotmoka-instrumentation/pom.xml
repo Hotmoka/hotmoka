@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-instrumentation</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements the instrumentation of Takamaka code before being installed in a Hotmoka node.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -14,6 +15,11 @@
   </parent>
 
   <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-instrumentation-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-constants</artifactId>

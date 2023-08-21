@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,40 +16,26 @@ limitations under the License.
 
 package io.hotmoka.instrumentation;
 
-import org.apache.bcel.classfile.JavaClass;
-
+import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.instrumentation.api.InstrumentedClass;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.verification.api.VerifiedClass;
 
 /**
- * An instrumented class file. For instance, it instruments storage
- * classes, by adding the serialization support, and contracts, to deal with entries.
- * They are ordered by their name.
+ * A supplier of instrumented classes.
  */
-public interface InstrumentedClass extends Comparable<InstrumentedClass> {
+public final class InstrumentedClasses {
+
+	private InstrumentedClasses () {}
 
 	/**
 	 * Yields an instrumented class from a verified class.
 	 * 
-	 * @param clazz the class to instrument
+	 * @param clazz the verified class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
-	static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
+	public static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {
 		return new InstrumentedClassImpl(clazz, gasCostModel);
 	}
-
-	/**
-	 * Yields the fully-qualified name of this class.
-	 * 
-	 * @return the fully-qualified name
-	 */
-	String getClassName();
-
-	/**
-	 * Yields a Java class from this object.
-	 * 
-	 * @return the Java class
-	 */
-	JavaClass toJavaClass();
 }

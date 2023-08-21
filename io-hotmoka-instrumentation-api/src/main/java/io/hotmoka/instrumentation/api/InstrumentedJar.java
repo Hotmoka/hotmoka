@@ -14,35 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.instrumentation;
+package io.hotmoka.instrumentation.api;
 
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import io.hotmoka.instrumentation.internal.InstrumentedJarImpl;
-import io.hotmoka.verification.VerificationException;
-import io.hotmoka.verification.api.VerifiedJar;
-
 /**
- * An instrumented jar file, built from another, verified jar file. This means
- * for instance that storage classes get modified to account for persistence and
- * contracts get modified to implement entries.
+ * An instrumented (and hence verified) jar file. This means for instance that storage classes
+ * have been modified in order to account for persistence and contracts jave been
+ * modified in order to implement calls from contracts.
  */
 public interface InstrumentedJar {
-
-	/**
-	 * Instruments the given jar file into another jar file. This instrumentation
-	 * will fail if at least a class did not verify.
-	 * 
-	 * @param verifiedJar the jar that contains the classes already verified
-	 * @param gasCostModel the gas cost model used for the instrumentation
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
-	 * @throws VerificationException if {@code verifiedJar} has some error
-	 */
-	static InstrumentedJar of(VerifiedJar verifiedJar, GasCostModel gasCostModel) throws ClassNotFoundException, VerificationException {
-		return new InstrumentedJarImpl(verifiedJar, gasCostModel);
-	}
 
 	/**
 	 * Dumps this instrumented jar into a file.

@@ -31,9 +31,10 @@ import java.util.jar.JarOutputStream;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.instrumentation.GasCostModel;
-import io.hotmoka.instrumentation.InstrumentedClass;
-import io.hotmoka.instrumentation.InstrumentedJar;
+import io.hotmoka.instrumentation.InstrumentedClasses;
+import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.instrumentation.api.InstrumentedClass;
+import io.hotmoka.instrumentation.api.InstrumentedJar;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.api.VerifiedJar;
 
@@ -65,7 +66,7 @@ public class InstrumentedJarImpl implements InstrumentedJar {
 		// we cannot proceed in parallel since the BCEL library is not thread-safe
 		this.classes = check(ClassNotFoundException.class, () ->
 			verifiedJar.classes()
-				.map(uncheck(clazz -> InstrumentedClass.of(clazz, gasCostModel)))
+				.map(uncheck(clazz -> InstrumentedClasses.of(clazz, gasCostModel)))
 				.collect(Collectors.toCollection(TreeSet::new))
 		);
 	}

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.instrumentation;
+package io.hotmoka.instrumentation.internal;
 
 import static io.hotmoka.verification.api.VerifiedClass.FORBIDDEN_PREFIX;
 
@@ -22,18 +22,6 @@ import static io.hotmoka.verification.api.VerifiedClass.FORBIDDEN_PREFIX;
  * A collector of constants useful during code instrumentation.
  */
 public interface InstrumentationConstants {
-
-	/**
-	 * The name of the instrumented field of storage objects that holds their storage reference.
-	 * Since it is private, it does not need any forbidden character at its beginning.
-	 */
-	String STORAGE_REFERENCE_FIELD_NAME = "storageReference";
-
-	/**
-	 * The prefix of the name of the field used in instrumented storage classes
-	 * to take note of the old value of the fields.
-	 */
-	String OLD_PREFIX = FORBIDDEN_PREFIX + "old_";
 
 	/**
 	 * The prefix of the name of the field used in instrumented storage classes
@@ -58,13 +46,6 @@ public interface InstrumentationConstants {
 	 * to set a lazy field.
 	 */
 	String SETTER_PREFIX = FORBIDDEN_PREFIX + "set_";
-
-	/**
-	 * The name of the field used in instrumented storage classes
-	 * to remember if the object is new or already serialized in blockchain.
-	 * Since it is private, it does not need any forbidden character at its beginning.
-	 */
-	String IN_STORAGE = "inStorage";
 
 	/**
 	 * The name of the method of {@code io.takamaka.code.lang.Storage} used to access the caller of entries.

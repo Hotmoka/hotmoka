@@ -42,7 +42,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -203,9 +203,9 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.externallyOwnedAccountNonce.setAccessible(true); // it was private
 			this.abstractValidatorsCurrentSupply= getAbstractValidators().getDeclaredField("currentSupply");
 			this.abstractValidatorsCurrentSupply.setAccessible(true); // it was private
-			this.storageReference = storage.getDeclaredField(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME);
+			this.storageReference = storage.getDeclaredField(InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME);
 			this.storageReference.setAccessible(true); // it was private
-			this.inStorage = storage.getDeclaredField(InstrumentationConstants.IN_STORAGE);
+			this.inStorage = storage.getDeclaredField(InstrumentationFields.IN_STORAGE);
 			this.inStorage.setAccessible(true); // it was private
 			this.balanceField = contract.getDeclaredField("balance");
 			this.balanceField.setAccessible(true); // it was private

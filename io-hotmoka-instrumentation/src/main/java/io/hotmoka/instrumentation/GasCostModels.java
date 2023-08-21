@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package io.hotmoka.instrumentation;
+
+import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.instrumentation.internal.StandardGasCostModel;
+
 /**
- * This module implements the instrumentation of Takamaka code before being installed in a Hotmoka node.
+ * A supplier of gas cost models.
  */
-module io.hotmoka.instrumentation {
-	exports io.hotmoka.instrumentation;
-	requires transitive io.hotmoka.instrumentation.api;
-	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.exceptions;
-	requires io.hotmoka.constants;
-	requires it.univr.bcel;
+public final class GasCostModels {
+
+	private GasCostModels() {
+	}
+
+	/**
+	 * Yields the standard gas cost model.
+	 * 
+	 * @return the standard gas cost model
+	 */
+	public static GasCostModel standard() {
+		return new StandardGasCostModel();
+	}
 }

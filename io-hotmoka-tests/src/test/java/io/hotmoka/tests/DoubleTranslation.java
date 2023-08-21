@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentedJar;
-import io.hotmoka.instrumentation.StandardGasCostModel;
+import io.hotmoka.instrumentation.GasCostModels;
+import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
@@ -46,8 +46,8 @@ class DoubleTranslation {
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
     	var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
-    	var costModel = new StandardGasCostModel();
-		InstrumentedJar.of(verifiedJar, costModel);
-    	InstrumentedJar.of(verifiedJar, costModel);
+    	var costModel = GasCostModels.standard();
+		InstrumentedJars.of(verifiedJar, costModel);
+    	InstrumentedJars.of(verifiedJar, costModel);
 	}
 }

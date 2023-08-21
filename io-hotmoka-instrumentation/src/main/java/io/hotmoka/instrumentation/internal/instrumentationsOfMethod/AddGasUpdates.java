@@ -58,14 +58,15 @@ import org.apache.bcel.generic.Select;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 
 /**
  * Adds a gas decrease at the beginning of each basic block of code or
  * before instructions that allocate memory.
  */
-public class AddGasUpdates extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class AddGasUpdates extends MethodLevelInstrumentation {
 	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 	private final static Type[] ONE_BIGINTEGER_ARGS = { BIGINTEGER_OT };

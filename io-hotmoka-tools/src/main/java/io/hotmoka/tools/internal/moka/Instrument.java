@@ -23,8 +23,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
-import io.hotmoka.instrumentation.InstrumentedJar;
-import io.hotmoka.instrumentation.StandardGasCostModel;
+import io.hotmoka.instrumentation.GasCostModels;
+import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerifiedJars;
 import picocli.CommandLine.Command;
@@ -74,7 +74,7 @@ public class Instrument extends AbstractCommand {
 			if (parent != null)
 				Files.createDirectories(parent);
 
-			InstrumentedJar.of(verifiedJar, new StandardGasCostModel()).dump(destination);
+			InstrumentedJars.of(verifiedJar, GasCostModels.standard()).dump(destination);
 		}
 	}
 

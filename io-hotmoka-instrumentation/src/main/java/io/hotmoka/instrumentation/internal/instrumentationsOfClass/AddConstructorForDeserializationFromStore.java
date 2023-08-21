@@ -31,8 +31,9 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 import io.hotmoka.verification.Dummy;
 
 /**
@@ -41,7 +42,7 @@ import io.hotmoka.verification.Dummy;
  * the fields of the superclasses, then those of the same class being
  * constructed, ordered by name and then by {@code toString()} of their type.
  */
-public class AddConstructorForDeserializationFromStore extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class AddConstructorForDeserializationFromStore extends ClassLevelInstrumentation {
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
 	public AddConstructorForDeserializationFromStore(InstrumentedClassImpl.Builder builder) {
@@ -72,10 +73,10 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 				// the Storage class needs to initialize its two synthetic transient fields
 				il.append(InstructionFactory.createThis());
 				il.append(factory.createConstant(true));
-				il.append(factory.createPutField(className, InstrumentationConstants.IN_STORAGE, Type.BOOLEAN));
+				il.append(factory.createPutField(className, InstrumentationFields.IN_STORAGE, Type.BOOLEAN));
 				il.append(InstructionFactory.createThis());
 				il.append(InstructionConst.ALOAD_1); // the first parameter: the storage reference
-				il.append(factory.createPutField(className, InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));	
+				il.append(factory.createPutField(className, InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME, Type.OBJECT));	
 			}
 
 			il.append(InstructionConst.RETURN);
@@ -157,7 +158,7 @@ public class AddConstructorForDeserializationFromStore extends InstrumentedClass
 					il.append(InstructionFactory.createThis());
 					il.append(InstructionFactory.createLoad(type, local));
 				}
-				il.append(factory.createPutField(className, InstrumentationConstants.OLD_PREFIX + field.getName(), type));
+				il.append(factory.createPutField(className, InstrumentationFields.OLD_PREFIX + field.getName(), type));
 				local += size;
 			}
 		};

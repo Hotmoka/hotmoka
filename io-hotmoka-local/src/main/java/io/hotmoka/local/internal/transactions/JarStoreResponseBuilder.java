@@ -27,7 +27,7 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.instrumentation.InstrumentedJar;
+import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
@@ -93,7 +93,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
 				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged, consensus.skipsVerification);
-				var instrumentedJar = InstrumentedJar.of(verifiedJar, gasCostModel);
+				var instrumentedJar = InstrumentedJars.of(verifiedJar, gasCostModel);
 				var instrumentedBytes = instrumentedJar.toBytes();
 				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion,  updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();

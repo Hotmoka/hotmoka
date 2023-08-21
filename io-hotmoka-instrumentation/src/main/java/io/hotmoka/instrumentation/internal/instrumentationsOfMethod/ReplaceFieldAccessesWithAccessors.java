@@ -38,13 +38,14 @@ import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.
  */
-public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Builder.MethodLevelInstrumentation {
+public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentation {
 
 	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
@@ -123,7 +124,7 @@ public class ReplaceFieldAccessesWithAccessors extends InstrumentedClassImpl.Bui
 		do {
 			// these two fields are added by instrumentation hence not found by reflection: they are transient
 			if (clazz == classLoader.getStorage() &&
-					(fieldName.equals(InstrumentationConstants.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationConstants.IN_STORAGE)))
+					(fieldName.equals(InstrumentationFields.STORAGE_REFERENCE_FIELD_NAME) || fieldName.equals(InstrumentationFields.IN_STORAGE)))
 				return true;
 
 			Optional<Field> match = Stream.of(clazz.getDeclaredFields())

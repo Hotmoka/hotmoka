@@ -32,7 +32,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.instrumentation.GasCostModel;
+import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.local.Config;
 import io.hotmoka.local.NodeCaches;
 import io.hotmoka.local.Store;

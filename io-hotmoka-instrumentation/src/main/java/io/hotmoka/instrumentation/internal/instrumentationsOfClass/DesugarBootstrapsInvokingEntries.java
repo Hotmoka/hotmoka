@@ -42,8 +42,9 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.instrumentation.InstrumentationConstants;
+import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
+import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
 import it.univr.bcel.StackMapReplacer;
 
 /**
@@ -52,7 +53,7 @@ import it.univr.bcel.StackMapReplacer;
  * receive extra parameters, we transform those bootstrap methods by calling
  * brand new target code, that calls the entry with a normal invoke instruction.
  */
-public class DesugarBootstrapsInvokingEntries extends InstrumentedClassImpl.Builder.ClassLevelInstrumentation {
+public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
