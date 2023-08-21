@@ -48,6 +48,9 @@ public abstract class UncheckSupplier {
 					throw e;
 				}
 				catch (Throwable e) {
+					if (InterruptedException.class.isInstance(e))
+						Thread.currentThread().interrupt();
+
 					throw new UncheckedException(e);
 				}
 			}

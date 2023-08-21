@@ -49,6 +49,9 @@ public abstract class UncheckFunction {
 					throw e;
 				}
 				catch (Throwable e) {
+					if (InterruptedException.class.isInstance(e))
+						Thread.currentThread().interrupt();
+
 					throw new UncheckedException(e);
 				}
 			}

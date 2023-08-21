@@ -29,6 +29,10 @@ public class Environment {
 		this.parent = jetbrains.exodus.env.Environments.newInstance(dir);
 	}
 
+	public Environment(String dir, EnvironmentConfig config) {
+		this.parent = jetbrains.exodus.env.Environments.newInstance(dir, config.toNative());
+	}
+
 	public void close() throws ExodusException {
 		try {
 			parent.close();
