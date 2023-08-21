@@ -31,7 +31,8 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.patricia.PatriciaTries;
+import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -74,7 +75,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
 			this.hashingForJars = HashingAlgorithms.sha256(Function.identity());
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
+			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
 					TransactionResponse::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

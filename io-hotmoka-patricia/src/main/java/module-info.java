@@ -14,8 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements the Patricia tries.
+ */
 module io.hotmoka.patricia {
 	exports io.hotmoka.patricia;
+	requires transitive io.hotmoka.patricia.api;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.marshalling;
 	requires transitive io.hotmoka.marshalling.api;

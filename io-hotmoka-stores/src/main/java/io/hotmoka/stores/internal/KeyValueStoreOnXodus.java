@@ -18,7 +18,7 @@ package io.hotmoka.stores.internal;
 
 import java.util.NoSuchElementException;
 
-import io.hotmoka.patricia.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;

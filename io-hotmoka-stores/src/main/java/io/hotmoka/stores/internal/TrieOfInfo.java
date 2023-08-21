@@ -26,7 +26,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.patricia.PatriciaTries;
+import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -75,7 +76,7 @@ public class TrieOfInfo {
 				}
 			};
 
-			parent = PatriciaTrie.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
+			parent = PatriciaTries.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unepected exception", e);

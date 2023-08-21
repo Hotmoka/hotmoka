@@ -18,54 +18,28 @@ package io.hotmoka.patricia;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.Unmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**
- * A Merkle-Patricia trie.
+ * Provider of Merkle-Patricia tries.
  */
-public interface PatriciaTrie<Key, Value extends Marshallable> {
+public final class PatriciaTries {
+
+	private PatriciaTries() {}
 
 	/**
-	 * Yields the value bound to the given key.
-	 * 
-	 * @param key the key
-	 * @return the value, if any
-	 */
-	Optional<Value> get(Key key);
-
-	/**
-	 * Binds the given key to the given value. It replaces it
-	 * if already present.
-	 * 
-	 * @param key the key
-	 * @param value the value
-	 */
-	void put(Key key, Value value);
-
-	/**
-	 * Yields the root of the trie, that can be used as a hash of its content.
-	 * 
-	 * @return the root
-	 */
-	byte[] getRoot();
-
-	/**
-	 * Garbage-collects all keys that have been updated during the given number of commit.
-	 * 
-	 * @param commitNumber the number of the commit to garbage collect
-	 */
-	void garbageCollect(long commitNumber);
-
-	/**
-	 * Yields the Merkle-Patricia trie supported by the underlying store,
+	 * Yields a Merkle-Patricia trie supported by the underlying store,
 	 * using the given hashing algorithm to hash nodes, keys and the values.
 	 * 
+	 * @param <Key> the type of the keys of the trie
+	 * @param <Value> the type of the values of the trie
 	 * @param store the store used to store a mapping from nodes' hashes to their content
 	 * @param hashingForKeys the hashing algorithm for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
@@ -77,7 +51,7 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 *                        be -1L if the trie is only used or reading
 	 * @return the trie
 	 */
-	static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
+	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<byte[]> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,

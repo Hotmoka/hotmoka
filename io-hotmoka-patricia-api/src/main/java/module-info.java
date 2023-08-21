@@ -14,24 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.instrumentation;
-
-import io.hotmoka.instrumentation.api.GasCostModel;
-import io.hotmoka.instrumentation.internal.StandardGasCostModel;
-
 /**
- * A supplier of gas cost models.
+ * This module defines the API of the Patricia tries.
  */
-public final class GasCostModels {
-
-	private GasCostModels() {}
-
-	/**
-	 * Yields the standard gas cost model.
-	 * 
-	 * @return the standard gas cost model
-	 */
-	public static GasCostModel standard() {
-		return new StandardGasCostModel();
-	}
+module io.hotmoka.patricia.api {
+	exports io.hotmoka.patricia.api;
+	requires io.hotmoka.marshalling.api;
 }

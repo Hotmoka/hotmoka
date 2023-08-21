@@ -31,9 +31,16 @@ import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.Unmarshaller;
-import io.hotmoka.patricia.KeyValueStore;
-import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.patricia.PatriciaTries.UnmarshallingContextSupplier;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.PatriciaTrie;
 
+/**
+ * Implementation of a Patricia trie.
+ *
+ * @param <Key> the type of the keys of the trie
+ * @param <Value> the type of the values of the trie
+ */
 public class PatriciaTrieImpl<Key, Value extends Marshallable> implements PatriciaTrie<Key, Value> {
 
 	/**

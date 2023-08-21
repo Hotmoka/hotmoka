@@ -25,7 +25,8 @@ import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.patricia.PatriciaTries;
+import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -57,7 +58,7 @@ public class TrieOfHistories {
 			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
 			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
 			var hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
-			parent = PatriciaTrie.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes,
+			parent = PatriciaTries.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes,
 					MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

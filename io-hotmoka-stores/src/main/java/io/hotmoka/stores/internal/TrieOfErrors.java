@@ -27,7 +27,8 @@ import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.UnmarshallingContexts;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
-import io.hotmoka.patricia.PatriciaTrie;
+import io.hotmoka.patricia.PatriciaTries;
+import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -56,7 +57,7 @@ public class TrieOfErrors {
 		try {
 			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
-			parent = PatriciaTrie.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
+			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes, MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

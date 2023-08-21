@@ -103,6 +103,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-remote</module>
     <module>io-hotmoka-crypto-api</module>
     <module>io-hotmoka-crypto</module>
+    <module>io-hotmoka-patricia-api</module>
     <module>io-hotmoka-patricia</module>
     <module>io-hotmoka-local</module>
     <module>io-hotmoka-tools</module>
@@ -286,6 +287,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-helpers,
                 io-hotmoka-helpers-api,
                 io-hotmoka-memory,
+				io-hotmoka-patricia-api,
                 io-hotmoka-patricia,
                 io-hotmoka-service,
                 io-hotmoka-remote,
