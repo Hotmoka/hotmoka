@@ -23,6 +23,8 @@ import static io.hotmoka.verification.api.VerifiedClass.FORBIDDEN_PREFIX;
  */
 public final class InstrumentationFields {
 
+	private InstrumentationFields() {}
+
 	/**
 	 * The name of the instrumented field of storage objects that holds their storage reference.
 	 * Since it is private, it does not need any forbidden character at its beginning.

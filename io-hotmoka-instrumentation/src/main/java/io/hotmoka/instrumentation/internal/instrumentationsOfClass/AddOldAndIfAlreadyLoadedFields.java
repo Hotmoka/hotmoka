@@ -34,6 +34,11 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLe
 public class AddOldAndIfAlreadyLoadedFields extends ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC_TRANSIENT = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_TRANSIENT;
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 */
 	public AddOldAndIfAlreadyLoadedFields(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 

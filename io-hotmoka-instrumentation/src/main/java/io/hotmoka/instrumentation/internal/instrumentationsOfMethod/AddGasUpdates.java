@@ -75,9 +75,10 @@ public class AddGasUpdates extends MethodLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 
 	/**
+	 * Builds the instrumentation.
 	 * 
-	 * @param builder
-	 * @param method
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	public AddGasUpdates(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {

@@ -37,6 +37,11 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLe
 public class AddAccessorMethods extends ClassLevelInstrumentation {
 	private final static short PUBLIC_SYNTHETIC_FINAL = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC | Const.ACC_FINAL;
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 */
 	public AddAccessorMethods(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 

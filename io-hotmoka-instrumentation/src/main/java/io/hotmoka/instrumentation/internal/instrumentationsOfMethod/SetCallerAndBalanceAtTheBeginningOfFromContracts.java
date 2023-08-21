@@ -63,6 +63,13 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public SetCallerAndBalanceAtTheBeginningOfFromContracts(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 
@@ -99,8 +106,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 	}
 
 	private void shiftUp(MethodGen method, int slotForCaller) {
-		InstructionList il = method.getInstructionList();
-		for (InstructionHandle ih: il) {
+		for (InstructionHandle ih: method.getInstructionList()) {
 			Instruction ins = ih.getInstruction();
 			if (ins instanceof LocalVariableInstruction && !(ins instanceof LoadCaller)) {
 				int local = ((LocalVariableInstruction) ins).getIndex();

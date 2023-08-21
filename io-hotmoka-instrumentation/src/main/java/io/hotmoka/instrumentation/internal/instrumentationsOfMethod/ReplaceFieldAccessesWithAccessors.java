@@ -47,6 +47,13 @@ import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodL
  */
 public class ReplaceFieldAccessesWithAccessors extends MethodLevelInstrumentation {
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public ReplaceFieldAccessesWithAccessors(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 

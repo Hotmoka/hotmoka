@@ -54,6 +54,13 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
 	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public AddExtraArgsToCallsToFromContract(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 

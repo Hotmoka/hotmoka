@@ -69,9 +69,9 @@ import io.hotmoka.verification.api.VerifiedClass;
 import it.univr.bcel.StackMapReplacer;
 
 /**
- * An instrumented class file. For instance, it instruments storage
- * classes, by adding the serialization support, and contracts, to deal with entries.
- * They are ordered by their name.
+ * An instrumented class file. For instance, storage classes are instrumented
+ * by adding the serialization support, and contracts are instrumented in order
+ * to deal with calls from contracts. Instrumented classes are ordered by name.
  */
 public class InstrumentedClassImpl implements InstrumentedClass {
 
@@ -294,7 +294,10 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			method.removeLocalVariableTypeTable();
 		}
 
-		public abstract class ClassLevelInstrumentation {
+		/**
+		 * Shared code of instrumentations.
+		 */
+		private abstract class Instrumentation {
 
 			/**
 			 * The verified class for which instrumentation is performed.
@@ -530,7 +533,16 @@ public class InstrumentedClassImpl implements InstrumentedClass {
 			}
 		}
 
-		public abstract class MethodLevelInstrumentation extends ClassLevelInstrumentation {
+		/**
+		 * An implementation that works for a class as a whole.
+		 */
+		public abstract class ClassLevelInstrumentation extends Instrumentation {
+		}
+
+		/**
+		 * An instrumentation that works at the level of a single method of a class.
+		 */
+		public abstract class MethodLevelInstrumentation extends Instrumentation {
 			protected final MethodGen method;
 
 			protected MethodLevelInstrumentation(MethodGen method) {

@@ -43,6 +43,11 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 	private final static Type[] DESERIALIZE_LAST_UPDATE_ARGS = { ObjectType.OBJECT, Type.STRING, Type.STRING, Type.STRING };
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 */
 	public AddEnsureLoadedMethods(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 

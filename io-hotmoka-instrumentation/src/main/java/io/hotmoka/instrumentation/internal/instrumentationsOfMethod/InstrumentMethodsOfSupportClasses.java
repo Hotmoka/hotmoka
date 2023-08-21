@@ -41,6 +41,12 @@ public class InstrumentMethodsOfSupportClasses extends MethodLevelInstrumentatio
 	private final static ObjectType EVENT_OT = new ObjectType(Constants.EVENT_NAME);
 	private final static ObjectType BIGINTEGER_OT = new ObjectType(BigInteger.class.getName());
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
+	 */
 	public InstrumentMethodsOfSupportClasses(InstrumentedClassImpl.Builder builder, MethodGen method) {
 		builder.super(method);
 

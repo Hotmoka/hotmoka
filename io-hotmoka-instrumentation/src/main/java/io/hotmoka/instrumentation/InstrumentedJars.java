@@ -35,6 +35,7 @@ public final class InstrumentedJars {
 	 * 
 	 * @param verifiedJar the already verified jar
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @return the instrumented jar
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 * @throws VerificationException if {@code verifiedJar} has some error
 	 */

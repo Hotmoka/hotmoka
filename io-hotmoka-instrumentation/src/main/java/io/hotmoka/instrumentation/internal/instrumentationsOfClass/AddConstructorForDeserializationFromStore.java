@@ -45,6 +45,11 @@ import io.hotmoka.verification.Dummy;
 public class AddConstructorForDeserializationFromStore extends ClassLevelInstrumentation {
 	private final static short PUBLIC_SYNTHETIC = Const.ACC_PUBLIC | Const.ACC_SYNTHETIC;
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 */
 	public AddConstructorForDeserializationFromStore(InstrumentedClassImpl.Builder builder) {
 		builder.super();
 

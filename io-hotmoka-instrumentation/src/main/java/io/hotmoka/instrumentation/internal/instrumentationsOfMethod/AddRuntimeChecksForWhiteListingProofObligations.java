@@ -68,6 +68,13 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 	private final static short PRIVATE_SYNTHETIC_STATIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC | Const.ACC_STATIC;
 	private final static Type[] CHECK_WHITE_LISTING_PREDICATE_ARGS = new Type[] { Type.OBJECT, Type.CLASS, Type.STRING };
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 * @param method the method being instrumented
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
+	 */
 	public AddRuntimeChecksForWhiteListingProofObligations(InstrumentedClassImpl.Builder builder, MethodGen method) throws ClassNotFoundException {
 		builder.super(method);
 

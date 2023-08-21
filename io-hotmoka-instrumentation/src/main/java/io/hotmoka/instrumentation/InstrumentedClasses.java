@@ -33,6 +33,7 @@ public final class InstrumentedClasses {
 	 * 
 	 * @param clazz the verified class to instrument
 	 * @param gasCostModel the gas cost model used for the instrumentation
+	 * @return the instrumented class
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 	 */
 	public static InstrumentedClass of(VerifiedClass clazz, GasCostModel gasCostModel) throws ClassNotFoundException {

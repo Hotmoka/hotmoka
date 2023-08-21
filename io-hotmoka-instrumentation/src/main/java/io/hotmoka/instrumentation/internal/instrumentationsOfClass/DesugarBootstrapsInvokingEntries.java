@@ -56,6 +56,11 @@ import it.univr.bcel.StackMapReplacer;
 public class DesugarBootstrapsInvokingEntries extends ClassLevelInstrumentation {
 	private final static short PRIVATE_SYNTHETIC = Const.ACC_PRIVATE | Const.ACC_SYNTHETIC;
 
+	/**
+	 * Builds the instrumentation.
+	 * 
+	 * @param builder the builder of the class being instrumented
+	 */
 	public DesugarBootstrapsInvokingEntries(InstrumentedClassImpl.Builder builder) throws ClassNotFoundException {
 		builder.super();
 		check(ClassNotFoundException.class, () ->
