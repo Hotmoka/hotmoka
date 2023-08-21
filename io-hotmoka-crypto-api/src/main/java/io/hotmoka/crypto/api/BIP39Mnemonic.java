@@ -37,7 +37,8 @@ public interface BIP39Mnemonic {
     /**
      * Yields the account reconstructed from these BIP39 mnemonic words.
      * This works only if the words were actually derived from an account.
-     *
+     * 
+     * @param <R> the type of reference that identifies the account
      * @param accountCreator a function that creates an account from its entropy and from
      *                       the byte representation of its reference
      * @return the account

@@ -64,6 +64,11 @@ public interface SignatureAlgorithms {
 	 * It is useful instead for testing, since it makes deterministic the
 	 * sequence of keys of the accounts in the tests and consequently
 	 * also the gas costs of such accounts when they are put into maps, for instance.
+	 * 
+	 * @param <T> the type of the values that get signed
+	 * @param supplier how values get transformed into bytes, before being hashed and then signed
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
 	static <T> SignatureAlgorithm<T> ed25519det(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new ED25519DET<>(supplier);
@@ -146,11 +151,36 @@ public interface SignatureAlgorithms {
 	 * The alternatives of signature algorithms currently implemented.
 	 */
 	enum TYPES {
+		
+		/**
+		 * The ed25519 signature algorithm.
+		 */
 		ED25519,
+
+		/**
+		 * The ed25519 signature algorithm, in a deterministic fashion: it generates
+		 * keys in a deterministic way (therefore, only use for testing).
+		 */
 		ED25519DET,
+
+		/**
+		 * The empty signature algorithm, that signs everything with an empty array of bytes.
+		 */
 		EMPTY,
+
+		/**
+		 * The qTESLA-p-I signature algorithm.
+		 */
 		QTESLA1,
+
+		/**
+		 * The qTESLA-p-III signature algorithm.
+		 */
 		QTESLA3,
+
+		/**
+		 * A signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.
+		 */
 		SHA256DSA
 	}
 }

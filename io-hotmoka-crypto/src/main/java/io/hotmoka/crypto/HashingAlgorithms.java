@@ -108,7 +108,15 @@ public interface HashingAlgorithms {
 	 * The alternatives of hashing algorithms currently implemented.
 	 */
 	enum TYPES {
+
+		/**
+		 * The Sha256 hashing algorithm.
+		 */
 		SHA256,
+
+		/**
+		 * The Shabal256 hashing algorithm.
+		 */
 		SHABAL256
 	}
 }

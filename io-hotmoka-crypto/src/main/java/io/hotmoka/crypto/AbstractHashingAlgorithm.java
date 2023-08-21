@@ -26,4 +26,9 @@ import io.hotmoka.crypto.internal.AbstractHashingAlgorithmImpl;
  * @param <T> the type of values that get hashed
  */
 public abstract class AbstractHashingAlgorithm<T> extends AbstractHashingAlgorithmImpl<T> {
+
+	/**
+	 * Creates the algorithm.
+	 */
+	protected AbstractHashingAlgorithm() {}
 }

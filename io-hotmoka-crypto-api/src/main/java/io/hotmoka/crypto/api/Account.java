@@ -76,6 +76,8 @@ public interface Account<R extends Comparable<? super R>> extends Entropy {
      * Yields the BIP39 words for this account using the English dictionary.
      * They can be later transformed back into this account by calling the
      * {@link BIP39Mnemonic#toAccount(java.util.function.BiFunction)} method.
+     * 
+     * @return the BIP39 words for this account
      */
 	BIP39Mnemonic bip39Words();
 

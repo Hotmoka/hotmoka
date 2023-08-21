@@ -21,14 +21,34 @@ package io.hotmoka.crypto;
  */
 public interface Hex {
 
+	/**
+	 * Yields a string hexadecimal representation of the given bytes.
+	 * 
+	 * @param data the bytes (most significant byte first)
+	 * @return the hexadecimal string representation
+	 */
 	public static String toHexString(byte[] data) {
 		return org.bouncycastle.util.encoders.Hex.toHexString(data);
 	}
 
+	/**
+	 * Yields a string hexadecimal representation of a portion of the given bytes.
+	 * 
+	 * @param data the bytes (most significant byte first)
+	 * @param offset the starting point in {@code bytes}
+	 * @param length the number of bytes to consider
+	 * @return the hexadecimal string representation
+	 */
 	public static String toHexString(byte[] data, int offset, int length) {
 		return org.bouncycastle.util.encoders.Hex.toHexString(data, offset, length);
 	}
 
+	/**
+	 * Yields a byte representation of the given hexadecimal string.
+	 * 
+	 * @param hex the hexadecimal string
+	 * @return the byte representation (most significant byte first)
+	 */
 	public static byte[] fromHexString(String hex) {
 		return org.bouncycastle.util.encoders.Hex.decode(hex);
 	}

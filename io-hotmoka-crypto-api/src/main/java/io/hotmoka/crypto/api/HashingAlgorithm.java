@@ -41,7 +41,7 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 * @param start the initial byte position to consider for hashing;
 	 *              this must be a position inside the translation of
 	 *              {@code what} into bytes
-	 * @param length the number of bytes (starting at {@coded start})
+	 * @param length the number of bytes (starting at {@code start})
 	 *               that must be considered for hashing; this cannot be
 	 *               negative and must lead to an existing position inside the
 	 *               translation of {@code what} into bytes

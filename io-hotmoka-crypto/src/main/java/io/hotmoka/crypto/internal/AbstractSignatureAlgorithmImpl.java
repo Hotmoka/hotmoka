@@ -42,6 +42,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * Partial implementation of a signature algorithm.
+ * 
+ * @param <T> the type of values that get signed
  */
 public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgorithm<T> {
 	

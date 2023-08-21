@@ -22,7 +22,6 @@ import static io.hotmoka.exceptions.UncheckFunction.uncheck;
 import java.io.ByteArrayOutputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.SortedSet;
 import java.util.TreeSet;

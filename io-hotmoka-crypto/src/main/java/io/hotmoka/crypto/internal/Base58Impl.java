@@ -43,6 +43,7 @@ import io.hotmoka.crypto.Base58;
  * numbers), and finally represent the resulting base-58 digits as alphanumeric ASCII characters.
  */
 public class Base58Impl implements Base58 {
+	private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     private static final char ENCODED_ZERO = ALPHABET[0];
     private static final int[] INDEXES = new int[128];
 

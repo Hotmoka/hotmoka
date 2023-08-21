@@ -77,7 +77,7 @@ public interface SignatureAlgorithm<T> {
 	 * 
 	 * @param publicKey the public key
 	 * @return the encoded bytes of {@code publicKey}
-	 * @throws InvalidKeySpecException if the public key cannot be encoded
+	 * @throws InvalidKeyException if the public key cannot be encoded
 	 */
 	byte[] encodingOf(PublicKey publicKey) throws InvalidKeyException;
 
