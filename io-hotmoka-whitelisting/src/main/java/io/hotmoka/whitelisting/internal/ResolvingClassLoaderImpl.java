@@ -29,8 +29,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 
@@ -58,7 +58,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	// getPackageName() not working under Android!
 	private final static String WHITELISTING_PACKAGE_NAME = ResolvingClassLoaders.class.getPackage().getName() + '.';
 
-	private final static String DUMMY_NAME_WITH_SLASHES = Constants.DUMMY_NAME.replace('.', '/') + ".class";
+	private final static String DUMMY_NAME_WITH_SLASHES = WhitelistingConstants.DUMMY_NAME.replace('.', '/') + ".class";
 
 	/**
 	 * Builds a class loader with the given jars.
@@ -104,8 +104,8 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
     	// for them, we use the application (aka system) class-loader, that takes into account
     	// the full classpath of the JVM running the node
 		if (name.startsWith(WHITELISTING_PACKAGE_NAME) // to allow access to the white-listing database
-				|| Constants.DUMMY_NAME.equals(name) // to allow instrumented methods
-				|| Constants.RUNTIME_NAME.equals(name)) // to allow calls to Takamaka's runtime
+				|| WhitelistingConstants.DUMMY_NAME.equals(name) // to allow instrumented methods
+				|| WhitelistingConstants.RUNTIME_NAME.equals(name)) // to allow calls to Takamaka's runtime
 			try {
 				return Optional.of(ClassLoader.getSystemClassLoader().loadClass(name));
 			}

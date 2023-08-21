@@ -46,12 +46,11 @@ import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.StoreInstruction;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.instrumentation.internal.instrumentationsOfMethod.AddExtraArgsToCallsToFromContract.LoadCaller;
-import io.hotmoka.verification.Dummy;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * Sets the caller at the beginning of {@code @@FromContract} and updates the balance
@@ -60,7 +59,7 @@ import io.hotmoka.verification.Dummy;
 public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(io.hotmoka.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
-	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
+	private final static ObjectType DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };
 
 	/**
@@ -192,7 +191,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 				Type amountType = method.getArgumentType(isConstructorOfInstanceInnerClass ? 1 : 0);
 				il.insert(start, InstructionFactory.createLoad(amountType, isConstructorOfInstanceInnerClass ? 2 : 1));
 				Type[] payableFromContractArgs = new Type[] { OBJECT_OT, OBJECT_OT, DUMMY_OT, amountType };
-				il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME,
+				il.insert(where, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME,
 					isPayable ? InstrumentationConstants.PAYABLE_FROM_CONTRACT : InstrumentationConstants.RED_PAYABLE_FROM_CONTRACT,
 					Type.VOID, payableFromContractArgs, Const.INVOKESTATIC));
 			}
@@ -204,7 +203,7 @@ public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLeve
 			if (callerContract != classLoader.getContract())
 				il.insert(start, factory.createCast(CONTRACT_OT, Type.getType(callerContract)));
 
-			il.insert(where, factory.createInvoke(Constants.RUNTIME_NAME, InstrumentationConstants.FROM_CONTRACT, Type.VOID, FROM_CONTRACT_ARGS, Const.INVOKESTATIC));
+			il.insert(where, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, InstrumentationConstants.FROM_CONTRACT, Type.VOID, FROM_CONTRACT_ARGS, Const.INVOKESTATIC));
 		}
 		else if (callerContract != classLoader.getContract()) {
 			il.insert(start, InstructionFactory.createLoad(CONTRACT_OT, slotForCaller));

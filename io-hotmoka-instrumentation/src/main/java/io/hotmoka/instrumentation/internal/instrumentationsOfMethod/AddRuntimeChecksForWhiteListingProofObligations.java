@@ -52,13 +52,13 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.HasDeterministicTerminatingToString;
 import io.hotmoka.whitelisting.MustBeFalse;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
 
 /**
@@ -195,7 +195,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 					il.append(InstructionFactory.createDup(argType.getSize()));
 					il.append(new LDC(cpg.addClass(HasDeterministicTerminatingToString.class.getAnnotation(WhiteListingProofObligation.class).check().getName())));
 					il.append(factory.createConstant("string concatenation"));
-					il.append(factory.createInvoke(Constants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+					il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					atLeastOneCheck = true;
 				}
 			}
@@ -417,7 +417,7 @@ public class AddRuntimeChecksForWhiteListingProofObligations extends MethodLevel
 						boxIfNeeded(il, argType);
 						il.append(new LDC(cpg.addClass(wlpo.check().getName())));
 						il.append(factory.createConstant(methodName));
-						il.append(factory.createInvoke(Constants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
+						il.append(factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "checkWhiteListingPredicate", Type.VOID, CHECK_WHITE_LISTING_PREDICATE_ARGS, Const.INVOKESTATIC));
 					}
 			}
 		}

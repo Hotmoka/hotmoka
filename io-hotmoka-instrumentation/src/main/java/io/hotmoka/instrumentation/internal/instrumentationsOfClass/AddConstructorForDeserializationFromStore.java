@@ -34,7 +34,7 @@ import org.apache.bcel.generic.Type;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
-import io.hotmoka.verification.Dummy;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * An instrumentation that adds a constructor that deserializes an object of storage type. This
@@ -68,7 +68,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 
 			// at the end, there is a fictitious argument used to avoid clashes with
 			// already existing, user-provided constructors
-			args.add(new ObjectType(Dummy.class.getName()));
+			args.add(new ObjectType(WhitelistingConstants.DUMMY_NAME));
 
 			InstructionList il = new InstructionList();
 			int nextLocal = addCallToSuper(il);
@@ -129,7 +129,7 @@ public class AddConstructorForDeserializationFromStore extends ClassLevelInstrum
 		if (!className.equals(io.hotmoka.constants.Constants.STORAGE_NAME)) {
 			// we pass null for the dummy argument
 			il.append(InstructionConst.ACONST_NULL);
-			argsForSuperclasses.add(new ObjectType(Dummy.class.getName()));
+			argsForSuperclasses.add(new ObjectType(WhitelistingConstants.DUMMY_NAME));
 		}
 
 		il.append(factory.createInvoke(getSuperclassName(), Const.CONSTRUCTOR_NAME, BasicType.VOID,

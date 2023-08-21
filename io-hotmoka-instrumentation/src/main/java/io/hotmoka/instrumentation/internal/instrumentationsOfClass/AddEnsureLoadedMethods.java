@@ -30,11 +30,11 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * An instrumentation that adds the ensure loaded methods for the lazy fields of the class being instrumented.
@@ -80,7 +80,7 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		InstructionHandle _return = il.append(InstructionConst.RETURN);
 		il.insert(_return, InstructionFactory.createThis());
 		// we use reflection to access the private field "inStorage"
-		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
+		il.insert(_return, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME, "inStorageOf", Type.BOOLEAN, new Type[] { Type.OBJECT }, Const.INVOKESTATIC));
 		il.insert(_return, InstructionFactory.createBranchInstruction(Const.IFEQ, _return));
 		il.insert(_return, InstructionFactory.createThis());
 		String fieldName = field.getName();
@@ -94,7 +94,7 @@ public class AddEnsureLoadedMethods extends ClassLevelInstrumentation {
 		il.insert(_return, factory.createConstant(className));
 		il.insert(_return, factory.createConstant(fieldName));
 		il.insert(_return, factory.createConstant(field.getType().getName()));
-		il.insert(_return, factory.createInvoke(Constants.RUNTIME_NAME,
+		il.insert(_return, factory.createInvoke(WhitelistingConstants.RUNTIME_NAME,
 			fieldIsFinal ? InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR_FINAL : InstrumentationConstants.DESERIALIZE_LAST_UPDATE_FOR,
 			ObjectType.OBJECT, DESERIALIZE_LAST_UPDATE_ARGS, Const.INVOKESTATIC));
 		il.insert(_return, factory.createCast(ObjectType.OBJECT, type));

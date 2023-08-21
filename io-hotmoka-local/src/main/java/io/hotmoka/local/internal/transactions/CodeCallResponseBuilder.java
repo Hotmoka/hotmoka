@@ -39,7 +39,7 @@ import io.hotmoka.local.NonInitialResponseBuilder;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.Serializer;
 import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.hotmoka.verification.Dummy;
+import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 import io.hotmoka.whitelisting.api.WhiteListingProofObligation;

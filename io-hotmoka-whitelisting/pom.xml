@@ -15,11 +15,6 @@
   </parent>
 
   <dependencies>
-	<dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-constants</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-whitelisting-api</artifactId>

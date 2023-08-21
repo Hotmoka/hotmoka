@@ -33,15 +33,15 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
 import io.hotmoka.constants.Constants;
-import io.hotmoka.verification.Dummy;
 import io.hotmoka.verification.api.Annotations;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * A utility to check the annotations of the methods in a given jar.
  */
 public class AnnotationsImpl implements Annotations {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
-	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
+	private final static ObjectType DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);
 
 	/**
 	 * The jar whose annotations are considered.

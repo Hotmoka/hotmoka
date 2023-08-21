@@ -31,8 +31,8 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 
-import io.hotmoka.verification.Dummy;
 import io.hotmoka.verification.api.Bootstraps;
+import io.hotmoka.whitelisting.Dummy;
 
 /**
  * A utility that implements resolving algorithms for field and methods.

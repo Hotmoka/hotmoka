@@ -52,16 +52,6 @@ public final class Constants {
 	public final static String TAKAMAKA_VERSION;
 
 	/**
-	 * The name of the class {@code io.hotmoka.local.internal.runtime.Runtime}.
-	 */
-	public final static String RUNTIME_NAME = "io.hotmoka.local.internal.runtime.Runtime";
-
-	/**
-	 * The name of the class {@code io.hotmoka.verification.Dummy}.
-	 */
-	public final static String DUMMY_NAME = "io.hotmoka.verification.Dummy";
-
-	/**
 	 * The name of the interface type for {@link io.takamaka.code.lang.Account}.
 	 */
 	public final static String ACCOUNT_NAME = "io.takamaka.code.lang.Account";

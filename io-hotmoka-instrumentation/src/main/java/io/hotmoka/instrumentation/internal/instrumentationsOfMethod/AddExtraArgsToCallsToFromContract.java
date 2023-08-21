@@ -43,7 +43,7 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
-import io.hotmoka.verification.Dummy;
+import io.hotmoka.whitelisting.WhitelistingConstants;
 
 /**
  * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.
@@ -51,8 +51,8 @@ import io.hotmoka.verification.Dummy;
  */
 public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentation {
 	private final static ObjectType CONTRACT_OT = new ObjectType(Constants.CONTRACT_NAME);
-	private final static ObjectType RUNTIME_OT = new ObjectType(Constants.RUNTIME_NAME);
-	private final static ObjectType DUMMY_OT = new ObjectType(Dummy.class.getName());
+	private final static ObjectType RUNTIME_OT = new ObjectType(WhitelistingConstants.RUNTIME_NAME);
+	private final static ObjectType DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);
 
 	/**
 	 * Builds the instrumentation.
@@ -155,7 +155,7 @@ public class AddExtraArgsToCallsToFromContract extends MethodLevelInstrumentatio
 					il.append(ih, InstructionConst.ACONST_NULL); // we pass null as Dummy
 				else
 					// otherwise we pass a tag that states that it is a method called on "this"
-					il.append(ih, factory.createGetStatic(Dummy.class.getName(), "METHOD_ON_THIS", DUMMY_OT));
+					il.append(ih, factory.createGetStatic(WhitelistingConstants.DUMMY_NAME, "METHOD_ON_THIS", DUMMY_OT));
 			}
 			else {
 				// the call is not on "this": it must be inside a contract "this" that becomes the caller

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.verification;
+package io.hotmoka.whitelisting;
 
 /**
  * This class is used only in the instrumentation of an entry method or constructor,
