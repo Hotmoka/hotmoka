@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -83,6 +84,8 @@ class Store extends AbstractStore {
 	 * The number of transactions that fit inside a block.
 	 */
 	private final int transactionsPerBlock;
+
+	private final static Logger logger = Logger.getLogger(Store.class.getName());
 
 	/**
      * Creates a state for a node.
@@ -243,7 +246,7 @@ class Store extends AbstractStore {
 		if (progressive == null)
 			throw new FileNotFoundException("unknown transaction reference " + reference);
 
-		return dir.resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
+		return getDir().resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
 	/**

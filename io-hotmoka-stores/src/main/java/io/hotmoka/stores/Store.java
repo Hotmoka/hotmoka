@@ -27,8 +27,8 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
- * The shared store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. This store is external to the node and, typically, only
+ * The store of a node. It keeps information about the state of the objects created
+ * by the requests executed by the node. A store is external to the node and, typically, only
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
@@ -39,7 +39,7 @@ public interface Store extends AutoCloseable {
 	 * Yields the UTC time that must be used for a transaction, if it is executed
 	 * with this state in this moment.
 	 * 
-	 * @return the UTC time, in the same format as returned by {@link java.lang.System#currentTimeMillis()}
+	 * @return the UTC time in milliseconds, as returned by {@link java.lang.System#currentTimeMillis()}
 	 */
 	long getNow();
 
@@ -53,7 +53,7 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the response of the transaction having the given reference.
-	 * The response if returned also when it is not yet committed.
+	 * The response if returned also when it is not committed yet.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response, if any
@@ -69,7 +69,7 @@ public interface Store extends AutoCloseable {
 	Optional<String> getError(TransactionReference reference);
 
 	/**
-	 * Yields the history of the given object, that is, the references of the transactions
+	 * Yields the history of the given object, that is, the references to the transactions
 	 * that provide information about the current values of its fields.
 	 * 
 	 * @param object the reference of the object
@@ -79,7 +79,8 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the history of the given object, that is, the references of the transactions
-	 * that provide information about the current values of its fields.
+	 * that provide information about the current values of its fields. This considers also
+	 * updates of the transaction not committed yet.
 	 * 
 	 * @param object the reference of the object
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
@@ -95,7 +96,7 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the manifest installed when the node is initialized, also when the
-	 * transaction that installed it is not yet committed.
+	 * transaction that installed it is not committed yet.
 	 * 
 	 * @return the manifest
 	 */
@@ -133,7 +134,7 @@ public interface Store extends AutoCloseable {
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
 
 	/**
-	 * Pushes into state the error message resulting from the unsuccessful execution of a Hotmoka request.
+	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
 	 * 
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction

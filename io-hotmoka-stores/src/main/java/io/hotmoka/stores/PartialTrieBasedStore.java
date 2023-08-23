@@ -25,6 +25,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
@@ -125,6 +126,8 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * The time when {@link #txn} was started, in the same format as {@link System#currentTimeMillis()}.
 	 */
 	private long now;
+
+	private final static Logger logger = Logger.getLogger(PartialTrieBasedStore.class.getName());
 
 	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
@@ -233,14 +236,16 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * in the supporting database if the transaction will later be committed.
 	 * 
 	 * @param now the time to use as starting moment of the transaction
+	 * @return the transaction
 	 */
-	public void beginTransaction(long now) {
+	public Transaction beginTransaction(long now) {
 		synchronized (lock) {
 			txn = env.beginTransaction();
 			long numberOfCommits = getNumberOfCommits();
 			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
 			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
 			this.now = now;
+			return txn;
 		}
 	}
 

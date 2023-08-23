@@ -18,8 +18,8 @@ package io.hotmoka.stores;
 
 /**
  * A store that can be checked out, that is, its view of the world can be moved
- * back in time. Different moments of the store are identifies by hashes, that
- * can be checked out when needed.
+ * back and forth in time. Different moments of the store are identifies by hashes,
+ * that can be checked out when needed.
  */
 public interface CheckableStore extends Store {
 
@@ -29,7 +29,7 @@ public interface CheckableStore extends Store {
 	 * been garbage-collected, since otherwise some data might be missing for the given hash,
 	 * which might result in missing objects.
 	 * 
-	 * @param hash the hash to reset to
+	 * @param hash the hash to reset the store to
 	 */
 	void checkout(byte[] hash);
 }

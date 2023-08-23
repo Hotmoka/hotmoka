@@ -44,13 +44,10 @@ import io.hotmoka.beans.values.StorageReference;
 
 /**
  * Shared implementation of the store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node. This store is external to the node and, typically, only
- * its hash is stored in the node, if consensus is needed.
+ * by the requests executed by the node.
  */
 @ThreadSafe
 public abstract class AbstractStore implements Store {
-	protected final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
-
 	/**
 	 * The lock for modifications of the store.
 	 */
@@ -64,7 +61,9 @@ public abstract class AbstractStore implements Store {
 	/**
 	 * The path where the database of the store gets created.
 	 */
-	protected final Path dir;
+	private final Path dir;
+
+	private final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
 	 * Builds the store for a node.
@@ -106,6 +105,15 @@ public abstract class AbstractStore implements Store {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 		}
+	}
+
+	/**
+	 * Yields the path where the database of the store gets created.
+	 * 
+	 * @return the path
+	 */
+	protected final Path getDir() {
+		return dir;
 	}
 
 	/**
@@ -175,10 +183,10 @@ public abstract class AbstractStore implements Store {
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
 		Set<Update> covered = addedUpdates.filter(update -> update.object.equals(object)).collect(Collectors.toSet());
-		List<TransactionReference> simplified = new ArrayList<>();
+		var simplified = new ArrayList<TransactionReference>();
 		simplified.add(added);
 	
-		TransactionReference[] oldAsArray = old.toArray(TransactionReference[]::new);
+		var oldAsArray = old.toArray(TransactionReference[]::new);
 		int length = oldAsArray.length;
 		for (int pos = 0; pos < length - 1; pos++)
 			addIfUncovered(oldAsArray[pos], object, covered, simplified);

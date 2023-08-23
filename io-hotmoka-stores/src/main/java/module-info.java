@@ -21,6 +21,6 @@ module io.hotmoka.stores {
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.exceptions;
-	requires io.hotmoka.xodus;
+	requires transitive io.hotmoka.xodus;
 	requires java.logging;
 }
