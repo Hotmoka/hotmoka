@@ -36,8 +36,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.local.NodeCaches;
-import io.hotmoka.local.Store;
 import io.hotmoka.local.StoreUtilities;
+import io.hotmoka.stores.Store;
 
 /**
  * The implementation of an object that provides methods for reconstructing data from the store of a node.

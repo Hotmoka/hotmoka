@@ -93,6 +93,8 @@ import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.nodes.AbstractNode;
 import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.stores.AbstractStore;
+import io.hotmoka.stores.Store;
 
 /**
  * A generic implementation of a local (ie., non-remote) node.

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.local;
+package io.hotmoka.stores;
 
 /**
  * A store that can be checked out, that is, its view of the world can be moved

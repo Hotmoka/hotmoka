@@ -19,6 +19,7 @@ module io.hotmoka.memory {
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.local;
+	requires io.hotmoka.stores;
 	requires transitive io.hotmoka.nodes;
 	requires io.hotmoka.beans;
 	requires java.logging;

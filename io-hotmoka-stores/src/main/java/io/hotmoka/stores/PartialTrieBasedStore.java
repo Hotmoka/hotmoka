@@ -32,7 +32,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.local.AbstractStore;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;

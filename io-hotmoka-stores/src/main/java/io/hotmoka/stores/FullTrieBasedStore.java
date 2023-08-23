@@ -28,7 +28,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.local.CheckableStore;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;

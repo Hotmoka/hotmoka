@@ -35,8 +35,8 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.local.Config;
 import io.hotmoka.local.NodeCaches;
-import io.hotmoka.local.Store;
 import io.hotmoka.local.StoreUtilities;
+import io.hotmoka.stores.Store;
 
 /**
  * The methods of a Hotmoka node that are used inside the internal

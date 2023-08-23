@@ -23,6 +23,7 @@ module io.hotmoka.local {
 	opens io.hotmoka.local.internal.runtime;
 
 	requires transitive io.hotmoka.nodes;
+	requires io.hotmoka.stores;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.crypto;

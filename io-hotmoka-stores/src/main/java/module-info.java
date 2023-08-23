@@ -19,7 +19,6 @@ module io.hotmoka.stores {
 	requires transitive io.hotmoka.beans;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.crypto;
-	requires io.hotmoka.local;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.xodus;
