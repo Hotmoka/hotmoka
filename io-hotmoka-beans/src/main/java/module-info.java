@@ -27,6 +27,7 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans;
 	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.constants;
+	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
 }

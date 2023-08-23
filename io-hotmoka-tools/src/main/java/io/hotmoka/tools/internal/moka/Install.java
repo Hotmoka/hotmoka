@@ -30,13 +30,13 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -111,7 +111,7 @@ public class Install extends AbstractCommand {
 				askForConfirmation(gas);
 
 				var request = new JarStoreTransactionRequest(
-					Signer.with(signature, keys),
+					Signers.with(signature, keys),
 					payer,
 					nonceHelper.getNonceOf(payer),
 					chainId,

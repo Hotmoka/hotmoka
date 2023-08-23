@@ -40,8 +40,9 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.nodes.Signer;
+import io.hotmoka.crypto.api.Signer;
 
 public class Faucet extends HotmokaTest {
 
@@ -64,9 +65,9 @@ public class Faucet extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
-		Signer signer = Signer.with(signature, signature.getKeyPair());
+		Signer<SignedTransactionRequest> signer = Signers.with(signature, signature.getKeyPair());
 
-		StorageReference account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
 			new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, BasicTypes.INT, ClassType.STRING),
 			gamete, new IntValue(100_000), new StringValue(publicKey)));
@@ -77,14 +78,14 @@ public class Faucet extends HotmokaTest {
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException {
 		StorageReference manifest = node.getManifest();
-		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
+		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
-		Signer signer = Signer.with(signature(), privateKey(0));
+		Signer<SignedTransactionRequest> signer = Signers.with(signature(), privateKey(0));
 		StorageReference caller = account(0);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->

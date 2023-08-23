@@ -59,12 +59,13 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Signer;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.
@@ -121,7 +122,7 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		StorageReference manifest = getManifest();
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
-		var signerOnBehalfOfPayer = Signer.with(signature, privateKeyOfPayer);
+		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = Signers.with(signature, privateKeyOfPayer);
 		var _100_000 = BigInteger.valueOf(100_000L);
 		var _200_000 = BigInteger.valueOf(200_000L);
 

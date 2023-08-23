@@ -40,6 +40,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -49,7 +51,6 @@ import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.Signer;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -115,7 +116,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
-		var signer = Signer.with(signatureForFaucet, keyPair);
+		var signer = Signers.with(signatureForFaucet, keyPair);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
@@ -162,7 +163,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		gasHandler.accept(totalGas);
 
-		var signer = Signer.with(signatureForPayer, keysOfPayer);
+		var signer = Signers.with(signatureForPayer, keysOfPayer);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
 		StorageReference account;
 		TransactionRequest<?> request1;
@@ -212,12 +213,12 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
-		BigInteger gas = gasForCreatingAccountWithSignature("ed25519");
+		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithms.TYPES.ED25519.name());
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
-		var signer = Signer.with(signatureForFaucet, keyPair);
+		var signer = Signers.with(signatureForFaucet, keyPair);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
@@ -237,13 +238,13 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		BigInteger gas1 = gasForCreatingAccountWithSignature("ed25519");
+		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithms.TYPES.ED25519.name());
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 
 		gasHandler.accept(totalGas);
 
-		var signer = Signer.with(signatureForPayer, keysOfPayer);
+		var signer = Signers.with(signatureForPayer, keysOfPayer);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),

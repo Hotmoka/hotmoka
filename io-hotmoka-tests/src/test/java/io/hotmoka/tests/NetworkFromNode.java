@@ -45,6 +45,7 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -54,7 +55,6 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
-import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.internal.http.client.RestClientService;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -182,7 +182,7 @@ class NetworkFromNode extends HotmokaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					Signer.with(signature(), key),
+					Signers.with(signature(), key),
 					master,
 					ONE,
 					chainId,
@@ -210,7 +210,7 @@ class NetworkFromNode extends HotmokaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					Signer.with(signature(), key),
+					Signers.with(signature(), key),
 					master,
 					ONE,
 					chainId,
@@ -243,7 +243,7 @@ class NetworkFromNode extends HotmokaTest {
 
 		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
 			ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest(
-					Signer.with(signature(), key),
+					Signers.with(signature(), key),
 					master,
 					ONE,
 					chainId,

@@ -42,6 +42,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -49,7 +50,6 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.nodes.Account;
 import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -228,7 +228,7 @@ public class Call extends AbstractCommand {
 
 				if (isStatic)
 					return new StaticMethodCallTransactionRequest(
-							Signer.with(signature, keys),
+							Signers.with(signature, keys),
 							payer,
 							nonce,
 							chainId,
@@ -239,7 +239,7 @@ public class Call extends AbstractCommand {
 							actuals);
 				else
 					return new InstanceMethodCallTransactionRequest(
-							Signer.with(signature, keys),
+							Signers.with(signature, keys),
 							payer,
 							nonce,
 							chainId,

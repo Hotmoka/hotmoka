@@ -26,9 +26,11 @@ import io.hotmoka.crypto.SignatureAlgorithms.TYPES;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
- * An algorithm that signs transaction requests and verifies such signatures back.
+ * Provider of algorithms that sign transaction requests and verify such signatures back.
  */
-public interface SignatureAlgorithmForTransactionRequests {
+public final class SignatureAlgorithmForTransactionRequests {
+
+	private SignatureAlgorithmForTransactionRequests() {}
 
 	/**
 	 * Yields a signature algorithm for transaction requests that uses the SHA256 hashing algorithm and then the DSA algorithm.
@@ -36,7 +38,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256withDSA algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> sha256dsa() throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> sha256dsa() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -46,7 +48,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> ed25519() throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> ed25519() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -57,7 +59,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * sequence of keys of the accounts in the tests and consequently
 	 * also the gas costs of such accounts when they are put into maps, for instance.
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> ed25519det() throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> ed25519det() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -67,7 +69,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-I algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> qtesla1() throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> qtesla1() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -77,7 +79,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> qtesla3() throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> qtesla3() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -86,7 +88,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * 
 	 * @return the algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> empty() {
+	public static SignatureAlgorithm<SignedTransactionRequest> empty() {
 		return SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 
@@ -99,7 +101,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static SignatureAlgorithm<SignedTransactionRequest> mk(String name) throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> mk(String name) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -119,7 +121,7 @@ public interface SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static SignatureAlgorithm<SignedTransactionRequest> mk(TYPES type) throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> mk(TYPES type) throws NoSuchAlgorithmException {
 		return mk(type.name());
 	}
 }

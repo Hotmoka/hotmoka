@@ -507,13 +507,12 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 			if (amount.signum() < 0)
 				throw new IllegalArgumentException("gas cannot increase");
 
-			// gas can be negative only if it was initialized so; this special case is
+			// gas can only be negative if it was initialized so; this special case is
 			// used for the creation of the gamete, when gas should not be counted
 			if (gas.signum() < 0)
 				return;
 
 			if (gas.compareTo(amount) < 0)
-				// we report how much gas is missing
 				throw new OutOfGasError();
 		
 			gas = gas.subtract(amount);

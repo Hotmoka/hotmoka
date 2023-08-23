@@ -37,7 +37,6 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
 
     public ConstructorCallTransactionRequestModel() {}
 
-
     /**
      * Builds the model from the request.
      * 

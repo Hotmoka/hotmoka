@@ -71,7 +71,7 @@ public abstract class AbstractNode implements Node {
 		if (handler == null)
 			throw new NullPointerException("the handler cannot be null");
 
-		SubscriptionImpl subscription = new SubscriptionImpl(creator, handler);
+		var subscription = new SubscriptionImpl(creator, handler);
 
 		synchronized (subscriptions) {
 			subscriptions.computeIfAbsent(creator, __ -> new HashSet<>()).add(subscription);

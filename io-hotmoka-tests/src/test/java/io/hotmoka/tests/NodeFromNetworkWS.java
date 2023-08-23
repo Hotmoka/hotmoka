@@ -56,11 +56,11 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.Signer;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -99,9 +99,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
     void testRemoteGetSignatureAlgorithmForRequests() throws Exception {
         SignatureAlgorithm<SignedTransactionRequest> algo;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
-             RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
-
+        try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeConfig)) {
             algo = SignatureAlgorithmForTransactionRequests.mk(remoteNode.getNameOfSignatureAlgorithmForRequests());
         }
 
@@ -347,7 +345,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             transaction = remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-            	(Signer.with(signature(), privateKey(0)), account(0),
+            	(Signers.with(signature(), privateKey(0)), account(0),
                  ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
         }
 
@@ -364,7 +362,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-                    (Signer.with(signature(), privateKey(0)), account(0),
+                    (Signers.with(signature(), privateKey(0)), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
@@ -384,7 +382,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-                    (Signer.with(signature(), privateKey(0)), account(0),
+                    (Signers.with(signature(), privateKey(0)), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
         catch (TransactionException e) {
@@ -405,7 +403,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
              RemoteNode remoteNode = RemoteNode.of(remoteNodeConfig)) {
 
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (Signer.with(signature(), privateKey(0)), account(0),
+                    (Signers.with(signature(), privateKey(0)), account(0),
                             ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
             // we wait until the request has been processed
@@ -425,7 +423,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (Signer.with(signature(), privateKey(0)), account(0),
+                    (Signers.with(signature(), privateKey(0)), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
@@ -452,7 +450,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             Node.JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (Signer.with(signature(), privateKey(0)), account(0),
+                    (Signers.with(signature(), privateKey(0)), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 
             // we wait until the request has been processed; this will throw a TransactionException at the end,

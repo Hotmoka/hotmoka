@@ -21,7 +21,7 @@ package io.hotmoka.nodes;
  * with a parameter (or receiver) that makes it non-white-listed.
  */
 @SuppressWarnings("serial")
-public class NonWhiteListedCallException extends IllegalStateException {
+public class NonWhiteListedCallException extends RuntimeException {
 	public NonWhiteListedCallException(String message) {
 		super(message);
 	}

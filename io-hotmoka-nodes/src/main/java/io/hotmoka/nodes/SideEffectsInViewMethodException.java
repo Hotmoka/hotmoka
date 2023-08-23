@@ -27,6 +27,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 public class SideEffectsInViewMethodException extends Exception {
 
 	public SideEffectsInViewMethodException(MethodSignature method) {
-		super("Method " + method + " induced side-effects");
+		super("@View method " + method + " induced side-effects");
 	}
 }

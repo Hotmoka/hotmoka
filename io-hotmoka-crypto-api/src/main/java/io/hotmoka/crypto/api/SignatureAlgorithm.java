@@ -106,6 +106,7 @@ public interface SignatureAlgorithm<T> {
 	 * @return the name of the algorithm
 	 */
 	String getName();
+
 	/**
      * Creates a key pair from the given entropy and password.
      * 

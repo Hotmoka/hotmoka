@@ -132,7 +132,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
 
 		// we create the builder of the validators
-		BigInteger _200_000 = BigInteger.valueOf(200_000);
+		var _200_000 = BigInteger.valueOf(200_000);
 		String builderClassName = ClassType.TENDERMINT_VALIDATORS + "$Builder";
 
 		var request = new ConstructorCallTransactionRequest

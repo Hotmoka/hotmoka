@@ -39,6 +39,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -48,7 +49,6 @@ import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.Signer;
 
 /**
  * Implementation of an object that helps with sending coins to accounts.
@@ -87,7 +87,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
-		var signer = Signer.with(signature, keysOfPayer);
+		var signer = Signers.with(signature, keysOfPayer);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);
@@ -130,7 +130,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		// we use the empty signature algorithm, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
 		var request = new InstanceMethodCallTransactionRequest
-			(Signer.with(signature, signature.getKeyPair()),
+			(Signers.with(signature, signature.getKeyPair()),
 			gamete, nonceHelper.getNonceOf(gamete),
 			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 			new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),

@@ -18,8 +18,6 @@ package io.hotmoka.beans.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.InvalidKeyException;
-import java.security.SignatureException;
 
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.values.StorageReference;
@@ -84,21 +82,5 @@ public interface SignedTransactionRequest {
 			// impossible with a byte array output stream
 			throw new RuntimeException("unexpected exception", e);
 		}
-	}
-
-	/**
-	 * An object that provides the signature of a request.
-	 */
-	interface Signer {
-
-		/**
-		 * Computes the signature of the given request.
-		 * 
-		 * @param what the request to sign
-		 * @return the signature of the request
-		 * @throws InvalidKeyException if the private key used for signing is invalid
-		 * @throws SignatureException if the request cannot be signed
-		 */
-		byte[] sign(SignedTransactionRequest what) throws InvalidKeyException, SignatureException;
 	}
 }
