@@ -67,7 +67,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 */
 	protected final Environment env;
 
-    /**
+	/**
 	 * The number of last commits that can be checked out, in order to
 	 * change the world-view of the store (see {@link #checkout(byte[])}).
 	 * This entails that such commits are not garbage-collected. until
@@ -156,8 +156,8 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
     	this.checkableDepth = checkableDepth;
     	this.env = new Environment(dir + "/store");
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfResponses = new AtomicReference<>();
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfInfo = new AtomicReference<>();
+    	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
+    	var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
 
     	env.executeInTransaction(txn -> {
     		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
@@ -221,16 +221,6 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 		}
 	}
 
-	@Override
-	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		trieOfResponses.put(reference, response);
-	}
-
-	@Override
-	protected void setManifest(StorageReference manifest) {
-		trieOfInfo.setManifest(manifest);
-	}
-
 	/**
 	 * Starts a transaction. All updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
@@ -250,27 +240,49 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Commits to the database all data put from the last call to {@link #beginTransaction(long)}.
+	 * Commits to the database all data written from the last call to {@link #beginTransaction(long)}.
 	 * This does not change the view of the store, since its roots are not updated,
 	 * unless the hash returned by this method gets later checked out to update the roots.
 	 * 
 	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
-	protected byte[] commitTransaction() {
-		long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
-
-		// a negative number means that garbage-collection is disabled
-		if (checkableDepth >= 0L) {
-			long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
-			if (commitToGarbageCollect >= 0L)
-				garbageCollect(commitToGarbageCollect);
+	public byte[] commitTransaction() {
+		synchronized (lock) {
+			long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
+	
+			// a negative number means that garbage-collection is disabled
+			if (checkableDepth >= 0L) {
+				long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
+				if (commitToGarbageCollect >= 0L)
+					garbageCollect(commitToGarbageCollect);
+			}
+	
+			if (!txn.commit())
+				logger.info("transaction's commit failed");
+	
+			return mergeRootsOfTries();
 		}
+	}
 
-		if (!txn.commit())
-			logger.info("transaction's commit failed");
+	/**
+	 * Yields the number of commits already performed over this store.
+	 * 
+	 * @return the number of commits
+	 */
+	public long getNumberOfCommits() {
+		return env.computeInReadonlyTransaction
+			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits());
+	}
 
-		return mergeRootsOfTries();
+	@Override
+	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		trieOfResponses.put(reference, response);
+	}
+
+	@Override
+	protected void setManifest(StorageReference manifest) {
+		trieOfInfo.setManifest(manifest);
 	}
 
 	/**
@@ -291,17 +303,8 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 */
 	protected void checkout(byte[] root) {
 		setRootsTo(root);
-		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, ByteIterable.fromBytes(root)));
-	}
-
-	/**
-	 * Yields the number of commits already performed over this store.
-	 * 
-	 * @return the number of commits
-	 */
-	public long getNumberOfCommits() {
-		return env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits());
+		var rootAsBI = ByteIterable.fromBytes(root);
+		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
 
 	/**
@@ -328,10 +331,8 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * Sets the roots of the tries in this store to the previously checked out ones.
 	 */
 	protected final void setRootsAsCheckedOut() {
-		env.executeInTransaction(txn -> {
-			ByteIterable root = storeOfInfo.get(txn, ROOT);
-			setRootsTo(root == null ? null : root.getBytes());
-		});
+		ByteIterable root = env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT));
+		setRootsTo(root == null ? null : root.getBytes());
 	}
 
 	/**

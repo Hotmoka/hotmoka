@@ -126,13 +126,6 @@ public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedS
 	}
 
 	@Override
-	public byte[] commitTransaction() {
-		synchronized (lock) {
-			return super.commitTransaction();
-		}
-	}
-
-	@Override
 	protected void garbageCollect(long commitNumber) {
 		super.garbageCollect(commitNumber);
 		trieOfHistories.garbageCollect(commitNumber);

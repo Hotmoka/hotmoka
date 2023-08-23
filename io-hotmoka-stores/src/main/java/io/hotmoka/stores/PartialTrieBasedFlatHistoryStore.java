@@ -97,9 +97,10 @@ public abstract class PartialTrieBasedFlatHistoryStore extends PartialTrieBasedS
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		ByteIterable historyAsByteArray;
+		ByteIterable ba = intoByteArray(object);
 
 		synchronized (lock) {
-			historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, intoByteArray(object)));
+			historyAsByteArray = env.computeInReadonlyTransaction(txn -> storeOfHistory.get(txn, ba));
 		}
 
 		return historyAsByteArray == null ? Stream.empty() : Stream.of(fromByteArray(historyAsByteArray));

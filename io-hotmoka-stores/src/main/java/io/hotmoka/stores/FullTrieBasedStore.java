@@ -199,13 +199,6 @@ public abstract class FullTrieBasedStore extends PartialTrieBasedStore implement
 	}
 
 	@Override
-	public byte[] commitTransaction() {
-		synchronized (lock) {
-			return super.commitTransaction();
-		}
-	}
-
-	@Override
 	protected void garbageCollect(long commitNumber) {
 		super.garbageCollect(commitNumber);
 		trieOfErrors.garbageCollect(commitNumber);

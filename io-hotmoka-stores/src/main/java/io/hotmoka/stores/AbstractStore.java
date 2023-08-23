@@ -48,6 +48,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 @ThreadSafe
 public abstract class AbstractStore implements Store {
+
 	/**
 	 * The lock for modifications of the store.
 	 */
