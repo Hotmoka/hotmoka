@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tendermint.internal;
 
+import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Function;
@@ -23,17 +24,17 @@ import java.util.function.Function;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig> {
+class Store extends PartialTrieBasedWithHistoryStore {
 
 	/**
 	 * The node having this store.
@@ -49,11 +50,12 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-     * @param node the node having this store
+     * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
+	 * @param dir the path where the database of the store gets created
      * @param nodeInternal the same node, with internal methods
      */
-    Store(TendermintBlockchainImpl node, TendermintBlockchainInternal nodeInternal) {
-    	super(node, 0L); // deterministic finality: we will never checkout out an old state
+    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintBlockchainInternal nodeInternal) {
+    	super(getResponseUncommittedCached, dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
 
     	this.nodeInternal = nodeInternal;
 
@@ -65,18 +67,6 @@ class Store extends PartialTrieBasedWithHistoryStore<TendermintBlockchainConfig>
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);
     	}
-    }
-
-    /**
-     * Creates a clone of the given store.
-     * 
-     * @param parent the store to clone
-     */
-    Store(Store parent) {
-    	super(parent);
-
-    	this.nodeInternal = parent.nodeInternal;
-    	this.hashOfHashes = parent.hashOfHashes;
     }
 
     @Override

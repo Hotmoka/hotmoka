@@ -28,6 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.stream.Stream;
 
@@ -39,7 +40,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.AbstractStore;
-import io.hotmoka.memory.MemoryBlockchainConfig;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
@@ -47,7 +47,7 @@ import io.hotmoka.memory.MemoryBlockchainConfig;
  * while the histories are kept in RAM.
  */
 @ThreadSafe
-class Store extends AbstractStore<MemoryBlockchainConfig> {
+class Store extends AbstractStore {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -80,31 +80,24 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 	private final ConcurrentMap<TransactionReference, Integer> progressive;
 
 	/**
+	 * The number of transactions that fit inside a block.
+	 */
+	private final int transactionsPerBlock;
+
+	/**
      * Creates a state for a node.
      * 
-     * @param node the node having this store
+	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
+	 * @param dir the path where the database of the store gets created
+     * @param transactionsPerBlock the number of transactions that fit inside a block
      */
-    Store(MemoryBlockchainImpl node) {
-    	super(node);
+    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, int transactionsPerBlock) {
+    	super(getResponseUncommittedCached, dir);
 
+    	this.transactionsPerBlock = transactionsPerBlock;
     	this.histories = new ConcurrentHashMap<>();
     	this.errors = new ConcurrentHashMap<>();
     	this.progressive = new ConcurrentHashMap<>();
-    }
-
-    /**
-     * Creates a clone of this store.
-     * 
-     * @param parent the clone
-     */
-    Store(Store parent) {
-    	super(parent);
-
-    	this.histories = parent.histories;
-    	this.errors = parent.errors;
-    	this.manifest.set(parent.manifest.get());
-    	this.transactionsCount.set(parent.transactionsCount.get());
-    	this.progressive = parent.progressive;
     }
 
     @Override
@@ -250,7 +243,7 @@ class Store extends AbstractStore<MemoryBlockchainConfig> {
 		if (progressive == null)
 			throw new FileNotFoundException("unknown transaction reference " + reference);
 
-		return config.dir.resolve("b" + progressive / config.transactionsPerBlock).resolve(progressive % config.transactionsPerBlock + "-" + reference).resolve(name);
+		return dir.resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
 	/**

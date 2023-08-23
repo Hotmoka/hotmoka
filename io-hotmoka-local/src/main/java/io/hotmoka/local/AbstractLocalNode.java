@@ -99,7 +99,7 @@ import io.hotmoka.nodes.ConsensusParams;
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 @ThreadSafe
-public abstract class AbstractLocalNode<C extends Config, S extends AbstractStore<C>> extends AbstractNode {
+public abstract class AbstractLocalNode<C extends Config, S extends AbstractStore> extends AbstractNode {
 	protected final static Logger logger = Logger.getLogger(AbstractLocalNode.class.getName());
 
 	/**

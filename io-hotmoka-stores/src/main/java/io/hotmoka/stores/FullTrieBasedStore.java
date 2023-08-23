@@ -16,9 +16,11 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -26,9 +28,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.CheckableStore;
-import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
@@ -59,7 +59,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBasedStore<C> implements CheckableStore {
+public abstract class FullTrieBasedStore extends PartialTrieBasedStore implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -113,8 +113,9 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
      * 
-     * @param node the node having this store
-	 * @param checkableDepth the number of last commits that can be checked out, in order to
+	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
+     * @param dir the path where the database of the store gets created
+     * @param checkableDepth the number of last commits that can be checked out, in order to
 	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
 	 *                       This entails that such commits are not garbage-collected, until
 	 *                       new commits get created on top and they end up being deeper.
@@ -128,8 +129,8 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected FullTrieBasedStore(AbstractLocalNode<? extends C, ? extends FullTrieBasedStore<? extends C>> node, long checkableDepth) {
-		super(node, checkableDepth);
+	protected FullTrieBasedStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+		super(getResponseUncommittedCached, dir, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
@@ -144,22 +145,6 @@ public abstract class FullTrieBasedStore<C extends Config> extends PartialTrieBa
 		this.storeOfErrors = storeOfErrors.get();
 		this.storeOfRequests = storeOfRequests.get();
 		this.storeOfHistory = storeOfHistory.get();
-	}
-
-	/**
-	 * Builds a clone of the given store.
-	 * 
-	 * @param parent the store to clone
-	 */
-	protected FullTrieBasedStore(FullTrieBasedStore<? extends C> parent) {
-		super(parent);
-
-		this.storeOfErrors = parent.storeOfErrors;
-		this.storeOfRequests = parent.storeOfRequests;
-		this.storeOfHistory = parent.storeOfHistory;
-		System.arraycopy(parent.rootOfErrors, 0, this.rootOfErrors, 0, 32);
-		System.arraycopy(parent.rootOfRequests, 0, this.rootOfRequests, 0, 32);
-		System.arraycopy(parent.rootOfHistories, 0, this.rootOfHistories, 0, 32);
 	}
 
     @Override

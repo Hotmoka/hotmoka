@@ -20,10 +20,12 @@ import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -46,7 +48,7 @@ import io.hotmoka.beans.values.StorageReference;
  * its hash is stored in the node, if consensus is needed.
  */
 @ThreadSafe
-public abstract class AbstractStore<C extends Config> implements Store {
+public abstract class AbstractStore implements Store {
 	protected final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
@@ -55,33 +57,24 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	protected final Object lock = new Object();
 
 	/**
-	 * The node having this store.
+	 * A function that yields the transaction response for the given transaction reference, if any, using a cache.
 	 */
-	protected final AbstractLocalNode<? extends C, ? extends AbstractStore<? extends C>> node;
+	private final Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommitedCached;
 
 	/**
-	 * The configuration of {@link #node}.
+	 * The path where the database of the store gets created.
 	 */
-	protected final C config;
+	protected final Path dir;
 
 	/**
 	 * Builds the store for a node.
 	 * 
-	 * @param node the node having this store
+	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
+	 * @param dir the path where the database of the store gets created
 	 */
-	protected AbstractStore(AbstractLocalNode<? extends C, ? extends AbstractStore<? extends C>> node) {
-		this.node = node;
-		this.config = node.config;
-	}
-
-	/**
-	 * Builds a clone of the given store.
-	 * 
-	 * @param parent the store to clone
-	 */
-	protected AbstractStore(AbstractStore<? extends C> parent) {
-		this.node = parent.node;
-		this.config = parent.config;
+	protected AbstractStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir) {
+		this.getResponseUncommitedCached = getResponseUncommittedCached;
+		this.dir = dir;
 	}
 
 	@Override
@@ -207,21 +200,22 @@ public abstract class AbstractStore<C extends Config> implements Store {
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		Optional<TransactionResponse> response = node.caches.getResponseUncommitted(reference);
+		Optional<TransactionResponse> maybeResponse = getResponseUncommitedCached.apply(reference); // node.caches.getResponseUncommitted(reference);
 
-		if (response.isEmpty()) {
-			logger.log(Level.WARNING, "history contains a reference to a transaction not in store");
-			throw new IllegalStateException("history contains a reference to a transaction not in store");
+		if (maybeResponse.isEmpty()) {
+			logger.log(Level.WARNING, "the history contains a reference to a transaction not in store");
+			throw new IllegalStateException("The history contains a reference to a transaction not in store");
 		}
 
-		if (!(response.get() instanceof TransactionResponseWithUpdates)) {
-			logger.log(Level.WARNING, "history contains a reference to a transaction without updates");
-			throw new IllegalStateException("history contains a reference to a transaction without updates");
+		TransactionResponse response = maybeResponse.get();
+		if (!(response instanceof TransactionResponseWithUpdates)) {
+			logger.log(Level.WARNING, "the history contains a reference to a transaction without updates");
+			throw new IllegalStateException("The history contains a reference to a transaction without updates");
 		}
 
 		// we check if there is at least an update for a field of the object
 		// that is not yet covered by another update in a previous element of the history
-		Set<Update> diff = ((TransactionResponseWithUpdates) response.get()).getUpdates()
+		Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update.object.equals(object) && covered.stream().noneMatch(update::sameProperty))
 			.collect(Collectors.toSet());
 

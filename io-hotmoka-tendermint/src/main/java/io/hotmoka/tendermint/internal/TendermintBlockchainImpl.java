@@ -200,7 +200,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	protected Store mkStore() {
-		return new Store(this, new TendermintBlockchainInternalImpl());
+		return new Store(caches::getResponseUncommitted, config.dir, new TendermintBlockchainInternalImpl());
 	}
 
 	@Override

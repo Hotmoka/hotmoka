@@ -43,4 +43,11 @@ public interface MemoryBlockchain extends Node {
 	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusParams consensus) throws IOException {
 		return new MemoryBlockchainImpl(config, consensus);
 	}
+
+	/**
+	 * Yields the configuration of the node.
+	 * 
+	 * @return the configuration
+	 */
+	MemoryBlockchainConfig getConfig();
 }

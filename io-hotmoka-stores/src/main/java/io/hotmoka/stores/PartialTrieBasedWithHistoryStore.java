@@ -16,15 +16,17 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.local.AbstractLocalNode;
-import io.hotmoka.local.Config;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -51,7 +53,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends PartialTrieBasedStore<C> {
+public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedStore {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -75,7 +77,8 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
      * 
-     * @param node the node having this store
+     * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
+	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
 	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
 	 *                       This entails that such commits are not garbage-collected, until
@@ -90,24 +93,12 @@ public abstract class PartialTrieBasedWithHistoryStore<C extends Config> extends
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected PartialTrieBasedWithHistoryStore(AbstractLocalNode<? extends C, ? extends PartialTrieBasedWithHistoryStore<? extends C>> node, long checkableDepth) {
-		super(node, checkableDepth);
+	protected PartialTrieBasedWithHistoryStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+		super(getResponseUncommittedCached, dir, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
 		env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
 		this.storeOfHistory = storeOfHistory.get();
-	}
-
-	/**
-	 * Builds a clone of the given store.
-	 * 
-	 * @param parent the store to clone
-	 */
-	protected PartialTrieBasedWithHistoryStore(PartialTrieBasedWithHistoryStore<? extends C> parent) {
-		super(parent);
-
-		this.storeOfHistory = parent.storeOfHistory;
-		System.arraycopy(parent.rootOfHistories, 0, this.rootOfHistories, 0, 32);
 	}
 
     @Override
