@@ -18,11 +18,11 @@ package io.hotmoka.service.internal;
 
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.requests.EventRequestModel;
+import io.hotmoka.nodes.api.Node;
+import io.hotmoka.nodes.api.Node.Subscription;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.service.internal.websockets.WebSocketsEventController;
-import io.hotmoka.nodes.Node;
-import io.hotmoka.nodes.Node.Subscription;
 
 import java.util.logging.Logger;
 
@@ -31,7 +31,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
- * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.Node}.
+ * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.nodes.api.Node}.
  */
 public class NodeServiceImpl implements NodeService {
 	private final static Logger LOGGER = Logger.getLogger(NodeServiceImpl.class.getName());

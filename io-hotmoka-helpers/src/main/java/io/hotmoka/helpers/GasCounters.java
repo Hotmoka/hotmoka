@@ -20,7 +20,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.helpers.internal.GasCounterImpl;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * Providers of counters of the gas consumed for the execution of a set of requests.

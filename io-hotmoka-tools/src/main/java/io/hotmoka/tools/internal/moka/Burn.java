@@ -25,9 +25,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.MintBurnHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -80,7 +80,7 @@ public class Burn extends AbstractCommand {
 			KeyPair keys;
 
 			try {
-				keys = readKeys(new Account(gamete), node, passwordOfGamete);
+				keys = readKeys(Accounts.of(gamete), node, passwordOfGamete);
 			}
 			catch (IOException | ClassNotFoundException e) {
 				System.err.println("Cannot read the keys of the gamete: they were expected to be stored in file " + gamete + ".pem");

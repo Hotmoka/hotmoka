@@ -21,7 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.helpers.internal.SendCoinsHelperImpl;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * Providers of objects that help with sending coins to accounts.

@@ -61,7 +61,7 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.

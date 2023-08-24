@@ -28,7 +28,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.GasHelper;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * An object that helps with gas operations.

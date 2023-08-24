@@ -31,8 +31,9 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Account;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -66,7 +67,7 @@ public class ShowAccount extends AbstractCommand {
 		if (keys)
 			password = ensurePassword(password, "the account", interactive, false);
 
-		Account account = new Account(reference);
+		var account = Accounts.of(reference);
 		System.out.println("reference: " + account.getReference());
 		System.out.println("entropy: " + Base64.getEncoder().encodeToString(account.getEntropy()));
 

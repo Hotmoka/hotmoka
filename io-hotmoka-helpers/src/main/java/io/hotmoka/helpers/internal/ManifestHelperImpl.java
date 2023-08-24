@@ -40,7 +40,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.api.ManifestHelper;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * Implementation of an object that helps with the access to the manifest of a node.

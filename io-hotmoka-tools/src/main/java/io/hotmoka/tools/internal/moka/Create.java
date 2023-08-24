@@ -44,8 +44,8 @@ import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -106,7 +106,7 @@ public class Create extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
-				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
+				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 
 				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
 				TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);

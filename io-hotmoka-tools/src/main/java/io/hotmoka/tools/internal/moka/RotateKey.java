@@ -37,8 +37,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -104,7 +104,7 @@ public class RotateKey extends AbstractCommand {
 
 				try {
 					rotateKey();
-					Account rotatedAccount = new Account(entropy, account);
+					var rotatedAccount = Accounts.of(entropy, account);
 		            System.out.println("The key of the account " + rotatedAccount + " has been rotated.");
 		            String fileName = rotatedAccount.dump();
 		            System.out.println("Its new entropy has been saved into the file \"" + fileName + "\".");
@@ -120,7 +120,7 @@ public class RotateKey extends AbstractCommand {
 
 		private InstanceMethodCallTransactionRequest createRequest() throws Exception {
 			StorageReference manifest = node.getManifest();
-			KeyPair keys = readKeys(new Account(account), node, passwordOfAccount);
+			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
 			SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);

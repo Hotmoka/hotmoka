@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -17,111 +17,94 @@ limitations under the License.
 package io.hotmoka.nodes;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.nodes.api.Account;
+import io.hotmoka.nodes.internal.AccountImpl;
 
 /**
- * The information to control an account of a Hotmoka node.
- * One needs the entropy from which the key pair can be reconstructed and
- * the storage reference of the account in the store of the node.
+ * Providers of accounts.
  */
-public class Account extends io.hotmoka.crypto.AbstractAccount<StorageReference> {
+public final class Accounts {
+
+	private Accounts() {}
 
 	/**
-	 * Creates the information to control an account.
+	 * Yields an account in a Hotmoka node.
 	 * 
 	 * @param entropy the entropy, from which the key pair can be derived
 	 * @param reference the reference to the account. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @return the account
 	 */
-	public Account(Entropy entropy, StorageReference reference) {
-		super(entropy, reference);
-
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+	public static Account of(Entropy entropy, StorageReference reference) {
+		return new AccountImpl(entropy, reference);
 	}
 
 	/**
-	 * Creates the information to control an account in a Hotmoka node.
+	 * Yields an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
 	 * @param reference the reference to the account. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @return the account
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	public Account(StorageReference reference) throws IOException {
-		super(reference);
-
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+	public static Account of(StorageReference reference) throws IOException {
+		return new AccountImpl(reference);
 	}
 
 	/**
-	 * Creates the information to control an account in a Hotmoka node.
+	 * Yields an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
 	 * @param reference the reference to the account. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
 	 * @param dir the directory where the PEM file must be looked for
+	 * @return the account
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	public Account(StorageReference reference, String dir) throws IOException {
-		super(reference, dir);
-
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+	public static Account of(StorageReference reference, String dir) throws IOException {
+		return new AccountImpl(reference, dir);
 	}
 
 	/**
-	 * Creates the information to control an account in a Hotmoka node.
+	 * Yields an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
 	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
+	 * @return the account
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	public Account(String reference) throws IOException {
-		this(new StorageReference(reference));
+	public static Account of(String reference) throws IOException {
+		return new AccountImpl(reference);
 	}
 
 	/**
-	 * Creates the information to control an account in a Hotmoka node.
+	 * Yields an account in a Hotmoka node.
 	 * The entropy of the account is recovered from its PEM file.
 	 * 
 	 * @param reference the reference to the account, as a string. This is limited to have 0 as progressive,
 	 *                  in order to reduce the information needed to represent an account as BIP39 words
 	 * @param dir the directory where the PEM file must be looked for
+	 * @return the account
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	public Account(String reference, String dir) throws IOException {
-		this(new StorageReference(reference), dir);
+	public static Account of(String reference, String dir) throws IOException {
+		return new AccountImpl(reference, dir);
 	}
 
 	/**
-	 * Creates the information to control an account in a Hotmoka node,
+	 * Yields an account in a Hotmoka node,
 	 * from its entropy and from the byte representation of its storage reference.
 	 * 
 	 * @param entropy the entropy
 	 * @param reference the byte representation of the reference
+	 * @return the account
 	 */
-	public Account(Entropy entropy, byte[] reference) {
-		this(entropy, new StorageReference(new LocalTransactionReference(reference), BigInteger.ZERO));
-	}
-
-    @Override
-    public int compareTo(Entropy other) {
-    	int diff = super.compareTo(other);
-    	if (diff != 0)
-    		return diff;
-    	else
-    		return reference.compareTo(((Account) other).reference);
-    }
-
-	@Override
-	public byte[] getReferenceAsBytes() {
-		return reference.transaction.getHashAsBytes();
+	public static Account of(Entropy entropy, byte[] reference) {
+		return new AccountImpl(entropy, reference);
 	}
 }

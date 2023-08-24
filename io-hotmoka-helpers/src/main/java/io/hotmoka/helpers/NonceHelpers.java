@@ -18,7 +18,7 @@ package io.hotmoka.helpers;
 
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.internal.NonceHelperImpl;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * Providers of objects that help with nonce operations.

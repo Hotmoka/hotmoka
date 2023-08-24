@@ -31,7 +31,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 

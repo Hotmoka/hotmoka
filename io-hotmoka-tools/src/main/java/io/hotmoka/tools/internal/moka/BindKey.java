@@ -25,8 +25,8 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -58,7 +58,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = new StorageReference(reference);
 		}
 
-		Account account = new Account(Entropies.load(key), storageReference);
+		var account = Accounts.of(Entropies.load(key), storageReference);
 		System.out.println("A new account " + account + " has been created.");
 		String fileName = account.dump();
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");

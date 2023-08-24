@@ -26,7 +26,7 @@ import io.hotmoka.crypto.SignatureAlgorithms.TYPES;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
- * Provider of algorithms that sign transaction requests and verify such signatures back.
+ * Providers of algorithms that sign transaction requests and verify such signatures back.
  */
 public final class SignatureAlgorithmForTransactionRequests {
 

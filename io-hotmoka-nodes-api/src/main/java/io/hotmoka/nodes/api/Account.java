@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package io.hotmoka.nodes.api;
+
+import io.hotmoka.beans.values.StorageReference;
+
 /**
- * This module implements the shared code of all Hotmoka nodes.
+ * The information to control an account of a Hotmoka node.
+ * One needs the entropy from which the key pair can be reconstructed and
+ * the storage reference of the account in the store of the node.
  */
-module io.hotmoka.nodes {
-	exports io.hotmoka.nodes;
-	requires transitive io.hotmoka.nodes.api;
-	requires transitive io.hotmoka.beans;
-	requires transitive io.hotmoka.crypto;
-	requires io.hotmoka.annotations;
-	requires java.logging;
+public interface Account extends io.hotmoka.crypto.api.Account<StorageReference> {
 }

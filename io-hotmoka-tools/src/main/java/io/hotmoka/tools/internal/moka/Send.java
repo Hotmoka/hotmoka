@@ -25,9 +25,9 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.SendCoinsHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -109,14 +109,14 @@ public class Send extends AbstractCommand {
 		private void sendCoinsFromPayer() throws Exception {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			var payer = new StorageReference(Send.this.payer);
-			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
+			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
 			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
 		}
 
 		private StorageReference sendCoinsToPublicKey() throws Exception {
 			var accountCreationHelper = AccountCreationHelpers.of(node);
 			var payer = new StorageReference(Send.this.payer);
-			KeyPair keysOfPayer = readKeys(new Account(payer), node, passwordOfPayer);
+			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
 			var signatureAlgorithmForNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
 				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),

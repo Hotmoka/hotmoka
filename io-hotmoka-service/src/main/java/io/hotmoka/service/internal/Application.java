@@ -18,7 +18,7 @@ package io.hotmoka.service.internal;
 
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * A simple Spring boot application. Its annotation specifies

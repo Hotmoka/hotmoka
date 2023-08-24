@@ -19,7 +19,7 @@ package io.hotmoka.remote;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.internal.http.HTTPRemoteNodeImpl;
 import io.hotmoka.remote.internal.websockets.WebSocketsRemoteNodeImpl;
 

@@ -21,7 +21,7 @@ import java.io.IOException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
 import io.hotmoka.nodes.ConsensusParams;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * An implementation of a blockchain that stores, sequentially, transactions in a directory

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,13 +15,10 @@ limitations under the License.
 */
 
 /**
- * This module implements the shared code of all Hotmoka nodes.
+ * This module defines the API of the shared code of all Hotmoka nodes.
  */
-module io.hotmoka.nodes {
-	exports io.hotmoka.nodes;
-	requires transitive io.hotmoka.nodes.api;
+module io.hotmoka.nodes.api {
+	exports io.hotmoka.nodes.api;
 	requires transitive io.hotmoka.beans;
-	requires transitive io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
-	requires java.logging;
 }

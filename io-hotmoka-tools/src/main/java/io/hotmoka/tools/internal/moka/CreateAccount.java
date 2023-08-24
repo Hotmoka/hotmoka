@@ -30,9 +30,9 @@ import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -113,7 +113,7 @@ public class CreateAccount extends AbstractCommand {
 
 				accountCreationHelper = AccountCreationHelpers.of(node);
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
-				Account account = new Account(entropy, accountReference);
+				var account = Accounts.of(entropy, accountReference);
 	            System.out.println("A new account " + account + " has been created.");
 	            String fileName = account.dump();
 	            System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
@@ -140,7 +140,7 @@ public class CreateAccount extends AbstractCommand {
 
 		private StorageReference createAccountFromPayer() throws Exception {
 			checkStorageReference(payer);
-			Account payer = new Account(CreateAccount.this.payer);
+			var payer = Accounts.of(CreateAccount.this.payer);
 			KeyPair keysOfPayer = readKeys(payer, node, passwordOfPayer);
 			if (createTendermintValidator)
 				return accountCreationHelper.tendermintValidatorPaidBy

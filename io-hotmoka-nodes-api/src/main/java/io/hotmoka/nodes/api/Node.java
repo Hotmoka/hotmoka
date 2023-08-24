@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.nodes;
+package io.hotmoka.nodes.api;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;

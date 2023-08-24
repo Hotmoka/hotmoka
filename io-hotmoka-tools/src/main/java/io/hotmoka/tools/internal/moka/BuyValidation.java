@@ -37,8 +37,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -95,7 +95,7 @@ public class BuyValidation extends AbstractCommand {
 				SignatureAlgorithm<SignedTransactionRequest> algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
-				KeyPair keys = readKeys(new Account(buyer), node, passwordOfBuyer);
+				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
 				var signer = Signers.with(algorithm, keys);				
 				InstanceMethodCallTransactionRequest request;
 

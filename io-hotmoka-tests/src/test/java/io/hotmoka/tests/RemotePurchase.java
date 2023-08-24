@@ -44,7 +44,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.nodes.Node.Subscription;
+import io.hotmoka.nodes.api.Node.Subscription;
 
 /**
  * A test for the remote purchase contract.

@@ -49,8 +49,8 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
-import io.hotmoka.nodes.Node;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.Node;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -219,7 +219,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = Signers.with(signatureForFaucet, keyPair);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -245,7 +245,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		gasHandler.accept(totalGas);
 
 		var signer = Signers.with(signatureForPayer, keysOfPayer);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey));
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithmForTransactionRequests.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,

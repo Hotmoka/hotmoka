@@ -16,23 +16,17 @@ limitations under the License.
 
 package io.hotmoka.nodes;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * An exception thrown when a storage reference cannot be deserialized.
  */
 @SuppressWarnings("serial")
 public class DeserializationError extends Error {
-	private final static Logger logger = Logger.getLogger(DeserializationError.class.getName());
 
 	public DeserializationError(String message) {
 		super(message);
-		logger.log(Level.WARNING, message, this);
 	}
 
 	public DeserializationError(Throwable cause) {
 		super("Cannot deserialize value", cause);
-		logger.log(Level.WARNING, getMessage(), this);
 	}
 }

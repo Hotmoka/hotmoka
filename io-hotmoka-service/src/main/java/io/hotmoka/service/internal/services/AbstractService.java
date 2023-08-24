@@ -28,8 +28,8 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.service.internal.Application;
-import io.hotmoka.nodes.Node;
 
 abstract class AbstractService {
     private final static Logger LOGGER = Logger.getLogger(AbstractService.class.getName());

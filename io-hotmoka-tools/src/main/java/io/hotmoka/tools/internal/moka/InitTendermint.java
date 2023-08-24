@@ -43,7 +43,7 @@ import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.nodes.Account;
+import io.hotmoka.nodes.Accounts;
 import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -206,7 +206,7 @@ public class InitTendermint extends AbstractCommand {
 					// the pem file, if it exists, is named with the public key, base58
 					try {
 						Entropy entropy = Entropies.load(publicKeyBase58);
-						String fileName = new Account(entropy, validator).dump(dir);
+						String fileName = Accounts.of(entropy, validator).dump(dir);
 						entropy.delete(publicKeyBase58);
 						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + fileName + "\".");
 					}

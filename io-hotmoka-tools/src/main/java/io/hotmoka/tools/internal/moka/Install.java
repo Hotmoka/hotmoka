@@ -35,8 +35,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.Account;
-import io.hotmoka.nodes.Node;
+import io.hotmoka.nodes.Accounts;
+import io.hotmoka.nodes.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -91,7 +91,7 @@ public class Install extends AbstractCommand {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var bytes = Files.readAllBytes(jar);
-				KeyPair keys = readKeys(new Account(payer), node, passwordOfPayer);
+				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
 				if (libs != null)
 					dependencies = libs.stream().map(LocalTransactionReference::new).distinct().toArray(TransactionReference[]::new);
