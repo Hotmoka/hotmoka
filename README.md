@@ -261,9 +261,9 @@ Every Hotmoka node has its own persistent state, that contains code and
 objects. Since Hotmoka nodes are made for running Java code, the code
 inside their state is kept in the standard jar format used by Java, while objects
 are just a collection of values for their fields, with a class tag that identifies
-whose class they belong too and a reference (the _classpath_)
+whose class they belong to and a reference (the _classpath_)
 to the jar where that class is defined.
-While a device of a Internet of Thing network is the sole responsible
+While a device of an Internet of Thing network is the sole responsible
 for its own state, things are different if a Hotmoka node that is part of a blockchain.
 There, the state is synchronized and identical across all nodes of the blockchain.
 
@@ -894,7 +894,7 @@ Tap on the _Import Account_ button. The new account will show in the list of ava
 (Figure 14). From this moment, it will be possible to control the account
 from Mokito.
 
-In Hotwallet, click on the top-right menu ans select _Import account_. From there, you can insert
+In Hotwallet, click on the top-right menu and select _Import account_. From there, you can insert
 the password and the 36 words passphrase of each account and see them imported in Hotwallet. You can see the
 list of all available accounts with the same menu, if you click on _Account list_. You can click on
 each account and switch from one to the other. Every time you change the account,
@@ -913,7 +913,7 @@ storage reference inside the state of a node, makes it a bit more difficult, but
 to execute anonymous transactions. We do not advocate the use of anonymity here, but it is true
 that, sometimes, one wants to remain anonymous and still receive a payment.
 
-> Anonymicity is often used for illegal actions such as ransomware and blackmailing.
+> Anonymity is often used for illegal actions such as ransomware and blackmailing.
 > We are against such actions. This section simply shows that anonymity can be achieved
 > in Hotmoka as well, although it is a bit harder than with other blockchains.
 
@@ -1360,7 +1360,7 @@ later to refer to that jar. This has costed some gas, paid by our account.
 You can verify that the balance of the account has been decreased, through the
 `moka state` command.
 
-The state of the the Hotmoka nodes of the testnet is now as in Figure 18.
+The state of the Hotmoka nodes of the testnet is now as in Figure 18.
 As that figure shows, a dependency has been created, automatically, from `family-0.0.1.jar` to
 `io-takamaka-code.jar`. This is because all Takamaka code will use the run-time classes of the Takamaka language,
 hence the `moka install` command adds them, by default. Note that a dependency must already be installed in the node
