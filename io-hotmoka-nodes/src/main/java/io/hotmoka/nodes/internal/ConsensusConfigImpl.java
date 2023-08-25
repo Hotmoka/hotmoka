@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,53 +14,53 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.nodes;
+package io.hotmoka.nodes.internal;
 
+import java.io.FileNotFoundException;
 import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.nio.file.Path;
+
+import com.moandjiezana.toml.Toml;
+
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.nodes.api.ConsensusConfig;
 
 /**
- * A specification of the consensus parameters of a node. This information
- * is typically contained in the manifest of a node.
+ * Implementation of the consensus parameters of a Hotmoka node. This information
+ * is typically contained in the manifest of the node.
  */
-public class ConsensusParams {
+@Immutable
+public class ConsensusConfigImpl implements ConsensusConfig {
 
 	/**
-	 * The genesis time, UTC, in ISO8601 pattern. It defaults to the time of
-	 * construction of the builder of this object.
+	 * The genesis time, UTC, in ISO8601 pattern.
 	 */
 	public final String genesisTime;
 
 	/**
-	 * The chain identifier of the node. It defaults to the empty string.
+	 * The chain identifier of the node.
 	 */
 	public final String chainId;
 
 	/**
 	 * The maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
-	 * It defaults to 300 characters.
 	 */
 	public final int maxErrorLength;
 
 	/**
 	 * The maximal number of dependencies in the classpath of a transaction.
-	 * It defaults to 20.
 	 */
 	public final int maxDependencies;
 
 	/**
 	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
-	 * of a transaction. It defaults to 10,000,000.
+	 * of a transaction.
 	 */
 	public final long maxCumulativeSizeOfDependencies;
 
 	/**
 	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
-	 * It defaults to false.
 	 */
 	public final boolean allowsSelfCharged;
 
@@ -188,10 +188,17 @@ public class ConsensusParams {
 	 */
 	public final int slashingForNotBehaving;
 
-	private ConsensusParams(Builder builder) {
+	/**
+	 * Full constructor for the builder pattern.
+	 * 
+	 * @param builder the builder where information is extracted from
+	 */
+	public ConsensusConfigImpl(AbstractBuilder<?> builder) {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
+		this.maxDependencies = builder.maxDependencies;
+		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
 		this.allowsMintBurnFromGamete = builder.allowsMintBurnFromGamete;
@@ -203,8 +210,6 @@ public class ConsensusParams {
 		this.oblivion = builder.oblivion;
 		this.initialInflation = builder.initialInflation;
 		this.verificationVersion = builder.verificationVersion;
-		this.maxDependencies = builder.maxDependencies;
-		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.ticketForNewPoll = builder.ticketForNewPoll;
 		this.initialSupply = builder.initialSupply;
 		this.finalSupply = builder.finalSupply;
@@ -217,42 +222,242 @@ public class ConsensusParams {
 		this.slashingForNotBehaving = builder.slashingForNotBehaving;
 	}
 
-	/**
-	 * Chain a builder initialized with the information in this object.
-	 * 
-	 * @return the builder
-	 */
-	public Builder toBuilder() {
-		return new Builder()
-			.setChainId(chainId)
-			.setGenesisTime(genesisTime)
-			.setMaxErrorLength(maxErrorLength)
-			.setMaxDependencies(maxDependencies)
-			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
-			.allowSelfCharged(allowsSelfCharged)
-			.allowUnsignedFaucet(allowsUnsignedFaucet)
-			.allowMintBurnFromGamete(allowsMintBurnFromGamete)
-			.signRequestsWith(signature)
-			.setMaxGasPerTransaction(maxGasPerTransaction)
-			.setInitialGasPrice(initialGasPrice)
-			.ignoreGasPrice(ignoresGasPrice)
-			.skipVerification(skipsVerification)
-			.setTargetGasAtReward(targetGasAtReward)
-			.setOblivion(oblivion)
-			.setInitialInflation(initialInflation)
-			.setVerificationVersion(verificationVersion)
-			.setInitialSupply(initialSupply)
-			.setFinalSupply(finalSupply)
-			.setInitialRedSupply(initialRedSupply)
-			.setPublicKeyOfGamete(publicKeyOfGamete)
-			.setTicketForNewPoll(ticketForNewPoll)
-			.setBuyerSurcharge(buyerSurcharge)
-			.setPercentStaked(percentStaked)
-			.setSlashingForMisbehaving(slashingForMisbehaving)
-			.setSlashingForNotBehaving(slashingForNotBehaving);
+	@Override
+	public boolean equals(Object other) {
+		if (other != null && getClass() == other.getClass()) {
+			var otherConfig = (ConsensusConfigImpl) other;
+			return genesisTime.equals(otherConfig.genesisTime) &&
+				chainId.equals(otherConfig.chainId) &&
+				maxErrorLength == otherConfig.maxErrorLength &&
+				maxDependencies == otherConfig.maxDependencies &&
+				maxCumulativeSizeOfDependencies == otherConfig.maxCumulativeSizeOfDependencies &&
+				allowsSelfCharged == otherConfig.allowsSelfCharged &&
+				allowsUnsignedFaucet == otherConfig.allowsUnsignedFaucet &&
+				allowsMintBurnFromGamete == otherConfig.allowsMintBurnFromGamete &&
+				initialGasPrice.equals(otherConfig.initialGasPrice) &&
+				maxGasPerTransaction.equals(otherConfig.maxGasPerTransaction) &&
+				ignoresGasPrice == otherConfig.ignoresGasPrice &&
+				skipsVerification == otherConfig.skipsVerification &&
+				targetGasAtReward.equals(otherConfig.targetGasAtReward) &&
+				oblivion == otherConfig.oblivion &&
+				initialInflation == otherConfig.initialInflation &&
+				verificationVersion == otherConfig.verificationVersion &&
+				ticketForNewPoll.equals(otherConfig.ticketForNewPoll) &&
+				initialSupply.equals(otherConfig.initialSupply) &&
+				finalSupply.equals(otherConfig.finalSupply) &&
+				initialRedSupply.equals(otherConfig.initialRedSupply) &&
+				publicKeyOfGamete.equals(otherConfig.publicKeyOfGamete) &&
+				signature.equals(otherConfig.signature) &&
+				percentStaked == otherConfig.percentStaked &&
+				buyerSurcharge == otherConfig.buyerSurcharge &&
+				slashingForMisbehaving == otherConfig.slashingForMisbehaving &&
+				slashingForNotBehaving == otherConfig.slashingForNotBehaving;
+		}
+		else
+			return false;
 	}
 
-	public static class Builder {
+	@Override
+	public String toString() {
+		return toToml();
+	}
+
+	@Override
+	public String toToml() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("# This is a TOML config file for Hotmoka nodes.\n");
+		sb.append("# For more information about TOML, see https://github.com/toml-lang/toml\n");
+		sb.append("# For more information about Hotmoka, see https://www.hotmoka.io\n");
+		sb.append("\n");
+		sb.append("## Consensus parameters\n");
+		sb.append("\n");
+		sb.append("# the genesis time, UTC, in ISO8601 pattern\n");
+		sb.append("genesis_time = \"" + genesisTime + "\"\n");
+		sb.append("\n");
+		sb.append("# the chain identifier of the node\n");
+		sb.append("chain_id = \"" + chainId + "\"\n");
+		sb.append("\n");
+		sb.append("# the maximal length of the error message kept in the store of the node\n");
+		sb.append("max_error_length = " + maxErrorLength + "\n");
+		sb.append("\n");
+		sb.append("# the maximal number of dependencies in the classpath of a transaction\n");
+		sb.append("max_dependencies = " + maxDependencies + "\n");
+		sb.append("\n");
+		sb.append("# the maximal cumulative size (in bytes) of the instrumented jars\n");
+		sb.append("# of the dependencies of a transaction\n");
+		sb.append("max_cumulative_size_of_dependencies = " + maxCumulativeSizeOfDependencies + "\n");
+		sb.append("\n");
+		sb.append("# true if and only if the use of the @SelfCharged annotation is allowed\n");
+		sb.append("allows_self_charged = " + allowsSelfCharged + "\n");
+		sb.append("\n");
+		sb.append("# true if and only if the use of the faucet of the gamete is allowed without a valid signature\n");
+		sb.append("allows_unsigned_faucet = " + allowsUnsignedFaucet + "\n");
+		sb.append("\n");
+		sb.append("# true if and only if the gamete of the node can call, for free, the add method of the accounts ledger\n");
+		sb.append("# and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins\n");
+		sb.append("allows_mint_burn_from_gamete = " + allowsMintBurnFromGamete + "\n");
+		sb.append("\n");
+		sb.append("# true if and only if the static verification of the classes of the jars installed in the node must be skipped\n");
+		sb.append("skips_verification = " + skipsVerification + "\n");
+		sb.append("\n");
+		sb.append("# the Base64-encoded public key of the gamete account\n");
+		sb.append("public_key_of_gamete = \"" + publicKeyOfGamete + "\"\n");
+		sb.append("\n");
+		sb.append("# the initial gas price\n");
+		sb.append("initial_gas_price = \"" + initialGasPrice + "\"\n");
+		sb.append("\n");
+		sb.append("# the maximal amount of gas that a non-view transaction can consume\n");
+		sb.append("max_gas_per_transaction = \"" + maxGasPerTransaction + "\"\n");
+		sb.append("\n");
+		sb.append("# true if and only if the node ignores the minimum gas price;\n");
+		sb.append("# hence requests that specify a lower gas price than the current gas price of the node are executed anyway;\n");
+		sb.append("# this is mainly useful for testing\n");
+		sb.append("ignores_gas_price = " + ignoresGasPrice + "\n");
+		sb.append("\n");
+		sb.append("# the units of gas that are aimed to be rewarded at each reward;\n");
+		sb.append("# if the actual reward is smaller, the price of gas must decrease;\n");
+		sb.append("# if it is larger, the price of gas must increase\n");
+		sb.append("target_gas_at_reward = \"" + targetGasAtReward + "\"\n");
+
+		return sb.toString();
+	}
+
+	@Override
+	public String getGenesisTime() {
+		return genesisTime;
+	}
+
+	@Override
+	public String getChainId() {
+		return chainId;
+	}
+
+	@Override
+	public int getMaxErrorLength() {
+		return maxErrorLength;
+	}
+
+	@Override
+	public int getMaxDependencies() {
+		return maxDependencies;
+	}
+
+	@Override
+	public long getMaxCumulativeSizeOfDependencies() {
+		return maxCumulativeSizeOfDependencies;
+	}
+
+	@Override
+	public boolean allowsSelfCharged() {
+		return allowsSelfCharged;
+	}
+
+	@Override
+	public boolean allowsUnsignedFaucet() {
+		return allowsUnsignedFaucet;
+	}
+
+	@Override
+	public boolean allowsMintBurnFromGamete() {
+		return allowsMintBurnFromGamete;
+	}
+
+	@Override
+	public boolean skipsVerification() {
+		return skipsVerification;
+	}
+
+	@Override
+	public String getPublicKeyOfGamete() {
+		return publicKeyOfGamete;
+	}
+
+	@Override
+	public BigInteger getInitialGasPrice() {
+		return initialGasPrice;
+	}
+
+	@Override
+	public BigInteger getMaxGasPerTransaction() {
+		return maxGasPerTransaction;
+	}
+
+	@Override
+	public boolean ignoresGasPrice() {
+		return ignoresGasPrice;
+	}
+
+	@Override
+	public BigInteger getTargetGasAtReward() {
+		return targetGasAtReward;
+	}
+
+	@Override
+	public long getOblivion() {
+		return oblivion;
+	}
+
+	@Override
+	public long getInitialInflation() {
+		return initialInflation;
+	}
+
+	@Override
+	public int getVerificationVersion() {
+		return verificationVersion;
+	}
+
+	@Override
+	public BigInteger getInitialSupply() {
+		return initialSupply;
+	}
+
+	@Override
+	public BigInteger getFinalSupply() {
+		return finalSupply;
+	}
+
+	@Override
+	public BigInteger getInitialRedSupply() {
+		return initialRedSupply;
+	}
+
+	@Override
+	public BigInteger getTicketForNewPoll() {
+		return ticketForNewPoll;
+	}
+
+	@Override
+	public String getSignature() {
+		return signature;
+	}
+
+	@Override
+	public int getPercentStaked() {
+		return percentStaked;
+	}
+
+	@Override
+	public int getBuyerSurcharge() {
+		return buyerSurcharge;
+	}
+
+	@Override
+	public int getSlashingForMisbehaving() {
+		return slashingForMisbehaving;
+	}
+
+	@Override
+	public int getSlashingForNotBehaving() {
+		return slashingForNotBehaving;
+	}
+
+	/**
+	 * The builder of a configuration object.
+	 * 
+	 * @param <T> the concrete type of the builder
+	 */
+	public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
 		private String chainId = "";
 		private String genesisTime = "";
 		private int maxErrorLength = 300;
@@ -279,98 +484,178 @@ public class ConsensusParams {
 		private int buyerSurcharge = 50_000_000;
 		private int slashingForMisbehaving = 1_000_000;
 		private int slashingForNotBehaving = 500_000;
-
-		public Builder() {
-			var tz = TimeZone.getTimeZone("UTC");
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
-			df.setTimeZone(tz);
-			// by default, the genesis time is the time of creation of this object
-			genesisTime = df.format(new Date());
-		}
-
+	
+		protected AbstractBuilder() {}
+	
 		/**
-		 * Builds the parameters.
+		 * Reads the properties of the given TOML file and sets them for
+		 * the corresponding fields of this builder.
 		 * 
-		 * @return the parameters
+		 * @param toml the file
 		 */
-		public ConsensusParams build() {
-			return new ConsensusParams(this);
+		protected AbstractBuilder(Toml toml) {
+			var genesisTime = toml.getString("genesis_time");
+			if (genesisTime != null)
+				setGenesisTime(genesisTime);
+
+			var chainId = toml.getString("chain_id");
+			if (chainId != null)
+				setChainId(chainId);
+
+			// TODO: remove all type conversions below
+			var maxErrorLength = toml.getLong("max_error_length");
+			if (maxErrorLength != null)
+				setMaxErrorLength((int) (long) maxErrorLength);
+
+			var maxDependencies = toml.getLong("max_dependencies");
+			if (maxDependencies != null)
+				setMaxDependencies((int) (long) maxDependencies);
+
+			var maxCumulativeSizeOfDependencies = toml.getLong("max_cumulative_size_of_dependencies");
+			if (maxCumulativeSizeOfDependencies != null)
+				setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies);
+
+			var allowsSelfCharged = toml.getBoolean("allows_self_charged");
+			if (allowsSelfCharged != null)
+				allowSelfCharged(allowsSelfCharged);
+
+			var allowsUnsignedFaucet = toml.getBoolean("allows_unsigned_faucet");
+			if (allowsUnsignedFaucet != null)
+				allowUnsignedFaucet(allowsUnsignedFaucet);
+
+			var allowsMintBurnFromGamete = toml.getBoolean("allows_mint_burn_from_gamete");
+			if (allowsMintBurnFromGamete != null)
+				allowMintBurnFromGamete(allowsMintBurnFromGamete);
+
+			var signature = toml.getString("signature");
+			if (signature != null)
+				signRequestsWith(signature);
+
+			var maxGasPerTransaction = toml.getString("max_gas_per_transaction");
+			if (maxGasPerTransaction != null)
+				setMaxGasPerTransaction(new BigInteger(maxGasPerTransaction));
+
+			var initialGasPrice = toml.getString("initial_gas_price");
+			if (initialGasPrice != null)
+				setInitialGasPrice(new BigInteger(initialGasPrice));
+
+			var ignoresGasPrice = toml.getBoolean("ignores_gas_price");
+			if (ignoresGasPrice != null)
+				ignoreGasPrice(ignoresGasPrice);
+
+			var skipsVerification = toml.getBoolean("skips_verification");
+			if (skipsVerification != null)
+				skipVerification(skipsVerification);
+
+			var targetGasAtReward = toml.getString("target_gas_at_reward");
+			if (targetGasAtReward != null)
+				setTargetGasAtReward(new BigInteger(targetGasAtReward));
+
+			var oblivion = toml.getLong("oblivion");
+			if (oblivion != null)
+				setOblivion(oblivion);
+
+			var initialInflation = toml.getLong("initial_inflation");
+			if (initialInflation != null)
+				setInitialInflation(initialInflation);
+
+			var verificationVersion = toml.getLong("verification_version");
+			if (verificationVersion != null)
+				setVerificationVersion((int) (long) verificationVersion);
+
+			var initialSupply = toml.getLong("initial_supply");
+			if (initialSupply != null)
+				setInitialSupply(BigInteger.valueOf(initialSupply)); // TODO: maybe should be long?
+
+			var finalSupply = toml.getLong("final_supply");
+			if (finalSupply != null)
+				setFinalSupply(BigInteger.valueOf(finalSupply)); // TODO: maybe should be long?
+
+			var initialRedSupply = toml.getLong("initial_red_supply");
+			if (initialRedSupply != null)
+				setInitialRedSupply(BigInteger.valueOf(initialRedSupply)); // TODO: maybe should be long?
+
+			var ticketForNewPoll = toml.getLong("ticket_for_new_poll");
+			if (ticketForNewPoll != null)
+				setTicketForNewPoll(BigInteger.valueOf(ticketForNewPoll)); // TODO: maybe should be long?
+
+			var publicKeyOfGamete = toml.getString("public_key_of_gamete");
+			if (publicKeyOfGamete != null)
+				setPublicKeyOfGamete(publicKeyOfGamete);
+
+			var percentStaked = toml.getLong("percent_staked");
+			if (percentStaked != null)
+				setPercentStaked((int) (long) percentStaked);
+
+			var buyerSurcharge = toml.getLong("buyer_surcharge");
+			if (buyerSurcharge != null)
+				setBuyerSurcharge((int) (long) buyerSurcharge);
+
+			var slashingForMisbehaving = toml.getLong("slashing_for_misbehaving");
+			if (slashingForMisbehaving != null)
+				setSlashingForMisbehaving((int) (long) slashingForMisbehaving);
+
+			var slashingForNotBehaving = toml.getLong("slashing_for_not_behaving");
+			if (slashingForNotBehaving != null)
+				setSlashingForNotBehaving((int) (long) slashingForNotBehaving);
+		}
+	
+		/**
+		 * Sets the genesis time, UTC, in ISO8601 pattern.
+		 * 
+		 * @param genesisTime the genesis time, UTC, in ISO08601 pattern
+		 * @return this builder
+		 */
+		public T setGenesisTime(String genesisTime) {
+			this.genesisTime = genesisTime;
+			return getThis();
 		}
 
 		/**
-		 * Specifies the chain identifier that will be set for the node.
-		 * This defaults to the empty string.
+		 * Sets the chain identifier of the node.
 		 * 
 		 * @param chainId the chain identifier
-		 * @return this same builder
+		 * @return this builder
 		 */
-		public Builder setChainId(String chainId) {
-			if (chainId == null)
-				throw new NullPointerException("the chain identifier cannot be null");
-
+		public T setChainId(String chainId) {
 			this.chainId = chainId;
-			return this;
-		}
-
-		/**
-		 * Specifies the genesis time that will be set for the node.
-		 * This defaults to the time of creation of this object.
-		 * 
-		 * @param genesisTime the genesis time, UTC, in ISO8601 pattern
-		 * @return this same builder
-		 */
-		public Builder setGenesisTime(String genesisTime) {
-			if (chainId == null)
-				throw new NullPointerException("the genesis time cannot be null");
-
-			this.genesisTime = genesisTime;
-			return this;
+			return getThis();
 		}
 
 		/**
 		 * Sets the maximal length of the error message kept in the store of the node.
 		 * Beyond this threshold, the message gets truncated.
-		 * It defaults to 300 characters.
 		 * 
-		 * @param maxErrorLength the maximal error length
+		 * @param maxErrorLength the maximal length of the error message kept in the store of the node
 		 * @return this builder
 		 */
-		public Builder setMaxErrorLength(int maxErrorLength) {
-			if (maxErrorLength < 0)
-				throw new IllegalArgumentException("the maximal error length cannot be negative");
-
+		public T setMaxErrorLength(int maxErrorLength) {
 			this.maxErrorLength = maxErrorLength;
-			return this;
+			return getThis();
 		}
 
 		/**
-		 * Sets the maximal number of dependencies per transaction. These are the jars that form
-		 * the class path of a transaction. It defaults to 20.
+		 * Sets the maximal number of dependencies in the classpath of a transaction.
 		 * 
-		 * @param maxDependencies the maximal number of dependencies
+		 * @param maxDependencies the maximal number of dependencies in the classpath of a transaction
 		 * @return this builder
 		 */
-		public Builder setMaxDependencies(int maxDependencies) {
-			if (maxDependencies < 1)
-				throw new IllegalArgumentException("the maximal number of dependencies per transaction must be at least 1");
-
+		public T setMaxDependencies(int maxDependencies) {
 			this.maxDependencies = maxDependencies;
-			return this;
+			return getThis();
 		}
 
 		/**
-		 * Sets the maximal cumulative size of the dependencies per transaction. These are the number of bytes
-		 * of the instrumented jars that form the class path of a transaction. It defaults to 10,000,000.
+		 * Sets the maximal cumulative size (in bytes) of the instrumented jars of the dependencies
+		 * of a transaction.
 		 * 
-		 * @param maxSizeOfDependencies the maximal number of dependencies
+		 * @param maxCumulativeSizeOfDependencies the maximal cumulative size (in bytes) of the instrumented
+		 *                                        jars of the dependencies of a transaction
 		 * @return this builder
 		 */
-		public Builder setMaxCumulativeSizeOfDependencies(long maxSizeOfDependencies) {
-			if (maxSizeOfDependencies < 100_000)
-				throw new IllegalArgumentException("the maximal cumulative size of the dependencies per transaction must be at least 100,000");
-
-			this.maxCumulativeSizeOfDependencies = maxSizeOfDependencies;
-			return this;
+		public T setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
+			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
+			return getThis();
 		}
 
 		/**
@@ -380,10 +665,9 @@ public class ConsensusParams {
 		 * @param allowsSelfCharged true if and only if the annotation is allowed
 		 * @return this builder
 		 */
-		public Builder allowSelfCharged(boolean allowsSelfCharged) {
+		public T allowSelfCharged(boolean allowsSelfCharged) {
 			this.allowsSelfCharged = allowsSelfCharged;
-
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -393,10 +677,9 @@ public class ConsensusParams {
 		 * @param allowsUnsignedFaucet true if and only if the faucet of the gametes can be used without a valid signature
 		 * @return this builder
 		 */
-		public Builder allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
+		public T allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
 			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
-
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -406,10 +689,9 @@ public class ConsensusParams {
 		 * @param allowsMintBurnFromGamete true if and only if the gamete is allowed
 		 * @return this builder
 		 */
-		public Builder allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
+		public T allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
 			this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
-
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -420,21 +702,21 @@ public class ConsensusParams {
 		 *                  "ed25519", "ed25519det", "sha256dsa", "empty", "qtesla1" and "qtesla3"
 		 * @return this builder
 		 */
-		public Builder signRequestsWith(String signature) {
+		public T signRequestsWith(String signature) {
 			if (signature == null)
 				throw new NullPointerException("the signature algorithm name cannot be null");
 
 			this.signature = signature;
-
-			return this;
+			return getThis();
 		}
 
 		/**
 		 * Sets the initial gas price. It defaults to 100.
 		 * 
 		 * @param initialGasPrice the initial gas price to set.
+		 * @return this builder
 		 */
-		public Builder setInitialGasPrice(BigInteger initialGasPrice) {
+		public T setInitialGasPrice(BigInteger initialGasPrice) {
 			if (initialGasPrice == null)
 				throw new NullPointerException("the initial gas price cannot be null");
 
@@ -442,14 +724,16 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the initial gas price must be positive");
 
 			this.initialGasPrice = initialGasPrice;
-			return this;
+			return getThis();
 		}
 
 		/**
 		 * Sets the maximal amount of gas that a non-view transaction can consume.
 		 * It defaults to 1_000_000_000.
+		 * 
+		 * @return this builder
 		 */
-		public Builder setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
+		public T setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
 			if (maxGasPerTransaction == null)
 				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
 
@@ -457,7 +741,7 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the maximal amount of gas per transaction must be positive");
 
 			this.maxGasPerTransaction = maxGasPerTransaction;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -465,8 +749,10 @@ public class ConsensusParams {
 		 * If the actual reward is smaller, the price of gas must decrease.
 		 * If it is larger, the price of gas must increase.
 		 * It defaults to 1_000_000.
+		 * 
+		 * @return this builder
 		 */
-		public Builder setTargetGasAtReward(BigInteger targetGasAtReward) {
+		public T setTargetGasAtReward(BigInteger targetGasAtReward) {
 			if (targetGasAtReward == null)
 				throw new NullPointerException("the target gas at reward cannot be null");
 
@@ -474,7 +760,7 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the target gas at reward must be positive");
 
 			this.targetGasAtReward = targetGasAtReward;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -484,13 +770,15 @@ public class ConsensusParams {
 		 * in the determination of the gas price.
 		 * Use 0 to keep the gas price constant.
 		 * It defaults to 250_000L.
+		 * 
+		 * @return this builder
 		 */
-		public Builder setOblivion(long oblivion) {
+		public T setOblivion(long oblivion) {
 			if (oblivion < 0 || oblivion > 1_000_000L)
 				throw new IllegalArgumentException("oblivion must be between 0 and 1_000_000");
 
 			this.oblivion = oblivion;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -498,10 +786,12 @@ public class ConsensusParams {
 		 * as reward to the validators. 1,000,000 means 1%.
 		 * Inflation can be negative. For instance, -300,000 means -0.3%.
 		 * It defaults to 100,000 (that is, inflation is 0.1% by default).
+		 * 
+		 * @return this builder
 		 */
-		public Builder setInitialInflation(long initialInflation) {
+		public T setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -511,12 +801,12 @@ public class ConsensusParams {
 		 * @param percentStaked the buyer surcharge to set
 		 * @return this builder
 		 */
-		public Builder setPercentStaked(int percentStaked) {
+		public T setPercentStaked(int percentStaked) {
 			if (percentStaked < 0 || percentStaked > 100_000_000L)
 				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
 
 			this.percentStaked = percentStaked;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -526,12 +816,12 @@ public class ConsensusParams {
 		 * @param buyerSurcharge the buyer surcharge to set
 		 * @return this builder
 		 */
-		public Builder setBuyerSurcharge(int buyerSurcharge) {
+		public T setBuyerSurcharge(int buyerSurcharge) {
 			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000L)
 				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
 
 			this.buyerSurcharge = buyerSurcharge;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -541,12 +831,12 @@ public class ConsensusParams {
 		 * @param slashingForMisbehaving the slashing for misbehaving validators
 		 * @return this builder
 		 */
-		public Builder setSlashingForMisbehaving(int slashingForMisbehaving) {
+		public T setSlashingForMisbehaving(int slashingForMisbehaving) {
 			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
 
 			this.slashingForMisbehaving = slashingForMisbehaving;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -556,12 +846,12 @@ public class ConsensusParams {
 		 * @param slashingForNotBehaving the slashing for not behaving validators
 		 * @return this builder
 		 */
-		public Builder setSlashingForNotBehaving(int slashingForNotBehaving) {
+		public T setSlashingForNotBehaving(int slashingForNotBehaving) {
 			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
 
 			this.slashingForNotBehaving = slashingForNotBehaving;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -571,9 +861,9 @@ public class ConsensusParams {
 		 * @param ignoresGasPrice true if and only if the minimum gas price must be ignored
 		 * @return this builder
 		 */
-		public Builder ignoreGasPrice(boolean ignoresGasPrice) {
+		public T ignoreGasPrice(boolean ignoresGasPrice) {
 			this.ignoresGasPrice = ignoresGasPrice;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -583,9 +873,9 @@ public class ConsensusParams {
 		 * @param skipsVerification true if and only if the verification must be disabled
 		 * @return this builder
 		 */
-		public Builder skipVerification(boolean skipsVerification) {
+		public T skipVerification(boolean skipsVerification) {
 			this.skipsVerification = skipsVerification;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -595,12 +885,12 @@ public class ConsensusParams {
 		 * @param verificationVersion the version of the verification module
 		 * @return this builder
 		 */
-		public Builder setVerificationVersion(int verificationVersion) {
+		public T setVerificationVersion(int verificationVersion) {
 			if (verificationVersion < 0)
 				throw new IllegalArgumentException("the verification version must be non-negative");
 
 			this.verificationVersion = verificationVersion;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -610,7 +900,7 @@ public class ConsensusParams {
 		 * @param initialSupply the initial supply of coins of the node
 		 * @return this builder
 		 */
-		public Builder setInitialSupply(BigInteger initialSupply) {
+		public T setInitialSupply(BigInteger initialSupply) {
 			if (initialSupply == null)
 				throw new NullPointerException("the initial supply cannot be null");
 
@@ -618,7 +908,7 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the initial supply must be non-negative");
 
 			this.initialSupply = initialSupply;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -628,7 +918,7 @@ public class ConsensusParams {
 		 * @param initialRedSupply the initial supply of red coins of the node
 		 * @return this builder
 		 */
-		public Builder setInitialRedSupply(BigInteger initialRedSupply) {
+		public T setInitialRedSupply(BigInteger initialRedSupply) {
 			if (initialRedSupply == null)
 				throw new NullPointerException("the initial red supply cannot be null");
 
@@ -636,7 +926,7 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the initial red supply must be non-negative");
 
 			this.initialRedSupply = initialRedSupply;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -646,12 +936,12 @@ public class ConsensusParams {
 		 * @param publicKeyOfGamete the Base64-encoded public key of the gamete account
 		 * @return this builder
 		 */
-		public Builder setPublicKeyOfGamete(String publicKeyOfGamete) {
+		public T setPublicKeyOfGamete(String publicKeyOfGamete) {
 			if (publicKeyOfGamete == null)
 				throw new NullPointerException("the public key of the gamete cannot be null");
 
 			this.publicKeyOfGamete = publicKeyOfGamete;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -661,7 +951,7 @@ public class ConsensusParams {
 		 * @param finalSupply the final supply of coins of the node
 		 * @return this builder
 		 */
-		public Builder setFinalSupply(BigInteger finalSupply) {
+		public T setFinalSupply(BigInteger finalSupply) {
 			if (finalSupply == null)
 				throw new NullPointerException("the final supply cannot be null");
 
@@ -669,7 +959,7 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the final supply must be non-negative");
 
 			this.finalSupply = finalSupply;
-			return this;
+			return getThis();
 		}
 
 		/**
@@ -677,7 +967,7 @@ public class ConsensusParams {
 		 * to validators, for instance to change a consensus parameter.
 		 * It defaults to 100.
 		 */
-		public Builder setTicketForNewPoll(BigInteger ticketForNewPoll) {
+		public T setTicketForNewPoll(BigInteger ticketForNewPoll) {
 			if (ticketForNewPoll == null)
 				throw new NullPointerException("the ticket for a new poll cannot be null");
 
@@ -685,7 +975,42 @@ public class ConsensusParams {
 				throw new IllegalArgumentException("the ticket for new poll must be non-negative");
 
 			this.ticketForNewPoll = ticketForNewPoll;
-			return this;
+			return getThis();
+		}
+
+		/**
+		 * Builds the configuration.
+		 * 
+		 * @return the configuration
+		 */
+		public abstract ConsensusConfig build();
+	
+		/**
+		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
+		 * 
+		 * @return this same builder
+		 */
+		protected abstract T getThis();
+	
+		/**
+		 * Loads the TOML file at the given path.
+		 * 
+		 * @param path the path
+		 * @return the file
+		 * @throws FileNotFoundException if {@code path} cannot be found
+		 */
+		protected static Toml readToml(Path path) throws FileNotFoundException {
+			try {
+				return new Toml().read(path.toFile());
+			}
+			catch (RuntimeException e) {
+				// the toml4j library wraps the FileNotFoundException inside a RuntimeException...
+				Throwable cause = e.getCause();
+				if (cause instanceof FileNotFoundException)
+					throw (FileNotFoundException) cause;
+				else
+					throw e;
+			}
 		}
 	}
 }

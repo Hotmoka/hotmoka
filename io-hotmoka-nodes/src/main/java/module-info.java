@@ -23,5 +23,6 @@ module io.hotmoka.nodes {
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
+	requires toml4j;
 	requires java.logging;
 }
