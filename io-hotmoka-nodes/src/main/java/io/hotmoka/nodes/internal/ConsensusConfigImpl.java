@@ -318,6 +318,53 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		sb.append("# if the actual reward is smaller, the price of gas must decrease;\n");
 		sb.append("# if it is larger, the price of gas must increase\n");
 		sb.append("target_gas_at_reward = \"" + targetGasAtReward + "\"\n");
+		sb.append("\n");
+		sb.append("# how quick the gas consumed at previous rewards is forgotten:\n");
+		sb.append("# 0 means never, 1000000 means immediately;\n");
+		sb.append("# hence a smaller level means that the latest rewards are heavier\n");
+		sb.append("# in the determination of the gas price;\n");
+		sb.append("# a value of 0 means that the gas price is constant\n");
+		sb.append("oblivion = " + oblivion + "\n");
+		sb.append("\n");
+		sb.append("# the initial inflation applied to the gas consumed by transactions\n");
+		sb.append("# before it gets sent as reward to the validators. 1000000 means 1%;\n");
+		sb.append("# inflation can be negative. For instance, -300,000 means -0.3%\n");
+		sb.append("initial_inflation = " + initialInflation + "\n");
+		sb.append("\n");
+		sb.append("# the version of the verification module to use\n");
+		sb.append("verification_version = " + verificationVersion + "\n");
+		sb.append("\n");
+		sb.append("# the initial supply of coins in the node\n");
+		sb.append("initial_supply = \"" + initialSupply + "\"\n");
+		sb.append("\n");
+		sb.append("# the final supply of coins in the node; once the current supply reaches\n");
+		sb.append("# this final amount, it remains constant\n");
+		sb.append("final_supply = \"" + finalSupply + "\"\n");
+		sb.append("\n");
+		sb.append("# the initial supply of red coins in the node\n");
+		sb.append("initial_red_supply = \"" + initialRedSupply + "\"\n");
+		sb.append("\n");
+		sb.append("# the amount of coin to pay to start a new poll amount the validators,\n");
+		sb.append("# for instance in order to change a consensus parameter\n");
+		sb.append("ticket_for_new_poll = \"" + ticketForNewPoll + "\"\n");
+		sb.append("\n");
+		sb.append("# the name of the signature algorithm for signing requests\n");
+		sb.append("signature = \"" + signature + "\"\n");
+		sb.append("\n");
+		sb.append("# the amount of validators' rewards that gets staked. The rest is sent to the validators\n");
+		sb.append("# immediately. 1000000 means 1%\n");
+		sb.append("percent_staked = " + percentStaked + "\n");
+		sb.append("\n");
+		sb.append("# extra tax paid when a validator acquires the shares of another validator\n");
+		sb.append("# (in percent of the offer cost). 1000000 means 1%\n");
+		sb.append("buyer_surcharge = " + buyerSurcharge + "\n");
+		sb.append("\n");
+		sb.append("# the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%\n");
+		sb.append("slashing_for_misbehaving = " + slashingForMisbehaving + "\n");
+		sb.append("\n");
+		sb.append("# the percent of stake that gets slashed for each validator that does not behave\n");
+		sb.append("# (or does not vote). 1000000 means 1%\n");
+		sb.append("slashing_for_not_behaving = " + slashingForNotBehaving + "\n");
 
 		return sb.toString();
 	}
@@ -467,7 +514,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		private String signature = "ed25519";
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
-		private long maxCumulativeSizeOfDependencies = 10_000_000;
+		private long maxCumulativeSizeOfDependencies = 10_000_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
 		private boolean skipsVerification = false;
@@ -563,21 +610,21 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			if (verificationVersion != null)
 				setVerificationVersion((int) (long) verificationVersion);
 
-			var initialSupply = toml.getLong("initial_supply");
+			var initialSupply = toml.getString("initial_supply");
 			if (initialSupply != null)
-				setInitialSupply(BigInteger.valueOf(initialSupply)); // TODO: maybe should be long?
+				setInitialSupply(new BigInteger(initialSupply));
 
-			var finalSupply = toml.getLong("final_supply");
+			var finalSupply = toml.getString("final_supply");
 			if (finalSupply != null)
-				setFinalSupply(BigInteger.valueOf(finalSupply)); // TODO: maybe should be long?
+				setFinalSupply(new BigInteger(finalSupply));
 
-			var initialRedSupply = toml.getLong("initial_red_supply");
+			var initialRedSupply = toml.getString("initial_red_supply");
 			if (initialRedSupply != null)
-				setInitialRedSupply(BigInteger.valueOf(initialRedSupply)); // TODO: maybe should be long?
+				setInitialRedSupply(new BigInteger(initialRedSupply));
 
-			var ticketForNewPoll = toml.getLong("ticket_for_new_poll");
+			var ticketForNewPoll = toml.getString("ticket_for_new_poll");
 			if (ticketForNewPoll != null)
-				setTicketForNewPoll(BigInteger.valueOf(ticketForNewPoll)); // TODO: maybe should be long?
+				setTicketForNewPoll(new BigInteger(ticketForNewPoll));
 
 			var publicKeyOfGamete = toml.getString("public_key_of_gamete");
 			if (publicKeyOfGamete != null)
