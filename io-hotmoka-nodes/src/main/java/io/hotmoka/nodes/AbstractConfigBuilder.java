@@ -18,6 +18,7 @@ package io.hotmoka.nodes;
 
 import com.moandjiezana.toml.Toml;
 
+import io.hotmoka.nodes.api.ConsensusConfigBuilder;
 import io.hotmoka.nodes.internal.ConsensusConfigImpl;
 
 /**
@@ -25,7 +26,7 @@ import io.hotmoka.nodes.internal.ConsensusConfigImpl;
  * 
  * @param <T> the concrete type of the builder
  */
-public abstract class AbstractConfigBuilder<T extends AbstractConfigBuilder<T>> extends ConsensusConfigImpl.AbstractBuilder<T> {
+public abstract class AbstractConfigBuilder<T extends ConsensusConfigBuilder<T>> extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<T> {
 
 	/**
 	 * Creates the builder.

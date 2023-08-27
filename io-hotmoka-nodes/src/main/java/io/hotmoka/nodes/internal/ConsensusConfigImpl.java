@@ -19,11 +19,16 @@ package io.hotmoka.nodes.internal;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.nodes.api.ConsensusConfigBuilder;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node. This information
@@ -33,7 +38,8 @@ import io.hotmoka.nodes.api.ConsensusConfig;
 public class ConsensusConfigImpl implements ConsensusConfig {
 
 	/**
-	 * The genesis time, UTC, in ISO8601 pattern.
+	 * The genesis time, UTC, in ISO8601 pattern. It defaults to the time of
+	 * construction of the builder of this object.
 	 */
 	public final String genesisTime;
 
@@ -193,7 +199,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 	 * 
 	 * @param builder the builder where information is extracted from
 	 */
-	public ConsensusConfigImpl(AbstractBuilder<?> builder) {
+	public ConsensusConfigImpl(ConsensusConfigBuilderImpl<?> builder) {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
@@ -499,12 +505,43 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		return slashingForNotBehaving;
 	}
 
+	@Override
+	public <T extends ConsensusConfigBuilder<T>> ConsensusConfigBuilder<T> intoBuilder(ConsensusConfigBuilder<T> builder) {
+		return builder
+			.setChainId(chainId)
+			.setGenesisTime(genesisTime)
+			.setMaxErrorLength(maxErrorLength)
+			.setMaxDependencies(maxDependencies)
+			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
+			.allowSelfCharged(allowsSelfCharged)
+			.allowUnsignedFaucet(allowsUnsignedFaucet)
+			.allowMintBurnFromGamete(allowsMintBurnFromGamete)
+			.signRequestsWith(signature)
+			.setMaxGasPerTransaction(maxGasPerTransaction)
+			.setInitialGasPrice(initialGasPrice)
+			.ignoreGasPrice(ignoresGasPrice)
+			.skipVerification(skipsVerification)
+			.setTargetGasAtReward(targetGasAtReward)
+			.setOblivion(oblivion)
+			.setInitialInflation(initialInflation)
+			.setVerificationVersion(verificationVersion)
+			.setInitialSupply(initialSupply)
+			.setFinalSupply(finalSupply)
+			.setInitialRedSupply(initialRedSupply)
+			.setPublicKeyOfGamete(publicKeyOfGamete)
+			.setTicketForNewPoll(ticketForNewPoll)
+			.setBuyerSurcharge(buyerSurcharge)
+			.setPercentStaked(percentStaked)
+			.setSlashingForMisbehaving(slashingForMisbehaving)
+			.setSlashingForNotBehaving(slashingForNotBehaving);
+	}
+
 	/**
 	 * The builder of a configuration object.
 	 * 
 	 * @param <T> the concrete type of the builder
 	 */
-	public abstract static class AbstractBuilder<T extends AbstractBuilder<T>> {
+	public abstract static class ConsensusConfigBuilderImpl<T extends ConsensusConfigBuilder<T>> implements ConsensusConfigBuilder<T> {
 		private String chainId = "";
 		private String genesisTime = "";
 		private int maxErrorLength = 300;
@@ -532,7 +569,13 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		private int slashingForMisbehaving = 1_000_000;
 		private int slashingForNotBehaving = 500_000;
 	
-		protected AbstractBuilder() {}
+		protected ConsensusConfigBuilderImpl() {
+			var tz = TimeZone.getTimeZone("UTC");
+			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
+			df.setTimeZone(tz);
+			// by default, the genesis time is the time of creation of this object
+			genesisTime = df.format(new Date());
+		}
 	
 		/**
 		 * Reads the properties of the given TOML file and sets them for
@@ -540,7 +583,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		 * 
 		 * @param toml the file
 		 */
-		protected AbstractBuilder(Toml toml) {
+		protected ConsensusConfigBuilderImpl(Toml toml) {
 			var genesisTime = toml.getString("genesis_time");
 			if (genesisTime != null)
 				setGenesisTime(genesisTime);
@@ -646,109 +689,56 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			if (slashingForNotBehaving != null)
 				setSlashingForNotBehaving((int) (long) slashingForNotBehaving);
 		}
-	
-		/**
-		 * Sets the genesis time, UTC, in ISO8601 pattern.
-		 * 
-		 * @param genesisTime the genesis time, UTC, in ISO08601 pattern
-		 * @return this builder
-		 */
+
+		@Override
 		public T setGenesisTime(String genesisTime) {
 			this.genesisTime = genesisTime;
 			return getThis();
 		}
 
-		/**
-		 * Sets the chain identifier of the node.
-		 * 
-		 * @param chainId the chain identifier
-		 * @return this builder
-		 */
+		@Override
 		public T setChainId(String chainId) {
 			this.chainId = chainId;
 			return getThis();
 		}
 
-		/**
-		 * Sets the maximal length of the error message kept in the store of the node.
-		 * Beyond this threshold, the message gets truncated.
-		 * 
-		 * @param maxErrorLength the maximal length of the error message kept in the store of the node
-		 * @return this builder
-		 */
+		@Override
 		public T setMaxErrorLength(int maxErrorLength) {
 			this.maxErrorLength = maxErrorLength;
 			return getThis();
 		}
 
-		/**
-		 * Sets the maximal number of dependencies in the classpath of a transaction.
-		 * 
-		 * @param maxDependencies the maximal number of dependencies in the classpath of a transaction
-		 * @return this builder
-		 */
+		@Override
 		public T setMaxDependencies(int maxDependencies) {
 			this.maxDependencies = maxDependencies;
 			return getThis();
 		}
 
-		/**
-		 * Sets the maximal cumulative size (in bytes) of the instrumented jars of the dependencies
-		 * of a transaction.
-		 * 
-		 * @param maxCumulativeSizeOfDependencies the maximal cumulative size (in bytes) of the instrumented
-		 *                                        jars of the dependencies of a transaction
-		 * @return this builder
-		 */
+		@Override
 		public T setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
 			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 			return getThis();
 		}
 
-		/**
-		 * Specifies to allow the {@code @@SelfCharged} annotation in the Takamaka
-		 * code that runs in the node.
-		 * 
-		 * @param allowsSelfCharged true if and only if the annotation is allowed
-		 * @return this builder
-		 */
+		@Override
 		public T allowSelfCharged(boolean allowsSelfCharged) {
 			this.allowsSelfCharged = allowsSelfCharged;
 			return getThis();
 		}
 
-		/**
-		 * Specifies to allow the {@code faucet()} methods of the gametes without a valid signature.
-		 * This is only useful for testing networks, where users can freely fill their accounts at the faucet.
-		 * 
-		 * @param allowsUnsignedFaucet true if and only if the faucet of the gametes can be used without a valid signature
-		 * @return this builder
-		 */
+		@Override
 		public T allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
 			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
 			return getThis();
 		}
 
-		/**
-		 * Specifies to allow the gamete of the node to call, for free, the add method of the accounts ledger
-		 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
-		 * 
-		 * @param allowsMintBurnFromGamete true if and only if the gamete is allowed
-		 * @return this builder
-		 */
+		@Override
 		public T allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
 			this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 			return getThis();
 		}
 
-		/**
-		 * Specifies to signature algorithm to use to sign the requests sent to the node.
-		 * It defaults to "ed25519";
-		 * 
-		 * @param signature the name of the signature algorithm. Currently, this includes
-		 *                  "ed25519", "ed25519det", "sha256dsa", "empty", "qtesla1" and "qtesla3"
-		 * @return this builder
-		 */
+		@Override
 		public T signRequestsWith(String signature) {
 			if (signature == null)
 				throw new NullPointerException("the signature algorithm name cannot be null");
@@ -757,12 +747,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the initial gas price. It defaults to 100.
-		 * 
-		 * @param initialGasPrice the initial gas price to set.
-		 * @return this builder
-		 */
+		@Override
 		public T setInitialGasPrice(BigInteger initialGasPrice) {
 			if (initialGasPrice == null)
 				throw new NullPointerException("the initial gas price cannot be null");
@@ -774,12 +759,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the maximal amount of gas that a non-view transaction can consume.
-		 * It defaults to 1_000_000_000.
-		 * 
-		 * @return this builder
-		 */
+		@Override
 		public T setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
 			if (maxGasPerTransaction == null)
 				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
@@ -791,14 +771,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the units of gas that are aimed to be rewarded at each reward.
-		 * If the actual reward is smaller, the price of gas must decrease.
-		 * If it is larger, the price of gas must increase.
-		 * It defaults to 1_000_000.
-		 * 
-		 * @return this builder
-		 */
+		@Override
 		public T setTargetGasAtReward(BigInteger targetGasAtReward) {
 			if (targetGasAtReward == null)
 				throw new NullPointerException("the target gas at reward cannot be null");
@@ -810,16 +783,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets how quick the gas consumed at previous rewards is forgotten:
-		 * 0 means never, 1_000_000 means immediately.
-		 * Hence a smaller level means that the latest rewards are heavier
-		 * in the determination of the gas price.
-		 * Use 0 to keep the gas price constant.
-		 * It defaults to 250_000L.
-		 * 
-		 * @return this builder
-		 */
+		@Override
 		public T setOblivion(long oblivion) {
 			if (oblivion < 0 || oblivion > 1_000_000L)
 				throw new IllegalArgumentException("oblivion must be between 0 and 1_000_000");
@@ -828,26 +792,13 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the initial inflation applied to the gas consumed by transactions before it gets sent
-		 * as reward to the validators. 1,000,000 means 1%.
-		 * Inflation can be negative. For instance, -300,000 means -0.3%.
-		 * It defaults to 100,000 (that is, inflation is 0.1% by default).
-		 * 
-		 * @return this builder
-		 */
+		@Override
 		public T setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;
 			return getThis();
 		}
 
-		/**
-		 * Sets the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
-		 * 1000000 = 1%. It defaults to 75%.
-		 * 
-		 * @param percentStaked the buyer surcharge to set
-		 * @return this builder
-		 */
+		@Override
 		public T setPercentStaked(int percentStaked) {
 			if (percentStaked < 0 || percentStaked > 100_000_000L)
 				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
@@ -856,13 +807,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the extra tax paid when a validator acquires the shares of another validator
-		 * (in percent of the offer cost). 1000000 = 1%. It defaults to 50%.
-		 * 
-		 * @param buyerSurcharge the buyer surcharge to set
-		 * @return this builder
-		 */
+		@Override
 		public T setBuyerSurcharge(int buyerSurcharge) {
 			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000L)
 				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
@@ -871,13 +816,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
-		 * It defaults to 1%.
-		 * 
-		 * @param slashingForMisbehaving the slashing for misbehaving validators
-		 * @return this builder
-		 */
+		@Override
 		public T setSlashingForMisbehaving(int slashingForMisbehaving) {
 			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
@@ -886,13 +825,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the percent of stake that gets slashed for each not behaving (not voting) validator.
-		 * 1000000 means 1%. It defaults to 1%.
-		 * 
-		 * @param slashingForNotBehaving the slashing for not behaving validators
-		 * @return this builder
-		 */
+		@Override
 		public T setSlashingForNotBehaving(int slashingForNotBehaving) {
 			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
@@ -901,37 +834,19 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Specifies that the minimum gas price for transactions is 0, so that the current
-		 * gas price is not relevant for the execution of the transactions. It defaults to false.
-		 * 
-		 * @param ignoresGasPrice true if and only if the minimum gas price must be ignored
-		 * @return this builder
-		 */
+		@Override
 		public T ignoreGasPrice(boolean ignoresGasPrice) {
 			this.ignoresGasPrice = ignoresGasPrice;
 			return getThis();
 		}
 
-		/**
-		 * Requires to skip the verification of the classes of the jars installed in the node.
-		 * It defaults to false.
-		 * 
-		 * @param skipsVerification true if and only if the verification must be disabled
-		 * @return this builder
-		 */
+		@Override
 		public T skipVerification(boolean skipsVerification) {
 			this.skipsVerification = skipsVerification;
 			return getThis();
 		}
 
-		/**
-		 * Sets the version of the verification module to use.
-		 * It defaults to 0.
-		 * 
-		 * @param verificationVersion the version of the verification module
-		 * @return this builder
-		 */
+		@Override
 		public T setVerificationVersion(int verificationVersion) {
 			if (verificationVersion < 0)
 				throw new IllegalArgumentException("the verification version must be non-negative");
@@ -940,13 +855,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the initial supply of coins of the node.
-		 * It defaults to 0.
-		 * 
-		 * @param initialSupply the initial supply of coins of the node
-		 * @return this builder
-		 */
+		@Override
 		public T setInitialSupply(BigInteger initialSupply) {
 			if (initialSupply == null)
 				throw new NullPointerException("the initial supply cannot be null");
@@ -958,13 +867,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the initial supply of red coins of the node.
-		 * It defaults to 0.
-		 * 
-		 * @param initialRedSupply the initial supply of red coins of the node
-		 * @return this builder
-		 */
+		@Override
 		public T setInitialRedSupply(BigInteger initialRedSupply) {
 			if (initialRedSupply == null)
 				throw new NullPointerException("the initial red supply cannot be null");
@@ -976,13 +879,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the public key for the gamete account.
-		 * It defaults to "" (hence a non-existent key).
-		 * 
-		 * @param publicKeyOfGamete the Base64-encoded public key of the gamete account
-		 * @return this builder
-		 */
+		@Override
 		public T setPublicKeyOfGamete(String publicKeyOfGamete) {
 			if (publicKeyOfGamete == null)
 				throw new NullPointerException("the public key of the gamete cannot be null");
@@ -991,13 +888,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the final supply of coins of the node.
-		 * It defaults to 0.
-		 * 
-		 * @param finalSupply the final supply of coins of the node
-		 * @return this builder
-		 */
+		@Override
 		public T setFinalSupply(BigInteger finalSupply) {
 			if (finalSupply == null)
 				throw new NullPointerException("the final supply cannot be null");
@@ -1009,11 +900,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Sets the amount of coins that must be payed to start a new poll amount
-		 * to validators, for instance to change a consensus parameter.
-		 * It defaults to 100.
-		 */
+		@Override
 		public T setTicketForNewPoll(BigInteger ticketForNewPoll) {
 			if (ticketForNewPoll == null)
 				throw new NullPointerException("the ticket for a new poll cannot be null");
@@ -1025,11 +912,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 			return getThis();
 		}
 
-		/**
-		 * Builds the configuration.
-		 * 
-		 * @return the configuration
-		 */
+		@Override
 		public abstract ConsensusConfig build();
 	
 		/**

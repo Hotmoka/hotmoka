@@ -185,6 +185,13 @@ public interface ConsensusConfig {
 	 */
 	String toToml();
 
+	/**
+	 * Yields a builder initialized with the information in this object.
+	 * 
+	 * @return the builder
+	 */
+	<T extends ConsensusConfigBuilder<T>> ConsensusConfigBuilder<T> intoBuilder(ConsensusConfigBuilder<T> builder);
+
 	@Override
 	boolean equals(Object other);
 

@@ -32,12 +32,11 @@ public abstract class ConsensusConfigs {
 	/**
 	 * The builder of consensus configurations, according to the builder pattern.
 	 */
-	private static class ConsensusConfigBuilder extends AbstractConfigBuilder<ConsensusConfigBuilder> {
+	private static class MyConsensusConfigBuilder extends AbstractConfigBuilder<MyConsensusConfigBuilder> {
 
-		private ConsensusConfigBuilder() {
-		}
+		private MyConsensusConfigBuilder() {}
 
-		private ConsensusConfigBuilder(Path path) throws FileNotFoundException {
+		private MyConsensusConfigBuilder(Path path) throws FileNotFoundException {
 			super(readToml(path));
 		}
 
@@ -47,7 +46,7 @@ public abstract class ConsensusConfigs {
 		}
 
 		@Override
-		protected ConsensusConfigBuilder getThis() {
+		protected MyConsensusConfigBuilder getThis() {
 			return this;
 		}
 	}
@@ -58,7 +57,7 @@ public abstract class ConsensusConfigs {
 	 * @return the builder
 	 */
 	public static AbstractConfigBuilder<?> defaults() {
-		return new ConsensusConfigBuilder();
+		return new MyConsensusConfigBuilder();
 	}
 
 	/**
@@ -71,6 +70,6 @@ public abstract class ConsensusConfigs {
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 */
 	public static AbstractConfigBuilder<?> load(Path path) throws FileNotFoundException {
-		return new ConsensusConfigBuilder(path);
+		return new MyConsensusConfigBuilder(path);
 	}
 }
