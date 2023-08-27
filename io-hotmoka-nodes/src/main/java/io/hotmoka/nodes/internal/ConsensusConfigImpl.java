@@ -269,7 +269,7 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		sb.append("# For more information about TOML, see https://github.com/toml-lang/toml\n");
 		sb.append("# For more information about Hotmoka, see https://www.hotmoka.io\n");
 		sb.append("\n");
-		sb.append("## Consensus parameters\n");
+		sb.append("## General parameters\n");
 		sb.append("\n");
 		sb.append("# the genesis time, UTC, in ISO8601 pattern\n");
 		sb.append("genesis_time = \"" + genesisTime + "\"\n");
