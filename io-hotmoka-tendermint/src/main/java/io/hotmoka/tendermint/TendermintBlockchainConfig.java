@@ -50,12 +50,12 @@ public class TendermintBlockchainConfig extends Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	protected TendermintBlockchainConfig(io.hotmoka.local.Config superConfig, Path tendermintConfigurationToClone, int maxPingAttemps, int pingDelay) {
-		super(superConfig);
+	protected TendermintBlockchainConfig(Builder builder) {
+		super(builder);
 
-		this.tendermintConfigurationToClone = tendermintConfigurationToClone;
-		this.maxPingAttempts = maxPingAttemps;
-		this.pingDelay = pingDelay;
+		this.tendermintConfigurationToClone = builder.tendermintConfigurationToClone;
+		this.maxPingAttempts = builder.maxPingAttempts;
+		this.pingDelay = builder.pingDelay;
 	}
 
 	/**
@@ -79,7 +79,6 @@ public class TendermintBlockchainConfig extends Config {
 		 */
 		public Builder setTendermintConfigurationToClone(Path tendermintConfigurationToClone) {
 			this.tendermintConfigurationToClone = tendermintConfigurationToClone;
-
 			return this;
 		}
 
@@ -108,7 +107,7 @@ public class TendermintBlockchainConfig extends Config {
 
 		@Override
 		public TendermintBlockchainConfig build() {
-			return new TendermintBlockchainConfig(super.build(), tendermintConfigurationToClone, maxPingAttempts, pingDelay);
+			return new TendermintBlockchainConfig(this);
 		}
 
 		@Override

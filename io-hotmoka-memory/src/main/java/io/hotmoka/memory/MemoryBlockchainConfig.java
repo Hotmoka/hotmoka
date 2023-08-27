@@ -37,10 +37,10 @@ public class MemoryBlockchainConfig extends Config {
 	 * @param transactionsPerBlock the number of transactions that fit inside a block.
 	 *                             It defaults to 5.
 	 */
-	protected MemoryBlockchainConfig(io.hotmoka.local.Config superConfig, int transactionsPerBlock) {
-		super(superConfig);
+	protected MemoryBlockchainConfig(Builder builder) {
+		super(builder);
 
-		this.transactionsPerBlock = transactionsPerBlock;
+		this.transactionsPerBlock = builder.transactionsPerBlock;
 	}
 
 	/**
@@ -55,7 +55,7 @@ public class MemoryBlockchainConfig extends Config {
 
 		@Override
 		public MemoryBlockchainConfig build() {
-			return new MemoryBlockchainConfig(super.build(), transactionsPerBlock);
+			return new MemoryBlockchainConfig(this);
 		}
 
 		/**

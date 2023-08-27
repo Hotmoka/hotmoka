@@ -69,28 +69,13 @@ public class Config {
 	/**
 	 * Full constructor for the builder pattern.
 	 */
-	private Config(Path dir, int maxPollingAttempts,
-			       int pollingDelay, int requestCacheSize,
-			       int responseCacheSize, BigInteger maxGasPerViewTransaction) {
-
-		this.dir = dir;
-		this.maxPollingAttempts = maxPollingAttempts;
-		this.pollingDelay = pollingDelay;
-		this.requestCacheSize = requestCacheSize;
-		this.responseCacheSize = responseCacheSize;
-		this.maxGasPerViewTransaction = maxGasPerViewTransaction;
-	}
-
-	/**
-	 * Copy-constructor for subclassing.
-	 */
-	protected Config(Config parent) {
-		this.dir = parent.dir;
-		this.maxPollingAttempts = parent.maxPollingAttempts;
-		this.pollingDelay = parent.pollingDelay;
-		this.requestCacheSize = parent.requestCacheSize;
-		this.responseCacheSize = parent.responseCacheSize;
-		this.maxGasPerViewTransaction = parent.maxGasPerViewTransaction;
+	protected Config(Builder<?> builder) {
+		this.dir = builder.dir;
+		this.maxPollingAttempts = builder.maxPollingAttempts;
+		this.pollingDelay = builder.pollingDelay;
+		this.requestCacheSize = builder.requestCacheSize;
+		this.responseCacheSize = builder.responseCacheSize;
+		this.maxGasPerViewTransaction = builder.maxGasPerViewTransaction;
 	}
 
 	/**
@@ -191,7 +176,7 @@ public class Config {
 		 * @return the configuration
 		 */
 		public Config build() {
-			return new Config(dir, maxPollingAttempts, pollingDelay, requestCacheSize, responseCacheSize, maxGasPerViewTransaction);
+			return new Config(this);
 		}
 	}
 }
