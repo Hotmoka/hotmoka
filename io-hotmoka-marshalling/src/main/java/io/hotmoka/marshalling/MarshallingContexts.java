@@ -25,7 +25,9 @@ import io.hotmoka.marshalling.internal.MarshallingContextImpl;
 /**
  * Providers of marshalling contexts.
  */
-public interface MarshallingContexts {
+public final class MarshallingContexts {
+
+	private MarshallingContexts() {}
 
 	/**
 	 * Yields a marshalling context that writes to the given output stream.
@@ -34,7 +36,7 @@ public interface MarshallingContexts {
 	 * @return the marshalling context
 	 * @throws IOException if the context cannot be created
 	 */
-	static MarshallingContext of(OutputStream os) throws IOException {
+	public static MarshallingContext of(OutputStream os) throws IOException {
 		return new MarshallingContextImpl(os);
 	}
 }

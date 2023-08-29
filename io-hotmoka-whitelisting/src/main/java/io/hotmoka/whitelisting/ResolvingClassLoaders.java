@@ -24,7 +24,9 @@ import io.hotmoka.whitelisting.internal.ResolvingClassLoaderImpl;
 /**
  * A provider of resolving class loaders.
  */
-public interface ResolvingClassLoaders {
+public final class ResolvingClassLoaders {
+
+	private ResolvingClassLoaders() {}
 
 	/**
 	 * Yields a resolving class loader that loads classes from the given jars, provided as byte arrays.
@@ -34,7 +36,7 @@ public interface ResolvingClassLoaders {
 	 *                            set of white-listing annotations used by the class loader
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, long verificationVersion) {
+	public static ResolvingClassLoader of(Stream<byte[]> jars, long verificationVersion) {
 		return new ResolvingClassLoaderImpl(jars, verificationVersion);
 	}
 }

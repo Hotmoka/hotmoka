@@ -25,7 +25,9 @@ import io.hotmoka.verification.internal.VerifiedJarImpl;
 /**
  * A provider of jars that have undergone static verification, before being installed into blockchain.
  */
-public interface VerifiedJars {
+public final class VerifiedJars {
+
+	private VerifiedJars() {}
 
 	/**
 	 * Creates a verified jar from the given file. This verification
@@ -43,7 +45,7 @@ public interface VerifiedJars {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
 	}
 }

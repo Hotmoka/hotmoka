@@ -25,7 +25,9 @@ import io.hotmoka.marshalling.internal.UnmarshallingContextImpl;
 /**
  * Providers of unmarshalling contexts.
  */
-public interface UnmarshallingContexts {
+public final class UnmarshallingContexts {
+
+	private UnmarshallingContexts() {}
 
 	/**
 	 * Creates an unmarshalling context.
@@ -33,7 +35,7 @@ public interface UnmarshallingContexts {
 	 * @param is the input stream of the context
 	 * @throws IOException if the context cannot be created
 	 */
-	static UnmarshallingContext of(InputStream is) throws IOException {
+	public static UnmarshallingContext of(InputStream is) throws IOException {
 		return new UnmarshallingContextImpl(is);
 	}
 }

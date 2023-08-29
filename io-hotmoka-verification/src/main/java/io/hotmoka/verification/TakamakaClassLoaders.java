@@ -24,7 +24,9 @@ import io.hotmoka.verification.internal.TakamakaClassLoaderImpl;
 /**
  * A provider of class loaders used to access the definition of the classes of a Takamaka program.
  */
-public interface TakamakaClassLoaders {
+public final class TakamakaClassLoaders {
+
+	private TakamakaClassLoaders() {}
 
 	/**
 	 * Yields a class loader with the given jars, given as byte arrays.
@@ -35,7 +37,7 @@ public interface TakamakaClassLoaders {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
+	public static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
 		return new TakamakaClassLoaderImpl(jars, verificationVersion);
 	}
 }

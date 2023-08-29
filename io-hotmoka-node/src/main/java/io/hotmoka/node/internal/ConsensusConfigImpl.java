@@ -616,10 +616,9 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 			if (maxErrorLength != null)
 				setMaxErrorLength(maxErrorLength);
 
-			// TODO: remove all type conversions below
 			var maxDependencies = toml.getLong("max_dependencies");
 			if (maxDependencies != null)
-				setMaxDependencies((int) (long) maxDependencies);
+				setMaxDependencies(maxDependencies);
 
 			var maxCumulativeSizeOfDependencies = toml.getLong("max_cumulative_size_of_dependencies");
 			if (maxCumulativeSizeOfDependencies != null)
