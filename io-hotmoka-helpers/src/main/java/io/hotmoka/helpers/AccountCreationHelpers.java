@@ -21,7 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.internal.AccountCreationHelperImpl;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of objects that help with the creation of new accounts.

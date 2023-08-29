@@ -59,7 +59,7 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.JarsNode;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * A decorator of a node, that installs some jars in the node.

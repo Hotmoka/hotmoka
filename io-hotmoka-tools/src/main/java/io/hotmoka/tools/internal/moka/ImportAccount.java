@@ -18,7 +18,7 @@ package io.hotmoka.tools.internal.moka;
 
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
-import io.hotmoka.nodes.Accounts;
+import io.hotmoka.node.Accounts;
 import picocli.CommandLine.Command;
 
 @Command(name = "import-account",

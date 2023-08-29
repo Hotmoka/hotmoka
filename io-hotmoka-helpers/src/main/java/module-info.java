@@ -20,7 +20,7 @@ limitations under the License.
 module io.hotmoka.helpers {
 	exports io.hotmoka.helpers;
 	requires transitive io.hotmoka.helpers.api;
-	requires transitive io.hotmoka.nodes;
+	requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.verification;
 	requires io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;

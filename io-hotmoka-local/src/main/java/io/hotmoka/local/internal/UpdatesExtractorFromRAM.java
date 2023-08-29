@@ -52,7 +52,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.nodes.DeserializationError;
+import io.hotmoka.node.DeserializationError;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.

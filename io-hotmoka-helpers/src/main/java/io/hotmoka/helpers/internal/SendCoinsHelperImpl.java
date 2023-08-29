@@ -47,8 +47,8 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
-import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.api.Node;
 
 /**
  * Implementation of an object that helps with sending coins to accounts.

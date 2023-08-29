@@ -27,7 +27,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

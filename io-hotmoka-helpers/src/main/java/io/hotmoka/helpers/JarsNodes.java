@@ -30,7 +30,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.helpers.internal.JarsNodeImpl;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of nodes that provide access to a set of previously installed jars,

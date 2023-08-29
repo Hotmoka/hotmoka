@@ -25,8 +25,8 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.hotmoka.nodes.OutOfGasError;
+import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 

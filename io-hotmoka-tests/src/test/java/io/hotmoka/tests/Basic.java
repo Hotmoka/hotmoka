@@ -51,8 +51,8 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.SideEffectsInViewMethodException;
+import io.hotmoka.node.DeserializationError;
+import io.hotmoka.node.SideEffectsInViewMethodException;
 
 /**
  * A test for basic storage and contract Takamaka classes.

@@ -22,7 +22,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * A node that provides access to a previously installed set of accounts.

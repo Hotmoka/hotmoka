@@ -33,7 +33,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.SideEffectsInViewMethodException;
+import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.tests.HotmokaTest;
 
 class View extends HotmokaTest {

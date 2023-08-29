@@ -36,7 +36,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.api.MintBurnHelper;
 import io.hotmoka.helpers.api.NonceHelper;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Implementation of a helper for minting and burning coins of an account in the accounts ledger

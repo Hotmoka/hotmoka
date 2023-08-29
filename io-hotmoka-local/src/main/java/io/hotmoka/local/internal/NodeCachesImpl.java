@@ -56,8 +56,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
-import io.hotmoka.nodes.ConsensusConfigBuilders;
-import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**

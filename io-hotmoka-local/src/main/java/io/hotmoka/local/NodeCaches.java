@@ -26,7 +26,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**

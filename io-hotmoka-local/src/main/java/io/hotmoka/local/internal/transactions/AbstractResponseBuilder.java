@@ -40,9 +40,9 @@ import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.StorageTypeToClass;
 import io.hotmoka.local.internal.UpdatesExtractorFromRAM;
-import io.hotmoka.nodes.DeserializationError;
-import io.hotmoka.nodes.OutOfGasError;
-import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.node.DeserializationError;
+import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 

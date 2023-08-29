@@ -49,8 +49,8 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
-import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.api.Node;
 
 /**
  * An object that helps with the creation of new accounts.

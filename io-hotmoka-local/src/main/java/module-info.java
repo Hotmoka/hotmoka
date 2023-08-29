@@ -22,7 +22,7 @@ module io.hotmoka.local {
 	// we make them visible at compile time only instead
 	opens io.hotmoka.local.internal.runtime;
 
-	requires transitive io.hotmoka.nodes;
+	requires transitive io.hotmoka.node;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.beans;

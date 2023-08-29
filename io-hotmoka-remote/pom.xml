@@ -18,7 +18,7 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-nodes</artifactId>
+      <artifactId>io-hotmoka-node</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

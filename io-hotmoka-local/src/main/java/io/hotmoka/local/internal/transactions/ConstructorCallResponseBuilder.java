@@ -33,7 +33,7 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.local.internal.NodeInternal;
-import io.hotmoka.nodes.NonWhiteListedCallException;
+import io.hotmoka.node.NonWhiteListedCallException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.

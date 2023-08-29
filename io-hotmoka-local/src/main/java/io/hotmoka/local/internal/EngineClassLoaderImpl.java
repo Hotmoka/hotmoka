@@ -44,7 +44,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.local.EngineClassLoader;
-import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.api.TakamakaClassLoader;

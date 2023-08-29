@@ -50,7 +50,7 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.StoreUtilities;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.nodes.DeserializationError;
+import io.hotmoka.node.DeserializationError;
 import io.hotmoka.whitelisting.Dummy;
 
 /**

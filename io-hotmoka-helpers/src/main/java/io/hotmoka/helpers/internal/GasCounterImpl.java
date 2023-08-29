@@ -27,7 +27,7 @@ import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.helpers.api.GasCounter;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Implementation of a counter of the gas consumed for the execution of a set of requests.

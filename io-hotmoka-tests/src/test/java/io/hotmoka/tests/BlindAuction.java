@@ -51,7 +51,7 @@ import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.nodes.api.Node.CodeSupplier;
+import io.hotmoka.node.api.Node.CodeSupplier;
 import io.hotmoka.remote.RemoteNode;
 
 /**

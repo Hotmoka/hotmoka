@@ -24,7 +24,7 @@ module io.hotmoka.tendermint {
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
-	requires io.hotmoka.nodes;
+	requires io.hotmoka.node;
 	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.local;
 	requires com.google.gson;

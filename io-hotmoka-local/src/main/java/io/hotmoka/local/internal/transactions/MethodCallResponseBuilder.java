@@ -30,8 +30,8 @@ import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.local.internal.NodeInternal;
-import io.hotmoka.nodes.NonWhiteListedCallException;
-import io.hotmoka.nodes.SideEffectsInViewMethodException;
+import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.SideEffectsInViewMethodException;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.

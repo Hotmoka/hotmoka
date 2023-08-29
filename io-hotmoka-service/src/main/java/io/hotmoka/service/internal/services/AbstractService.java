@@ -28,7 +28,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.service.internal.Application;
 
 abstract class AbstractService {

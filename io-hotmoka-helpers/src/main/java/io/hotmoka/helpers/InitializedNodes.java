@@ -30,8 +30,8 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.internal.InitializedNodeImpl;
-import io.hotmoka.nodes.api.ConsensusConfig;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of nodes where the jar with the basic Takamaka classes have been installed,

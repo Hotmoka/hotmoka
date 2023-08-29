@@ -37,9 +37,9 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
-import io.hotmoka.nodes.OutOfGasError;
-import io.hotmoka.nodes.api.Account;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
 
 public abstract class AbstractCommand implements Runnable {

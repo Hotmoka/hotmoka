@@ -59,7 +59,7 @@ import io.hotmoka.network.responses.MethodCallTransactionSuccessfulResponseModel
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
-import io.hotmoka.nodes.AbstractNode;
+import io.hotmoka.node.AbstractNode;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.remote.internal.websockets.client.WebSocketClient;

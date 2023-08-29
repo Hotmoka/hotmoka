@@ -21,7 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.MintBurnHelper;
 import io.hotmoka.helpers.internal.MintBurnHelperImpl;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of helpers for minting and burning coins of an account in the accounts ledger

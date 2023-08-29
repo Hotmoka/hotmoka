@@ -26,7 +26,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.nodes.NonWhiteListedCallException;
+import io.hotmoka.node.NonWhiteListedCallException;
 
 /**
  * A test for the call to an interface method actually inherited from Object.

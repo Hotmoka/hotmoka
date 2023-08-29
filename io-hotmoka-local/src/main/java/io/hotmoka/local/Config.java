@@ -49,13 +49,13 @@ public class Config {
 	public final int pollingDelay;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.nodes.api.Node#getRequest(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int requestCacheSize;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.nodes.api.Node#getResponse(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int responseCacheSize;
@@ -147,7 +147,7 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@link io.hotmoka.nodes.api.Node#getRequest(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
 		 * @param requestCacheSize the cache size
@@ -159,7 +159,7 @@ public class Config {
 		}
 
 		/**
-		 * Sets size of the cache for the {@link io.hotmoka.nodes.api.Node#getResponse(TransactionReference)} method.
+		 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
 		 * It defaults to 1,000.
 		 * 
 		 * @param responseCacheSize the cache size

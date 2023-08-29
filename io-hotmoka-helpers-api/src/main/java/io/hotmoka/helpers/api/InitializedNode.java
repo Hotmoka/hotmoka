@@ -18,7 +18,7 @@ package io.hotmoka.helpers.api;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * A node where the jar with the basic Takamaka classes have been installed,

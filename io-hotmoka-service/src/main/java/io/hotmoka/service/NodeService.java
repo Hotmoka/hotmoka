@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.service;
 
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.service.internal.NodeServiceImpl;
 
 /**

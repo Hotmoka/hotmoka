@@ -24,7 +24,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Signers;
-import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 
 public class SignedRequests {
     private static final KeyPair keyPair;

@@ -28,7 +28,7 @@ module io.hotmoka.service {
     opens io.hotmoka.service.internal.http to spring.core;
     opens io.hotmoka.service.internal.websockets.config to spring.core, spring.context;
 
-    requires transitive io.hotmoka.nodes;
+    requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.network;
     requires spring.boot;

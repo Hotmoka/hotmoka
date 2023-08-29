@@ -21,7 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.helpers.internal.SignatureHelperImpl;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of helpers to determine the signature algorithm to use for an externally owned account.

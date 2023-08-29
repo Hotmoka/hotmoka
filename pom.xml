@@ -94,8 +94,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-instrumentation-api</module>
     <module>io-hotmoka-instrumentation</module>
     <module>io-hotmoka-beans</module>
-    <module>io-hotmoka-nodes-api</module>
-    <module>io-hotmoka-nodes</module>
+    <module>io-hotmoka-node-api</module>
+    <module>io-hotmoka-node</module>
     <module>io-hotmoka-helpers-api</module>
     <module>io-hotmoka-helpers</module>
     <module>io-hotmoka-network</module>
@@ -284,8 +284,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-network,
                 io-hotmoka-service,
                 io-hotmoka-remote,
-                io-hotmoka-nodes-api,
-                io-hotmoka-nodes,
+                io-hotmoka-node-api,
+                io-hotmoka-node,
                 io-hotmoka-helpers,
                 io-hotmoka-helpers-api,
                 io-hotmoka-memory,

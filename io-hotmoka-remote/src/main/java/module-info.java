@@ -16,7 +16,7 @@ limitations under the License.
 
 module io.hotmoka.remote {
     exports io.hotmoka.remote;
-    requires io.hotmoka.nodes;
+    requires io.hotmoka.node;
     requires io.hotmoka.beans;
     requires io.hotmoka.annotations;
     requires io.hotmoka.network;

@@ -21,7 +21,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.internal.ClassLoaderHelperImpl;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 
 /**
  * Providers of helpers for building class loaders for the jar installed at a given

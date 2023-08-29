@@ -18,7 +18,7 @@ module io.hotmoka.tools {
 	exports io.hotmoka.tools;
 	requires io.hotmoka.tendermint;
 	requires io.hotmoka.memory;
-	requires io.hotmoka.nodes;
+	requires io.hotmoka.node;
 	requires io.hotmoka.service;
 	requires io.hotmoka.remote;
 	requires io.hotmoka.constants;

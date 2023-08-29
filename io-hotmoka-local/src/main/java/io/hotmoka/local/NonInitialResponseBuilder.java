@@ -44,8 +44,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.nodes.OutOfGasError;
-import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**

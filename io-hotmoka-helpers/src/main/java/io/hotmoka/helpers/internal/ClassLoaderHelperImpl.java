@@ -30,7 +30,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
-import io.hotmoka.nodes.api.Node;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
