@@ -2,6 +2,9 @@ package io.hotmoka.node.api;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+
 /**
  * The builder of a configuration object.
  * 
@@ -81,13 +84,12 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 
 	/**
 	 * Specifies to signature algorithm to use to sign the requests sent to the node.
-	 * It defaults to "ed25519";
+	 * It defaults to ed25519;
 	 * 
-	 * @param signature the name of the signature algorithm. Currently, this includes
-	 *                  "ed25519", "ed25519det", "sha256dsa", "empty", "qtesla1" and "qtesla3"
+	 * @param signature the signature algorithm
 	 * @return this builder
 	 */
-	T signRequestsWith(String signature);
+	T signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature);
 
 	/**
 	 * Sets the initial gas price. It defaults to 100.

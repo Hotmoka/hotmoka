@@ -58,7 +58,7 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
 		// we create a random object that we use only once and always provides the seed
-		SecureRandom random = new SecureRandom() {
+		var random = new SecureRandom() {
 			private final static long serialVersionUID = 1L;
 			private final byte[] seed = mergeEntropyWithPassword();
 
@@ -74,7 +74,7 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 		    	String salt = String.format("mnemonic%s", password);
 		    	
 		    	// 2048 iterations of the key-stretching algorithm PBKDF2 using HMAC-SHA512
-		    	PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+		    	var gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
 		    	gen.init(mnemonic.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8), 2048);
 
 		    	return ((KeyParameter) gen.generateDerivedParameters(512)).getKey();

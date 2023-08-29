@@ -19,6 +19,7 @@ package io.hotmoka.node.internal;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -27,6 +28,9 @@ import java.util.TimeZone;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ConsensusConfigBuilder;
 
@@ -166,9 +170,9 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	public final BigInteger ticketForNewPoll;
 
 	/**
-	 * The name of the signature algorithm for signing requests. It defaults to "ed25519".
+	 * The signature algorithm for signing requests. It defaults to "ed25519".
 	 */
-	public final String signature;
+	public final SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
 	 * The amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
@@ -253,7 +257,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 				finalSupply.equals(otherConfig.finalSupply) &&
 				initialRedSupply.equals(otherConfig.initialRedSupply) &&
 				publicKeyOfGamete.equals(otherConfig.publicKeyOfGamete) &&
-				signature.equals(otherConfig.signature) &&
+				signature.getName().equals(otherConfig.signature.getName()) &&
 				percentStaked == otherConfig.percentStaked &&
 				buyerSurcharge == otherConfig.buyerSurcharge &&
 				slashingForMisbehaving == otherConfig.slashingForMisbehaving &&
@@ -355,7 +359,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		sb.append("ticket_for_new_poll = \"" + ticketForNewPoll + "\"\n");
 		sb.append("\n");
 		sb.append("# the name of the signature algorithm for signing requests\n");
-		sb.append("signature = \"" + signature + "\"\n");
+		sb.append("signature = \"" + signature.getName() + "\"\n");
 		sb.append("\n");
 		sb.append("# the amount of validators' rewards that gets staked. The rest is sent to the validators\n");
 		sb.append("# immediately. 1000000 means 1%\n");
@@ -481,7 +485,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	}
 
 	@Override
-	public String getSignature() {
+	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
 		return signature;
 	}
 
@@ -554,7 +558,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
 		private boolean allowsMintBurnFromGamete = false;
-		private String signature = "ed25519";
+		private SignatureAlgorithm<SignedTransactionRequest> signature;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000L;
@@ -574,22 +578,38 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		private int buyerSurcharge = 50_000_000;
 		private int slashingForMisbehaving = 1_000_000;
 		private int slashingForNotBehaving = 500_000;
-	
-		protected ConsensusConfigBuilderImpl() {
+
+		/**
+		 * Creates a builder with default values for the properties.
+		 * 
+		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
+		 */
+		protected ConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
+			this(SignatureAlgorithmForTransactionRequests.ed25519());
+		}
+
+		/**
+		 * Creates a builder with default values for the properties, except for the signature algorithm.
+		 * 
+		 * @param signature the signature algorithm to store in the builder
+		 */
+		protected ConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
 			var tz = TimeZone.getTimeZone("UTC");
 			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
 			df.setTimeZone(tz);
 			// by default, the genesis time is the time of creation of this object
 			genesisTime = df.format(new Date());
+			this.signature = signature;
 		}
-	
+
 		/**
 		 * Reads the properties of the given TOML file and sets them for
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
+		 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
 		 */
-		protected ConsensusConfigBuilderImpl(Toml toml) {
+		protected ConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException {
 			var genesisTime = toml.getString("genesis_time");
 			if (genesisTime != null)
 				setGenesisTime(genesisTime);
@@ -625,7 +645,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 			var signature = toml.getString("signature");
 			if (signature != null)
-				signRequestsWith(signature);
+				signRequestsWith(SignatureAlgorithmForTransactionRequests.of(signature));
 
 			var maxGasPerTransaction = toml.getString("max_gas_per_transaction");
 			if (maxGasPerTransaction != null)
@@ -745,9 +765,9 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T signRequestsWith(String signature) {
+		public T signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature) {
 			if (signature == null)
-				throw new NullPointerException("the signature algorithm name cannot be null");
+				throw new NullPointerException("the signature algorithm cannot be null");
 
 			this.signature = signature;
 			return getThis();

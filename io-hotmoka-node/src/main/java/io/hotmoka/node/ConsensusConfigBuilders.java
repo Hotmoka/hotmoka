@@ -18,7 +18,10 @@ package io.hotmoka.node;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ConsensusConfigBuilder;
 
@@ -31,9 +34,13 @@ public final class ConsensusConfigBuilders {
 
 	private static class MyConsensusConfigBuilder extends AbstractConfigBuilder<MyConsensusConfigBuilder> {
 
-		private MyConsensusConfigBuilder() {}
+		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {}
 
-		private MyConsensusConfigBuilder(Path path) throws FileNotFoundException {
+		private MyConsensusConfigBuilder(SignatureAlgorithm<SignedTransactionRequest> signature) {
+			super(signature);
+		}
+
+		private MyConsensusConfigBuilder(Path path) throws FileNotFoundException, NoSuchAlgorithmException {
 			super(readToml(path));
 		}
 
@@ -43,7 +50,7 @@ public final class ConsensusConfigBuilders {
 
 				@Override
 				public ConsensusConfigBuilder<?> toBuilder() {
-					return fill(new MyConsensusConfigBuilder());
+					return fill(new MyConsensusConfigBuilder(signature));
 				}
 			};
 		}
@@ -58,8 +65,9 @@ public final class ConsensusConfigBuilders {
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
+	 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 	 */
-	public static ConsensusConfigBuilder<?> defaults() {
+	public static ConsensusConfigBuilder<?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
 	}
 
@@ -71,8 +79,9 @@ public final class ConsensusConfigBuilders {
 	 * @param path the path to the TOML file
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
+	 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
 	 */
-	public static ConsensusConfigBuilder<?> load(Path path) throws FileNotFoundException {
+	public static ConsensusConfigBuilder<?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder(path);
 	}
 }

@@ -302,7 +302,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final String getNameOfSignatureAlgorithmForRequests() {
-		return caches.getConsensusParams().getSignature();
+		return caches.getConsensusParams().getSignature().getName();
 	}
 
 	@Override

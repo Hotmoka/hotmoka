@@ -189,7 +189,7 @@ public abstract class HotmokaTest {
 			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
 			consensus = ConsensusConfigBuilders.defaults()
-	    			.signRequestsWith("ed25519det") // good for testing
+	    			.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing

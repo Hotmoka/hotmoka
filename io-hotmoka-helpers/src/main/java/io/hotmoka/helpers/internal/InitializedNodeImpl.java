@@ -180,7 +180,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
 			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
 			new BooleanValue(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature()), gamete, new IntValue(consensus.getVerificationVersion()),
+			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

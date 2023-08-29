@@ -16,8 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node;
 
+import java.security.NoSuchAlgorithmException;
+
 import com.moandjiezana.toml.Toml;
 
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.ConsensusConfigImpl;
 
@@ -30,8 +34,19 @@ public abstract class AbstractConfigBuilder<T extends ConsensusConfigBuilder<T>>
 
 	/**
 	 * Creates the builder.
+	 * 
+	 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 	 */
-	protected AbstractConfigBuilder() {
+	protected AbstractConfigBuilder() throws NoSuchAlgorithmException {
+	}
+
+	/**
+	 * Creates a builder with default values for the properties, except for the signature algorithm.
+	 * 
+	 * @param signature the signature algorithm to store in the builder
+	 */
+	protected AbstractConfigBuilder(SignatureAlgorithm<SignedTransactionRequest> signature) {
+		super(signature);
 	}
 
 	/**
@@ -39,8 +54,9 @@ public abstract class AbstractConfigBuilder<T extends ConsensusConfigBuilder<T>>
 	 * the corresponding fields of this builder.
 	 * 
 	 * @param toml the file
+	 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
 	 */
-	protected AbstractConfigBuilder(Toml toml) {
+	protected AbstractConfigBuilder(Toml toml) throws NoSuchAlgorithmException {
 		super(toml);
 	}
 }

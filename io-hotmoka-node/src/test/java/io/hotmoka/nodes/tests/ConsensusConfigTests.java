@@ -24,6 +24,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.NoSuchAlgorithmException;
 import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +37,7 @@ public class ConsensusConfigTests {
 
 	@Test
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
-	public void dumpLoadTOMLWorks(@TempDir Path dir) throws IOException {
+	public void dumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
 		var path = dir.resolve("config.toml");
 		var config1 = ConsensusConfigBuilders.defaults()
 			.setBuyerSurcharge(12345)

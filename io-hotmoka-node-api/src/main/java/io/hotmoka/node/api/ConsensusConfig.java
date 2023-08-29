@@ -19,6 +19,8 @@ package io.hotmoka.node.api;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * A specification of the consensus parameters of a Hotmoka node. This information
@@ -151,9 +153,9 @@ public interface ConsensusConfig {
 	BigInteger getTicketForNewPoll();
 
 	/**
-	 * Yields the name of the signature algorithm for signing requests.
+	 * Yields the signature algorithm for signing requests.
 	 */
-	String getSignature();
+	SignatureAlgorithm<SignedTransactionRequest> getSignature();
 
 	/**
 	 * Yields the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.

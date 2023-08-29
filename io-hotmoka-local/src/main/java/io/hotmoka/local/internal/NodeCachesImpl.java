@@ -57,6 +57,7 @@ import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
@@ -287,7 +288,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
-				.signRequestsWith(signature)
+				.signRequestsWith(SignatureAlgorithmForTransactionRequests.of(signature))
 				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
@@ -311,7 +312,7 @@ public class NodeCachesImpl implements NodeCaches {
 				.setSlashingForNotBehaving(slashingForNotBehaving)
 				.build();
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException e) {
 			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", e);
 			throw new RuntimeException("could not reconstruct the consensus parameters from the manifest", e);
 		}
