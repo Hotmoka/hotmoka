@@ -20,8 +20,8 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.nodes.internal.ConsensusConfigImpl;
 
 /**
- * The configuration of a Hotmoka node. Nodes of the same network must agree
- * on this data in order to achieve consensus.
+ * The configuration of a Hotmoka node, ready for subclassing.
+ * Nodes of the same network must agree on this data in order to achieve consensus.
  */
 @Immutable
 public abstract class AbstractConfig extends ConsensusConfigImpl {

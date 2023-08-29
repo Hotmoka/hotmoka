@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
-import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.ConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -75,7 +75,7 @@ public class StartTendermint extends AbstractCommand {
 				.setPort(port)
 				.build();
 
-			var consensus = ConsensusConfigs.defaults()
+			var consensus = ConsensusConfigBuilders.defaults()
 				.build();
 
 			try (var node = TendermintBlockchain.init(nodeConfig, consensus);

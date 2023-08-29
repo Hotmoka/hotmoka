@@ -35,7 +35,7 @@ import io.hotmoka.nodes.api.ConsensusConfigBuilder;
  * is typically contained in the manifest of the node.
  */
 @Immutable
-public class ConsensusConfigImpl implements ConsensusConfig {
+public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 	/**
 	 * The genesis time, UTC, in ISO8601 pattern. It defaults to the time of
@@ -505,8 +505,14 @@ public class ConsensusConfigImpl implements ConsensusConfig {
 		return slashingForNotBehaving;
 	}
 
-	@Override
-	public <T extends ConsensusConfigBuilder<T>> ConsensusConfigBuilder<T> intoBuilder(ConsensusConfigBuilder<T> builder) {
+	/**
+	 * Fills the given builder with the information contained in this configuration object.
+	 * 
+	 * @param <T> the type of the builder
+	 * @param builder the builder to fill
+	 * @return the builder itself
+	 */
+	protected ConsensusConfigBuilder<?> fill(ConsensusConfigBuilder<?> builder) {
 		return builder
 			.setChainId(chainId)
 			.setGenesisTime(genesisTime)

@@ -179,9 +179,9 @@ public interface ConsensusConfig {
 	int getSlashingForNotBehaving();
 
 	/**
-	 * Yields a toml representation of this configuration.
+	 * Yields a TOML representation of this configuration.
 	 * 
-	 * @return the toml representation, as a string
+	 * @return the TOML representation, as a string
 	 */
 	String toToml();
 
@@ -190,7 +190,7 @@ public interface ConsensusConfig {
 	 * 
 	 * @return the builder
 	 */
-	<T extends ConsensusConfigBuilder<T>> ConsensusConfigBuilder<T> intoBuilder(ConsensusConfigBuilder<T> builder);
+	ConsensusConfigBuilder<?> toBuilder();
 
 	@Override
 	boolean equals(Object other);

@@ -21,18 +21,14 @@ import java.nio.file.Path;
 
 import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.ConsensusConfigBuilder;
-import io.hotmoka.nodes.internal.ConsensusConfigImpl;
 
 /**
- * Providers of consensus configurations.
+ * Providers of consensus configuration builders.
  */
-public abstract class ConsensusConfigs {
+public abstract class ConsensusConfigBuilders {
 
-	private ConsensusConfigs() {}
+	private ConsensusConfigBuilders() {}
 
-	/**
-	 * The builder of consensus configurations, according to the builder pattern.
-	 */
 	private static class MyConsensusConfigBuilder extends AbstractConfigBuilder<MyConsensusConfigBuilder> {
 
 		private MyConsensusConfigBuilder() {}
@@ -43,7 +39,13 @@ public abstract class ConsensusConfigs {
 
 		@Override
 		public ConsensusConfig build() {
-			return new ConsensusConfigImpl(this);
+			return new AbstractConfig(this) {
+
+				@Override
+				public ConsensusConfigBuilder<?> toBuilder() {
+					return fill(new MyConsensusConfigBuilder());
+				}
+			};
 		}
 
 		@Override

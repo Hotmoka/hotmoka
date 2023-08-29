@@ -22,7 +22,7 @@ import io.hotmoka.nodes.api.ConsensusConfigBuilder;
 import io.hotmoka.nodes.internal.ConsensusConfigImpl;
 
 /**
- * The builder of a configuration object.
+ * The builder of a configuration object, ready for subclassing.
  * 
  * @param <T> the concrete type of the builder
  */

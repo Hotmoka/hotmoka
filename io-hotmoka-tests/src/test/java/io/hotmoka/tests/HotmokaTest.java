@@ -75,7 +75,7 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.ConsensusConfigBuilders;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.Node;
@@ -188,7 +188,7 @@ public abstract class HotmokaTest {
 			var localSignature = SignatureAlgorithmForTransactionRequests.ed25519det();
 			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
-			consensus = ConsensusConfigs.defaults()
+			consensus = ConsensusConfigBuilders.defaults()
 	    			.signRequestsWith("ed25519det") // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing

@@ -32,7 +32,7 @@ import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.ConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
@@ -120,7 +120,7 @@ public class InitMemory extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitMemory.this.deltaSupply);
 
-			var consensus = ConsensusConfigs.defaults()
+			var consensus = ConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.setInitialGasPrice(initialGasPrice)

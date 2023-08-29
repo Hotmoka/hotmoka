@@ -64,7 +64,6 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.nodes.ConsensusConfigs;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -111,7 +110,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		var poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
-		consensus = consensus.intoBuilder(ConsensusConfigs.defaults()) // TODO
+		consensus = consensus.toBuilder()
 			.setChainId(poster.getTendermintChainId())
 			.setGenesisTime(poster.getGenesisTime())
 			.build();

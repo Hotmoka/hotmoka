@@ -56,7 +56,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
-import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.ConsensusConfigBuilders;
 import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
@@ -282,7 +282,7 @@ public class NodeCachesImpl implements NodeCaches {
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
 
-			consensus = ConsensusConfigs.defaults()
+			consensus = ConsensusConfigBuilders.defaults()
 				.setGenesisTime(genesisTime)
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
