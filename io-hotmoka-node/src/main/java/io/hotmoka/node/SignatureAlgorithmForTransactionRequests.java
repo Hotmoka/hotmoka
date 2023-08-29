@@ -58,6 +58,9 @@ public final class SignatureAlgorithmForTransactionRequests {
 	 * It is useful instead for testing, since it makes deterministic the
 	 * sequence of keys of the accounts in the tests and consequently
 	 * also the gas costs of such accounts when they are put into maps, for instance.
+	 * 
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
 	public static SignatureAlgorithm<SignedTransactionRequest> ed25519det() throws NoSuchAlgorithmException {
 		return SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature);

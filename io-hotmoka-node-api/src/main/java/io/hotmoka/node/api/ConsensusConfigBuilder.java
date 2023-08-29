@@ -104,6 +104,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * Sets the maximal amount of gas that a non-view transaction can consume.
 	 * It defaults to 1_000_000_000.
 	 * 
+	 * @param maxGasPerTransaction the maximal amount of gas to set
 	 * @return this builder
 	 */
 	T setMaxGasPerTransaction(BigInteger maxGasPerTransaction);
@@ -114,6 +115,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * If it is larger, the price of gas must increase.
 	 * It defaults to 1_000_000.
 	 * 
+	 * @param targetGasAtReward the units of gas to set
 	 * @return this builder
 	 */
 	T setTargetGasAtReward(BigInteger targetGasAtReward);
@@ -126,6 +128,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * Use 0 to keep the gas price constant.
 	 * It defaults to 250_000L.
 	 * 
+	 * @param oblivion the value to set
 	 * @return this builder
 	 */
 	T setOblivion(long oblivion);
@@ -136,6 +139,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * Inflation can be negative. For instance, -300,000 means -0.3%.
 	 * It defaults to 100,000 (that is, inflation is 0.1% by default).
 	 * 
+	 * @param initialInflation the initial inflation to set
 	 * @return this builder
 	 */
 	T setInitialInflation(long initialInflation);
@@ -243,6 +247,9 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * Sets the amount of coins that must be payed to start a new poll amount
 	 * to validators, for instance to change a consensus parameter.
 	 * It defaults to 100.
+	 * 
+	 * @param ticketForNewPoll the amount of coins to set
+	 * @return this builder
 	 */
 	T setTicketForNewPoll(BigInteger ticketForNewPoll);
 

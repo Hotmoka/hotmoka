@@ -22,5 +22,9 @@ package io.hotmoka.node;
  */
 @SuppressWarnings("serial")
 public class OutOfGasError extends Error {
+
+	/**
+	 * Creates the exception.
+	 */
 	public OutOfGasError() {}
 }

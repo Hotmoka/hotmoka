@@ -61,6 +61,7 @@ public interface Node extends AutoCloseable {
 	 * already committed.
 	 * 
 	 * @throws NoSuchElementException if the node has not been initialized yet
+	 * @return the reference to the installed Takamaka base classes
 	 */
 	TransactionReference getTakamakaCode() throws NoSuchElementException;
 

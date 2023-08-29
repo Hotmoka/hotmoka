@@ -22,10 +22,20 @@ package io.hotmoka.node;
 @SuppressWarnings("serial")
 public class DeserializationError extends Error {
 
+	/**
+	 * Creates the exception with the given message.
+	 * 
+	 * @param message the message
+	 */
 	public DeserializationError(String message) {
 		super(message);
 	}
 
+	/**
+	 * Creates the exception with the given cause.
+	 * 
+	 * @param cause the cause
+	 */
 	public DeserializationError(Throwable cause) {
 		super("Cannot deserialize value", cause);
 	}

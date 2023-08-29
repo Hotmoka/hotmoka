@@ -22,6 +22,12 @@ package io.hotmoka.node;
  */
 @SuppressWarnings("serial")
 public class NonWhiteListedCallException extends RuntimeException {
+
+	/**
+	 * Creates the exception with the given message.
+	 * 
+	 * @param message the message
+	 */
 	public NonWhiteListedCallException(String message) {
 		super(message);
 	}
