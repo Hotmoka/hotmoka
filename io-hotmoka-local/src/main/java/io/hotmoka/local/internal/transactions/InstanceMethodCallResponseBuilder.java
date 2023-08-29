@@ -95,7 +95,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	protected boolean ignoreGasPrice() {
 		return super.ignoreGasPrice() || 
 			// the add method of the accounts ledger can be called by the gamete with any gas, if the consensus allows it
-			(consensus.allowsMintBurnFromGamete && isSpecialMethodThatGameteCanCallWithZeroGasPrice() && callerIsGameteOfTheNode());
+			(consensus.allowsMintBurnFromGamete() && isSpecialMethodThatGameteCanCallWithZeroGasPrice() && callerIsGameteOfTheNode());
 	}
 
 	private boolean isSpecialMethodThatGameteCanCallWithZeroGasPrice() {
@@ -110,7 +110,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private boolean isCallToFaucet() {
-		return consensus.allowsUnsignedFaucet && request.method.methodName.startsWith("faucet")
+		return consensus.allowsUnsignedFaucet() && request.method.methodName.startsWith("faucet")
 			&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
 			&& callerIsGameteOfTheNode();
 	}
@@ -139,7 +139,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	private boolean isSelfCharged() {
 		// consensus might be null during the recomputation of the same consensus at the restart of a node
-		if (consensus != null && consensus.allowsSelfCharged)
+		if (consensus != null && consensus.allowsSelfCharged())
 			try {
 				try {
 					// we first try to call the method with exactly the parameter types explicitly provided

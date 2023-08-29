@@ -32,7 +32,7 @@ import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.ConsensusConfigs;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
@@ -120,7 +120,7 @@ public class InitMemory extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitMemory.this.deltaSupply);
 
-			ConsensusParams consensus = new ConsensusParams.Builder()
+			var consensus = ConsensusConfigs.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.setInitialGasPrice(initialGasPrice)
@@ -133,7 +133,7 @@ public class InitMemory extends AbstractCommand {
 				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (MemoryBlockchain node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
+			try (var node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
 				var initialized = this.initialized = InitializedNodes.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				var service = NodeService.of(networkConfig, node)) {

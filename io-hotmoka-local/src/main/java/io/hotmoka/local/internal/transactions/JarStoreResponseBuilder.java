@@ -92,12 +92,12 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				int jarLength = request.getJarLength();
 				chargeGasForCPU(gasCostModel.cpuCostForInstallingJar(jarLength));
 				chargeGasForRAM(gasCostModel.ramCostForInstallingJar(jarLength));
-				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged, consensus.skipsVerification);
+				var verifiedJar = VerifiedJars.of(request.getJar(), classLoader, false, consensus.allowsSelfCharged(), consensus.skipsVerification());
 				var instrumentedJar = InstrumentedJars.of(verifiedJar, gasCostModel);
 				var instrumentedBytes = instrumentedJar.toBytes();
-				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion,  updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+				chargeGasForStorageOf(new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(),  updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
-				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.verificationVersion, updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				logger.log(Level.INFO, "jar store failed", t);

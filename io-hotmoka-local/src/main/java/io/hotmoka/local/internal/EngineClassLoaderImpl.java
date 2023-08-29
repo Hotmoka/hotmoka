@@ -44,7 +44,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.local.EngineClassLoader;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
@@ -163,7 +163,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusConfig consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -228,7 +228,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusParams consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig consensus, byte[] start, NodeInternal node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -241,7 +241,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
+		return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 	}
 
 	private final static int CLASS_END_LENGTH = ".class".length();
@@ -306,10 +306,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 */
-	private void addJars(TransactionReference classpath, ConsensusParams consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, NodeInternal node, AtomicInteger counter) {
+	private void addJars(TransactionReference classpath, ConsensusConfig consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, NodeInternal node, AtomicInteger counter) {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
-			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
+		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
+			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
 		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, node);
 
@@ -320,8 +320,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		jarTransactions.add(classpath);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
-			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
+		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
+			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
 	}
 
 	/*

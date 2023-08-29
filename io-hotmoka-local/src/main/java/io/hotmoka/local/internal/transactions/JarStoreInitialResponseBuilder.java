@@ -62,8 +62,8 @@ public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarSt
 			@Override
 			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
 				try {
-					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged, consensus.skipsVerification), node.getGasCostModel());
-					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.verificationVersion);
+					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged(), consensus.skipsVerification()), node.getGasCostModel());
+					return new JarStoreInitialTransactionResponse(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());
 				}
 				catch (IOException t) {
 					throw new RuntimeException("unexpected exception", t);

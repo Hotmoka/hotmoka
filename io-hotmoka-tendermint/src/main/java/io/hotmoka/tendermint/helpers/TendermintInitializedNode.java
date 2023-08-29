@@ -29,7 +29,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.internal.TendermintInitializedNodeImpl;
 
@@ -58,7 +58,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
 
@@ -81,7 +81,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusParams consensus,
+	static TendermintInitializedNode of(TendermintBlockchain parent, ConsensusConfig consensus,
 			ProducerOfStorageObject producerOfGasStation, Path takamakaCode, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

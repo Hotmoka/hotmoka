@@ -92,7 +92,7 @@ import io.hotmoka.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.nodes.AbstractNode;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
 
@@ -202,7 +202,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
-	protected AbstractLocalNode(C config, ConsensusParams consensus) throws IOException {
+	protected AbstractLocalNode(C config, ConsensusConfig consensus) throws IOException {
 		this(config, consensus, true);
 	}
 
@@ -216,7 +216,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		this(config, null, false);
 	}
 
-	private AbstractLocalNode(C config, ConsensusParams consensus, boolean deleteDir) throws IOException {
+	private AbstractLocalNode(C config, ConsensusConfig consensus, boolean deleteDir) throws IOException {
 		this.config = config;
 		this.storeUtilities = new StoreUtilitiesImpl(internal);
 		this.caches = new NodeCachesImpl(internal, consensus);
@@ -300,7 +300,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	@Override
 	public final String getNameOfSignatureAlgorithmForRequests() {
-		return caches.getConsensusParams().signature;
+		return caches.getConsensusParams().getSignature();
 	}
 
 	@Override
@@ -651,13 +651,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 				// or from above (negative inflation)
 				BigInteger currentSupply = storeUtilities.getCurrentSupplyUncommitted(validators);
 				if (minted.signum() > 0) {
-					BigInteger finalSupply = caches.getConsensusParams().finalSupply;
+					BigInteger finalSupply = caches.getConsensusParams().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() < 0)
 						minted = minted.add(extra);
 				}
 				else if (minted.signum() < 0) {
-					BigInteger finalSupply = caches.getConsensusParams().finalSupply;
+					BigInteger finalSupply = caches.getConsensusParams().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() > 0)
 						minted = minted.add(extra);
@@ -712,7 +712,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		String message = t.getMessage();
 		int length = message.length();
 	
-		int maxErrorLength = caches.getConsensusParams().maxErrorLength;
+		int maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
 	
 		if (length > maxErrorLength)
 			return message.substring(0, maxErrorLength) + "...";

@@ -37,7 +37,7 @@ import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
@@ -65,7 +65,7 @@ public class Reverification {
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
 	 * during the recomputation of its same consensus.
 	 */
-	private final ConsensusParams consensus;
+	private final ConsensusConfig consensus;
 	
 	/**
 	 * Reverifies the responses of the given transactions and of their dependencies.
@@ -78,7 +78,7 @@ public class Reverification {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusParams consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		this.node = node;
 		this.consensus = consensus;
 
@@ -123,8 +123,8 @@ public class Reverification {
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
 	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
-		if (consensus != null && counter.incrementAndGet() > consensus.maxDependencies)
-			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.maxDependencies);
+		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
+			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
 		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
 		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
@@ -161,17 +161,17 @@ public class Reverification {
 			.forEachOrdered(jars::add);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.maxCumulativeSizeOfDependencies)
-			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.maxCumulativeSizeOfDependencies + " bytes");
+		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
+			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
 
-		var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.verificationVersion : 0);
+		var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 
 		return VerifiedJars.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
-			consensus != null && consensus.allowsSelfCharged, consensus != null && consensus.skipsVerification);
+			consensus != null && consensus.allowsSelfCharged(), consensus != null && consensus.skipsVerification());
 	}
 
 	private boolean needsReverification(TransactionResponseWithInstrumentedJar response) {
-		return response.getVerificationVersion() != consensus.verificationVersion;
+		return response.getVerificationVersion() != consensus.getVerificationVersion();
 	}
 
 	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
@@ -213,14 +213,14 @@ public class Reverification {
 		JarStoreTransactionResponse replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
-			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), consensus.verificationVersion);
+			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), consensus.getVerificationVersion());
 		else {
 			// there remains only this possibility
 			var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
 			replacement = new JarStoreTransactionSuccessfulResponse(
 				response.getInstrumentedJar(), response.getDependencies(),
-				consensus.verificationVersion, currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
+				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
 				currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage);
 		}
 

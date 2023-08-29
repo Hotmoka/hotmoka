@@ -64,7 +64,7 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintValidator;
@@ -109,7 +109,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param consensus the consensus parameters of the node
 	 * @throws IOException 
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusParams consensus) throws IOException {
+	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusConfig consensus) throws IOException {
 		super(config, consensus);
 
 		try {

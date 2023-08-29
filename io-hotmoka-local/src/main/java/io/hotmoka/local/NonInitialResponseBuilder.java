@@ -141,7 +141,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @return true if the gas price must be ignored
 	 */
 	protected boolean ignoreGasPrice() {
-		return consensus.ignoresGasPrice;
+		return consensus.ignoresGasPrice();
 	}
 
 	/**
@@ -191,7 +191,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
 			return SignatureAlgorithmForTransactionRequests.qtesla3();
 		else
-			return SignatureAlgorithmForTransactionRequests.mk(consensus.signature);
+			return SignatureAlgorithmForTransactionRequests.mk(consensus.getSignature());
 	}
 
 	/**
@@ -250,7 +250,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is not checked
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
-			String chainIdOfNode = consensus.chainId;
+			String chainIdOfNode = consensus.getChainId();
 			String chainId = ((SignedTransactionRequest) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
@@ -299,7 +299,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		if (transactionIsView())
 			maxGas = node.getConfig().maxGasPerViewTransaction;
 		else
-			maxGas = consensus.maxGasPerTransaction;
+			maxGas = consensus.getMaxGasPerTransaction();
 
 		if (request.gasLimit.compareTo(maxGas) > 0)
 			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");

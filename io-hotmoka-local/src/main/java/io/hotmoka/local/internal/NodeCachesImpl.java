@@ -56,7 +56,8 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.local.EngineClassLoader;
 import io.hotmoka.local.NodeCaches;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
@@ -92,7 +93,7 @@ public class NodeCachesImpl implements NodeCaches {
 	/**
 	 * The consensus parameters of the node.
 	 */
-	private volatile ConsensusParams consensus;
+	private volatile ConsensusConfig consensus;
 
 	/**
 	 * The reference to the gamete account of the node.
@@ -137,7 +138,7 @@ public class NodeCachesImpl implements NodeCaches {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(NodeInternal node, ConsensusParams consensus) {
+	public NodeCachesImpl(NodeInternal node, ConsensusConfig consensus) {
 		this.node = node;
 		this.requests = new LRUCache<>(100, node.getConfig().requestCacheSize);
 		this.responses = new LRUCache<>(100, node.getConfig().responseCacheSize);
@@ -167,13 +168,13 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			int versionBefore = consensus.verificationVersion;
+			int versionBefore = consensus.getVerificationVersion();
 			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
 			recomputeConsensus();
 			logger.info("the consensus cache has been recomputed");
 			classLoaders.clear();
-			if (versionBefore != consensus.verificationVersion)
-				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.verificationVersion);
+			if (versionBefore != consensus.getVerificationVersion())
+				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
@@ -281,7 +282,7 @@ public class NodeCachesImpl implements NodeCaches {
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
 
-			consensus = new ConsensusParams.Builder()
+			consensus = ConsensusConfigs.defaults()
 				.setGenesisTime(genesisTime)
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -351,7 +352,7 @@ public class NodeCachesImpl implements NodeCaches {
 	}
 
 	@Override
-	public final ConsensusParams getConsensusParams() {
+	public final ConsensusConfig getConsensusParams() {
 		return consensus;
 	}
 

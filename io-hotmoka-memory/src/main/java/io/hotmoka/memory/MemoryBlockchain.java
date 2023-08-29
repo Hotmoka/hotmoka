@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.memory.internal.MemoryBlockchainImpl;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.Node;
 
 /**
@@ -40,7 +40,7 @@ public interface MemoryBlockchain extends Node {
 	 * @return the blockchain
 	 * @throws IOException 
 	 */
-	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusParams consensus) throws IOException {
+	static MemoryBlockchain init(MemoryBlockchainConfig config, ConsensusConfig consensus) throws IOException {
 		return new MemoryBlockchainImpl(config, consensus);
 	}
 

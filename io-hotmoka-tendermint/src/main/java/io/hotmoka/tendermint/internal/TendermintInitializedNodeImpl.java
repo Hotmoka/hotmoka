@@ -64,8 +64,9 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.ConsensusConfigs;
 import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
@@ -104,13 +105,13 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusParams consensus,
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusConfig consensus,
 			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
-		TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
-		TendermintPoster poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
+		var tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
+		var poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
-		// we modify the consensus parameters, by setting the chain identifier and the genesis time of the underlying Tendermint network
-		consensus = consensus.toBuilder()
+		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
+		consensus = consensus.intoBuilder(ConsensusConfigs.defaults()) // TODO
 			.setChainId(poster.getTendermintChainId())
 			.setGenesisTime(poster.getGenesisTime())
 			.build();
@@ -119,14 +120,14 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		StorageReference gamete = node.gamete();
-		InstanceMethodCallTransactionRequest getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
-		TendermintValidator[] tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
+		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
 		Encoder encoder = Base64.getEncoder();
 		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
@@ -139,9 +140,9 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
 				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
-			new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
-			new LongValue(consensus.initialInflation), new IntValue(consensus.percentStaked), new IntValue(consensus.buyerSurcharge),
-			new IntValue(consensus.slashingForMisbehaving), new IntValue(consensus.slashingForNotBehaving));
+			new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
+			new LongValue(consensus.getInitialInflation()), new IntValue(consensus.getPercentStaked()), new IntValue(consensus.getBuyerSurcharge()),
+			new IntValue(consensus.getSlashingForMisbehaving()), new IntValue(consensus.getSlashingForNotBehaving()));
 
 		nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 

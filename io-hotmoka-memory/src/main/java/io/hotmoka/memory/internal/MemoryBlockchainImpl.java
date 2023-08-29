@@ -30,7 +30,7 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.local.AbstractLocalNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 
 /**
  * An implementation of a blockchain that stores transactions in a directory
@@ -54,7 +54,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	 * @param consensus the consensus parameters of the blockchain
 	 * @throws IOException 
 	 */
-	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusParams consensus) throws IOException {
+	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusConfig consensus) throws IOException {
 		super(config, consensus);
 
 		try {

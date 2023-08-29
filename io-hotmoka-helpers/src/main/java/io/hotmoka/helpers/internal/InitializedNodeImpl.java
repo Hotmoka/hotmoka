@@ -60,7 +60,7 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.Node;
 
 /**
@@ -79,7 +79,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 */
 	private final StorageReference gamete;
 
-	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
@@ -91,14 +91,14 @@ public class InitializedNodeImpl implements InitializedNode {
 			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", ClassType.STRING,
 					ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
 					BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
-			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.ticketForNewPoll), new BigIntegerValue(consensus.finalSupply),
-			new LongValue(consensus.initialInflation), new IntValue(consensus.percentStaked),
-			new IntValue(consensus.buyerSurcharge), new IntValue(consensus.slashingForMisbehaving), new IntValue(consensus.slashingForNotBehaving));
+			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
+			new LongValue(consensus.getInitialInflation()), new IntValue(consensus.getPercentStaked()),
+			new IntValue(consensus.getBuyerSurcharge()), new IntValue(consensus.getSlashingForMisbehaving()), new IntValue(consensus.getSlashingForNotBehaving()));
 
 		return node.addConstructorCallTransaction(request);
 	}
 
-	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusParams consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _100_000 = BigInteger.valueOf(100_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
@@ -109,9 +109,9 @@ public class InitializedNodeImpl implements InitializedNode {
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature("io.takamaka.code.governance.GenericGasStation$Builder",
 				ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.BOOLEAN, ClassType.BIG_INTEGER, BasicTypes.LONG),
-			new BigIntegerValue(consensus.initialGasPrice), new BigIntegerValue(consensus.maxGasPerTransaction),
-			new BooleanValue(consensus.ignoresGasPrice), new BigIntegerValue(consensus.targetGasAtReward),
-			new LongValue(consensus.oblivion));
+			new BigIntegerValue(consensus.getInitialGasPrice()), new BigIntegerValue(consensus.getMaxGasPerTransaction()),
+			new BooleanValue(consensus.ignoresGasPrice()), new BigIntegerValue(consensus.getTargetGasAtReward()),
+			new LongValue(consensus.getOblivion()));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -135,7 +135,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusParams consensus, Path takamakaCode,
+	public InitializedNodeImpl(Node parent, ConsensusConfig consensus, Path takamakaCode,
 			ProducerOfStorageObject producerOfValidatorsBuilder,
 			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
@@ -145,7 +145,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.initialSupply, consensus.initialRedSupply, consensus.publicKeyOfGamete));
+		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;
@@ -172,12 +172,12 @@ public class InitializedNodeImpl implements InitializedNode {
 				BasicTypes.INT, BasicTypes.LONG,
 				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
 				ClassType.STRING, ClassType.GAMETE, BasicTypes.INT, function, function),
-			new StringValue(consensus.genesisTime),
-			new StringValue(consensus.chainId), new IntValue(consensus.maxErrorLength), new IntValue(consensus.maxDependencies),
-			new LongValue(consensus.maxCumulativeSizeOfDependencies), new BooleanValue(consensus.allowsSelfCharged),
-			new BooleanValue(consensus.allowsUnsignedFaucet), new BooleanValue(consensus.allowsMintBurnFromGamete),
-			new BooleanValue(consensus.skipsVerification),
-			new StringValue(consensus.signature), gamete, new IntValue(consensus.verificationVersion),
+			new StringValue(consensus.getGenesisTime()),
+			new StringValue(consensus.getChainId()), new IntValue(consensus.getMaxErrorLength()), new IntValue(consensus.getMaxDependencies()),
+			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
+			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
+			new BooleanValue(consensus.skipsVerification()),
+			new StringValue(consensus.getSignature()), gamete, new IntValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

@@ -19,7 +19,7 @@ package io.hotmoka.tendermint;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.Node;
 import io.hotmoka.tendermint.internal.TendermintBlockchainImpl;
 
@@ -49,7 +49,7 @@ public interface TendermintBlockchain extends Node {
 	 * @return the Tendermint blockchain
 	 * @throws IOException 
 	 */
-	static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusParams consensus) throws IOException {
+	static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusConfig consensus) throws IOException {
 		return new TendermintBlockchainImpl(config, consensus);
 	}
 

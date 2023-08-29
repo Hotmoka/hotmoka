@@ -40,9 +40,9 @@ import io.hotmoka.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.local.internal.NodeInternal;
 import io.hotmoka.local.internal.StorageTypeToClass;
 import io.hotmoka.local.internal.UpdatesExtractorFromRAM;
-import io.hotmoka.nodes.ConsensusParams;
 import io.hotmoka.nodes.DeserializationError;
 import io.hotmoka.nodes.OutOfGasError;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 
@@ -82,7 +82,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The consensus parameters when this builder was created.
 	 */
-	protected final ConsensusParams consensus;
+	protected final ConsensusConfig consensus;
 
 	/**
 	 * Creates the builder of a response.
@@ -234,7 +234,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final boolean canCallMintBurnFromGamete(Object caller) {
 			StorageReference storageReferenceOfCaller = classLoader.getStorageReferenceOf(caller);
-			return consensus.allowsMintBurnFromGamete && node.getCaches().getGamete().filter(storageReferenceOfCaller::equals).isPresent();
+			return consensus.allowsMintBurnFromGamete() && node.getCaches().getGamete().filter(storageReferenceOfCaller::equals).isPresent();
 		}
 
 		/**

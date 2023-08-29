@@ -26,7 +26,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 
 /**
@@ -117,7 +117,7 @@ public interface NodeCaches {
 	 * 
 	 * @return the consensus parameters
 	 */
-	ConsensusParams getConsensusParams();
+	ConsensusConfig getConsensusParams();
 
 	/**
 	 * Yields the reference to the gamete account of the node.

@@ -53,7 +53,7 @@ public class Faucet extends HotmokaTest {
 
 	@Test
 	void fundNewAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (consensus == null || !consensus.allowsUnsignedFaucet)
+		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
 		StorageReference manifest = node.getManifest();

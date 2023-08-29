@@ -75,11 +75,12 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.nodes.ConsensusParams;
+import io.hotmoka.nodes.ConsensusConfigs;
+import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.nodes.api.ConsensusConfig;
 import io.hotmoka.nodes.api.Node;
 import io.hotmoka.nodes.api.Node.CodeSupplier;
 import io.hotmoka.nodes.api.Node.JarSupplier;
-import io.hotmoka.nodes.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -110,7 +111,7 @@ public abstract class HotmokaTest {
 	/**
 	 * The consensus parameters of the node.
 	 */
-	protected final static ConsensusParams consensus;
+	protected final static ConsensusConfig consensus;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -187,7 +188,7 @@ public abstract class HotmokaTest {
 			var localSignature = SignatureAlgorithmForTransactionRequests.ed25519det();
 			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
-			consensus = new ConsensusParams.Builder()
+			consensus = ConsensusConfigs.defaults()
 	    			.signRequestsWith("ed25519det") // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing

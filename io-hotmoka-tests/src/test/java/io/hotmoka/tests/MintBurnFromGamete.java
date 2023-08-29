@@ -47,7 +47,7 @@ public class MintBurnFromGamete extends HotmokaTest {
 
 	@Test
 	void mintIntoAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (consensus == null || !consensus.allowsMintBurnFromGamete)
+		if (consensus == null || !consensus.allowsMintBurnFromGamete())
 			return;
 
 		BigInteger _100 = BigInteger.valueOf(100);
@@ -70,7 +70,7 @@ public class MintBurnFromGamete extends HotmokaTest {
 
 	@Test
 	void burnFromAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (consensus == null || !consensus.allowsMintBurnFromGamete)
+		if (consensus == null || !consensus.allowsMintBurnFromGamete())
 			return;
 
 		BigInteger _100 = BigInteger.valueOf(100);
@@ -93,7 +93,7 @@ public class MintBurnFromGamete extends HotmokaTest {
 
 	@Test
 	void mintWithIllegalCaller() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		if (consensus == null || !consensus.allowsMintBurnFromGamete)
+		if (consensus == null || !consensus.allowsMintBurnFromGamete())
 			return;
 
 		BigInteger _100 = BigInteger.valueOf(100);
