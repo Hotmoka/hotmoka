@@ -25,7 +25,9 @@ import io.hotmoka.crypto.internal.EntropyImpl;
 /**
  * Provider of entropy information from which an account can be derived.
  */
-public interface Entropies {
+public final class Entropies {
+
+	private Entropies() {}
 
 	/**
 	 * Yields new, random entropy information.
@@ -33,7 +35,7 @@ public interface Entropies {
 	 * @param random the object that is used to generate random entropy
 	 * @return the entropy
 	 */
-	static Entropy random(SecureRandom random) {
+	public static Entropy random(SecureRandom random) {
 		return new EntropyImpl(random);
 	}
 
@@ -42,7 +44,7 @@ public interface Entropies {
 	 * 
 	 * @return the entropy
 	 */
-	static Entropy random() {
+	public static Entropy random() {
 		return new EntropyImpl();
 	};
 
@@ -53,7 +55,7 @@ public interface Entropies {
 	 * @return the entropy
 	 * @throws IOException if the PEM file cannot be read
 	 */
-	static Entropy load(String filePrefix) throws IOException {
+	public static Entropy load(String filePrefix) throws IOException {
 		return new EntropyImpl(filePrefix);
 	}
 
@@ -63,7 +65,7 @@ public interface Entropies {
 	 * @param parent the entropy to clone
 	 * @return the copy
 	 */
-	static Entropy copy(Entropy parent) {
+	public static Entropy copy(Entropy parent) {
 		return new EntropyImpl(parent);
 	}
 
@@ -73,7 +75,7 @@ public interface Entropies {
 	 * @param entropy the 16 bytes of entropy
 	 * @return the entropy
 	 */
-	static Entropy of(byte[] entropy) {
+	public static Entropy of(byte[] entropy) {
 		return new EntropyImpl(entropy);
 	}
 }

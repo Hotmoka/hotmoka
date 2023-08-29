@@ -32,7 +32,9 @@ import io.hotmoka.crypto.internal.SHA256DSA;
 /**
  * Provider of algorithms that sign values and verify signatures back.
  */
-public interface SignatureAlgorithms {
+public final class SignatureAlgorithms {
+
+	private SignatureAlgorithms() {}
 
 	/**
 	 * Yields a signature algorithm that uses the SHA256 hashing algorithm and then the DSA algorithm.
@@ -42,7 +44,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256withDSA algorithm
 	 */
-	static <T> SignatureAlgorithm<T> sha256dsa(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> sha256dsa(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new SHA256DSA<>(supplier);
 	}
 
@@ -54,7 +56,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
-	static <T> SignatureAlgorithm<T> ed25519(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> ed25519(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new ED25519<>(supplier);
 	}
 
@@ -70,7 +72,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the ed25519 algorithm
 	 */
-	static <T> SignatureAlgorithm<T> ed25519det(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> ed25519det(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new ED25519DET<>(supplier);
 	}
 
@@ -82,7 +84,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-I algorithm
 	 */
-	static <T> SignatureAlgorithm<T> qtesla1(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> qtesla1(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new QTESLA1<>(supplier);
 	}
 
@@ -94,7 +96,7 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the qTESLA-p-III algorithm
 	 */
-	static <T> SignatureAlgorithm<T> qtesla3(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> qtesla3(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new QTESLA3<>(supplier);
 	}
 
@@ -106,7 +108,7 @@ public interface SignatureAlgorithms {
 	 *                 this is not actually used by this algorithm
 	 * @return the algorithm
 	 */
-	static <T> SignatureAlgorithm<T> empty(Function<? super T, byte[]> supplier) {
+	public static <T> SignatureAlgorithm<T> empty(Function<? super T, byte[]> supplier) {
 		return new EMPTY<>();
 	}
 
@@ -121,7 +123,7 @@ public interface SignatureAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> SignatureAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -143,14 +145,14 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> SignatureAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> SignatureAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return of(type.name(), supplier);
 	}
 
 	/**
 	 * The alternatives of signature algorithms currently implemented.
 	 */
-	enum TYPES {
+	public enum TYPES {
 		
 		/**
 		 * The ed25519 signature algorithm.

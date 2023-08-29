@@ -28,7 +28,9 @@ import io.hotmoka.crypto.internal.SHABAL256;
 /**
  * A provider of algorithms that hash values into bytes.
  */
-public interface HashingAlgorithms {
+public final class HashingAlgorithms {
+
+	private HashingAlgorithms() {}
 
 	/**
 	 * Yields the SHA256 hashing algorithm.
@@ -38,7 +40,7 @@ public interface HashingAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
-	static <T> HashingAlgorithm<T> sha256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> HashingAlgorithm<T> sha256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return new SHA256<>(supplier);
 	}
 
@@ -49,7 +51,7 @@ public interface HashingAlgorithms {
 	 * @param supplier how values get transformed into bytes, before being hashed
 	 * @return the algorithm
 	 */
-	static <T> HashingAlgorithm<T> shabal256(Function<? super T, byte[]> supplier) {
+	public static <T> HashingAlgorithm<T> shabal256(Function<? super T, byte[]> supplier) {
 		return new SHABAL256<>(supplier);
 	}
 
@@ -64,7 +66,7 @@ public interface HashingAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> HashingAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> HashingAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -86,14 +88,14 @@ public interface HashingAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> HashingAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> HashingAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		return of(type.name(), supplier);
 	}
 
 	/**
 	 * The alternatives of hashing algorithms currently implemented.
 	 */
-	enum TYPES {
+	public enum TYPES {
 
 		/**
 		 * The Sha256 hashing algorithm.

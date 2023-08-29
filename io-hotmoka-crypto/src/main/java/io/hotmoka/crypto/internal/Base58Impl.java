@@ -19,8 +19,6 @@ package io.hotmoka.crypto.internal;
 
 import java.util.Arrays;
 
-import io.hotmoka.crypto.Base58;
-
 /**
  * Base58 is a way to encode Bitcoin addresses (or arbitrary data) as alphanumeric strings.
  * <p>
@@ -42,7 +40,7 @@ import io.hotmoka.crypto.Base58;
  * number of leading zeros (which are otherwise lost during the mathematical operations on the
  * numbers), and finally represent the resulting base-58 digits as alphanumeric ASCII characters.
  */
-public class Base58Impl implements Base58 {
+public class Base58Impl {
 	private static final char[] ALPHABET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz".toCharArray();
     private static final char ENCODED_ZERO = ALPHABET[0];
     private static final int[] INDEXES = new int[128];
@@ -71,7 +69,7 @@ public class Base58Impl implements Base58 {
         }
         // Convert base-256 digits to base-58 digits (plus conversion to ASCII characters)
         input = Arrays.copyOf(input, input.length); // since we modify it in-place
-        char[] encoded = new char[input.length * 2]; // upper bound
+        var encoded = new char[input.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < input.length; ) {
             encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
@@ -102,7 +100,7 @@ public class Base58Impl implements Base58 {
             return new byte[0];
         }
         // Convert the base58-encoded ASCII chars to a base58 byte sequence (base58 digits).
-        byte[] input58 = new byte[input.length()];
+        var input58 = new byte[input.length()];
         for (int i = 0; i < input.length(); ++i) {
             char c = input.charAt(i);
             int digit = c < 128 ? INDEXES[c] : -1;
@@ -117,7 +115,7 @@ public class Base58Impl implements Base58 {
             ++zeros;
         }
         // Convert base-58 digits to base-256 digits.
-        byte[] decoded = new byte[input.length()];
+        var decoded = new byte[input.length()];
         int outputStart = decoded.length;
         for (int inputStart = zeros; inputStart < input58.length; ) {
             decoded[--outputStart] = divmod(input58, inputStart, 58, 256);

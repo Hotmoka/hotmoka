@@ -25,7 +25,7 @@ import io.hotmoka.node.api.ConsensusConfigBuilder;
 /**
  * Providers of consensus configuration builders.
  */
-public abstract class ConsensusConfigBuilders {
+public final class ConsensusConfigBuilders {
 
 	private ConsensusConfigBuilders() {}
 

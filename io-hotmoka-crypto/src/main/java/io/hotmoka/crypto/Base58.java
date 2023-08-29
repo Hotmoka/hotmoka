@@ -40,9 +40,11 @@ import io.hotmoka.crypto.internal.Base58Impl;
  * number of leading zeros (which are otherwise lost during the mathematical operations on the
  * numbers), and finally represent the resulting base-58 digits as alphanumeric ASCII characters.
  */
-public interface Base58 {
+public final class Base58 {
 
-    /**
+	private Base58() {}
+
+	/**
      * Encodes the given bytes as a base58 string (no checksum is appended).
      *
      * @param input the bytes to encode

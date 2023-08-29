@@ -23,9 +23,11 @@ import io.hotmoka.crypto.internal.BIP39MnemonicImpl;
 /**
  * A provider of BIP39 mnemonics.
  */
-public interface BIP39Mnemonics {
+public final class BIP39Mnemonics {
 
-    /**
+	private BIP39Mnemonics() {}
+
+	/**
      * Yields the BIP39 mnemonic containing the given words from the given dictionary.
      * If the words were derived from an account, that account can be reconstructed
      * by calling the {@link BIP39Mnemonic#toAccount(java.util.function.BiFunction)} method.
@@ -34,7 +36,7 @@ public interface BIP39Mnemonics {
      * @param dictionary the dictionary
      * @return the mnemonic
      */
-    static BIP39Mnemonic of(String[] words, BIP39Dictionary dictionary) {
+	public static BIP39Mnemonic of(String[] words, BIP39Dictionary dictionary) {
     	return new BIP39MnemonicImpl(words, dictionary);
     }
 
@@ -46,7 +48,7 @@ public interface BIP39Mnemonics {
      * @param words the words, coming from English BIP39 dictionary
      * @return the mnemonic
      */
-    static BIP39Mnemonic of(String[] words) {
+	public static BIP39Mnemonic of(String[] words) {
     	return new BIP39MnemonicImpl(words, BIP39Dictionaries.ENGLISH_DICTIONARY);
     }
 }

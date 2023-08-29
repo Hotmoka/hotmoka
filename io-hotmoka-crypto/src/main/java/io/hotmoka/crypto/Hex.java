@@ -19,7 +19,9 @@ package io.hotmoka.crypto;
 /**
  * Simple class for translation of byte arrays into and from hexadecimal strings.
  */
-public interface Hex {
+public final class Hex {
+
+	private Hex() {}
 
 	/**
 	 * Yields a string hexadecimal representation of the given bytes.

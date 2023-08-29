@@ -22,7 +22,9 @@ import io.hotmoka.crypto.internal.EnglishDictionary;
 /**
  * Dictionaries of words for BIP39 encoding.
  */
-public interface BIP39Dictionaries {
+public final class BIP39Dictionaries {
+
+	private BIP39Dictionaries() {}
 
 	/**
 	 * The English BIP39 dictionary.
