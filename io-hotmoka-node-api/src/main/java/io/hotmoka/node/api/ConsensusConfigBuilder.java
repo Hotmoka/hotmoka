@@ -1,6 +1,7 @@
 package io.hotmoka.node.api;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -13,12 +14,12 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 
 	/**
-	 * Sets the genesis time, UTC, in ISO8601 pattern.
+	 * Sets the genesis time, UTC.
 	 * 
-	 * @param genesisTime the genesis time, UTC, in ISO08601 pattern
+	 * @param genesisTime the genesis time, UTC
 	 * @return this builder
 	 */
-	T setGenesisTime(String genesisTime);
+	T setGenesisTime(LocalDateTime genesisTime);
 
 	/**
 	 * Sets the chain identifier of the node.
@@ -200,7 +201,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * @param verificationVersion the version of the verification module
 	 * @return this builder
 	 */
-	T setVerificationVersion(int verificationVersion);
+	T setVerificationVersion(long verificationVersion);
 
 	/**
 	 * Sets the initial supply of coins of the node.

@@ -51,5 +51,5 @@ public interface TransactionResponseWithInstrumentedJar {
 	 * 
 	 * @return the version
 	 */
-	int getVerificationVersion();
+	long getVerificationVersion();
 }

@@ -25,6 +25,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
@@ -169,7 +171,7 @@ public class NodeCachesImpl implements NodeCaches {
 	@Override
 	public final void invalidateIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			int versionBefore = consensus.getVerificationVersion();
+			long versionBefore = consensus.getVerificationVersion();
 			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
 			recomputeConsensus();
 			logger.info("the consensus cache has been recomputed");
@@ -259,7 +261,7 @@ public class NodeCachesImpl implements NodeCaches {
 			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;
 
-			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
@@ -284,7 +286,7 @@ public class NodeCachesImpl implements NodeCaches {
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
 
 			consensus = ConsensusConfigBuilders.defaults()
-				.setGenesisTime(genesisTime)
+				.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)

@@ -20,10 +20,9 @@ import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 import com.moandjiezana.toml.Toml;
 
@@ -42,10 +41,10 @@ import io.hotmoka.node.api.ConsensusConfigBuilder;
 public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 	/**
-	 * The genesis time, UTC, in ISO8601 pattern. It defaults to the time of
+	 * The genesis time, UTC. It defaults to the time of
 	 * construction of the builder of this object.
 	 */
-	public final String genesisTime;
+	public final LocalDateTime genesisTime;
 
 	/**
 	 * The chain identifier of the node.
@@ -145,7 +144,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	/**
 	 * The version of the verification module to use. It defaults to 0.
 	 */
-	public final int verificationVersion;
+	public final long verificationVersion;
 
 	/**
 	 * The initial supply of coins in the node.
@@ -380,7 +379,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	}
 
 	@Override
-	public String getGenesisTime() {
+	public LocalDateTime getGenesisTime() {
 		return genesisTime;
 	}
 
@@ -460,7 +459,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	}
 
 	@Override
-	public int getVerificationVersion() {
+	public long getVerificationVersion() {
 		return verificationVersion;
 	}
 
@@ -553,7 +552,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	 */
 	public abstract static class ConsensusConfigBuilderImpl<T extends ConsensusConfigBuilder<T>> implements ConsensusConfigBuilder<T> {
 		private String chainId = "";
-		private String genesisTime = "";
+		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
 		private int maxErrorLength = 300;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
@@ -568,7 +567,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		private BigInteger targetGasAtReward = BigInteger.valueOf(1_000_000L);
 		private long oblivion = 250_000L;
 		private long initialInflation = 100_000L; // 0.1%
-		private int verificationVersion = 0;
+		private long verificationVersion = 0L;
 		private BigInteger initialSupply = BigInteger.ZERO;
 		private BigInteger finalSupply = BigInteger.ZERO;
 		private BigInteger initialRedSupply = BigInteger.ZERO;
@@ -594,11 +593,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		 * @param signature the signature algorithm to store in the builder
 		 */
 		protected ConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
-			var tz = TimeZone.getTimeZone("UTC");
-			DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S'Z'"); // Quoted "Z" to indicate UTC, no timezone offset
-			df.setTimeZone(tz);
-			// by default, the genesis time is the time of creation of this object
-			genesisTime = df.format(new Date());
 			this.signature = signature;
 		}
 
@@ -612,7 +606,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		protected ConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException {
 			var genesisTime = toml.getString("genesis_time");
 			if (genesisTime != null)
-				setGenesisTime(genesisTime);
+				setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME));
 
 			var chainId = toml.getString("chain_id");
 			if (chainId != null)
@@ -677,7 +671,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 			var verificationVersion = toml.getLong("verification_version");
 			if (verificationVersion != null)
-				setVerificationVersion((int) (long) verificationVersion);
+				setVerificationVersion(verificationVersion);
 
 			var initialSupply = toml.getString("initial_supply");
 			if (initialSupply != null)
@@ -717,7 +711,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setGenesisTime(String genesisTime) {
+		public T setGenesisTime(LocalDateTime genesisTime) {
 			this.genesisTime = genesisTime;
 			return getThis();
 		}
@@ -873,8 +867,8 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setVerificationVersion(int verificationVersion) {
-			if (verificationVersion < 0)
+		public T setVerificationVersion(long verificationVersion) {
+			if (verificationVersion < 0L)
 				throw new IllegalArgumentException("the verification version must be non-negative");
 
 			this.verificationVersion = verificationVersion;

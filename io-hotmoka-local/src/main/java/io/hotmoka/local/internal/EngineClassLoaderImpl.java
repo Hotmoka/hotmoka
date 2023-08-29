@@ -821,7 +821,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	}
 
 	@Override
-	public int getVerificationVersion() {
+	public long getVerificationVersion() {
 		return parent.getVerificationVersion();
 	}
 }

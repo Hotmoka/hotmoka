@@ -174,13 +174,13 @@ public class InitializedNodeImpl implements InitializedNode {
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.STRING, BasicTypes.INT,
 				BasicTypes.INT, BasicTypes.LONG,
 				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
-				ClassType.STRING, ClassType.GAMETE, BasicTypes.INT, function, function),
-			new StringValue(consensus.getGenesisTime()),
+				ClassType.STRING, ClassType.GAMETE, BasicTypes.LONG, function, function),
+			new StringValue(consensus.getGenesisTime().toString()),
 			new StringValue(consensus.getChainId()), new IntValue(consensus.getMaxErrorLength()), new IntValue(consensus.getMaxDependencies()),
 			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
 			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
 			new BooleanValue(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature().getName()), gamete, new IntValue(consensus.getVerificationVersion()),
+			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

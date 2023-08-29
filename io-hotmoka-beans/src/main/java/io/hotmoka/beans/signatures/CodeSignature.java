@@ -235,7 +235,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getVerificationVersion} of the versions object.
 	 */
-	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(ClassType.VERSIONS, "getVerificationVersion", BasicTypes.INT);
+	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(ClassType.VERSIONS, "getVerificationVersion", BasicTypes.LONG);
 
 	/**
 	 * The method {@code getPolls} of the validators object.

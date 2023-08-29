@@ -48,7 +48,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	/**
 	 * the version of the verification tool involved in the verification process
 	 */
-	private final int verificationToolVersion;
+	private final long verificationToolVersion;
 
 	/**
 	 * Builds the transaction response.
@@ -60,7 +60,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, int verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
@@ -101,7 +101,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
@@ -118,7 +118,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeCompactInt(verificationToolVersion);
+		context.writeLong(verificationToolVersion);
 		context.writeInt(instrumentedJar.length);
 		context.write(instrumentedJar);
 		intoArray(dependencies, context);
@@ -137,14 +137,14 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
-		int verificationToolVersion = context.readCompactInt();
+		long verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
 	@Override
-	public int getVerificationVersion() {
+	public long getVerificationVersion() {
 		return verificationToolVersion;
 	}
 }

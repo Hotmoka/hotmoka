@@ -117,7 +117,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	 *                            set of white-listing annotations used by the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	public TakamakaClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) throws ClassNotFoundException {
+	public TakamakaClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
 		this.parent = ResolvingClassLoaders.of(jars, verificationVersion);
 		this.contract = loadClass(Constants.CONTRACT_NAME);
 		this.externallyOwnedAccount = loadClass(Constants.EOA_NAME);
@@ -136,7 +136,7 @@ public class TakamakaClassLoaderImpl implements TakamakaClassLoader {
 	}
 
 	@Override
-	public final int getVerificationVersion() {
+	public final long getVerificationVersion() {
 		return parent.getVerificationVersion();
 	}
 

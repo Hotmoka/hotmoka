@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.api;
 
 import java.math.BigInteger;
+import java.time.LocalDateTime;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -30,14 +31,16 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 public interface ConsensusConfig {
 
 	/**
-	 * Yields the genesis time, UTC, in ISO8601 pattern.
+	 * Yields the genesis time, UTC.
 	 * 
-	 * #return the genesis time
+	 * @return the genesis time
 	 */
-	String getGenesisTime();
+	LocalDateTime getGenesisTime();
 
 	/**
 	 * Yields the chain identifier of the node.
+	 * 
+	 * @return the chain identifier
 	 */
 	String getChainId();
 
@@ -128,7 +131,7 @@ public interface ConsensusConfig {
 	/**
 	 * Yields the version of the verification module to use.
 	 */
-	int getVerificationVersion();
+	long getVerificationVersion();
 
 	/**
 	 * Yields the initial supply of coins in the node.

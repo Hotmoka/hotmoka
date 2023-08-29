@@ -46,7 +46,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	/**
 	 * the version of the verification tool involved in the verification process
 	 */
-	private final int verificationToolVersion;
+	private final long verificationToolVersion;
 	
 	/**
 	 * Builds the transaction response.
@@ -54,7 +54,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
 	 * @param dependencies the dependencies of the jar, previously installed in blockchain
 	 */
-	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, int verificationToolVersion) {
+	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
 		this.instrumentedJar = instrumentedJar.clone();
 		this.dependencies = dependencies.toArray(TransactionReference[]::new);
 		this.verificationToolVersion = verificationToolVersion;
@@ -114,7 +114,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeCompactInt(verificationToolVersion);
+		context.writeLong(verificationToolVersion);
 		context.writeInt(instrumentedJar.length);
 		context.write(instrumentedJar);
 		intoArray(dependencies, context);
@@ -129,14 +129,14 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException {
-		int verificationToolVersion = context.readCompactInt();
+		long verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = instrumentedJarFrom(context);
 		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 
 	@Override
-	public int getVerificationVersion() {
+	public long getVerificationVersion() {
 		return verificationToolVersion;
 	}
 }

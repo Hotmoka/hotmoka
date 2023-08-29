@@ -55,10 +55,10 @@ final class VersionsManager {
 	/**
 	 * The version of the verification module.
 	 */
-	public final int verificationVersion;
+	public final long verificationVersion;
 
-	VersionsManager(int verificationVersion) throws UnsupportedVerificationVersionException {
-		if (verificationVersion != 0)
+	VersionsManager(long verificationVersion) throws UnsupportedVerificationVersionException {
+		if (verificationVersion != 0L)
 			throw new UnsupportedVerificationVersionException(verificationVersion);
 
 		this.verificationVersion = verificationVersion;
@@ -71,15 +71,12 @@ final class VersionsManager {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
 	void applyAllClassChecks(VerifiedClassImpl.Verification builder) throws ClassNotFoundException {
-		switch (verificationVersion) {
-
-		case 0:
+		if (verificationVersion == 0L) {
 			new PackagesAreLegalCheck(builder);
 			new NamesDontStartWithForbiddenPrefix(builder);
 			new BootstrapsAreLegalCheck(builder);
 			new StorageClassesHaveFieldsOfStorageTypeCheck(builder);
 			new FromContractCodeIsCalledInCorrectContextCheck(builder);
-			break;
 		}
 	}
 
@@ -91,9 +88,7 @@ final class VersionsManager {
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
 	void applyAllMethodChecks(VerifiedClassImpl.Verification context, MethodGen method) throws ClassNotFoundException {
-		switch (verificationVersion) {
-
-		case 0:
+		if (verificationVersion == 0L) {
 			new PayableCodeReceivesAmountCheck(context, method);
 			new RedPayableCodeReceivesAmountCheck(context, method);
 			new ThrowsExceptionsCodeIsPublicCheck(context, method);
@@ -115,7 +110,6 @@ final class VersionsManager {
 			new UsedCodeIsWhiteListedCheck(context, method);
 			new SelfChargedCodeIsInstancePublicMethodOfContractCheck(context, method);
 			new AmountIsNotModifiedInConstructorChaining(context, method);
-			break;
 		}
 	}
 }

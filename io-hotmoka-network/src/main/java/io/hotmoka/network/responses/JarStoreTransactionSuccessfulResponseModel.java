@@ -41,7 +41,7 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
 	/**
 	 * The version of the verification tool involved in the verification process.
 	 */
-	public int verificationToolVersion;
+	public long verificationToolVersion;
 
     public JarStoreTransactionSuccessfulResponseModel(JarStoreTransactionSuccessfulResponse response) {
         super(response);

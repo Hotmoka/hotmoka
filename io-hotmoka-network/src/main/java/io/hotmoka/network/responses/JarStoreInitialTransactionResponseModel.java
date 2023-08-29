@@ -39,7 +39,7 @@ public class JarStoreInitialTransactionResponseModel extends TransactionResponse
 	/**
 	 * The version of the verification tool involved in the verification process.
 	 */
-	public int verificationToolVersion;
+	public long verificationToolVersion;
 
     public JarStoreInitialTransactionResponseModel(JarStoreInitialTransactionResponse response) {
         this.instrumentedJar = Base64.getEncoder().encodeToString(response.getInstrumentedJar());

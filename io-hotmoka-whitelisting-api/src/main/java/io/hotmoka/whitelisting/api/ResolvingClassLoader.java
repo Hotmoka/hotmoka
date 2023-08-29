@@ -32,7 +32,7 @@ public interface ResolvingClassLoader {
 	 * 
 	 * @return the version of the verification module
 	 */
-	int getVerificationVersion();
+	long getVerificationVersion();
 
 	/**
 	 * Yields the Java class loader used internally by this class loader.

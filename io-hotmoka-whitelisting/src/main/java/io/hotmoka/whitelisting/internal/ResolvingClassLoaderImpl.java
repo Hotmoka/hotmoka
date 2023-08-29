@@ -43,7 +43,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * The version of the verification module that must b e used; this affects the
 	 * set of white-listing annotations used by the class loader.
 	 */
-	private final int verificationVersion;
+	private final long verificationVersion;
 
 	/**
 	 * An object that knows about methods that can be called from Takamaka code and under which conditions.
@@ -67,7 +67,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	 * @param verificationVersion the version of the verification module that must b e used; this affects the
 	 *                            set of white-listing annotations used by the class loader
 	 */
-	public ResolvingClassLoaderImpl(Stream<byte[]> jars, int verificationVersion) {
+	public ResolvingClassLoaderImpl(Stream<byte[]> jars, long verificationVersion) {
 		super(null);
 
 		this.verificationVersion = verificationVersion;
@@ -76,7 +76,7 @@ public class ResolvingClassLoaderImpl extends ClassLoader implements ResolvingCl
 	}
 
 	@Override
-	public final int getVerificationVersion() {
+	public final long getVerificationVersion() {
 		return verificationVersion;
 	}
 

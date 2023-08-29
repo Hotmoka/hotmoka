@@ -26,6 +26,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.Base64.Encoder;
 import java.util.NoSuchElementException;
@@ -115,7 +117,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
 		consensus = consensus.toBuilder()
 			.setChainId(poster.getTendermintChainId())
-			.setGenesisTime(poster.getGenesisTime())
+			.setGenesisTime(LocalDateTime.parse(poster.getGenesisTime(), DateTimeFormatter.ISO_DATE_TIME))
 			.build();
 
 		this.parent = InitializedNodes.of(parent, consensus, takamakaCode,

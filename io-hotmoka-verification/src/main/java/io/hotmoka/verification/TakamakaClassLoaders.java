@@ -35,7 +35,7 @@ public interface TakamakaClassLoaders {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	static TakamakaClassLoader of(Stream<byte[]> jars, int verificationVersion) throws ClassNotFoundException {
+	static TakamakaClassLoader of(Stream<byte[]> jars, long verificationVersion) throws ClassNotFoundException {
 		return new TakamakaClassLoaderImpl(jars, verificationVersion);
 	}
 }

@@ -145,7 +145,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
 	public Manifest(String genesisTime, String chainId, int maxErrorLength, int maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
-			boolean allowsFaucet, boolean allowsMintBurnFromGamete, boolean skipsVerification, String signature, Gamete gamete, int verificationVersion,
+			boolean allowsFaucet, boolean allowsMintBurnFromGamete, boolean skipsVerification, String signature, Gamete gamete, long verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable

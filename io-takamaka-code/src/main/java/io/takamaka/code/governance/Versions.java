@@ -45,7 +45,7 @@ public class Versions<V extends Validator> extends Contract {
 	/**
 	 * The current version of the verification module.
 	 */
-	private int verificationVersion;
+	private long verificationVersion;
 
 	/**
 	 * Builds an object that keeps track of the versions of the modules of the node.
@@ -53,7 +53,7 @@ public class Versions<V extends Validator> extends Contract {
 	 * @param manifest the manifest of the node
 	 * @param verificationVersion the version of the verification module to use
 	 */
-	Versions(Manifest<V> manifest, int verificationVersion) {
+	Versions(Manifest<V> manifest, long verificationVersion) {
 		this.manifest = manifest;
 		this.verificationVersion = verificationVersion;
 	}
@@ -63,7 +63,7 @@ public class Versions<V extends Validator> extends Contract {
 	 * 
 	 * @return the current version of the verification module
 	 */
-	public final @View int getVerificationVersion() {
+	public final @View long getVerificationVersion() {
 		return verificationVersion;
 	}
 
@@ -102,7 +102,7 @@ public class Versions<V extends Validator> extends Contract {
 	 */
 	private class IncreaseVerificationVersion extends Action {
 
-		private final int newVerificationVersion = verificationVersion + 1;
+		private final long newVerificationVersion = verificationVersion + 1;
 
 		@Override
 		public String getDescription() {

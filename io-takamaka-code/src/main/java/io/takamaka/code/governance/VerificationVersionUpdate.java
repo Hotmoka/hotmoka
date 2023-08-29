@@ -27,14 +27,14 @@ public class VerificationVersionUpdate extends ConsensusUpdate {
 	/**
 	 * The new verification version.
 	 */
-	public final int newVerificationVersion;
+	public final long newVerificationVersion;
 
 	/**
 	 * Creates the event.
 	 * 
 	 * @param newVerificationVersion the new verification version
 	 */
-	@FromContract VerificationVersionUpdate(int newVerificationVersion) {
+	@FromContract VerificationVersionUpdate(long newVerificationVersion) {
 		super("the version of the verification module has been set to " + newVerificationVersion);
 
 		this.newVerificationVersion = newVerificationVersion;
@@ -45,7 +45,7 @@ public class VerificationVersionUpdate extends ConsensusUpdate {
 	 * 
 	 * @return the new verification version
 	 */
-	public @View int getVerificationVersion() {
+	public @View long getVerificationVersion() {
 		return newVerificationVersion;
 	}
 }

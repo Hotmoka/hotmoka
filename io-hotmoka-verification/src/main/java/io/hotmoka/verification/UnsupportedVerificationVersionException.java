@@ -26,14 +26,14 @@ public class UnsupportedVerificationVersionException extends Exception {
 	/**
 	 * The unsupported verification version.
 	 */
-	public final int verificationVerification;
+	public final long verificationVerification;
 
 	/**
 	 * Creates the exception.
 	 * 
 	 * @param verificationVerification the unsupported verification version
 	 */
-	public UnsupportedVerificationVersionException(int verificationVerification) {
+	public UnsupportedVerificationVersionException(long verificationVerification) {
 		super("the verification module does not support version " + verificationVerification);
 
 		this.verificationVerification = verificationVerification;

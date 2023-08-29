@@ -490,7 +490,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			builder.append("   └─ versions: ").append(versions).append("\n");
 
-			int verificationVersion = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
 
 			builder.append("      └─ verificationVersion: ").append(verificationVersion).append("\n");

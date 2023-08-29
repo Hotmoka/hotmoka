@@ -34,7 +34,7 @@ public interface ResolvingClassLoaders {
 	 *                            set of white-listing annotations used by the class loader
 	 * @return the class loader
 	 */
-	static ResolvingClassLoader of(Stream<byte[]> jars, int verificationVersion) {
+	static ResolvingClassLoader of(Stream<byte[]> jars, long verificationVersion) {
 		return new ResolvingClassLoaderImpl(jars, verificationVersion);
 	}
 }
