@@ -39,7 +39,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.node.api.Node.CodeSupplier;
+import io.hotmoka.node.api.CodeSupplier;
 
 /**
  * A test for the remote purchase contract.

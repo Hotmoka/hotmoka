@@ -60,7 +60,7 @@ import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.node.api.Node.JarSupplier;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -98,7 +98,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	SignatureAlgorithm<SignedTransactionRequest> algo;
 
         try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeconfig)) {
-        	algo = SignatureAlgorithmForTransactionRequests.mk(remoteNode.getNameOfSignatureAlgorithmForRequests());
+        	algo = SignatureAlgorithmForTransactionRequests.of(remoteNode.getNameOfSignatureAlgorithmForRequests());
         }
 
         assertNotNull(algo);

@@ -17,7 +17,10 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.types.BasicTypes.INT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -44,7 +47,7 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.node.api.Node.Subscription;
+import io.hotmoka.node.api.Subscription;
 
 /**
  * A test for the remote purchase contract.
@@ -103,7 +106,7 @@ class RemotePurchase extends HotmokaTest {
 	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		CompletableFuture<Boolean> ok = new CompletableFuture<>();
+		var ok = new CompletableFuture<Boolean>();
 
 		// the code of the smart contract uses events having the same contract as key
 		try (Subscription subscription = node.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
@@ -132,7 +135,7 @@ class RemotePurchase extends HotmokaTest {
 	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
 
-		CompletableFuture<StorageReference> received = new CompletableFuture<>();
+		var received = new CompletableFuture<StorageReference>();
 		StorageReference event;
 
 		// the code of the smart contract uses events having the same contract as key

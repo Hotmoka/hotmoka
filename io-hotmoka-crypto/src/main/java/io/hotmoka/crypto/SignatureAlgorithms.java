@@ -121,7 +121,7 @@ public interface SignatureAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> SignatureAlgorithm<T> mk(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	static <T> SignatureAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -130,7 +130,7 @@ public interface SignatureAlgorithms {
 			return (SignatureAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("unknown signature algorithm named " + name, e);
+			throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
 		}
 	}
 
@@ -143,8 +143,8 @@ public interface SignatureAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> SignatureAlgorithm<T> mk(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
-		return mk(type.name(), supplier);
+	static <T> SignatureAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+		return of(type.name(), supplier);
 	}
 
 	/**

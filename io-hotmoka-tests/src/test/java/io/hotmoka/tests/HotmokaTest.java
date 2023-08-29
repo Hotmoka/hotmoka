@@ -77,10 +77,10 @@ import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.Node.CodeSupplier;
-import io.hotmoka.node.api.Node.JarSupplier;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -207,7 +207,7 @@ public abstract class HotmokaTest {
 	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = mkRemoteNode("localhost:8080");
 
-	        signature = SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
+	        signature = SignatureAlgorithmForTransactionRequests.of(node.getNameOfSignatureAlgorithmForRequests());
 	        initializeNodeIfNeeded();
 	        var signerOfGamete = Signers.with(signature, privateKeyOfGamete);
 

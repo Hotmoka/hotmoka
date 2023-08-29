@@ -92,7 +92,9 @@ import io.hotmoka.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
 

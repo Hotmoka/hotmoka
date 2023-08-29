@@ -35,7 +35,10 @@ import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
+import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.Subscription;
 
 /**
  * Implementation of the shared code of a node. The goal of this class is to provide

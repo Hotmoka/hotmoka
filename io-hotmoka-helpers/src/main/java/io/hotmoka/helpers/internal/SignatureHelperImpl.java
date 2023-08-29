@@ -70,6 +70,6 @@ public class SignatureHelperImpl implements SignatureHelper {
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
 			return SignatureAlgorithmForTransactionRequests.qtesla3();
 		else
-			return SignatureAlgorithmForTransactionRequests.mk(node.getNameOfSignatureAlgorithmForRequests());
+			return SignatureAlgorithmForTransactionRequests.of(node.getNameOfSignatureAlgorithmForRequests());
 	}
 }

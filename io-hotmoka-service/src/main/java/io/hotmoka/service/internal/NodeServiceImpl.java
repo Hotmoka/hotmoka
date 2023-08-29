@@ -16,19 +16,19 @@ limitations under the License.
 
 package io.hotmoka.service.internal;
 
-import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.network.requests.EventRequestModel;
-import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.Node.Subscription;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.service.internal.websockets.WebSocketsEventController;
-
 import java.util.logging.Logger;
 
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.network.requests.EventRequestModel;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.Subscription;
+import io.hotmoka.service.NodeService;
+import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.service.internal.websockets.WebSocketsEventController;
 
 /**
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.node.api.Node}.

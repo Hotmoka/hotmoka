@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.crypto.internal.SHA256;
@@ -65,7 +64,7 @@ public interface HashingAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	static <T> HashingAlgorithm<T> mk(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	static <T> HashingAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -87,21 +86,8 @@ public interface HashingAlgorithms {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	static <T> HashingAlgorithm<T> mk(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
-		return mk(type.name(), supplier);
-	}
-
-	/**
-	 * Determines if a hashing algorithm with the given name exists.
-	 * 
-	 * @param name the name of the hashing algorithm.
-	 * @return true if and only if the name corresponds to one of the algorithms in {@code TYPES}.
-	 */
-	static boolean exists(String name) {
-		return Stream.of(TYPES.values())
-			.map(Enum::name)
-			.map(String::toLowerCase)
-			.anyMatch(name::equals);
+	static <T> HashingAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+		return of(type.name(), supplier);
 	}
 
 	/**

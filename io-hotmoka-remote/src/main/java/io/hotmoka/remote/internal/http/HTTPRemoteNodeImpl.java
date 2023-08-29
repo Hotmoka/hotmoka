@@ -56,6 +56,8 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.remote.internal.AbstractRemoteNode;
 import io.hotmoka.remote.internal.http.client.RestClientService;

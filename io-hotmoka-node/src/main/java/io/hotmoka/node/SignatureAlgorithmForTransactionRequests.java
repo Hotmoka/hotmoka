@@ -101,7 +101,7 @@ public final class SignatureAlgorithmForTransactionRequests {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	public static SignatureAlgorithm<SignedTransactionRequest> mk(String name) throws NoSuchAlgorithmException {
+	public static SignatureAlgorithm<SignedTransactionRequest> of(String name) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
@@ -121,7 +121,7 @@ public final class SignatureAlgorithmForTransactionRequests {
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	public static SignatureAlgorithm<SignedTransactionRequest> mk(TYPES type) throws NoSuchAlgorithmException {
-		return mk(type.name());
+	public static SignatureAlgorithm<SignedTransactionRequest> of(TYPES type) throws NoSuchAlgorithmException {
+		return of(type.name());
 	}
 }
