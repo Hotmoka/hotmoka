@@ -20,6 +20,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
 import io.hotmoka.nodes.api.ConsensusConfig;
+import io.hotmoka.nodes.api.ConsensusConfigBuilder;
 import io.hotmoka.nodes.internal.ConsensusConfigImpl;
 
 /**
@@ -56,7 +57,7 @@ public abstract class ConsensusConfigs {
 	 * 
 	 * @return the builder
 	 */
-	public static AbstractConfigBuilder<?> defaults() {
+	public static ConsensusConfigBuilder<?> defaults() {
 		return new MyConsensusConfigBuilder();
 	}
 
@@ -69,7 +70,7 @@ public abstract class ConsensusConfigs {
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 */
-	public static AbstractConfigBuilder<?> load(Path path) throws FileNotFoundException {
+	public static ConsensusConfigBuilder<?> load(Path path) throws FileNotFoundException {
 		return new MyConsensusConfigBuilder(path);
 	}
 }

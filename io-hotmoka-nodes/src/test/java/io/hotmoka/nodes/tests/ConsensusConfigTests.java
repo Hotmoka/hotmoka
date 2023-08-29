@@ -19,6 +19,7 @@ package io.hotmoka.nodes.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -37,7 +38,14 @@ public class ConsensusConfigTests {
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
 	public void dumpLoadTOMLWorks(@TempDir Path dir) throws IOException {
 		var path = dir.resolve("config.toml");
-		var config1 = ConsensusConfigs.defaults().build();
+		var config1 = ConsensusConfigs.defaults()
+			.setBuyerSurcharge(12345)
+			.setChainId("my-chain")
+			.setInitialGasPrice(BigInteger.valueOf(1233L))
+			.setInitialSupply(BigInteger.valueOf(45678L))
+			.setMaxCumulativeSizeOfDependencies(345678L)
+			.build();
+		System.out.println(config1.toToml());
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
 		var config2 = ConsensusConfigs.load(path).build();
 		assertEquals(config1, config2);
