@@ -36,7 +36,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * @param maxErrorLength the maximal length of the error message kept in the store of the node
 	 * @return this builder
 	 */
-	T setMaxErrorLength(int maxErrorLength);
+	T setMaxErrorLength(long maxErrorLength);
 
 	/**
 	 * Sets the maximal number of dependencies in the classpath of a transaction.
@@ -44,7 +44,7 @@ public interface ConsensusConfigBuilder<T extends ConsensusConfigBuilder<T>> {
 	 * @param maxDependencies the maximal number of dependencies in the classpath of a transaction
 	 * @return this builder
 	 */
-	T setMaxDependencies(int maxDependencies);
+	T setMaxDependencies(long maxDependencies);
 
 	/**
 	 * Sets the maximal cumulative size (in bytes) of the instrumented jars of the dependencies

@@ -85,12 +85,12 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getMaxErrorLength} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxErrorLength", BasicTypes.INT);
+	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxErrorLength", BasicTypes.LONG);
 
 	/**
 	 * The method {@code getMaxDependencies} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxDependencies", BasicTypes.INT);
+	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(ClassType.MANIFEST, "getMaxDependencies", BasicTypes.LONG);
 
 	/**
 	 * The method {@code getMaxCumulativeSizeOfDependencies} of the manifest.

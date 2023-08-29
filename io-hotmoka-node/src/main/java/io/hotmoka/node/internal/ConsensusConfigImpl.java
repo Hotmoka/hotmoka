@@ -55,12 +55,12 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	 * The maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
 	 */
-	public final int maxErrorLength;
+	public final long maxErrorLength;
 
 	/**
 	 * The maximal number of dependencies in the classpath of a transaction.
 	 */
-	public final int maxDependencies;
+	public final long maxDependencies;
 
 	/**
 	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
@@ -389,12 +389,12 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	}
 
 	@Override
-	public int getMaxErrorLength() {
+	public long getMaxErrorLength() {
 		return maxErrorLength;
 	}
 
 	@Override
-	public int getMaxDependencies() {
+	public long getMaxDependencies() {
 		return maxDependencies;
 	}
 
@@ -553,13 +553,13 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	public abstract static class ConsensusConfigBuilderImpl<T extends ConsensusConfigBuilder<T>> implements ConsensusConfigBuilder<T> {
 		private String chainId = "";
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
-		private int maxErrorLength = 300;
+		private long maxErrorLength = 300L;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
 		private boolean allowsMintBurnFromGamete = false;
 		private SignatureAlgorithm<SignedTransactionRequest> signature;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
-		private int maxDependencies = 20;
+		private long maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
@@ -612,11 +612,11 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 			if (chainId != null)
 				setChainId(chainId);
 
-			// TODO: remove all type conversions below
 			var maxErrorLength = toml.getLong("max_error_length");
 			if (maxErrorLength != null)
-				setMaxErrorLength((int) (long) maxErrorLength);
+				setMaxErrorLength(maxErrorLength);
 
+			// TODO: remove all type conversions below
 			var maxDependencies = toml.getLong("max_dependencies");
 			if (maxDependencies != null)
 				setMaxDependencies((int) (long) maxDependencies);
@@ -723,13 +723,13 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setMaxErrorLength(int maxErrorLength) {
+		public T setMaxErrorLength(long maxErrorLength) {
 			this.maxErrorLength = maxErrorLength;
 			return getThis();
 		}
 
 		@Override
-		public T setMaxDependencies(int maxDependencies) {
+		public T setMaxDependencies(long maxDependencies) {
 			this.maxDependencies = maxDependencies;
 			return getThis();
 		}
@@ -820,7 +820,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 		@Override
 		public T setPercentStaked(int percentStaked) {
-			if (percentStaked < 0 || percentStaked > 100_000_000L)
+			if (percentStaked < 0 || percentStaked > 100_000_000)
 				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
 
 			this.percentStaked = percentStaked;
@@ -829,7 +829,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 		@Override
 		public T setBuyerSurcharge(int buyerSurcharge) {
-			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000L)
+			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000)
 				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
 
 			this.buyerSurcharge = buyerSurcharge;
@@ -838,7 +838,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 		@Override
 		public T setSlashingForMisbehaving(int slashingForMisbehaving) {
-			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000L)
+			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000)
 				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
 
 			this.slashingForMisbehaving = slashingForMisbehaving;
@@ -847,7 +847,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 		@Override
 		public T setSlashingForNotBehaving(int slashingForNotBehaving) {
-			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000L)
+			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000)
 				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
 
 			this.slashingForNotBehaving = slashingForNotBehaving;

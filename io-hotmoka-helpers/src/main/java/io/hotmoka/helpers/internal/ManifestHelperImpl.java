@@ -142,12 +142,12 @@ public class ManifestHelperImpl implements ManifestHelper {
 			String chainId = getChainId();
 			builder.append("   ├─ chainId: ").append(chainId).append("\n");
 
-			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			long maxErrorLength = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
 
 			builder.append("   ├─ maxErrorLength: ").append(maxErrorLength).append("\n");
 
-			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			long maxDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
 
 			builder.append("   ├─ maxDependencies: ").append(maxDependencies).append("\n");

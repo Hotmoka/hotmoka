@@ -714,10 +714,10 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		String message = t.getMessage();
 		int length = message.length();
 	
-		int maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
+		long maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
 	
 		if (length > maxErrorLength)
-			return message.substring(0, maxErrorLength) + "...";
+			return message.substring(0, (int) maxErrorLength) + "...";
 		else
 			return message;
 	}

@@ -48,12 +48,12 @@ public interface ConsensusConfig {
 	 * Yields the maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
 	 */
-	int getMaxErrorLength();
+	long getMaxErrorLength();
 
 	/**
 	 * Yields the maximal number of dependencies in the classpath of a transaction.
 	 */
-	int getMaxDependencies();
+	long getMaxDependencies();
 
 	/**
 	 * Yields the maximal cumulative size (in bytes) of the instrumented jars of the dependencies
