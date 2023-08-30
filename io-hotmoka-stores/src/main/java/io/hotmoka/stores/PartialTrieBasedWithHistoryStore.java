@@ -117,9 +117,9 @@ public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedS
 	}
 
 	@Override
-	public Transaction beginTransaction(long now) {
+	public Transaction beginTransaction() {
 		synchronized (lock) {
-			Transaction txn = super.beginTransaction(now);
+			Transaction txn = super.beginTransaction();
 			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), getNumberOfCommits());
 			return txn;
 		}

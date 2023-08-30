@@ -278,6 +278,13 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	protected abstract S mkStore();
 
 	/**
+	 * Yields the time to use for the currently executing transaction.
+	 * 
+	 * @return the time
+	 */
+	protected abstract long getNow();
+
+	/**
 	 * Determines if this node has not been closed yet.
 	 * This thread-safe method can be called to avoid double-closing of a node.
 	 * 
@@ -1043,6 +1050,11 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		@Override
 		public void submit(Runnable task) {
 			executor.submit(task);
+		}
+
+		@Override
+		public long getNow() {
+			return AbstractLocalNode.this.getNow();
 		}
 	}
 }

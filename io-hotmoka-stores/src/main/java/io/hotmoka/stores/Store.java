@@ -36,14 +36,6 @@ import io.hotmoka.beans.values.StorageReference;
 public interface Store extends AutoCloseable {
 
 	/**
-	 * Yields the UTC time that must be used for a transaction, if it is executed
-	 * with this state in this moment.
-	 * 
-	 * @return the UTC time in milliseconds, as returned by {@link java.lang.System#currentTimeMillis()}
-	 */
-	long getNow();
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction

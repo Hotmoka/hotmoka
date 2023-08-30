@@ -102,6 +102,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	private final boolean isWindows;
 
 	/**
+	 * The time to use for the currently executing transaction.
+	 */
+	private volatile long now;
+
+	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -115,7 +120,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		try {
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
 			initWorkingDirectoryOfTendermintProcess(config);
-			TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(config);
+			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			logger.info("ABCI started at port " + tendermintConfigFile.abciPort);
@@ -201,6 +206,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	@Override
 	protected Store mkStore() {
 		return new Store(caches::getResponseUncommitted, config.dir, new TendermintBlockchainInternalImpl());
+	}
+
+	@Override
+	protected long getNow() {
+		return now;
 	}
 
 	@Override
@@ -359,6 +369,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		@Override
 		public boolean rewardValidators(String behaving, String misbehaving) {
 			return TendermintBlockchainImpl.this.rewardValidators(behaving, misbehaving);
+		}
+
+		@Override
+		public void setNow(long now) {
+			TendermintBlockchainImpl.this.now = now;
 		}
 	}
 

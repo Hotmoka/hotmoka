@@ -106,4 +106,12 @@ public interface TendermintBlockchainInternal {
 	 *         the code of the validators contract failed
 	 */
 	boolean rewardValidators(String behaving, String misbehaving);
+
+	/**
+	 * 
+	 * Sets the time to use for the currently executing transaction.
+	 * 
+	 * @param now the time
+	 */
+	void setNow(long now);
 }

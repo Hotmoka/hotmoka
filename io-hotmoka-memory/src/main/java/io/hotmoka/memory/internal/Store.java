@@ -103,11 +103,6 @@ class Store extends AbstractStore {
     	this.progressive = new ConcurrentHashMap<>();
     }
 
-    @Override
-	public long getNow() {
-		return System.currentTimeMillis();
-	}
-
 	@Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		synchronized (lock) {

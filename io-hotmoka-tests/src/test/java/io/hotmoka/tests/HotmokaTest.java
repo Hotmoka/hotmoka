@@ -235,6 +235,7 @@ public abstract class HotmokaTest {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
+			//e.printStackTrace();
 			throw new ExceptionInInitializerError(e);
 		}
 	}

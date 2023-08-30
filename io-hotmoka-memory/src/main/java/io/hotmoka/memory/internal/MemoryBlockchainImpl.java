@@ -85,6 +85,11 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	}
 
 	@Override
+	protected long getNow() {
+		return System.currentTimeMillis();
+	}
+
+	@Override
 	public void close() throws Exception {
 		if (isNotYetClosed()) {
 			mempool.stop();

@@ -186,9 +186,9 @@ public abstract class FullTrieBasedStore extends PartialTrieBasedStore implement
 	}
 
 	@Override
-	public Transaction beginTransaction(long now) {
+	public Transaction beginTransaction() {
 		synchronized (lock) {
-			Transaction txn = super.beginTransaction(now);
+			Transaction txn = super.beginTransaction();
 			long numberOfCommits = getNumberOfCommits();
 			trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), numberOfCommits);
 			trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), numberOfCommits);

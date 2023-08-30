@@ -241,7 +241,8 @@ class TendermintApplication extends ABCI {
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	long now = timeNow(request);
 
-    	node.getStore().beginTransaction(now);
+    	node.getStore().beginTransaction();
+    	node.setNow(now);
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
 

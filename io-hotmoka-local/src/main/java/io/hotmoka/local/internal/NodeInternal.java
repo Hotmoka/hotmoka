@@ -82,6 +82,14 @@ public interface NodeInternal {
 	StoreUtilities getStoreUtilities();
 
 	/**
+	 * The time to use for the currently executing transaction, as returned
+	 * by {@link java.lang.System#currentTimeMillis()}.
+	 * 
+	 * @return the time
+	 */
+	long getNow();
+
+	/**
 	 * Yields the base cost of the given transaction. Normally, this is just
 	 * {@code request.size()}, but subclasses might redefine.
 	 * 

@@ -122,11 +122,6 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 */
 	private TrieOfInfo trieOfInfo;
 
-	/**
-	 * The time when {@link #txn} was started, in the same format as {@link System#currentTimeMillis()}.
-	 */
-	private long now;
-
 	private final static Logger logger = Logger.getLogger(PartialTrieBasedStore.class.getName());
 
 	/**
@@ -187,11 +182,6 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
     }
 
     @Override
-	public final long getNow() {
-		return now;
-	}
-
-    @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction
@@ -225,16 +215,14 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * Starts a transaction. All updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
 	 * 
-	 * @param now the time to use as starting moment of the transaction
 	 * @return the transaction
 	 */
-	public Transaction beginTransaction(long now) {
+	public Transaction beginTransaction() {
 		synchronized (lock) {
 			txn = env.beginTransaction();
 			long numberOfCommits = getNumberOfCommits();
 			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
 			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
-			this.now = now;
 			return txn;
 		}
 	}

@@ -93,7 +93,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 */
 	private TransactionResponse writeTransformation(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithInstrumentedJar) {
-			TransactionResponseWithInstrumentedJar trwij = (TransactionResponseWithInstrumentedJar) response;
+			var trwij = (TransactionResponseWithInstrumentedJar) response;
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
 			byte[] reference = hashingForJars.hash(jar);
@@ -116,7 +116,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 */
 	private TransactionResponse readTransformation(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithInstrumentedJar) {
-			TransactionResponseWithInstrumentedJar trwij = (TransactionResponseWithInstrumentedJar) response;
+			var trwij = (TransactionResponseWithInstrumentedJar) response;
 
 			// we replace the hash of the jar with the actual jar
 			try {
@@ -134,13 +134,13 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 
 	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) {
 		if (response instanceof JarStoreTransactionSuccessfulResponse) {
-			JarStoreTransactionSuccessfulResponse jstsr = (JarStoreTransactionSuccessfulResponse) response;
+			var jstsr = (JarStoreTransactionSuccessfulResponse) response;
 			return new JarStoreTransactionSuccessfulResponse
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
 				jstsr.gasConsumedForCPU, jstsr.gasConsumedForRAM, jstsr.gasConsumedForStorage);
 		}
 		else if (response instanceof JarStoreInitialTransactionResponse) {
-			JarStoreInitialTransactionResponse jsitr = (JarStoreInitialTransactionResponse) response;
+			var jsitr = (JarStoreInitialTransactionResponse) response;
 			return new JarStoreInitialTransactionResponse(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
 		}
 		else {

@@ -174,7 +174,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, node.getStoreUtilities());
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
-				this.now = node.getStore().getNow();
+				this.now = node.getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
