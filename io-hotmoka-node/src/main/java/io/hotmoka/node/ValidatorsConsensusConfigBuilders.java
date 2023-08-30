@@ -22,18 +22,18 @@ import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.ConsensusConfig;
-import io.hotmoka.node.api.ConsensusConfigBuilder;
-import io.hotmoka.node.internal.ConsensusConfigImpl;
+import io.hotmoka.node.api.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
+import io.hotmoka.node.internal.ValidatorsConsensusConfigImpl;
 
 /**
- * Providers of consensus configuration builders.
+ * Providers of consensus configuration builders for Hotmoka nodes with validators.
  */
-public final class ConsensusConfigBuilders {
+public final class ValidatorsConsensusConfigBuilders {
 
-	private ConsensusConfigBuilders() {}
+	private ValidatorsConsensusConfigBuilders() {}
 
-	private static class MyConsensusConfigBuilder extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<MyConsensusConfigBuilder> {
+	private static class MyConsensusConfigBuilder extends ValidatorsConsensusConfigImpl.ValidatorsConsensusConfigBuilderImpl<MyConsensusConfigBuilder> {
 
 		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {}
 
@@ -46,11 +46,11 @@ public final class ConsensusConfigBuilders {
 		}
 
 		@Override
-		public ConsensusConfig build() {
-			return new ConsensusConfigImpl(this) {
+		public ValidatorsConsensusConfig build() {
+			return new ValidatorsConsensusConfigImpl(this) {
 
 				@Override
-				public ConsensusConfigBuilder<?> toBuilder() {
+				public ValidatorsConsensusConfigBuilder<?> toBuilder() {
 					return fill(new MyConsensusConfigBuilder(signature));
 				}
 			};
@@ -68,7 +68,7 @@ public final class ConsensusConfigBuilders {
 	 * @return the builder
 	 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 	 */
-	public static ConsensusConfigBuilder<?> defaults() throws NoSuchAlgorithmException {
+	public static ValidatorsConsensusConfigBuilder<?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
 	}
 
@@ -82,7 +82,7 @@ public final class ConsensusConfigBuilders {
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
 	 */
-	public static ConsensusConfigBuilder<?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException {
+	public static ValidatorsConsensusConfigBuilder<?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder(path);
 	}
 }

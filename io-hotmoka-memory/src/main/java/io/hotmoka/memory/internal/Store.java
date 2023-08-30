@@ -19,7 +19,7 @@ package io.hotmoka.memory.internal;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
@@ -176,13 +176,8 @@ class Store extends AbstractStore {
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
 
-			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "response.txt")))) {
-				output.print(response);
-			}
-
-			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-				output.print(request);
-			}
+			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
+			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
 			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
 				request.into(context);
@@ -217,9 +212,7 @@ class Store extends AbstractStore {
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
 
-			try (var output = new PrintWriter(Files.newBufferedWriter(getPathFor(reference, "request.txt")))) {
-				output.print(request);
-			}
+			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
 			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
 				request.into(context);

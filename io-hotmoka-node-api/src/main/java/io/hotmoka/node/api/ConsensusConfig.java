@@ -202,39 +202,6 @@ public interface ConsensusConfig {
 	SignatureAlgorithm<SignedTransactionRequest> getSignature();
 
 	/**
-	 * Yields the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
-	 * 1000000 = 1%.
-	 * 
-	 * @return the amount of validators' rewards that gets staked; 1000000 = 1%
-	 */
-	int getPercentStaked();
-
-	/**
-	 * Yields extra tax paid when a validator acquires the shares of another validator
-	 * (in percent of the offer cost). 1000000 = 1%.
-	 * 
-	 * @return the extra tax paid when a validator acquires the shares of another validator
-	 *         (in percent of the offer cost). 1000000 = 1%
-	 */
-	int getBuyerSurcharge();
-
-	/**
-	 * Yields the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
-	 * 
-	 * @return the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%
-	 */
-	int getSlashingForMisbehaving();
-
-	/**
-	 * Yields the percent of stake that gets slashed for validators that do not behave
-	 * (or do not vote). 1000000 means 1%.
-	 * 
-	 * @return the percent of stake that gets slashed for validators that do not behave
-	 *         (or do not vote). 1000000 means 1%
-	 */
-	int getSlashingForNotBehaving();
-
-	/**
 	 * Yields a TOML representation of this configuration.
 	 * 
 	 * @return the TOML representation, as a string

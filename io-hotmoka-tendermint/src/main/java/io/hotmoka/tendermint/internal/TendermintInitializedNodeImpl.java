@@ -71,6 +71,7 @@ import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
@@ -109,8 +110,8 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ConsensusConfig consensus,
-			ProducerOfStorageObject producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
+	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ValidatorsConsensusConfig consensus,
+			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
 		var poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
 
@@ -121,10 +122,11 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 			.build();
 
 		this.parent = InitializedNodes.of(parent, consensus, takamakaCode,
-			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference), producerOfGasStationBuilder);
+			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference),
+			producerOfGasStationBuilder);
 	}
 
-	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, CodeSignature.NONCE, gamete);

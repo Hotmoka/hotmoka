@@ -75,12 +75,12 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.memory.MemoryBlockchain;
 import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeSupplier;
-import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
@@ -111,7 +111,7 @@ public abstract class HotmokaTest {
 	/**
 	 * The consensus parameters of the node.
 	 */
-	protected final static ConsensusConfig consensus;
+	protected final static ValidatorsConsensusConfig consensus;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -188,7 +188,7 @@ public abstract class HotmokaTest {
 			var localSignature = SignatureAlgorithmForTransactionRequests.ed25519det();
 			var keys = entropy.keys(password, localSignature);
 			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
-			consensus = ConsensusConfigBuilders.defaults()
+			consensus = ValidatorsConsensusConfigBuilders.defaults()
 	    			.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing
@@ -250,7 +250,7 @@ public abstract class HotmokaTest {
 
 			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
+				TendermintInitializedNode.of(tendermintBlockchain, (ValidatorsConsensusConfig) consensus, takamakaCode);
 			else
 				InitializedNodes.of(node, consensus, takamakaCode);
 		}

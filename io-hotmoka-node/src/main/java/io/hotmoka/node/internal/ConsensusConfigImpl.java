@@ -174,30 +174,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	public final SignatureAlgorithm<SignedTransactionRequest> signature;
 
 	/**
-	 * The amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
-	 * 1000000 = 1%. It defaults to 75%.
-	 */
-	public final int percentStaked;
-
-	/**
-	 * Extra tax paid when a validator acquires the shares of another validator
-	 * (in percent of the offer cost). 1000000 = 1%. It defaults to 50%.
-	 */
-	public final int buyerSurcharge;
-
-	/**
-	 * The percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
-	 * It defaults to 1%.
-	 */
-	public final int slashingForMisbehaving;
-
-	/**
-	 * The percent of stake that gets slashed for validators that do not behave
-	 * (or do not vote). 1000000 means 1%. It defaults to 0.5%.
-	 */
-	public final int slashingForNotBehaving;
-
-	/**
 	 * Full constructor for the builder pattern.
 	 * 
 	 * @param builder the builder where information is extracted from
@@ -225,10 +201,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		this.initialRedSupply = builder.initialRedSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.signature = builder.signature;
-		this.percentStaked = builder.percentStaked;
-		this.buyerSurcharge = builder.buyerSurcharge;
-		this.slashingForMisbehaving = builder.slashingForMisbehaving;
-		this.slashingForNotBehaving = builder.slashingForNotBehaving;
 	}
 
 	@Override
@@ -256,11 +228,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 				finalSupply.equals(otherConfig.finalSupply) &&
 				initialRedSupply.equals(otherConfig.initialRedSupply) &&
 				publicKeyOfGamete.equals(otherConfig.publicKeyOfGamete) &&
-				signature.getName().equals(otherConfig.signature.getName()) &&
-				percentStaked == otherConfig.percentStaked &&
-				buyerSurcharge == otherConfig.buyerSurcharge &&
-				slashingForMisbehaving == otherConfig.slashingForMisbehaving &&
-				slashingForNotBehaving == otherConfig.slashingForNotBehaving;
+				signature.getName().equals(otherConfig.signature.getName());
 		}
 		else
 			return false;
@@ -274,13 +242,11 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	@Override
 	public String toToml() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("# This is a TOML config file for Hotmoka nodes.\n");
+		sb.append("# This is a TOML config file for the consensus of a Hotmoka network.\n");
 		sb.append("# For more information about TOML, see https://github.com/toml-lang/toml\n");
 		sb.append("# For more information about Hotmoka, see https://www.hotmoka.io\n");
 		sb.append("\n");
-		sb.append("## General parameters\n");
-		sb.append("\n");
-		sb.append("# the genesis time, UTC, in ISO8601 pattern\n");
+		sb.append("# the genesis time, UTC, in ISO8601 format\n");
 		sb.append("genesis_time = \"" + genesisTime + "\"\n");
 		sb.append("\n");
 		sb.append("# the chain identifier of the node\n");
@@ -359,21 +325,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		sb.append("\n");
 		sb.append("# the name of the signature algorithm for signing requests\n");
 		sb.append("signature = \"" + signature.getName() + "\"\n");
-		sb.append("\n");
-		sb.append("# the amount of validators' rewards that gets staked. The rest is sent to the validators\n");
-		sb.append("# immediately. 1000000 means 1%\n");
-		sb.append("percent_staked = " + percentStaked + "\n");
-		sb.append("\n");
-		sb.append("# extra tax paid when a validator acquires the shares of another validator\n");
-		sb.append("# (in percent of the offer cost). 1000000 means 1%\n");
-		sb.append("buyer_surcharge = " + buyerSurcharge + "\n");
-		sb.append("\n");
-		sb.append("# the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%\n");
-		sb.append("slashing_for_misbehaving = " + slashingForMisbehaving + "\n");
-		sb.append("\n");
-		sb.append("# the percent of stake that gets slashed for each validator that does not behave\n");
-		sb.append("# (or does not vote). 1000000 means 1%\n");
-		sb.append("slashing_for_not_behaving = " + slashingForNotBehaving + "\n");
 
 		return sb.toString();
 	}
@@ -488,26 +439,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		return signature;
 	}
 
-	@Override
-	public int getPercentStaked() {
-		return percentStaked;
-	}
-
-	@Override
-	public int getBuyerSurcharge() {
-		return buyerSurcharge;
-	}
-
-	@Override
-	public int getSlashingForMisbehaving() {
-		return slashingForMisbehaving;
-	}
-
-	@Override
-	public int getSlashingForNotBehaving() {
-		return slashingForNotBehaving;
-	}
-
 	/**
 	 * Fills the given builder with the information contained in this configuration object.
 	 * 
@@ -515,7 +446,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	 * @param builder the builder to fill
 	 * @return the builder itself
 	 */
-	protected ConsensusConfigBuilder<?> fill(ConsensusConfigBuilder<?> builder) {
+	protected <T extends ConsensusConfigBuilder<T>> T fill(T builder) {
 		return builder
 			.setChainId(chainId)
 			.setGenesisTime(genesisTime)
@@ -538,11 +469,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 			.setFinalSupply(finalSupply)
 			.setInitialRedSupply(initialRedSupply)
 			.setPublicKeyOfGamete(publicKeyOfGamete)
-			.setTicketForNewPoll(ticketForNewPoll)
-			.setBuyerSurcharge(buyerSurcharge)
-			.setPercentStaked(percentStaked)
-			.setSlashingForMisbehaving(slashingForMisbehaving)
-			.setSlashingForNotBehaving(slashingForNotBehaving);
+			.setTicketForNewPoll(ticketForNewPoll);
 	}
 
 	/**
@@ -573,10 +500,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		private BigInteger initialRedSupply = BigInteger.ZERO;
 		private String publicKeyOfGamete = "";
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
-		private int percentStaked = 75_000_000;
-		private int buyerSurcharge = 50_000_000;
-		private int slashingForMisbehaving = 1_000_000;
-		private int slashingForNotBehaving = 500_000;
 
 		/**
 		 * Creates a builder with default values for the properties.
@@ -691,22 +614,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 			var publicKeyOfGamete = toml.getString("public_key_of_gamete");
 			if (publicKeyOfGamete != null)
 				setPublicKeyOfGamete(publicKeyOfGamete);
-
-			var percentStaked = toml.getLong("percent_staked");
-			if (percentStaked != null)
-				setPercentStaked((int) (long) percentStaked);
-
-			var buyerSurcharge = toml.getLong("buyer_surcharge");
-			if (buyerSurcharge != null)
-				setBuyerSurcharge((int) (long) buyerSurcharge);
-
-			var slashingForMisbehaving = toml.getLong("slashing_for_misbehaving");
-			if (slashingForMisbehaving != null)
-				setSlashingForMisbehaving((int) (long) slashingForMisbehaving);
-
-			var slashingForNotBehaving = toml.getLong("slashing_for_not_behaving");
-			if (slashingForNotBehaving != null)
-				setSlashingForNotBehaving((int) (long) slashingForNotBehaving);
 		}
 
 		@Override
@@ -814,42 +721,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		@Override
 		public T setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;
-			return getThis();
-		}
-
-		@Override
-		public T setPercentStaked(int percentStaked) {
-			if (percentStaked < 0 || percentStaked > 100_000_000)
-				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
-
-			this.percentStaked = percentStaked;
-			return getThis();
-		}
-
-		@Override
-		public T setBuyerSurcharge(int buyerSurcharge) {
-			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000)
-				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
-
-			this.buyerSurcharge = buyerSurcharge;
-			return getThis();
-		}
-
-		@Override
-		public T setSlashingForMisbehaving(int slashingForMisbehaving) {
-			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000)
-				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
-
-			this.slashingForMisbehaving = slashingForMisbehaving;
-			return getThis();
-		}
-
-		@Override
-		public T setSlashingForNotBehaving(int slashingForNotBehaving) {
-			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000)
-				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
-
-			this.slashingForNotBehaving = slashingForNotBehaving;
 			return getThis();
 		}
 

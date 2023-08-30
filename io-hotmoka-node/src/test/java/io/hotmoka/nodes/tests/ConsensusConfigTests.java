@@ -32,23 +32,39 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 
 public class ConsensusConfigTests {
 
 	@Test
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
-	public void dumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
+	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
 		var path = dir.resolve("config.toml");
 		var config1 = ConsensusConfigBuilders.defaults()
-			.setBuyerSurcharge(12345)
 			.setChainId("my-chain")
 			.setInitialGasPrice(BigInteger.valueOf(1233L))
 			.setInitialSupply(BigInteger.valueOf(45678L))
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
-		System.out.println(config1.toToml());
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
 		var config2 = ConsensusConfigBuilders.load(path).build();
+		assertEquals(config1, config2);
+	}
+
+	@Test
+	@DisplayName("validators configs are correctly dumped into TOML and reloaded from TOML")
+	public void validatorsConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
+		var path = dir.resolve("validators_config.toml");
+		var config1 = ValidatorsConsensusConfigBuilders.defaults()
+			.setChainId("my-chain")
+			.setBuyerSurcharge(123456)
+			.setSlashingForMisbehaving(98768)
+			.setInitialGasPrice(BigInteger.valueOf(1233L))
+			.setInitialSupply(BigInteger.valueOf(45678L))
+			.setMaxCumulativeSizeOfDependencies(345678L)
+			.build();
+		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
+		var config2 = ValidatorsConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
 	}
 

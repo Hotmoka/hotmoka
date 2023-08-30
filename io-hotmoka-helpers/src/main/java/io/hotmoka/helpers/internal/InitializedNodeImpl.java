@@ -65,6 +65,7 @@ import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.ValidatorsConsensusConfig;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -95,8 +96,8 @@ public class InitializedNodeImpl implements InitializedNode {
 					ClassType.STRING, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
 					BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
-			new LongValue(consensus.getInitialInflation()), new IntValue(consensus.getPercentStaked()),
-			new IntValue(consensus.getBuyerSurcharge()), new IntValue(consensus.getSlashingForMisbehaving()), new IntValue(consensus.getSlashingForNotBehaving()));
+			new LongValue(consensus.getInitialInflation()), new IntValue(0),
+			new IntValue(0), new IntValue(0), new IntValue(0));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -138,9 +139,9 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig consensus, Path takamakaCode,
-			ProducerOfStorageObject producerOfValidatorsBuilder,
-			ProducerOfStorageObject producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig consensus, Path takamakaCode,
+			ProducerOfStorageObject<ValidatorsConsensusConfig> producerOfValidatorsBuilder,
+			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
 		this.parent = parent;
 
@@ -158,6 +159,70 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we create the builder of the validators
 		StorageReference builderOfValidators = producerOfValidatorsBuilder.apply(this, consensus, takamakaCodeReference);
+
+		// we create the builder of the gas station
+		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
+
+		var _1_000_000 = BigInteger.valueOf(1_000_000);
+		var getNonceRequest = new InstanceMethodCallTransactionRequest
+			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		var function = new ClassType(Function.class.getName());
+
+		// we create the manifest, passing the storage array of validators in store and their powers
+		var request = new ConstructorCallTransactionRequest
+			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
+			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.STRING, BasicTypes.LONG,
+				BasicTypes.LONG, BasicTypes.LONG,
+				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
+				ClassType.STRING, ClassType.GAMETE, BasicTypes.LONG, function, function),
+			new StringValue(consensus.getGenesisTime().toString()),
+			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
+			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
+			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
+			new BooleanValue(consensus.skipsVerification()),
+			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
+			builderOfValidators, builderOfGasStation);
+
+		StorageReference manifest = parent.addConstructorCallTransaction(request);
+
+		// we install the manifest and initialize the node
+		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
+	}
+
+	/**
+	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
+	 * Uses the given key pair for controlling the gamete. It installs empty validators.
+	 * 
+	 * @param parent the node to decorate
+	 * @param consensus the consensus parameters that will be set for the node
+	 * @param takamakaCode the jar containing the basic Takamaka classes
+	 * @param producerOfGasStationBuilder an algorithm that creates the builder of the gas station to be installed in the manifest of the node;
+	 *                                    if this is {@code null}, a generic gas station is created
+	 * @throws TransactionRejectedException if some transaction that installs the jar or creates the accounts is rejected
+	 * @throws TransactionException if some transaction that installs the jar or creates the accounts fails
+	 * @throws CodeExecutionException if some transaction that installs the jar or creates the accounts throws an exception
+	 * @throws IOException if the jar file cannot be accessed
+	 * @throws SignatureException if some initialization request could not be signed
+	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
+	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 */
+	public InitializedNodeImpl(Node parent, ConsensusConfig consensus, Path takamakaCode,
+			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+
+		this.parent = parent;
+
+		// we install the jar containing the basic Takamaka classes
+		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(Files.readAllBytes(takamakaCode)));
+
+		// we create a gamete with both red and green coins
+		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
+
+		if (producerOfGasStationBuilder == null)
+			producerOfGasStationBuilder = this::createGenericGasStationBuilder;
+
+		// we create the builder of the validators
+		StorageReference builderOfValidators = createEmptyValidatorsBuilder(this, consensus, takamakaCodeReference);
 
 		// we create the builder of the gas station
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);

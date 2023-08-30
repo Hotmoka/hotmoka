@@ -44,7 +44,7 @@ import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
@@ -156,7 +156,7 @@ public class InitTendermint extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitTendermint.this.deltaSupply);
 
-			var consensus = ConsensusConfigBuilders.defaults()
+			var consensus = ValidatorsConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.ignoreGasPrice(ignoreGasPrice)

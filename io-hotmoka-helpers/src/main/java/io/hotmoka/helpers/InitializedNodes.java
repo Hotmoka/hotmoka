@@ -32,6 +32,7 @@ import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.internal.InitializedNodeImpl;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.ValidatorsConsensusConfig;
 
 /**
  * Providers of nodes where the jar with the basic Takamaka classes have been installed,
@@ -59,7 +60,7 @@ public class InitializedNodes {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public static InitializedNode of(Node parent, ConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		return of(parent, consensus, takamakaCode, null, null);
+		return new InitializedNodeImpl(parent, consensus, takamakaCode, null);
 	}
 
 	/**
@@ -83,8 +84,8 @@ public class InitializedNodes {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig consensus,
-			Path takamakaCode, ProducerOfStorageObject producerOfValidatorsBuilder, ProducerOfStorageObject producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(Node parent, ValidatorsConsensusConfig consensus,
+			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
@@ -92,7 +93,7 @@ public class InitializedNodes {
 	 * An algorithm that yields an object in the store of a node, given
 	 * the node and the reference to the basic classes in its store.
 	 */
-	public interface ProducerOfStorageObject {
+	public interface ProducerOfStorageObject<C extends ConsensusConfig> {
 
 		/**
 		 * Runs some transactions in the node, that yield the object.
@@ -108,6 +109,6 @@ public class InitializedNodes {
 		 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 		 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 		 */
-		StorageReference apply(InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
+		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
 	}
 }
