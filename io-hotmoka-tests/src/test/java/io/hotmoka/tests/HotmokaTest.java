@@ -16,10 +16,12 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-/**
- * MODIFY AT LINE 200 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+/*
+ * MODIFY AT LINE 204 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
-import static org.junit.jupiter.api.Assertions.fail;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -91,7 +93,6 @@ import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import io.hotmoka.verification.VerificationException;
 
 public abstract class HotmokaTest {
-
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	protected static final BigInteger _500_000 = BigInteger.valueOf(500_000);
@@ -235,7 +236,7 @@ public abstract class HotmokaTest {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
-			//e.printStackTrace();
+			e.printStackTrace();
 			throw new ExceptionInInitializerError(e);
 		}
 	}
@@ -446,124 +447,47 @@ public abstract class HotmokaTest {
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionException e) {
-			if (e.getMessage().startsWith(expected.getName()))
-				return;
-
-			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionException.class.getName());
+		var e = assertThrows(TransactionException.class, what::run);
+		assertTrue(e.getMessage().startsWith(expected.getName()),
+			() -> "wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
 	}
 
 	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(Class<? extends Throwable> expected, String subMessage, TestBody what) {
 		throwsTransactionExceptionWithCauseAndMessageContaining(expected.getName(), subMessage, what);
 	}
 
-	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(String expected, String subMessage, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionException e) {
-			if (e.getMessage().startsWith(expected)) {
-				if (e.getMessage().contains(subMessage))
-					return;
-
-				fail("wrong message: it does not contain " + subMessage);
-			}
-
-			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionException.class.getName());
+	protected static void throwsTransactionExceptionWithCauseAndMessageContaining(String prefix, String subMessage, TestBody what) {
+		var e = assertThrows(TransactionException.class, what::run);
+		assertTrue(e.getMessage().startsWith(prefix),
+			() -> "wrong cause: expected " + prefix + " but got " + e.getMessage());
+		assertTrue(e.getMessage().contains(subMessage),
+			() -> "wrong message: it does not contain " + subMessage);
 	}
 
 	protected static void throwsTransactionRejectedWithCause(Class<? extends Throwable> expected, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionRejectedException e) {
-			if (e.getMessage().startsWith(expected.getName()))
-				return;
-
-			fail("wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionRejectedException.class.getName());
+		var e = assertThrows(TransactionRejectedException.class, what::run);
+		assertTrue(e.getMessage().startsWith(expected.getName()),
+			() -> "wrong cause: expected " + expected.getName() + " but got " + e.getMessage());
 	}
 
 	protected static void throwsTransactionExceptionWithCause(String expected, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionException e) {
-			if (e.getMessage().startsWith(expected))
-				return;
-
-			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionException.class.getName());
+		var e = assertThrows(TransactionException.class, what::run);
+		assertTrue(e.getMessage().startsWith(expected),
+			() -> "wrong cause: expected " + expected + " but got " + e.getMessage());
 	}
 
 	protected static void throwsTransactionRejectedWithCause(String expected, TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionRejectedException e) {
-			if (e.getMessage().startsWith(expected))
-				return;
-
-			fail("wrong cause: expected " + expected + " but got " + e.getMessage());
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionRejectedException.class.getName());
+		var e = assertThrows(TransactionRejectedException.class, what::run);
+		assertTrue(e.getMessage().startsWith(expected),
+			() -> "wrong cause: expected " + expected + " but got " + e.getMessage());
 	}
 
 	protected static void throwsTransactionException(TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionException e) {
-			return;
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionException.class.getName());
+		assertThrows(TransactionException.class, what::run);
 	}
 
 	protected static void throwsTransactionRejectedException(TestBody what) {
-		try {
-			what.run();
-		}
-		catch (TransactionRejectedException e) {
-			return;
-		}
-		catch (Exception e) {
-			fail("wrong exception: expected " + TransactionRejectedException.class.getName() + " but got " + e.getClass().getName());
-		}
-
-		fail("no exception: expected " + TransactionRejectedException.class.getName());
+		assertThrows(TransactionRejectedException.class, what::run);
 	}
 
 	protected static void throwsVerificationException(TestBody what) {
