@@ -131,9 +131,9 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeBigInteger(gasConsumedForPenalty);
-		context.writeUTF(classNameOfCause);
-		context.writeUTF(messageOfCause);
-		context.writeUTF(where);
+		context.writeStringUnshared(classNameOfCause);
+		context.writeStringUnshared(messageOfCause);
+		context.writeStringUnshared(where);
 	}
 
 	/**
@@ -150,9 +150,9 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		BigInteger gasConsumedForPenalty = context.readBigInteger();
-		String classNameOfCause = context.readUTF();
-		String messageOfCause = context.readUTF();
-		String where = context.readUTF();
+		String classNameOfCause = context.readStringUnshared();
+		String messageOfCause = context.readStringUnshared();
+		String where = context.readStringUnshared();
 		return new ConstructorCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

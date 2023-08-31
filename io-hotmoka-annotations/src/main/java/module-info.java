@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines some standard annotations.
+ */
 module io.hotmoka.annotations {
 	exports io.hotmoka.annotations;
 }

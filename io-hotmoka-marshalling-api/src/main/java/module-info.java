@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines the API for efficient serialization/deserialization of objects into bytes.
+ */
 module io.hotmoka.marshalling.api {
 	exports io.hotmoka.marshalling.api;
 }

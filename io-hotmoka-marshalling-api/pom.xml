@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-marshalling-api</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines the API for efficient serialization/deserialization of objects into bytes.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

@@ -131,8 +131,8 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		case UpdateOfByte.SELECTOR: return new UpdateOfByte(StorageReference.from(context), FieldSignature.from(context), context.readByte());
 		case UpdateOfChar.SELECTOR: return new UpdateOfChar(StorageReference.from(context), FieldSignature.from(context), context.readChar());
 		case UpdateOfDouble.SELECTOR: return new UpdateOfDouble(StorageReference.from(context), FieldSignature.from(context), context.readDouble());
-		case UpdateOfEnumEager.SELECTOR: return new UpdateOfEnumEager(StorageReference.from(context), FieldSignature.from(context), context.readUTF(), context.readUTF());
-		case UpdateOfEnumLazy.SELECTOR: return new UpdateOfEnumLazy(StorageReference.from(context), FieldSignature.from(context), context.readUTF(), context.readUTF());		
+		case UpdateOfEnumEager.SELECTOR: return new UpdateOfEnumEager(StorageReference.from(context), FieldSignature.from(context), context.readStringUnshared(), context.readStringUnshared());
+		case UpdateOfEnumLazy.SELECTOR: return new UpdateOfEnumLazy(StorageReference.from(context), FieldSignature.from(context), context.readStringUnshared(), context.readStringUnshared());		
 		case UpdateOfFloat.SELECTOR: return new UpdateOfFloat(StorageReference.from(context), FieldSignature.from(context), context.readFloat());
 		case UpdateOfInt.SELECTOR: return new UpdateOfInt(StorageReference.from(context), FieldSignature.from(context), context.readInt());
 		case UpdateOfInt.SELECTOR_SMALL: return new UpdateOfInt(StorageReference.from(context), FieldSignature.from(context), context.readShort());
@@ -153,8 +153,8 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		case UpdateOfStorage.SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT: return new UpdateOfStorage(StorageReference.from(context), FieldSignature.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD, StorageReference.from(context));
 		case UpdateOfStorage.SELECTOR_STORAGE_TREE_MAP_ROOT: return new UpdateOfStorage(StorageReference.from(context), FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD, StorageReference.from(context));
 		case UpdateOfStorage.SELECTOR_EVENT_CREATOR: return new UpdateOfStorage(StorageReference.from(context), FieldSignature.EVENT_CREATOR_FIELD, StorageReference.from(context));
-		case UpdateOfString.SELECTOR_PUBLIC_KEY: return new UpdateOfString(StorageReference.from(context), FieldSignature.EOA_PUBLIC_KEY_FIELD, context.readUTF());
-		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(context), FieldSignature.from(context), context.readUTF());
+		case UpdateOfString.SELECTOR_PUBLIC_KEY: return new UpdateOfString(StorageReference.from(context), FieldSignature.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared());
+		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(context), FieldSignature.from(context), context.readStringUnshared());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(context), FieldSignature.from(context));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(context), FieldSignature.from(context));
 		default: throw new IOException("unexpected update selector: " + selector);

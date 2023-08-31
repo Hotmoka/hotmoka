@@ -14,6 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module provides classes for efficient serialization and deserialization
+ * of objects into/from bytes.
+ */
 module io.hotmoka.marshalling {
 	exports io.hotmoka.marshalling;
 	requires transitive io.hotmoka.marshalling.api;

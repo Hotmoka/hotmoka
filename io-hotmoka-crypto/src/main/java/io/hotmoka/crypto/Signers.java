@@ -9,13 +9,14 @@ import io.hotmoka.crypto.api.Signer;
 /**
  * Providers of objects that sign values with a private key.
  */
-public final class Signers<T> {
+public final class Signers {
 
 	private Signers() {}
 
 	/**
 	 * Yields a signer for the given algorithm with the given key pair.
 	 * 
+	 * @param <T> the type of data that gets signed
 	 * @param signature the signing algorithm
 	 * @param keys the key pair
 	 * @return the signer
@@ -27,6 +28,7 @@ public final class Signers<T> {
 	/**
 	 * Yields a signer for the given algorithm with the given private key.
 	 * 
+	 * @param <T> the type of data that gets signed
 	 * @param signature the signing algorithm
 	 * @param key the private key
 	 * @return the signer

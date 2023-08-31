@@ -121,7 +121,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		classpath.into(context);
 		context.writeBigInteger(initialAmount);
 		context.writeBigInteger(redInitialAmount);
-		context.writeUTF(publicKey);
+		context.writeStringUnshared(publicKey);
 	}
 
 	/**
@@ -136,7 +136,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger initialAmount = context.readBigInteger();
 		BigInteger redInitialAmount = context.readBigInteger();
-		String publicKey = context.readUTF();
+		String publicKey = context.readStringUnshared();
 
 		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 	}

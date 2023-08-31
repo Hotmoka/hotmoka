@@ -44,7 +44,7 @@ public class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<Field
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			var field = new FieldSignature((ClassType) StorageType.from(context), context.readUTF(), StorageType.from(context));
+			var field = new FieldSignature((ClassType) StorageType.from(context), context.readStringUnshared(), StorageType.from(context));
 			memory.put(memory.size(), field);
 			return field;
 		}

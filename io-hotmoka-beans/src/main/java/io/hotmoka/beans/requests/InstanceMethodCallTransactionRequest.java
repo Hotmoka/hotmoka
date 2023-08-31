@@ -186,7 +186,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 		else
 			context.writeByte(SELECTOR);
 
-		context.writeUTF(chainId);
+		context.writeStringUnshared(chainId);
 
 		if (receiveInt || receiveLong || receiveBigInteger) {
 			caller.intoWithoutSelector(context);
@@ -220,7 +220,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 */
 	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException {
 		if (selector == SELECTOR) {
-			String chainId = context.readUTF();
+			String chainId = context.readStringUnshared();
 			StorageReference caller = StorageReference.from(context);
 			BigInteger gasLimit = context.readBigInteger();
 			BigInteger gasPrice = context.readBigInteger();
@@ -234,7 +234,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
-			String chainId = context.readUTF();
+			String chainId = context.readStringUnshared();
 			StorageReference caller = StorageReference.from(context);
 			BigInteger gasLimit = context.readBigInteger();
 			BigInteger gasPrice = context.readBigInteger();

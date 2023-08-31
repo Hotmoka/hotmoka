@@ -121,9 +121,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 		context.writeByte(SELECTOR);
 		super.into(context);
 		intoArrayWithoutSelector(events, context);
-		context.writeUTF(classNameOfCause);
-		context.writeUTF(messageOfCause);
-		context.writeUTF(where);
+		context.writeStringUnshared(classNameOfCause);
+		context.writeStringUnshared(messageOfCause);
+		context.writeStringUnshared(where);
 	}
 
 	/**
@@ -140,9 +140,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
-		String classNameOfCause = context.readUTF();
-		String messageOfCause = context.readUTF();
-		String where = context.readUTF();
+		String classNameOfCause = context.readStringUnshared();
+		String messageOfCause = context.readStringUnshared();
+		String where = context.readStringUnshared();
 		return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

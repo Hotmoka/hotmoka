@@ -92,7 +92,7 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 		case ByteValue.SELECTOR: return new ByteValue(context.readByte());
 		case CharValue.SELECTOR: return new CharValue(context.readChar());
 		case DoubleValue.SELECTOR: return new DoubleValue(context.readDouble());
-		case EnumValue.SELECTOR: return new EnumValue(context.readUTF(), context.readUTF());
+		case EnumValue.SELECTOR: return new EnumValue(context.readStringUnshared(), context.readStringUnshared());
 		case FloatValue.SELECTOR: return new FloatValue(context.readFloat());
 		case IntValue.SELECTOR: return new IntValue(context.readInt());
 		case LongValue.SELECTOR: return new LongValue(context.readLong());
@@ -100,7 +100,7 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 		case ShortValue.SELECTOR: return new ShortValue(context.readShort());
 		case StorageReference.SELECTOR: return StorageReference.from(context);
 		case StringValue.SELECTOR_EMPTY_STRING: return new StringValue("");
-		case StringValue.SELECTOR: return new StringValue(context.readUTF());
+		case StringValue.SELECTOR: return new StringValue(context.readStringUnshared());
 		default:
 			if (selector < 0)
 				return new IntValue((selector + 256) - IntValue.SELECTOR - 1);

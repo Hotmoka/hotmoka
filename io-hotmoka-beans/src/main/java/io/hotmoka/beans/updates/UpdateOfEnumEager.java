@@ -99,7 +99,7 @@ public final class UpdateOfEnumEager extends UpdateOfField {
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeUTF(enumClassName);
-		context.writeUTF(name);
+		context.writeStringUnshared(enumClassName);
+		context.writeStringUnshared(name);
 	}
 }

@@ -28,5 +28,11 @@ import java.lang.annotation.Target;
 @Target( { ElementType.CONSTRUCTOR, ElementType.METHOD })
 @Retention(RetentionPolicy.SOURCE)
 public @interface OnThread {
+
+	/**
+	 * Yields the description of the thread of executor service that executes the annotated element.
+	 * 
+	 * @return the description of the thread of executor service
+	 */
 	String value();
 }

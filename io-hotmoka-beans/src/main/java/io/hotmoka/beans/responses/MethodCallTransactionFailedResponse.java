@@ -133,9 +133,9 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		super.into(context);
 		context.writeBigInteger(gasConsumedForPenalty);
 		context.writeBoolean(selfCharged);
-		context.writeUTF(classNameOfCause);
-		context.writeUTF(messageOfCause);
-		context.writeUTF(where);
+		context.writeStringUnshared(classNameOfCause);
+		context.writeStringUnshared(messageOfCause);
+		context.writeStringUnshared(where);
 	}
 
 	/**
@@ -153,9 +153,9 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		BigInteger gasConsumedForPenalty = context.readBigInteger();
 		boolean selfCharged = context.readBoolean();
-		String classNameOfCause = context.readUTF();
-		String messageOfCause = context.readUTF();
-		String where = context.readUTF();
+		String classNameOfCause = context.readStringUnshared();
+		String messageOfCause = context.readStringUnshared();
+		String where = context.readStringUnshared();
 
 		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}

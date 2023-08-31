@@ -68,7 +68,7 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 			// this case deals with responses that only exist in a specific type of node;
 			// hence their fully-qualified name must be available after the expansion selector
 
-			String className = context.readUTF();
+			String className = context.readStringUnshared();
 			Class<?> clazz;
 			
 			try {

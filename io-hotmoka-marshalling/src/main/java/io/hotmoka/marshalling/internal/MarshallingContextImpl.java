@@ -111,7 +111,7 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public void writeUTF(String s) throws IOException {
+	public void writeStringUnshared(String s) throws IOException {
 		oos.writeUTF(s);
 	}
 

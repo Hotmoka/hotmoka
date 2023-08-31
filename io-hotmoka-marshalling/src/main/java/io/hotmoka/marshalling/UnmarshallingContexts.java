@@ -30,9 +30,10 @@ public final class UnmarshallingContexts {
 	private UnmarshallingContexts() {}
 
 	/**
-	 * Creates an unmarshalling context.
+	 * Yields an unmarshalling context.
 	 * 
 	 * @param is the input stream of the context
+	 * @return the unmarshalling context
 	 * @throws IOException if the context cannot be created
 	 */
 	public static UnmarshallingContext of(InputStream is) throws IOException {

@@ -76,7 +76,7 @@ public final class StringValue extends StorageValue {
 			context.writeByte(SELECTOR_EMPTY_STRING);
 		else {
 			context.writeByte(SELECTOR);
-			context.writeUTF(value);
+			context.writeStringUnshared(value);
 		}
 	}
 }

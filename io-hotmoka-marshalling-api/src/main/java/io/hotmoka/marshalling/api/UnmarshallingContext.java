@@ -26,72 +26,142 @@ import java.util.function.Function;
 public interface UnmarshallingContext extends AutoCloseable {
 
 	/**
-	 * Yields an object unmarshalled from this context.
-	 * This context must have an object unmarshaller registered for the
-	 * class of the object.
+	 * Extracts an object from this context, which must have an object unmarshaller
+	 * registered for the class of the object.
 	 * 
 	 * @param <C> the type of the object
 	 * @param clazz the class of the object
 	 * @return the unmarshalled object
-	 * @throws IOException if the object could not be unmarshalled
+	 * @throws IOException if an I/O error occurs
 	 */
 	<C> C readObject(Class<C> clazz) throws IOException;
 
 	/**
-	 * Yields an array of marshallables unmarshalled from this context.
+	 * Extracts an array of marshallables from this context.
 	 * 
 	 * @param <T> the type of the marshallables
 	 * @param unmarshaller the object that unmarshals a single marshallable
 	 * @param supplier the creator of the resulting array of marshallables
 	 * @return the array
-	 * @throws IOException if some marshallable could not be unmarshalled
+	 * @throws IOException if an I/O error occurs
 	 */
-	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException;
+	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer, T[]> supplier) throws IOException;
 
+	/**
+	 * Extracts the next byte from this context.
+	 * 
+	 * @return the next byte
+	 * @throws IOException if an I/O error occurs
+	 */
 	byte readByte() throws IOException;
 
+	/**
+	 * Extracts the next character from this context.
+	 * 
+	 * @return the next character
+	 * @throws IOException if an I/O error occurs
+	 */
 	char readChar() throws IOException;
 
+	/**
+	 * Extracts the next boolean from this context.
+	 * 
+	 * @return the next boolean
+	 * @throws IOException if an I/O error occurs
+	 */
 	boolean readBoolean() throws IOException;
 
+	/**
+	 * Extracts the next integer from this context. This requires that the
+	 * integer was previously marshalled through {@link MarshallingContext#writeInt(int)}.
+	 * 
+	 * @return the next integer
+	 * @throws IOException if an I/O error occurs
+	 */
 	int readInt() throws IOException;
 
 	/**
-	 * Reads an optimized integer.
+	 * Extracts the next integer from this context, in an optimized way,
+	 * that tries to use smaller representations for frequent cases.
+	 * This requires that the integer was previously marshalled through
+	 * {@link MarshallingContext#writeCompactInt(int)}.
 	 * 
-	 * @return the integer
-	 * @throws IOException if the integer cannot be read
+	 * @return the next integer
+	 * @throws IOException if an I/O error occurs
 	 */
 	int readCompactInt() throws IOException;
 
+	/**
+	 * Extracts the next short from this context.
+	 * 
+	 * @return the next short
+	 * @throws IOException if an I/O error occurs
+	 */
 	short readShort() throws IOException;
 
+	/**
+	 * Extracts the next long from this context.
+	 * 
+	 * @return the next long
+	 * @throws IOException if an I/O error occurs
+	 */
 	long readLong() throws IOException;
 
+	/**
+	 * Extracts the next float from this context.
+	 * 
+	 * @return the next float
+	 * @throws IOException if an I/O error occurs
+	 */
 	float readFloat() throws IOException;
 
+	/**
+	 * Extracts the next double from this context.
+	 * 
+	 * @return the next double
+	 * @throws IOException if an I/O error occurs
+	 */
 	double readDouble() throws IOException;
 
-	String readUTF() throws IOException;
+	/**
+	 * Extracts the next string from this context. This requires that
+	 * the string was previously marshalled through {@link MarshallingContext#writeStringUnshared(String)}.
+	 * In comparison to {@link #readStringShared()}, this representation might be smaller
+	 * if the string is unlikely to be repeated in the same marshalled object.
+	 * 
+	 * @return the next string
+	 * @throws IOException if an I/O error occurs
+	 */
+	String readStringUnshared() throws IOException;
 
 	/**
-	 * Reads {@code length} bytes from the context.
+	 * Extracts the next string from this context. This requires that
+	 * the string was previously marshalled through {@link MarshallingContext#writeStringShared(String)}.
+	 * In comparison to {@link #readStringUnshared()}, this representation might
+	 * be smaller if the same string is repeated in the same marshalled object.
 	 * 
-	 * @param length the number of bytes to read
-	 * @param errorMessage the message of the exception if it was not possible to read exactly {@code length} bytes
-	 * @return the bytes
-	 * @throws IOException if it was not possible to read {@code length} bytes
+	 * @return the next string
+	 * @throws IOException if an I/O error occurs
 	 */
-	byte[] readBytes(int length, String errorMessage) throws IOException;
-
 	String readStringShared() throws IOException;
 
 	/**
-	 * Reads a big integer, taking into account
-	 * optimized representations used for the big integer.
+	 * Extracts the next {@code length} bytes from this context.
 	 * 
-	 * @return the big integer
-	 * @throws IOException if the big integer could not be written
+	 * @param length the number of bytes to extract
+	 * @param errorMessage the message of the exception thrown if it was not possible
+	 *                     to read {@code length} bytes
+	 * @return the bytes
+	 * @throws IOException if an I/O error occurs
+	 */
+	byte[] readBytes(int length, String errorMessage) throws IOException;
+
+	/**
+	 * Extracts the next big integer from this context,  in an optimized way,
+	 * that tries to use smaller representations for frequent cases.
+	 * 
+	 * @return the next big integer
+	 * @throws IOException if an I/O error occurs
 	 */
 	BigInteger readBigInteger() throws IOException;
 

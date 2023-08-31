@@ -209,7 +209,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeUTF(chainId);
+		context.writeStringUnshared(chainId);
 		super.intoWithoutSignature(context);
 		context.writeCompactInt(jar.length);
 		context.write(jar);
@@ -225,7 +225,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws IOException if the request could noy be unmarshalled
 	 */
 	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
-		String chainId = context.readUTF();
+		String chainId = context.readStringUnshared();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
 		BigInteger gasPrice = context.readBigInteger();

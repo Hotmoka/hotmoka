@@ -24,5 +24,13 @@ import java.io.IOException;
  * @param <T> the type of the marshallable
  */
 public interface Unmarshaller<T extends Marshallable> {
+
+	/**
+	 * Yields the marshallable extracted from the given context.
+	 * 
+	 * @param context the context
+	 * @return the marshallable
+	 * @throws IOException if an I/O error occurs
+	 */
 	T from(UnmarshallingContext context) throws IOException;
 }

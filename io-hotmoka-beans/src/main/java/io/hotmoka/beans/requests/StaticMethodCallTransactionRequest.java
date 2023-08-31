@@ -146,7 +146,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeUTF(chainId);
+		context.writeStringUnshared(chainId);
 		super.intoWithoutSignature(context);
 	}
 
@@ -176,7 +176,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		String chainId = context.readUTF();
+		String chainId = context.readStringUnshared();
 		StorageReference caller = StorageReference.from(context);
 		BigInteger gasLimit = context.readBigInteger();
 		BigInteger gasPrice = context.readBigInteger();

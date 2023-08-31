@@ -87,7 +87,7 @@ public final class EnumValue extends StorageValue {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeUTF(enumClassName);
-		context.writeUTF(name);
+		context.writeStringUnshared(enumClassName);
+		context.writeStringUnshared(name);
 	}
 }

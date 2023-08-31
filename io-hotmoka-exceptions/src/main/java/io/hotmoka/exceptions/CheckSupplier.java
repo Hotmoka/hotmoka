@@ -123,7 +123,7 @@ public abstract class CheckSupplier {
 	 * @param exception1 the class of the first exception
 	 * @param exception2 the class of the second exception
 	 * @param exception3 the class of the third exception
-	 * @param exception3 the class of the fourth exception
+	 * @param exception4 the class of the fourth exception
 	 * @param supplier the supplier
 	 * @return the supplied value
 	 * @throws T1 if the supplier throws an unchecked exception with this cause

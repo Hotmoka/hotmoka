@@ -25,4 +25,10 @@ import io.hotmoka.marshalling.internal.MarshallableImpl;
  * this works because of context information about the structure of the object.
  */
 public abstract class AbstractMarshallable extends MarshallableImpl {
+
+	/**
+	 * Creates the marshallable.
+	 */
+	protected AbstractMarshallable() {
+	}
 }

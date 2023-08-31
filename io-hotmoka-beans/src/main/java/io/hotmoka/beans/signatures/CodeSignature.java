@@ -425,8 +425,8 @@ public abstract class CodeSignature extends AbstractMarshallable {
 
 		switch (selector) {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
-		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readUTF(), formals);
-		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readUTF(), StorageType.from(context), formals);
+		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readStringUnshared(), formals);
+		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readStringUnshared(), StorageType.from(context), formals);
 		default: throw new IOException("unexpected code signature selector: " + selector);
 		}
 	}

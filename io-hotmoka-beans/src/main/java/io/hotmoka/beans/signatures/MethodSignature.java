@@ -68,6 +68,6 @@ public abstract class MethodSignature extends CodeSignature {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		super.into(context);
-		context.writeUTF(methodName);
+		context.writeStringUnshared(methodName);
 	}
 }

@@ -138,7 +138,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public String readUTF() throws IOException {
+	public String readStringUnshared() throws IOException {
 		return ois.readUTF();
 	}
 
@@ -158,7 +158,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			String s = readUTF();
+			String s = readStringUnshared();
 			memoryString.put(memoryString.size(), s);
 			return s;
 		}

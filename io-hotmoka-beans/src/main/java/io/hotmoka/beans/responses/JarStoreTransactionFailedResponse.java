@@ -120,8 +120,8 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeBigInteger(gasConsumedForPenalty);
-		context.writeUTF(classNameOfCause);
-		context.writeUTF(messageOfCause);
+		context.writeStringUnshared(classNameOfCause);
+		context.writeStringUnshared(messageOfCause);
 	}
 
 	/**
@@ -138,8 +138,8 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		BigInteger gasConsumedForPenalty = context.readBigInteger();
-		String classNameOfCause = context.readUTF();
-		String messageOfCause = context.readUTF();
+		String classNameOfCause = context.readStringUnshared();
+		String messageOfCause = context.readStringUnshared();
 		return new JarStoreTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

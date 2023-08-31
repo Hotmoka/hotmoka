@@ -39,7 +39,7 @@ public class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSign
 
 			context.writeByte(255);
 			field.definingClass.into(context);
-			context.writeUTF(field.name);
+			context.writeStringUnshared(field.name);
 			field.type.into(context);
 		}
 	}

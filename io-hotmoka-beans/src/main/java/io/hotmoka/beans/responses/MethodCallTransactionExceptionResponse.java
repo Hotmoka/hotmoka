@@ -125,9 +125,9 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		super.into(context);
 		context.writeBoolean(selfCharged);
 		intoArrayWithoutSelector(events, context);
-		context.writeUTF(classNameOfCause);
-		context.writeUTF(messageOfCause);
-		context.writeUTF(where);
+		context.writeStringUnshared(classNameOfCause);
+		context.writeStringUnshared(messageOfCause);
+		context.writeStringUnshared(where);
 	}
 
 	/**
@@ -145,9 +145,9 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		boolean selfCharged = context.readBoolean();
 		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
-		String classNameOfCause = context.readUTF();
-		String messageOfCause = context.readUTF();
-		String where = context.readUTF();
+		String classNameOfCause = context.readStringUnshared();
+		String messageOfCause = context.readStringUnshared();
+		String where = context.readStringUnshared();
 		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

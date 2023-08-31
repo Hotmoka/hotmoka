@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-annotations</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines some standard annotations.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

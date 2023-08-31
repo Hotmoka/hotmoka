@@ -101,6 +101,6 @@ public final class UpdateOfString extends UpdateOfField {
 			super.into(context);
 		}
 
-		context.writeUTF(value);
+		context.writeStringUnshared(value);
 	}
 }
