@@ -25,4 +25,5 @@ module io.hotmoka.verification {
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
 	requires transitive org.apache.bcel;
+	requires static java.logging;
 }

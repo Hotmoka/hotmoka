@@ -14,12 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tests;
+package io.hotmoka.crypto.tests;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.io.IOException;
+import java.net.URL;
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.logging.LogManager;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -27,7 +31,7 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 public class QTESLA1 {
-    private final static String data = "HELLO QTESLA SCHEME";
+    private final String data = "HELLO QTESLA SCHEME";
 
     @Test
     @DisplayName("sign data with qtesla signature")
@@ -40,8 +44,8 @@ public class QTESLA1 {
         boolean isDataVerifiedCorrectly = qTesla1.verify(data, keyPair.getPublic(), signed);
         boolean isCorruptedData = !qTesla1.verify(data + "corrupted", keyPair.getPublic(), signed);
 
-        Assertions.assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
-        Assertions.assertTrue(isCorruptedData, "corrupted data is verified");
+        assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
+        assertTrue(isCorruptedData, "corrupted data is verified");
     }
 
     @Test
@@ -59,10 +63,25 @@ public class QTESLA1 {
         boolean isDataVerifiedCorrectlyWithEncodedKey = qTesla1.verify(data, publicKey, signed);
         boolean isCorruptedDataWithEncodedKey = !qTesla1.verify(data + "corrupted", publicKey, signed);
 
-        Assertions.assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
-        Assertions.assertTrue(isCorruptedData, "corrupted data is verified");
-        Assertions.assertTrue(isDataVerifiedCorrectlyWithEncodedKey, "data is not verified correctly with the encoded key");
-        Assertions.assertTrue(isCorruptedDataWithEncodedKey, "corrupted data is verified with the encoded key");
-        Assertions.assertTrue(keyPair.getPublic().equals(publicKey), "the public keys do not match");
+        assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
+        assertTrue(isCorruptedData, "corrupted data is verified");
+        assertTrue(isDataVerifiedCorrectlyWithEncodedKey, "data is not verified correctly with the encoded key");
+        assertTrue(isCorruptedDataWithEncodedKey, "corrupted data is verified with the encoded key");
+        assertTrue(keyPair.getPublic().equals(publicKey), "the public keys do not match");
     }
+
+    static {
+		String current = System.getProperty("java.util.logging.config.file");
+		if (current == null) {
+			// if the property is not set, we provide a default (if it exists)
+			URL resource = QTESLA1.class.getClassLoader().getResource("logging.properties");
+			if (resource != null)
+				try (var is = resource.openStream()) {
+					LogManager.getLogManager().readConfiguration(is);
+				}
+			catch (SecurityException | IOException e) {
+				throw new RuntimeException("Cannot load logging.properties file", e);
+			}
+		}
+	}
 }

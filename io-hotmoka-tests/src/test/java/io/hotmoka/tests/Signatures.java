@@ -60,7 +60,7 @@ class Signatures extends HotmokaTest {
 
 	@Test @DisplayName("create accounts with distinct signing algorithms")
 	void createAccountsWithDistinctSigningAlgorithms() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		IntValue amount = new IntValue(_10_000_000);
+		var amount = new IntValue(_10_000_000);
 
 		var sha256dsa = SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();
@@ -80,8 +80,8 @@ class Signatures extends HotmokaTest {
 
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
 	void createAccountsWithDistinctSigningAlgorithmsAndUseThem() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
-		IntValue amount = new IntValue(_10_000_000);
-		NonVoidMethodSignature callee = new NonVoidMethodSignature("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
+		var amount = new IntValue(_10_000_000);
+		var callee = new NonVoidMethodSignature("io.takamaka.code.lang.Coin", "panarea", ClassType.BIG_INTEGER, BasicTypes.LONG);
 
 		var sha256dsa = SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();

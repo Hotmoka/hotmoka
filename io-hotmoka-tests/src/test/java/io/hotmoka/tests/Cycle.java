@@ -56,7 +56,7 @@ class Cycle extends HotmokaTest {
 		StorageReference cycle = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			new ConstructorSignature("io.hotmoka.examples.cycle.Cycle"));
 
-		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
+		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.cycle.Cycle", "foo", BasicTypes.INT), cycle);
 
 		assertEquals(42, result.value);

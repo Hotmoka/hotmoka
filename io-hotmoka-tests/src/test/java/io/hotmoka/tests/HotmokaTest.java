@@ -178,7 +178,12 @@ public abstract class HotmokaTest {
 				// if the property is not set, we provide a default (if it exists)
 				URL resource = HotmokaTest.class.getClassLoader().getResource("logging.properties");
 				if (resource != null)
-					LogManager.getLogManager().readConfiguration(resource.openStream());
+					try (var is = resource.openStream()) {
+						LogManager.getLogManager().readConfiguration(is);
+					}
+					catch (SecurityException | IOException e) {
+						throw new RuntimeException("Cannot load logging.properties file", e);
+					}
 			}
 
 			tendermintBlockchain = null; // Tendermint would reassign
@@ -249,10 +254,9 @@ public abstract class HotmokaTest {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-
 			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, (ValidatorsConsensusConfig) consensus, takamakaCode);
+				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
 			else
 				InitializedNodes.of(node, consensus, takamakaCode);
 		}
