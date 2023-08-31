@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module defines constants about Takamaka and Hotmoka.
+ */
 module io.hotmoka.constants {
 	exports io.hotmoka.constants;
 }

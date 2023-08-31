@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-constants</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines constants about Takamaka and Hotmoka.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
