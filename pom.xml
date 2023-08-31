@@ -117,7 +117,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-marshalling-api</module>
     <module>io-hotmoka-marshalling</module>
     <module>io-hotmoka-exceptions</module>
-    <module>io-hotmoka-examples</module>
   </modules>
 
   <!-- typical dependencies if submodules use JUnit 5 -->
@@ -273,7 +272,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 <!-- we exclude all modules built by Maven: their build will put them at the right place -->
                 io-takamaka-code,
                 io-hotmoka-constants,
-                io-hotmoka-examples,
                 io-hotmoka-instrumentation-api,
                 io-hotmoka-instrumentation,
                 io-hotmoka-verification-api,
@@ -457,6 +455,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
         <activeByDefault>true</activeByDefault>
       </activation>
       <modules>
+        <module>io-hotmoka-examples</module>
         <module>io-hotmoka-tests</module>
       </modules>
     </profile>
