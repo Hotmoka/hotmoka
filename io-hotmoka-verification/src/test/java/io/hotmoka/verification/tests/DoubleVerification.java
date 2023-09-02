@@ -39,7 +39,7 @@ class DoubleVerification {
 	
 	@Test
 	void verifyTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
-		var origin = Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
+		var origin = Paths.get("src","test","resources", "io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
 		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var bytesOfClasspath = Files.readAllBytes(classpath);

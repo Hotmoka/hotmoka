@@ -42,12 +42,6 @@
 	</dependency>
 	<dependency>
 	  <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-examples</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>test</scope>
-	</dependency>
-	<dependency>
-	  <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>
       <version>${takamaka.version}</version>
       <scope>test</scope>
