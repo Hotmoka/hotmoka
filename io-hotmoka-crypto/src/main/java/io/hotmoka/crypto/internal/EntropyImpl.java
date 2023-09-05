@@ -69,7 +69,7 @@ public class EntropyImpl implements Entropy	 {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public EntropyImpl(String filePrefix) throws IOException {
-		try (PemReader reader = new PemReader(new FileReader(filePrefix + ".pem"))) {
+		try (var reader = new PemReader(new FileReader(filePrefix + ".pem"))) {
 			entropy = reader.readPemObject().getContent();
 		}
 
@@ -114,29 +114,29 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	@Override
-	public String dump(Path where, String filePrefix) throws IOException {
-		PemObject pemObject = new PemObject("ENTROPY", entropy);
+	public Path dump(Path where, String filePrefix) throws IOException {
+		var pemObject = new PemObject("ENTROPY", entropy);
 		String fileName = filePrefix + ".pem";
 		Path resolved = where.resolve(fileName);
 
-		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
+		try (var pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
 			pemWriter.writeObject(pemObject);
 		}
 
-		return resolved.toString();
+		return resolved;
 	}
 
 	@Override
-	public String dump(String filePrefix) throws IOException {
-		PemObject pemObject = new PemObject("ENTROPY", entropy);
+	public Path dump(String filePrefix) throws IOException {
+		var pemObject = new PemObject("ENTROPY", entropy);
 		String fileName = filePrefix + ".pem";
 		Path resolved = Path.of(fileName);
 
-		try (PemWriter pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
+		try (var pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
 			pemWriter.writeObject(pemObject);
 		}
 
-		return resolved.toString();
+		return resolved;
 	}
 
 	@Override
@@ -152,7 +152,7 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	@Override
-	public int compareTo(io.hotmoka.crypto.api.Entropy other) {
+	public int compareTo(Entropy other) {
 		int diff = getClass().getName().compareTo(other.getClass().getName());
 		if (diff != 0)
 			return diff;

@@ -105,7 +105,7 @@ public class InitMemory extends AbstractCommand {
 			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			MemoryBlockchainConfig nodeConfig = new MemoryBlockchainConfig.Builder()
+			var nodeConfig = new MemoryBlockchainConfig.Builder()
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
 				.build();

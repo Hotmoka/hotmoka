@@ -16,15 +16,16 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.Base64;
+import java.util.function.Function;
 
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.api.Entropy;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -51,8 +52,8 @@ public class CreateKey extends AbstractCommand {
 
 		private Run() throws Exception {
 			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", interactive, false);
-			var signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
-			Entropy entropy = Entropies.random();
+			var signatureAlgorithmOfNewAccount = SignatureAlgorithms.ed25519(Function.identity());
+			var entropy = Entropies.random();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
 			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());
 			var publicKeyBase58 = Base58.encode(publicKeyBytes);
@@ -64,17 +65,17 @@ public class CreateKey extends AbstractCommand {
 				byte[] privateKey = signatureAlgorithmOfNewAccount.encodingOf(keys.getPrivate());
 				System.out.println("Private key Base58: " + Base58.encode(privateKey));
 				System.out.println("Private key Base64: " + Base64.getEncoder().encodeToString(privateKey));
-				byte[] concatenated = new byte[privateKey.length + publicKeyBytes.length];
+				var concatenated = new byte[privateKey.length + publicKeyBytes.length];
 				System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
 				System.arraycopy(publicKeyBytes, 0, concatenated, privateKey.length, publicKeyBytes.length);
 				System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
 			}
 
-			byte[] hashedKey = HashingAlgorithms.sha256((byte[] bytes) -> bytes).hash(publicKeyBytes);
+			byte[] hashedKey = HashingAlgorithms.sha256(Function.identity()).hash(publicKeyBytes);
 			String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 			System.out.println("Tendermint-like address: " + hex);
 
-			String fileName = entropy.dump(publicKeyBase58);
+			Path fileName = entropy.dump(publicKeyBase58);
 			System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 		}
 	}

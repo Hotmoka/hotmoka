@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
+import java.nio.file.Path;
 import java.util.Base64;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -60,7 +61,7 @@ public class BindKey extends AbstractCommand {
 
 		var account = Accounts.of(Entropies.load(key), storageReference);
 		System.out.println("A new account " + account + " has been created.");
-		String fileName = account.dump();
+		Path fileName = account.dump();
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	}
 

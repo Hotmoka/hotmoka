@@ -144,7 +144,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 
 	@Override
 	public byte[] readBytes(int length, String errorMessage) throws IOException {
-		byte[] bytes = new byte[length];
+		var bytes = new byte[length];
 		if (length != ois.readNBytes(bytes, 0, length))
 			throw new IOException(errorMessage);
 

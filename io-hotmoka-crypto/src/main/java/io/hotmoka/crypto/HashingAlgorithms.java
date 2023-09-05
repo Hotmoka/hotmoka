@@ -75,7 +75,7 @@ public final class HashingAlgorithms {
 			return (HashingAlgorithm<T>) method.invoke(null, supplier);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("unknown hashing algorithm named " + name, e);
+			throw new NoSuchAlgorithmException("Unknown hashing algorithm named " + name, e);
 		}
 	}
 

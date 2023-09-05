@@ -90,12 +90,12 @@ public abstract class AbstractAccountImpl<R extends Comparable<? super R>> exten
 	}
 
 	@Override
-	public String dump(Path where) throws IOException {
+	public Path dump(Path where) throws IOException {
 		return super.dump(where, toString());
 	}
 
 	@Override
-	public String dump() throws IOException {
+	public Path dump() throws IOException {
 		return dump(toString());
 	}
 

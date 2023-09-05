@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.Base64;
@@ -106,7 +107,7 @@ public class RotateKey extends AbstractCommand {
 					rotateKey();
 					var rotatedAccount = Accounts.of(entropy, account);
 		            System.out.println("The key of the account " + rotatedAccount + " has been rotated.");
-		            String fileName = rotatedAccount.dump();
+		            Path fileName = rotatedAccount.dump();
 		            System.out.println("Its new entropy has been saved into the file \"" + fileName + "\".");
 		            printPassphrase(rotatedAccount);
 				}

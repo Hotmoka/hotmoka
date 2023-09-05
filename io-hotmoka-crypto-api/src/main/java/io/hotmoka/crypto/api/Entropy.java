@@ -46,19 +46,19 @@ public interface Entropy extends Comparable<Entropy> {
 	 * 
 	 * @param where the directory where the file must be dumped
 	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
+	 * @return the full path of the PEM file ({@code filePrefix} followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	String dump(Path where, String filePrefix) throws IOException;
+	Path dump(Path where, String filePrefix) throws IOException;
 
 	/**
 	 * Dumps this entropy into a PEM file in the current directory.
 	 * 
 	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full name of the PEM file ({@code filePrefix} followed by {@code .pem})
+	 * @return the full path of the PEM file ({@code filePrefix} followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	String dump(String filePrefix) throws IOException;
+	Path dump(String filePrefix) throws IOException;
 
 	/**
 	 * Deletes the PEM file in the current directory.

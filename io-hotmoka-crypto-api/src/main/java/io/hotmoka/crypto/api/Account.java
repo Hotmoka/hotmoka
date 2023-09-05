@@ -40,19 +40,19 @@ public interface Account<R extends Comparable<? super R>> extends Entropy {
 	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
 	 * 
 	 * @param where the directory where the file must be dumped
-	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
+	 * @return the full path of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	String dump(Path where) throws IOException;
+	Path dump(Path where) throws IOException;
 
 	/**
 	 * Dumps the entropy of this account into a PEM file, in the current directory,
 	 * with the name of the reference of this account.
 	 * 
-	 * @return the full name of the PEM file (name of the reference of this account followed by {@code .pem})
+	 * @return the full path of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	String dump() throws IOException;
+	Path dump() throws IOException;
 
 	/**
 	 * Removes the PEM file, in the current directory,
