@@ -23,6 +23,7 @@ import java.io.ObjectInputStream;
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 
 import io.hotmoka.marshalling.api.Marshallable;
@@ -69,8 +70,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	public <C> C readObject(Class<C> clazz) throws IOException {
 		@SuppressWarnings("unchecked")
 		var ou = (ObjectUnmarshaller<C>) objectUnmarshallers.get(clazz);
-		if (ou == null)
-			throw new IllegalStateException("missing object unmarshaller for class " + clazz.getName());
+		Objects.requireNonNull(ou, "Missing object unmarshaller for class " + clazz.getName());
 
 		return ou.read(this);
 	}

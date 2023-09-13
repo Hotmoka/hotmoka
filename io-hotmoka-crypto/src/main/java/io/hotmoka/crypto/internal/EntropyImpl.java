@@ -78,6 +78,21 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	/**
+	 * Reads the entropy information from a PEM file.
+	 * 
+	 * @param path the file
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public EntropyImpl(Path path) throws IOException {
+		try (var reader = new PemReader(new FileReader(path.toFile()))) {
+			entropy = reader.readPemObject().getContent();
+		}
+
+		if (entropy.length != 16)
+			throw new IllegalArgumentException("illegal entropy length: 16 bytes expected");
+	}
+
+	/**
 	 * Copy constructor.
 	 * 
 	 * @param parent the entropy to clone

@@ -86,16 +86,16 @@ public class BIP39MnemonicImpl implements BIP39Mnemonic {
     @Override
     public <R extends Comparable<? super R>> Account<R> toAccount(BiFunction<Entropy, byte[], Account<R>> accountCreator) {
         // each mnemonic word represents 11 bits
-        boolean[] bits = new boolean[words.length * 11];
+        var bits = new boolean[words.length * 11];
         
         // the transaction is always 32 bytes long
-        byte[] transaction = new byte[32];
+        var transaction = new byte[32];
 
         int bitsOfChecksum = words.length / 3;
-        boolean[] checksum = new boolean[bitsOfChecksum];
+        var checksum = new boolean[bitsOfChecksum];
 
         // the entropy uses the remaining number of bytes
-        byte[] entropy = new byte[(bits.length - bitsOfChecksum) / 8 - transaction.length];
+        var entropy = new byte[(bits.length - bitsOfChecksum) / 8 - transaction.length];
 
         int startOfTransaction = entropy.length * 8;
         int startOfChecksum = startOfTransaction + transaction.length * 8;
@@ -138,11 +138,11 @@ public class BIP39MnemonicImpl implements BIP39Mnemonic {
         	throw new RuntimeException("unexpected exception", e);
         }
 
-        byte[] merge = new byte[entropy.length + transaction.length];
+        var merge = new byte[entropy.length + transaction.length];
     	System.arraycopy(entropy, 0, merge, 0, entropy.length);
     	System.arraycopy(transaction, 0, merge, entropy.length, transaction.length);
         byte[] sha256 = digest.digest(merge);
-        boolean[] checksumRecomputed = new boolean[bitsOfChecksum];
+        var checksumRecomputed = new boolean[bitsOfChecksum];
         for (pos = 0; pos < bitsOfChecksum; pos++)
             checksumRecomputed[pos] = (sha256[pos] & (0x80 >>> (pos % 8))) != 0;
 

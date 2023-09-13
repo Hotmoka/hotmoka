@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.crypto;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.security.SecureRandom;
 
 import io.hotmoka.crypto.api.Entropy;
@@ -55,8 +56,25 @@ public final class Entropies {
 	 * @return the entropy
 	 * @throws IOException if the PEM file cannot be read
 	 */
+	@Deprecated
 	public static Entropy load(String filePrefix) throws IOException {
 		return new EntropyImpl(filePrefix);
+	}
+
+	/**
+	 * Yields new entropy information read from a PEM file.
+	 * 
+	 * @param path the file
+	 * @return the entropy
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public static Entropy load(Path path) throws IOException {
+		long length = path.toFile().length();
+		// without this check, the access to the file would take very long and terminate with an error anyway
+		if (length > 1000L)
+			throw new IOException("The pem file " + path + " is too long for being a PEM file!");
+
+		return new EntropyImpl(path);
 	}
 
 	/**

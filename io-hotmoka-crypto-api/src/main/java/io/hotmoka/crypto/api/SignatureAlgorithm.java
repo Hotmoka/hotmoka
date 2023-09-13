@@ -68,7 +68,7 @@ public interface SignatureAlgorithm<T> {
 	 * 
 	 * @param encoding the encoded version of the public key
 	 * @return the public key
-	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 * @throws InvalidKeySpecException if {@code encoding} does not match the expected specification
 	 */
 	PublicKey publicKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
 
@@ -87,7 +87,7 @@ public interface SignatureAlgorithm<T> {
 	 * 
 	 * @param encoding the encoded version of the private key
 	 * @return the private key
-	 * @throws InvalidKeySpecException if the {@code encoded} key does not match the expected specification
+	 * @throws InvalidKeySpecException if {@code encoding} does not match the expected specification
 	 */
 	PrivateKey privateKeyFromEncoding(byte[] encoding) throws InvalidKeySpecException;
 
