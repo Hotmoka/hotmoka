@@ -17,15 +17,14 @@ limitations under the License.
 package io.hotmoka.verification.tests;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
+import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
@@ -35,7 +34,7 @@ import io.hotmoka.verification.VerifiedJars;
  * that verification does not modify static information of the verified jar,
  * hence it can be applied twice without exceptions.
  */
-class DoubleVerification {
+class DoubleVerification extends AbstractLoggedTests {
 	
 	@Test
 	void verifyTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
@@ -46,20 +45,5 @@ class DoubleVerification {
     	var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
     	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
     	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
-	}
-
-	static {
-		String current = System.getProperty("java.util.logging.config.file");
-		if (current == null) {
-			// if the property is not set, we provide a default (if it exists)
-			URL resource = DoubleVerification.class.getClassLoader().getResource("logging.properties");
-			if (resource != null)
-				try (var is = resource.openStream()) {
-					LogManager.getLogManager().readConfiguration(is);
-				}
-			catch (SecurityException | IOException e) {
-				throw new RuntimeException("Cannot load logging.properties file", e);
-			}
-		}
 	}
 }

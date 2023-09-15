@@ -18,19 +18,17 @@ package io.hotmoka.crypto.tests;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.IOException;
-import java.net.URL;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.testing.AbstractLoggedTests;
 
-public class QTESLA1 {
+public class QTESLA1 extends AbstractLoggedTests {
     private final String data = "HELLO QTESLA SCHEME";
 
     @Test
@@ -69,19 +67,4 @@ public class QTESLA1 {
         assertTrue(isCorruptedDataWithEncodedKey, "corrupted data is verified with the encoded key");
         assertTrue(keyPair.getPublic().equals(publicKey), "the public keys do not match");
     }
-
-    static {
-		String current = System.getProperty("java.util.logging.config.file");
-		if (current == null) {
-			// if the property is not set, we provide a default (if it exists)
-			URL resource = QTESLA1.class.getClassLoader().getResource("logging.properties");
-			if (resource != null)
-				try (var is = resource.openStream()) {
-					LogManager.getLogManager().readConfiguration(is);
-				}
-			catch (SecurityException | IOException e) {
-				throw new RuntimeException("Cannot load logging.properties file", e);
-			}
-		}
-	}
 }

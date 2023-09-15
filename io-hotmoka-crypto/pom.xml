@@ -24,7 +24,12 @@
       <groupId>org.bouncycastle</groupId>
       <artifactId>bcprov-jdk15on</artifactId>
       <version>1.70</version>
-      <type>jar</type>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-testing</artifactId>
+      <version>${hotmoka.version}</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 

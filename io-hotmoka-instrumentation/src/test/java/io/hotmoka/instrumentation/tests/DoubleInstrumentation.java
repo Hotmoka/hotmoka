@@ -17,10 +17,8 @@ limitations under the License.
 package io.hotmoka.instrumentation.tests;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.logging.LogManager;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
@@ -28,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.InstrumentedJars;
+import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
@@ -38,7 +37,7 @@ import io.hotmoka.verification.VerifiedJars;
  * that translation does not modify static information of the verified jar,
  * hence it can be applied twice without exceptions.
  */
-class DoubleInstrumentation {
+class DoubleInstrumentation extends AbstractLoggedTests {
 
 	@Test
 	void translateTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
@@ -51,20 +50,5 @@ class DoubleInstrumentation {
     	var costModel = GasCostModels.standard();
 		InstrumentedJars.of(verifiedJar, costModel);
     	InstrumentedJars.of(verifiedJar, costModel);
-	}
-
-	static {
-		String current = System.getProperty("java.util.logging.config.file");
-		if (current == null) {
-			// if the property is not set, we provide a default (if it exists)
-			URL resource = DoubleInstrumentation.class.getClassLoader().getResource("logging.properties");
-			if (resource != null)
-				try (var is = resource.openStream()) {
-					LogManager.getLogManager().readConfiguration(is);
-				}
-			catch (SecurityException | IOException e) {
-				throw new RuntimeException("Cannot load logging.properties file", e);
-			}
-		}
 	}
 }

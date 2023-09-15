@@ -21,8 +21,10 @@ package io.hotmoka.whitelisting;
  */
 public abstract class WhitelistingConstants {
 
+	private WhitelistingConstants() {}
+
 	/**
-	 * The name of the class {@link #io.hotmoka.whitelisting.Dummy}.
+	 * The name of the class {@link io.hotmoka.whitelisting.Dummy}.
 	 */
 	public final static String DUMMY_NAME = Dummy.class.getName();
 

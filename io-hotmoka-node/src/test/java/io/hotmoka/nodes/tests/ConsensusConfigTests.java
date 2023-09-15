@@ -20,12 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
-import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,8 +31,9 @@ import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.testing.AbstractLoggedTests;
 
-public class ConsensusConfigTests {
+public class ConsensusConfigTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
@@ -66,20 +65,5 @@ public class ConsensusConfigTests {
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
 		var config2 = ValidatorsConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
-	}
-
-	static {
-		String current = System.getProperty("java.util.logging.config.file");
-		if (current == null) {
-			// if the property is not set, we provide a default (if it exists)
-			URL resource = ConsensusConfigTests.class.getClassLoader().getResource("logging.properties");
-			if (resource != null)
-				try (var is = resource.openStream()) {
-					LogManager.getLogManager().readConfiguration(is);
-				}
-				catch (SecurityException | IOException e) {
-					throw new RuntimeException("Cannot load logging.properties file", e);
-				}
-		}
 	}
 }

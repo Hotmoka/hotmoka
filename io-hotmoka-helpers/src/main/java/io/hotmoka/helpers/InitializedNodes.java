@@ -92,6 +92,8 @@ public class InitializedNodes {
 	/**
 	 * An algorithm that yields an object in the store of a node, given
 	 * the node and the reference to the basic classes in its store.
+	 * 
+	 * @param <C> the type of the consensus parameters of the node
 	 */
 	public interface ProducerOfStorageObject<C extends ConsensusConfig> {
 
