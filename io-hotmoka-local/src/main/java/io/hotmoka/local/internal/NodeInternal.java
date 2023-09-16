@@ -24,9 +24,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
@@ -88,26 +86,6 @@ public interface NodeInternal {
 	 * @return the time
 	 */
 	long getNow();
-
-	/**
-	 * Yields the base cost of the given transaction. Normally, this is just
-	 * {@code request.size()}, but subclasses might redefine.
-	 * 
-	 * @param request the request of the transaction
-	 * @return the base cost of the transaction
-	 */
-	int getRequestStorageCost(NonInitialTransactionRequest<?> request);
-
-	/**
-	 * Determines if the given initial transaction can still be run after the
-	 * initialization of the node. Normally, this is false. However, specific
-	 * implementations of the node might redefine and allow it.
-	 * 
-	 * @param request the request
-	 * @return true if only if the execution of {@code request} is allowed
-	 *         also after the initialization of this node
-	 */
-	boolean admitsAfterInitialization(InitialTransactionRequest<?> request);
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

@@ -147,7 +147,7 @@ class NetworkFromNode extends HotmokaTest {
 		}
 
 		assertNotNull(errorModel);
-		assertEquals("cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
+		assertEquals("Cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
 		assertEquals(TransactionRejectedException.class.getName(), errorModel.exceptionClassName);
 	}
 

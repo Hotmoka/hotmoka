@@ -51,7 +51,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
@@ -767,19 +766,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	}
 
 	/**
-	 * Clears the caches of this node.
-	 */
-	protected void invalidateCaches() {
-		caches.invalidate();
-		gasConsumedSinceLastReward = ZERO;
-		coinsSinceLastReward = ZERO;
-		coinsSinceLastRewardWithoutInflation = ZERO;
-		numberOfTransactionsSinceLastReward = ZERO;
-		recentCheckTransactionErrors.clear();
-		logger.info("the caches of the node have been invalidated");
-	}
-
-	/**
 	 * Invalidates the caches, if needed, after the addition of the given response into store.
 	 * 
 	 * @param response the store
@@ -788,17 +774,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		caches.invalidateIfNeeded(response, classLoader);
-	}
-
-	/**
-	 * Yields the base cost of the given transaction. Normally, this is just
-	 * {@code request.size()}, but subclasses might redefine.
-	 * 
-	 * @param request the request of the transaction
-	 * @return the base cost of the transaction
-	 */
-	protected int getRequestStorageCost(NonInitialTransactionRequest<?> request) {
-		return request.size();
 	}
 
 	/**
@@ -827,20 +802,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
     	else if (request instanceof InitializationTransactionRequest)
     		return new InitializationResponseBuilder(reference, (InitializationTransactionRequest) request, internal);
     	else
-    		throw new TransactionRejectedException("unexpected transaction request of class " + request.getClass().getName());
-	}
-
-	/**
-	 * Determines if the given initial transaction can still be run after the
-	 * initialization of the node. Normally, this is false. However, specific
-	 * implementations of the node might redefine and allow it.
-	 * 
-	 * @param request the request
-	 * @return true if only if the execution of {@code request} is allowed
-	 *         also after the initialization of this node
-	 */
-	protected boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
-		return false;
+    		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	/**
@@ -1010,16 +972,6 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		@Override
 		public StoreUtilities getStoreUtilities() {
 			return storeUtilities;
-		}
-
-		@Override
-		public int getRequestStorageCost(NonInitialTransactionRequest<?> request) {
-			return AbstractLocalNode.this.getRequestStorageCost(request);
-		}
-
-		@Override
-		public boolean admitsAfterInitialization(InitialTransactionRequest<?> request) {
-			return AbstractLocalNode.this.admitsAfterInitialization(request);
 		}
 
 		@Override

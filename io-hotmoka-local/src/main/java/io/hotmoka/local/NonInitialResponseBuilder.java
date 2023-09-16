@@ -422,7 +422,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
-			chargeGasForStorage(BigInteger.valueOf(node.getRequestStorageCost(request)));
+			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
 			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedPayer);

@@ -162,7 +162,7 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 		// we go straight to the transaction that created the object
 		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.transaction);
 		if (!(response.get() instanceof TransactionResponseWithUpdates))
-			throw new RuntimeException("transaction reference " + reference.transaction + " does not contain updates");
+			throw new RuntimeException("Transaction reference " + reference.transaction + " does not contain updates");
 
 		return ((TransactionResponseWithUpdates) response.get()).getUpdates()
 			.filter(update -> update instanceof ClassTag && update.object.equals(reference))
@@ -260,10 +260,10 @@ public class StoreUtilitiesImpl implements StoreUtilities {
 	 */
 	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
-			.orElseThrow(() -> new RuntimeException("unknown transaction reference " + transaction));
+			.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + transaction));
 	
 		if (!(response instanceof TransactionResponseWithUpdates))
-			throw new RuntimeException("transaction reference " + transaction + " does not contain updates");
+			throw new RuntimeException("Transaction reference " + transaction + " does not contain updates");
 
 		return ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update instanceof UpdateOfField)

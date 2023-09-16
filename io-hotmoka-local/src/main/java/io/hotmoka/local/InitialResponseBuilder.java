@@ -43,8 +43,8 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 		super(reference, request, node);
 
 		try {
-			if (!node.admitsAfterInitialization(request) && node.getStoreUtilities().nodeIsInitializedUncommitted())
-				throw new TransactionRejectedException("cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
+			if (node.getStoreUtilities().nodeIsInitializedUncommitted())
+				throw new TransactionRejectedException("Cannot run a " + request.getClass().getSimpleName() + " in an already initialized node");
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
