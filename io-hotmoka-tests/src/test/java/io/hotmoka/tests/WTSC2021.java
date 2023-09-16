@@ -89,7 +89,7 @@ class WTSC2021 extends HotmokaTest {
 	private void run(int num) {
 		StorageReference from = account(num);
 		PrivateKey key = privateKey(num);
-		Random random = new Random();
+		var random = new Random();
 
 		try {
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {

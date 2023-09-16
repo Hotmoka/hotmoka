@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,7 +37,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -90,9 +88,10 @@ import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
+import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
 
-public abstract class HotmokaTest {
+public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000);
 	protected static final BigInteger _500_000 = BigInteger.valueOf(500_000);
@@ -173,19 +172,6 @@ public abstract class HotmokaTest {
 
 	static {
 		try {
-			String current = System.getProperty("java.util.logging.config.file");
-			if (current == null) {
-				// if the property is not set, we provide a default (if it exists)
-				URL resource = HotmokaTest.class.getClassLoader().getResource("logging.properties");
-				if (resource != null)
-					try (var is = resource.openStream()) {
-						LogManager.getLogManager().readConfiguration(is);
-					}
-					catch (SecurityException | IOException e) {
-						throw new RuntimeException("Cannot load logging.properties file", e);
-					}
-			}
-
 			tendermintBlockchain = null; // Tendermint would reassign
 
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
