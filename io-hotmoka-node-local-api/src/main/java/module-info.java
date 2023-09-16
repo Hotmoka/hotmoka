@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.memory {
-	exports io.hotmoka.memory;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.local;
-	requires io.hotmoka.stores;
-	requires transitive io.hotmoka.node;
-	requires io.hotmoka.beans;
-	requires java.logging;
-	requires io.hotmoka.marshalling.api;
+/**
+ * This module defines the API of a local Hotmoka node.
+ */
+module io.hotmoka.node.local.api {
+	exports io.hotmoka.node.local.api;
+
+	requires transitive io.hotmoka.beans;
+	requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.verification.api;
+	requires io.hotmoka.whitelisting.api;
 }

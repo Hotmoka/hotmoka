@@ -19,7 +19,7 @@ package io.hotmoka.tendermint;
 import java.nio.file.Path;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.local.Config;
+import io.hotmoka.node.local.Config;
 
 /**
  * The configuration of a Tendermint blockchain.
@@ -61,7 +61,7 @@ public class TendermintBlockchainConfig extends Config {
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class Builder extends io.hotmoka.local.Config.Builder<Builder> {
+	public static class Builder extends io.hotmoka.node.local.Config.Builder<Builder> {
 		private int maxPingAttempts = 20;
 		private int pingDelay = 200;
 		private Path tendermintConfigurationToClone;

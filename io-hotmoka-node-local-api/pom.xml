@@ -1,11 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-memory</artifactId>
+  <artifactId>io-hotmoka-node-local-api</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-memory</name>
+  <name>io-hotmoka-node-local-api</name>
   <version>${hotmoka.version}</version>
+  <description>This module defines the API of a local Hotmoka node.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -16,32 +16,17 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-local</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-annotations</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-stores</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-marshalling-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>

@@ -2,10 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-tendermint</artifactId>
+  <artifactId>io-hotmoka-node-local</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-tendermint</name>
+  <name>io-hotmoka-node-local</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements a local Hotmoka node.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -16,7 +17,12 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-tendermint-abci</artifactId>
+      <artifactId>io-hotmoka-node-local-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+	<dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-constants</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
@@ -26,38 +32,38 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-helpers</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-stores</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node-local</artifactId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
+      <artifactId>io-hotmoka-verification</artifactId>
       <version>${hotmoka.version}</version>
-    </dependency>
-	<dependency>
-      <groupId>com.google.code.gson</groupId>
-      <artifactId>gson</artifactId>
-      <version>2.8.9</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>toml4j</artifactId>
-      <version>0.7.3</version>
+      <artifactId>io-hotmoka-instrumentation</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
   </dependencies>
 

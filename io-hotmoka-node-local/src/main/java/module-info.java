@@ -14,20 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.tendermint {
-	exports io.hotmoka.tendermint;
-	exports io.hotmoka.tendermint.helpers;
-	exports io.hotmoka.tendermint.internal.beans to com.google.gson;
-	requires io.hotmoka.tendermint.abci;
-	requires toml4j;
+/**
+ * This module implements a local Hotmoka node.
+ */
+module io.hotmoka.node.local {
+	exports io.hotmoka.node.local;
+	
+	// classes inside this package will be used only at run time,
+	// by instrumented Takamaka code: we do not want to export it:
+	// we make them visible at compile time only instead
+	opens io.hotmoka.node.local.internal.runtime;
+
+	requires transitive io.hotmoka.node.local.api;
+	requires transitive io.hotmoka.node;
 	requires io.hotmoka.stores;
-	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
+	requires io.hotmoka.beans;
+	requires io.hotmoka.crypto;
+	requires io.hotmoka.instrumentation;
+	requires io.hotmoka.verification;
+	requires io.hotmoka.constants;
+	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
-	requires io.hotmoka.node;
-	requires transitive io.hotmoka.helpers;
-	requires io.hotmoka.node.local;
-	requires com.google.gson;
-	requires com.google.protobuf;
 	requires java.logging;
 }

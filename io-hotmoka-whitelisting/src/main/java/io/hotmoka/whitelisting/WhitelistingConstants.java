@@ -29,9 +29,9 @@ public abstract class WhitelistingConstants {
 	public final static String DUMMY_NAME = Dummy.class.getName();
 
 	/**
-	 * The name of the class {@code io.hotmoka.local.internal.runtime.Runtime}.
+	 * The name of the class {@code io.hotmoka.node.local.internal.runtime.Runtime}.
 	 * This is treated specially in terms of white-listing, since its methods
 	 * are allowed in instrumented code.
 	 */
-	public final static String RUNTIME_NAME = "io.hotmoka.local.internal.runtime.Runtime";
+	public final static String RUNTIME_NAME = "io.hotmoka.node.local.internal.runtime.Runtime";
 }
