@@ -143,8 +143,8 @@ public class NodeCachesImpl implements NodeCache {
 	 */
 	public NodeCachesImpl(NodeInternal node, ConsensusConfig consensus) {
 		this.node = node;
-		this.requests = new LRUCache<>(100, node.getConfig().requestCacheSize);
-		this.responses = new LRUCache<>(100, node.getConfig().responseCacheSize);
+		this.requests = new LRUCache<>(100, node.getConfig().getRequestCacheSize());
+		this.responses = new LRUCache<>(100, node.getConfig().getResponseCacheSize());
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();

@@ -285,7 +285,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
 		if (isView())
-			maxGas = node.getConfig().maxGasPerViewTransaction;
+			maxGas = node.getConfig().getMaxGasPerViewTransaction();
 		else
 			maxGas = consensus.getMaxGasPerTransaction();
 

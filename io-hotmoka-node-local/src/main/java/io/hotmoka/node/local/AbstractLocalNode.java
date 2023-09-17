@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.local.api.Config;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.AbstractStore;
 

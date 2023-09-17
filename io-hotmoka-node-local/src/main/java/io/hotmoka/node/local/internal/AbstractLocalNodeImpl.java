@@ -81,7 +81,7 @@ import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.node.local.Config;
+import io.hotmoka.node.local.api.Config;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -234,8 +234,8 @@ public abstract class AbstractLocalNodeImpl<C extends Config, S extends Abstract
 
 		if (deleteDir) {
 			try {
-				deleteRecursively(config.dir);  // cleans the directory where the node's data live
-				Files.createDirectories(config.dir);
+				deleteRecursively(config.getDir());  // cleans the directory where the node's data live
+				Files.createDirectories(config.getDir());
 			}
 			catch (IOException e) {
 			}
@@ -305,7 +305,7 @@ public abstract class AbstractLocalNodeImpl<C extends Config, S extends Abstract
 			if (semaphore != null)
 				semaphore.acquire();
 	
-			for (int attempt = 1, delay = config.pollingDelay; attempt <= Math.max(1, config.maxPollingAttempts); attempt++, delay = delay * 110 / 100)
+			for (int attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
 				try {
 					// we enforce that both request and response are available
 					TransactionResponse response = getResponse(reference);
@@ -316,7 +316,7 @@ public abstract class AbstractLocalNodeImpl<C extends Config, S extends Abstract
 					Thread.sleep(delay);
 				}
 
-			throw new TimeoutException("cannot find the response of transaction reference " + reference + ": tried " + config.maxPollingAttempts + " times");
+			throw new TimeoutException("cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
 			throw e;

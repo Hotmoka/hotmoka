@@ -241,7 +241,8 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 
 	@Override
 	public String toToml() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
+
 		sb.append("# This is a TOML config file for the consensus of a Hotmoka network.\n");
 		sb.append("# For more information about TOML, see https://github.com/toml-lang/toml\n");
 		sb.append("# For more information about Hotmoka, see https://www.hotmoka.io\n");
@@ -801,9 +802,6 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 			this.ticketForNewPoll = ticketForNewPoll;
 			return getThis();
 		}
-
-		@Override
-		public abstract ConsensusConfig build();
 	
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
