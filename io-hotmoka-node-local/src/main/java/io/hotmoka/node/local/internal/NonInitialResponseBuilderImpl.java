@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local;
+package io.hotmoka.node.local.internal;
 
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
@@ -46,16 +46,15 @@ import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
 /**
- * The creator of the response for a non-initial transaction. Non-initial transactions consume gas,
+ * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
  * have a payer a nonce and a chain identifier and are signed. The constructor of this class checks
  * the validity of all these elements.
  */
-public abstract class NonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
-	protected final static Logger logger = Logger.getLogger(NonInitialResponseBuilder.class.getName());
+public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
+	private final static Logger LOGGER = Logger.getLogger(NonInitialResponseBuilderImpl.class.getName());
 
 	/**
 	 * The cost model of the node for which the transaction is being built.
@@ -70,7 +69,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
 		super(reference, request, node);
 
 		try {
@@ -88,18 +87,6 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
 		}
-	}
-
-	/**
-	 * Creates a the builder of the response.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request of the transaction
-	 * @param node the node that is creating the response
-	 * @throws TransactionRejectedException if the builder cannot be built
-	 */
-	protected NonInitialResponseBuilder(TransactionReference reference, Request request, AbstractLocalNode<?,?> node) throws TransactionRejectedException {
-		this(reference, request, node.internal);
 	}
 
 	/**
@@ -411,7 +398,7 @@ public abstract class NonInitialResponseBuilder<Request extends NonInitialTransa
 				this.gas = request.gasLimit;
 			}
 			catch (Throwable t) {
-				logger.log(Level.WARNING, "response creation rejected", t);
+				LOGGER.log(Level.WARNING, "response creation rejected", t);
 				throw wrapAsTransactionRejectedException(t);
 			}
 		}

@@ -1,0 +1,52 @@
+/*
+Copyright 2021 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package io.hotmoka.node.local;
+
+import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.responses.NonInitialTransactionResponse;
+import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.node.local.internal.NonInitialResponseBuilderImpl;
+
+/**
+ * Partial implementation of the creator of the response for a non-initial transaction.
+ * Non-initial transactions consume gas, have a payer, a nonce, a chain identifier and are signed.
+ * The constructor of this class checks the validity of all these elements.
+ */
+public abstract class AbstractNonInitialResponseBuilder
+			<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse>
+	extends NonInitialResponseBuilderImpl<Request, Response> {
+
+	/**
+	 * Creates a the builder of the response.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request of the transaction
+	 * @param node the node that is creating the response
+	 * @throws TransactionRejectedException if the builder cannot be built
+	 */
+	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, node);
+	}
+
+	protected abstract class ResponseCreator extends NonInitialResponseBuilderImpl<Request, Response>.ResponseCreator {
+
+		protected ResponseCreator() throws TransactionRejectedException {
+		}
+	}
+}

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local;
+package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
@@ -23,13 +23,12 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.InitialTransactionResponse;
-import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
 /**
- * The creator of the response for an initial transaction. Initial transactions do not consume gas.
+ * Implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
  */
-public abstract class InitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
+public abstract class InitialResponseBuilderImpl<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse> extends AbstractResponseBuilder<Request, Response> {
 
 	/**
 	 * Creates the builder of the response.
@@ -39,7 +38,7 @@ public abstract class InitialResponseBuilder<Request extends InitialTransactionR
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
 		super(reference, request, node);
 
 		try {

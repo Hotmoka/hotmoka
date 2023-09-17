@@ -36,7 +36,7 @@ import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NonWhiteListedCallException;
-import io.hotmoka.node.local.NonInitialResponseBuilder;
+import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.Serializer;
 import io.hotmoka.whitelisting.Dummy;
@@ -50,7 +50,9 @@ import io.hotmoka.whitelisting.api.WhiteListingProofObligation;
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse> extends NonInitialResponseBuilder<Request, Response> {
+public abstract class CodeCallResponseBuilder
+			<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse>
+		extends AbstractNonInitialResponseBuilder<Request, Response> {
 
 	/**
 	 * Creates the builder of the response.
@@ -175,7 +177,7 @@ public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTrans
 		return classes.toArray(Class<?>[]::new);
 	}
 
-	protected abstract class ResponseCreator extends NonInitialResponseBuilder<Request, Response>.ResponseCreator {
+	protected abstract class ResponseCreator extends AbstractNonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
 		/**
 		 * The object that serializes RAM values into storage objects.

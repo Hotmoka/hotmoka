@@ -23,7 +23,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.instrumentation.InstrumentedJars;
-import io.hotmoka.node.local.InitialResponseBuilder;
+import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
@@ -34,7 +34,7 @@ import io.hotmoka.verification.VerifiedJars;
 /**
  * Builds the creator of response for a transaction that installs a jar in the node, during its initialization.
  */
-public class JarStoreInitialResponseBuilder extends InitialResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
+public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuilder<JarStoreInitialTransactionRequest, JarStoreInitialTransactionResponse> {
 
 	/**
 	 * Creates the builder of the response.

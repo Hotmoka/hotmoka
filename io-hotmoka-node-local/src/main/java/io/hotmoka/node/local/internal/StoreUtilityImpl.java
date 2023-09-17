@@ -42,9 +42,9 @@ import io.hotmoka.stores.Store;
 /**
  * The implementation of an object that provides methods for reconstructing data from the store of a node.
  */
-public class StoreUtilitiesImpl implements StoreUtility {
+public class StoreUtilityImpl implements StoreUtility {
 
-	private final static Logger logger = Logger.getLogger(StoreUtilitiesImpl.class.getName());
+	private final static Logger logger = Logger.getLogger(StoreUtilityImpl.class.getName());
 
 	/**
 	 * The node whose store is accessed.
@@ -61,7 +61,7 @@ public class StoreUtilitiesImpl implements StoreUtility {
 	 * 
 	 * @param node the node whose store is accessed
 	 */
-	public StoreUtilitiesImpl(NodeInternal node) {
+	public StoreUtilityImpl(NodeInternal node) {
 		this.node = node;
 	}
 
@@ -75,7 +75,7 @@ public class StoreUtilitiesImpl implements StoreUtility {
 	 * @param node the node for which the store utilities are being built
 	 * @param store the store accessed by the store utilities
 	 */
-	public StoreUtilitiesImpl(NodeInternal node, Store store) {
+	public StoreUtilityImpl(NodeInternal node, Store store) {
 		this.node = node;
 		this.store = store;
 	}

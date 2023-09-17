@@ -88,7 +88,7 @@ import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.node.local.internal.LRUCache;
 import io.hotmoka.node.local.internal.NodeCachesImpl;
 import io.hotmoka.node.local.internal.NodeInternal;
-import io.hotmoka.node.local.internal.StoreUtilitiesImpl;
+import io.hotmoka.node.local.internal.StoreUtilityImpl;
 import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
@@ -223,7 +223,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 
 	private AbstractLocalNode(C config, ConsensusConfig consensus, boolean deleteDir) throws IOException {
 		this.config = config;
-		this.storeUtilities = new StoreUtilitiesImpl(internal);
+		this.storeUtilities = new StoreUtilityImpl(internal);
 		this.caches = new NodeCachesImpl(internal, consensus);
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
@@ -266,7 +266,7 @@ public abstract class AbstractLocalNode<C extends Config, S extends AbstractStor
 		this.numberOfTransactionsSinceLastReward = parent.numberOfTransactionsSinceLastReward;
 		this.executor = parent.executor;
 		this.store = mkStore();
-		this.storeUtilities = new StoreUtilitiesImpl(internal, store);
+		this.storeUtilities = new StoreUtilityImpl(internal, store);
 		this.semaphores = parent.semaphores;
 		this.checkTime = parent.checkTime;
 		this.deliverTime = parent.deliverTime;

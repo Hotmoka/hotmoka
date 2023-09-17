@@ -22,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -39,6 +40,7 @@ import io.hotmoka.node.local.internal.NodeInternal;
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
  */
 public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<ConstructorCallTransactionRequest, ConstructorCallTransactionResponse> {
+	private final static Logger LOGGER = Logger.getLogger(ConstructorCallResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -125,7 +127,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				logger.log(Level.INFO, "constructor call failed", t);
+				LOGGER.log(Level.INFO, "constructor call failed", t);
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());

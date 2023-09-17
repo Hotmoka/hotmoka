@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
@@ -28,7 +29,7 @@ import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.instrumentation.InstrumentedJars;
-import io.hotmoka.node.local.NonInitialResponseBuilder;
+import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
@@ -38,7 +39,8 @@ import io.hotmoka.verification.VerifiedJars;
 /**
  * The creator of a response for a transaction that installs a jar in the node.
  */
-public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse> {
+public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse> {
+	private final static Logger LOGGER = Logger.getLogger(JarStoreResponseBuilder.class.getName());
 
 	/**
 	 * Creates the builder of the response.
@@ -80,7 +82,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 		return new ResponseCreator().create();
 	}
 
-	private class ResponseCreator extends NonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse>.ResponseCreator {
+	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse>.ResponseCreator {
 		
 		private ResponseCreator() throws TransactionRejectedException {
 		}
@@ -100,7 +102,7 @@ public class JarStoreResponseBuilder extends NonInitialResponseBuilder<JarStoreT
 				return new JarStoreTransactionSuccessfulResponse(instrumentedBytes, request.getDependencies(), consensus.getVerificationVersion(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
-				logger.log(Level.INFO, "jar store failed", t);
+				LOGGER.log(Level.INFO, "jar store failed", t);
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 				// we do not pay back the gas
 				return new JarStoreTransactionFailedResponse(t.getClass().getName(), t.getMessage(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());

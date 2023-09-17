@@ -22,7 +22,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.hotmoka.node.local.InitialResponseBuilder;
+import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -30,7 +30,7 @@ import io.hotmoka.node.local.internal.NodeInternal;
 /**
  * The creator of a response for a transaction that initializes a node.
  */
-public class InitializationResponseBuilder extends InitialResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> {
+public class InitializationResponseBuilder extends AbstractInitialResponseBuilder<InitializationTransactionRequest, InitializationTransactionResponse> {
 
 	/**
 	 * Creates the builder of the response.

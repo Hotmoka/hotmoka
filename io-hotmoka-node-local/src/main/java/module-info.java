@@ -30,7 +30,6 @@ module io.hotmoka.node.local {
 	requires io.hotmoka.stores;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.beans;
-	requires io.hotmoka.crypto;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
 	requires io.hotmoka.constants;
