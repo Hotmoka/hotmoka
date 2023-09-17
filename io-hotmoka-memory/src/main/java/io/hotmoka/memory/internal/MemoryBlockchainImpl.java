@@ -40,7 +40,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
  */
 @ThreadSafe
 public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
-	private final static Logger logger = Logger.getLogger(MemoryBlockchainImpl.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(MemoryBlockchainImpl.class.getName());
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
@@ -61,13 +61,13 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 			this.mempool = new Mempool(new MemoryBlockchainInternalImpl());
 		}
 		catch (RuntimeException e) {
-			logger.log(Level.SEVERE, "failed to create the memory blockchain", e);
+			LOGGER.log(Level.SEVERE, "failed to create the memory blockchain", e);
 
 			try {
 				close();
 			}
 			catch (Exception e1) {
-				logger.log(Level.SEVERE, "cannot close the blockchain", e1);
+				LOGGER.log(Level.SEVERE, "cannot close the blockchain", e1);
 			}
 
 			throw e;

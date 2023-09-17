@@ -79,7 +79,7 @@ import io.hotmoka.tendermint_abci.Server;
 @ThreadSafe
 public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockchainConfig, Store> implements TendermintBlockchain {
 
-	private final static Logger logger = Logger.getLogger(TendermintBlockchainImpl.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TendermintBlockchainImpl.class.getName());
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -123,18 +123,18 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			logger.info("ABCI started at port " + tendermintConfigFile.abciPort);
+			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.tendermint = new Tendermint(config);
-			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
+			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
 		catch (NoSuchFileException e) {
-			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
+			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
 			tryClose();
 			throw e;
 		}
 		catch (TimeoutException | InterruptedException e) {
-			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
+			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
 			throw new RuntimeException("unexpected exception", e);
 		}
@@ -145,7 +145,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			close();
 		}
 		catch (Exception e) {
-			logger.log(Level.SEVERE, "cannot close the blockchain", e);
+			LOGGER.log(Level.SEVERE, "cannot close the blockchain", e);
 		}
 	}
 
@@ -165,14 +165,14 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(config);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
-			logger.info("ABCI started at port " + tendermintConfigFile.abciPort);
+			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.tendermint = new Tendermint(config);
-			logger.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
+			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 			caches.recomputeConsensus();
 		}
 		catch (TimeoutException | InterruptedException e) {
-			logger.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
+			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
 			throw new RuntimeException(e);
 		}
@@ -224,7 +224,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
 			tendermintValidatorsCached = null;
-			logger.info("the validators set has been invalidated since their information might have changed");
+			LOGGER.info("the validators set has been invalidated since their information might have changed");
 		}
 	}
 
@@ -401,7 +401,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			this.process = spawnTendermintProcess(config);
 			waitUntilTendermintProcessIsUp(config);
 
-			logger.info("The Tendermint process is up and running");
+			LOGGER.info("The Tendermint process is up and running");
 		}
 
 		@Override
@@ -415,10 +415,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 			if (isWindows)
 				// this seems important under Windows
 				try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-					logger.info(br.lines().collect(Collectors.joining()));
+					LOGGER.info(br.lines().collect(Collectors.joining()));
 				}
 
-			logger.info("The Tendermint process has been shut down");
+			LOGGER.info("The Tendermint process has been shut down");
 		}
 
 		/**
@@ -461,7 +461,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				close();
 			}
 			catch (Exception e) {
-				logger.log(Level.SEVERE, "Cannot close the Tendermint process", e);
+				LOGGER.log(Level.SEVERE, "Cannot close the Tendermint process", e);
 			}
 
 			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.maxPingAttempts + " times");
