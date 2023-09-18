@@ -14,21 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory;
+package io.hotmoka.node.disk;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.Node;
 
 /**
- * The configuration of a blockchain on disk memory.
+ * A blockchain node that stores, sequentially, transactions in a directory
+ * on disk memory. It is only meant for experimentation and testing. It does not
+ * form a real blockchain, since there is no peer-to-peer network, nor mining.
+ * Updates are stored inside the blocks, rather than in an external database.
  */
-@Immutable
-public interface MemoryBlockchainConfig extends LocalNodeConfig {
+@ThreadSafe
+public interface DiskNode extends Node {
 
 	/**
-	 * Yields the number of transactions that fit inside a block.
+	 * Yields the configuration of the node.
 	 * 
-	 * @return the number of transactions that fit inside a block
+	 * @return the configuration
 	 */
-	int getTransactionsPerBlock();
+	DiskNodeConfig getConfig();
 }

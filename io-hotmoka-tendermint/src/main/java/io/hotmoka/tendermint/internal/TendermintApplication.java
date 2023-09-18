@@ -31,7 +31,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint_abci.ABCI;
 import tendermint.abci.Types.Evidence;
 import tendermint.abci.Types.RequestBeginBlock;

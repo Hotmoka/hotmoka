@@ -26,8 +26,8 @@ import java.util.Comparator;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
+import io.hotmoka.tendermint.TendermintBlockchains;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -78,7 +78,7 @@ public class StartTendermint extends AbstractCommand {
 			var consensus = ConsensusConfigBuilders.defaults()
 				.build();
 
-			try (var node = TendermintBlockchain.init(nodeConfig, consensus); var service = NodeService.of(networkConfig, node)) {
+			try (var node = TendermintBlockchains.init(nodeConfig, consensus); var service = NodeService.of(networkConfig, node)) {
 				cleanUp();
 				printBanner();
 				waitForEnterKey();

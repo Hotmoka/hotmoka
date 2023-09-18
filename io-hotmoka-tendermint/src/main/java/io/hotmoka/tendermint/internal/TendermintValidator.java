@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tendermint;
+package io.hotmoka.tendermint.internal;
 
 /**
  * The description of a validator of a Tendermint network.

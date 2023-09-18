@@ -24,7 +24,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
-import io.hotmoka.tendermint.TendermintValidator;
 
 /**
  * The view of the Tendermint blockchain that is used in the implementation of the module.

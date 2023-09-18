@@ -67,7 +67,6 @@ import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
-import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint_abci.Server;
 
 /**

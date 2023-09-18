@@ -64,7 +64,7 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-memory</artifactId>
+      <artifactId>io-hotmoka-node-disk</artifactId>
       <version>${hotmoka.version}</version>
       <scope>test</scope>
     </dependency>

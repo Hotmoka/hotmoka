@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory.internal;
+package io.hotmoka.node.disk.internal;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -22,15 +22,15 @@ import java.nio.file.Path;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.memory.MemoryBlockchainConfig;
-import io.hotmoka.memory.MemoryBlockchainConfigBuilder;
+import io.hotmoka.node.disk.DiskNodeConfig;
+import io.hotmoka.node.disk.DiskNodeConfigBuilder;
 import io.hotmoka.node.local.AbstractLocalNodeConfig;
 
 /**
- * The configuration of a blockchain on disk memory.
+ * The configuration of a node on disk memory.
  */
 @Immutable
-public class MemoryBlockchainConfigImpl extends AbstractLocalNodeConfig implements MemoryBlockchainConfig {
+public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskNodeConfig {
 
 	/**
 	 * The number of transactions that fit inside a block.
@@ -43,7 +43,7 @@ public class MemoryBlockchainConfigImpl extends AbstractLocalNodeConfig implemen
 	 * 
 	 * @param the builder
 	 */
-	protected MemoryBlockchainConfigImpl(MemoryBlockchainConfigBuilderImpl builder) {
+	protected DiskNodeConfigImpl(MemoryBlockchainConfigBuilderImpl builder) {
 		super(builder);
 
 		this.transactionsPerBlock = builder.transactionsPerBlock;
@@ -67,14 +67,14 @@ public class MemoryBlockchainConfigImpl extends AbstractLocalNodeConfig implemen
 	}
 
 	@Override
-	public MemoryBlockchainConfigBuilder toBuilder() {
+	public DiskNodeConfigBuilder toBuilder() {
 		return new MemoryBlockchainConfigBuilderImpl(this);
 	}
 
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class MemoryBlockchainConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<MemoryBlockchainConfigBuilder> implements MemoryBlockchainConfigBuilder {
+	public static class MemoryBlockchainConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<DiskNodeConfigBuilder> implements DiskNodeConfigBuilder {
 
 		/**
 		 * The number of transactions that fit inside a block.
@@ -117,7 +117,7 @@ public class MemoryBlockchainConfigImpl extends AbstractLocalNodeConfig implemen
 		 * 
 		 * @param config the configuration object
 		 */
-		protected MemoryBlockchainConfigBuilderImpl(MemoryBlockchainConfig config) {
+		protected MemoryBlockchainConfigBuilderImpl(DiskNodeConfig config) {
 			super(config);
 
 			this.transactionsPerBlock = config.getTransactionsPerBlock();
@@ -130,18 +130,18 @@ public class MemoryBlockchainConfigImpl extends AbstractLocalNodeConfig implemen
 		 * @param transactionsPerBlock the number of transactions that fit inside a block
 		 * @return this builder
 		 */
-		public MemoryBlockchainConfigBuilder setTransactionsPerBlock(int transactionsPerBlock) {
+		public DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock) {
 			this.transactionsPerBlock = transactionsPerBlock;
 			return getThis();
 		}
 
 		@Override
-		public MemoryBlockchainConfig build() {
-			return new MemoryBlockchainConfigImpl(this);
+		public DiskNodeConfig build() {
+			return new DiskNodeConfigImpl(this);
 		}
 
 		@Override
-		protected MemoryBlockchainConfigBuilder getThis() {
+		protected DiskNodeConfigBuilder getThis() {
 			return this;
 		}
 	}

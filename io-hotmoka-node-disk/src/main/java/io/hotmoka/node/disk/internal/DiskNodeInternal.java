@@ -14,25 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory.internal;
+package io.hotmoka.node.disk.internal;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.node.disk.DiskNodeConfig;
 
 /**
- * The view of the memory blockchain that is used in the implementation of the module.
+ * The view of the disk node that is used in the implementation of the module.
  * This allows one to enlarge the visibility of some methods, only for the implementation classes.
  */
-public interface MemoryBlockchainInternal {
+public interface DiskNodeInternal {
 
 	/**
 	 * Yields the configuration of this node.
 	 * 
 	 * @return the configuration
 	 */
-	MemoryBlockchainConfig getConfig();
+	DiskNodeConfig getConfig();
 
 	/**
 	 * Checks that the given transaction request is valid.

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory.internal;
+package io.hotmoka.node.disk.internal;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -27,20 +27,20 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.disk.DiskNode;
+import io.hotmoka.node.disk.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 
 /**
- * An implementation of a blockchain that stores transactions in a directory
+ * An implementation of a node that stores transactions in a directory
  * on disk memory. It is only meant for experimentation and testing. It is not
  * really a blockchain, since there is no peer-to-peer network, nor mining,
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConfig, Store> implements MemoryBlockchain {
-	private final static Logger LOGGER = Logger.getLogger(MemoryBlockchainImpl.class.getName());
+public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> implements DiskNode {
+	private final static Logger LOGGER = Logger.getLogger(DiskNodeImpl.class.getName());
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
@@ -54,7 +54,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	 * @param consensus the consensus parameters of the blockchain
 	 * @throws IOException 
 	 */
-	public MemoryBlockchainImpl(MemoryBlockchainConfig config, ConsensusConfig consensus) throws IOException {
+	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig consensus) throws IOException {
 		super(config, consensus);
 
 		try {
@@ -75,7 +75,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 	}
 
 	@Override
-	public MemoryBlockchainConfig getConfig() {
+	public DiskNodeConfig getConfig() {
 		return config;
 	}
 
@@ -99,7 +99,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(MemoryBlockchain.class.getName(), Constants.HOTMOKA_VERSION, "");
+		return new NodeInfo(DiskNode.class.getName(), Constants.HOTMOKA_VERSION, "");
 	}
 
 	@Override
@@ -113,26 +113,26 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 		notifyEventsOf(response);
 	}
 
-	private class MemoryBlockchainInternalImpl implements MemoryBlockchainInternal {
+	private class MemoryBlockchainInternalImpl implements DiskNodeInternal {
 
 		@Override
-		public MemoryBlockchainConfig getConfig() {
+		public DiskNodeConfig getConfig() {
 			return config;
 		}
 
 		@Override
 		public void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			MemoryBlockchainImpl.this.checkTransaction(request);
+			DiskNodeImpl.this.checkTransaction(request);
 		}
 
 		@Override
 		public TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			return MemoryBlockchainImpl.this.deliverTransaction(request);
+			return DiskNodeImpl.this.deliverTransaction(request);
 		}
 
 		@Override
 		public boolean rewardValidators(String behaving, String misbehaving) {
-			return MemoryBlockchainImpl.this.rewardValidators(behaving, misbehaving);
+			return DiskNodeImpl.this.rewardValidators(behaving, misbehaving);
 		}
 	}
 }

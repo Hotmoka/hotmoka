@@ -73,20 +73,21 @@ import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfigBuilders;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
+import io.hotmoka.node.disk.DiskNodeConfigBuilders;
+import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
+import io.hotmoka.tendermint.TendermintBlockchains;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
@@ -255,16 +256,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
-		return tendermintBlockchain = TendermintBlockchain.init(config, consensus);
+		return tendermintBlockchain = TendermintBlockchains.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException, IOException {
-		var config = MemoryBlockchainConfigBuilders.defaults()
+		var config = DiskNodeConfigBuilders.defaults()
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
-		return MemoryBlockchain.init(config, consensus);
+		return DiskNodes.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")

@@ -46,9 +46,8 @@ import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
 import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
+import io.hotmoka.tendermint.TendermintBlockchains;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -140,7 +139,7 @@ public class InitTendermint extends AbstractCommand {
 			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			TendermintBlockchainConfig nodeConfig = TendermintBlockchainConfigBuilders.defaults()
+			var nodeConfig = TendermintBlockchainConfigBuilders.defaults()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
@@ -173,10 +172,10 @@ public class InitTendermint extends AbstractCommand {
 				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (TendermintBlockchain node = TendermintBlockchain.init(nodeConfig, consensus);
+			try (var node = TendermintBlockchains.init(nodeConfig, consensus);
 				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				NodeService service = NodeService.of(networkConfig, initialized)) {
+				var service = NodeService.of(networkConfig, initialized)) {
 
 				bindValidators();
 				cleanUp();
@@ -198,7 +197,7 @@ public class InitTendermint extends AbstractCommand {
 				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 				for (int num = 0; num < numOfValidators; num++) {
-					StorageReference validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).value;

@@ -111,7 +111,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-patricia</module>
     <module>io-hotmoka-tools</module>
     <module>io-hotmoka-stores</module>
-    <module>io-hotmoka-memory</module>
+    <module>io-hotmoka-node-disk</module>
     <module>io-hotmoka-xodus</module>
     <module>io-hotmoka-tendermint-abci</module>
     <module>io-hotmoka-tendermint</module>
@@ -298,7 +298,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-node,
                 io-hotmoka-helpers,
                 io-hotmoka-helpers-api,
-                io-hotmoka-memory,
+                io-hotmoka-node-disk,
 				io-hotmoka-patricia-api,
                 io-hotmoka-patricia,
                 io-hotmoka-service,

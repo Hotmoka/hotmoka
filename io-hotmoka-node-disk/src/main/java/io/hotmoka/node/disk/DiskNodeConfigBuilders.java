@@ -14,26 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory;
+package io.hotmoka.node.disk;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
-import io.hotmoka.memory.internal.MemoryBlockchainConfigImpl.MemoryBlockchainConfigBuilderImpl;
+import io.hotmoka.node.disk.internal.DiskNodeConfigImpl.MemoryBlockchainConfigBuilderImpl;
 
 /**
  * Providers of configuration object builders of a blockchain on disk memory.
  */
-public abstract class MemoryBlockchainConfigBuilders {
+public abstract class DiskNodeConfigBuilders {
 
-	private MemoryBlockchainConfigBuilders() {}
+	private DiskNodeConfigBuilders() {}
 
 	/**
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
 	 */
-	public static MemoryBlockchainConfigBuilder defaults() {
+	public static DiskNodeConfigBuilder defaults() {
 		return new MemoryBlockchainConfigBuilderImpl();
 	}
 
@@ -46,7 +46,7 @@ public abstract class MemoryBlockchainConfigBuilders {
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 */
-	public static MemoryBlockchainConfigBuilder load(Path path) throws FileNotFoundException {
+	public static DiskNodeConfigBuilder load(Path path) throws FileNotFoundException {
 		return new MemoryBlockchainConfigBuilderImpl(path);
 	}
 }

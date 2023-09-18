@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory.internal;
+package io.hotmoka.node.disk.internal;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -45,7 +45,7 @@ class Mempool {
 	/**
 	 * The node for which requests are executed.
 	 */
-	private final MemoryBlockchainInternal node;
+	private final DiskNodeInternal node;
 
 	/**
 	 * The thread that checks requests when they are submitted.
@@ -62,7 +62,7 @@ class Mempool {
 	 * 
 	 * @param node the node for which the mempool works
 	 */
-	Mempool(MemoryBlockchainInternal node) {
+	Mempool(DiskNodeInternal node) {
 		this.node = node;
 		this.checker = new Thread(this::check);
 		this.checker.start();

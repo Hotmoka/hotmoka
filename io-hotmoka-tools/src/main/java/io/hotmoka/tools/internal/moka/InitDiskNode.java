@@ -30,9 +30,10 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfigBuilders;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.disk.DiskNode;
+import io.hotmoka.node.disk.DiskNodeConfigBuilders;
+import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
@@ -40,9 +41,9 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "init-memory",
-	description = "Initializes a new node in memory",
+	description = "Initializes a new node in disk memory",
 	showDefaultValues = true)
-public class InitMemory extends AbstractCommand {
+public class InitDiskNode extends AbstractCommand {
 
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
@@ -98,14 +99,14 @@ public class InitMemory extends AbstractCommand {
 
 	private class Run {
 		private final NodeServiceConfig networkConfig;
-		private final MemoryBlockchain node;
+		private final DiskNode node;
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
 			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			var nodeConfig = MemoryBlockchainConfigBuilders.defaults()
+			var nodeConfig = DiskNodeConfigBuilders.defaults()
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
 				.build();
@@ -115,10 +116,10 @@ public class InitMemory extends AbstractCommand {
 				.build();
 
 			BigInteger deltaSupply;
-			if (DELTA_SUPPLY_DEFAULT.equals(InitMemory.this.deltaSupply))
+			if (DELTA_SUPPLY_DEFAULT.equals(InitDiskNode.this.deltaSupply))
 				deltaSupply = initialSupply;
 			else
-				deltaSupply = new BigInteger(InitMemory.this.deltaSupply);
+				deltaSupply = new BigInteger(InitDiskNode.this.deltaSupply);
 
 			var consensus = ConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
@@ -133,7 +134,7 @@ public class InitMemory extends AbstractCommand {
 				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (var node = this.node = MemoryBlockchain.init(nodeConfig, consensus);
+			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);
 				var initialized = this.initialized = InitializedNodes.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
 				var service = NodeService.of(networkConfig, node)) {

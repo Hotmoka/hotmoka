@@ -14,16 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.memory;
+package io.hotmoka.node.disk;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
- * The builder of a configuration of a blockchain on disk memory.
+ * The builder of a configuration of a node on disk memory.
  */
 @Immutable
-public interface MemoryBlockchainConfigBuilder extends LocalNodeConfigBuilder<MemoryBlockchainConfigBuilder> {
+public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeConfigBuilder> {
 
 	/**
 	 * Sets the number of transactions that fit inside a block.
@@ -32,8 +32,8 @@ public interface MemoryBlockchainConfigBuilder extends LocalNodeConfigBuilder<Me
 	 * @param transactionsPerBlock the number of transactions that fit inside a block
 	 * @return this builder
 	 */
-	MemoryBlockchainConfigBuilder setTransactionsPerBlock(int transactionsPerBlock);
+	DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock);
 
 	@Override
-	MemoryBlockchainConfig build(); // TODO: remove?
+	DiskNodeConfig build(); // TODO: remove?
 }

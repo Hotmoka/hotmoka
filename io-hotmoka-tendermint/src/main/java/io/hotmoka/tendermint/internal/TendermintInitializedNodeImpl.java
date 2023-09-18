@@ -73,7 +73,6 @@ import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintValidator;
 import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 
 /**

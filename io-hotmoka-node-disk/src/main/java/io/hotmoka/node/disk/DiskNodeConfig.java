@@ -14,15 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.memory {
-	exports io.hotmoka.memory;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.local;
-	requires io.hotmoka.stores;
-	requires transitive io.hotmoka.node;
-	requires io.hotmoka.beans;
-	requires toml4j;
-	requires java.logging;
-	requires io.hotmoka.marshalling.api;
+package io.hotmoka.node.disk;
+
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.local.api.LocalNodeConfig;
+
+/**
+ * The configuration of a node on disk memory.
+ */
+@Immutable
+public interface DiskNodeConfig extends LocalNodeConfig {
+
+	/**
+	 * Yields the number of transactions that fit inside a block.
+	 * 
+	 * @return the number of transactions that fit inside a block
+	 */
+	int getTransactionsPerBlock();
 }
