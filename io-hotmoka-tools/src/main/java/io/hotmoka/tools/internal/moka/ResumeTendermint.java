@@ -27,6 +27,7 @@ import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
 import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -57,7 +58,7 @@ public class ResumeTendermint extends AbstractCommand {
 		private final TendermintBlockchain node;
 
 		private Run() throws Exception {
-			TendermintBlockchainConfig nodeConfig = new TendermintBlockchainConfig.Builder()
+			TendermintBlockchainConfig nodeConfig = TendermintBlockchainConfigBuilders.defaults()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)

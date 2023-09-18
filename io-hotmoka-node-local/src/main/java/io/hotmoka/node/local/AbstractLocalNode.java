@@ -20,7 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ConsensusConfig;
-import io.hotmoka.node.local.api.Config;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.AbstractStore;
 
@@ -29,7 +29,7 @@ import io.hotmoka.stores.AbstractStore;
  * Specific implementations can subclass this and implement the abstract template methods.
  */
 @ThreadSafe
-public abstract class AbstractLocalNode<C extends Config, S extends AbstractStore> extends AbstractLocalNodeImpl<C, S> {
+public abstract class AbstractLocalNode<C extends LocalNodeConfig, S extends AbstractStore> extends AbstractLocalNodeImpl<C, S> {
 
 	/**
 	 * Builds a node with a brand new, empty store.

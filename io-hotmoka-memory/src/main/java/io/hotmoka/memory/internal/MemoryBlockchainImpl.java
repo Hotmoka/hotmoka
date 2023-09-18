@@ -81,7 +81,7 @@ public class MemoryBlockchainImpl extends AbstractLocalNode<MemoryBlockchainConf
 
 	@Override
 	protected Store mkStore() {
-		return new Store(caches::getResponseUncommitted, getConfig().dir, getConfig().transactionsPerBlock);
+		return new Store(caches::getResponseUncommitted, getConfig().getDir(), getConfig().getTransactionsPerBlock());
 	}
 
 	@Override

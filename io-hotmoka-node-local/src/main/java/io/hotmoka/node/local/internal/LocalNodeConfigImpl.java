@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local;
+package io.hotmoka.node.local.internal;
 
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
@@ -24,15 +24,16 @@ import java.util.Objects;
 
 import com.moandjiezana.toml.Toml;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.node.api.ConsensusConfigBuilder;
-import io.hotmoka.node.local.api.Config;
-import io.hotmoka.node.local.api.ConfigBuilder;
+import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
  * The configuration of a node.
  */
-public class ConfigImpl implements Config {
+@Immutable
+public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 
 	/**
 	 * The directory where the node's data will be persisted.
@@ -74,9 +75,11 @@ public class ConfigImpl implements Config {
 	public final BigInteger maxGasPerViewTransaction;
 
 	/**
-	 * Full constructor for the builder pattern.
+	 * Creates a new configuration object from its builder.
+	 * 
+	 * @param the builder
 	 */
-	protected ConfigImpl(ConfigBuilderImpl<?> builder) {
+	protected LocalNodeConfigImpl(ConfigBuilderImpl<?> builder) {
 		this.dir = builder.dir;
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
@@ -147,15 +150,9 @@ public class ConfigImpl implements Config {
 	}
 
 	@Override
-	public ConsensusConfigBuilder<?> toBuilder() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public boolean equals(Object other) {
 		if (other != null && getClass() == other.getClass()) {
-			var otherConfig = (ConfigImpl) other;
+			var otherConfig = (LocalNodeConfigImpl) other;
 			return dir.equals(otherConfig.dir) &&
 				maxPollingAttempts == otherConfig.maxPollingAttempts &&
 				pollingDelay == otherConfig.pollingDelay &&
@@ -173,26 +170,9 @@ public class ConfigImpl implements Config {
 	}
 
 	/**
-	 * Fills the given builder with the information contained in this configuration object.
-	 * 
-	 * @param <T> the type of the builder
-	 * @param builder the builder to fill
-	 * @return the builder itself
-	 */
-	protected <T extends ConfigBuilderImpl<T>> T fill(T builder) {
-		return builder
-			.setDir(dir)
-			.setMaxPollingAttempts(maxPollingAttempts)
-			.setPollingDelay(pollingDelay)
-			.setRequestCacheSize(requestCacheSize)
-			.setResponseCacheSize(responseCacheSize)
-			.setMaxGasPerViewTransaction(maxGasPerViewTransaction);
-	}
-
-	/**
 	 * The builder of a configuration object.
 	 */
-	public abstract static class ConfigBuilderImpl<T extends ConfigBuilder<T>> implements ConfigBuilder<T> {
+	protected abstract static class ConfigBuilderImpl<T extends LocalNodeConfigBuilder<T>> implements LocalNodeConfigBuilder<T> {
 		private Path dir = Paths.get("chain");
 		private int maxPollingAttempts = 60;
 		private int pollingDelay = 10;
@@ -206,8 +186,22 @@ public class ConfigImpl implements Config {
 		protected ConfigBuilderImpl() {}
 
 		/**
-		 * Reads the properties of the given TOML file and sets them for
-		 * the corresponding fields of this builder.
+		 * Creates a builder with properties initialized to those of the given configuration object.
+		 * 
+		 * @param config the configuration object
+		 */
+		protected ConfigBuilderImpl(LocalNodeConfig config) {
+			this.dir = config.getDir();
+			this.maxPollingAttempts = config.getMaxPollingAttempts();
+			this.pollingDelay = config.getPollingDelay();
+			this.requestCacheSize = config.getRequestCacheSize();
+			this.responseCacheSize = config.getResponseCacheSize();
+			this.maxGasPerViewTransaction = config.getMaxGasPerViewTransaction();
+		}
+
+		/**
+		 * Creates a builder by reading the properties of the given TOML file and
+		 * setting them for the corresponding fields of the builder.
 		 * 
 		 * @param toml the file
 		 */

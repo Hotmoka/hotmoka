@@ -424,7 +424,7 @@ public class TendermintPoster {
 	 * @throws IOException if the response couldn't be read
 	 */
 	private static String readFrom(HttpURLConnection connection) throws IOException {
-		try (BufferedReader br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
+		try (var br = new BufferedReader(new InputStreamReader(connection.getInputStream(), StandardCharsets.UTF_8))) {
 			return br.lines().collect(Collectors.joining());
 		}
 	}
@@ -441,17 +441,17 @@ public class TendermintPoster {
 	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		byte[] input = jsonTendermintRequest.getBytes(StandardCharsets.UTF_8);
 
-		for (int i = 0; i < config.maxPingAttempts; i++) {
+		for (int i = 0; i < config.getMaxPingAttempts(); i++) {
 			try (OutputStream os = connection.getOutputStream()) {
 				os.write(input, 0, input.length);
 				return;
 			}
 			catch (ConnectException e) {
 				// not sure why this happens, randomly. It seems that the connection to the Tendermint process is flaky
-				Thread.sleep(config.pingDelay);
+				Thread.sleep(config.getPingDelay());
 			}
 		}
 
-		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + config.maxPingAttempts + " times");
+		throw new TimeoutException("Cannot write into Tendermint's connection. Tried " + config.getMaxPingAttempts() + " times");
 	}
 }

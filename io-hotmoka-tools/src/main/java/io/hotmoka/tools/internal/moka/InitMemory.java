@@ -31,7 +31,7 @@ import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.memory.MemoryBlockchain;
-import io.hotmoka.memory.MemoryBlockchainConfig;
+import io.hotmoka.memory.MemoryBlockchainConfigBuilders;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
@@ -105,7 +105,7 @@ public class InitMemory extends AbstractCommand {
 			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			var nodeConfig = new MemoryBlockchainConfig.Builder()
+			var nodeConfig = MemoryBlockchainConfigBuilders.defaults()
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
 				.build();

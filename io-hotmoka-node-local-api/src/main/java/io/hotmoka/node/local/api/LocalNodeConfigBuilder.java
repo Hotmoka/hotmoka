@@ -1,3 +1,19 @@
+/*
+Copyright 2023 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package io.hotmoka.node.local.api;
 
 import java.math.BigInteger;
@@ -10,7 +26,7 @@ import io.hotmoka.beans.references.TransactionReference;
  * 
  * @param <T> the concrete type of the builder
  */
-public interface ConfigBuilder<T extends ConfigBuilder<T>> {
+public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 
 	/**
 	 * Sets the maximal amount of gas that a view transaction can consume.
@@ -71,5 +87,5 @@ public interface ConfigBuilder<T extends ConfigBuilder<T>> {
 	 * 
 	 * @return the configuration
 	 */
-	Config build();
+	LocalNodeConfig build(); // TODO: should the return type be a generic parameter?
 }

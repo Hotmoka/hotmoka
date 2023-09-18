@@ -205,7 +205,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	protected Store mkStore() {
-		return new Store(caches::getResponseUncommitted, config.dir, new TendermintBlockchainInternalImpl());
+		return new Store(caches::getResponseUncommitted, config.getDir(), new TendermintBlockchainInternalImpl());
 	}
 
 	@Override
@@ -429,7 +429,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 */
 		private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
 			// spawns a process that remains in background
-			Path tendermintHome = config.dir.resolve("blocks");
+			Path tendermintHome = config.getDir().resolve("blocks");
 			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
 		}
@@ -444,7 +444,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 * @throws InterruptedException if interrupted while pinging
 		 */
 		private void waitUntilTendermintProcessIsUp(TendermintBlockchainConfig config) throws TimeoutException, InterruptedException, IOException {
-			for (int reconnections = 1; reconnections <= config.maxPingAttempts; reconnections++) {
+			for (int reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
 				try {
 					HttpURLConnection connection = poster.openPostConnectionToTendermint();
 					try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
@@ -453,7 +453,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				}
 				catch (ConnectException e) {
 					// take a nap, then try again
-					Thread.sleep(config.pingDelay);
+					Thread.sleep(config.getPingDelay());
 				}
 			}
 
@@ -464,7 +464,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 				LOGGER.log(Level.SEVERE, "Cannot close the Tendermint process", e);
 			}
 
-			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.maxPingAttempts + " times");
+			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
 		}
 	}
 
@@ -511,11 +511,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param config the configuration of the node
 	 */
 	private void initWorkingDirectoryOfTendermintProcess(TendermintBlockchainConfig config) throws InterruptedException, IOException {
-		if (config.tendermintConfigurationToClone == null) {
+		if (config.getTendermintConfigurationToClone() == null) {
 			// if there is no configuration to clone, we create a default network of a single node
 			// that plays the role of unique validator of the network
 
-			Path tendermintHome = config.dir.resolve("blocks");
+			Path tendermintHome = config.getDir().resolve("blocks");
 			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
 			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
 			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
@@ -524,6 +524,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		else
 			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
-			copyRecursively(config.tendermintConfigurationToClone, config.dir.resolve("blocks"));
+			copyRecursively(config.getTendermintConfigurationToClone(), config.getDir().resolve("blocks"));
 	}
 }

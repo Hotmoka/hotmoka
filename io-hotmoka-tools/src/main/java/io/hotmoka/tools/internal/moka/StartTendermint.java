@@ -27,7 +27,7 @@ import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -65,7 +65,7 @@ public class StartTendermint extends AbstractCommand {
 		private Run() throws Exception {
 			askForConfirmation();
 
-			var nodeConfig = new TendermintBlockchainConfig.Builder()
+			var nodeConfig = TendermintBlockchainConfigBuilders.defaults()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
@@ -78,9 +78,7 @@ public class StartTendermint extends AbstractCommand {
 			var consensus = ConsensusConfigBuilders.defaults()
 				.build();
 
-			try (var node = TendermintBlockchain.init(nodeConfig, consensus);
-				var service = NodeService.of(networkConfig, node)) {
-
+			try (var node = TendermintBlockchain.init(nodeConfig, consensus); var service = NodeService.of(networkConfig, node)) {
 				cleanUp();
 				printBanner();
 				waitForEnterKey();

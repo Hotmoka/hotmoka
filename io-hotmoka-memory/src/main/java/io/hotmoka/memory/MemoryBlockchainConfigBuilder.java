@@ -17,18 +17,23 @@ limitations under the License.
 package io.hotmoka.memory;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
- * The configuration of a blockchain on disk memory.
+ * The builder of a configuration of a blockchain on disk memory.
  */
 @Immutable
-public interface MemoryBlockchainConfig extends LocalNodeConfig {
+public interface MemoryBlockchainConfigBuilder extends LocalNodeConfigBuilder<MemoryBlockchainConfigBuilder> {
 
 	/**
-	 * Yields the number of transactions that fit inside a block.
+	 * Sets the number of transactions that fit inside a block.
+	 * It defaults to 5.
 	 * 
-	 * @return the number of transactions that fit inside a block
+	 * @param transactionsPerBlock the number of transactions that fit inside a block
+	 * @return this builder
 	 */
-	int getTransactionsPerBlock();
+	MemoryBlockchainConfigBuilder setTransactionsPerBlock(int transactionsPerBlock);
+
+	@Override
+	MemoryBlockchainConfig build(); // TODO: remove?
 }

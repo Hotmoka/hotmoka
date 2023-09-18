@@ -31,7 +31,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.instrumentation.api.GasCostModel;
-import io.hotmoka.node.local.api.Config;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
@@ -49,7 +49,7 @@ public interface NodeInternal {
 	 * 
 	 * @return the configuration
 	 */
-	Config getConfig();
+	LocalNodeConfig getConfig();
 
 	/**
 	 * Yields the caches of this node.

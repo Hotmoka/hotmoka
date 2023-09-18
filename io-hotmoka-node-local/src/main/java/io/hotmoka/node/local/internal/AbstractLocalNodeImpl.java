@@ -81,7 +81,7 @@ import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.node.local.api.Config;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -102,7 +102,7 @@ import io.hotmoka.stores.Store;
  * Partial implementation of a local (ie., non-remote) node.
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends Config, S extends AbstractStore> extends AbstractNode {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig, S extends AbstractStore> extends AbstractNode {
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
@@ -926,7 +926,7 @@ public abstract class AbstractLocalNodeImpl<C extends Config, S extends Abstract
 	private class NodeInternalImpl implements NodeInternal {
 
 		@Override
-		public Config getConfig() {
+		public LocalNodeConfig getConfig() {
 			return config;
 		}
 

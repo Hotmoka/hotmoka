@@ -19,13 +19,14 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.node.api.ConsensusConfigBuilder;
 
 /**
  * The configuration of a node.
  */
-public interface Config {
+@Immutable
+public interface LocalNodeConfig {
 
 	/**
 	 * Yields the directory where the node's data will be persisted.
@@ -78,7 +79,7 @@ public interface Config {
 	 * 
 	 * @return the builder
 	 */
-	ConsensusConfigBuilder<?> toBuilder();
+	LocalNodeConfigBuilder<?> toBuilder(); // TODO: should the return type be a generic parameter?
 
 	@Override
 	boolean equals(Object other);

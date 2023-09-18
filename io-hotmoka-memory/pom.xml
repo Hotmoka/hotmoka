@@ -44,6 +44,11 @@
       <artifactId>io-hotmoka-marshalling-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>toml4j</artifactId>
+      <version>0.7.3</version>
+    </dependency>
   </dependencies>
 
   <profiles>

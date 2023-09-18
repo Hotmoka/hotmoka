@@ -121,7 +121,7 @@ class Mempool {
 	 */
 	private void deliver() {
 		int counter = 0;
-		int transactionsPerBlock = node.getConfig().transactionsPerBlock;
+		int transactionsPerBlock = node.getConfig().getTransactionsPerBlock();
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
