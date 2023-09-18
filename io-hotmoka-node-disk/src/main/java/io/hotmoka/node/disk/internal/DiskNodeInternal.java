@@ -19,7 +19,7 @@ package io.hotmoka.node.disk.internal;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.node.disk.DiskNodeConfig;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 
 /**
  * The view of the disk node that is used in the implementation of the module.

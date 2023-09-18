@@ -28,8 +28,8 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.ConsensusConfig;
-import io.hotmoka.node.disk.DiskNode;
-import io.hotmoka.node.disk.DiskNodeConfig;
+import io.hotmoka.node.disk.api.DiskNode;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 
 /**

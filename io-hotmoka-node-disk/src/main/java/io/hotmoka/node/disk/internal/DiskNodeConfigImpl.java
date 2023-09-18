@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.disk.DiskNodeConfig;
-import io.hotmoka.node.disk.DiskNodeConfigBuilder;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
+import io.hotmoka.node.disk.api.DiskNodeConfigBuilder;
 import io.hotmoka.node.local.AbstractLocalNodeConfig;
 
 /**

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,18 +15,13 @@ limitations under the License.
 */
 
 /**
- * This module implements Hotmoka nodes that store their data on the disk.
+ * This module defines the API of Hotmoka nodes that store their data on the disk.
  * They do not form a blockchain network, since there is no synchronization nor mining.
  */
-module io.hotmoka.node.disk {
-	exports io.hotmoka.node.disk;
+module io.hotmoka.node.disk.api {
+	exports io.hotmoka.node.disk.api;
 
-	requires transitive io.hotmoka.node.disk.api;
-	requires transitive io.hotmoka.node.local.api;
-	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.local;
-	requires io.hotmoka.stores;
-	requires toml4j;
-	requires java.logging;
+	requires io.hotmoka.node.api;
+	requires io.hotmoka.node.local.api;
 }

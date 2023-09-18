@@ -16,6 +16,11 @@
   <dependencies>
     <dependency>
       <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-disk-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-local</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>

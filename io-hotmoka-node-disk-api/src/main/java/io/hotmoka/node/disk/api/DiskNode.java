@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.disk;
+package io.hotmoka.node.disk.api;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.Node;

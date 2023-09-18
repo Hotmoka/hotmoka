@@ -20,6 +20,8 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.disk.api.DiskNode;
+import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.disk.internal.DiskNodeImpl;
 
 /**

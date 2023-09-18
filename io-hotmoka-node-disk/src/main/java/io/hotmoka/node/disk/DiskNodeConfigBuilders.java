@@ -19,6 +19,7 @@ package io.hotmoka.node.disk;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
+import io.hotmoka.node.disk.api.DiskNodeConfigBuilder;
 import io.hotmoka.node.disk.internal.DiskNodeConfigImpl.MemoryBlockchainConfigBuilderImpl;
 
 /**
