@@ -160,9 +160,9 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		protected TendermintBlockchainConfigBuilderImpl(TendermintBlockchainConfig config) {
 			super(config);
 
-			this.maxPingAttempts = config.getMaxPingAttempts();
-			this.pingDelay = config.getPingDelay();
-			this.tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
+			setMaxPingAttempts(config.getMaxPingAttempts());
+			setPingDelay(config.getPingDelay());
+			setTendermintConfigurationToClone(config.getTendermintConfigurationToClone());
 		}
 
 		@Override

@@ -36,23 +36,27 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 	 * The number of transactions that fit inside a block.
 	 * It defaults to 5.
 	 */
-	public final int transactionsPerBlock;
+	public final long transactionsPerBlock;
 
 	/**
 	 * Creates a new configuration object from its builder.
 	 * 
 	 * @param the builder
 	 */
-	protected DiskNodeConfigImpl(MemoryBlockchainConfigBuilderImpl builder) {
+	protected DiskNodeConfigImpl(DiskNodeConfigBuilderImpl builder) {
 		super(builder);
 
 		this.transactionsPerBlock = builder.transactionsPerBlock;
 	}
 
+	@Override
+	public long getTransactionsPerBlock() {
+		return transactionsPerBlock;
+	}
 
 	@Override
-	public int getTransactionsPerBlock() {
-		return transactionsPerBlock;
+	public boolean equals(Object other) {
+		return super.equals(other) && transactionsPerBlock == ((DiskNodeConfigImpl) other).transactionsPerBlock;
 	}
 
 	@Override
@@ -68,23 +72,23 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 
 	@Override
 	public DiskNodeConfigBuilder toBuilder() {
-		return new MemoryBlockchainConfigBuilderImpl(this);
+		return new DiskNodeConfigBuilderImpl(this);
 	}
 
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class MemoryBlockchainConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<DiskNodeConfigBuilder> implements DiskNodeConfigBuilder {
+	public static class DiskNodeConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<DiskNodeConfigBuilder> implements DiskNodeConfigBuilder {
 
 		/**
 		 * The number of transactions that fit inside a block.
 		 */
-		private int transactionsPerBlock = 5;
+		private long transactionsPerBlock = 5;
 
 		/**
 		 * Creates a builder with default values for the properties.
 		 */
-		public MemoryBlockchainConfigBuilderImpl() {}
+		public DiskNodeConfigBuilderImpl() {}
 
 		/**
 		 * Creates a builder by reading the properties of the given TOML file and sets them for
@@ -92,13 +96,12 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 		 * 
 		 * @param toml the file
 		 */
-		protected MemoryBlockchainConfigBuilderImpl(Toml toml) {
+		protected DiskNodeConfigBuilderImpl(Toml toml) {
 			super(toml);
 
-			// TODO: remove these type conversions
 			var transactionsPerBlock = toml.getLong("transactions_per_block");
 			if (transactionsPerBlock != null)
-				setTransactionsPerBlock((int) (long) transactionsPerBlock);
+				setTransactionsPerBlock(transactionsPerBlock);
 		}
 
 		/**
@@ -108,8 +111,8 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 		 * @param toml the file
 		 * @throws FileNotFoundException if the file cannot be found
 		 */
-		public MemoryBlockchainConfigBuilderImpl(Path toml) throws FileNotFoundException {
-			super(readToml(toml));
+		public DiskNodeConfigBuilderImpl(Path toml) throws FileNotFoundException {
+			this(readToml(toml));
 		}
 
 		/**
@@ -117,20 +120,17 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 		 * 
 		 * @param config the configuration object
 		 */
-		protected MemoryBlockchainConfigBuilderImpl(DiskNodeConfig config) {
+		protected DiskNodeConfigBuilderImpl(DiskNodeConfig config) {
 			super(config);
 
-			this.transactionsPerBlock = config.getTransactionsPerBlock();
+			setTransactionsPerBlock(config.getTransactionsPerBlock());
 		}
 
-		/**
-		 * Sets the number of transactions that fit inside a block.
-		 * It defaults to 5.
-		 * 
-		 * @param transactionsPerBlock the number of transactions that fit inside a block
-		 * @return this builder
-		 */
-		public DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock) {
+		@Override
+		public DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock) {
+			if (transactionsPerBlock <= 0L)
+				throw new IllegalArgumentException("transactionsPerBlock must be positive");
+
 			this.transactionsPerBlock = transactionsPerBlock;
 			return getThis();
 		}

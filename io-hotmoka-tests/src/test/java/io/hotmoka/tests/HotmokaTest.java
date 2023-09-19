@@ -250,7 +250,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws NoSuchAlgorithmException, IOException {
+	private static Node mkTendermintBlockchain() throws IOException {
 		var config = TendermintBlockchainConfigBuilders.defaults()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
@@ -260,7 +260,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException, IOException {
+	private static Node mkMemoryBlockchain() {
 		var config = DiskNodeConfigBuilders.defaults()
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();

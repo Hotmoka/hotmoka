@@ -37,7 +37,7 @@ public abstract class AbstractLocalNode<C extends LocalNodeConfig, S extends Abs
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
-	protected AbstractLocalNode(C config, ConsensusConfig consensus) throws IOException {
+	protected AbstractLocalNode(C config, ConsensusConfig consensus) {
 		super(config, consensus);
 	}
 

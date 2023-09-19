@@ -42,9 +42,8 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	public final Path dir;
 
 	/**
-	 * The maximal number of polling attempts, in milliseconds,
-	 * while waiting for the result of a posted transaction.
-	 * It defaults to 60.
+	 * The maximal number of polling attempts, while waiting for the result
+	 * of a posted transaction. It defaults to 60.
 	 */
 	public final int maxPollingAttempts;
 
@@ -129,7 +128,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		sb.append("# the directory where the node's data will be persisted\n");
 		sb.append("dir = \"" + dir + "\"\n");
 		sb.append("\n");
-		sb.append("# the maximal number of polling attempts, in milliseconds, while waiting for the result of a posted transaction");
+		sb.append("# the maximal number of polling attempts, while waiting for the result of a posted transaction\n");
 		sb.append("max_polling_attempts = " + maxPollingAttempts + "\n");
 		sb.append("\n");
 		sb.append("# the delay of two subsequent polling attempts, in milliseconds,\n");
@@ -158,7 +157,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 				pollingDelay == otherConfig.pollingDelay &&
 				requestCacheSize == otherConfig.requestCacheSize &&
 				responseCacheSize == otherConfig.responseCacheSize &&
-				maxGasPerViewTransaction == otherConfig.maxGasPerViewTransaction;
+				maxGasPerViewTransaction.equals(otherConfig.maxGasPerViewTransaction);
 		}
 		else
 			return false;
@@ -191,12 +190,12 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		 * @param config the configuration object
 		 */
 		protected ConfigBuilderImpl(LocalNodeConfig config) {
-			this.dir = config.getDir();
-			this.maxPollingAttempts = config.getMaxPollingAttempts();
-			this.pollingDelay = config.getPollingDelay();
-			this.requestCacheSize = config.getRequestCacheSize();
-			this.responseCacheSize = config.getResponseCacheSize();
-			this.maxGasPerViewTransaction = config.getMaxGasPerViewTransaction();
+			setDir(config.getDir());
+			setMaxPollingAttempts(config.getMaxPollingAttempts());
+			setPollingDelay(config.getPollingDelay());
+			setRequestCacheSize(config.getRequestCacheSize());
+			setResponseCacheSize(config.getResponseCacheSize());
+			setMaxGasPerViewTransaction(config.getMaxGasPerViewTransaction());
 		}
 
 		/**
@@ -234,7 +233,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 
 		@Override
 		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
-			Objects.requireNonNull(maxGasPerViewTransaction, "The maximal amount of gas per transaction cannot be null");
+			Objects.requireNonNull(maxGasPerViewTransaction, "maxGasPerViewTransaction cannot be null");
 			this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	
 			return getThis();
@@ -242,30 +241,43 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 
 		@Override
 		public T setDir(Path dir) {
+			Objects.requireNonNull(dir, "dir cannot be null");
 			this.dir = dir;
 			return getThis();
 		}
 
 		@Override
 		public T setMaxPollingAttempts(int maxPollingAttempts) {
+			if (maxPollingAttempts <= 0)
+				throw new IllegalArgumentException("maxPollingAttempts must be positive");
+
 			this.maxPollingAttempts = maxPollingAttempts;
 			return getThis();
 		}
 
 		@Override
 		public T setPollingDelay(int pollingDelay) {
+			if (pollingDelay < 0)
+				throw new IllegalArgumentException("pollingDelay must non-negative");
+
 			this.pollingDelay = pollingDelay;
 			return getThis();
 		}
 
 		@Override
 		public T setRequestCacheSize(int requestCacheSize) {
+			if (requestCacheSize < 0)
+				throw new IllegalArgumentException("requestCacheSize must non-negative");
+
 			this.requestCacheSize = requestCacheSize;
 			return getThis();
 		}
 
 		@Override
 		public T setResponseCacheSize(int responseCacheSize) {
+			if (responseCacheSize < 0)
+				throw new IllegalArgumentException("responseCacheSize must non-negative");
+
 			this.responseCacheSize = responseCacheSize;
 			return getThis();
 		}

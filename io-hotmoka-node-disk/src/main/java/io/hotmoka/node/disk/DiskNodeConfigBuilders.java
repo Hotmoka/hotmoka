@@ -20,7 +20,7 @@ import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
 import io.hotmoka.node.disk.api.DiskNodeConfigBuilder;
-import io.hotmoka.node.disk.internal.DiskNodeConfigImpl.MemoryBlockchainConfigBuilderImpl;
+import io.hotmoka.node.disk.internal.DiskNodeConfigImpl.DiskNodeConfigBuilderImpl;
 
 /**
  * Providers of configuration object builders of a blockchain on disk memory.
@@ -35,7 +35,7 @@ public abstract class DiskNodeConfigBuilders {
 	 * @return the builder
 	 */
 	public static DiskNodeConfigBuilder defaults() {
-		return new MemoryBlockchainConfigBuilderImpl();
+		return new DiskNodeConfigBuilderImpl();
 	}
 
 	/**
@@ -48,6 +48,6 @@ public abstract class DiskNodeConfigBuilders {
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 */
 	public static DiskNodeConfigBuilder load(Path path) throws FileNotFoundException {
-		return new MemoryBlockchainConfigBuilderImpl(path);
+		return new DiskNodeConfigBuilderImpl(path);
 	}
 }

@@ -44,11 +44,10 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	T setDir(Path dir);
 
 	/**
-	 * Sets the maximal number of polling attempts, in milliseconds,
-	 * while waiting for the result of a posted transaction.
-	 * It defaults to 60.
+	 * Sets the maximal number of polling attempts, while waiting
+	 * for the result of a posted transaction. It defaults to 60.
 	 * 
-	 * @param maxPollingAttempts the the maximal number of polling attempts
+	 * @param maxPollingAttempts the maximal number of polling attempts
 	 * @return this builder
 	 */
 	T setMaxPollingAttempts(int maxPollingAttempts);

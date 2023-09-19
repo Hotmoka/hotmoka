@@ -32,7 +32,7 @@ public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeCo
 	 * @param transactionsPerBlock the number of transactions that fit inside a block
 	 * @return this builder
 	 */
-	DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock);
+	DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock);
 
 	@Override
 	DiskNodeConfig build(); // TODO: remove?

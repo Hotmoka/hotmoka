@@ -30,5 +30,5 @@ public interface DiskNodeConfig extends LocalNodeConfig {
 	 * 
 	 * @return the number of transactions that fit inside a block
 	 */
-	int getTransactionsPerBlock();
+	long getTransactionsPerBlock();
 }

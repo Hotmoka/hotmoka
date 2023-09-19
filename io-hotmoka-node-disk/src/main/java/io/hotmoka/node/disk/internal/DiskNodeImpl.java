@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,9 +51,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
-	 * @throws IOException 
 	 */
-	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig consensus) throws IOException {
+	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig consensus) {
 		super(config, consensus);
 
 		try {

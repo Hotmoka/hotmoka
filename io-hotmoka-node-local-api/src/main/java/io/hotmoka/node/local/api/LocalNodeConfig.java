@@ -35,9 +35,8 @@ public interface LocalNodeConfig {
 	Path getDir();
 
 	/**
-	 * Yields the maximal number of polling attempts, in milliseconds,
-	 * while waiting for the result of a posted transaction.
-	 * It defaults to 60.
+	 * Yields the maximal number of polling attempts, while waiting
+	 * for the result of a posted transaction. It defaults to 60.
 	 */
 	int getMaxPollingAttempts();
 

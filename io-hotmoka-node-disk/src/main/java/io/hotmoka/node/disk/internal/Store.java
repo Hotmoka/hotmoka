@@ -83,7 +83,7 @@ class Store extends AbstractStore {
 	/**
 	 * The number of transactions that fit inside a block.
 	 */
-	private final int transactionsPerBlock;
+	private final long transactionsPerBlock;
 
 	private final static Logger logger = Logger.getLogger(Store.class.getName());
 
@@ -94,7 +94,7 @@ class Store extends AbstractStore {
 	 * @param dir the path where the database of the store gets created
      * @param transactionsPerBlock the number of transactions that fit inside a block
      */
-    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, int transactionsPerBlock) {
+    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long transactionsPerBlock) {
     	super(getResponseUncommittedCached, dir);
 
     	this.transactionsPerBlock = transactionsPerBlock;
