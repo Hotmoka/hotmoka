@@ -16,9 +16,34 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the response of a query
+ * about a transaction.
+ */
 public class TendermintTxResponse {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintTxResponse() {}
+
+	/**
+	 * The version of the protocol.
+	 */
 	public String jsonrpc;
+
+	/**
+	 * The id of the message.
+	 */
 	public long id;
+
+	/**
+	 * The result of the query, if any.
+	 */
 	public TendermintTopLevelResult result;
+
+	/**
+	 * An error result, if any.
+	 */
 	public Object error;
 }

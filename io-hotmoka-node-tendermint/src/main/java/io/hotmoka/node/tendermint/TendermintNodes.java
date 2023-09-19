@@ -42,7 +42,7 @@ public abstract class TendermintNodes {
 	 *                  existing network, these must be the parameters at the beginning of the
 	 *                  history of the network
 	 * @return the Tendermint node
-	 * @throws IOException 
+	 * @throws IOException if an I/O error occurs
 	 */
 	public static TendermintNode init(TendermintNodeConfig config, ConsensusConfig consensus) throws IOException {
 		return new TendermintNodeImpl(config, consensus);
@@ -56,7 +56,7 @@ public abstract class TendermintNodes {
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
-	 * @throws IOException 
+	 * @throws IOException if an I/O error occurs
 	 */
 	public static TendermintNode resume(TendermintNodeConfig config) throws IOException {
 		return new TendermintNodeImpl(config);

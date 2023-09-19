@@ -16,11 +16,43 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the top level result of a query about a transaction.
+ */
 public class TendermintTopLevelResult {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintTopLevelResult() {}
+
+	/**
+	 * The height of the block.
+	 */
 	public long height;
+
+	/**
+	 * The hash of the trasaction.
+	 */
 	public String hash;
+
+	/**
+	 * The result of checking the transaction.
+	 */
 	public Object check_tx;
+
+	/**
+	 * The result of delivering the transaction.
+	 */
 	public Object deliver_tx;
+
+	/**
+	 * The result of the transaction.
+	 */
 	public TendermintTxResult tx_result;
+
+	/**
+	 * The trasaction data.
+	 */
 	public String tx;
 }

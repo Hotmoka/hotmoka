@@ -18,8 +18,29 @@ package io.hotmoka.node.tendermint.internal.beans;
 
 import java.util.List;
 
+/**
+ * A bean corresponding to the result of a query about the
+ * validators of a Tendermint node.
+ */
 public class TendermintValidatorsResult {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintValidatorsResult() {}
+
+	/**
+	 * The list of validators.
+	 */
 	public List<TendermintValidatorPriority> validators;
+
+	/**
+	 * The number of validators reported.
+	 */
 	public String count;
+
+	/**
+	 * The total number of validators in the node.
+	 */
 	public String total;
 }

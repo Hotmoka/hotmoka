@@ -16,8 +16,29 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the result of a query about the
+ * priority of a validator a Tendermint node.
+ */
 public class TendermintValidatorPriority {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintValidatorPriority() {}
+
+	/**
+	 * The Tendermint address of the validator.
+	 */
 	public String address;
+
+	/**
+	 * The public key of the validator.
+	 */
 	public TendermintPubKey pub_key;
+
+	/**
+	 * The power of the validator.
+	 */
 	public long voting_power;
 }

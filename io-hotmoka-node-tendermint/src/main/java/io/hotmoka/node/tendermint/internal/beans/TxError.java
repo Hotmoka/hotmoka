@@ -16,8 +16,28 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to a transaction error JSON message.
+ */
 public class TxError {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TxError() {}
+
+	/**
+	 * The error code.
+	 */
 	public int code;
+
+	/**
+	 * The error message.
+	 */
 	public String message;
+
+	/**
+	 * Extra data.
+	 */
 	public String data;
 }

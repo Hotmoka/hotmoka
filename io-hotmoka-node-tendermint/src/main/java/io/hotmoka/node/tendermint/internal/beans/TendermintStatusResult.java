@@ -16,6 +16,18 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the result of a query about a Tendermint node.
+ */
 public class TendermintStatusResult {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintStatusResult() {}
+
+	/**
+	 * Information about the node.
+	 */
 	public TendermintStatusResultNodeInfo node_info;
 }

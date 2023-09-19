@@ -16,8 +16,28 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean describing the genesis block of a Tendermint node.
+ */
 public class TendermintGenesisResultGenesis {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintGenesisResultGenesis() {}
+
+	/**
+	 * The time of creation of the genesis block.
+	 */
 	public String genesis_time;
+
+	/**
+	 * The chain identifier of the blockchain.
+	 */
 	public String chain_id;
+
+	/**
+	 * The initial validators of the network.
+	 */
 	public Object validators;
 }

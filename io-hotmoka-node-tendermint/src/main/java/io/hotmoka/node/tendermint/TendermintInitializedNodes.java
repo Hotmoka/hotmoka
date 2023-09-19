@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.tendermint;
 
 import java.io.IOException;
-import java.math.BigInteger;
 import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +37,8 @@ import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
  * along with a gamete and a manifest.
  */
 public abstract class TendermintInitializedNodes {
+
+	private TendermintInitializedNodes() {}
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
@@ -78,7 +79,7 @@ public abstract class TendermintInitializedNodes {
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
 	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig consensus,
-			ProducerOfStorageObject<ConsensusConfig> producerOfGasStation, Path takamakaCode, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+			ProducerOfStorageObject<ConsensusConfig> producerOfGasStation, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}
 }

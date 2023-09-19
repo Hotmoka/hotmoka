@@ -16,9 +16,33 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the response of a broadcast transaction.
+ */
 public class TendermintBroadcastTxResponse {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintBroadcastTxResponse() {}
+
+	/**
+	 * The version of the protocol.
+	 */
 	public String jsonrpc;
+
+	/**
+	 * The id of the message.
+	 */
 	public long id;
+
+	/**
+	 * The information about the transaction, if any.
+	 */
 	public TendermintTopLevelResult result;
+
+	/**
+	 * An error result, if any.
+	 */
 	public TxError error;
 }

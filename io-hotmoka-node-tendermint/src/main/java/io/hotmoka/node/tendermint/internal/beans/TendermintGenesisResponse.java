@@ -16,9 +16,34 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the response of a query
+ * about the genesis block of a Tendermint node.
+ */
 public class TendermintGenesisResponse {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintGenesisResponse() {}
+
+	/**
+	 * The version of the protocol.
+	 */
 	public String jsonrpc;
+
+	/**
+	 * The id of the message.
+	 */
 	public long id;
+
+	/**
+	 * The description of the genesis block, if any.
+	 */
 	public TendermintGenesisResult result;
+
+	/**
+	 * An error message, if any.
+	 */
 	public String error;
 }

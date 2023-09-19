@@ -16,7 +16,23 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean describing a public key of Tendermint.
+ */
 public class TendermintPubKey {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintPubKey() {}
+
+	/**
+	 * The type of the key.
+	 */
 	public String type;
+
+	/**
+	 * The value of the key.
+	 */
 	public String value;
 }

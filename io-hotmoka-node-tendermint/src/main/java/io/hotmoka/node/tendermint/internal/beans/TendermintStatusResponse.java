@@ -16,9 +16,33 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the response of a query about a Tendermint node.
+ */
 public class TendermintStatusResponse {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintStatusResponse() {}
+
+	/**
+	 * The version of the protocol.
+	 */
 	public String jsonrpc;
+
+	/**
+	 * The id of the message.
+	 */
 	public long id;
+
+	/**
+	 * The result of the query, if any.
+	 */
 	public TendermintStatusResult result;
+
+	/**
+	 * The error of the query, if any.
+	 */
 	public String error;
 }

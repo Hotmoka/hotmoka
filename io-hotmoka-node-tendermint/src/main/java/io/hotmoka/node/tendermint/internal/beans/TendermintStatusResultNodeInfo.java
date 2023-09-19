@@ -16,7 +16,23 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean containing information about a Tendermint node.
+ */
 public class TendermintStatusResultNodeInfo {
-	public String id; // the hash of the public key of the Tendermint node
-	public String version; // the version of Tendermint
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintStatusResultNodeInfo() {}
+
+	/**
+	 * The hash of the public key of the Tendermint node.
+	 */
+	public String id;
+
+	/**
+	 * The version of Tendermint.
+	 */
+	public String version;
 }

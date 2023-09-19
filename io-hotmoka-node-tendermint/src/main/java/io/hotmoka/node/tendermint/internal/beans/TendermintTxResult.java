@@ -16,8 +16,28 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal.beans;
 
+/**
+ * A bean corresponding to the result of a transaction.
+ */
 public class TendermintTxResult {
+
+	/**
+	 * Creates the bean.
+	 */
+	public TendermintTxResult() {}
+
+	/**
+	 * The result code.
+	 */
 	public int code;
+
+	/**
+	 * Transaction data.
+	 */
 	public String data;
+
+	/**
+	 * Transaction info.
+	 */
 	public String info;
 }
