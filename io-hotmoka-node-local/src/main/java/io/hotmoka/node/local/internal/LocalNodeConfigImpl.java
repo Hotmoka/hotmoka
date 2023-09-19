@@ -45,7 +45,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	 * The maximal number of polling attempts, while waiting for the result
 	 * of a posted transaction. It defaults to 60.
 	 */
-	public final int maxPollingAttempts;
+	public final long maxPollingAttempts;
 
 	/**
 	 * The delay of two subsequent polling attempts, in milliseconds,
@@ -53,7 +53,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	 * This delay is then increased by 10% at each subsequent attempt.
 	 * It defaults to 10.
 	 */
-	public final int pollingDelay;
+	public final long pollingDelay;
 
 	/**
 	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
@@ -93,12 +93,12 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	}
 
 	@Override
-	public int getMaxPollingAttempts() {
+	public long getMaxPollingAttempts() {
 		return maxPollingAttempts;
 	}
 
 	@Override
-	public int getPollingDelay() {
+	public long getPollingDelay() {
 		return pollingDelay;
 	}
 
@@ -173,8 +173,8 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	 */
 	protected abstract static class ConfigBuilderImpl<T extends LocalNodeConfigBuilder<T>> implements LocalNodeConfigBuilder<T> {
 		private Path dir = Paths.get("chain");
-		private int maxPollingAttempts = 60;
-		private int pollingDelay = 10;
+		private long maxPollingAttempts = 60;
+		private long pollingDelay = 10;
 		private int requestCacheSize = 1_000;
 		private int responseCacheSize = 1_000;
 		private BigInteger maxGasPerViewTransaction = BigInteger.valueOf(100_000_000);
@@ -209,21 +209,25 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 			if (dir != null)
 				setDir(Paths.get(dir));
 
-			// TODO: remove type conversions below
 			var maxPollingAttempts = toml.getLong("max_polling_attempts");
 			if (maxPollingAttempts != null)
-				setMaxPollingAttempts((int) (long) maxPollingAttempts);
+				setMaxPollingAttempts(maxPollingAttempts);
 
 			var pollingDelay = toml.getLong("polling_delay");
 			if (pollingDelay != null)
-				setPollingDelay((int) (long) pollingDelay);
+				setPollingDelay(pollingDelay);
 
 			var requestCacheSize = toml.getLong("request_cache_size");
 			if (requestCacheSize != null)
-				setRequestCacheSize((int) (long) requestCacheSize);
+				if (requestCacheSize < 0 || requestCacheSize > Integer.MAX_VALUE)
+					throw new IllegalArgumentException("requestCacheSize must be non-negative and no larger than " + Integer.MAX_VALUE);
+				else
+					setRequestCacheSize((int) (long) requestCacheSize);
 
 			var responseCacheSize = toml.getLong("response_cache_size");
-			if (responseCacheSize != null)
+			if (responseCacheSize < 0 || responseCacheSize > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("responseCacheSize must be non-negative and no larger than " + Integer.MAX_VALUE);
+			else
 				setResponseCacheSize((int) (long) responseCacheSize);
 
 			var maxGasPerViewTransaction = toml.getString("max_gas_per_view_transaction");
@@ -234,6 +238,9 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		@Override
 		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
 			Objects.requireNonNull(maxGasPerViewTransaction, "maxGasPerViewTransaction cannot be null");
+			if (maxGasPerViewTransaction.signum() < 0)
+				throw new IllegalArgumentException("maxGasPerViewTransaction must be non-negative");
+
 			this.maxGasPerViewTransaction = maxGasPerViewTransaction;
 	
 			return getThis();
@@ -247,7 +254,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setMaxPollingAttempts(int maxPollingAttempts) {
+		public T setMaxPollingAttempts(long maxPollingAttempts) {
 			if (maxPollingAttempts <= 0)
 				throw new IllegalArgumentException("maxPollingAttempts must be positive");
 
@@ -256,7 +263,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setPollingDelay(int pollingDelay) {
+		public T setPollingDelay(long pollingDelay) {
 			if (pollingDelay < 0)
 				throw new IllegalArgumentException("pollingDelay must non-negative");
 

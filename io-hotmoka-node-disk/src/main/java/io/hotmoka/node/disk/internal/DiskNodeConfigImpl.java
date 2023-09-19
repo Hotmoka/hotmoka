@@ -43,7 +43,7 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 	 * 
 	 * @param the builder
 	 */
-	protected DiskNodeConfigImpl(DiskNodeConfigBuilderImpl builder) {
+	private DiskNodeConfigImpl(DiskNodeConfigBuilderImpl builder) {
 		super(builder);
 
 		this.transactionsPerBlock = builder.transactionsPerBlock;
@@ -95,20 +95,6 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
-		 */
-		protected DiskNodeConfigBuilderImpl(Toml toml) {
-			super(toml);
-
-			var transactionsPerBlock = toml.getLong("transactions_per_block");
-			if (transactionsPerBlock != null)
-				setTransactionsPerBlock(transactionsPerBlock);
-		}
-
-		/**
-		 * Creates a builder by reading the properties of the given TOML file and sets them for
-		 * the corresponding fields of this builder.
-		 * 
-		 * @param toml the file
 		 * @throws FileNotFoundException if the file cannot be found
 		 */
 		public DiskNodeConfigBuilderImpl(Path toml) throws FileNotFoundException {
@@ -116,11 +102,25 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig implements DiskN
 		}
 
 		/**
+		 * Creates a builder by reading the properties of the given TOML file and sets them for
+		 * the corresponding fields of this builder.
+		 * 
+		 * @param toml the file
+		 */
+		private DiskNodeConfigBuilderImpl(Toml toml) {
+			super(toml);
+		
+			var transactionsPerBlock = toml.getLong("transactions_per_block");
+			if (transactionsPerBlock != null)
+				setTransactionsPerBlock(transactionsPerBlock);
+		}
+
+		/**
 		 * Creates a builder with properties initialized to those of the given configuration object.
 		 * 
 		 * @param config the configuration object
 		 */
-		protected DiskNodeConfigBuilderImpl(DiskNodeConfig config) {
+		private DiskNodeConfigBuilderImpl(DiskNodeConfig config) {
 			super(config);
 
 			setTransactionsPerBlock(config.getTransactionsPerBlock());

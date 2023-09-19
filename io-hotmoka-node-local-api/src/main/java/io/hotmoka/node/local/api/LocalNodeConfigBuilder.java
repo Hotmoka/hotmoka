@@ -50,7 +50,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param maxPollingAttempts the maximal number of polling attempts
 	 * @return this builder
 	 */
-	T setMaxPollingAttempts(int maxPollingAttempts);
+	T setMaxPollingAttempts(long maxPollingAttempts);
 
 	/**
 	 * Sets the delay of two subsequent polling attempts, in milliseconds,
@@ -61,7 +61,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param pollingDelay the delay
 	 * @return this builder
 	 */
-	T setPollingDelay(int pollingDelay);
+	T setPollingDelay(long pollingDelay);
 
 	/**
 	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.

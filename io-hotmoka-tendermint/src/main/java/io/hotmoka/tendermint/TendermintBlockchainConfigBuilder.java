@@ -35,26 +35,27 @@ public interface TendermintBlockchainConfigBuilder extends LocalNodeConfigBuilde
 	 * with the same node as single validator.
 	 * 
 	 * @param tendermintConfigurationToClone the directory of the Tendermint configuration
-	 *                                       to clone and use for Tendermint
+	 *                                       to clone and use for Tendermint; this might be {@code null}
 	 * @return this builder
 	 */
 	TendermintBlockchainConfigBuilder setTendermintConfigurationToClone(Path tendermintConfigurationToClone);
 
 	/**
 	 * Sets the maximal number of connection attempts to the Tendermint process during ping.
+	 * It defaults to 20.
 	 * 
 	 * @param maxPingAttempts the max number of attempts
 	 * @return this builder
 	 */
-	TendermintBlockchainConfigBuilder setMaxPingAttempts(int maxPingAttempts);
+	TendermintBlockchainConfigBuilder setMaxPingAttempts(long maxPingAttempts);
 
 	/**
-	 * Sets the delay between two successive ping attempts, in milliseconds. Defaults to 200.
+	 * Sets the delay between two successive ping attempts, in milliseconds. It defaults to 200.
 	 * 
 	 * @param pingDelay the delay
 	 * @return this builder
 	 */
-	TendermintBlockchainConfigBuilder setPingDelay(int pingDelay);
+	TendermintBlockchainConfigBuilder setPingDelay(long pingDelay);
 
 	@Override
 	TendermintBlockchainConfig build(); // TODO: remove?

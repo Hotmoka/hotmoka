@@ -22,9 +22,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.math.BigInteger;
 import java.net.ConnectException;
@@ -443,10 +441,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 * @throws InterruptedException if interrupted while pinging
 		 */
 		private void waitUntilTendermintProcessIsUp(TendermintBlockchainConfig config) throws TimeoutException, InterruptedException, IOException {
-			for (int reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
+			for (long reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
 				try {
 					HttpURLConnection connection = poster.openPostConnectionToTendermint();
-					try (OutputStream os = connection.getOutputStream(); InputStream is = connection.getInputStream()) {
+					try (var os = connection.getOutputStream(); var is = connection.getInputStream()) {
 						return;
 					}
 				}
@@ -510,9 +508,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param config the configuration of the node
 	 */
 	private void initWorkingDirectoryOfTendermintProcess(TendermintBlockchainConfig config) throws InterruptedException, IOException {
-		if (config.getTendermintConfigurationToClone() == null) {
+		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
+
+		if (tendermintConfigurationToClone.isEmpty()) {
 			// if there is no configuration to clone, we create a default network of a single node
-			// that plays the role of unique validator of the network
+			// that plays the role of the unique validator of the network
 
 			Path tendermintHome = config.getDir().resolve("blocks");
 			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
@@ -523,6 +523,6 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		else
 			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
-			copyRecursively(config.getTendermintConfigurationToClone(), config.getDir().resolve("blocks"));
+			copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
 	}
 }

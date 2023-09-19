@@ -38,7 +38,7 @@ public interface LocalNodeConfig {
 	 * Yields the maximal number of polling attempts, while waiting
 	 * for the result of a posted transaction. It defaults to 60.
 	 */
-	int getMaxPollingAttempts();
+	long getMaxPollingAttempts();
 
 	/**
 	 * Yields the delay of two subsequent polling attempts, in milliseconds,
@@ -46,7 +46,7 @@ public interface LocalNodeConfig {
 	 * This delay is then increased by 10% at each subsequent attempt.
 	 * It defaults to 10.
 	 */
-	int getPollingDelay();
+	long getPollingDelay();
 
 	/**
 	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.

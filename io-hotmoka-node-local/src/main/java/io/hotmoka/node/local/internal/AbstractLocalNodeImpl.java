@@ -305,7 +305,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig, S extends
 			if (semaphore != null)
 				semaphore.acquire();
 	
-			for (int attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
+			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
 				try {
 					// we enforce that both request and response are available
 					TransactionResponse response = getResponse(reference);

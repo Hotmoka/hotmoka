@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tendermint;
 
 import java.nio.file.Path;
+import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -31,24 +32,24 @@ public interface TendermintBlockchainConfig extends LocalNodeConfig {
 	 * Yields the directory that contains the Tendermint configuration that must be cloned
 	 * if a brand new Tendermint blockchain is created.
 	 * That configuration will then be used for the execution of Tendermint.
-	 * This might be {@code null}, in which case a default Tendermint configuration is created,
+	 * This might be missing, in which case a default brand new Tendermint configuration is created,
 	 * with the same node as single validator.
 	 * 
 	 * @return the directory, if any
 	 */
-	Path getTendermintConfigurationToClone(); // TODO: maybe Optional?
+	Optional<Path> getTendermintConfigurationToClone();
 
 	/**
 	 * Yields the maximal number of connection attempts to the Tendermint process during ping.
 	 * 
 	 * @return the maximal number of connection attempts
 	 */
-	int getMaxPingAttempts();
+	long getMaxPingAttempts();
 
 	/**
 	 * Yields the delay between two successive ping attempts, in milliseconds.
 	 * 
 	 * @return the delay between two successive ping attempts
 	 */
-	int getPingDelay();
+	long getPingDelay();
 }

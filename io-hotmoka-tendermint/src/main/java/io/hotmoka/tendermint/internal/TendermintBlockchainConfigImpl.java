@@ -19,6 +19,7 @@ package io.hotmoka.tendermint.internal;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 
 import com.moandjiezana.toml.Toml;
 
@@ -37,47 +38,47 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 	 * The directory that contains the Tendermint configuration that must be cloned
 	 * if a brand new Tendermint blockchain is created.
 	 * That configuration will then be used for the execution of Tendermint.
-	 * This might be {@code null}, in which case a default Tendermint configuration is created,
+	 * This might be missing, in which case a default Tendermint configuration is created,
 	 * with the same node as single validator. It defaults to {@code null}.
 	 */
-	public final Path tendermintConfigurationToClone;
+	public final Optional<Path> tendermintConfigurationToClone;
 
 	/**
 	 * The maximal number of connection attempts to the Tendermint process during ping.
 	 * Defaults to 20.
 	 */
-	public final int maxPingAttempts;
+	public final long maxPingAttempts;
 
 	/**
 	 * The delay between two successive ping attempts, in milliseconds. Defaults to 200.
 	 */
-	public final int pingDelay;
+	public final long pingDelay;
 
 	/**
 	 * Creates a new configuration object from its builder.
 	 * 
 	 * @param the builder
 	 */
-	protected TendermintBlockchainConfigImpl(TendermintBlockchainConfigBuilderImpl builder) {
+	private TendermintBlockchainConfigImpl(TendermintBlockchainConfigBuilderImpl builder) {
 		super(builder);
 
-		this.tendermintConfigurationToClone = builder.tendermintConfigurationToClone;
+		this.tendermintConfigurationToClone = Optional.ofNullable(builder.tendermintConfigurationToClone);
 		this.maxPingAttempts = builder.maxPingAttempts;
 		this.pingDelay = builder.pingDelay;
 	}
 
 	@Override
-	public Path getTendermintConfigurationToClone() {
+	public Optional<Path> getTendermintConfigurationToClone() {
 		return tendermintConfigurationToClone;
 	}
 
 	@Override
-	public int getMaxPingAttempts() {
+	public long getMaxPingAttempts() {
 		return maxPingAttempts;
 	}
 
 	@Override
-	public int getPingDelay() {
+	public long getPingDelay() {
 		return pingDelay;
 	}
 
@@ -109,8 +110,8 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 	 * The builder of a configuration object.
 	 */
 	public static class TendermintBlockchainConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintBlockchainConfigBuilder> implements TendermintBlockchainConfigBuilder {
-		private int maxPingAttempts = 20;
-		private int pingDelay = 200;
+		private long maxPingAttempts = 20;
+		private long pingDelay = 200;
 		private Path tendermintConfigurationToClone;
 
 		/**
@@ -123,22 +124,10 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
+		 * @throws FileNotFoundException if the file cannot be found
 		 */
-		protected TendermintBlockchainConfigBuilderImpl(Toml toml) {
-			super(toml);
-
-			// TODO: remove these type conversions
-			var maxPingAttempts = toml.getLong("max_ping_attempts");
-			if (maxPingAttempts != null)
-				setMaxPingAttempts((int) (long) maxPingAttempts);
-
-			var pingDelay = toml.getLong("ping_delay");
-			if (pingDelay != null)
-				setPingDelay((int) (long) pingDelay);
-
-			var tendermintConfigurationToClone = toml.getString("tendermint_configuration_to_clone");
-			if (tendermintConfigurationToClone != null)
-				setTendermintConfigurationToClone(Paths.get(tendermintConfigurationToClone));
+		public TendermintBlockchainConfigBuilderImpl(Path toml) throws FileNotFoundException {
+			this(readToml(toml));
 		}
 
 		/**
@@ -146,10 +135,21 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
-		 * @throws FileNotFoundException if the file cannot be found
 		 */
-		public TendermintBlockchainConfigBuilderImpl(Path toml) throws FileNotFoundException {
-			super(readToml(toml));
+		private TendermintBlockchainConfigBuilderImpl(Toml toml) {
+			super(toml);
+		
+			var maxPingAttempts = toml.getLong("max_ping_attempts");
+			if (maxPingAttempts != null)
+				setMaxPingAttempts(maxPingAttempts);
+		
+			var pingDelay = toml.getLong("ping_delay");
+			if (pingDelay != null)
+				setPingDelay(pingDelay);
+		
+			var tendermintConfigurationToClone = toml.getString("tendermint_configuration_to_clone");
+			if (tendermintConfigurationToClone != null)
+				setTendermintConfigurationToClone(Paths.get(tendermintConfigurationToClone));
 		}
 
 		/**
@@ -157,12 +157,12 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * 
 		 * @param config the configuration object
 		 */
-		protected TendermintBlockchainConfigBuilderImpl(TendermintBlockchainConfig config) {
+		private TendermintBlockchainConfigBuilderImpl(TendermintBlockchainConfig config) {
 			super(config);
 
 			setMaxPingAttempts(config.getMaxPingAttempts());
 			setPingDelay(config.getPingDelay());
-			setTendermintConfigurationToClone(config.getTendermintConfigurationToClone());
+			setTendermintConfigurationToClone(config.getTendermintConfigurationToClone().orElse(null));
 		}
 
 		@Override
@@ -172,13 +172,13 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		}
 
 		@Override
-		public TendermintBlockchainConfigBuilder setMaxPingAttempts(int maxPingAttempts) {
+		public TendermintBlockchainConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
 			this.maxPingAttempts = maxPingAttempts;
 			return getThis();
 		}
 
 		@Override
-		public TendermintBlockchainConfigBuilder setPingDelay(int pingDelay) {
+		public TendermintBlockchainConfigBuilder setPingDelay(long pingDelay) {
 			this.pingDelay = pingDelay;
 			return getThis();
 		}

@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -440,8 +439,8 @@ public class TendermintPoster {
 	private void writeInto(HttpURLConnection connection, String jsonTendermintRequest) throws IOException, TimeoutException, InterruptedException {
 		byte[] input = jsonTendermintRequest.getBytes(StandardCharsets.UTF_8);
 
-		for (int i = 0; i < config.getMaxPingAttempts(); i++) {
-			try (OutputStream os = connection.getOutputStream()) {
+		for (long i = 0; i < config.getMaxPingAttempts(); i++) {
+			try (var os = connection.getOutputStream()) {
 				os.write(input, 0, input.length);
 				return;
 			}

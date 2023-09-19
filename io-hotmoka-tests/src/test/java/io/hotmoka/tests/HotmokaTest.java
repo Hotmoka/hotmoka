@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 204 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 188 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -39,9 +39,6 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.TestInfo;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.Coin;
@@ -161,11 +158,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final PrivateKey privateKeyOfGamete;
 
 	private final static Logger LOGGER = Logger.getLogger(HotmokaTest.class.getName());
-
-	@BeforeEach
-	void logTestName(TestInfo testInfo) {
-		LOGGER.info("**** Starting test " + testInfo.getTestClass().get().getSimpleName() + '.' + testInfo.getTestMethod().get().getName() + ": " + testInfo.getDisplayName());
-	}
 
 	public interface TestBody {
 		void run() throws Exception;

@@ -89,11 +89,7 @@ public final class LRUCache<K, V> {
 
 	public LRUCache(int initialCapacity, int maxCapacity) {
 		this.maxCapacity = maxCapacity;
-
-		if (initialCapacity > maxCapacity)
-			initialCapacity = maxCapacity;
-
-		map = new HashMap<>(initialCapacity);
+		this.map = new HashMap<>(Math.min(initialCapacity, maxCapacity));
 	}
 
 	/**
