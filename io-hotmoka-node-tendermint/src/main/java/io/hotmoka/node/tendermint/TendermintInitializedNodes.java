@@ -23,7 +23,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -31,21 +30,18 @@ import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
-import io.hotmoka.node.tendermint.api.TendermintBlockchain;
+import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
 
 /**
- * A node where the jar with the basic Takamaka classes have been installed,
- * along with a gamete and a manifest. It is a view of a Tendermint node, hence it
- * uses the chain identifier and the validator set of the underlying Tendermint network.
+ * Providers of Tendermint nodes where the jar with the basic Takamaka classes have been installed,
+ * along with a gamete and a manifest.
  */
-@ThreadSafe
-public interface TendermintInitializedNode extends InitializedNode {
+public abstract class TendermintInitializedNodes {
 
 	/**
 	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the chain id and the validators
-	 * of the underlying Tendermint network. It uses a generic gas station.
+	 * Uses the chain id and the validators of the underlying Tendermint network. It uses a generic gas station.
 	 * 
 	 * @param parent the node to decorate
 	 * @param consensus the consensus parameters that will be set for the node
@@ -59,13 +55,12 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ValidatorsConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
 
 	/**
-	 * Yields a decorated node with basic Takamaka classes, gamete and manifest.
-	 * Uses the chain id and the validators
+	 * Yields a decorated node with basic Takamaka classes, gamete and manifest. Uses the chain id and the validators
 	 * of the underlying Tendermint network. It allows one to specify the gas station to use.
 	 * 
 	 * @param parent the node to decorate
@@ -82,7 +77,7 @@ public interface TendermintInitializedNode extends InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	static TendermintInitializedNode of(TendermintBlockchain parent, ValidatorsConsensusConfig consensus,
+	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig consensus,
 			ProducerOfStorageObject<ConsensusConfig> producerOfGasStation, Path takamakaCode, BigInteger redAmount) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

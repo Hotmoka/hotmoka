@@ -25,14 +25,14 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.AbstractLocalNodeConfig;
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfigBuilder;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfigBuilder;
 
 /**
- * Implementation of the configuration of a Tendermint blockchain.
+ * Implementation of the configuration of a Tendermint node.
  */
 @Immutable
-public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig implements TendermintBlockchainConfig {
+public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig implements TendermintNodeConfig {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
@@ -59,7 +59,7 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 	 * 
 	 * @param the builder
 	 */
-	private TendermintBlockchainConfigImpl(TendermintBlockchainConfigBuilderImpl builder) {
+	private TendermintNodeConfigImpl(TendermintNodeConfigBuilderImpl builder) {
 		super(builder);
 
 		this.tendermintConfigurationToClone = Optional.ofNullable(builder.tendermintConfigurationToClone);
@@ -102,14 +102,14 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 	}
 
 	@Override
-	public TendermintBlockchainConfigBuilder toBuilder() {
-		return new TendermintBlockchainConfigBuilderImpl(this);
+	public TendermintNodeConfigBuilder toBuilder() {
+		return new TendermintNodeConfigBuilderImpl(this);
 	}
 
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class TendermintBlockchainConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintBlockchainConfigBuilder> implements TendermintBlockchainConfigBuilder {
+	public static class TendermintNodeConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintNodeConfigBuilder> implements TendermintNodeConfigBuilder {
 		private long maxPingAttempts = 20;
 		private long pingDelay = 200;
 		private Path tendermintConfigurationToClone;
@@ -117,7 +117,7 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		/**
 		 * Creates a builder with default values for the properties.
 		 */
-		public TendermintBlockchainConfigBuilderImpl() {}
+		public TendermintNodeConfigBuilderImpl() {}
 
 		/**
 		 * Creates a builder by reading the properties of the given TOML file and sets them for
@@ -126,7 +126,7 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * @param toml the file
 		 * @throws FileNotFoundException if the file cannot be found
 		 */
-		public TendermintBlockchainConfigBuilderImpl(Path toml) throws FileNotFoundException {
+		public TendermintNodeConfigBuilderImpl(Path toml) throws FileNotFoundException {
 			this(readToml(toml));
 		}
 
@@ -136,7 +136,7 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * 
 		 * @param toml the file
 		 */
-		private TendermintBlockchainConfigBuilderImpl(Toml toml) {
+		private TendermintNodeConfigBuilderImpl(Toml toml) {
 			super(toml);
 		
 			var maxPingAttempts = toml.getLong("max_ping_attempts");
@@ -157,7 +157,7 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		 * 
 		 * @param config the configuration object
 		 */
-		private TendermintBlockchainConfigBuilderImpl(TendermintBlockchainConfig config) {
+		private TendermintNodeConfigBuilderImpl(TendermintNodeConfig config) {
 			super(config);
 
 			setMaxPingAttempts(config.getMaxPingAttempts());
@@ -166,30 +166,30 @@ public class TendermintBlockchainConfigImpl extends AbstractLocalNodeConfig impl
 		}
 
 		@Override
-		public TendermintBlockchainConfigBuilder setTendermintConfigurationToClone(Path tendermintConfigurationToClone) {
+		public TendermintNodeConfigBuilder setTendermintConfigurationToClone(Path tendermintConfigurationToClone) {
 			this.tendermintConfigurationToClone = tendermintConfigurationToClone;
 			return getThis();
 		}
 
 		@Override
-		public TendermintBlockchainConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
+		public TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
 			this.maxPingAttempts = maxPingAttempts;
 			return getThis();
 		}
 
 		@Override
-		public TendermintBlockchainConfigBuilder setPingDelay(long pingDelay) {
+		public TendermintNodeConfigBuilder setPingDelay(long pingDelay) {
 			this.pingDelay = pingDelay;
 			return getThis();
 		}
 
 		@Override
-		public TendermintBlockchainConfig build() {
-			return new TendermintBlockchainConfigImpl(this);
+		public TendermintNodeConfig build() {
+			return new TendermintNodeConfigImpl(this);
 		}
 
 		@Override
-		protected TendermintBlockchainConfigBuilder getThis() {
+		protected TendermintNodeConfigBuilder getThis() {
 			return this;
 		}
 	}

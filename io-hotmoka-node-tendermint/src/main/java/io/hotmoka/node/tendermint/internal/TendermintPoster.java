@@ -38,7 +38,7 @@ import com.google.gson.Gson;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintStatusResponse;
@@ -54,7 +54,7 @@ import io.hotmoka.node.tendermint.internal.beans.TxError;
 public class TendermintPoster {
 	private final static Logger logger = Logger.getLogger(TendermintPoster.class.getName());
 
-	private final TendermintBlockchainConfig config;
+	private final TendermintNodeConfig config;
 
 	/**
 	 * The port of the Tendermint process on localhost.
@@ -68,7 +68,7 @@ public class TendermintPoster {
 
 	private final AtomicInteger nextId = new AtomicInteger();
 
-	TendermintPoster(TendermintBlockchainConfig config, int tendermintPort) {
+	TendermintPoster(TendermintNodeConfig config, int tendermintPort) {
 		this.config = config;
 		this.tendermintPort = tendermintPort;
 	}

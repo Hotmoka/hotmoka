@@ -69,7 +69,7 @@ class TendermintApplication extends ABCI {
 	/**
 	 * The Tendermint blockchain.
 	 */
-	private final TendermintBlockchainInternal node;
+	private final TendermintNodeInternal node;
 
 	/**
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
@@ -82,7 +82,7 @@ class TendermintApplication extends ABCI {
      * 
      * @param node the node whose transactions are executed
      */
-    TendermintApplication(TendermintBlockchainInternal node) {
+    TendermintApplication(TendermintNodeInternal node) {
     	this.node = node;
     }
 

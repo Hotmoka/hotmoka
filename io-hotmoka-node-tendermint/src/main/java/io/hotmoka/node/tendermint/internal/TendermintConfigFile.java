@@ -18,7 +18,7 @@ package io.hotmoka.node.tendermint.internal;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 
 /**
  * Configuration information extracted from Tendermint' config.toml.
@@ -35,7 +35,7 @@ class TendermintConfigFile {
 	 */
 	public final int tendermintPort;
 
-	TendermintConfigFile(TendermintBlockchainConfig config) {
+	TendermintConfigFile(TendermintNodeConfig config) {
 		Toml toml = new Toml().read(config.getDir().resolve("blocks").resolve("config").resolve("config.toml").toFile());
 		String proxy_app = toml.getString("proxy_app");
 		String expectedPrefix = "tcp://127.0.0.1:";

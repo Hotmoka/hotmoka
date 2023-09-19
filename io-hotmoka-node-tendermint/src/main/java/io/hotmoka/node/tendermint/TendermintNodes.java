@@ -20,17 +20,17 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ConsensusConfig;
-import io.hotmoka.node.tendermint.api.TendermintBlockchain;
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
-import io.hotmoka.node.tendermint.internal.TendermintBlockchainImpl;
+import io.hotmoka.node.tendermint.api.TendermintNode;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
 
 /**
  * Providers of blockchain nodes that rely on a Tendermint process.
  */
 @ThreadSafe
-public abstract class TendermintBlockchains {
+public abstract class TendermintNodes {
 
-	private TendermintBlockchains() {}
+	private TendermintNodes() {}
 
 	/**
 	 * Creates and starts a node with a brand new store, of a blockchain based on Tendermint.
@@ -44,8 +44,8 @@ public abstract class TendermintBlockchains {
 	 * @return the Tendermint node
 	 * @throws IOException 
 	 */
-	public static TendermintBlockchain init(TendermintBlockchainConfig config, ConsensusConfig consensus) throws IOException {
-		return new TendermintBlockchainImpl(config, consensus);
+	public static TendermintNode init(TendermintNodeConfig config, ConsensusConfig consensus) throws IOException {
+		return new TendermintNodeImpl(config, consensus);
 	}
 
 	/**
@@ -58,7 +58,7 @@ public abstract class TendermintBlockchains {
 	 * @return the Tendermint node
 	 * @throws IOException 
 	 */
-	public static TendermintBlockchain resume(TendermintBlockchainConfig config) throws IOException {
-		return new TendermintBlockchainImpl(config);
+	public static TendermintNode resume(TendermintNodeConfig config) throws IOException {
+		return new TendermintNodeImpl(config);
 	}
 }

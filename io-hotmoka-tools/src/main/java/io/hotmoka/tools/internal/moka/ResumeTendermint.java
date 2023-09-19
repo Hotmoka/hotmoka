@@ -23,9 +23,9 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.ManifestHelpers;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfigBuilders;
-import io.hotmoka.node.tendermint.TendermintBlockchains;
-import io.hotmoka.node.tendermint.api.TendermintBlockchain;
+import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintNodes;
+import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
@@ -55,10 +55,10 @@ public class ResumeTendermint extends AbstractCommand {
 
 	private class Run {
 		private final NodeServiceConfig networkConfig;
-		private final TendermintBlockchain node;
+		private final TendermintNode node;
 
 		private Run() throws Exception {
-			var nodeConfig = TendermintBlockchainConfigBuilders.defaults()
+			var nodeConfig = TendermintNodeConfigBuilders.defaults()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
@@ -68,7 +68,7 @@ public class ResumeTendermint extends AbstractCommand {
 				.setPort(port)
 				.build();
 
-			try (var node = this.node = TendermintBlockchains.resume(nodeConfig); var service = NodeService.of(networkConfig, node)) {
+			try (var node = this.node = TendermintNodes.resume(nodeConfig); var service = NodeService.of(networkConfig, node)) {
 				printManifest();
 				printBanner();
 				waitForEnterKey();

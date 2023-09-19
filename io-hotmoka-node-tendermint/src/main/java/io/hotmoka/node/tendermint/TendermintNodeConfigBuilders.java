@@ -19,23 +19,23 @@ package io.hotmoka.node.tendermint;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfigBuilder;
-import io.hotmoka.node.tendermint.internal.TendermintBlockchainConfigImpl.TendermintBlockchainConfigBuilderImpl;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfigBuilder;
+import io.hotmoka.node.tendermint.internal.TendermintNodeConfigImpl.TendermintNodeConfigBuilderImpl;
 
 /**
- * Providers of configuration object builders of a blockchain based on Tendermint.
+ * Providers of configuration object builders of nodes based on Tendermint.
  */
-public abstract class TendermintBlockchainConfigBuilders {
+public abstract class TendermintNodeConfigBuilders {
 
-	private TendermintBlockchainConfigBuilders() {}
+	private TendermintNodeConfigBuilders() {}
 
 	/**
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
 	 */
-	public static TendermintBlockchainConfigBuilder defaults() {
-		return new TendermintBlockchainConfigBuilderImpl();
+	public static TendermintNodeConfigBuilder defaults() {
+		return new TendermintNodeConfigBuilderImpl();
 	}
 
 	/**
@@ -47,7 +47,7 @@ public abstract class TendermintBlockchainConfigBuilders {
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
 	 */
-	public static TendermintBlockchainConfigBuilder load(Path path) throws FileNotFoundException {
-		return new TendermintBlockchainConfigBuilderImpl(path);
+	public static TendermintNodeConfigBuilder load(Path path) throws FileNotFoundException {
+		return new TendermintNodeConfigBuilderImpl(path);
 	}
 }

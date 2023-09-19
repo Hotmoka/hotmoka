@@ -23,12 +23,12 @@ import io.hotmoka.node.api.Node;
  * A node of a blockchain that relies on a Tendermint process.
  */
 @ThreadSafe
-public interface TendermintBlockchain extends Node {
+public interface TendermintNode extends Node {
 
 	/**
 	 * Yields the configuration of this node.
 	 * 
 	 * @return the configuration
 	 */
-	TendermintBlockchainConfig getConfig();
+	TendermintNodeConfig getConfig();
 }

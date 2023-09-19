@@ -44,9 +44,9 @@ import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfigBuilders;
-import io.hotmoka.node.tendermint.TendermintBlockchains;
-import io.hotmoka.node.tendermint.TendermintInitializedNode;
+import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintNodes;
+import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
@@ -139,7 +139,7 @@ public class InitTendermint extends AbstractCommand {
 			checkPublicKey(keyOfGamete);
 			askForConfirmation();
 
-			var nodeConfig = TendermintBlockchainConfigBuilders.defaults()
+			var nodeConfig = TendermintNodeConfigBuilders.defaults()
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
@@ -172,10 +172,9 @@ public class InitTendermint extends AbstractCommand {
 				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
 				.build();
 
-			try (var node = TendermintBlockchains.init(nodeConfig, consensus);
-				InitializedNode initialized = this.initialized = TendermintInitializedNode.of(node, consensus,
-						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				var service = NodeService.of(networkConfig, initialized)) {
+			try (var node = TendermintNodes.init(nodeConfig, consensus);
+				 var initialized = this.initialized = TendermintInitializedNodes.of(node, consensus, Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
+				 var service = NodeService.of(networkConfig, initialized)) {
 
 				bindValidators();
 				cleanUp();
@@ -190,9 +189,9 @@ public class InitTendermint extends AbstractCommand {
 			if (bindValidators) {
 				TransactionReference takamakaCode = initialized.getTakamakaCode();
 				StorageReference manifest = initialized.getManifest();
-				StorageReference validators = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var validators = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_VALIDATORS, manifest));
-				StorageReference shares = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), validators));
 				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;

@@ -72,8 +72,7 @@ import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
-import io.hotmoka.node.tendermint.TendermintInitializedNode;
-import io.hotmoka.node.tendermint.api.TendermintBlockchain;
+import io.hotmoka.node.tendermint.api.TendermintNode;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.
@@ -81,7 +80,7 @@ import io.hotmoka.node.tendermint.api.TendermintBlockchain;
  * class feeds the initialized node with the chain identifier and the
  * validators set of the underlying Tendermint network.
  */
-public class TendermintInitializedNodeImpl implements TendermintInitializedNode {
+public class TendermintInitializedNodeImpl implements InitializedNode {
 
 	private final static Logger logger = Logger.getLogger(TendermintInitializedNodeImpl.class.getName());
 
@@ -109,7 +108,7 @@ public class TendermintInitializedNodeImpl implements TendermintInitializedNode 
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public TendermintInitializedNodeImpl(TendermintBlockchain parent, ValidatorsConsensusConfig consensus,
+	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig consensus,
 			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException {
 		var tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
 		var poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);

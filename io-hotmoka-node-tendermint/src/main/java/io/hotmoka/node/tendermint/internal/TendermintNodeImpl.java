@@ -63,20 +63,20 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.tendermint.api.TendermintBlockchain;
-import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintNode;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint_abci.Server;
 
 /**
- * An implementation of a blockchain working over the Tendermint generic blockchain engine.
- * Requests sent to this blockchain are forwarded to a Tendermint process. This process
+ * An implementation of a node working over the Tendermint generic blockchain engine.
+ * Requests sent to this node are forwarded to a Tendermint process. This process
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
- * its state in a transactional database implemented by the {@linkplain Store} class.
+ * its state in a transactional database implemented by the {@link Store} class.
  */
 @ThreadSafe
-public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockchainConfig, Store> implements TendermintBlockchain {
+public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, Store> implements TendermintNode {
 
-	private final static Logger LOGGER = Logger.getLogger(TendermintBlockchainImpl.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
 	/**
 	 * The GRPC server that runs the ABCI process.
@@ -111,7 +111,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param consensus the consensus parameters of the node
 	 * @throws IOException 
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config, ConsensusConfig consensus) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config, ConsensusConfig consensus) throws IOException {
 		super(config, consensus);
 
 		try {
@@ -154,7 +154,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * @param config the configuration of the blockchain
 	 * @throws IOException 
 	 */
-	public TendermintBlockchainImpl(TendermintBlockchainConfig config) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config) throws IOException {
 		super(config);
 
 		try {
@@ -192,11 +192,11 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(TendermintBlockchain.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
+		return new NodeInfo(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 	}
 
 	@Override
-	public TendermintBlockchainConfig getConfig() {
+	public TendermintNodeConfig getConfig() {
 		return config;
 	}
 
@@ -321,10 +321,10 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
 	}
 
-	private class TendermintBlockchainInternalImpl implements TendermintBlockchainInternal {
+	private class TendermintBlockchainInternalImpl implements TendermintNodeInternal {
 
 		@Override
-		public TendermintBlockchainConfig getConfig() {
+		public TendermintNodeConfig getConfig() {
 			return config;
 		}
 
@@ -340,37 +340,37 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 
 		@Override
 		public String trimmedMessage(Throwable t) {
-			return TendermintBlockchainImpl.this.trimmedMessage(t);
+			return TendermintNodeImpl.this.trimmedMessage(t);
 		}
 
 		@Override
 		public void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			TendermintBlockchainImpl.this.checkTransaction(request);
+			TendermintNodeImpl.this.checkTransaction(request);
 		}
 
 		@Override
 		public TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			return TendermintBlockchainImpl.this.deliverTransaction(request);
+			return TendermintNodeImpl.this.deliverTransaction(request);
 		}
 
 		@Override
 		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			return TendermintBlockchainImpl.this.getTendermintValidatorsInStore();
+			return TendermintNodeImpl.this.getTendermintValidatorsInStore();
 		}
 
 		@Override
 		public void commitTransactionAndCheckout() {
-			TendermintBlockchainImpl.this.commitTransactionAndCheckout();
+			TendermintNodeImpl.this.commitTransactionAndCheckout();
 		}
 
 		@Override
 		public boolean rewardValidators(String behaving, String misbehaving) {
-			return TendermintBlockchainImpl.this.rewardValidators(behaving, misbehaving);
+			return TendermintNodeImpl.this.rewardValidators(behaving, misbehaving);
 		}
 
 		@Override
 		public void setNow(long now) {
-			TendermintBlockchainImpl.this.now = now;
+			TendermintNodeImpl.this.now = now;
 		}
 	}
 
@@ -394,7 +394,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 * @throws TimeoutException if Tendermint did not spawn up in the expected time
 		 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
 		 */
-		Tendermint(TendermintBlockchainConfig config) throws IOException, InterruptedException, TimeoutException {
+		Tendermint(TendermintNodeConfig config) throws IOException, InterruptedException, TimeoutException {
 			this.process = spawnTendermintProcess(config);
 			waitUntilTendermintProcessIsUp(config);
 
@@ -424,7 +424,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 * @param config the configuration of the node
 		 * @return the Tendermint process
 		 */
-		private Process spawnTendermintProcess(TendermintBlockchainConfig config) throws IOException {
+		private Process spawnTendermintProcess(TendermintNodeConfig config) throws IOException {
 			// spawns a process that remains in background
 			Path tendermintHome = config.getDir().resolve("blocks");
 			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
@@ -440,7 +440,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 		 * @throws TimeoutException if tried many times, but never got a reply
 		 * @throws InterruptedException if interrupted while pinging
 		 */
-		private void waitUntilTendermintProcessIsUp(TendermintBlockchainConfig config) throws TimeoutException, InterruptedException, IOException {
+		private void waitUntilTendermintProcessIsUp(TendermintNodeConfig config) throws TimeoutException, InterruptedException, IOException {
 			for (long reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
 				try {
 					HttpURLConnection connection = poster.openPostConnectionToTendermint();
@@ -507,7 +507,7 @@ public class TendermintBlockchainImpl extends AbstractLocalNode<TendermintBlockc
 	 * 
 	 * @param config the configuration of the node
 	 */
-	private void initWorkingDirectoryOfTendermintProcess(TendermintBlockchainConfig config) throws InterruptedException, IOException {
+	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, IOException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
 
 		if (tendermintConfigurationToClone.isEmpty()) {

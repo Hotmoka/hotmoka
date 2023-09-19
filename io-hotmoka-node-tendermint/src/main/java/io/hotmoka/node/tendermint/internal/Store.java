@@ -39,7 +39,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
 	/**
 	 * The node having this store.
 	 */
-	private final TendermintBlockchainInternal nodeInternal;
+	private final TendermintNodeInternal nodeInternal;
 
 	/**
 	 * The hashing algorithm used to merge the hashes of the many tries.
@@ -54,7 +54,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
 	 * @param dir the path where the database of the store gets created
      * @param nodeInternal the same node, with internal methods
      */
-    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintBlockchainInternal nodeInternal) {
+    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintNodeInternal nodeInternal) {
     	super(getResponseUncommittedCached, dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
 
     	this.nodeInternal = nodeInternal;

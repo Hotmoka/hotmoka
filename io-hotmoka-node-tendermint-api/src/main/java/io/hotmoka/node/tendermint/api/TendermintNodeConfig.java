@@ -26,7 +26,7 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
  * The configuration of a Tendermint blockchain.
  */
 @Immutable
-public interface TendermintBlockchainConfig extends LocalNodeConfig {
+public interface TendermintNodeConfig extends LocalNodeConfig {
 
 	/**
 	 * Yields the directory that contains the Tendermint configuration that must be cloned

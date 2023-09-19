@@ -25,7 +25,7 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
  * The builder of a configuration of a Tendermint blockchain.
  */
 @Immutable
-public interface TendermintBlockchainConfigBuilder extends LocalNodeConfigBuilder<TendermintBlockchainConfigBuilder> {
+public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<TendermintNodeConfigBuilder> {
 
 	/**
 	 * Sets the directory that contains the Tendermint configuration that must be cloned
@@ -38,7 +38,7 @@ public interface TendermintBlockchainConfigBuilder extends LocalNodeConfigBuilde
 	 *                                       to clone and use for Tendermint; this might be {@code null}
 	 * @return this builder
 	 */
-	TendermintBlockchainConfigBuilder setTendermintConfigurationToClone(Path tendermintConfigurationToClone);
+	TendermintNodeConfigBuilder setTendermintConfigurationToClone(Path tendermintConfigurationToClone);
 
 	/**
 	 * Sets the maximal number of connection attempts to the Tendermint process during ping.
@@ -47,7 +47,7 @@ public interface TendermintBlockchainConfigBuilder extends LocalNodeConfigBuilde
 	 * @param maxPingAttempts the max number of attempts
 	 * @return this builder
 	 */
-	TendermintBlockchainConfigBuilder setMaxPingAttempts(long maxPingAttempts);
+	TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts);
 
 	/**
 	 * Sets the delay between two successive ping attempts, in milliseconds. It defaults to 200.
@@ -55,8 +55,8 @@ public interface TendermintBlockchainConfigBuilder extends LocalNodeConfigBuilde
 	 * @param pingDelay the delay
 	 * @return this builder
 	 */
-	TendermintBlockchainConfigBuilder setPingDelay(long pingDelay);
+	TendermintNodeConfigBuilder setPingDelay(long pingDelay);
 
 	@Override
-	TendermintBlockchainConfig build(); // TODO: remove?
+	TendermintNodeConfig build(); // TODO: remove?
 }
