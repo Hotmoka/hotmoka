@@ -14,22 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.tools {
-	exports io.hotmoka.tools;
-	requires io.hotmoka.node.tendermint;
-	requires io.hotmoka.node.disk;
-	requires io.hotmoka.node.local;
-	requires io.hotmoka.service;
-	requires io.hotmoka.remote;
+module io.hotmoka.node.tendermint {
+	exports io.hotmoka.node.tendermint;
+	exports io.hotmoka.node.tendermint.internal.beans to com.google.gson;
+
+	requires io.hotmoka.tendermint.abci;
+	requires io.hotmoka.stores;
 	requires io.hotmoka.constants;
-	requires io.hotmoka.beans;
-	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.helpers;
-	requires io.hotmoka.crypto;
-	requires info.picocli;
+	requires io.hotmoka.annotations;
+	requires io.hotmoka.exceptions;
+	requires transitive io.hotmoka.helpers;
+	requires io.hotmoka.node.local;
+	requires com.google.gson;
+	requires com.google.protobuf;
+	requires toml4j;
 	requires java.logging;
-	opens io.hotmoka.tools to info.picocli; // for injecting CLI options
-    opens io.hotmoka.tools.internal.moka to info.picocli; // for injecting CLI options
-    requires jdk.unsupported;
 }

@@ -23,11 +23,11 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.ManifestHelpers;
+import io.hotmoka.node.tendermint.TendermintBlockchain;
+import io.hotmoka.node.tendermint.TendermintBlockchainConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintBlockchains;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
-import io.hotmoka.tendermint.TendermintBlockchains;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

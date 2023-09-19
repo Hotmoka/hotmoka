@@ -24,10 +24,10 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintBlockchainConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintBlockchains;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
-import io.hotmoka.tendermint.TendermintBlockchains;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

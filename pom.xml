@@ -113,9 +113,9 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-stores</module>
     <module>io-hotmoka-node-disk-api</module>
     <module>io-hotmoka-node-disk</module>
+    <module>io-hotmoka-node-tendermint</module>
     <module>io-hotmoka-xodus</module>
     <module>io-hotmoka-tendermint-abci</module>
-    <module>io-hotmoka-tendermint</module>
     <module>io-hotmoka-annotations</module>
     <module>io-hotmoka-marshalling-api</module>
     <module>io-hotmoka-marshalling</module>
@@ -306,7 +306,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-service,
                 io-hotmoka-remote,
                 io-hotmoka-tendermint-abci,
-                io-hotmoka-tendermint,
+                io-hotmoka-node-tendermint,
                 io-hotmoka-xodus,
                 io-hotmoka-ws-client,
                 io-hotmoka-stores,
