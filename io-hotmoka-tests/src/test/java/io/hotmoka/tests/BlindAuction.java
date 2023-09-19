@@ -103,7 +103,7 @@ class BlindAuction extends HotmokaTest {
 	static void beforeAll() throws Exception {
 		setJar("auction.jar");
 
-		if (tendermintBlockchain != null || node instanceof RemoteNode) {
+		if (isUsingTendermint() || node instanceof RemoteNode) {
 			// the Tendermint blockchain is slower and requires more time for all transactions in this test
 			BIDDING_TIME = 40_000;
 			REVEAL_TIME = 70_000;

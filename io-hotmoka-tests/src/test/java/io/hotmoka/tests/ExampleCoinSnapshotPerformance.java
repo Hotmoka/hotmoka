@@ -131,7 +131,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	 * @return true if the test context is accepted, otherwise it must be skipped
 	 */
 	private boolean accept(Context context) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		return tendermintBlockchain == null || context.numberOfInvestors <= 100; // the others take too much with Tendermint
+		return !isUsingTendermint() || context.numberOfInvestors <= 100; // the others take too much with Tendermint
 	}
 
 	private static void writePreamble(FileWriter fw) throws IOException {

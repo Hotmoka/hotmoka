@@ -78,14 +78,14 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.tendermint.TendermintInitializedNodes;
+import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
+import io.hotmoka.node.tendermint.TendermintNodes;
+import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.remote.RemoteNode;
 import io.hotmoka.remote.RemoteNodeConfig;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
-import io.hotmoka.tendermint.TendermintBlockchain;
-import io.hotmoka.tendermint.TendermintBlockchainConfigBuilders;
-import io.hotmoka.tendermint.TendermintBlockchains;
-import io.hotmoka.tendermint.helpers.TendermintInitializedNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
 
@@ -101,8 +101,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The node that gets created before starting running the tests.
 	 * This node will hence be created only once and
-	 * each test will decorate it into {@linkplain #nodeWithAccountsView},
-	 * with the addition of the jar and accounts that the test needs.
+	 * each test will create the accounts and add the jars that it needs.
 	 */
 	protected final static Node node;
 
@@ -148,9 +147,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected final static String chainId;
 
 	/**
-	 * Non-null if the node is based on Tendermint, so that a specific initialization can be run.
+	 * True if and only if the tests are run with the Tendermint node. This node is slower,
+	 * so that some tests will be reduced in complexity accordingly.
 	 */
-	protected static TendermintBlockchain tendermintBlockchain;
+	private static boolean isUsingTendermint;
 
 	/**
 	 * The private key of the gamete.
@@ -165,8 +165,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	static {
 		try {
-			tendermintBlockchain = null; // Tendermint would reassign
-
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        var entropy = Entropies.of(new byte[16]);
 			var password = "";
@@ -185,15 +183,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        // Change this to test with different node implementations
-	        node = mkMemoryBlockchain();
-	        //node = mkTendermintBlockchain();
-	        //node = mkRemoteNode(mkMemoryBlockchain());
-	        //node = mkRemoteNode(mkTendermintBlockchain());
-	        //node = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
-	        //node = mkRemoteNode("localhost:8080");
+	        Node wrapped;
+	        node = wrapped = mkMemoryBlockchain();
+	        //node = wrapped = mkTendermintBlockchain();
+	        //node = mkRemoteNode(wrapped = mkMemoryBlockchain());
+	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
+	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
+	        //node = wrapped = mkRemoteNode("localhost:8080");
 
 	        signature = SignatureAlgorithmForTransactionRequests.of(node.getNameOfSignatureAlgorithmForRequests());
-	        initializeNodeIfNeeded();
+	        initializeNodeIfNeeded(wrapped);
 	        var signerOfGamete = Signers.with(signature, privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
@@ -225,8 +224,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 	}
 
-	private static void initializeNodeIfNeeded() throws TransactionRejectedException, TransactionException,
-			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
+			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
 		try {
 			node.getManifest();
@@ -234,8 +233,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
-			if (tendermintBlockchain != null)
-				TendermintInitializedNode.of(tendermintBlockchain, consensus, takamakaCode);
+			if (node instanceof TendermintNode)
+				TendermintInitializedNodes.of((TendermintNode) node, consensus, takamakaCode);
 			else
 				InitializedNodes.of(node, consensus, takamakaCode);
 		}
@@ -243,12 +242,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() throws IOException {
-		var config = TendermintBlockchainConfigBuilders.defaults()
+		isUsingTendermint = true;
+
+		var config = TendermintNodeConfigBuilders.defaults()
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
 
-		return tendermintBlockchain = TendermintBlockchains.init(config, consensus);
+		return TendermintNodes.init(config, consensus);
 	}
 
 	@SuppressWarnings("unused")
@@ -344,6 +345,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	protected static SignatureAlgorithm<SignedTransactionRequest> signature() {
 		return signature;
+	}
+
+	protected static boolean isUsingTendermint() {
+		return isUsingTendermint;
 	}
 
 	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
