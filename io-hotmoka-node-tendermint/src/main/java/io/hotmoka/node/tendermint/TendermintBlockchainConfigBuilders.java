@@ -19,6 +19,7 @@ package io.hotmoka.node.tendermint;
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfigBuilder;
 import io.hotmoka.node.tendermint.internal.TendermintBlockchainConfigImpl.TendermintBlockchainConfigBuilderImpl;
 
 /**

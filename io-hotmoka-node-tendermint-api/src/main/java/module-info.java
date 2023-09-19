@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,21 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.tendermint;
-
-import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.Node;
-
 /**
- * A node of a blockchain that relies on a Tendermint process.
+ * This module defines the API of Hotmoka nodes running over the Tendermint engine.
+ * They can be used to build an actual blockchain network with validator nodes.
  */
-@ThreadSafe
-public interface TendermintBlockchain extends Node {
+module io.hotmoka.node.tendermint.api {
+	exports io.hotmoka.node.tendermint.api;
 
-	/**
-	 * Yields the configuration of this node.
-	 * 
-	 * @return the configuration
-	 */
-	TendermintBlockchainConfig getConfig();
+	requires io.hotmoka.annotations;
+	requires io.hotmoka.node.api;
+	requires io.hotmoka.node.local.api;
 }

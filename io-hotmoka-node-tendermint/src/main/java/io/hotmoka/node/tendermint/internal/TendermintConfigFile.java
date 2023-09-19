@@ -18,7 +18,7 @@ package io.hotmoka.node.tendermint.internal;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.node.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
 
 /**
  * Configuration information extracted from Tendermint' config.toml.

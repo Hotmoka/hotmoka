@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-node-tendermint</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements Hotmoka nodes running over the Tendermint engine. They can be used to build an actual blockchain network with validator nodes.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -14,6 +15,11 @@
   </parent>
 
   <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-tendermint-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-tendermint-abci</artifactId>

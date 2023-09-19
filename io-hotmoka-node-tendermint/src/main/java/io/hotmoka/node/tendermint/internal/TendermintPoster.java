@@ -38,7 +38,7 @@ import com.google.gson.Gson;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintStatusResponse;

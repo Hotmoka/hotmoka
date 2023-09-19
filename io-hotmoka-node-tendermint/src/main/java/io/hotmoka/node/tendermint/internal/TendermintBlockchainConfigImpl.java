@@ -25,8 +25,8 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.AbstractLocalNodeConfig;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfig;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfigBuilder;
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfigBuilder;
 
 /**
  * Implementation of the configuration of a Tendermint blockchain.

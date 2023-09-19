@@ -31,6 +31,7 @@ import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
+import io.hotmoka.node.tendermint.api.TendermintBlockchain;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
 
 /**

@@ -14,10 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements Hotmoka nodes running over the Tendermint engine.
+ * They can be used to build an actual blockchain network with validator nodes.
+ */
 module io.hotmoka.node.tendermint {
 	exports io.hotmoka.node.tendermint;
 	exports io.hotmoka.node.tendermint.internal.beans to com.google.gson;
 
+	requires transitive io.hotmoka.node.tendermint.api;
 	requires io.hotmoka.tendermint.abci;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.constants;

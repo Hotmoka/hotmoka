@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-node-disk</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements Hotmoka nodes that store their data on the disk. They do not form a blockchain network, since there is no synchronization nor mining.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

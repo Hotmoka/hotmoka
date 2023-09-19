@@ -72,8 +72,8 @@ import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
-import io.hotmoka.node.tendermint.TendermintBlockchain;
 import io.hotmoka.node.tendermint.TendermintInitializedNode;
+import io.hotmoka.node.tendermint.api.TendermintBlockchain;
 
 /**
  * A decorator of a node, that installs a jar and creates some initial accounts in it.

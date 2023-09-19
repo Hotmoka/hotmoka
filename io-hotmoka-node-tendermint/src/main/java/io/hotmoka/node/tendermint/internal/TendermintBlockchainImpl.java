@@ -63,8 +63,8 @@ import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.tendermint.TendermintBlockchain;
-import io.hotmoka.node.tendermint.TendermintBlockchainConfig;
+import io.hotmoka.node.tendermint.api.TendermintBlockchain;
+import io.hotmoka.node.tendermint.api.TendermintBlockchainConfig;
 import io.hotmoka.tendermint_abci.Server;
 
 /**
