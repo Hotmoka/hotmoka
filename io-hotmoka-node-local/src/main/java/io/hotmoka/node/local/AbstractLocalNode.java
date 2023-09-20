@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.io.IOException;
-
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -27,6 +25,9 @@ import io.hotmoka.stores.AbstractStore;
 /**
  * Partial implementation of a local (ie., non-remote) node.
  * Specific implementations can subclass this and implement the abstract template methods.
+ * 
+ * @param <C> the type of the configuration object used by the node
+ * @param <S> the type of the store of the node
  */
 @ThreadSafe
 public abstract class AbstractLocalNode<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractLocalNodeImpl<C, S> {
@@ -47,7 +48,7 @@ public abstract class AbstractLocalNode<C extends LocalNodeConfig<?,?>, S extend
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractLocalNode(C config) throws IOException {
+	protected AbstractLocalNode(C config) {
 		super(config);
 	}
 }

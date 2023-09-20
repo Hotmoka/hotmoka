@@ -100,6 +100,9 @@ import io.hotmoka.stores.Store;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
+ * 
+ * @param <C> the type of the configuration object used by the node
+ * @param <S> the type of the store of the node
  */
 @ThreadSafe
 public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractNode {
@@ -213,7 +216,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * 
 	 * @param config the configuration of the node
 	 */
-	protected AbstractLocalNodeImpl(C config) throws IOException {
+	protected AbstractLocalNodeImpl(C config) {
 		this(config, null, false);
 	}
 

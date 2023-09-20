@@ -25,9 +25,11 @@ import io.hotmoka.node.local.internal.NodeInternal;
 
 /**
  * Partial implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
+ * 
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
-public abstract class AbstractInitialResponseBuilder
-			<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse>
+public abstract class AbstractInitialResponseBuilder<Request extends InitialTransactionRequest<Response>, Response extends InitialTransactionResponse>
 		extends InitialResponseBuilderImpl<Request, Response> {
 
 	/**
@@ -42,9 +44,16 @@ public abstract class AbstractInitialResponseBuilder
 		super(reference, request, node);
 	}
 
+	/**
+	 * The creator of the response from the request.
+	 */
 	protected abstract class ResponseCreator extends InitialResponseBuilderImpl<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException {
-		}
+		/**
+		 * Creates the response from the request.
+		 * 
+		 * @throws TransactionRejectedException if the transaction has been rejected
+		 */
+		protected ResponseCreator() throws TransactionRejectedException {}
 	}
 }

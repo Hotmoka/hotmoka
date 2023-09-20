@@ -157,12 +157,12 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 		 * 
 		 * @param config the configuration object
 		 */
-		private TendermintNodeConfigBuilderImpl(TendermintNodeConfig config) {
+		private TendermintNodeConfigBuilderImpl(TendermintNodeConfigImpl config) {
 			super(config);
 
-			setMaxPingAttempts(config.getMaxPingAttempts());
-			setPingDelay(config.getPingDelay());
-			setTendermintConfigurationToClone(config.getTendermintConfigurationToClone().orElse(null));
+			setMaxPingAttempts(config.maxPingAttempts);
+			setPingDelay(config.pingDelay);
+			setTendermintConfigurationToClone(config.tendermintConfigurationToClone.orElse(null));
 		}
 
 		@Override
@@ -173,12 +173,18 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<Tendermint
 
 		@Override
 		public TendermintNodeConfigBuilder setMaxPingAttempts(long maxPingAttempts) {
+			if (maxPingAttempts <= 0)
+				throw new IllegalArgumentException("maxPingAttempts must be positive");
+
 			this.maxPingAttempts = maxPingAttempts;
 			return getThis();
 		}
 
 		@Override
 		public TendermintNodeConfigBuilder setPingDelay(long pingDelay) {
+			if (pingDelay < 0)
+				throw new IllegalArgumentException("pingDelay cannot be negative");
+
 			this.pingDelay = pingDelay;
 			return getThis();
 		}

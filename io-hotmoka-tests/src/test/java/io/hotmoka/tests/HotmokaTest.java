@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 188 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 187 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -131,7 +131,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static TransactionReference jar;
 
 	/**
-	 * The node under test. This is a view of {@linkplain #node},
+	 * The node under test. This is a view of {@link #node},
 	 * with the addition of some initial accounts, recreated before each test.
 	 */
 	private AccountsNode nodeWithAccountsView;
@@ -508,7 +508,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing nonce", e);
-			throw new TransactionRejectedException("cannot compute the nonce of " + account);
+			throw new TransactionRejectedException("Cannot compute the nonce of " + account);
 		}
 	}
 
@@ -528,7 +528,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing the balance", e);
-			throw new TransactionRejectedException("cannot compute the balance of " + account);
+			throw new TransactionRejectedException("Cannot compute the balance of " + account);
 		}
 	}
 }

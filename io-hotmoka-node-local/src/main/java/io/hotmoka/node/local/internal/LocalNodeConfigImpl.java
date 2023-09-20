@@ -31,6 +31,9 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
  * The configuration of a node.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
 public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> implements LocalNodeConfig<C,B> {
@@ -78,7 +81,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	 * 
 	 * @param the builder
 	 */
-	protected LocalNodeConfigImpl(ConfigBuilderImpl<?,?> builder) {
+	protected LocalNodeConfigImpl(ConfigBuilderImpl<C,B> builder) {
 		this.dir = builder.dir;
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
@@ -189,7 +192,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ConfigBuilderImpl(LocalNodeConfig<?,?> config) {
+		protected ConfigBuilderImpl(LocalNodeConfig<C,B> config) {
 			setDir(config.getDir());
 			setMaxPollingAttempts(config.getMaxPollingAttempts());
 			setPollingDelay(config.getPollingDelay());

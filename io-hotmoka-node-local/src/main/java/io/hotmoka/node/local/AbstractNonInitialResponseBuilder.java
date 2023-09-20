@@ -27,9 +27,11 @@ import io.hotmoka.node.local.internal.NonInitialResponseBuilderImpl;
  * Partial implementation of the creator of the response for a non-initial transaction.
  * Non-initial transactions consume gas, have a payer, a nonce, a chain identifier and are signed.
  * The constructor of this class checks the validity of all these elements.
+ * 
+ * @param <Request> the type of the request of the transaction
+ * @param <Response> the type of the response of the transaction
  */
-public abstract class AbstractNonInitialResponseBuilder
-			<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse>
+public abstract class AbstractNonInitialResponseBuilder<Request extends NonInitialTransactionRequest<Response>, Response extends NonInitialTransactionResponse>
 	extends NonInitialResponseBuilderImpl<Request, Response> {
 
 	/**
@@ -44,9 +46,16 @@ public abstract class AbstractNonInitialResponseBuilder
 		super(reference, request, node);
 	}
 
+	/**
+	 * The creator of the response from the request.
+	 */
 	protected abstract class ResponseCreator extends NonInitialResponseBuilderImpl<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException {
-		}
+		/**
+		 * Creates the response from the request.
+		 * 
+		 * @throws TransactionRejectedException if the transaction has been rejected
+		 */
+		protected ResponseCreator() throws TransactionRejectedException {}
 	}
 }

@@ -28,6 +28,9 @@ import io.hotmoka.node.local.AbstractLocalNodeConfig;
 
 /**
  * The configuration of a node on disk memory.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
 public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, DiskNodeConfigBuilder> implements DiskNodeConfig {
@@ -120,10 +123,10 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 		 * 
 		 * @param config the configuration object
 		 */
-		private DiskNodeConfigBuilderImpl(DiskNodeConfig config) {
+		private DiskNodeConfigBuilderImpl(DiskNodeConfigImpl config) {
 			super(config);
 
-			setTransactionsPerBlock(config.getTransactionsPerBlock());
+			setTransactionsPerBlock(config.transactionsPerBlock);
 		}
 
 		@Override
