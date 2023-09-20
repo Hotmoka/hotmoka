@@ -114,6 +114,7 @@ public interface StoreUtility {
 	/**
 	 * Yields the Base64-encoded public key of the given account.
 	 * 
+	 * @param account the account
 	 * @return the public key
 	 */
 	String getPublicKeyUncommitted(StorageReference account);

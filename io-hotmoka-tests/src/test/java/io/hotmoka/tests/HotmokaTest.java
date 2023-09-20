@@ -71,8 +71,11 @@ import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.ConsensusConfigBuilder;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
@@ -106,9 +109,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected final static Node node;
 
 	/**
+	 * The public key chosen for the gamete of the testing node.
+	 */
+	private final static String publicKeyOfGamete;
+
+	/**
 	 * The consensus parameters of the node.
 	 */
-	protected final static ValidatorsConsensusConfig consensus;
+	protected static ConsensusConfig<?,?> consensus;
 
 	/**
 	 * The private key of the account used at each run of the tests.
@@ -170,8 +178,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var password = "";
 			var localSignature = SignatureAlgorithmForTransactionRequests.ed25519det();
 			var keys = entropy.keys(password, localSignature);
-			String publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
-			consensus = ValidatorsConsensusConfigBuilders.defaults()
+			publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
+			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 	    			.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing
@@ -234,14 +242,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 			if (node instanceof TendermintNode)
-				TendermintInitializedNodes.of((TendermintNode) node, consensus, takamakaCode);
+				TendermintInitializedNodes.of((TendermintNode) node, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
 			else
 				InitializedNodes.of(node, consensus, takamakaCode);
 		}
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws IOException {
+	private static Node mkTendermintBlockchain() throws IOException, NoSuchAlgorithmException {
+		var consensus = fillConsensusConfig(SimpleValidatorsConsensusConfigBuilders.defaults()).build();
+		HotmokaTest.consensus = consensus;
+
 		isUsingTendermint = true;
 
 		var config = TendermintNodeConfigBuilders.defaults()
@@ -252,8 +263,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return TendermintNodes.init(config, consensus);
 	}
 
+	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException {
+		return builder.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
+			.allowUnsignedFaucet(true) // good for testing
+			.allowMintBurnFromGamete(true) // good for testing
+			.ignoreGasPrice(true) // good for testing
+			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
+			.setPublicKeyOfGamete(publicKeyOfGamete);
+	}
+
 	@SuppressWarnings("unused")
-	private static Node mkMemoryBlockchain() {
+	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
+		var consensus = fillConsensusConfig(SimpleConsensusConfigBuilders.defaults()).build();
+		HotmokaTest.consensus = consensus;
+
 		var config = DiskNodeConfigBuilders.defaults()
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();

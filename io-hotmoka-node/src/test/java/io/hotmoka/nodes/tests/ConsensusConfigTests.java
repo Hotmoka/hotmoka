@@ -29,8 +29,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class ConsensusConfigTests extends AbstractLoggedTests {
@@ -39,14 +39,14 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
 	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
 		var path = dir.resolve("config.toml");
-		var config1 = ConsensusConfigBuilders.defaults()
+		var config1 = SimpleConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
 			.setInitialGasPrice(BigInteger.valueOf(1233L))
 			.setInitialSupply(BigInteger.valueOf(45678L))
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
-		var config2 = ConsensusConfigBuilders.load(path).build();
+		var config2 = SimpleConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
 	}
 
@@ -54,7 +54,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 	@DisplayName("validators configs are correctly dumped into TOML and reloaded from TOML")
 	public void validatorsConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
 		var path = dir.resolve("validators_config.toml");
-		var config1 = ValidatorsConsensusConfigBuilders.defaults()
+		var config1 = SimpleValidatorsConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
 			.setBuyerSurcharge(123456)
 			.setSlashingForMisbehaving(98768)
@@ -63,7 +63,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
-		var config2 = ValidatorsConsensusConfigBuilders.load(path).build();
+		var config2 = SimpleValidatorsConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
 	}
 }

@@ -60,7 +60,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -111,7 +111,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * @param consensus the consensus parameters of the node
 	 * @throws IOException 
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, ConsensusConfig consensus) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config, SimpleValidatorsConsensusConfig consensus) throws IOException {
 		super(config, consensus);
 
 		try {

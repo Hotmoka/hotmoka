@@ -65,7 +65,7 @@ public class Reverification {
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
 	 * during the recomputation of its same consensus.
 	 */
-	private final ConsensusConfig consensus;
+	private final ConsensusConfig<?,?> consensus;
 	
 	/**
 	 * Reverifies the responses of the given transactions and of their dependencies.
@@ -78,7 +78,7 @@ public class Reverification {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		this.node = node;
 		this.consensus = consensus;
 

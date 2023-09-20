@@ -30,7 +30,6 @@ public abstract class AbstractNode extends AbstractNodeImpl {
 	 * Builds an abstract node.
 	 */
 	protected AbstractNode() {
-		super();
 	}
 
 	/**

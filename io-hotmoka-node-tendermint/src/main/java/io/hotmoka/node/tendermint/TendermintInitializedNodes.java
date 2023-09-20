@@ -28,6 +28,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
@@ -56,7 +57,7 @@ public abstract class TendermintInitializedNodes {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, null, takamakaCode);
 	}
 
@@ -78,8 +79,8 @@ public abstract class TendermintInitializedNodes {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig consensus,
-			ProducerOfStorageObject<ConsensusConfig> producerOfGasStation, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(TendermintNode parent, SimpleValidatorsConsensusConfig consensus,
+			ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}
 }

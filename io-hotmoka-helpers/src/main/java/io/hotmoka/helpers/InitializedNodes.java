@@ -59,7 +59,7 @@ public class InitializedNodes {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, null);
 	}
 
@@ -84,8 +84,8 @@ public class InitializedNodes {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public static InitializedNode of(Node parent, ValidatorsConsensusConfig consensus,
-			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(Node parent, ValidatorsConsensusConfig<?,?> consensus,
+			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
@@ -95,7 +95,7 @@ public class InitializedNodes {
 	 * 
 	 * @param <C> the type of the consensus parameters of the node
 	 */
-	public interface ProducerOfStorageObject<C extends ConsensusConfig> {
+	public interface ProducerOfStorageObject<C extends ConsensusConfig<?,?>> {
 
 		/**
 		 * Runs some transactions in the node, that yield the object.

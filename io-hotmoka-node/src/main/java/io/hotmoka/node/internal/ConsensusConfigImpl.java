@@ -36,9 +36,12 @@ import io.hotmoka.node.api.ConsensusConfigBuilder;
 /**
  * Implementation of the consensus parameters of a Hotmoka node. This information
  * is typically contained in the manifest of the node.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
-public abstract class ConsensusConfigImpl implements ConsensusConfig {
+public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> implements ConsensusConfig<C,B> {
 
 	/**
 	 * The genesis time, UTC. It defaults to the time of
@@ -178,7 +181,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	 * 
 	 * @param builder the builder where information is extracted from
 	 */
-	public ConsensusConfigImpl(ConsensusConfigBuilderImpl<?> builder) {
+	protected ConsensusConfigImpl(ConsensusConfigBuilderImpl<C,B> builder) {
 		this.genesisTime = builder.genesisTime;
 		this.chainId = builder.chainId;
 		this.maxErrorLength = builder.maxErrorLength;
@@ -206,7 +209,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && getClass() == other.getClass()) {
-			var otherConfig = (ConsensusConfigImpl) other;
+			var otherConfig = (ConsensusConfigImpl<?,?>) other;
 			return genesisTime.equals(otherConfig.genesisTime) &&
 				chainId.equals(otherConfig.chainId) &&
 				maxErrorLength == otherConfig.maxErrorLength &&
@@ -441,44 +444,11 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 	}
 
 	/**
-	 * Fills the given builder with the information contained in this configuration object.
-	 * 
-	 * @param <T> the type of the builder
-	 * @param builder the builder to fill
-	 * @return the builder itself
-	 */
-	protected <T extends ConsensusConfigBuilder<T>> T fill(T builder) {
-		return builder
-			.setChainId(chainId)
-			.setGenesisTime(genesisTime)
-			.setMaxErrorLength(maxErrorLength)
-			.setMaxDependencies(maxDependencies)
-			.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
-			.allowSelfCharged(allowsSelfCharged)
-			.allowUnsignedFaucet(allowsUnsignedFaucet)
-			.allowMintBurnFromGamete(allowsMintBurnFromGamete)
-			.signRequestsWith(signature)
-			.setMaxGasPerTransaction(maxGasPerTransaction)
-			.setInitialGasPrice(initialGasPrice)
-			.ignoreGasPrice(ignoresGasPrice)
-			.skipVerification(skipsVerification)
-			.setTargetGasAtReward(targetGasAtReward)
-			.setOblivion(oblivion)
-			.setInitialInflation(initialInflation)
-			.setVerificationVersion(verificationVersion)
-			.setInitialSupply(initialSupply)
-			.setFinalSupply(finalSupply)
-			.setInitialRedSupply(initialRedSupply)
-			.setPublicKeyOfGamete(publicKeyOfGamete)
-			.setTicketForNewPoll(ticketForNewPoll);
-	}
-
-	/**
 	 * The builder of a configuration object.
 	 * 
 	 * @param <T> the concrete type of the builder
 	 */
-	public abstract static class ConsensusConfigBuilderImpl<T extends ConsensusConfigBuilder<T>> implements ConsensusConfigBuilder<T> {
+	public abstract static class ConsensusConfigBuilderImpl<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> implements ConsensusConfigBuilder<C,B> {
 		private String chainId = "";
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
 		private long maxErrorLength = 300L;
@@ -518,6 +488,36 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		 */
 		protected ConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
 			this.signature = signature;
+		}
+
+		/**
+		 * Creates a builder with properties initialized to those of the given configuration object.
+		 * 
+		 * @param config the configuration object
+		 */
+		protected ConsensusConfigBuilderImpl(ConsensusConfig<C,B> config) {
+			setChainId(config.getChainId());
+			setGenesisTime(config.getGenesisTime());
+			setMaxErrorLength(config.getMaxErrorLength());
+			setMaxDependencies(config.getMaxDependencies());
+			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
+			allowSelfCharged(config.allowsSelfCharged());
+			allowUnsignedFaucet(config.allowsUnsignedFaucet());
+			allowMintBurnFromGamete(config.allowsMintBurnFromGamete());
+			signRequestsWith(config.getSignature());
+			setMaxGasPerTransaction(config.getMaxGasPerTransaction());
+			setInitialGasPrice(config.getInitialGasPrice());
+			ignoreGasPrice(config.ignoresGasPrice());
+			skipVerification(config.skipsVerification());
+			setTargetGasAtReward(config.getTargetGasAtReward());
+			setOblivion(config.getOblivion());
+			setInitialInflation(config.getInitialInflation());
+			setVerificationVersion(config.getVerificationVersion());
+			setInitialSupply(config.getInitialSupply());
+			setFinalSupply(config.getFinalSupply());
+			setInitialRedSupply(config.getInitialRedSupply());
+			setPublicKeyOfGamete(config.getPublicKeyOfGamete());
+			setTicketForNewPoll(config.getTicketForNewPoll());
 		}
 
 		/**
@@ -618,55 +618,55 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setGenesisTime(LocalDateTime genesisTime) {
+		public B setGenesisTime(LocalDateTime genesisTime) {
 			this.genesisTime = genesisTime;
 			return getThis();
 		}
 
 		@Override
-		public T setChainId(String chainId) {
+		public B setChainId(String chainId) {
 			this.chainId = chainId;
 			return getThis();
 		}
 
 		@Override
-		public T setMaxErrorLength(long maxErrorLength) {
+		public B setMaxErrorLength(long maxErrorLength) {
 			this.maxErrorLength = maxErrorLength;
 			return getThis();
 		}
 
 		@Override
-		public T setMaxDependencies(long maxDependencies) {
+		public B setMaxDependencies(long maxDependencies) {
 			this.maxDependencies = maxDependencies;
 			return getThis();
 		}
 
 		@Override
-		public T setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
+		public B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
 			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 			return getThis();
 		}
 
 		@Override
-		public T allowSelfCharged(boolean allowsSelfCharged) {
+		public B allowSelfCharged(boolean allowsSelfCharged) {
 			this.allowsSelfCharged = allowsSelfCharged;
 			return getThis();
 		}
 
 		@Override
-		public T allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
+		public B allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
 			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
 			return getThis();
 		}
 
 		@Override
-		public T allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
+		public B allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
 			this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 			return getThis();
 		}
 
 		@Override
-		public T signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature) {
+		public B signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature) {
 			if (signature == null)
 				throw new NullPointerException("the signature algorithm cannot be null");
 
@@ -675,7 +675,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setInitialGasPrice(BigInteger initialGasPrice) {
+		public B setInitialGasPrice(BigInteger initialGasPrice) {
 			if (initialGasPrice == null)
 				throw new NullPointerException("the initial gas price cannot be null");
 
@@ -687,7 +687,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
+		public B setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
 			if (maxGasPerTransaction == null)
 				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
 
@@ -699,7 +699,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setTargetGasAtReward(BigInteger targetGasAtReward) {
+		public B setTargetGasAtReward(BigInteger targetGasAtReward) {
 			if (targetGasAtReward == null)
 				throw new NullPointerException("the target gas at reward cannot be null");
 
@@ -711,7 +711,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setOblivion(long oblivion) {
+		public B setOblivion(long oblivion) {
 			if (oblivion < 0 || oblivion > 1_000_000L)
 				throw new IllegalArgumentException("oblivion must be between 0 and 1_000_000");
 
@@ -720,25 +720,25 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setInitialInflation(long initialInflation) {
+		public B setInitialInflation(long initialInflation) {
 			this.initialInflation = initialInflation;
 			return getThis();
 		}
 
 		@Override
-		public T ignoreGasPrice(boolean ignoresGasPrice) {
+		public B ignoreGasPrice(boolean ignoresGasPrice) {
 			this.ignoresGasPrice = ignoresGasPrice;
 			return getThis();
 		}
 
 		@Override
-		public T skipVerification(boolean skipsVerification) {
+		public B skipVerification(boolean skipsVerification) {
 			this.skipsVerification = skipsVerification;
 			return getThis();
 		}
 
 		@Override
-		public T setVerificationVersion(long verificationVersion) {
+		public B setVerificationVersion(long verificationVersion) {
 			if (verificationVersion < 0L)
 				throw new IllegalArgumentException("the verification version must be non-negative");
 
@@ -747,7 +747,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setInitialSupply(BigInteger initialSupply) {
+		public B setInitialSupply(BigInteger initialSupply) {
 			if (initialSupply == null)
 				throw new NullPointerException("the initial supply cannot be null");
 
@@ -759,7 +759,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setInitialRedSupply(BigInteger initialRedSupply) {
+		public B setInitialRedSupply(BigInteger initialRedSupply) {
 			if (initialRedSupply == null)
 				throw new NullPointerException("the initial red supply cannot be null");
 
@@ -771,7 +771,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setPublicKeyOfGamete(String publicKeyOfGamete) {
+		public B setPublicKeyOfGamete(String publicKeyOfGamete) {
 			if (publicKeyOfGamete == null)
 				throw new NullPointerException("the public key of the gamete cannot be null");
 
@@ -780,7 +780,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setFinalSupply(BigInteger finalSupply) {
+		public B setFinalSupply(BigInteger finalSupply) {
 			if (finalSupply == null)
 				throw new NullPointerException("the final supply cannot be null");
 
@@ -792,7 +792,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		}
 
 		@Override
-		public T setTicketForNewPoll(BigInteger ticketForNewPoll) {
+		public B setTicketForNewPoll(BigInteger ticketForNewPoll) {
 			if (ticketForNewPoll == null)
 				throw new NullPointerException("the ticket for a new poll cannot be null");
 
@@ -808,7 +808,7 @@ public abstract class ConsensusConfigImpl implements ConsensusConfig {
 		 * 
 		 * @return this same builder
 		 */
-		protected abstract T getThis();
+		protected abstract B getThis();
 	
 		/**
 		 * Loads the TOML file at the given path.

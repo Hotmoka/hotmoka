@@ -21,9 +21,12 @@ import io.hotmoka.annotations.Immutable;
 /**
  * A specification of the consensus parameters of a Hotmoka node that uses validators.
  * This information is typically contained in the manifest of the node.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
-public interface ValidatorsConsensusConfig extends ConsensusConfig {
+public interface ValidatorsConsensusConfig<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ConsensusConfig<C,B> {
 
 	/**
 	 * Yields the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
@@ -57,7 +60,4 @@ public interface ValidatorsConsensusConfig extends ConsensusConfig {
 	 *         (or do not vote). 1000000 means 1%
 	 */
 	int getSlashingForNotBehaving();
-
-	@Override
-	ValidatorsConsensusConfigBuilder<?> toBuilder();
 }

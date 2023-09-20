@@ -83,7 +83,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	 */
 	private final StorageReference gamete;
 
-	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
@@ -102,7 +102,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		return node.addConstructorCallTransaction(request);
 	}
 
-	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
+	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _100_000 = BigInteger.valueOf(100_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
@@ -139,9 +139,9 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig consensus, Path takamakaCode,
-			ProducerOfStorageObject<ValidatorsConsensusConfig> producerOfValidatorsBuilder,
-			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, ValidatorsConsensusConfig<?,?> consensus, Path takamakaCode,
+			ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder,
+			ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
 		this.parent = parent;
 
@@ -207,8 +207,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
 	 */
-	public InitializedNodeImpl(Node parent, ConsensusConfig consensus, Path takamakaCode,
-			ProducerOfStorageObject<ConsensusConfig> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public InitializedNodeImpl(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode,
+			ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
 		this.parent = parent;
 

@@ -1,11 +1,12 @@
 package io.hotmoka.node.api;
 
 /**
- * The builder of a configuration object of a HOtmoka node that uses validators.
+ * The builder of a configuration object of a Hotmoka node that uses validators.
  * 
- * @param <T> the concrete type of the builder
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
-public interface ValidatorsConsensusConfigBuilder<T extends ValidatorsConsensusConfigBuilder<T>> extends ConsensusConfigBuilder<T>{
+public interface ValidatorsConsensusConfigBuilder<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ConsensusConfigBuilder<C,B>{
 
 	/**
 	 * Sets the amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
@@ -14,7 +15,7 @@ public interface ValidatorsConsensusConfigBuilder<T extends ValidatorsConsensusC
 	 * @param percentStaked the buyer surcharge to set
 	 * @return this builder
 	 */
-	T setPercentStaked(int percentStaked);
+	B setPercentStaked(int percentStaked);
 
 	/**
 	 * Sets the extra tax paid when a validator acquires the shares of another validator
@@ -23,7 +24,7 @@ public interface ValidatorsConsensusConfigBuilder<T extends ValidatorsConsensusC
 	 * @param buyerSurcharge the buyer surcharge to set
 	 * @return this builder
 	 */
-	T setBuyerSurcharge(int buyerSurcharge);
+	B setBuyerSurcharge(int buyerSurcharge);
 
 	/**
 	 * Sets the percent of stake that gets slashed for each misbehaving validator. 1000000 means 1%.
@@ -32,7 +33,7 @@ public interface ValidatorsConsensusConfigBuilder<T extends ValidatorsConsensusC
 	 * @param slashingForMisbehaving the slashing for misbehaving validators
 	 * @return this builder
 	 */
-	T setSlashingForMisbehaving(int slashingForMisbehaving);
+	B setSlashingForMisbehaving(int slashingForMisbehaving);
 
 	/**
 	 * Sets the percent of stake that gets slashed for each not behaving (not voting) validator.
@@ -41,8 +42,5 @@ public interface ValidatorsConsensusConfigBuilder<T extends ValidatorsConsensusC
 	 * @param slashingForNotBehaving the slashing for not behaving validators
 	 * @return this builder
 	 */
-	T setSlashingForNotBehaving(int slashingForNotBehaving);
-
-	@Override
-	ValidatorsConsensusConfig build();
+	B setSlashingForNotBehaving(int slashingForNotBehaving);
 }

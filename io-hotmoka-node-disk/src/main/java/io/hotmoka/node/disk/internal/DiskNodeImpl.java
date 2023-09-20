@@ -26,7 +26,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -52,7 +52,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
 	 */
-	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig consensus) {
+	public DiskNodeImpl(DiskNodeConfig config, SimpleConsensusConfig consensus) {
 		super(config, consensus);
 
 		try {

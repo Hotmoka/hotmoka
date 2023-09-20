@@ -26,9 +26,12 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 /**
  * A specification of the consensus parameters of a Hotmoka node. This information
  * is typically contained in the manifest of the node.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
-public interface ConsensusConfig {
+public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> {
 
 	/**
 	 * Yields the genesis time, UTC.
@@ -213,7 +216,7 @@ public interface ConsensusConfig {
 	 * 
 	 * @return the builder
 	 */
-	ConsensusConfigBuilder<?> toBuilder();
+	B toBuilder();
 
 	@Override
 	boolean equals(Object other);

@@ -31,7 +31,9 @@ import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
  * This information is typically contained in the manifest of the node.
  */
 @Immutable
-public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl implements ValidatorsConsensusConfig {
+public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
+		extends ConsensusConfigImpl<C,B>
+		implements ValidatorsConsensusConfig<C,B> {
 
 	/**
 	 * The amount of validators' rewards that gets staked. The rest is sent to the validators immediately.
@@ -62,7 +64,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 	 * 
 	 * @param builder the builder where information is extracted from
 	 */
-	public ValidatorsConsensusConfigImpl(ValidatorsConsensusConfigBuilderImpl<?> builder) {
+	public ValidatorsConsensusConfigImpl(ValidatorsConsensusConfigBuilderImpl<C,B> builder) {
 		super(builder);
 
 		this.percentStaked = builder.percentStaked;
@@ -74,7 +76,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 	@Override
 	public boolean equals(Object other) {
 		if (super.equals(other)) {
-			var otherConfig = (ValidatorsConsensusConfigImpl) other;
+			var otherConfig = (ValidatorsConsensusConfigImpl<?,?>) other;
 			return percentStaked == otherConfig.percentStaked &&
 				buyerSurcharge == otherConfig.buyerSurcharge &&
 				slashingForMisbehaving == otherConfig.slashingForMisbehaving &&
@@ -87,6 +89,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 	@Override
 	public String toToml() {
 		StringBuilder sb = new StringBuilder(super.toToml());
+
 		sb.append("\n");
 		sb.append("# the amount of validators' rewards that gets staked. The rest is sent to the validators\n");
 		sb.append("# immediately. 1000000 means 1%\n");
@@ -126,22 +129,14 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		return slashingForNotBehaving;
 	}
 
-	protected <T extends ValidatorsConsensusConfigBuilder<T>> T fill(T builder) {
-		return super.fill(builder)
-			.setBuyerSurcharge(buyerSurcharge)
-			.setPercentStaked(percentStaked)
-			.setSlashingForMisbehaving(slashingForMisbehaving)
-			.setSlashingForNotBehaving(slashingForNotBehaving);
-	}
-
 	/**
 	 * The builder of a configuration object.
 	 * 
 	 * @param <T> the concrete type of the builder
 	 */
-	public abstract static class ValidatorsConsensusConfigBuilderImpl<T extends ValidatorsConsensusConfigBuilder<T>>
-			extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<T>
-			implements ValidatorsConsensusConfigBuilder<T> {
+	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
+			extends ConsensusConfigBuilderImpl<C,B>
+			implements ValidatorsConsensusConfigBuilder<C,B> {
 
 		private int percentStaked = 75_000_000;
 		private int buyerSurcharge = 50_000_000;
@@ -163,6 +158,20 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		 */
 		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
 			super(signature);
+		}
+
+		/**
+		 * Creates a builder with properties initialized to those of the given configuration object.
+		 * 
+		 * @param config the configuration object
+		 */
+		protected ValidatorsConsensusConfigBuilderImpl(ValidatorsConsensusConfig<C,B> config) {
+			super(config);
+
+			setBuyerSurcharge(config.getBuyerSurcharge());
+			setPercentStaked(config.getPercentStaked());
+			setSlashingForMisbehaving(config.getSlashingForMisbehaving());
+			setSlashingForNotBehaving(config.getSlashingForNotBehaving());
 		}
 
 		/**
@@ -193,7 +202,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		}
 
 		@Override
-		public T setPercentStaked(int percentStaked) {
+		public B setPercentStaked(int percentStaked) {
 			if (percentStaked < 0 || percentStaked > 100_000_000)
 				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
 
@@ -202,7 +211,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		}
 
 		@Override
-		public T setBuyerSurcharge(int buyerSurcharge) {
+		public B setBuyerSurcharge(int buyerSurcharge) {
 			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000)
 				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
 
@@ -211,7 +220,7 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		}
 
 		@Override
-		public T setSlashingForMisbehaving(int slashingForMisbehaving) {
+		public B setSlashingForMisbehaving(int slashingForMisbehaving) {
 			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000)
 				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
 
@@ -220,15 +229,12 @@ public abstract class ValidatorsConsensusConfigImpl extends ConsensusConfigImpl 
 		}
 
 		@Override
-		public T setSlashingForNotBehaving(int slashingForNotBehaving) {
+		public B setSlashingForNotBehaving(int slashingForNotBehaving) {
 			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000)
 				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
 
 			this.slashingForNotBehaving = slashingForNotBehaving;
 			return getThis();
 		}
-
-		@Override
-		public abstract ValidatorsConsensusConfig build();
 	}
 }

@@ -82,7 +82,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The consensus parameters when this builder was created.
 	 */
-	protected final ConsensusConfig consensus;
+	protected final ConsensusConfig<?,?> consensus;
 
 	/**
 	 * Creates the builder of a response.

@@ -47,7 +47,7 @@ public abstract class AbstractLocalNodeConfig<C extends LocalNodeConfig<C,B>, B 
 	 * @param <C> the concrete type of the configuration
 	 * @param <B> the concrete type of the builder
 	 */
-	protected abstract static class AbstractLocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> extends ConfigBuilderImpl<C,B> {
+	protected abstract static class AbstractLocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> extends LocalNodeConfigBuilderImpl<C,B> {
 
 		/**
 		 * Creates a builder with default values for the properties.

@@ -34,12 +34,16 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	/**
 	 * Yields the directory where the node's data will be persisted.
 	 * It defaults to {@code chain} in the current directory.
+	 * 
+	 * @return the directory where the node's data will be persisted
 	 */
 	Path getDir();
 
 	/**
 	 * Yields the maximal number of polling attempts, while waiting
 	 * for the result of a posted transaction. It defaults to 60.
+	 * 
+	 * @return the maximal number of polling attempts
 	 */
 	long getMaxPollingAttempts();
 
@@ -48,24 +52,32 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	 * while waiting for the result of a posted transaction.
 	 * This delay is then increased by 10% at each subsequent attempt.
 	 * It defaults to 10.
+	 * 
+	 * @return the delay of two subsequent polling attempts, in milliseconds
 	 */
 	long getPollingDelay();
 
 	/**
 	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
 	 * It defaults to 1,000.
+	 * 
+	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method
 	 */
 	int getRequestCacheSize();
 
 	/**
 	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
 	 * It defaults to 1,000.
+	 * 
+	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method
 	 */
 	int getResponseCacheSize();
 
 	/**
 	 * Yields the maximal amount of gas that a view transaction can consume.
 	 * It defaults to 100_000_000.
+	 * 
+	 * @return the maximal amount of gas that a view transaction can consume
 	 */
 	BigInteger getMaxGasPerViewTransaction();
 

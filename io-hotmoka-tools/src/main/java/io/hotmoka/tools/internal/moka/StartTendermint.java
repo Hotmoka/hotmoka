@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
-import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.service.NodeService;
@@ -60,7 +60,6 @@ public class StartTendermint extends AbstractCommand {
 	}
 
 	private class Run {
-		private final NodeServiceConfig networkConfig;
 
 		private Run() throws Exception {
 			askForConfirmation();
@@ -71,11 +70,11 @@ public class StartTendermint extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			networkConfig = new NodeServiceConfig.Builder()
+			var networkConfig = new NodeServiceConfig.Builder()
 				.setPort(port)
 				.build();
 
-			var consensus = ConsensusConfigBuilders.defaults()
+			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.build();
 
 			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeService.of(networkConfig, node)) {
@@ -104,8 +103,8 @@ public class StartTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + networkConfig.port);
-			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
+			System.out.println("The node has been published at localhost:" + port);
+			System.out.println("Try for instance in a browser: http://localhost:" + port + "/get/manifest");
 		}
 	}
 }

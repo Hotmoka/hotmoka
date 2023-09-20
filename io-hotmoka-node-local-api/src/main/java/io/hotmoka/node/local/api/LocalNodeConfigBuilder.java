@@ -32,6 +32,9 @@ public interface LocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extend
 	/**
 	 * Sets the maximal amount of gas that a view transaction can consume.
 	 * It defaults to 100_000_000.
+	 * 
+	 * @param maxGasPerViewTransaction the maximal amount of gas that a view transaction can consume
+	 * @return this builder
 	 */
 	B setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction);
 

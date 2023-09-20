@@ -111,7 +111,7 @@ public interface NodeCache {
 	 * 
 	 * @return the consensus parameters
 	 */
-	ConsensusConfig getConsensusParams();
+	ConsensusConfig<?,?> getConsensusParams();
 
 	/**
 	 * Yields the reference to the gamete account of the node.

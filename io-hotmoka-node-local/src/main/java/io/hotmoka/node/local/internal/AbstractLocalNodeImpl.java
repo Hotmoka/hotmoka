@@ -206,7 +206,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
-	protected AbstractLocalNodeImpl(C config, ConsensusConfig consensus) {
+	protected AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus) {
 		this(config, consensus, true);
 	}
 
@@ -220,7 +220,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		this(config, null, false);
 	}
 
-	private AbstractLocalNodeImpl(C config, ConsensusConfig consensus, boolean deleteDir) {
+	private AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus, boolean deleteDir) {
 		this.config = config;
 		this.storeUtilities = new StoreUtilityImpl(internal);
 		this.caches = new NodeCachesImpl(internal, consensus);

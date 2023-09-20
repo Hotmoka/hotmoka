@@ -81,7 +81,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	 * 
 	 * @param the builder
 	 */
-	protected LocalNodeConfigImpl(ConfigBuilderImpl<C,B> builder) {
+	protected LocalNodeConfigImpl(LocalNodeConfigBuilderImpl<C,B> builder) {
 		this.dir = builder.dir;
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
@@ -174,7 +174,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	/**
 	 * The builder of a configuration object.
 	 */
-	protected abstract static class ConfigBuilderImpl<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> implements LocalNodeConfigBuilder<C,B> {
+	protected abstract static class LocalNodeConfigBuilderImpl<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> implements LocalNodeConfigBuilder<C,B> {
 		private Path dir = Paths.get("chain");
 		private long maxPollingAttempts = 60;
 		private long pollingDelay = 10;
@@ -185,14 +185,14 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		/**
 		 * Creates a builder with default values for the properties.
 		 */
-		protected ConfigBuilderImpl() {}
+		protected LocalNodeConfigBuilderImpl() {}
 
 		/**
 		 * Creates a builder with properties initialized to those of the given configuration object.
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ConfigBuilderImpl(LocalNodeConfig<C,B> config) {
+		protected LocalNodeConfigBuilderImpl(LocalNodeConfig<C,B> config) {
 			setDir(config.getDir());
 			setMaxPollingAttempts(config.getMaxPollingAttempts());
 			setPollingDelay(config.getPollingDelay());
@@ -207,7 +207,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 		 * 
 		 * @param toml the file
 		 */
-		protected ConfigBuilderImpl(Toml toml) {
+		protected LocalNodeConfigBuilderImpl(Toml toml) {
 			var dir = toml.getString("dir");
 			if (dir != null)
 				setDir(Paths.get(dir));

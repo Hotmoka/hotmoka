@@ -30,7 +30,7 @@ import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.disk.api.DiskNode;
@@ -121,7 +121,7 @@ public class InitDiskNode extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitDiskNode.this.deltaSupply);
 
-			var consensus = ConsensusConfigBuilders.defaults()
+			var consensus = SimpleConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.allowMintBurnFromGamete(allowMintBurnFromGamete)
 				.setInitialGasPrice(initialGasPrice)

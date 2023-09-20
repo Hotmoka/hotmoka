@@ -56,7 +56,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
-import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -96,7 +96,7 @@ public class NodeCachesImpl implements NodeCache {
 	/**
 	 * The consensus parameters of the node.
 	 */
-	private volatile ConsensusConfig consensus;
+	private volatile ConsensusConfig<?,?> consensus;
 
 	/**
 	 * The reference to the gamete account of the node.
@@ -141,7 +141,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(NodeInternal node, ConsensusConfig consensus) {
+	public NodeCachesImpl(NodeInternal node, ConsensusConfig<?,?> consensus) {
 		this.node = node;
 		this.requests = new LRUCache<>(100, node.getConfig().getRequestCacheSize());
 		this.responses = new LRUCache<>(100, node.getConfig().getResponseCacheSize());
@@ -270,7 +270,7 @@ public class NodeCachesImpl implements NodeCache {
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
 
-			consensus = ValidatorsConsensusConfigBuilders.defaults()
+			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -340,7 +340,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final ConsensusConfig getConsensusParams() {
+	public final ConsensusConfig<?,?> getConsensusParams() {
 		return consensus;
 	}
 
