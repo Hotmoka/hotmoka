@@ -32,7 +32,7 @@ import io.hotmoka.node.tendermint.api.TendermintNodeConfigBuilder;
  * Implementation of the configuration of a Tendermint node.
  */
 @Immutable
-public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig implements TendermintNodeConfig {
+public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig<TendermintNodeConfig, TendermintNodeConfigBuilder> implements TendermintNodeConfig {
 
 	/**
 	 * The directory that contains the Tendermint configuration that must be cloned
@@ -109,7 +109,7 @@ public class TendermintNodeConfigImpl extends AbstractLocalNodeConfig implements
 	/**
 	 * The builder of a configuration object.
 	 */
-	public static class TendermintNodeConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintNodeConfigBuilder> implements TendermintNodeConfigBuilder {
+	public static class TendermintNodeConfigBuilderImpl extends AbstractLocalNodeConfigBuilder<TendermintNodeConfig, TendermintNodeConfigBuilder> implements TendermintNodeConfigBuilder {
 		private long maxPingAttempts = 20;
 		private long pingDelay = 200;
 		private Path tendermintConfigurationToClone;

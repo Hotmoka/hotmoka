@@ -23,7 +23,7 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
  * The builder of a configuration of a node on disk memory.
  */
 @Immutable
-public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeConfigBuilder> {
+public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeConfig, DiskNodeConfigBuilder> {
 
 	/**
 	 * Sets the number of transactions that fit inside a block.
@@ -33,7 +33,4 @@ public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeCo
 	 * @return this builder
 	 */
 	DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock);
-
-	@Override
-	DiskNodeConfig build(); // TODO: remove?
 }

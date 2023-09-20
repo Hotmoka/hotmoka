@@ -24,15 +24,16 @@ import io.hotmoka.beans.references.TransactionReference;
 /**
  * The builder of a configuration object.
  * 
- * @param <T> the concrete type of the builder
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
-public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
+public interface LocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> {
 
 	/**
 	 * Sets the maximal amount of gas that a view transaction can consume.
 	 * It defaults to 100_000_000.
 	 */
-	T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction);
+	B setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction);
 
 	/**
 	 * Sets the directory where the node's data will be persisted.
@@ -41,7 +42,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param dir the directory
 	 * @return this builder
 	 */
-	T setDir(Path dir);
+	B setDir(Path dir);
 
 	/**
 	 * Sets the maximal number of polling attempts, while waiting
@@ -50,7 +51,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param maxPollingAttempts the maximal number of polling attempts
 	 * @return this builder
 	 */
-	T setMaxPollingAttempts(long maxPollingAttempts);
+	B setMaxPollingAttempts(long maxPollingAttempts);
 
 	/**
 	 * Sets the delay of two subsequent polling attempts, in milliseconds,
@@ -61,7 +62,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param pollingDelay the delay
 	 * @return this builder
 	 */
-	T setPollingDelay(long pollingDelay);
+	B setPollingDelay(long pollingDelay);
 
 	/**
 	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getRequest(TransactionReference)} method.
@@ -70,7 +71,7 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param requestCacheSize the cache size
 	 * @return this builder
 	 */
-	T setRequestCacheSize(int requestCacheSize);
+	B setRequestCacheSize(int requestCacheSize);
 
 	/**
 	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
@@ -79,12 +80,12 @@ public interface LocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> {
 	 * @param responseCacheSize the cache size
 	 * @return this builder
 	 */
-	T setResponseCacheSize(int responseCacheSize);
+	B setResponseCacheSize(int responseCacheSize);
 
 	/**
 	 * Builds the configuration.
 	 * 
 	 * @return the configuration
 	 */
-	LocalNodeConfig build(); // TODO: should the return type be a generic parameter?
+	C build();
 }

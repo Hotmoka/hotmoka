@@ -24,9 +24,12 @@ import io.hotmoka.beans.references.TransactionReference;
 
 /**
  * The configuration of a node.
+ * 
+ * @param <C> the concrete type of the configuration
+ * @param <B> the concrete type of the builder
  */
 @Immutable
-public interface LocalNodeConfig {
+public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> {
 
 	/**
 	 * Yields the directory where the node's data will be persisted.
@@ -78,7 +81,7 @@ public interface LocalNodeConfig {
 	 * 
 	 * @return the builder
 	 */
-	LocalNodeConfigBuilder<?> toBuilder(); // TODO: should the return type be a generic parameter?
+	B toBuilder();
 
 	@Override
 	boolean equals(Object other);

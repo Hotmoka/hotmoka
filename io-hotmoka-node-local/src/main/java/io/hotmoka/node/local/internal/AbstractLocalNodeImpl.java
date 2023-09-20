@@ -102,7 +102,7 @@ import io.hotmoka.stores.Store;
  * Partial implementation of a local (ie., non-remote) node.
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig, S extends AbstractStore> extends AbstractNode {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractNode {
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
@@ -926,7 +926,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig, S extends
 	private class NodeInternalImpl implements NodeInternal {
 
 		@Override
-		public LocalNodeConfig getConfig() {
+		public LocalNodeConfig<?,?> getConfig() {
 			return config;
 		}
 

@@ -27,21 +27,21 @@ import io.hotmoka.node.local.internal.LocalNodeConfigImpl;
  * Partial implementation of the configuration of a local node.
  */
 @Immutable
-public abstract class AbstractLocalNodeConfig extends LocalNodeConfigImpl {
+public abstract class AbstractLocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> extends LocalNodeConfigImpl<C,B> {
 
 	/**
 	 * Creates a new configuration object from its builder.
 	 * 
 	 * @param the builder
 	 */
-	protected AbstractLocalNodeConfig(AbstractLocalNodeConfigBuilder<?> builder) {
+	protected AbstractLocalNodeConfig(AbstractLocalNodeConfigBuilder<?,?> builder) {
 		super(builder);
 	}
 
 	/**
 	 * The builder of a configuration object.
 	 */
-	protected abstract static class AbstractLocalNodeConfigBuilder<T extends LocalNodeConfigBuilder<T>> extends ConfigBuilderImpl<T> {
+	protected abstract static class AbstractLocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> extends ConfigBuilderImpl<C,B> {
 
 		/**
 		 * Creates a builder with default values for the properties.
@@ -63,7 +63,7 @@ public abstract class AbstractLocalNodeConfig extends LocalNodeConfigImpl {
 		 * 
 		 * @param config the configuration object
 		 */
-		protected AbstractLocalNodeConfigBuilder(LocalNodeConfig config) {
+		protected AbstractLocalNodeConfigBuilder(LocalNodeConfig<?,?> config) {
 			super(config);
 		}
 	}

@@ -25,7 +25,7 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
  * The builder of a configuration of a Tendermint blockchain.
  */
 @Immutable
-public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<TendermintNodeConfigBuilder> {
+public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<TendermintNodeConfig, TendermintNodeConfigBuilder> {
 
 	/**
 	 * Sets the directory that contains the Tendermint configuration that must be cloned
@@ -56,7 +56,4 @@ public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<Tend
 	 * @return this builder
 	 */
 	TendermintNodeConfigBuilder setPingDelay(long pingDelay);
-
-	@Override
-	TendermintNodeConfig build(); // TODO: remove?
 }

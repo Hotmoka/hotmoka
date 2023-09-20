@@ -35,7 +35,7 @@ class TendermintConfigFile {
 	 */
 	public final int tendermintPort;
 
-	TendermintConfigFile(LocalNodeConfig config) {
+	TendermintConfigFile(LocalNodeConfig<?,?> config) {
 		Toml toml = new Toml().read(config.getDir().resolve("blocks").resolve("config").resolve("config.toml").toFile());
 		String proxy_app = toml.getString("proxy_app");
 		String expectedPrefix = "tcp://127.0.0.1:";

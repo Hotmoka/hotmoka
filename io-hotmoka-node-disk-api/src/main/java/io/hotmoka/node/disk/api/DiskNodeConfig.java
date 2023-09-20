@@ -23,7 +23,7 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
  * The configuration of a node on disk memory.
  */
 @Immutable
-public interface DiskNodeConfig extends LocalNodeConfig {
+public interface DiskNodeConfig extends LocalNodeConfig<DiskNodeConfig, DiskNodeConfigBuilder> {
 
 	/**
 	 * Yields the number of transactions that fit inside a block.

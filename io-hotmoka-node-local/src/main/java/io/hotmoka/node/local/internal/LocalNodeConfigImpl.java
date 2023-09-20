@@ -33,7 +33,7 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
  * The configuration of a node.
  */
 @Immutable
-public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
+public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> implements LocalNodeConfig<C,B> {
 
 	/**
 	 * The directory where the node's data will be persisted.
@@ -78,7 +78,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	 * 
 	 * @param the builder
 	 */
-	protected LocalNodeConfigImpl(ConfigBuilderImpl<?> builder) {
+	protected LocalNodeConfigImpl(ConfigBuilderImpl<?,?> builder) {
 		this.dir = builder.dir;
 		this.maxPollingAttempts = builder.maxPollingAttempts;
 		this.pollingDelay = builder.pollingDelay;
@@ -151,7 +151,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	@Override
 	public boolean equals(Object other) {
 		if (other != null && getClass() == other.getClass()) {
-			var otherConfig = (LocalNodeConfigImpl) other;
+			var otherConfig = (LocalNodeConfigImpl<?,?>) other;
 			return dir.equals(otherConfig.dir) &&
 				maxPollingAttempts == otherConfig.maxPollingAttempts &&
 				pollingDelay == otherConfig.pollingDelay &&
@@ -171,7 +171,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 	/**
 	 * The builder of a configuration object.
 	 */
-	protected abstract static class ConfigBuilderImpl<T extends LocalNodeConfigBuilder<T>> implements LocalNodeConfigBuilder<T> {
+	protected abstract static class ConfigBuilderImpl<C extends LocalNodeConfig<C,B>, B extends LocalNodeConfigBuilder<C,B>> implements LocalNodeConfigBuilder<C,B> {
 		private Path dir = Paths.get("chain");
 		private long maxPollingAttempts = 60;
 		private long pollingDelay = 10;
@@ -189,7 +189,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		 * 
 		 * @param config the configuration object
 		 */
-		protected ConfigBuilderImpl(LocalNodeConfig config) {
+		protected ConfigBuilderImpl(LocalNodeConfig<?,?> config) {
 			setDir(config.getDir());
 			setMaxPollingAttempts(config.getMaxPollingAttempts());
 			setPollingDelay(config.getPollingDelay());
@@ -236,7 +236,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
+		public B setMaxGasPerViewTransaction(BigInteger maxGasPerViewTransaction) {
 			Objects.requireNonNull(maxGasPerViewTransaction, "maxGasPerViewTransaction cannot be null");
 			if (maxGasPerViewTransaction.signum() < 0)
 				throw new IllegalArgumentException("maxGasPerViewTransaction must be non-negative");
@@ -247,14 +247,14 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setDir(Path dir) {
+		public B setDir(Path dir) {
 			Objects.requireNonNull(dir, "dir cannot be null");
 			this.dir = dir;
 			return getThis();
 		}
 
 		@Override
-		public T setMaxPollingAttempts(long maxPollingAttempts) {
+		public B setMaxPollingAttempts(long maxPollingAttempts) {
 			if (maxPollingAttempts <= 0)
 				throw new IllegalArgumentException("maxPollingAttempts must be positive");
 
@@ -263,7 +263,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setPollingDelay(long pollingDelay) {
+		public B setPollingDelay(long pollingDelay) {
 			if (pollingDelay < 0)
 				throw new IllegalArgumentException("pollingDelay must non-negative");
 
@@ -272,7 +272,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setRequestCacheSize(int requestCacheSize) {
+		public B setRequestCacheSize(int requestCacheSize) {
 			if (requestCacheSize < 0)
 				throw new IllegalArgumentException("requestCacheSize must non-negative");
 
@@ -281,7 +281,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		}
 
 		@Override
-		public T setResponseCacheSize(int responseCacheSize) {
+		public B setResponseCacheSize(int responseCacheSize) {
 			if (responseCacheSize < 0)
 				throw new IllegalArgumentException("responseCacheSize must non-negative");
 
@@ -292,7 +292,7 @@ public abstract class LocalNodeConfigImpl implements LocalNodeConfig {
 		/**
 		 * Standard design pattern. See http://www.angelikalanger.com/GenericsFAQ/FAQSections/ProgrammingIdioms.html#FAQ205
 		 */
-		protected abstract T getThis();
+		protected abstract B getThis();
 
 		/**
 		 * Loads the TOML file at the given path.

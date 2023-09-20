@@ -49,7 +49,7 @@ public interface NodeInternal {
 	 * 
 	 * @return the configuration
 	 */
-	LocalNodeConfig getConfig();
+	LocalNodeConfig<?,?> getConfig();
 
 	/**
 	 * Yields the caches of this node.
