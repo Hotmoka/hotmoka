@@ -16,13 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.disk.api;
 
-import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
  * The builder of a configuration of a node on disk memory.
  */
-@Immutable
 public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeConfig, DiskNodeConfigBuilder> {
 
 	/**

@@ -17,6 +17,8 @@ limitations under the License.
 package io.hotmoka.testing.internal;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.Date;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -93,13 +95,28 @@ public abstract class LoggedTestsImpl {
 				return SEPARATOR + lr.getMessage().substring(ENTRY_MARK.length()) + SEPARATOR + SEPARATOR;
 			else {
 				var thrown = lr.getThrown();
+				String stackTrace;
+				if (thrown != null) {
+					try (var sw = new StringWriter(); var pw = new PrintWriter(sw)) {
+						thrown.printStackTrace(pw);
+						stackTrace = sw.toString();
+						if (!stackTrace.isEmpty())
+							stackTrace = "\n" + stackTrace;
+					}
+					catch (IOException e) {
+						LOGGER.warning("cannot print the stack trace of a thrown exception");
+						stackTrace = "";
+					}
+				}
+				else
+					stackTrace = "";
 
 				return String.format(format,
 					new Date(lr.getMillis()),
 					lr.getLevel().getLocalizedName(),
 					lr.getMessage(),
 					lr.getSourceClassName() + " " + lr.getSourceMethodName(),
-					thrown == null ? "" : thrown
+					stackTrace
 				);
 			}
 		}

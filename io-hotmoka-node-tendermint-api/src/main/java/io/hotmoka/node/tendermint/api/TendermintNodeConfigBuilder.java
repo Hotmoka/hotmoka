@@ -18,13 +18,11 @@ package io.hotmoka.node.tendermint.api;
 
 import java.nio.file.Path;
 
-import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
  * The builder of a configuration of a Tendermint blockchain.
  */
-@Immutable
 public interface TendermintNodeConfigBuilder extends LocalNodeConfigBuilder<TendermintNodeConfig, TendermintNodeConfigBuilder> {
 
 	/**
