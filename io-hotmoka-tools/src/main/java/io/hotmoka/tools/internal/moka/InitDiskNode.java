@@ -40,7 +40,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
-@Command(name = "init-memory",
+@Command(name = "init-disk",
 	description = "Initializes a new node in disk memory",
 	showDefaultValues = true)
 public class InitDiskNode extends AbstractCommand {

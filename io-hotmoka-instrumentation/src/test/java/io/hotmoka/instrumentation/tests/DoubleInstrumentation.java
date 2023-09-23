@@ -41,7 +41,7 @@ class DoubleInstrumentation extends AbstractLoggedTests {
 
 	@Test
 	void translateTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
-		var origin = Paths.get("src","test","resources", "io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + "-lambdas.jar");
+		var origin = Paths.get("src","test","resources", "io-hotmoka-examples-lambdas.jar");
 		var classpath = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 		var bytesOfClasspath = Files.readAllBytes(classpath);
 		var bytesOfOrigin = Files.readAllBytes(origin);
