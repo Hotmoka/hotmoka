@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "burn",
-	description = "Burns coins from an account, if the node allows it",
+	description = "Burn coins from an account, if the node allows it",
 	showDefaultValues = true)
 public class Burn extends AbstractCommand {
 

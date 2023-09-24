@@ -30,7 +30,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "create-key",
-	description = "Creates a new key",
+	description = "Create a new key",
 	showDefaultValues = true)
 public class CreateKey extends AbstractCommand {
 

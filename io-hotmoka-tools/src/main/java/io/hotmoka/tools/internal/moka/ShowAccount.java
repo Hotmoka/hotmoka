@@ -40,7 +40,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "show-account",
-	description = "Shows an account",
+	description = "Show an account",
 	showDefaultValues = true)
 public class ShowAccount extends AbstractCommand {
 

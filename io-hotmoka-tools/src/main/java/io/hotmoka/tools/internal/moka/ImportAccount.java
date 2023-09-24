@@ -24,14 +24,14 @@ import io.hotmoka.node.Accounts;
 import picocli.CommandLine.Command;
 
 @Command(name = "import-account",
-	description = "Imports an account",
+	description = "Import an account",
 	showDefaultValues = true)
 public class ImportAccount extends AbstractCommand {
 
 	@Override
 	protected void execute() throws Exception {
 		System.out.println("Insert the 36 words of the passphrase of the account to import:");
-		String[] words = new String[36];
+		var words = new String[36];
 		int pos = 0;
 		while (pos < words.length) {
 			words[pos] = ask("word #" + (pos + 1) + ": ");

@@ -32,7 +32,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "instrument",
-	description = "Instruments a jar",
+	description = "Instrument a jar",
 	showDefaultValues = true)
 public class Instrument extends AbstractCommand {
 

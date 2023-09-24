@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "resume-tendermint",
-	description = "Resumes an existing node based on Tendermint",
+	description = "Resume an existing node based on Tendermint",
 	showDefaultValues = true)
 public class ResumeTendermint extends AbstractCommand {
 

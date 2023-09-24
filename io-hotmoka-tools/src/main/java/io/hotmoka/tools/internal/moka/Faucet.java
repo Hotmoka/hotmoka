@@ -40,7 +40,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "faucet",
-	description = "Sets the thresholds for the faucet of the gamete of a node",
+	description = "Set the thresholds for the faucet of the gamete of a node",
 	showDefaultValues = true)
 public class Faucet extends AbstractCommand {
 

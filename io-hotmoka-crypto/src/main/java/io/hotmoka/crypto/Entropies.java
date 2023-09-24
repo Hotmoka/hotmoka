@@ -52,18 +52,6 @@ public final class Entropies {
 	/**
 	 * Yields new entropy information read from a PEM file.
 	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing <b>.pem</b>
-	 * @return the entropy
-	 * @throws IOException if the PEM file cannot be read
-	 */
-	@Deprecated
-	public static Entropy load(String filePrefix) throws IOException {
-		return new EntropyImpl(filePrefix);
-	}
-
-	/**
-	 * Yields new entropy information read from a PEM file.
-	 * 
 	 * @param path the file
 	 * @return the entropy
 	 * @throws IOException if the PEM file cannot be read

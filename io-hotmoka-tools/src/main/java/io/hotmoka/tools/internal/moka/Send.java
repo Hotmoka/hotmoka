@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "send",
-	description = "Sends units of coin to a payable contract",
+	description = "Send units of coin to a payable contract",
 	showDefaultValues = true)
 public class Send extends AbstractCommand {
 

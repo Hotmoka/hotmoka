@@ -37,7 +37,7 @@ echo "  Docker Hub's user = $DOCKER_HUB_USER"
 sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URL'\//' $SCRIPT
 VERSION=$(curl --silent http://$NETWORK_URL/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
-sed -i '/@version/s/\/.*\//\/@version\/'$VERSION'\//' $SCRIPT
+sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' $SCRIPT
 
 message "Starting Docker container"
 DOCKER_TOTAL_SUPPLY=1000000000000000
@@ -216,7 +216,8 @@ sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" $SCRIPT
 moka send 10000 $NEW_KEY --anonymous --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false --print-costs=false >/dev/null
 RUN=$(moka bind-key $NEW_KEY --url $NETWORK_URL)
 LINE1=$(echo "$RUN"| sed '1!d')
-ACCOUNT_ANONYMOUS=${LINE2:14:66}
+echo ${LINE1}
+ACCOUNT_ANONYMOUS=${LINE1:14:66}
 echo "  anonymous account = $ACCOUNT_ANONYMOUS"
 sed -i "/@account_anonymous/s/\/.*\//\/@account_anonymous\/$ACCOUNT_ANONYMOUS\//" $SCRIPT
 

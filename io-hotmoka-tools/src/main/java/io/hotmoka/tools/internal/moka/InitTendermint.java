@@ -54,7 +54,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "init-tendermint",
-	description = "Initializes a new node based on Tendermint",
+	description = "Initialize a new node based on Tendermint",
 	showDefaultValues = true)
 public class InitTendermint extends AbstractCommand {
 
@@ -203,7 +203,7 @@ public class InitTendermint extends AbstractCommand {
 					String publicKeyBase58 = Base58.encode(Base64.getDecoder().decode(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58
 					try {
-						var entropy = Entropies.load(publicKeyBase58);
+						var entropy = Entropies.load(Paths.get(publicKeyBase58 + ".pem"));
 						Path fileName = Accounts.of(entropy, validator).dump(dir);
 						entropy.delete(publicKeyBase58);
 						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + fileName + "\".");

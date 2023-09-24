@@ -30,7 +30,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "verify",
-	description = "Verifies a jar",
+	description = "Verify a jar",
 	showDefaultValues = true)
 public class Verify extends AbstractCommand {
 

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Base64;
 
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -27,14 +28,13 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "bind-key",
-	description = "Binds a key to a reference, so that it becomes an account",
+	description = "Bind a key to a reference, so that it becomes an account",
 	showDefaultValues = true)
 public class BindKey extends AbstractCommand {
 
@@ -59,14 +59,14 @@ public class BindKey extends AbstractCommand {
 			storageReference = new StorageReference(reference);
 		}
 
-		var account = Accounts.of(Entropies.load(key), storageReference);
+		var account = Accounts.of(Entropies.load(Paths.get(key+ ".pem")), storageReference);
 		System.out.println("A new account " + account + " has been created.");
 		Path fileName = account.dump();
 		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 	}
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
-		try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+		try (var node = RemoteNode.of(remoteNodeConfig(url))) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
 

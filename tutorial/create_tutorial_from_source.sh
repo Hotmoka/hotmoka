@@ -56,72 +56,72 @@ sed -i 's/@fig:inbound_rules/36/g' Tutorial.md
 sed -i 's/@fig:entities_hierarchy/37/g' Tutorial.md
 
 # These get automatically recomputed with the update script: do not edit!
-sed -i 's/@version/1.0.11/g' Tutorial.md
-sed -i 's/@takamakaCode/af30834f57fb095049ea41f002c4d557078e620f55ae4c1271ebed5925aced4c/g' Tutorial.md
-sed -i 's/@manifest/a4a8ff9618bf5e11d31ad5a733a381e88b60add8e2cefe449463ee666dd86d00#0/g' Tutorial.md
-sed -i 's/@gamete/4f17633e4ef8b1fa4f9859799ad8fa2103b332cbb87b2d42058ba6f3d6d3784a#0/g' Tutorial.md
-sed -i 's/@gasStation/a4a8ff9618bf5e11d31ad5a733a381e88b60add8e2cefe449463ee666dd86d00#14/g' Tutorial.md
-sed -i 's/@validators/a4a8ff9618bf5e11d31ad5a733a381e88b60add8e2cefe449463ee666dd86d00#1/g' Tutorial.md
+sed -i 's/@hotmoka_version/1.3.0/g' Tutorial.md
+sed -i 's/@takamakaCode/645fe5273407ba4dbbcbbdd2ab08238357291de20f8aa6bccb0adf84d9de43e0/g' Tutorial.md
+sed -i 's/@manifest/d622321837529cb901706b20d878a0226a6d102dde0e2f76f487a23b6a3fa581#0/g' Tutorial.md
+sed -i 's/@gamete/6ae9773bd9fe77981bf17a10573ca7663e54f561b6f039febff83a7657de0c54#0/g' Tutorial.md
+sed -i 's/@gasStation/d622321837529cb901706b20d878a0226a6d102dde0e2f76f487a23b6a3fa581#14/g' Tutorial.md
+sed -i 's/@validators/d622321837529cb901706b20d878a0226a6d102dde0e2f76f487a23b6a3fa581#1/g' Tutorial.md
 sed -i 's/@maxFaucet/10000000000000/g' Tutorial.md
 sed -i 's/@chainid/marabunta/g' Tutorial.md
 sed -i 's/@chainid/marabunta/g' state1_copy.fig
 sed -i 's/@chainid/marabunta/g' state2_copy.fig
 sed -i 's/@chainid/marabunta/g' state3_copy.fig
-sed -i 's/@account1/b554954fe64c3c9b302664ff631f27ef64578692d14c99330b93c3844bb07470#0/g' Tutorial.md
-sed -i 's/@short_account1/b554954fe64...#0/g' state2_copy.fig
-sed -i 's/@short_account1/b554954fe64...#0/g' state3_copy.fig
-sed -i 's/@36words_of_account1/ 1: noise\n 2: before\n 3: hockey\n 4: system\n 5: portion\n 6: pledge\n 7: banana\n 8: admit\n 9: first\n10: cereal\n11: busy\n12: kiwi\n13: fetch\n14: enjoy\n15: display\n16: sister\n17: develop\n18: sunset\n19: another\n20: size\n21: wage\n22: moon\n23: panic\n24: uncle\n25: fiscal\n26: cruel\n27: reform\n28: odor\n29: nasty\n30: magic\n31: excuse\n32: identify\n33: entry\n34: lonely\n35: bright\n36: strong/g' Tutorial.md
-sed -i "s/@publickeyaccount1/1yro95TIJMHhBqJIwVt6oUvuooob+aagaBF54fXrwCw=/g" Tutorial.md
-sed -i "s/@short_publickeyaccount1/1yro95TIJM.../g" state2_copy.fig
-sed -i "s/@short_publickeyaccount1/1yro95TIJM.../g" state3_copy.fig
-sed -i 's/@account_anonymous/e58: 4H8FcCXaadNQBiJPJu9QxjVrmTpSJGRKaDKJSmDu7wSp/g' Tutorial.md
-sed -i 's/@new_key/4H8FcCXaadNQBiJPJu9QxjVrmTpSJGRKaDKJSmDu7wSp/g' Tutorial.md
-sed -i 's/@family_address/ca7b9ec64bd160a5ce9f0086f97cba58c6c44c9408628094686c4cc21d162d59/g' Tutorial.md
-sed -i 's/@short_family_address/ca7b9ec64b.../g' state3_copy.fig
-sed -i 's/@code_family_address/9758c153c70470001cf6710fb78f249d342a04f540fb9eef7bed166bc60c5fe0/g' Tutorial.md
-sed -i 's/@family2_address/16b6e1ea3dc2e130fcdd6e8960451412b1b7cdd601a9ea2926316c3db0f9c441/g' Tutorial.md
-sed -i 's/@family_exported_address/b1ec20bc3c928ca15514793a07550f4a098dbd14fbd9071752ce8baf3d741691/g' Tutorial.md
-sed -i 's/@family3_address/c1928f9898af4f39bdff477a2615eea5d81102ff723ec348107982cd782451f7/g' Tutorial.md
-sed -i 's/@person_object/fda19242316704992c7a69ff411d18976df5aaa82474c245224a9c730a0dfe8d#0/g' Tutorial.md
-sed -i 's/@person2_object/4de33af3626963abdc7ebac24df222af3c0f7e094549bc9d30d725c20a0d0cc6#0/g' Tutorial.md
-sed -i 's/@person3_object/4e9e3d84b66af44f1cc293d6b0974364c222f499c3e00cfec19ff12f86268422#0/g' Tutorial.md
-sed -i 's/@gradual_ponzi_address/6d4943fbda07dcd65d419475716aa2836af3561894d3deda69758f2f806201f0/g' Tutorial.md
-sed -i 's/@gradual_ponzi_object/bb84d4a8920ff0e04bb24425a855b0a9a43fc9d929f1d80e148a7ca6c952b68f#0/g' Tutorial.md
-sed -i 's/@gradual_ponzi_list/bb84d4a8920ff0e04bb24425a855b0a9a43fc9d929f1d80e148a7ca6c952b68f#1/g' Tutorial.md
-sed -i 's/@gradual_ponzi_first/bb84d4a8920ff0e04bb24425a855b0a9a43fc9d929f1d80e148a7ca6c952b68f#2/g' Tutorial.md
-sed -i 's/@gradual_ponzi_last/a9c2263f81703bc809daac587d2f1134a16d564ea204d9f192d8e4496778fd69#0/g' Tutorial.md
-sed -i 's/@account2/d8ee1b7e0f7f30accc67c7faa123d9ad81fdc26de9c4ddc19419ac57ea5830e4#0/g' Tutorial.md
-sed -i 's/@account3/0e27d8cd23b0c7c0c0601a197947a6370fdfb192c97cf3108a0c309b12bcda87#0/g' Tutorial.md
-sed -i 's/@account4/a6ab3cd1c2f397e1a90d02d167c3b60d8d384ca47ac1fa98d32bf8d4678bdbb9#0/g' Tutorial.md
-sed -i 's/@account5/c309ee6b5dbc4da835e022829c02e45ba333a064a13c164aeb303dc9e4cd9a45#0/g' Tutorial.md
-sed -i 's/@account6/15322cf5b17d90225a8551fcd8d62419a4a46dc8ef0b07903e2de1a308cf9dc1#0/g' Tutorial.md
-sed -i 's/@account7/9b9865000f8baa1c9049774f495f5470873cb3c1be8e1210fca1b65c919f77e8#0/g' Tutorial.md
-sed -i 's/@publickeyaccount4/wgG92apxmGgTZBoPP7bvP8MN9zLrQdP16L6FaE0YNsQ=/g' Tutorial.md
-sed -i 's/@short_publickeyaccount5/MIIDQzCCAjUGByqGSM44BAEwggIoAo.../g' Tutorial.md
-sed -i 's/@tictactoe_address/79303c594ea0bd85ba9d09be77f3b3d4470b2282804847a6584c05ba85312cd6/g' Tutorial.md
-sed -i 's/@tictactoe_object/e9f93ade95843827a2eccd4cf417f87a940c2f2913a3c6d46694457995dd8b2a#0/g' Tutorial.md
-sed -i 's/@erc20_address/053acafea6d01a146341b903e9b99293fb666fa7cb4ac92906727183aa8987ef/g' Tutorial.md
-sed -i 's/@erc20_object/f45b62005675190e166b8e66606a31abad253dba4b5019f52d3b5780bf64659a#0/g' Tutorial.md
+sed -i 's/@account1/ea3966e3e055e02695ccca9d6bd9d2eadc440182672f2c9ae2d93f8d5f13725c#0/g' Tutorial.md
+sed -i 's/@short_account1/ea3966e3e05...#0/g' state2_copy.fig
+sed -i 's/@short_account1/ea3966e3e05...#0/g' state3_copy.fig
+sed -i 's/@36words_of_account1/ 1: game\n 2: ribbon\n 3: tourist\n 4: pair\n 5: pact\n 6: tape\n 7: piece\n 8: learn\n 9: ten\n10: pony\n11: nephew\n12: fiction\n13: phone\n14: recall\n15: moon\n16: apple\n17: then\n18: cruise\n19: industry\n20: news\n21: stove\n22: undo\n23: entry\n24: fortune\n25: dune\n26: army\n27: oil\n28: furnace\n29: situate\n30: imitate\n31: gossip\n32: vast\n33: gallery\n34: oppose\n35: novel\n36: cradle/g' Tutorial.md
+sed -i "s/@publickeyaccount1/mjc9gJKZi5hWFwBYdQz1QZ9RaoQohfz3cuDOd0M9xwA=/g" Tutorial.md
+sed -i "s/@short_publickeyaccount1/mjc9gJKZi5.../g" state2_copy.fig
+sed -i "s/@short_publickeyaccount1/mjc9gJKZi5.../g" state3_copy.fig
+sed -i 's/@account_anonymous/1fc17de19c200d669980cded0df9f2034eb50473e9cb1c5997087ca368468c2b#0/g' Tutorial.md
+sed -i 's/@new_key/AHJjJGwWRcDauc6Nn5ySmi9Kcdsggd6Kpv6vGewnFhZM/g' Tutorial.md
+sed -i 's/@family_address/036a66dd9e34c0ef74c536e25eb7809962fcb5cdd93499cbff1bc294a3a0b2e3/g' Tutorial.md
+sed -i 's/@short_family_address/036a66dd9e.../g' state3_copy.fig
+sed -i 's/@code_family_address/4f836a4c46cdec9399231a5f00349222050a880326e82d2f1f68fac08fd66e8a/g' Tutorial.md
+sed -i 's/@family2_address/57d02997a22e307b8ba0014c5a598adcf96d5c963a40eacf15109a1902216e2c/g' Tutorial.md
+sed -i 's/@family_exported_address/fe4f7fed3774cdb61c6f00f657d4305ec0eee65968b70916c34c1a30149110a9/g' Tutorial.md
+sed -i 's/@family3_address/18de02b33609ac4d06e8ff001ccb559892f68aaed940095086f6e3dbf6751a70/g' Tutorial.md
+sed -i 's/@person_object/e0abd6b48248a6729273610851bf6ed4acb26dc8c89ce1c7342e37509cab42a2#0/g' Tutorial.md
+sed -i 's/@person2_object/3d75367f2275c92f491d791e3124a5629ec21129fc658c78e76a9261826f7de5#0/g' Tutorial.md
+sed -i 's/@person3_object/f1d1ac4c87f3aa43ec6253a6e783680d155ce0a3d88ab13a68bafcc70a422522#0/g' Tutorial.md
+sed -i 's/@gradual_ponzi_address/aa753be3cd67e5459bf2c0203a931aa2612ea23b7e43db679b55bad77cb702b1/g' Tutorial.md
+sed -i 's/@gradual_ponzi_object/0ecb15b051dffeda927faa0771aa289b4a13925759a60b7395f412c9a2677646#0/g' Tutorial.md
+sed -i 's/@gradual_ponzi_list/0ecb15b051dffeda927faa0771aa289b4a13925759a60b7395f412c9a2677646#1/g' Tutorial.md
+sed -i 's/@gradual_ponzi_first/0ecb15b051dffeda927faa0771aa289b4a13925759a60b7395f412c9a2677646#2/g' Tutorial.md
+sed -i 's/@gradual_ponzi_last/ce11a6452e5a039e0e0fc426826c1e4673d1f58bb4ff5e67ab37a779d4672fb0#0/g' Tutorial.md
+sed -i 's/@account2/4d2c0008b43f68392168c4a97dcd397a48c011780794f7387262d8f2cfc82f58#0/g' Tutorial.md
+sed -i 's/@account3/6bda363c355d24f8f8b59e95237dcf19e918a662fbfb71fb5a89f47d81a24aba#0/g' Tutorial.md
+sed -i 's/@account4/05c7748b69e1d792c5cfcc8ded9c16ca159cb9a65eca6036fe0180473e6d0102#0/g' Tutorial.md
+sed -i 's/@account5/03886c570e99a13462c0d16087b14715848ead458e566054976c39ea494de5dd#0/g' Tutorial.md
+sed -i 's/@account6/702413644f554e6ea4b60f5b1eb1263716342d86812dcf0ba61c5014eda30ae9#0/g' Tutorial.md
+sed -i 's/@account7/cea6e5cad68ab369fb12ecf2d9c60341bec360001c8da1bb9f6d314c0c4b2107#0/g' Tutorial.md
+sed -i 's/@publickeyaccount4/amC0Jd0PPzJ2USolpy\/0BvmF7EPYqt9xn+pzuotTdv4=/g' Tutorial.md
+sed -i 's/@short_publickeyaccount5/MIIDQjCCAjUGByqGSM44BAEwggIoAo.../g' Tutorial.md
+sed -i 's/@tictactoe_address/9dba9423524a5a022b7f576cc5bbdd0b0b7aede9e3578cfed425b97aeca8d66b/g' Tutorial.md
+sed -i 's/@tictactoe_object/3b65c76db6d4803bdaea80ddd8f28c5dcc388ca931093212753db08a3a57049e#0/g' Tutorial.md
+sed -i 's/@erc20_address/a98ae8684ada190ff47f6fa83385c1d8542fabe2f2454984daadd301db7a5d6a/g' Tutorial.md
+sed -i 's/@erc20_object/73b4d143ffe5fee731f54dd2bfb2ba0388a00b508734399ed03b8c4e1a1b1096#0/g' Tutorial.md
 sed -i 's/@server/panarea.hotmoka.io/g' Tutorial.md
-sed -i 's/@new_docker_key/UM9smd5QEvsshZh5LLifusHwhPzJx69PeRCLT8PTTPw/g' Tutorial.md
-sed -i 's/@container_id1/d5abac04cf5029421a25162cb31658da1f6efa57b372c655c4405321976d1414/g' Tutorial.md
-sed -i 's/@docker_takamaka_code/36eb52143cc794e5f193caaa75cbf903069ee7cee2ca31d65a2f20c021b46783/g' Tutorial.md
-sed -i 's/@docker_manifest/8c45b32aead6383c76a694197d8351451f9beeb7fc88549a30e10fc16b540bbe#0/g' Tutorial.md
-sed -i 's/@docker_gamete/33291835386e72562167156e2b9717793a5b91b89a497b7792b842a96cb53d67#0/g' Tutorial.md
-sed -i 's/@docker_validators/8c45b32aead6383c76a694197d8351451f9beeb7fc88549a30e10fc16b540bbe#1/g' Tutorial.md
-sed -i 's/@docker_validator0/7eee815a9d60bfd4a197ad0bea956db07bbe7ed23642015560a18ca51e22700c#0/g' Tutorial.md
-sed -i 's/@docker_id_validator0/01BA307C588511343F451C240101A72AF63877E4/g' Tutorial.md
-sed -i 's/@container_id2/c71977b818736b2bc3416a6e2a2dec26a2fb013f9738fbb6d15e4cc566df8949/g' Tutorial.md
-sed -i 's/@container_id3/53c3c1418d192fef44e0727087579b3650e54241c83d40874baeda204bcb0c1a/g' Tutorial.md
-sed -i 's/@docker_new_account/db736d5087375c7cf7de12bdb18db80ecdac42df436904fead0f19529cdbabce#0/g' Tutorial.md
-sed -i 's/@docker_total_gas_new_account/44857/g' Tutorial.md
-sed -i 's/@docker_reduced_balance/999999998720576/g' Tutorial.md
-sed -i 's/@docker_balance_validator0/11226/g' Tutorial.md
-sed -i 's/@docker_staked_validator0/33675/g' Tutorial.md
-sed -i 's/@docker_diff1/1279424/g' Tutorial.md
-sed -i 's/@docker_diff2/44857/g' Tutorial.md
-sed -i 's/@docker_diff3/44/g' Tutorial.md
-sed -i 's/@docker_sum1/44901/g' Tutorial.md
+sed -i 's/@new_docker_key/En2EJywapYumNDjNZAFUMVjP26oTFXQqMtYURi4VuTxY/g' Tutorial.md
+sed -i 's/@container_id1/19f0e151bbc222f722c99e6dd49abe0d23e369bf2c45680610ca8cb0ee15da9a/g' Tutorial.md
+sed -i 's/@docker_takamaka_code/10added23aafb1074091735f7fd8946c05af88691ad4ac02af38a4e664122b1d/g' Tutorial.md
+sed -i 's/@docker_manifest/bafdcc0414afa8599e7642e195c1705d73df755c9863ff8a99bc6192ca24964c#0/g' Tutorial.md
+sed -i 's/@docker_gamete/34d9b6edffa89c17294fff821b88bd47aa3c24bef0adaec31ddcf12447b21480#0/g' Tutorial.md
+sed -i 's/@docker_validators/bafdcc0414afa8599e7642e195c1705d73df755c9863ff8a99bc6192ca24964c#1/g' Tutorial.md
+sed -i 's/@docker_validator0/eea5ca79f44d507622f6770fad97223111ed3e9f5f03eede7404d6a46827ce72#0/g' Tutorial.md
+sed -i 's/@docker_id_validator0/C2BC1D8742CA6FF2ED86F634F01BF4B1224E9A30/g' Tutorial.md
+sed -i 's/@container_id2/8bf8356be95cf76954822eae4708630d2dc33c9dba06949664f46bc3ea4e7412/g' Tutorial.md
+sed -i 's/@container_id3/e2c04d1335d8ae717b49ea30a6f57c44d27dd586c79d5f3af82771be884ebee6/g' Tutorial.md
+sed -i 's/@docker_new_account/dd0e4e1d86858f6e67d683f8ed93c888010cf3d9c8bc3384984fec260c7e603a#0/g' Tutorial.md
+sed -i 's/@docker_total_gas_new_account/2579/g' Tutorial.md
+sed -i 's/@docker_reduced_balance/999999998762854/g' Tutorial.md
+sed -i 's/@docker_balance_validator0/0/g' Tutorial.md
+sed -i 's/@docker_staked_validator0/0/g' Tutorial.md
+sed -i 's/@docker_diff1/1237146/g' Tutorial.md
+sed -i 's/@docker_diff2/2579/g' Tutorial.md
+sed -i 's/@docker_diff3/-2579/g' Tutorial.md
+sed -i 's/@docker_sum1/0/g' Tutorial.md
 
 # we regenerate the png figures, since they might contain some string changed
 # by previous sed commands
@@ -136,6 +136,7 @@ sed -i "s/\[Hotmokaonly]://g" ProgrammingHotmoka.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
+sed -i 's/@takamaka_version/1.0.13/g' ProgrammingHotmoka.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
@@ -203,6 +204,7 @@ sed -i "/^\[Hotmokaonly]:/d" ProgrammingBlueknot.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
+sed -i 's/@takamaka_version/1.0.13/g' ProgrammingBlueknot.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Vero4Chain\/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
 sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md

@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "mint",
-	description = "Mints new coins for an account, if the node allows it",
+	description = "Mint new coins for an account, if the node allows it",
 	showDefaultValues = true)
 public class Mint extends AbstractCommand {
 

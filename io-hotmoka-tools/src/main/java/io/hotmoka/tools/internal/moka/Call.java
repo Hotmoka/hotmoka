@@ -58,7 +58,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "call",
-	description = "Calls a method of an object or class",
+	description = "Call a method of an object or class",
 	showDefaultValues = true)
 public class Call extends AbstractCommand {
 

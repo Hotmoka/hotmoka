@@ -46,7 +46,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "rotate-key",
-	description = "Rotates the key of an account",
+	description = "Rotate the key of an account",
 	showDefaultValues = true)
 public class RotateKey extends AbstractCommand {
 

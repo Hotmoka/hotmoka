@@ -54,7 +54,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "create",
-	description = "Creates an object in the store of a node",
+	description = "Create an object in the store of a node",
 	showDefaultValues = true)
 public class Create extends AbstractCommand {
 

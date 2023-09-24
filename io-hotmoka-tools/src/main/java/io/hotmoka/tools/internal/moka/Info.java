@@ -22,7 +22,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "info",
-	description = "Prints information about a node",
+	description = "Print information about a node",
 	showDefaultValues = true)
 public class Info extends AbstractCommand {
 

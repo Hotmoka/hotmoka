@@ -32,7 +32,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
 @Command(name = "start-tendermint",
-	description = "Starts a new node based on Tendermint",
+	description = "Start a new node based on Tendermint",
 	showDefaultValues = true)
 public class StartTendermint extends AbstractCommand {
 

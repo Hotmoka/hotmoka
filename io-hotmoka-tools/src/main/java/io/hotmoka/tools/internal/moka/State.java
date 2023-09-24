@@ -34,7 +34,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "state",
-	description = "Prints the state of an object",
+	description = "Print the state of an object",
 	showDefaultValues = true)
 public class State extends AbstractCommand {
 

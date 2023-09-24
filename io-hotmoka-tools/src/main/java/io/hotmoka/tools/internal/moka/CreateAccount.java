@@ -18,6 +18,7 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
@@ -40,7 +41,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 @Command(name = "create-account",
-	description = "Creates a new account",
+	description = "Create a new account",
 	showDefaultValues = true)
 public class CreateAccount extends AbstractCommand {
 
@@ -108,7 +109,7 @@ public class CreateAccount extends AbstractCommand {
 					publicKey = entropy.keys(passwordOfNewAccount, signatureAlgorithmOfNewAccount).getPublic();
 				}
 				else {
-					entropy = Entropies.load(keyOfNewAccount);
+					entropy = Entropies.load(Paths.get(keyOfNewAccount + ".pem"));
 					publicKey = signatureAlgorithmOfNewAccount.publicKeyFromEncoding(Base58.decode(keyOfNewAccount));
 				}
 
