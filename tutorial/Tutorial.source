@@ -63,7 +63,7 @@
         - [Implementing Our Own ERC721 Token](#implementing-our-own-erc721-token)
 7. [@Type Nodes](#@type-nodes)
     - [Tendermint Nodes](#tendermint-nodes)
-    - [Memory Nodes](#memory-nodes)
+    - [Disk Nodes](#disk-nodes)
     - [Logs](#logs)
     - [Node Decorators](#node-decorators)
     - [@Type Services](#@type-services)
