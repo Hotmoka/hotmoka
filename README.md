@@ -6287,7 +6287,7 @@ we have to wait for some seconds at least.
 Moreover, Tendermint does not allow one to see the effects of each single transaction,
 in a simple way. For testing, debugging and didactical purposes, it would be simpler to have a light node
 that behaves like a blockchain, allows access to blocks and transactions as text files,
-but is not a blockchain. This is the goal of the `MemoryBlockchain` nodes.
+but is not a blockchain. This is the goal of the `DiskNode`s.
 They are not part of an actual blockchain since they do not duplicate transactions
 in a peer-to-peer network, where
 consensus is imposed. But they are very
@@ -6295,7 +6295,7 @@ handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
 You can start a memory Hotmoka node, with an open faucet, exactly as you did,
-in the previous section, for a Tendermint node, but using the `moka init-memory`
+in the previous section, for a Tendermint node, but using the `moka init-disk`
 command instead of `moka init-tendermint`. You do not need any Tendermint configuration
 this time, but still need a key to control the gamete of the node, that you can create
 exactly as for a Tendermint Hotmoka node:
@@ -6312,7 +6312,7 @@ Its entropy has been saved into the file
 You specify the public component of the key when starting the node:
 
 ```shell
-$ moka init-memory 100000000000000000000000
+$ moka init-disk 100000000000000000000000
     --open-unsigned-faucet
     --takamaka-code ~/.m2/repository/io/hotmoka/io-takamaka-code/
                          1.0.13/io-takamaka-code-1.0.13.jar

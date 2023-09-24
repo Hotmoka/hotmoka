@@ -43,7 +43,7 @@ import picocli.CommandLine.Parameters;
 @Command(name = "init-disk",
 	description = "Initialize a new node in disk memory",
 	showDefaultValues = true)
-public class InitDiskNode extends AbstractCommand {
+public class InitDisk extends AbstractCommand {
 
 	@Parameters(description = "the initial supply of coins of the node, which goes to the gamete")
     private BigInteger initialSupply;
@@ -116,10 +116,10 @@ public class InitDiskNode extends AbstractCommand {
 				.build();
 
 			BigInteger deltaSupply;
-			if (DELTA_SUPPLY_DEFAULT.equals(InitDiskNode.this.deltaSupply))
+			if (DELTA_SUPPLY_DEFAULT.equals(InitDisk.this.deltaSupply))
 				deltaSupply = initialSupply;
 			else
-				deltaSupply = new BigInteger(InitDiskNode.this.deltaSupply);
+				deltaSupply = new BigInteger(InitDisk.this.deltaSupply);
 
 			var consensus = SimpleConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
