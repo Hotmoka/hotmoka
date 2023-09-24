@@ -216,7 +216,6 @@ sed -i "/@new_key/s/\/.*\//\/@new_key\/$NEW_KEY\//" $SCRIPT
 moka send 10000 $NEW_KEY --anonymous --payer=$ACCOUNT1 --url=$NETWORK_URL --password-of-payer=chocolate --interactive=false --print-costs=false >/dev/null
 RUN=$(moka bind-key $NEW_KEY --url $NETWORK_URL)
 LINE1=$(echo "$RUN"| sed '1!d')
-echo ${LINE1}
 ACCOUNT_ANONYMOUS=${LINE1:14:66}
 echo "  anonymous account = $ACCOUNT_ANONYMOUS"
 sed -i "/@account_anonymous/s/\/.*\//\/@account_anonymous\/$ACCOUNT_ANONYMOUS\//" $SCRIPT

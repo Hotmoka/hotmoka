@@ -35,5 +35,5 @@ esac
 mvn clean install -DskipTests
 docker build -t ${DOCKER_IMAGE_HOTMOKA} -f ${DOCKER_FILE_HOTMOKA} .
 docker push ${DOCKER_IMAGE_HOTMOKA}
-docker build -t ${DOCKER_IMAGE_BLUEKNOT} -f ${DOCKER_FILE_BLUEKNOT} .
-docker push ${DOCKER_IMAGE_BLUEKNOT}
+#docker build -t ${DOCKER_IMAGE_BLUEKNOT} -f ${DOCKER_FILE_BLUEKNOT} .
+#docker push ${DOCKER_IMAGE_BLUEKNOT}
