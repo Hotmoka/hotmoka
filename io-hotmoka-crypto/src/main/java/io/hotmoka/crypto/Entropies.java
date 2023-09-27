@@ -59,7 +59,7 @@ public final class Entropies {
 	public static Entropy load(Path path) throws IOException {
 		long length = path.toFile().length();
 		// without this check, the access to the file would take very long and terminate with an error anyway
-		if (length > 1000L)
+		if (length > 10000L)
 			throw new IOException("The pem file " + path + " is too long for being a PEM file!");
 
 		return new EntropyImpl(path);

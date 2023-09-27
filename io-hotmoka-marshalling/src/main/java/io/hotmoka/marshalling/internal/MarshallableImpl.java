@@ -40,7 +40,7 @@ public abstract class MarshallableImpl implements Marshallable {
 		}
 		catch (IOException e) {
 			// impossible with a ByteArrayOutputStream
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 
