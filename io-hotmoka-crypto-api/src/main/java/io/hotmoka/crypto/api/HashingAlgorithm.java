@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.crypto.api;
 
+import java.security.NoSuchAlgorithmException;
+import java.util.function.Function;
+
 /**
  * An algorithm that hashes values into bytes.
  *
@@ -58,6 +61,13 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	int length();
 
 	/**
+	 * Yields the supplier of this hashing algorithm.
+	 * 
+	 * @return the supplier
+	 */
+	Supplier<T> getSupplier();
+
+	/**
 	 * Yields the name of the algorithm.
 	 * 
 	 * @return the name of the algorithm
@@ -72,4 +82,22 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 * @return the clone of this algorithm
 	 */
 	HashingAlgorithm<T> clone();
+
+	/**
+     * A supplier of a hashing algorithm.
+     * 
+     * @param <T> the type of the objects that will get hashed
+     */
+    interface Supplier<T> {
+
+    	/**
+    	 * Supplies a hashing algorithm with this supplier.
+    	 * 
+    	 * @param toBytes a function applied to the objects to hash, to transform them into bytes that
+    	 *                will then be hashed
+    	 * @return the hashing algorithm
+    	 * @throws NoSuchAlgorithmException if the hashing algorithm is not available
+    	 */
+    	HashingAlgorithm<T> get(Function<? super T, byte[]> toBytes) throws NoSuchAlgorithmException;
+    }
 }

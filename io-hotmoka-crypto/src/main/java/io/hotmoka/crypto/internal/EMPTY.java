@@ -111,4 +111,9 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	public String getName() {
 		return "empty";
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return _toBytes -> new EMPTY<T>();
+	}
 }

@@ -40,7 +40,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
@@ -98,9 +97,9 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		String methodName;
 		ClassType eoaType;
-		String signature = signatureAlgorithm.getName();
-		BigInteger gas = gasForCreatingAccountWithSignature(signature);
+		BigInteger gas = gasForCreatingAccountWithSignature(signatureAlgorithm);
 
+		String signature = signatureAlgorithm.getName();
 		switch (signature) {
 		case "ed25519":
 		case "sha256dsa":
@@ -155,7 +154,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		BigInteger gas1 = gasForCreatingAccountWithSignature(signature);
+		BigInteger gas1 = gasForCreatingAccountWithSignature(signatureAlgorithm);
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 		if (addToLedger)
@@ -213,7 +212,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
-		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithms.TYPES.ED25519.name());
+		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithmForTransactionRequests.ed25519());
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		SignatureAlgorithm<SignedTransactionRequest> signatureForFaucet = SignatureAlgorithmForTransactionRequests.empty();
@@ -238,7 +237,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithms.TYPES.ED25519.name());
+		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithmForTransactionRequests.ed25519());
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 
@@ -267,8 +266,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		return validator;
 	}
 
-	private static BigInteger gasForCreatingAccountWithSignature(String signature) {
-		switch (signature) {
+	private static BigInteger gasForCreatingAccountWithSignature(SignatureAlgorithm<?> signature) {
+		switch (signature.getName()) {
 		case "ed25519":
 			return _100_000;
 		case "sha256dsa":

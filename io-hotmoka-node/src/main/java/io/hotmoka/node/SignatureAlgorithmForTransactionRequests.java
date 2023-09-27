@@ -22,7 +22,6 @@ import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.SignatureAlgorithms.TYPES;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
@@ -113,18 +112,7 @@ public final class SignatureAlgorithmForTransactionRequests {
 			return (SignatureAlgorithm<SignedTransactionRequest>) method.invoke(null);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("unknown signature algorithm named " + name, e);
+			throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
 		}
-	}
-
-	/**
-	 * Yields the signature algorithm for transaction requests with the given type.
-	 * 
-	 * @param type the type of the algorithm
-	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
-	 */
-	public static SignatureAlgorithm<SignedTransactionRequest> of(TYPES type) throws NoSuchAlgorithmException {
-		return of(type.name());
 	}
 }

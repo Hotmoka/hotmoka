@@ -103,4 +103,9 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 			throw new IllegalStateException("cannot clone SHA256 since the provider is not available");
 		}
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return SHA256::new;
+	}
 }

@@ -179,4 +179,9 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	public String getName() {
 		return "sha256dsa";
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return SHA256DSA::new;
+	}
 }

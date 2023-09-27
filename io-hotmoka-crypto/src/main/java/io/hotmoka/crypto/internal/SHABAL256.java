@@ -78,6 +78,11 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
+	public Supplier<T> getSupplier() {
+		return SHABAL256::new;
+	}
+
+	@Override
 	public SHABAL256<T> clone() {
 		return new SHABAL256<T>(supplier);
 	}

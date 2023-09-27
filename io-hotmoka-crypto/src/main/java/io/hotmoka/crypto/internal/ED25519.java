@@ -189,4 +189,9 @@ public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
 	public String getName() {
 		return "ed25519";
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return ED25519::new;
+	}
 }

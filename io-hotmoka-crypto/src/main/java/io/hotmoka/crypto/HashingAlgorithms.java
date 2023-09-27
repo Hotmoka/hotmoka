@@ -78,33 +78,4 @@ public final class HashingAlgorithms {
 			throw new NoSuchAlgorithmException("Unknown hashing algorithm named " + name, e);
 		}
 	}
-
-	/**
-	 * Yields the hashing algorithm for the given type of values.
-	 * 
-	 * @param <T> the type of the values that get hashed
-	 * @param type the type of the algorithm
-	 * @param supplier how values get transformed into bytes, before being hashed
-	 * @return the algorithm
-	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
-	 */
-	public static <T> HashingAlgorithm<T> of(TYPES type, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
-		return of(type.name(), supplier);
-	}
-
-	/**
-	 * The alternatives of hashing algorithms currently implemented.
-	 */
-	public enum TYPES {
-
-		/**
-		 * The Sha256 hashing algorithm.
-		 */
-		SHA256,
-
-		/**
-		 * The Shabal256 hashing algorithm.
-		 */
-		SHABAL256
-	}
 }

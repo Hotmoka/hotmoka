@@ -58,7 +58,7 @@ public class TrieOfInfo {
 			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
 
 			// the hashing algorithm applied to the keys of the trie
-			var hashingForKeys = new AbstractHashingAlgorithm<Byte>() {
+			class KeyHashingAlgorithm extends AbstractHashingAlgorithm<Byte> {
 
 				@Override
 				public byte[] hash(Byte key) {
@@ -74,7 +74,14 @@ public class TrieOfInfo {
 				public String getName() {
 					return "custom";
 				}
+
+				@Override
+				public Supplier<Byte> getSupplier() {
+					return __ -> new KeyHashingAlgorithm();
+				}
 			};
+
+			var hashingForKeys = new KeyHashingAlgorithm();
 
 			parent = PatriciaTries.of(keyValueStoreOfInfos, hashingForKeys, hashingForNodes, StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}

@@ -162,4 +162,9 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
 	public String getName() {
 		return "qtesla3";
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return QTESLA3::new;
+	}
 }

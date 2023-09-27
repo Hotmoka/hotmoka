@@ -163,4 +163,9 @@ public class QTESLA1<T> extends AbstractSignatureAlgorithmImpl<T> {
 	public String getName() {
 		return "qtesla1";
 	}
+
+	@Override
+	public Supplier<T> getSupplier() {
+		return QTESLA1::new;
+	}
 }
