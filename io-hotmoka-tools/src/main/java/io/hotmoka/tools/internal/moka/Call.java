@@ -227,7 +227,7 @@ public class Call extends AbstractCommand {
 
 				if (isStatic)
 					return new StaticMethodCallTransactionRequest(
-							signature.getSigner(keys.getPrivate()),
+							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 							payer,
 							nonce,
 							chainId,
@@ -238,7 +238,7 @@ public class Call extends AbstractCommand {
 							actuals);
 				else
 					return new InstanceMethodCallTransactionRequest(
-							signature.getSigner(keys.getPrivate()),
+							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 							payer,
 							nonce,
 							chainId,

@@ -37,7 +37,7 @@ public class QTESLA3 extends AbstractLoggedTests {
         SignatureAlgorithm<String> qTesla3 = SignatureAlgorithms.qtesla3(String::getBytes);
 
         KeyPair keyPair = qTesla3.getKeyPair();
-        byte[] signed = qTesla3.getSigner(keyPair.getPrivate()).sign(data);
+        byte[] signed = qTesla3.getSigner(keyPair.getPrivate(), String::getBytes).sign(data);
 
         boolean isDataVerifiedCorrectly = qTesla3.verify(data, keyPair.getPublic(), signed);
         boolean isCorruptedData = !qTesla3.verify(data + "corrupted", keyPair.getPublic(), signed);
@@ -52,7 +52,7 @@ public class QTESLA3 extends AbstractLoggedTests {
         SignatureAlgorithm<String> qTesla3 = SignatureAlgorithms.qtesla3(String::getBytes);
 
         KeyPair keyPair = qTesla3.getKeyPair();
-        byte[] signed = qTesla3.getSigner(keyPair.getPrivate()).sign(data);
+        byte[] signed = qTesla3.getSigner(keyPair.getPrivate(), String::getBytes).sign(data);
 
         boolean isDataVerifiedCorrectly = qTesla3.verify(data, keyPair.getPublic(), signed);
         boolean isCorruptedData = !qTesla3.verify(data + "corrupted", keyPair.getPublic(), signed);

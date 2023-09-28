@@ -312,7 +312,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
 
         try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeConfig)) {
             transaction = remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-            	(signature().getSigner(privateKey(0)), account(0),
+            	(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                  ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
         }
 
@@ -327,7 +327,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-                    (signature().getSigner(privateKey(0)), account(0),
+                    (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
@@ -345,7 +345,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
     void testRemoteAddJarStoreTransactionFailed() throws Exception {
         try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeConfig)) {
             remoteNode.addJarStoreTransaction(new JarStoreTransactionRequest
-                    (signature().getSigner(privateKey(0)), account(0),
+                    (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
         catch (TransactionException e) {
@@ -364,7 +364,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
 
         try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeConfig)) {
             JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (signature().getSigner(privateKey(0)), account(0),
+                    (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
             // we wait until the request has been processed
@@ -382,7 +382,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (signature().getSigner(privateKey(0)), account(0),
+                    (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
                     ));
@@ -407,7 +407,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
             JarSupplier future = remoteNode.postJarStoreTransaction(new JarStoreTransactionRequest
-                    (signature().getSigner(privateKey(0)), account(0),
+                    (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 
             // we wait until the request has been processed; this will throw a TransactionException at the end,

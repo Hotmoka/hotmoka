@@ -22,6 +22,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.function.Function;
 
 /**
  * An algorithm that signs values and verifies such signatures back.
@@ -42,9 +43,10 @@ public interface SignatureAlgorithm<T> {
 	 * Yields a signer with this signature algorithm.
 	 * 
 	 * @param key the private key that will be used for signing
+	 * @param toBytes the function to use to transform the value into bytes before signing
 	 * @return the signer
 	 */
-	Signer<T> getSigner(PrivateKey key);
+	Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes);
 
 	/**
 	 * Verifies that the given signature corresponds to the given value, by using

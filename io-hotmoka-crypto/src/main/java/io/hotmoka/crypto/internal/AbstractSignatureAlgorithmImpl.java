@@ -32,6 +32,7 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.digests.SHA512Digest;
@@ -53,12 +54,31 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 	 * Yields the signature of the given value, by using the given private key.
 	 * 
 	 * @param what the value to sign
+	 * @param toBytes a function applied to transform the value into bytes before signing
 	 * @param privateKey the private key used for signing
-	 * @return the sequence of bytes
+	 * @return the signature
 	 * @throws InvalidKeyException if the provided private key is invalid
 	 * @throws SignatureException if the value cannot be signed
 	 */
-	protected abstract byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException;
+	private byte[] sign(T what, Function<? super T, byte[]> toBytes, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+		try {
+			return sign(toBytes.apply(what), privateKey);
+        }
+        catch (Exception e) {
+            throw new SignatureException("cannot transform value into bytes before signing", e);
+        }
+	}
+
+	/**
+	 * Yields the signature of the given bytes, by using the given private key.
+	 * 
+	 * @param bytes the bytes to sign
+	 * @param privateKey the private key used for signing
+	 * @return the signature
+	 * @throws InvalidKeyException if the provided private key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	protected abstract byte[] sign(byte[] bytes, PrivateKey privateKey) throws InvalidKeyException, SignatureException;
 
 	/**
 	 * Creates a key pair generator for this signature algorithm.
@@ -103,8 +123,8 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
     }
 
 	@Override
-	public final Signer<T> getSigner(PrivateKey key) {
-		return what -> sign(what, key);
+	public final Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes) {
+		return what -> sign(what, toBytes, key);
 	}
 
 	@Override

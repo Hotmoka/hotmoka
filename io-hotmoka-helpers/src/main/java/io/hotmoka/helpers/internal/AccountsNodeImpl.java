@@ -124,7 +124,7 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		StorageReference manifest = getManifest();
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
-		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer);
+		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _100_000 = BigInteger.valueOf(100_000L);
 		var _200_000 = BigInteger.valueOf(200_000L);
 

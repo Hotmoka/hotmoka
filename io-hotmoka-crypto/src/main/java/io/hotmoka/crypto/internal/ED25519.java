@@ -103,16 +103,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    protected byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
-        byte[] bytes;
-
-        try {
-            bytes = supplier.apply(what);
-        }
-        catch (Exception e) {
-            throw new SignatureException("Cannot transform the value into bytes before signing", e);
-        }
-
+    protected byte[] sign(byte[] bytes, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
         synchronized (signature) {
             signature.initSign(privateKey);
             signature.update(bytes);

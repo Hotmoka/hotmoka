@@ -119,7 +119,7 @@ public class SellValidation extends AbstractCommand {
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
-				var signer = algorithm.getSigner(keys.getPrivate());
+				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 				askForConfirmation(gasLimit.multiply(BigInteger.TWO));
 

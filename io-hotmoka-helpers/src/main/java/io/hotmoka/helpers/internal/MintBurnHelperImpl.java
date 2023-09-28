@@ -74,7 +74,7 @@ public class MintBurnHelperImpl implements MintBurnHelper {
 
 	@Override
 	public StorageReference mint(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		var signer = signatureAlgorithm.getSigner(keysOfGamete.getPrivate());
+		var signer = signatureAlgorithm.getSigner(keysOfGamete.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		// we look up the account in the accounts ledger; if it is not there, it will be created
 		// we use 0 as gas price, so that the gamete will not pay for that (the add method of the accounts ledger
@@ -92,7 +92,7 @@ public class MintBurnHelperImpl implements MintBurnHelper {
 
 	@Override
 	public StorageReference burn(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-		var signer = signatureAlgorithm.getSigner(keysOfGamete.getPrivate());
+		var signer = signatureAlgorithm.getSigner(keysOfGamete.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		
 		// we look up the account in the accounts ledger
 		var account = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

@@ -98,16 +98,7 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    protected byte[] sign(T what, PrivateKey privateKey) throws SignatureException {
-        byte[] bytes;
-
-        try {
-            bytes = supplier.apply(what);
-        }
-        catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before signing", e);
-        }
-
+    protected byte[] sign(byte[] bytes, PrivateKey privateKey) throws SignatureException {
         synchronized (signer) {
             try {
                 PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(encodingOf(privateKey)).getEncoded()));

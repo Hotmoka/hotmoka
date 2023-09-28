@@ -86,7 +86,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
-		var signer = signature.getSigner(keysOfPayer.getPrivate());
+		var signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);
@@ -129,7 +129,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		// we use the empty signature algorithm, since the faucet is unsigned
 		var signature = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 		var request = new InstanceMethodCallTransactionRequest
-			(signature.getSigner(signature.getKeyPair().getPrivate()),
+			(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 			gamete, nonceHelper.getNonceOf(gamete),
 			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 			new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),

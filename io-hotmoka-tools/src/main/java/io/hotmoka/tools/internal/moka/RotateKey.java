@@ -131,7 +131,7 @@ public class RotateKey extends AbstractCommand {
 			String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithmOfAccount.encodingOf(publicKey));
 
 			return new InstanceMethodCallTransactionRequest(
-					signature.getSigner(keys.getPrivate()),
+					signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 					account,
 					nonce,
 					chainId,

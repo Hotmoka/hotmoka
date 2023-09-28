@@ -114,7 +114,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		var signatureForFaucet = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
-		var signer = signatureForFaucet.getSigner(keyPair.getPrivate());
+		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
@@ -161,7 +161,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		gasHandler.accept(totalGas);
 
-		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate());
+		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
 		StorageReference account;
 		TransactionRequest<?> request1;
@@ -216,7 +216,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		var signatureForFaucet = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
-		var signer = signatureForFaucet.getSigner(keyPair.getPrivate());
+		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).encodingOf(publicKey)); // TODO: why ed25519?
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
@@ -242,7 +242,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		gasHandler.accept(totalGas);
 
-		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate());
+		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).encodingOf(publicKey)); // TODO: why ed25519?
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),

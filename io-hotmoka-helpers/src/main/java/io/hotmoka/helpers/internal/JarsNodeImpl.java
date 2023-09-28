@@ -103,7 +103,7 @@ public class JarsNodeImpl implements JarsNode {
 
 		TransactionReference takamakaCode = getTakamakaCode();
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
-		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer);
+		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _50_000 = BigInteger.valueOf(50_000);
 
 		// we get the nonce of the payer

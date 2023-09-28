@@ -110,7 +110,7 @@ public class Install extends AbstractCommand {
 				askForConfirmation(gas);
 
 				var request = new JarStoreTransactionRequest(
-					signature.getSigner(keys.getPrivate()),
+					signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 					payer,
 					nonceHelper.getNonceOf(payer),
 					chainId,

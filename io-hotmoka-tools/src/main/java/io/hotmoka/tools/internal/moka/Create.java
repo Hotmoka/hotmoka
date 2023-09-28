@@ -117,7 +117,7 @@ public class Create extends AbstractCommand {
 				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
 				var request = new ConstructorCallTransactionRequest(
-						signature.getSigner(keys.getPrivate()),
+						signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 						payer,
 						nonceHelper.getNonceOf(payer),
 						chainId,
