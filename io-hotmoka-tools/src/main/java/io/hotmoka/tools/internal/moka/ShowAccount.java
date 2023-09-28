@@ -22,14 +22,12 @@ import java.util.Base64;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
@@ -86,7 +84,7 @@ public class ShowAccount extends AbstractCommand {
 	}
 
 	private void showKeys(Account account, Node node) throws Exception {
-		SignatureAlgorithm<SignedTransactionRequest> algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(account.getReference());
+		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(account.getReference());
 		System.out.println("signature type: " + algorithm.getName());
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());

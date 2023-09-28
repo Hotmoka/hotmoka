@@ -16,16 +16,17 @@ limitations under the License.
 
 package io.hotmoka.crypto.tests;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.KeyPair;
 import java.security.PublicKey;
+import java.util.function.Function;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class QTESLA1 extends AbstractLoggedTests {
@@ -34,37 +35,32 @@ public class QTESLA1 extends AbstractLoggedTests {
     @Test
     @DisplayName("sign data with qtesla signature")
     void sign() throws Exception {
-    	SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
+    	var qTesla1 = SignatureAlgorithms.qtesla1();
 
         KeyPair keyPair = qTesla1.getKeyPair();
-        byte[] signed = qTesla1.getSigner(keyPair.getPrivate(), String::getBytes).sign(data);
+        byte[] signed = qTesla1.getSigner(keyPair.getPrivate(), (String s) -> s.getBytes()).sign(data);
+        var verifier = qTesla1.getVerifier(keyPair.getPublic(), (String s) -> s.getBytes());
 
-        boolean isDataVerifiedCorrectly = qTesla1.verify(data, keyPair.getPublic(), signed);
-        boolean isCorruptedData = !qTesla1.verify(data + "corrupted", keyPair.getPublic(), signed);
-
-        assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
-        assertTrue(isCorruptedData, "corrupted data is verified");
+        assertTrue(verifier.verify(data, signed), "data is not verified correctly");
+        assertFalse(verifier.verify(data + "corrupted", signed), "corrupted data is verified");
     }
 
     @Test
     @DisplayName("create the public key from the encoded public key")
     void testEncodedPublicKey() throws Exception {
-        SignatureAlgorithm<String> qTesla1 = SignatureAlgorithms.qtesla1(String::getBytes);
+        var qTesla1 = SignatureAlgorithms.qtesla1();
 
         KeyPair keyPair = qTesla1.getKeyPair();
-        byte[] signed = qTesla1.getSigner(keyPair.getPrivate(), String::getBytes).sign(data);
-
-        boolean isDataVerifiedCorrectly = qTesla1.verify(data, keyPair.getPublic(), signed);
-        boolean isCorruptedData = !qTesla1.verify(data + "corrupted", keyPair.getPublic(), signed);
+        byte[] signed = qTesla1.getSigner(keyPair.getPrivate(), (Function<String, byte[]>) String::getBytes).sign(data);
+        var verifier = qTesla1.getVerifier(keyPair.getPublic(), (String s) -> s.getBytes());
+        assertTrue(verifier.verify(data, signed), "data is not verified correctly");
+        assertTrue(!verifier.verify(data + "corrupted", signed), "corrupted data is verified");
 
         PublicKey publicKey = qTesla1.publicKeyFromEncoding(qTesla1.encodingOf(keyPair.getPublic()));
-        boolean isDataVerifiedCorrectlyWithEncodedKey = qTesla1.verify(data, publicKey, signed);
-        boolean isCorruptedDataWithEncodedKey = !qTesla1.verify(data + "corrupted", publicKey, signed);
+        verifier = qTesla1.getVerifier(publicKey, String::getBytes);
+        assertTrue(verifier.verify(data, signed), "data is not verified correctly with the encoded key");
+        assertTrue(!verifier.verify(data + "corrupted", signed), "corrupted data is verified with the encoded key");
 
-        assertTrue(isDataVerifiedCorrectly, "data is not verified correctly");
-        assertTrue(isCorruptedData, "corrupted data is verified");
-        assertTrue(isDataVerifiedCorrectlyWithEncodedKey, "data is not verified correctly with the encoded key");
-        assertTrue(isCorruptedDataWithEncodedKey, "corrupted data is verified with the encoded key");
         assertTrue(keyPair.getPublic().equals(publicKey), "the public keys do not match");
     }
 }

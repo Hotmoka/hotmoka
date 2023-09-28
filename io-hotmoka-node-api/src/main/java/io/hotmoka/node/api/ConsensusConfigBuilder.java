@@ -3,7 +3,6 @@ package io.hotmoka.node.api;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
@@ -91,7 +90,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	 * @param signature the signature algorithm
 	 * @return this builder
 	 */
-	B signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature);
+	B signRequestsWith(SignatureAlgorithm signature);
 
 	/**
 	 * Sets the initial gas price. It defaults to 100.

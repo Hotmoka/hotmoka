@@ -92,10 +92,10 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getSignatureAlgorithmForRequests")
     void testRemoteGetSignatureAlgorithmForRequests() throws Exception {
-    	SignatureAlgorithm<SignedTransactionRequest> algo;
+    	SignatureAlgorithm algo;
 
         try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeconfig)) {
-        	algo = SignatureAlgorithms.of(remoteNode.getNameOfSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+        	algo = SignatureAlgorithms.of(remoteNode.getNameOfSignatureAlgorithmForRequests());
         }
 
         assertNotNull(algo);

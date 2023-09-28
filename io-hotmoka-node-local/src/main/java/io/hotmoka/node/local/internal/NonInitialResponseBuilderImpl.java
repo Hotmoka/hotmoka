@@ -166,18 +166,18 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
 	 * @throws ClassNotFoundException if the class of the caller cannot be found
 	 */
-	private SignatureAlgorithm<SignedTransactionRequest> determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
+	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
 		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithms.ed25519();
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithms.sha256dsa();
 		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithms.qtesla1();
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
+			return SignatureAlgorithms.qtesla3();
 		else
 			return consensus.getSignature();
 	}

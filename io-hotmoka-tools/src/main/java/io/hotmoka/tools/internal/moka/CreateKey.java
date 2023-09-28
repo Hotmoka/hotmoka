@@ -52,7 +52,7 @@ public class CreateKey extends AbstractCommand {
 
 		private Run() throws Exception {
 			passwordOfNewKey = ensurePassword(passwordOfNewKey, "the new key", interactive, false);
-			var signatureAlgorithmOfNewAccount = SignatureAlgorithms.ed25519(Function.identity());
+			var signatureAlgorithmOfNewAccount = SignatureAlgorithms.ed25519();
 			var entropy = Entropies.random();
 			KeyPair keys = entropy.keys(passwordOfNewKey, signatureAlgorithmOfNewAccount);
 			byte[] publicKeyBytes = signatureAlgorithmOfNewAccount.encodingOf(keys.getPublic());

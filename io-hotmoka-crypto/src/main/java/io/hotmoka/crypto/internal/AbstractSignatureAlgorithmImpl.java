@@ -42,17 +42,17 @@ import org.bouncycastle.crypto.params.KeyParameter;
 import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
+import io.hotmoka.crypto.api.Verifier;
 
 /**
  * Partial implementation of a signature algorithm.
- * 
- * @param <T> the type of values that get signed
  */
-public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgorithm<T> {
+public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorithm {
 
 	/**
 	 * Yields the signature of the given value, by using the given private key.
 	 * 
+	 * @param <T> the type of values that get signed
 	 * @param what the value to sign
 	 * @param toBytes a function applied to transform the value into bytes before signing
 	 * @param privateKey the private key used for signing
@@ -60,14 +60,47 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
 	 * @throws InvalidKeyException if the provided private key is invalid
 	 * @throws SignatureException if the value cannot be signed
 	 */
-	private byte[] sign(T what, Function<? super T, byte[]> toBytes, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+	private <T> byte[] sign(T what, Function<? super T, byte[]> toBytes, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
 		try {
 			return sign(toBytes.apply(what), privateKey);
         }
         catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before signing", e);
+            throw new SignatureException("Cannot transform the value into bytes before signing", e);
         }
 	}
+
+	/**
+	 * Verifies that the given signature is derived from the given value, by using the given public key.
+	 * 
+	 * @param <T> the type of values that get verified
+	 * @param what the value whose signature gets verified
+	 * @param toBytes a function applied to transform the value into bytes before verification
+	 * @param publicKey the public key; its corresponding private key should have been used for signing
+	 * @param signature the signature to verify
+	 * @return true if and only if the signature matches
+	 * @throws InvalidKeyException if the provided public key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	private <T> boolean verify(T what, Function<? super T, byte[]> toBytes, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
+		try {
+			return verify(toBytes.apply(what), publicKey, signature);
+        }
+        catch (Exception e) {
+            throw new SignatureException("Cannot transform the value into bytes before signature verification", e);
+        }
+	}
+
+	/**
+	 * Verifies that the given signature is derived from the given bytes, by using the given public key.
+	 * 
+	 * @param bytes the bytes
+	 * @param publicKey the public key; its corresponding private key should have been used for signing
+	 * @param signature the signature to verify
+	 * @return true if and only if the signature matches
+	 * @throws InvalidKeyException if the provided public key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	protected abstract boolean verify(byte[] bytes, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
 
 	/**
 	 * Yields the signature of the given bytes, by using the given private key.
@@ -123,8 +156,13 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
     }
 
 	@Override
-	public final Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes) {
+	public final <T> Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes) {
 		return what -> sign(what, toBytes, key);
+	}
+
+	@Override
+	public final <T> Verifier<T> getVerifier(PublicKey key, Function<? super T, byte[]> toBytes) {
+		return (what, bytes) -> verify(what, toBytes, key, bytes);
 	}
 
 	@Override

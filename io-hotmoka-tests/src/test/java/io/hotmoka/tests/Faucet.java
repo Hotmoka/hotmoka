@@ -40,7 +40,6 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 
 public class Faucet extends HotmokaTest {
@@ -59,7 +58,7 @@ public class Faucet extends HotmokaTest {
 		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignature.GET_GAMETE, manifest);
 
 		// we generate the key pair of the new account created by the faucet
-		SignatureAlgorithm<SignedTransactionRequest> signature = signature();
+		var signature = signature();
 		KeyPair keys = signature.getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 

@@ -29,7 +29,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Base64.Encoder;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -47,7 +46,6 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -134,8 +132,8 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
-		Encoder encoder = Base64.getEncoder();
-		var ed25519 = SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+		var encoder = Base64.getEncoder();
+		var ed25519 = SignatureAlgorithms.ed25519();
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
@@ -179,7 +177,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 
         try {
         	byte[] encoded = Base64.getDecoder().decode(validator.publicKey);
-        	return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).publicKeyFromEncoding(encoded);
+        	return SignatureAlgorithms.ed25519().publicKeyFromEncoding(encoded);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

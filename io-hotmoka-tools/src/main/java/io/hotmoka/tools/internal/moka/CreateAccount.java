@@ -23,7 +23,6 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
@@ -87,7 +86,7 @@ public class CreateAccount extends AbstractCommand {
 		private final Node node;
 		private final PublicKey publicKey;
 		private final AccountCreationHelper accountCreationHelper;
-		private final SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithmOfNewAccount;
+		private final SignatureAlgorithm signatureAlgorithmOfNewAccount;
 
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
@@ -101,7 +100,7 @@ public class CreateAccount extends AbstractCommand {
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
-				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount, SignedTransactionRequest::toByteArrayWithoutSignature);
+				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
 
 				Entropy entropy;
 				if (keyOfNewAccount == null) {

@@ -21,6 +21,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -275,7 +276,7 @@ public class NodeCachesImpl implements NodeCache {
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
-				.signRequestsWith(SignatureAlgorithms.of(signature, SignedTransactionRequest::toByteArrayWithoutSignature))
+				.signRequestsWith(SignatureAlgorithms.of(signature))
 				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
@@ -335,8 +336,12 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> signatureAlgorithm.verify(_request, getPublicKey(_request.getCaller(), signatureAlgorithm), _request.getSignature()));
+	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws GeneralSecurityException {
+		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignature(signatureAlgorithm, request));
+	}
+
+	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest request) throws GeneralSecurityException {
+		return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest::toByteArrayWithoutSignature).verify(request, request.getSignature());
 	}
 
 	@Override
@@ -402,7 +407,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * @throws NoSuchProviderException of the signing provider is unknown
 	 * @throws InvalidKeySpecException of the key specification is invalid
 	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
 		// we go straight to the transaction that created the object
 		String publicKeyEncodedBase64 = node.getStoreUtilities().getPublicKeyUncommitted(reference);
 		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);

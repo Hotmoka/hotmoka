@@ -104,7 +104,7 @@ public interface NodeCache {
 	 * @return true if and only if the signature of {@code request} is valid
 	 * @throws Exception if the signature of the request could not be checked
 	 */
-	boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm) throws Exception;
+	boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws Exception;
 
 	/**
 	 * Yields the consensus parameters of the node.

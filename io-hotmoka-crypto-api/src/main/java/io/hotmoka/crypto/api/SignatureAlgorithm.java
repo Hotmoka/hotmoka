@@ -20,7 +20,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.function.Function;
 
@@ -29,7 +28,7 @@ import java.util.function.Function;
  *
  * @param <T> the type of values that get signed
  */
-public interface SignatureAlgorithm<T> {
+public interface SignatureAlgorithm {
 
 	/**
 	 * Yields a pair of keys (private/public) that can be used with
@@ -42,24 +41,22 @@ public interface SignatureAlgorithm<T> {
 	/**
 	 * Yields a signer with this signature algorithm.
 	 * 
+	 * @param <T> the type of values that get signed
 	 * @param key the private key that will be used for signing
 	 * @param toBytes the function to use to transform the value into bytes before signing
 	 * @return the signer
 	 */
-	Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes);
+	<T> Signer<T> getSigner(PrivateKey key, Function<? super T, byte[]> toBytes);
 
 	/**
-	 * Verifies that the given signature corresponds to the given value, by using
-	 * the given public key.
+	 * Yields a verifier with this signature algorithm.
 	 * 
-	 * @param what the value whose signature gets verified
-	 * @param publicKey the public key; its corresponding private key should have been used for signing
-	 * @param signature the signature to verify
-	 * @return true if and only if the signature matches
-	 * @throws InvalidKeyException if the provided public key is invalid
-	 * @throws SignatureException if the value cannot be signed
+	 * @param <T> the type of values that get verified
+	 * @param key the public key that will be used for verification
+	 * @param toBytes the function to use to transform the value into bytes before verification
+	 * @return the verifier
 	 */
-	boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
+	<T> Verifier<T> getVerifier(PublicKey key, Function<? super T, byte[]> toBytes);
 
 	/**
 	 * Yields a public key that can be used with this signature, from

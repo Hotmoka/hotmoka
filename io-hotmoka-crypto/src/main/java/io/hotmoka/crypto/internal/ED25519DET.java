@@ -39,7 +39,6 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.function.Function;
 
 import org.bouncycastle.asn1.ASN1Encodable;
 import org.bouncycastle.asn1.ASN1OctetString;
@@ -59,7 +58,7 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
  * sequence of keys of the accounts in the tests and consequently
  * also the gas costs of such accounts when they are put into maps, for instance.
  */
-public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
+public class ED25519DET extends AbstractSignatureAlgorithmImpl {
 
     /**
      * The actual signing algorithm.
@@ -76,20 +75,14 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
      */
     private final KeyFactory keyFactory;
 
-    /**
-     * How values get transformed into bytes, before being hashed.
-     */
-    private final Function<? super T, byte[]> supplier;
-
-    public ED25519DET(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+    public ED25519DET() throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
     		this.signature = Signature.getInstance("Ed25519");
     		this.keyFactory = KeyFactory.getInstance("Ed25519", "BC");
-    		SecureRandom random = SecureRandom.getInstance("SHA1PRNG");
+    		var random = SecureRandom.getInstance("SHA1PRNG");
             random.setSeed("nel mezzo del cammin di nostra vita".getBytes(StandardCharsets.US_ASCII));
     		this.keyPairGenerator = mkKeyPairGenerator(random);
-    		this.supplier = supplier;
     	}
     	catch (NoSuchProviderException | InvalidAlgorithmParameterException e) {
     		throw new NoSuchAlgorithmException(e);
@@ -118,16 +111,7 @@ public class ED25519DET<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
-        byte[] bytes;
-
-        try {
-            bytes = supplier.apply(what);
-        }
-        catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before verifying the signature", e);
-        }
-
+    protected boolean verify(byte[] bytes, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
         synchronized (this.signature) {
             this.signature.initVerify(publicKey);
             this.signature.update(bytes);

@@ -31,7 +31,7 @@ public class SignedRequests {
 
     static {
         try {
-            keys = SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getKeyPair(hexToBytes("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
+            keys = SignatureAlgorithms.ed25519().getKeyPair(hexToBytes("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -46,7 +46,7 @@ public class SignedRequests {
         );
 
         var request = new ConstructorCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -65,7 +65,7 @@ public class SignedRequests {
     @DisplayName("new InstanceMethodCallTransactionRequest(..) getGamete")
     public void testNonVoidInstanceMethodCallTransactionRequest() throws Exception {
         var request = new InstanceMethodCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -92,8 +92,9 @@ public class SignedRequests {
         var transaction = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
 		var storageReference = new StorageReference(transaction, BigInteger.ZERO);
 
+		var ed25519 = SignatureAlgorithms.ed25519();
 		var request = new InstanceMethodCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+                ed25519.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 storageReference,
                 BigInteger.ONE,
                 "chaintest",
@@ -113,7 +114,7 @@ public class SignedRequests {
     @DisplayName("new StaticMethodCallTransactionRequest(..) nonce")
     public void testNonVoidStaticMethodCallTransactionRequest() throws Exception {
         var request = new StaticMethodCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -137,7 +138,7 @@ public class SignedRequests {
         );
 
         var request = new StaticMethodCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -163,7 +164,7 @@ public class SignedRequests {
         );
 
         var request = new StaticMethodCallTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
@@ -182,7 +183,7 @@ public class SignedRequests {
     @DisplayName("new JarStoreTransactionRequest(..) lambdas jar")
     public void testJarStoreTransactionReqest() throws Exception {
         var request = new JarStoreTransactionRequest(
-                SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
+        		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",

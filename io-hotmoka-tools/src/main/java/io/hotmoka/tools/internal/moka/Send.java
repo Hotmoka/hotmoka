@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
@@ -118,7 +117,7 @@ public class Send extends AbstractCommand {
 			var accountCreationHelper = AccountCreationHelpers.of(node);
 			var payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
+			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
 				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
 				amount, amountRed, anonymous, this::askForConfirmation, this::printCosts);

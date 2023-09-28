@@ -16,23 +16,17 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
-import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 /**
  * A dummy signature algorithm that signs everything with an empty array of bytes.
- * 
- * @param <T> the type of values that get signed
  */
-public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
+public class EMPTY extends AbstractSignatureAlgorithmImpl {
 	private final static byte[] EMPTY = new byte[0];
 
 	private final KeyPair dummyKeys = new KeyPair(
@@ -77,8 +71,7 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random)
-			throws NoSuchAlgorithmException, NoSuchProviderException, InvalidAlgorithmParameterException {
+	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random) {
 		return null;
 	}
 
@@ -93,7 +86,7 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	public boolean verify(T what, PublicKey publicKey, byte[] signature) {
+	protected boolean verify(byte[] bytes, PublicKey publicKey, byte[] signature) {
 		return Arrays.equals(EMPTY, signature);
 	}
 
@@ -103,7 +96,7 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
+	public PrivateKey privateKeyFromEncoding(byte[] encoded) {
 		return dummyKeys.getPrivate();
 	}
 

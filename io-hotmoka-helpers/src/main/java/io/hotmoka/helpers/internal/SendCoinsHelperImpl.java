@@ -40,7 +40,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -85,7 +84,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
+		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		var signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
@@ -127,7 +126,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		gasHandler.accept(_100_000);
 
 		// we use the empty signature algorithm, since the faucet is unsigned
-		var signature = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
+		var signature = SignatureAlgorithms.empty();
 		var request = new InstanceMethodCallTransactionRequest
 			(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 			gamete, nonceHelper.getNonceOf(gamete),

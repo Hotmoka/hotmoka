@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.crypto.internal;
 
 import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -30,7 +31,6 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.function.Function;
 
 import org.bouncycastle.asn1.ASN1Primitive;
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
@@ -44,15 +44,8 @@ import org.bouncycastle.pqc.jcajce.spec.QTESLAParameterSpec;
 
 /**
  * A signature algorithm that signs data with the qTESLA-p-III signature scheme.
- *
- * @param <T> the type of values that gets signed
  */
-public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
-
-    /**
-     * How values get transformed into bytes, before being hashed.
-     */
-    private final Function<? super T, byte[]> supplier;
+public class QTESLA3 extends AbstractSignatureAlgorithmImpl {
 
     /**
      * The key pair generator.
@@ -69,10 +62,9 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
      */
     private final QTESLASigner signer;
 
-    public QTESLA3(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+    public QTESLA3() throws NoSuchAlgorithmException {
     	try {
     		ensureProvider();
-    		this.supplier = supplier;
     		this.keyPairGenerator = mkKeyPairGenerator(CryptoServicesRegistrar.getSecureRandom());
     		this.signer = new QTESLASigner();
     		this.keyFactory = KeyFactory.getInstance("qTESLA", "BCPQC");
@@ -112,21 +104,15 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    public boolean verify(T what, PublicKey publicKey, byte[] signature) throws SignatureException {
-        byte[] bytes;
-
-        try {
-            bytes = supplier.apply(what);
-        }
-        catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before verifying the signature", e);
-        }
-
+    protected boolean verify(byte[] bytes, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
         synchronized (signer) {
             try {
                 SubjectPublicKeyInfo subjectPublicKeyInfo = SubjectPublicKeyInfo.getInstance(new X509EncodedKeySpec(encodingOf(publicKey)).getEncoded());
                 signer.init(false, PublicKeyFactory.createKey(subjectPublicKeyInfo));
                 return signer.verifySignature(bytes, signature);
+            }
+            catch (InvalidKeyException e) {
+            	throw e;
             }
             catch (Exception e){
                 throw new SignatureException("cannot verify signature", e);

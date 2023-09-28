@@ -130,7 +130,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The signature algorithm used for signing the requests.
 	 */
-	private final static SignatureAlgorithm<SignedTransactionRequest> signature;
+	private final static SignatureAlgorithm signature;
 
 	/**
 	 * The jar under test.
@@ -175,11 +175,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        var entropy = Entropies.of(new byte[16]);
 			var password = "";
-			var localSignature = SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature);
+			var localSignature = SignatureAlgorithms.ed25519det();
 			var keys = entropy.keys(password, localSignature);
 			publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
-	    			.signRequestsWith(SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature)) // good for testing
+	    			.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
@@ -198,7 +198,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
 
-	        signature = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
+	        signature = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests());
 	        initializeNodeIfNeeded(wrapped);
 	        var signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 
@@ -263,7 +263,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException {
-		return builder.signRequestsWith(SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature)) // good for testing
+		return builder.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
 			.allowUnsignedFaucet(true) // good for testing
 			.allowMintBurnFromGamete(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
@@ -366,7 +366,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return nodeWithAccountsView.privateKey(i);
 	}
 
-	protected static SignatureAlgorithm<SignedTransactionRequest> signature() {
+	protected static SignatureAlgorithm signature() {
 		return signature;
 	}
 

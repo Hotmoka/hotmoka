@@ -162,7 +162,7 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	@Override
-	public KeyPair keys(String password, SignatureAlgorithm<?> algorithm) {
+	public KeyPair keys(String password, SignatureAlgorithm algorithm) {
 		return algorithm.getKeyPair(entropy, password);
 	}
 

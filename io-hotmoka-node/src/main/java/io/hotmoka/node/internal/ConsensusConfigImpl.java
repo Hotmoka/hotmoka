@@ -23,11 +23,11 @@ import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Objects;
 
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
@@ -174,7 +174,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	/**
 	 * The signature algorithm for signing requests. It defaults to "ed25519".
 	 */
-	public final SignatureAlgorithm<SignedTransactionRequest> signature;
+	public final SignatureAlgorithm signature;
 
 	/**
 	 * Full constructor for the builder pattern.
@@ -439,7 +439,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public SignatureAlgorithm<SignedTransactionRequest> getSignature() {
+	public SignatureAlgorithm getSignature() {
 		return signature;
 	}
 
@@ -455,7 +455,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
 		private boolean allowsMintBurnFromGamete = false;
-		private SignatureAlgorithm<SignedTransactionRequest> signature;
+		private SignatureAlgorithm signature;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private long maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000L;
@@ -478,7 +478,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 		 */
 		protected ConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			this(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature));
+			this(SignatureAlgorithms.ed25519());
 		}
 
 		/**
@@ -486,7 +486,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * 
 		 * @param signature the signature algorithm to store in the builder
 		 */
-		protected ConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
+		protected ConsensusConfigBuilderImpl(SignatureAlgorithm signature) {
 			this.signature = signature;
 		}
 
@@ -562,7 +562,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 			var signature = toml.getString("signature");
 			if (signature != null)
-				signRequestsWith(SignatureAlgorithms.of(signature, SignedTransactionRequest::toByteArrayWithoutSignature));
+				signRequestsWith(SignatureAlgorithms.of(signature));
 
 			var maxGasPerTransaction = toml.getString("max_gas_per_transaction");
 			if (maxGasPerTransaction != null)
@@ -666,21 +666,18 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		}
 
 		@Override
-		public B signRequestsWith(SignatureAlgorithm<SignedTransactionRequest> signature) {
-			if (signature == null)
-				throw new NullPointerException("the signature algorithm cannot be null");
-
+		public B signRequestsWith(SignatureAlgorithm signature) {
+			Objects.requireNonNull(signature, "The signature algorithm cannot be null");
 			this.signature = signature;
 			return getThis();
 		}
 
 		@Override
 		public B setInitialGasPrice(BigInteger initialGasPrice) {
-			if (initialGasPrice == null)
-				throw new NullPointerException("the initial gas price cannot be null");
+			Objects.requireNonNull(initialGasPrice, "The initial gas price cannot be null");
 
 			if (initialGasPrice.signum() <= 0)
-				throw new IllegalArgumentException("the initial gas price must be positive");
+				throw new IllegalArgumentException("The initial gas price must be positive");
 
 			this.initialGasPrice = initialGasPrice;
 			return getThis();
@@ -688,11 +685,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setMaxGasPerTransaction(BigInteger maxGasPerTransaction) {
-			if (maxGasPerTransaction == null)
-				throw new NullPointerException("the maximal amount of gas per transaction cannot be null");
+			Objects.requireNonNull(maxGasPerTransaction, "The maximal amount of gas per transaction cannot be null");
 
 			if (maxGasPerTransaction.signum() <= 0)
-				throw new IllegalArgumentException("the maximal amount of gas per transaction must be positive");
+				throw new IllegalArgumentException("The maximal amount of gas per transaction must be positive");
 
 			this.maxGasPerTransaction = maxGasPerTransaction;
 			return getThis();
@@ -700,11 +696,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setTargetGasAtReward(BigInteger targetGasAtReward) {
-			if (targetGasAtReward == null)
-				throw new NullPointerException("the target gas at reward cannot be null");
+			Objects.requireNonNull(targetGasAtReward, "The target gas at reward cannot be null");
 
 			if (targetGasAtReward.signum() <= 0)
-				throw new IllegalArgumentException("the target gas at reward must be positive");
+				throw new IllegalArgumentException("The target gas at reward must be positive");
 
 			this.targetGasAtReward = targetGasAtReward;
 			return getThis();
@@ -713,7 +708,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setOblivion(long oblivion) {
 			if (oblivion < 0 || oblivion > 1_000_000L)
-				throw new IllegalArgumentException("oblivion must be between 0 and 1_000_000");
+				throw new IllegalArgumentException("Oblivion must be between 0 and 1_000_000");
 
 			this.oblivion = oblivion;
 			return getThis();
@@ -740,7 +735,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setVerificationVersion(long verificationVersion) {
 			if (verificationVersion < 0L)
-				throw new IllegalArgumentException("the verification version must be non-negative");
+				throw new IllegalArgumentException("The verification version must be non-negative");
 
 			this.verificationVersion = verificationVersion;
 			return getThis();
@@ -748,11 +743,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setInitialSupply(BigInteger initialSupply) {
-			if (initialSupply == null)
-				throw new NullPointerException("the initial supply cannot be null");
+			Objects.requireNonNull(initialSupply, "The initial supply cannot be null");
 
 			if (initialSupply.signum() < 0)
-				throw new IllegalArgumentException("the initial supply must be non-negative");
+				throw new IllegalArgumentException("The initial supply must be non-negative");
 
 			this.initialSupply = initialSupply;
 			return getThis();
@@ -760,11 +754,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setInitialRedSupply(BigInteger initialRedSupply) {
-			if (initialRedSupply == null)
-				throw new NullPointerException("the initial red supply cannot be null");
+			Objects.requireNonNull(initialRedSupply, "The initial red supply cannot be null");
 
 			if (initialRedSupply.signum() < 0)
-				throw new IllegalArgumentException("the initial red supply must be non-negative");
+				throw new IllegalArgumentException("The initial red supply must be non-negative");
 
 			this.initialRedSupply = initialRedSupply;
 			return getThis();
@@ -772,20 +765,17 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setPublicKeyOfGamete(String publicKeyOfGamete) {
-			if (publicKeyOfGamete == null)
-				throw new NullPointerException("the public key of the gamete cannot be null");
-
+			Objects.requireNonNull(publicKeyOfGamete, "The public key of the gamete cannot be null");
 			this.publicKeyOfGamete = publicKeyOfGamete;
 			return getThis();
 		}
 
 		@Override
 		public B setFinalSupply(BigInteger finalSupply) {
-			if (finalSupply == null)
-				throw new NullPointerException("the final supply cannot be null");
+			Objects.requireNonNull(finalSupply, "The final supply cannot be null");
 
 			if (finalSupply.signum() < 0)
-				throw new IllegalArgumentException("the final supply must be non-negative");
+				throw new IllegalArgumentException("The final supply must be non-negative");
 
 			this.finalSupply = finalSupply;
 			return getThis();
@@ -793,11 +783,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setTicketForNewPoll(BigInteger ticketForNewPoll) {
-			if (ticketForNewPoll == null)
-				throw new NullPointerException("the ticket for a new poll cannot be null");
+			Objects.requireNonNull(ticketForNewPoll, "The ticket for a new poll cannot be null");
 
 			if (ticketForNewPoll.signum() < 0)
-				throw new IllegalArgumentException("the ticket for new poll must be non-negative");
+				throw new IllegalArgumentException("The ticket for new poll must be non-negative");
 
 			this.ticketForNewPoll = ticketForNewPoll;
 			return getThis();

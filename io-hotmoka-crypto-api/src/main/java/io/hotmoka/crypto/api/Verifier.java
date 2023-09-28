@@ -20,19 +20,20 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 /**
- * An object that computes the signature of a value with a private key.
+ * An object that verifies the signature of a value.
  *
- * @param <T> the type of values that get signed
+ * @param <T> the type of values that get verified
  */
-public interface Signer<T> {
+public interface Verifier<T> {
 
 	/**
-	 * Computes the signature of the given value with the given key.
+	 * Verifies that the given signature corresponds to the given value.
 	 * 
-	 * @param what the value to sign
-	 * @return the signature of the value
-	 * @throws InvalidKeyException if the private key used for signing is invalid
-	 * @throws SignatureException if the value cannot be signed
+	 * @param what the value whose signature gets verified
+	 * @param signature the signature to verify
+	 * @return true if and only if the signature matches
+	 * @throws InvalidKeyException if the public key used for verification is invalid
+	 * @throws SignatureException if the value cannot be verified
 	 */
-	byte[] sign(T what) throws InvalidKeyException, SignatureException;
+	boolean verify(T what, byte[] signature) throws InvalidKeyException, SignatureException;
 }

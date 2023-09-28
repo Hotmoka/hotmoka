@@ -24,7 +24,6 @@ import java.security.SignatureException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
@@ -48,7 +47,7 @@ public interface MintBurnHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
-	StorageReference mint(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageReference mint(KeyPair keysOfGamete, SignatureAlgorithm signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Burns coins from an account in the accounts ledger. If the account does not exist yet there, it throws a transaction exception.
@@ -64,5 +63,5 @@ public interface MintBurnHelper {
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 */
-	StorageReference burn(KeyPair keysOfGamete, SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageReference burn(KeyPair keysOfGamete, SignatureAlgorithm signatureAlgorithm, String publicKey, BigInteger amount) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException;
 }

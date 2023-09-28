@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.SimpleConsensusConfigBuilder;
@@ -58,7 +57,7 @@ public class SimpleConsensusConfigImpl extends ConsensusConfigImpl<SimpleConsens
 		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 		 */
 		public SimpleConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			super(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature));
+			super(SignatureAlgorithms.ed25519());
 		}
 
 		/**

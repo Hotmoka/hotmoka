@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
@@ -156,7 +155,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * 
 		 * @param signature the signature algorithm to store in the builder
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm<SignedTransactionRequest> signature) {
+		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm signature) {
 			super(signature);
 		}
 

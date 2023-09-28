@@ -75,5 +75,5 @@ public interface Entropy extends Comparable<Entropy> {
 	 * @param algorithm the signature algorithm for the keys
 	 * @return the key pair
 	 */
-	KeyPair keys(String password, SignatureAlgorithm<?> algorithm);
+	KeyPair keys(String password, SignatureAlgorithm algorithm);
 }

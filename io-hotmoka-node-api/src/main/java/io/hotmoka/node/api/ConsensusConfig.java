@@ -20,7 +20,6 @@ import java.math.BigInteger;
 import java.time.LocalDateTime;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
@@ -202,7 +201,7 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 * 
 	 * @return the signature algorithm
 	 */
-	SignatureAlgorithm<SignedTransactionRequest> getSignature();
+	SignatureAlgorithm getSignature();
 
 	/**
 	 * Yields a TOML representation of this configuration.

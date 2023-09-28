@@ -87,7 +87,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	}
 
 	@Override
-	public StorageReference paidByFaucet(SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey,
+	public StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 
@@ -112,7 +112,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		}
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-		var signatureForFaucet = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
+		SignatureAlgorithm signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
@@ -128,7 +128,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 	@Override
 	public StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
-			SignatureAlgorithm<SignedTransactionRequest> signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
+			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
@@ -151,7 +151,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throw new IllegalArgumentException("unknown signature algorithm " + signature);
 		}
 
-		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
+		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
 		BigInteger gas1 = gasForCreatingAccountWithSignature(signatureAlgorithm);
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
@@ -211,13 +211,13 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
-		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature));
+		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519());
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-		var signatureForFaucet = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
+		SignatureAlgorithm signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).encodingOf(publicKey)); // TODO: why ed25519?
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -234,16 +234,16 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		SignatureAlgorithm<SignedTransactionRequest> signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
+		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature));
+		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519());
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 
 		gasHandler.accept(totalGas);
 
 		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).encodingOf(publicKey)); // TODO: why ed25519?
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
@@ -265,7 +265,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		return validator;
 	}
 
-	private static BigInteger gasForCreatingAccountWithSignature(SignatureAlgorithm<?> signature) {
+	private static BigInteger gasForCreatingAccountWithSignature(SignatureAlgorithm signature) {
 		switch (signature.getName()) {
 		case "ed25519":
 			return _100_000;

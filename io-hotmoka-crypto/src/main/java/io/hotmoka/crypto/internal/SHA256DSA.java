@@ -31,7 +31,6 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.CryptoServicesRegistrar;
@@ -44,10 +43,8 @@ import io.hotmoka.crypto.api.BIP39Dictionary;
 /**
  * A signature algorithm that hashes data with SHA256 and then
  * sign them with the DSA algorithm.
- * 
- * @param <T> the type of values that get signed
  */
-public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
+public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 
 	/**
 	 * The actual signing algorithm.
@@ -60,19 +57,13 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	private final KeyPairGenerator keyPairGenerator;
 
 	/**
-	 * How values get transformed into bytes, before being hashed.
-	 */
-	private final Function<? super T, byte[]> supplier;
-
-	/**
 	 * The key factory.
 	 */
 	private final KeyFactory keyFactory;
 
-	public SHA256DSA(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public SHA256DSA() throws NoSuchAlgorithmException {
 		this.signature = Signature.getInstance("SHA256withDSA");
 		this.keyPairGenerator = mkKeyPairGenerator(CryptoServicesRegistrar.getSecureRandom());
-		this.supplier = supplier;
 
 		try {
 			this.keyFactory = KeyFactory.getInstance("DSA", "SUN");
@@ -138,16 +129,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	public boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
-		byte[] bytes;
-
-		try {
-			bytes = supplier.apply(what);
-		}
-		catch (Exception e) {
-			throw new SignatureException("cannot transform value into bytes before verifying the signature", e);
-		}
-
+	protected boolean verify(byte[] bytes, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException {
 		synchronized (this.signature) { 
 			this.signature.initVerify(publicKey);
 			this.signature.update(bytes);
