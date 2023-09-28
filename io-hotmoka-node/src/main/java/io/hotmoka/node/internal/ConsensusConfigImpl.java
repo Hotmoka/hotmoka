@@ -231,7 +231,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				finalSupply.equals(otherConfig.finalSupply) &&
 				initialRedSupply.equals(otherConfig.initialRedSupply) &&
 				publicKeyOfGamete.equals(otherConfig.publicKeyOfGamete) &&
-				signature.getName().equals(otherConfig.signature.getName());
+				signature.equals(otherConfig.signature);
 		}
 		else
 			return false;
@@ -328,7 +328,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("ticket_for_new_poll = \"" + ticketForNewPoll + "\"\n");
 		sb.append("\n");
 		sb.append("# the name of the signature algorithm for signing requests\n");
-		sb.append("signature = \"" + signature.getName() + "\"\n");
+		sb.append("signature = \"" + signature + "\"\n");
 
 		return sb.toString();
 	}

@@ -85,7 +85,7 @@ public class ShowAccount extends AbstractCommand {
 
 	private void showKeys(Account account, Node node) throws Exception {
 		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(account.getReference());
-		System.out.println("signature type: " + algorithm.getName());
+		System.out.println("signature type: " + algorithm);
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());
 		System.out.println("private key Base58: " + Base58.encode(privateKey));

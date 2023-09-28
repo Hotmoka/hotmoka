@@ -97,11 +97,6 @@ public interface SignatureAlgorithm {
 	byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException;
 
 	/**
-	 * Yields the type of this signature algorithm.
-	 * 
-	 * @return the type
-	 */
-	/**
 	 * Yields the name of the algorithm.
 	 * 
 	 * @return the name of the algorithm
@@ -126,4 +121,19 @@ public interface SignatureAlgorithm {
      * @return the key pair derived from entropy and password
      */
     KeyPair getKeyPair(byte[] entropy, String password);
+
+    /**
+     * Determines if this signature algorithm is the same as another.
+     * 
+     * @param other the other object
+     * @return true only if other is the same signature algorithm
+     */
+    @Override
+    boolean equals(Object other);
+
+    @Override
+    int hashCode();
+
+    @Override
+    String toString();
 }

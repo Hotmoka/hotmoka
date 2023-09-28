@@ -58,6 +58,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.remote.RemoteNode;
@@ -99,7 +100,7 @@ public class NodeFromNetwork extends HotmokaTest {
         }
 
         assertNotNull(algo);
-        assertTrue(algo.getClass().getName().startsWith("io.hotmoka.crypto.internal."));
+        assertTrue(algo.getClass().getName().startsWith(ED25519.class.getPackageName()));
     }
 
     @Test
@@ -108,9 +109,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	ClassTag localClassTag = node.getClassTag(account(0));
         ClassTag remoteClassTag;
 
-        try (NodeService nodeRestService = NodeService.of(serviceConfig, node);
-        	 RemoteNode remoteNode = RemoteNode.of(remoteNodeconfig)) {
-
+        try (var nodeRestService = NodeService.of(serviceConfig, node); var remoteNode = RemoteNode.of(remoteNodeconfig)) {
         	remoteClassTag = remoteNode.getClassTag(account(0));
         }
 

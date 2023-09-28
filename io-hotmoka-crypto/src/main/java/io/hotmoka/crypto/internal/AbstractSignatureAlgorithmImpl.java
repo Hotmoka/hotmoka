@@ -179,4 +179,19 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 	public byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException {
 		return privateKey.getEncoded();
 	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other != null && getClass() == other.getClass();
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return getName();
+	}
 }
