@@ -30,7 +30,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -111,7 +110,7 @@ public class Install extends AbstractCommand {
 				askForConfirmation(gas);
 
 				var request = new JarStoreTransactionRequest(
-					Signers.with(signature, keys),
+					signature.getSigner(keys.getPrivate()),
 					payer,
 					nonceHelper.getNonceOf(payer),
 					chainId,

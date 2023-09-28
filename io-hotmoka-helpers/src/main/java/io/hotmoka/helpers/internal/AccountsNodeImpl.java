@@ -59,7 +59,6 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -125,7 +124,7 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		StorageReference manifest = getManifest();
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
-		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = Signers.with(signature, privateKeyOfPayer);
+		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer);
 		var _100_000 = BigInteger.valueOf(100_000L);
 		var _200_000 = BigInteger.valueOf(200_000L);
 

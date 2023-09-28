@@ -33,7 +33,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -120,7 +119,7 @@ public class SellValidation extends AbstractCommand {
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
-				var signer = Signers.with(algorithm, keys);
+				var signer = algorithm.getSigner(keys.getPrivate());
 
 				askForConfirmation(gasLimit.multiply(BigInteger.TWO));
 

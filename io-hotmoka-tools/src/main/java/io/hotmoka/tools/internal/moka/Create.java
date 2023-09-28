@@ -38,7 +38,6 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -118,7 +117,7 @@ public class Create extends AbstractCommand {
 				SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
 				var request = new ConstructorCallTransactionRequest(
-						Signers.with(signature, keys),
+						signature.getSigner(keys.getPrivate()),
 						payer,
 						nonceHelper.getNonceOf(payer),
 						chainId,

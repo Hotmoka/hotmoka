@@ -32,7 +32,6 @@ import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Entropies;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
@@ -132,7 +131,7 @@ public class RotateKey extends AbstractCommand {
 			String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithmOfAccount.encodingOf(publicKey));
 
 			return new InstanceMethodCallTransactionRequest(
-					Signers.with(signature, keys),
+					signature.getSigner(keys.getPrivate()),
 					account,
 					nonce,
 					chainId,

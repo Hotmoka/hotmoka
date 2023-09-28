@@ -28,8 +28,8 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ConsensusConfigBuilder;
 
@@ -478,7 +478,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 		 */
 		protected ConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			this(SignatureAlgorithmForTransactionRequests.ed25519());
+			this(SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature));
 		}
 
 		/**
@@ -562,7 +562,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 			var signature = toml.getString("signature");
 			if (signature != null)
-				signRequestsWith(SignatureAlgorithmForTransactionRequests.of(signature));
+				signRequestsWith(SignatureAlgorithms.of(signature, SignedTransactionRequest::toByteArrayWithoutSignature));
 
 			var maxGasPerTransaction = toml.getString("max_gas_per_transaction");
 			if (maxGasPerTransaction != null)

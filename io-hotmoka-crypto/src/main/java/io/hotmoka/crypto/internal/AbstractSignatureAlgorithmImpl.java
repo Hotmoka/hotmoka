@@ -31,6 +31,7 @@ import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.SignatureException;
 import java.util.stream.Collectors;
 
 import org.bouncycastle.crypto.digests.SHA512Digest;
@@ -39,6 +40,7 @@ import org.bouncycastle.crypto.params.KeyParameter;
 
 import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
 
 /**
  * Partial implementation of a signature algorithm.
@@ -46,7 +48,18 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
  * @param <T> the type of values that get signed
  */
 public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgorithm<T> {
-	
+
+	/**
+	 * Yields the signature of the given value, by using the given private key.
+	 * 
+	 * @param what the value to sign
+	 * @param privateKey the private key used for signing
+	 * @return the sequence of bytes
+	 * @throws InvalidKeyException if the provided private key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	protected abstract byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException;
+
 	/**
 	 * Creates a key pair generator for this signature algorithm.
 	 * 
@@ -88,6 +101,11 @@ public abstract class AbstractSignatureAlgorithmImpl<T> implements SignatureAlgo
     		throw new RuntimeException("unexpected exception", e);
     	}
     }
+
+	@Override
+	public final Signer<T> getSigner(PrivateKey key) {
+		return what -> sign(what, key);
+	}
 
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, String password) {

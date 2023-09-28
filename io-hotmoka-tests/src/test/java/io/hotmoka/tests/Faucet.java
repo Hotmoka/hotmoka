@@ -40,7 +40,6 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 
@@ -65,7 +64,7 @@ public class Faucet extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
-		Signer<SignedTransactionRequest> signer = Signers.with(signature, signature.getKeyPair());
+		Signer<SignedTransactionRequest> signer = signature.getSigner(signature.getKeyPair().getPrivate());
 
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
@@ -85,7 +84,7 @@ public class Faucet extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
-		Signer<SignedTransactionRequest> signer = Signers.with(signature(), privateKey(0));
+		Signer<SignedTransactionRequest> signer = signature().getSigner(privateKey(0));
 		StorageReference caller = account(0);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->

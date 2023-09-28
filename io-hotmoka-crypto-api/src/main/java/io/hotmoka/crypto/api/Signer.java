@@ -35,4 +35,17 @@ public interface Signer<T> {
 	 * @throws SignatureException if the value cannot be signed
 	 */
 	byte[] sign(T what) throws InvalidKeyException, SignatureException;
+
+	/**
+	 * Verifies that the given signature corresponds to the given value, by using
+	 * the given public key.
+	 * 
+	 * @param what the value whose signature gets verified
+	 * @param publicKey the public key; its corresponding private key should have been used for signing
+	 * @param signature the signature to verify
+	 * @return true if and only if the signature matches
+	 * @throws InvalidKeyException if the provided public key is invalid
+	 * @throws SignatureException if the value cannot be signed
+	 */
+	//boolean verify(T what, PublicKey publicKey, byte[] signature) throws InvalidKeyException, SignatureException;
 }

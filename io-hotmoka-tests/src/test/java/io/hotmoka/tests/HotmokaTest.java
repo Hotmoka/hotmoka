@@ -64,13 +64,12 @@ import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Entropies;
-import io.hotmoka.crypto.Signers;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeSupplier;
@@ -176,11 +175,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        var entropy = Entropies.of(new byte[16]);
 			var password = "";
-			var localSignature = SignatureAlgorithmForTransactionRequests.ed25519det();
+			var localSignature = SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature);
 			var keys = entropy.keys(password, localSignature);
 			publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
-	    			.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
+	    			.signRequestsWith(SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature)) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.allowMintBurnFromGamete(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
@@ -199,9 +198,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
 
-	        signature = SignatureAlgorithmForTransactionRequests.of(node.getNameOfSignatureAlgorithmForRequests());
+	        signature = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 	        initializeNodeIfNeeded(wrapped);
-	        var signerOfGamete = Signers.with(signature, privateKeyOfGamete);
+	        var signerOfGamete = signature.getSigner(privateKeyOfGamete);
 
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();
@@ -264,7 +263,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException {
-		return builder.signRequestsWith(SignatureAlgorithmForTransactionRequests.ed25519det()) // good for testing
+		return builder.signRequestsWith(SignatureAlgorithms.ed25519det(SignedTransactionRequest::toByteArrayWithoutSignature)) // good for testing
 			.allowUnsignedFaucet(true) // good for testing
 			.allowMintBurnFromGamete(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
@@ -391,28 +390,28 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addJarStoreTransaction(new JarStoreTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.addJarStoreTransaction(new JarStoreTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
+		return node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
+		return node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
 	/**
@@ -433,21 +432,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final JarSupplier postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.postJarStoreTransaction(new JarStoreTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.postJarStoreTransaction(new JarStoreTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final CodeSupplier<StorageReference> postConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.postConstructorCallTransaction(new ConstructorCallTransactionRequest(Signers.with(signature, key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
+		return node.postConstructorCallTransaction(new ConstructorCallTransactionRequest(signature.getSigner(key), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 
 	protected static byte[] bytesOf(String fileName) throws IOException {

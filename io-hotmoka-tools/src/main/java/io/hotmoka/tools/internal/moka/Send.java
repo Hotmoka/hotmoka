@@ -20,13 +20,14 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.SendCoinsHelpers;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
@@ -117,7 +118,7 @@ public class Send extends AbstractCommand {
 			var accountCreationHelper = AccountCreationHelpers.of(node);
 			var payer = new StorageReference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			var signatureAlgorithmForNewAccount = SignatureAlgorithmForTransactionRequests.ed25519();
+			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
 				signatureAlgorithmForNewAccount.publicKeyFromEncoding(Base58.decode(destination)),
 				amount, amountRed, anonymous, this::askForConfirmation, this::printCosts);

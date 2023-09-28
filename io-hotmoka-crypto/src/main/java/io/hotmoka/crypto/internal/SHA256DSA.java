@@ -129,7 +129,7 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	public byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+	protected byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
 		byte[] bytes;
 
 		try {
@@ -178,10 +178,5 @@ public class SHA256DSA<T> extends AbstractSignatureAlgorithmImpl<T> {
 	@Override
 	public String getName() {
 		return "sha256dsa";
-	}
-
-	@Override
-	public Supplier<T> getSupplier() {
-		return SHA256DSA::new;
 	}
 }

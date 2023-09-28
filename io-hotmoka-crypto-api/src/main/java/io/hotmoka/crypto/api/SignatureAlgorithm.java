@@ -18,12 +18,10 @@ package io.hotmoka.crypto.api;
 
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.function.Function;
 
 /**
  * An algorithm that signs values and verifies such signatures back.
@@ -40,16 +38,13 @@ public interface SignatureAlgorithm<T> {
 	 */
 	KeyPair getKeyPair();
 
-    /**
-	 * Yields the signature of the given value, by using the given private key.
+	/**
+	 * Yields a signer with this signature algorithm.
 	 * 
-	 * @param what the value to sign
-	 * @param privateKey the private key used for signing
-	 * @return the sequence of bytes
-	 * @throws InvalidKeyException if the provided private key is invalid
-	 * @throws SignatureException if the value cannot be signed
+	 * @param key the private key that will be used for signing
+	 * @return the signer
 	 */
-	byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException;
+	Signer<T> getSigner(PrivateKey key);
 
 	/**
 	 * Verifies that the given signature corresponds to the given value, by using
@@ -103,7 +98,7 @@ public interface SignatureAlgorithm<T> {
 	byte[] encodingOf(PrivateKey privateKey) throws InvalidKeyException;
 
 	/**
-	 * Yields the type of this signature algotihm.
+	 * Yields the type of this signature algorithm.
 	 * 
 	 * @return the type
 	 */
@@ -113,13 +108,6 @@ public interface SignatureAlgorithm<T> {
 	 * @return the name of the algorithm
 	 */
 	String getName();
-
-	/**
-	 * Yields the supplier of this signature algorithm.
-	 * 
-	 * @return the supplier
-	 */
-	Supplier<T> getSupplier();
 
 	/**
      * Creates a key pair from the given entropy and password.
@@ -139,22 +127,4 @@ public interface SignatureAlgorithm<T> {
      * @return the key pair derived from entropy and password
      */
     KeyPair getKeyPair(byte[] entropy, String password);
-
-    /**
-     * A supplier of a signature algorithm.
-     * 
-     * @param <T> the type of the objects that will get signed
-     */
-    interface Supplier<T> {
-
-    	/**
-    	 * Supplies a signature algorithm with this supplier.
-    	 * 
-    	 * @param toBytes a function applied to the objects to sign, to transform them into bytes that
-    	 *                will then be signed
-    	 * @return the signature algorithm
-    	 * @throws NoSuchAlgorithmException if the signature algorithm is not available
-    	 */
-    	SignatureAlgorithm<T> get(Function<? super T, byte[]> toBytes) throws NoSuchAlgorithmException;
-    }
 }

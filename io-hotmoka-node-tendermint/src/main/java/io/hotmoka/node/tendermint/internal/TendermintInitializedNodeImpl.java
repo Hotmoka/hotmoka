@@ -47,6 +47,7 @@ import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -63,10 +64,10 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
@@ -134,7 +135,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
 		Encoder encoder = Base64.getEncoder();
-		var ed25519 = SignatureAlgorithmForTransactionRequests.ed25519();
+		var ed25519 = SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
@@ -178,7 +179,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 
         try {
         	byte[] encoded = Base64.getDecoder().decode(validator.publicKey);
-        	return SignatureAlgorithmForTransactionRequests.ed25519().publicKeyFromEncoding(encoded);
+        	return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature).publicKeyFromEncoding(encoded);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

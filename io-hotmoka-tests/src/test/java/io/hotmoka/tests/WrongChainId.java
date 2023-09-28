@@ -31,7 +31,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 
 /**
  * A test for the wrong use of the chain identifier in a transaction.
@@ -49,7 +48,7 @@ class WrongChainId extends HotmokaTest {
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("incorrect chain id", () ->
-			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signers.with(signature(), key), caller, BigInteger.ZERO, chainId + "noise",
+			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(signature().getSigner(key), caller, BigInteger.ZERO, chainId + "noise",
 				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_50_000), new StringValue("ciao")))
 		);
 	}

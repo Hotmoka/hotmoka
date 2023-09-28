@@ -54,8 +54,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -275,7 +275,7 @@ public class NodeCachesImpl implements NodeCache {
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
-				.signRequestsWith(SignatureAlgorithmForTransactionRequests.of(signature))
+				.signRequestsWith(SignatureAlgorithms.of(signature, SignedTransactionRequest::toByteArrayWithoutSignature))
 				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)

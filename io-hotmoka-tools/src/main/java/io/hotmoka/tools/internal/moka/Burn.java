@@ -21,12 +21,13 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.Base64;
 
+import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.MintBurnHelpers;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
@@ -90,7 +91,7 @@ public class Burn extends AbstractCommand {
 			// from Base58 to Base64
 			String publicKeyOfAccountBase64Encoded = Base64.getEncoder().encodeToString(Base58.decode(keyOfAccount));
 
-			StorageReference account = MintBurnHelpers.of(node).burn(keys, SignatureAlgorithmForTransactionRequests.ed25519(), publicKeyOfAccountBase64Encoded, amount);
+			StorageReference account = MintBurnHelpers.of(node).burn(keys, SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature), publicKeyOfAccountBase64Encoded, amount);
 
 			System.out.println("Burned " + amount + " coins from account " + account);
 		}

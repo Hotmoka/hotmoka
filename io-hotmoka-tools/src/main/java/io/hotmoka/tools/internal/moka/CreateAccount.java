@@ -28,12 +28,12 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNode;
 import picocli.CommandLine.Command;
@@ -101,7 +101,7 @@ public class CreateAccount extends AbstractCommand {
 
 			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
-				signatureAlgorithmOfNewAccount = SignatureAlgorithmForTransactionRequests.of(nameOfSignatureAlgorithmOfNewAccount);
+				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 				Entropy entropy;
 				if (keyOfNewAccount == null) {

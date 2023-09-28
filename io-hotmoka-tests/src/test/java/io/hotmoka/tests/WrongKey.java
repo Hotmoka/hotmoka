@@ -31,7 +31,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 
 /**
  * A test for wrong use of keys for signing a transaction.
@@ -54,7 +53,7 @@ class WrongKey extends HotmokaTest {
 		StorageReference caller = account(0);
 
 		throwsTransactionRejectedWithCause("invalid request signature", () ->
-			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(Signers.with(signature(), key), caller, BigInteger.ZERO, chainId,
+			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(signature().getSigner(key), caller, BigInteger.ZERO, chainId,
 				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_50_000), new StringValue("ciao")))
 		);
 	}

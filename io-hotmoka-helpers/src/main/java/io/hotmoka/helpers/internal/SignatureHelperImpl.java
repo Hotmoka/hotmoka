@@ -24,11 +24,11 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.api.SignatureHelper;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -50,26 +50,26 @@ public class SignatureHelperImpl implements SignatureHelper {
 
 		// first we try without the class loader, that does not work under Android...
 		if (tag.clazz.equals(ClassType.EOA_ED25519))
-			return SignatureAlgorithmForTransactionRequests.ed25519();
+			return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (tag.clazz.equals(ClassType.EOA_SHA256DSA))
-			return SignatureAlgorithmForTransactionRequests.sha256dsa();
+			return SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (tag.clazz.equals(ClassType.EOA_QTESLA1))
-			return SignatureAlgorithmForTransactionRequests.qtesla1();
+			return SignatureAlgorithms.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (tag.clazz.equals(ClassType.EOA_QTESLA3))
-			return SignatureAlgorithmForTransactionRequests.qtesla3();
+			return SignatureAlgorithms.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.jar);
 		Class<?> clazz = classLoader.loadClass(tag.clazz.name);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.ed25519();
+			return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.sha256dsa();
+			return SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.qtesla1();
+			return SignatureAlgorithms.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.qtesla3();
+			return SignatureAlgorithms.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
-			return SignatureAlgorithmForTransactionRequests.of(node.getNameOfSignatureAlgorithmForRequests());
+			return SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests(), SignedTransactionRequest::toByteArrayWithoutSignature);
 	}
 }

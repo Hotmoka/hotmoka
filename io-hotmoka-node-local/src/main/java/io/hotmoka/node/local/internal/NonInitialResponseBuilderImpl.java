@@ -40,10 +40,10 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.OutOfGasError;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
@@ -171,13 +171,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.ed25519();
+			return SignatureAlgorithms.ed25519(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.sha256dsa();
+			return SignatureAlgorithms.sha256dsa(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.qtesla1();
+			return SignatureAlgorithms.qtesla1(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithmForTransactionRequests.qtesla3();
+			return SignatureAlgorithms.qtesla3(SignedTransactionRequest::toByteArrayWithoutSignature);
 		else
 			return consensus.getSignature();
 	}

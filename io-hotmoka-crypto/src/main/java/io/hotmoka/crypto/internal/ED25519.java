@@ -103,14 +103,14 @@ public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    public byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
+    protected byte[] sign(T what, PrivateKey privateKey) throws InvalidKeyException, SignatureException {
         byte[] bytes;
 
         try {
             bytes = supplier.apply(what);
         }
         catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before signing", e);
+            throw new SignatureException("Cannot transform the value into bytes before signing", e);
         }
 
         synchronized (signature) {
@@ -128,7 +128,7 @@ public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
             bytes = supplier.apply(what);
         }
         catch (Exception e) {
-            throw new SignatureException("cannot transform value into bytes before verifying the signature", e);
+            throw new SignatureException("Cannot transform the value into bytes before verifying the signature", e);
         }
 
         synchronized (this.signature) {
@@ -188,10 +188,5 @@ public class ED25519<T> extends AbstractSignatureAlgorithmImpl<T> {
 	@Override
 	public String getName() {
 		return "ed25519";
-	}
-
-	@Override
-	public Supplier<T> getSupplier() {
-		return ED25519::new;
 	}
 }

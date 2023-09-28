@@ -32,7 +32,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -96,7 +95,7 @@ public class BuyValidation extends AbstractCommand {
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
 				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
-				var signer = Signers.with(algorithm, keys);				
+				var signer = algorithm.getSigner(keys.getPrivate());				
 				InstanceMethodCallTransactionRequest request;
 
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest

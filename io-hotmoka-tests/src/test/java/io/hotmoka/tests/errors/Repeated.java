@@ -41,7 +41,6 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -57,7 +56,7 @@ class Repeated extends HotmokaTest {
 
 	@Test @DisplayName("install jar")
 	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
-		var request = new JarStoreTransactionRequest(Signers.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = new JarStoreTransactionRequest(signature().getSigner(privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
 		TransactionResponse response = node.getResponse(reference);
 
@@ -66,7 +65,7 @@ class Repeated extends HotmokaTest {
 
 	@Test @DisplayName("install jar twice")
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
-		var request = new JarStoreTransactionRequest(Signers.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = new JarStoreTransactionRequest(signature().getSigner(privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
 		
 		throwsTransactionRejectedException(() -> node.addJarStoreTransaction(request));
@@ -74,7 +73,7 @@ class Repeated extends HotmokaTest {
 
 	@Test @DisplayName("install jar twice concurrently")
 	void installJarTwiceConcurrently() throws InvalidKeyException, SignatureException, TransactionRejectedException, IOException {
-		var request = new JarStoreTransactionRequest(Signers.with(signature(), privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		var request = new JarStoreTransactionRequest(signature().getSigner(privateKey(0)), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.postJarStoreTransaction(request);
 		throwsTransactionRejectedException(() -> node.postJarStoreTransaction(request));
 	}
@@ -82,7 +81,7 @@ class Repeated extends HotmokaTest {
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")
 	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException {
 		BigInteger nonce = getNonceOf(account(0));
-		Signer<SignedTransactionRequest> signer = Signers.with(signature(), privateKey(0));
+		Signer<SignedTransactionRequest> signer = signature().getSigner(privateKey(0));
 
 		// the following request uses the wrong nonce, hence it will be rejected now
 		// it will charge 20,000 units of coin to account(0), for penalty

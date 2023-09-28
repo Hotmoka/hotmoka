@@ -88,7 +88,7 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	}
 
 	@Override
-	public byte[] sign(T what, PrivateKey privateKey) {
+	protected byte[] sign(T what, PrivateKey privateKey) {
 		return EMPTY;
 	}
 
@@ -110,10 +110,5 @@ public class EMPTY<T> extends AbstractSignatureAlgorithmImpl<T> {
 	@Override
 	public String getName() {
 		return "empty";
-	}
-
-	@Override
-	public Supplier<T> getSupplier() {
-		return _toBytes -> new EMPTY<T>();
 	}
 }

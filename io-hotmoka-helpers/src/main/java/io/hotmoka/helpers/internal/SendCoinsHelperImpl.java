@@ -39,7 +39,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -47,7 +47,6 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
-import io.hotmoka.node.SignatureAlgorithmForTransactionRequests;
 import io.hotmoka.node.api.Node;
 
 /**
@@ -87,7 +86,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
-		var signer = Signers.with(signature, keysOfPayer);
+		var signer = signature.getSigner(keysOfPayer.getPrivate());
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);
@@ -128,9 +127,9 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		gasHandler.accept(_100_000);
 
 		// we use the empty signature algorithm, since the faucet is unsigned
-		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureAlgorithmForTransactionRequests.empty();
+		var signature = SignatureAlgorithms.empty(SignedTransactionRequest::toByteArrayWithoutSignature);
 		var request = new InstanceMethodCallTransactionRequest
-			(Signers.with(signature, signature.getKeyPair()),
+			(signature.getSigner(signature.getKeyPair().getPrivate()),
 			gamete, nonceHelper.getNonceOf(gamete),
 			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,
 			new VoidMethodSignature(GAMETE, "faucet", PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER),

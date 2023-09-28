@@ -53,7 +53,6 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
-import io.hotmoka.crypto.Signers;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -104,7 +103,7 @@ public class JarsNodeImpl implements JarsNode {
 
 		TransactionReference takamakaCode = getTakamakaCode();
 		SignatureAlgorithm<SignedTransactionRequest> signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
-		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = Signers.with(signature, privateKeyOfPayer);
+		Signer<SignedTransactionRequest> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer);
 		var _50_000 = BigInteger.valueOf(50_000);
 
 		// we get the nonce of the payer

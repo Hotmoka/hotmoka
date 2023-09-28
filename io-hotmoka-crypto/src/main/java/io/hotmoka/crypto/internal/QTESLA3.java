@@ -98,7 +98,7 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
     }
 
     @Override
-    public byte[] sign(T what, PrivateKey privateKey) throws SignatureException {
+    protected byte[] sign(T what, PrivateKey privateKey) throws SignatureException {
         byte[] bytes;
 
         try {
@@ -161,10 +161,5 @@ public class QTESLA3<T> extends AbstractSignatureAlgorithmImpl<T> {
 	@Override
 	public String getName() {
 		return "qtesla3";
-	}
-
-	@Override
-	public Supplier<T> getSupplier() {
-		return QTESLA3::new;
 	}
 }
