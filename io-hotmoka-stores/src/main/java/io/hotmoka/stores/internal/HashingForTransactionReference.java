@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
 /**
@@ -25,7 +24,7 @@ import io.hotmoka.crypto.AbstractHashingAlgorithm;
  * they already hold a hash, as a string. Hence, this algorithm just amounts to extracting
  * the bytes from that string.
  */
-class HashingForTransactionReference extends AbstractHashingAlgorithm<TransactionReference> {
+class HashingForTransactionReference extends AbstractHashingAlgorithm {
 
     @Override
     public byte[] hash(byte[] bytes) { // TODO: use identity hashing

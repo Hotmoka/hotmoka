@@ -24,7 +24,6 @@ import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
@@ -56,13 +55,11 @@ public class TrieOfHistories {
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
-			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithms.sha256();
-			parent = PatriciaTries.of(keyValueStoreOfHistories, hashingForStorageReferences.getHasher(StorageReference::toByteArrayWithoutSelector), hashingForNodes,
-					MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContext::new, numberOfCommits);
+			parent = PatriciaTries.of(keyValueStoreOfHistories, HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
+				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 

@@ -54,7 +54,7 @@ public final class PatriciaTries {
 	 */
 	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
-			Hasher<? super Key> hasherForKeys, HashingAlgorithm<byte[]> hashingForNodes,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 

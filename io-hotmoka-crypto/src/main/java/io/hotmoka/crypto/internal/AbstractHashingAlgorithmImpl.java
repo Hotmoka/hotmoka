@@ -25,10 +25,8 @@ import io.hotmoka.crypto.api.HashingAlgorithm;
  * A partial implementation of a hashing algorithm, that
  * provides a general implementation for partial hashing.
  * Subclasses might provide better implementations.
- * 
- * @param <T> the type of values that get hashed
  */
-public abstract class AbstractHashingAlgorithmImpl<T> implements HashingAlgorithm<T>{
+public abstract class AbstractHashingAlgorithmImpl implements HashingAlgorithm {
 
 	/**
 	 * Hashes the given bytes.
@@ -70,7 +68,7 @@ public abstract class AbstractHashingAlgorithmImpl<T> implements HashingAlgorith
 	}
 
 	@Override
-	public Hasher<T> getHasher(Function<? super T, byte[]> toBytes) {
+	public <T> Hasher<T> getHasher(Function<? super T, byte[]> toBytes) {
 		return new Hasher<>() {
 
 			@Override
@@ -96,7 +94,22 @@ public abstract class AbstractHashingAlgorithmImpl<T> implements HashingAlgorith
 	 * @return this same instance
 	 */
 	@Override
-	public AbstractHashingAlgorithmImpl<T> clone() {
+	public AbstractHashingAlgorithmImpl clone() {
 		return this;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other != null && getClass() == other.getClass();
+	}
+
+	@Override
+	public int hashCode() {
+		return getClass().hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return getName();
 	}
 }

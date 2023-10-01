@@ -22,10 +22,8 @@ import io.hotmoka.crypto.internal.AbstractHashingAlgorithmImpl;
  * Partial implementation of a hashing algorithm, that
  * provides a general implementation for partial hashing.
  * Subclasses might provide better implementations.
- * 
- * @param <T> the type of values that get hashed
  */
-public abstract class AbstractHashingAlgorithm<T> extends AbstractHashingAlgorithmImpl<T> {
+public abstract class AbstractHashingAlgorithm extends AbstractHashingAlgorithmImpl {
 
 	/**
 	 * Creates the algorithm.

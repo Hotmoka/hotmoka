@@ -95,7 +95,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *                        as result of the store updates performed during that commit
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
-			Hasher<? super Key> hasherForKeys, HashingAlgorithm<byte[]> hashingForNodes,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 

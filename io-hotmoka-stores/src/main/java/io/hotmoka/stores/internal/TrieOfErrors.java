@@ -57,7 +57,7 @@ public class TrieOfErrors {
 	public TrieOfErrors(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
+			HashingAlgorithm hashingForNodes = HashingAlgorithms.sha256();
 			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference().getHasher(reference -> Hex.fromHexString(reference.getHash())),
 				hashingForNodes, MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
 		}

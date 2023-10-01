@@ -19,20 +19,18 @@ package io.hotmoka.crypto.api;
 import java.util.function.Function;
 
 /**
- * An algorithm that hashes values into bytes.
- *
- * @param <T> the type of values that get hashed.
+ * An algorithm that hashes bytes into bytes.
  */
-public interface HashingAlgorithm<T> extends Cloneable {
+public interface HashingAlgorithm extends Cloneable {
 
 	/**
 	 * Yields a hasher with this hashing algorithm.
 	 * 
 	 * @param <T> the type of values that get hashed
-	 * @param toBytes the function to use to transform the value into bytes before hashing
+	 * @param toBytes the function to use to transform the values into bytes before hashing
 	 * @return the hasher
 	 */
-	Hasher<T> getHasher(Function<? super T, byte[]> toBytes);
+	<T> Hasher<T> getHasher(Function<? super T, byte[]> toBytes);
 
 	/**
 	 * The length of the sequence of bytes resulting from hashing a value.
@@ -56,5 +54,20 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 * 
 	 * @return the clone of this algorithm
 	 */
-	HashingAlgorithm<T> clone();
+	HashingAlgorithm clone();
+
+	/**
+     * Determines if this hashing algorithm is the same as another.
+     * 
+     * @param other the other object
+     * @return true only if other is the same hashing algorithm
+     */
+    @Override
+    boolean equals(Object other);
+
+    @Override
+    int hashCode();
+
+    @Override
+    String toString();
 }

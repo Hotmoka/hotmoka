@@ -7,10 +7,8 @@ import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
 /**
  * The SHABAL256 hashing algorithm.
- * 
- * @param <T> the type of values that get hashed
  */
-public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
+public class SHABAL256 extends AbstractHashingAlgorithm {
 
 	private final MessageDigest digest;
 
@@ -68,8 +66,8 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
-	public SHABAL256<T> clone() {
-		return new SHABAL256<>();
+	public SHABAL256 clone() {
+		return new SHABAL256();
 	}
 
 	/**

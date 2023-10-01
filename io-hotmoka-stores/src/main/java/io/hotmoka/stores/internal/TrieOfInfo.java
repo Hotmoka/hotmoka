@@ -55,10 +55,10 @@ public class TrieOfInfo {
 	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
+			HashingAlgorithm hashingForNodes = HashingAlgorithms.sha256();
 
 			// the hashing algorithm applied to the keys of the trie
-			class KeyHashingAlgorithm extends AbstractHashingAlgorithm<Byte> { // TODO: use identity hashing
+			class KeyHashingAlgorithm extends AbstractHashingAlgorithm { // TODO: use identity hashing
 
 				@Override
 				public byte[] hash(byte[] bytes) {

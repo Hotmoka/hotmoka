@@ -27,7 +27,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 
 /**
@@ -63,8 +62,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
     	setRootsAsCheckedOut();
 
     	try {
-    		HashingAlgorithm<byte[]> sha256 = HashingAlgorithms.sha256();
-    		this.hasherOfHashes = sha256.getHasher(Function.identity());
+    		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);

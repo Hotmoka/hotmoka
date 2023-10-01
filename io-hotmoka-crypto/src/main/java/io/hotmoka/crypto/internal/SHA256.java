@@ -23,10 +23,8 @@ import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
 /**
  * The SHA256 hashing algorithm.
- * 
- * @param <T> the type of values that get hashed
  */
-public class SHA256<T> extends AbstractHashingAlgorithm<T>{
+public class SHA256 extends AbstractHashingAlgorithm {
 
 	private final MessageDigest digest;
 
@@ -84,9 +82,9 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
-	public SHA256<T> clone() {
+	public SHA256 clone() {
 		try {
-			return new SHA256<T>();
+			return new SHA256();
 		}
 		catch (NoSuchAlgorithmException e) {
 			// impossible, since this was already created successfully, unless the provider has been removed

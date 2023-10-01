@@ -34,41 +34,37 @@ public final class HashingAlgorithms {
 	/**
 	 * Yields the SHA256 hashing algorithm.
 	 * 
-	 * @param <T> the type of values that get hashed
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
-	public static <T> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
-		return new SHA256<>();
+	public static HashingAlgorithm sha256() throws NoSuchAlgorithmException {
+		return new SHA256();
 	}
 
 	/**
 	 * Yields the SHABAL256 hashing algorithm.
 	 * 
-	 * @param <T> the type of values that get hashed
 	 * @return the algorithm
 	 */
-	public static <T> HashingAlgorithm<T> shabal256() {
-		return new SHABAL256<>();
+	public static HashingAlgorithm shabal256() {
+		return new SHABAL256();
 	}
 
 	/**
 	 * Yields the hashing algorithm with the given name.
 	 * It looks for a factory method with the given name and invokes it.
 	 * 
-	 * @param <T> the type of the values that get hashed
 	 * @param name the name of the algorithm, case-insensitive
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
-	@SuppressWarnings("unchecked")
-	public static <T> HashingAlgorithm<T> of(String name) throws NoSuchAlgorithmException {
+	public static HashingAlgorithm of(String name) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
 			// only sha256, shabal256 are currently found below
 			Method method = HashingAlgorithms.class.getMethod(name);
-			return (HashingAlgorithm<T>) method.invoke(null);
+			return (HashingAlgorithm) method.invoke(null);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
 			throw new NoSuchAlgorithmException("Unknown hashing algorithm named " + name, e);

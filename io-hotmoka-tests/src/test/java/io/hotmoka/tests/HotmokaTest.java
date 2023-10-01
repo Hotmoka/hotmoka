@@ -191,8 +191,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        // Change this to test with different node implementations
 	        Node wrapped;
-	        //node = wrapped = mkMemoryBlockchain();
-	        node = wrapped = mkTendermintBlockchain();
+	        node = wrapped = mkMemoryBlockchain();
+	        //node = wrapped = mkTendermintBlockchain();
 	        //node = mkRemoteNode(wrapped = mkMemoryBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
