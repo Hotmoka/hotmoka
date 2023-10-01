@@ -23,9 +23,11 @@ import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.Marshallable;
@@ -49,14 +51,14 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private final KeyValueStore store;
 
 	/**
-	 * The hashing algorithm for the keys of the trie.
+	 * The hasher for the keys of the trie.
 	 */
-	private final HashingAlgorithm<? super Key> hashingForKeys;
+	private final Hasher<? super Key> hasherForKeys;
 
 	/**
-	 * The hashing algorithm for the nodes of the trie.
+	 * The hasher for the nodes of the trie.
 	 */
-	private final HashingAlgorithm<byte[]> hashingForNodes;
+	private final Hasher<byte[]> hasherForNodes; // TODO: change generic parameter
 
 	/**
 	 * A function able to unmarshall a value from its byte representation.
@@ -84,7 +86,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * 
 	 * @param store the store used to store a mapping from nodes' hashes to the marshalled
 	 *              representation of the nodes
-	 * @param hashingForKeys the hashing algorithm for the keys
+	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
 	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
@@ -93,13 +95,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *                        as result of the store updates performed during that commit
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
-			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<byte[]> hashingForNodes,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm<byte[]> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 
 		this.store = store;
-		this.hashingForKeys = hashingForKeys;
-		this.hashingForNodes = hashingForNodes;
+		this.hasherForKeys = hasherForKeys;
+		this.hasherForNodes = hashingForNodes.getHasher(Function.identity());
 		this.valueUnmarshaller = valueUnmarshaller;
 		this.unmarshallingContextSupplier = unmarshallingContextSupplier;
 		this.numberOfCommits = numberOfCommits;
@@ -112,7 +114,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return Optional.empty();
 
 		try {
-			byte[] hashedKey = hashingForKeys.hash(key);
+			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 			return Optional.of(getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0));
 		}
@@ -128,7 +130,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	@Override
 	public void put(Key key, Value value) {
 		try {
-			byte[] hashedKey = hashingForKeys.hash(key);
+			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 
 			AbstractNode newRoot;
@@ -141,7 +143,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				addGarbageKey(hashOfRoot);
 			}
 
-			store.setRoot(hashingForNodes.hash(newRoot.toByteArray()));
+			store.setRoot(hasherForNodes.hash(newRoot.toByteArray()));
 		}
 		catch (IOException e) {
 			logger.log(Level.WARNING, "unexpected error while putting key into Patricia trie", e);
@@ -181,7 +183,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		byte kind = ois.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
-			int nodeHashSize = hashingForNodes.length();
+			int nodeHashSize = hasherForNodes.length();
 			int sharedBytesLength = ois.available() - nodeHashSize + 1;
 			byte[] sharedBytes = new byte[sharedBytesLength];
 			sharedBytes[0] = kind;
@@ -195,7 +197,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 		else if (kind == 0x04) {
 			short selector = ois.readShort();
-			int nodeHashSize = hashingForNodes.length();
+			int nodeHashSize = hasherForNodes.length();
 			byte[][] children = new byte[16][];
 			for (int pos = 0, bit = 0x8000; pos < 16; pos++, bit >>= 1)
 				if ((selector & bit) != 0) {
@@ -209,9 +211,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		else if (kind == 0x02 || (kind & 0xf0) == 0x30) {
 			int expected;
 			if (cursor % 2 == 0)
-				expected = hashingForKeys.length() - cursor / 2 + 1;
+				expected = hasherForKeys.length() - cursor / 2 + 1;
 			else
-				expected = hashingForKeys.length() - cursor / 2;
+				expected = hasherForKeys.length() - cursor / 2;
 
 			byte[] nibbles = new byte[expected];
 			nibbles[0] = kind;
@@ -363,7 +365,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		protected final AbstractNode putInStore() {
 			// we bind it to its hash in the store
 			var bytes = toByteArray();
-			store.put(hashingForNodes.hash(bytes), bytes);
+			store.put(hasherForNodes.hash(bytes), bytes);
 			return this;
 		}
 	}
@@ -447,7 +449,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			}
 
 			byte[][] childrenCopy = children.clone();
-			childrenCopy[selection] = hashingForNodes.hash(child.toByteArray());
+			childrenCopy[selection] = hasherForNodes.hash(child.toByteArray());
 
 			return new Branch(childrenCopy).putInStore();
 		}
@@ -535,7 +537,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
 				addGarbageKey(next);
 
-				return new Extension(sharedNibbles, hashingForNodes.hash(newNext.toByteArray())).putInStore();
+				return new Extension(sharedNibbles, hasherForNodes.hash(newNext.toByteArray())).putInStore();
 			}
 			else {
 				byte[] sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
@@ -550,18 +552,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				if (sharedNibbles1.length == 0)
 					hashOfChild1 = next;
 				else
-					hashOfChild1 = hashingForNodes.hash(new Extension(sharedNibbles1, next).putInStore().toByteArray());
+					hashOfChild1 = hasherForNodes.hash(new Extension(sharedNibbles1, next).putInStore().toByteArray());
 					
 				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hashOfChild1;
-				children[selection2] = hashingForNodes.hash(child2.toByteArray());
+				children[selection2] = hasherForNodes.hash(child2.toByteArray());
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(this.sharedNibbles, 0, sharedNibbles, 0, lengthOfSharedPortion);
-					return new Extension(sharedNibbles, hashingForNodes.hash(branch.toByteArray())).putInStore();
+					return new Extension(sharedNibbles, hasherForNodes.hash(branch.toByteArray())).putInStore();
 				}
 				else
 					// yield a branch node with two alternatives
@@ -653,15 +655,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				byte[][] children = new byte[16][];
 				AbstractNode leaf1 = new Leaf(keyEnd1, this.value).putInStore();
 				AbstractNode leaf2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
-				children[selection1] = hashingForNodes.hash(leaf1.toByteArray());
-				children[selection2] = hashingForNodes.hash(leaf2.toByteArray());
+				children[selection1] = hasherForNodes.hash(leaf1.toByteArray());
+				children[selection2] = hasherForNodes.hash(leaf2.toByteArray());
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives leaves
 					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
-					return new Extension(sharedNibbles, hashingForNodes.hash(branch.toByteArray())).putInStore();
+					return new Extension(sharedNibbles, hasherForNodes.hash(branch.toByteArray())).putInStore();
 				}
 				else
 					// yield a branch node with two alternatives leaves

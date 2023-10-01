@@ -24,6 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.testing.AbstractLoggedTests;
 
 public class SHABAL256vsSHA256 extends AbstractLoggedTests {
@@ -33,9 +34,10 @@ public class SHABAL256vsSHA256 extends AbstractLoggedTests {
     void iteratedSHA256() throws Exception {
 		long start = System.currentTimeMillis();
     	var data = "HELLO HASHING".getBytes();
-    	var sha256 = HashingAlgorithms.sha256(Function.identity());
+    	HashingAlgorithm<byte[]> hashing = HashingAlgorithms.sha256();
+    	var hasher = hashing.getHasher(Function.identity());
         for (int i = 0; i < 10_000_000; i++)
-        	data = sha256.hash(data);
+        	data = hasher.hash(data);
 
         long elapsed = System.currentTimeMillis() - start;
         System.out.println("sha256 took " + elapsed + "ms");
@@ -48,9 +50,10 @@ public class SHABAL256vsSHA256 extends AbstractLoggedTests {
     void iteratedSHABAL256() throws Exception {
 		long start = System.currentTimeMillis();
     	var data = "HELLO HASHING".getBytes();
-    	var shabal256 = HashingAlgorithms.shabal256(Function.identity());
+    	HashingAlgorithm<byte[]> hashing = HashingAlgorithms.shabal256();
+    	var hasher = hashing.getHasher(Function.identity());
         for (int i = 0; i < 10_000_000; i++)
-        	data = shabal256.hash(data);
+        	data = hasher.hash(data);
 
         long elapsed = System.currentTimeMillis() - start;
         System.out.println("shabal256 took " + elapsed + "ms");

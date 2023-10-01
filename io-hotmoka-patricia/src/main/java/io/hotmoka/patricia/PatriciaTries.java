@@ -19,6 +19,7 @@ package io.hotmoka.patricia;
 import java.io.IOException;
 import java.io.InputStream;
 
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.Unmarshaller;
@@ -41,7 +42,7 @@ public final class PatriciaTries {
 	 * @param <Key> the type of the keys of the trie
 	 * @param <Value> the type of the values of the trie
 	 * @param store the store used to store a mapping from nodes' hashes to their content
-	 * @param hashingForKeys the hashing algorithm for the keys
+	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
 	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
@@ -53,11 +54,11 @@ public final class PatriciaTries {
 	 */
 	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
-			HashingAlgorithm<? super Key> hashingForKeys, HashingAlgorithm<byte[]> hashingForNodes,
+			Hasher<? super Key> hasherForKeys, HashingAlgorithm<byte[]> hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
 
-		return new PatriciaTrieImpl<>(store, hashingForKeys, hashingForNodes, valueUnmarshaller, unmarshallingContextSupplier, numberOfCommits);
+		return new PatriciaTrieImpl<>(store, hasherForKeys, hashingForNodes, valueUnmarshaller, unmarshallingContextSupplier, numberOfCommits);
 	}
 
 	/**

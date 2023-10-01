@@ -30,6 +30,8 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
@@ -50,9 +52,9 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	private final PatriciaTrie<TransactionReference, TransactionResponse> parent;
 
 	/**
-	 * The hashing algorithm used for the jars in the responses that included a jar.
+	 * The hasher used for the jars in the responses that included a jar.
 	 */
-	private final HashingAlgorithm<byte[]> hashingForJars;
+	private final Hasher<byte[]> hasherForJars;
 
 	/**
 	 * The store of the underlying Patricia trie.
@@ -73,9 +75,10 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	public TrieOfResponses(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
-			this.hashingForJars = HashingAlgorithms.sha256(Function.identity());
-			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
+			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
+			HashingAlgorithm<byte[]> hashingForJars = HashingAlgorithms.sha256();
+			this.hasherForJars = hashingForJars.getHasher(Function.identity());
+			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference().getHasher(reference -> Hex.fromHexString(reference.getHash())), hashingForNodes,
 					TransactionResponse::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -96,7 +99,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			var trwij = (TransactionResponseWithInstrumentedJar) response;
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
-			byte[] reference = hashingForJars.hash(jar);
+			byte[] reference = hasherForJars.hash(jar);
 			keyValueStoreOfResponses.put(reference, jar);
 
 			// we replace the jar with its hash

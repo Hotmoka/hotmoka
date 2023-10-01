@@ -19,6 +19,7 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.Base64;
+import java.util.function.Function;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -28,6 +29,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
@@ -97,7 +99,8 @@ public class ShowAccount extends AbstractCommand {
 		System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
 		System.arraycopy(publicKey, 0, concatenated, privateKey.length, publicKey.length);
 		System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
-		byte[] hashedKey = HashingAlgorithms.sha256((byte[] bytes) -> bytes).hash(publicKey);
+		HashingAlgorithm<byte[]> sha256 = HashingAlgorithms.sha256();
+		byte[] hashedKey = sha256.getHasher(Function.identity()).hash(publicKey);
 		String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 		System.out.println("Tendermint-like address: " + hex);
 	}

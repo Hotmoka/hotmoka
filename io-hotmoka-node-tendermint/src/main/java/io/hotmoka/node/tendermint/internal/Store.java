@@ -26,6 +26,7 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 
@@ -42,9 +43,9 @@ class Store extends PartialTrieBasedWithHistoryStore {
 	private final TendermintNodeInternal nodeInternal;
 
 	/**
-	 * The hashing algorithm used to merge the hashes of the many tries.
+	 * The hasher used to merge the hashes of the many tries.
 	 */
-	private final HashingAlgorithm<byte[]> hashOfHashes;
+	private final Hasher<byte[]> hasherOfHashes;
 
 	/**
      * Creates a store for the Tendermint blockchain.
@@ -62,7 +63,8 @@ class Store extends PartialTrieBasedWithHistoryStore {
     	setRootsAsCheckedOut();
 
     	try {
-    		this.hashOfHashes = HashingAlgorithms.sha256(Function.identity());
+    		HashingAlgorithm<byte[]> sha256 = HashingAlgorithms.sha256();
+    		this.hasherOfHashes = sha256.getHasher(Function.identity());
     	}
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);
@@ -98,7 +100,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
 				// we do not use the info part of the hash, so that the hash
 				// remains stable when the responses and the histories are stable,
 				// although the info part has changed for the update of the number of commits
-				hashOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
+				hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
 	}
 

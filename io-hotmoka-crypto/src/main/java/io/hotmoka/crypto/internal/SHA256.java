@@ -18,7 +18,6 @@ package io.hotmoka.crypto.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
@@ -31,21 +30,13 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 
 	private final MessageDigest digest;
 
-	/**
-	 * How values get transformed into bytes, before being hashed.
-	 */
-	private final Function<? super T, byte[]> supplier;
-
-	public SHA256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public SHA256() throws NoSuchAlgorithmException {
 		this.digest = MessageDigest.getInstance("SHA-256");
-		this.supplier = supplier;
 	}
 
 	@Override
-	public byte[] hash(T what) {
+	public byte[] hash(byte[] bytes) {
 		try {
-			byte[] bytes = supplier.apply(what);
-
 			synchronized (digest) {
 				digest.reset();
 				return digest.digest(bytes);
@@ -57,7 +48,7 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
-	public byte[] hash(T what, int start, int length) {
+	public byte[] hash(byte[] bytes, int start, int length) {
 		if (start < 0)
 			throw new IllegalArgumentException("start cannot be negative");
 	
@@ -65,7 +56,6 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 			throw new IllegalArgumentException("length cannot be negative");
 	
 		try {
-			byte[] bytes = supplier.apply(what);
 			if (start + length > bytes.length)
 				throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
 	
@@ -96,16 +86,11 @@ public class SHA256<T> extends AbstractHashingAlgorithm<T>{
 	@Override
 	public SHA256<T> clone() {
 		try {
-			return new SHA256<T>(supplier);
+			return new SHA256<T>();
 		}
 		catch (NoSuchAlgorithmException e) {
 			// impossible, since this was already created successfully, unless the provider has been removed
-			throw new IllegalStateException("cannot clone SHA256 since the provider is not available");
+			throw new RuntimeException("Cannot clone SHA256 since the provider is not available");
 		}
-	}
-
-	@Override
-	public Supplier<T> getSupplier() {
-		return SHA256::new;
 	}
 }

@@ -18,7 +18,6 @@ package io.hotmoka.stores.internal;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
-import io.hotmoka.crypto.Hex;
 
 /**
  * The hashing algorithm applied to transaction references when used as
@@ -29,8 +28,8 @@ import io.hotmoka.crypto.Hex;
 class HashingForTransactionReference extends AbstractHashingAlgorithm<TransactionReference> {
 
     @Override
-    public byte[] hash(TransactionReference reference) {
-        return Hex.fromHexString(reference.getHash());
+    public byte[] hash(byte[] bytes) { // TODO: use identity hashing
+    	return bytes;
     }
 
 	@Override
@@ -41,10 +40,5 @@ class HashingForTransactionReference extends AbstractHashingAlgorithm<Transactio
 	@Override
 	public String getName() {
 		return "custom";
-	}
-
-	@Override
-	public Supplier<TransactionReference> getSupplier() {
-		return __ -> new HashingForTransactionReference();
 	}
 }

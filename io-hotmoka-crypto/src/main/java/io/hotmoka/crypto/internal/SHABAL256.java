@@ -2,7 +2,6 @@ package io.hotmoka.crypto.internal;
 
 import java.security.DigestException;
 import java.security.MessageDigest;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.AbstractHashingAlgorithm;
 
@@ -15,21 +14,13 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 
 	private final MessageDigest digest;
 
-	/**
-	 * How values get transformed into bytes, before being hashed.
-	 */
-	private final Function<? super T, byte[]> supplier;
-
-	public SHABAL256(Function<? super T, byte[]> supplier) {
+	public SHABAL256() {
 		this.digest = new Shabal256Digest();
-		this.supplier = supplier;
 	}
 
 	@Override
-	public byte[] hash(T what) {
+	public byte[] hash(byte[] bytes) {
 		try {
-			byte[] bytes = supplier.apply(what);
-
 			synchronized (digest) {
 				digest.reset();
 				return digest.digest(bytes);
@@ -41,7 +32,7 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
-	public byte[] hash(T what, int start, int length) {
+	public byte[] hash(byte[] bytes, int start, int length) {
 		if (start < 0)
 			throw new IllegalArgumentException("start cannot be negative");
 
@@ -49,9 +40,8 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 			throw new IllegalArgumentException("length cannot be negative");
 
 		try {
-			byte[] bytes = supplier.apply(what);
 			if (start + length > bytes.length)
-				throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
+				throw new IllegalArgumentException("Trying to hash a portion larger than the array of bytes");
 
 			synchronized (digest) {
 				digest.reset();
@@ -78,13 +68,8 @@ public class SHABAL256<T> extends AbstractHashingAlgorithm<T>{
 	}
 
 	@Override
-	public Supplier<T> getSupplier() {
-		return SHABAL256::new;
-	}
-
-	@Override
 	public SHABAL256<T> clone() {
-		return new SHABAL256<T>(supplier);
+		return new SHABAL256<>();
 	}
 
 	/**

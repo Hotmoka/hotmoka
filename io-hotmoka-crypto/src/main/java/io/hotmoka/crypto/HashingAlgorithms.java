@@ -19,7 +19,6 @@ package io.hotmoka.crypto;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
-import java.util.function.Function;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.crypto.internal.SHA256;
@@ -36,23 +35,21 @@ public final class HashingAlgorithms {
 	 * Yields the SHA256 hashing algorithm.
 	 * 
 	 * @param <T> the type of values that get hashed
-	 * @param supplier how values get transformed into bytes, before being hashed
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation of Java does not include the SHA256 algorithm
 	 */
-	public static <T> HashingAlgorithm<T> sha256(Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
-		return new SHA256<>(supplier);
+	public static <T> HashingAlgorithm<T> sha256() throws NoSuchAlgorithmException {
+		return new SHA256<>();
 	}
 
 	/**
 	 * Yields the SHABAL256 hashing algorithm.
 	 * 
 	 * @param <T> the type of values that get hashed
-	 * @param supplier how values get transformed into bytes, before being hashed
 	 * @return the algorithm
 	 */
-	public static <T> HashingAlgorithm<T> shabal256(Function<? super T, byte[]> supplier) {
-		return new SHABAL256<>(supplier);
+	public static <T> HashingAlgorithm<T> shabal256() {
+		return new SHABAL256<>();
 	}
 
 	/**
@@ -61,18 +58,17 @@ public final class HashingAlgorithms {
 	 * 
 	 * @param <T> the type of the values that get hashed
 	 * @param name the name of the algorithm, case-insensitive
-	 * @param supplier how values get transformed into bytes, before being hashed
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	@SuppressWarnings("unchecked")
-	public static <T> HashingAlgorithm<T> of(String name, Function<? super T, byte[]> supplier) throws NoSuchAlgorithmException {
+	public static <T> HashingAlgorithm<T> of(String name) throws NoSuchAlgorithmException {
 		name = name.toLowerCase();
 
 		try {
 			// only sha256, shabal256 are currently found below
-			Method method = HashingAlgorithms.class.getMethod(name, Function.class);
-			return (HashingAlgorithm<T>) method.invoke(null, supplier);
+			Method method = HashingAlgorithms.class.getMethod(name);
+			return (HashingAlgorithm<T>) method.invoke(null);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
 			throw new NoSuchAlgorithmException("Unknown hashing algorithm named " + name, e);

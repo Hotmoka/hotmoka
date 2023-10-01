@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.util.function.Function;
+
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 
 /**
@@ -27,23 +30,64 @@ import io.hotmoka.crypto.api.HashingAlgorithm;
  */
 public abstract class AbstractHashingAlgorithmImpl<T> implements HashingAlgorithm<T>{
 
-	@Override
-	public byte[] hash(T what, int start, int length) {
+	/**
+	 * Hashes the given bytes.
+	 * 
+	 * @param bytes the bytes to hash
+	 * @return the resulting hash; this must have length equals to {@linkplain #length()}
+	 */
+	protected abstract byte[] hash(byte[] bytes);
+
+	/**
+	 * Hashes a portion of the given array of bytes, from
+	 * {@code start} (inclusive) to {@code start + length}
+	 * (exclusive) and computes the hash of that part only.
+	 * 
+	 * @param bytes the bytes to hash
+	 * @param start the initial byte position to consider for hashing;
+	 *              this must be a position inside {@code bytes}
+	 * @param length the number of bytes (starting at {@code start})
+	 *               that must be considered for hashing; this cannot be
+	 *               negative and must lead to an existing position inside {@code bytes}
+	 * @return the hash; this must have length equals to {@linkplain #length()}
+	 */
+	protected byte[] hash(byte[] bytes, int start, int length) {
 		if (start < 0)
 			throw new IllegalArgumentException("start cannot be negative");
 
 		if (length < 0)
 			throw new IllegalArgumentException("length cannot be negative");
 
-		byte[] all = hash(what);
+		byte[] all = hash(bytes); // TODO: no!!!
 		if (start + length >= all.length)
-			throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
+			throw new IllegalArgumentException("Trying to hash a portion larger than the array of bytes");
 
 		for (int pos = 0; pos < all.length; pos++)
 			if (pos < start || pos >= start + length)
 				all[pos] = 0;
 
 		return all;
+	}
+
+	@Override
+	public Hasher<T> getHasher(Function<? super T, byte[]> toBytes) {
+		return new Hasher<>() {
+
+			@Override
+			public byte[] hash(T what) {
+				return AbstractHashingAlgorithmImpl.this.hash(toBytes.apply(what));
+			}
+
+			@Override
+			public byte[] hash(T what, int start, int length) {
+				return AbstractHashingAlgorithmImpl.this.hash(toBytes.apply(what), start, length);
+			}
+
+			@Override
+			public int length() {
+				return AbstractHashingAlgorithmImpl.this.length();
+			}
+		};
 	}
 
 	/**

@@ -18,12 +18,13 @@ package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.function.Function;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
@@ -53,12 +54,12 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	public TrieOfRequests(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
-			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference(), hashingForNodes,
+			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
+			parent = PatriciaTries.of(keyValueStoreOfResponses, new HashingForTransactionReference().getHasher(reference -> Hex.fromHexString(reference.getHash())), hashingForNodes,
 				TransactionRequest::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 

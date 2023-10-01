@@ -18,13 +18,13 @@ package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
@@ -56,9 +56,9 @@ public class TrieOfHistories {
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
-			var hashingForNodes = HashingAlgorithms.sha256(Function.identity());
-			var hashingForStorageReferences = HashingAlgorithms.sha256(StorageReference::toByteArrayWithoutSelector);
-			parent = PatriciaTries.of(keyValueStoreOfHistories, hashingForStorageReferences, hashingForNodes,
+			HashingAlgorithm<byte[]> hashingForNodes = HashingAlgorithms.sha256();
+			HashingAlgorithm<StorageReference> hashingForStorageReferences = HashingAlgorithms.sha256();
+			parent = PatriciaTries.of(keyValueStoreOfHistories, hashingForStorageReferences.getHasher(StorageReference::toByteArrayWithoutSelector), hashingForNodes,
 					MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

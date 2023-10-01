@@ -26,6 +26,7 @@ import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -71,7 +72,8 @@ public class CreateKey extends AbstractCommand {
 				System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
 			}
 
-			byte[] hashedKey = HashingAlgorithms.sha256(Function.identity()).hash(publicKeyBytes);
+			HashingAlgorithm<byte[]> hashing = HashingAlgorithms.sha256();
+			byte[] hashedKey = hashing.getHasher(Function.identity()).hash(publicKeyBytes);
 			String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 			System.out.println("Tendermint-like address: " + hex);
 

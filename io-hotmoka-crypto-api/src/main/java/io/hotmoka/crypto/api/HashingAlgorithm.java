@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.crypto.api;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.function.Function;
 
 /**
@@ -27,30 +26,13 @@ import java.util.function.Function;
 public interface HashingAlgorithm<T> extends Cloneable {
 
 	/**
-	 * Hashes the given value into a sequence of bytes.
+	 * Yields a hasher with this hashing algorithm.
 	 * 
-	 * @param what the value to hash
-	 * @return the sequence of bytes; this must have length equals to {@linkplain #length()}
+	 * @param <T> the type of values that get hashed
+	 * @param toBytes the function to use to transform the value into bytes before hashing
+	 * @return the hasher
 	 */
-	byte[] hash(T what);
-
-	/**
-	 * Hashes a portion of the given value into a sequence of bytes.
-	 * It first transforms {@code what} into bytes then selects the
-	 * bytes from {@code start} (inclusive) to {@code start + length}
-	 * (exclusive) and computes the hash of that part only.
-	 * 
-	 * @param what the value to hash
-	 * @param start the initial byte position to consider for hashing;
-	 *              this must be a position inside the translation of
-	 *              {@code what} into bytes
-	 * @param length the number of bytes (starting at {@code start})
-	 *               that must be considered for hashing; this cannot be
-	 *               negative and must lead to an existing position inside the
-	 *               translation of {@code what} into bytes
-	 * @return the sequence of bytes; this must have length equals to {@linkplain #length()}
-	 */
-	byte[] hash(T what, int start, int length);
+	Hasher<T> getHasher(Function<? super T, byte[]> toBytes);
 
 	/**
 	 * The length of the sequence of bytes resulting from hashing a value.
@@ -58,14 +40,7 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 *
 	 * @return the length
 	 */
-	int length();
-
-	/**
-	 * Yields the supplier of this hashing algorithm.
-	 * 
-	 * @return the supplier
-	 */
-	Supplier<T> getSupplier();
+	int length(); // TODO: remove at the end?
 
 	/**
 	 * Yields the name of the algorithm.
@@ -82,22 +57,4 @@ public interface HashingAlgorithm<T> extends Cloneable {
 	 * @return the clone of this algorithm
 	 */
 	HashingAlgorithm<T> clone();
-
-	/**
-     * A supplier of a hashing algorithm.
-     * 
-     * @param <T> the type of the objects that will get hashed
-     */
-    interface Supplier<T> {
-
-    	/**
-    	 * Supplies a hashing algorithm with this supplier.
-    	 * 
-    	 * @param toBytes a function applied to the objects to hash, to transform them into bytes that
-    	 *                will then be hashed
-    	 * @return the hashing algorithm
-    	 * @throws NoSuchAlgorithmException if the hashing algorithm is not available
-    	 */
-    	HashingAlgorithm<T> get(Function<? super T, byte[]> toBytes) throws NoSuchAlgorithmException;
-    }
 }
