@@ -135,9 +135,4 @@ public class QTESLA1 extends AbstractSignatureAlgorithmImpl {
     	 if (Security.getProvider(BouncyCastlePQCProvider.PROVIDER_NAME) == null)
              Security.addProvider(new BouncyCastlePQCProvider());
 	}
-
-	@Override
-	public String getName() {
-		return "qtesla1";
-	}
 }

@@ -159,9 +159,4 @@ public class ED25519 extends AbstractSignatureAlgorithmImpl {
 		if (Security.getProvider(BouncyCastleProvider.PROVIDER_NAME) == null)
 	        Security.addProvider(new BouncyCastleProvider());
 	}
-
-	@Override
-	public String getName() {
-		return "ed25519";
-	}
 }

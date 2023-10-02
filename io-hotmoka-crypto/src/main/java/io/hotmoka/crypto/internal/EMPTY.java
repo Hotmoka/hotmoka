@@ -99,9 +99,4 @@ public class EMPTY extends AbstractSignatureAlgorithmImpl {
 	public PrivateKey privateKeyFromEncoding(byte[] encoded) {
 		return dummyKeys.getPrivate();
 	}
-
-	@Override
-	public String getName() {
-		return "empty";
-	}
 }

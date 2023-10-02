@@ -23,9 +23,7 @@ import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
-import io.hotmoka.crypto.AbstractHashingAlgorithm;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;
@@ -55,30 +53,8 @@ public class TrieOfInfo {
 	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
-			HashingAlgorithm hashingForNodes = HashingAlgorithms.sha256();
-
-			// the hashing algorithm applied to the keys of the trie
-			class KeyHashingAlgorithm extends AbstractHashingAlgorithm { // TODO: use identity hashing
-
-				@Override
-				public byte[] hash(byte[] bytes) {
-					return new byte[] { bytes[0] };
-				}
-
-			    @Override
-				public int length() {
-					return 1;
-				}
-
-				@Override
-				public String getName() {
-					return "custom";
-				}
-			};
-
-			var hashingForKeys = new KeyHashingAlgorithm();
-
-			parent = PatriciaTries.of(keyValueStoreOfInfos, hashingForKeys.getHasher(key -> new byte[] { key }), hashingForNodes, StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
+			parent = PatriciaTries.of(keyValueStoreOfInfos, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+				HashingAlgorithms.sha256(), StorageValue::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Unexpected exception", e);

@@ -83,7 +83,7 @@ public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 	@Override
 	public KeyPair getKeyPair(byte[] entropy, BIP39Dictionary dictionary, String password) {
 		// we create a random object that we use only once and always provides the seed
-		SecureRandom random = new SecureRandom() {
+		var random = new SecureRandom() {
 			private final static long serialVersionUID = 1L;
 			private final byte[] seed = mergeEntropyWithPassword();
 
@@ -110,7 +110,7 @@ public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 			return mkKeyPairGenerator(random).generateKeyPair();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 
@@ -146,10 +146,5 @@ public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 	@Override
 	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
 		return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(encoded));
-	}
-
-	@Override
-	public String getName() {
-		return "sha256dsa";
 	}
 }

@@ -33,52 +33,25 @@ public class SHA256 extends AbstractHashingAlgorithm {
 	}
 
 	@Override
-	public byte[] hash(byte[] bytes) {
-		try {
-			synchronized (digest) {
-				digest.reset();
-				return digest.digest(bytes);
-			}
-		}
-		catch(Exception e) {
-			throw new IllegalArgumentException(e);
+	protected byte[] hash(byte[] bytes) {
+		synchronized (digest) {
+			digest.reset();
+			return digest.digest(bytes);
 		}
 	}
 
 	@Override
-	public byte[] hash(byte[] bytes, int start, int length) {
-		if (start < 0)
-			throw new IllegalArgumentException("start cannot be negative");
-	
-		if (length < 0)
-			throw new IllegalArgumentException("length cannot be negative");
-	
-		try {
-			if (start + length > bytes.length)
-				throw new IllegalArgumentException("trying to hash a portion larger than the array of bytes");
-	
-			synchronized (digest) {
-				digest.reset();
-				digest.update(bytes, start, length);
-				return digest.digest();
-			}
-		}
-		catch(IllegalArgumentException e) {
-			throw e;
-		}
-		catch(Exception e) {
-			throw new IllegalArgumentException(e);
+	protected byte[] hash(byte[] bytes, int start, int length) {
+		synchronized (digest) {
+			digest.reset();
+			digest.update(bytes, start, length);
+			return digest.digest();
 		}
 	}
 
 	@Override
 	public int length() {
 		return 32;
-	}
-
-	@Override
-	public String getName() {
-		return "sha256";
 	}
 
 	@Override

@@ -191,6 +191,11 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 	}
 
 	@Override
+	public String getName() {
+		return getClass().getSimpleName().toLowerCase();
+	}
+
+	@Override
 	public String toString() {
 		return getName();
 	}

@@ -17,52 +17,25 @@ public class SHABAL256 extends AbstractHashingAlgorithm {
 	}
 
 	@Override
-	public byte[] hash(byte[] bytes) {
-		try {
-			synchronized (digest) {
-				digest.reset();
-				return digest.digest(bytes);
-			}
-		}
-		catch(Exception e) {
-			throw new IllegalArgumentException(e);
+	protected byte[] hash(byte[] bytes) {
+		synchronized (digest) {
+			digest.reset();
+			return digest.digest(bytes);
 		}
 	}
 
 	@Override
-	public byte[] hash(byte[] bytes, int start, int length) {
-		if (start < 0)
-			throw new IllegalArgumentException("start cannot be negative");
-
-		if (length < 0)
-			throw new IllegalArgumentException("length cannot be negative");
-
-		try {
-			if (start + length > bytes.length)
-				throw new IllegalArgumentException("Trying to hash a portion larger than the array of bytes");
-
-			synchronized (digest) {
-				digest.reset();
-				digest.update(bytes, start, length);
-				return digest.digest();
-			}
-		}
-		catch(IllegalArgumentException e) {
-			throw e;
-		}
-		catch (Exception e) {
-			throw new IllegalArgumentException(e);
+	protected byte[] hash(byte[] bytes, int start, int length) {
+		synchronized (digest) {
+			digest.reset();
+			digest.update(bytes, start, length);
+			return digest.digest();
 		}
 	}
 
 	@Override
 	public int length() {
 		return 32;
-	}
-
-	@Override
-	public String getName() {
-		return "shabal256";
 	}
 
 	@Override
@@ -161,7 +134,7 @@ public class SHABAL256 extends AbstractHashingAlgorithm {
 
 		@Override
 		protected byte[] engineDigest() {
-			byte[] output = new byte[32];
+			var output = new byte[32];
 			shabalDigest(output, 0);
 			return output;
 		}
@@ -254,7 +227,7 @@ public class SHABAL256 extends AbstractHashingAlgorithm {
 
 		@Override
 		public Shabal256Digest clone() {
-			Shabal256Digest d = new Shabal256Digest();
+			var d = new Shabal256Digest();
 			System.arraycopy(buf, 0, d.buf, 0, ptr);
 			d.ptr = ptr;
 			System.arraycopy(state, 0, d.state, 0, 44);

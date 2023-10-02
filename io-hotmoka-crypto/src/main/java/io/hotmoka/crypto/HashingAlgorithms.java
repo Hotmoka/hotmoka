@@ -21,6 +21,7 @@ import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.crypto.internal.Identity;
 import io.hotmoka.crypto.internal.SHA256;
 import io.hotmoka.crypto.internal.SHABAL256;
 
@@ -51,6 +52,24 @@ public final class HashingAlgorithms {
 	}
 
 	/**
+	 * Yields the identity hashing algorithm for arrays of one byte.
+	 * 
+	 * @return the algorithm
+	 */
+	public static HashingAlgorithm identity1() {
+		return new Identity(1);
+	}
+
+	/**
+	 * Yields the identity hashing algorithm for arrays of 32 byte.
+	 * 
+	 * @return the algorithm
+	 */
+	public static HashingAlgorithm identity32() {
+		return new Identity(32);
+	}
+
+	/**
 	 * Yields the hashing algorithm with the given name.
 	 * It looks for a factory method with the given name and invokes it.
 	 * 
@@ -67,7 +86,7 @@ public final class HashingAlgorithms {
 			return (HashingAlgorithm) method.invoke(null);
 		}
 		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("Unknown hashing algorithm named " + name, e);
+			throw new NoSuchAlgorithmException("Unknown hashing algorithm with name " + name, e);
 		}
 	}
 }
