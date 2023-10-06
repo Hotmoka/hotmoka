@@ -18,6 +18,7 @@ package io.hotmoka.beans.references;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -39,8 +40,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its bytes
 	 */
 	public LocalTransactionReference(String hash) {
-		if (hash == null)
-			throw new IllegalArgumentException("hash cannot be null");
+		Objects.requireNonNull(hash, "hash cannot be null");
 
 		// each byte is represented by two successive characters
 		if (hash.length() != TransactionRequest.REQUEST_HASH_LENGTH * 2)
@@ -124,7 +124,7 @@ public final class LocalTransactionReference extends TransactionReference {
 
 	@Override
 	public byte[] getHashAsBytes() {
-		byte[] val = new byte[hash.length() / 2];
+		var val = new byte[hash.length() / 2];
 		for (int i = 0; i < val.length; i++) {
 			int index = i * 2;
 			int j = Integer.parseInt(hash.substring(index, index + 2), 16);

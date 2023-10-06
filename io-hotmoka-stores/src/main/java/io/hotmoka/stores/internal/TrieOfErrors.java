@@ -22,7 +22,6 @@ import java.util.Optional;
 
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.UnmarshallingContexts;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -56,11 +55,11 @@ public class TrieOfErrors {
 	public TrieOfErrors(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
 			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(reference -> Hex.fromHexString(reference.getHash())),
+			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(TransactionReference::getHashAsBytes),
 				HashingAlgorithms.sha256(), MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 

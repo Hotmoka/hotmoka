@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
+import org.bouncycastle.util.encoders.DecoderException;
+import org.bouncycastle.util.encoders.EncoderException;
+
 /**
  * Simple class for translation of byte arrays into and from hexadecimal strings.
  */
@@ -40,9 +43,15 @@ public final class Hex {
 	 * @param offset the starting point in {@code bytes}
 	 * @param length the number of bytes to consider
 	 * @return the hexadecimal string representation
+	 * @throws HexConversionException if the conversion fails
 	 */
-	public static String toHexString(byte[] data, int offset, int length) {
-		return org.bouncycastle.util.encoders.Hex.toHexString(data, offset, length);
+	public static String toHexString(byte[] data, int offset, int length) throws HexConversionException {
+		try {
+			return org.bouncycastle.util.encoders.Hex.toHexString(data, offset, length);
+		}
+		catch (EncoderException e) {
+			throw new HexConversionException(e);
+		}
 	}
 
 	/**
@@ -50,8 +59,14 @@ public final class Hex {
 	 * 
 	 * @param hex the hexadecimal string
 	 * @return the byte representation (most significant byte first)
+	 * @throws HexConversionException if the conversion fails
 	 */
-	public static byte[] fromHexString(String hex) {
-		return org.bouncycastle.util.encoders.Hex.decode(hex);
+	public static byte[] fromHexString(String hex) throws HexConversionException {
+		try {
+			return org.bouncycastle.util.encoders.Hex.decode(hex);
+		}
+		catch (DecoderException e) {
+			throw new HexConversionException(e);
+		}
 	}
 }
