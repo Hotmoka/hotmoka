@@ -24,9 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.function.Function;
 
 /**
- * An algorithm that signs values and verifies such signatures back.
- *
- * @param <T> the type of values that get signed
+ * An algorithm for signing values and verifying such signatures back.
  */
 public interface SignatureAlgorithm {
 

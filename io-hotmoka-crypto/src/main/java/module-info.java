@@ -21,5 +21,5 @@ module io.hotmoka.crypto {
 	exports io.hotmoka.crypto;
 	requires transitive io.hotmoka.crypto.api;
     requires org.bouncycastle.provider;
-    requires static java.logging;
+    requires java.logging;
 }

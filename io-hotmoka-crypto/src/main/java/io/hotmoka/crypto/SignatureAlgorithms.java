@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
+import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.internal.AbstractSignatureAlgorithmImpl;
 import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.crypto.internal.ED25519DET;
 import io.hotmoka.crypto.internal.EMPTY;
@@ -102,21 +102,20 @@ public final class SignatureAlgorithms {
 	 * Yields the signature algorithm with the given name.
 	 * It looks for a factory method with the given name and invokes it.
 	 * 
-	 * @param <T> the type of the values that get signed
 	 * @param name the name of the algorithm, case-insensitive
 	 * @return the algorithm
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	public static SignatureAlgorithm of(String name) throws NoSuchAlgorithmException {
-		name = name.toLowerCase();
+		return AbstractSignatureAlgorithmImpl.of(name);
+	}
 
-		try {
-			// only sha256dsa, ed25519, empty, qtesla1 and qtesla3 are currently found below
-			Method method = SignatureAlgorithms.class.getMethod(name);
-			return (SignatureAlgorithm) method.invoke(null);
-		}
-		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
-		}
+	/**
+	 * Yields the signature available algorithms.
+	 * 
+	 * @return the available signature algorithms
+	 */
+	public static Stream<SignatureAlgorithm> available() {
+		return AbstractSignatureAlgorithmImpl.available();
 	}
 }

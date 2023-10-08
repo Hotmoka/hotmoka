@@ -21,6 +21,9 @@ limitations under the License.
  */
 package io.hotmoka.crypto.internal;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -32,13 +35,18 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.SignatureException;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.bouncycastle.crypto.digests.SHA512Digest;
 import org.bouncycastle.crypto.generators.PKCS5S2ParametersGenerator;
 import org.bouncycastle.crypto.params.KeyParameter;
 
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.BIP39Dictionary;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.api.Signer;
@@ -48,6 +56,8 @@ import io.hotmoka.crypto.api.Verifier;
  * Partial implementation of a signature algorithm.
  */
 public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorithm {
+
+	private final static Logger LOGGER = Logger.getLogger(AbstractSignatureAlgorithmImpl.class.getName());
 
 	/**
 	 * Yields the signature of the given value, by using the given private key.
@@ -198,5 +208,64 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	/**
+	 * Yields the signature algorithm with the given name.
+	 * It looks for a factory method with the given name and invokes it.
+	 * 
+	 * @param name the name of the algorithm, case-insensitive
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	public static SignatureAlgorithm of(String name) throws NoSuchAlgorithmException {
+		name = name.toLowerCase();
+
+		try {
+			Method method = SignatureAlgorithms.class.getMethod(name);
+			return (SignatureAlgorithm) method.invoke(null);
+		}
+		catch (InvocationTargetException e) {
+			var cause = e.getCause();
+			if (cause instanceof NoSuchAlgorithmException)
+				throw (NoSuchAlgorithmException) cause;
+			else
+				throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
+		}
+		catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException e) {
+			throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
+		}
+	}
+
+	/**
+	 * Yields the signature available algorithms.
+	 * 
+	 * @return the available signature algorithms
+	 */
+	public static Stream<SignatureAlgorithm> available() {
+		return Stream.of(SignatureAlgorithms.class.getDeclaredMethods())
+			.filter(method -> Modifier.isPublic(method.getModifiers()))
+			.filter(method -> Modifier.isStatic(method.getModifiers()))
+			.filter(method -> method.getParameterCount() == 0)
+			.filter(method -> method.getReturnType() == SignatureAlgorithm.class)
+			.map(AbstractSignatureAlgorithmImpl::tryCreation)
+			.flatMap(Optional::stream);
+	}
+
+	/**
+	 * Tries to create a signature algorithm by using the given supplier method.
+	 * It yields an empty optional if the creation fails.
+	 * 
+	 * @param supplier the supplier method
+	 * @return the signature algorithm, if any
+	 */
+	private static Optional<SignatureAlgorithm> tryCreation(Method supplier) {
+		try {
+			return Optional.of((SignatureAlgorithm) supplier.invoke(null));
+		}
+		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			LOGGER.log(Level.WARNING, "discarding hashing algorithm " + supplier.getName() + " since it could not be created", e);
+			return Optional.empty();
+		}
 	}
 }
