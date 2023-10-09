@@ -59,31 +59,30 @@ public class Base58Impl {
      * @return the base58-encoded string
      */
     public static String encode(byte[] input) {
-        if (input.length == 0) {
+        if (input.length == 0)
             return "";
-        }       
+
         // Count leading zeros.
         int zeros = 0;
-        while (zeros < input.length && input[zeros] == 0) {
+        while (zeros < input.length && input[zeros] == 0)
             ++zeros;
-        }
+
         // Convert base-256 digits to base-58 digits (plus conversion to ASCII characters)
         input = Arrays.copyOf(input, input.length); // since we modify it in-place
         var encoded = new char[input.length * 2]; // upper bound
         int outputStart = encoded.length;
         for (int inputStart = zeros; inputStart < input.length; ) {
             encoded[--outputStart] = ALPHABET[divmod(input, inputStart, 256, 58)];
-            if (input[inputStart] == 0) {
+            if (input[inputStart] == 0)
                 ++inputStart; // optimization - skip leading zeros
-            }
         }
         // Preserve exactly as many leading encoded zeros in output as there were leading zeros in input.
-        while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO) {
+        while (outputStart < encoded.length && encoded[outputStart] == ENCODED_ZERO)
             ++outputStart;
-        }
-        while (--zeros >= 0) {
+
+        while (--zeros >= 0)
             encoded[--outputStart] = ENCODED_ZERO;
-        }
+
         // Return encoded string (including encoded leading zeros).
         return new String(encoded, outputStart, encoded.length - outputStart);
     }
@@ -104,29 +103,28 @@ public class Base58Impl {
         for (int i = 0; i < input.length(); ++i) {
             char c = input.charAt(i);
             int digit = c < 128 ? INDEXES[c] : -1;
-            if (digit < 0) {
+            if (digit < 0)
                 throw new IllegalArgumentException("Invalid character in Base58 encoding: " + c);
-            }
+
             input58[i] = (byte) digit;
         }
         // Count leading zeros.
         int zeros = 0;
-        while (zeros < input58.length && input58[zeros] == 0) {
+        while (zeros < input58.length && input58[zeros] == 0)
             ++zeros;
-        }
+
         // Convert base-58 digits to base-256 digits.
         var decoded = new byte[input.length()];
         int outputStart = decoded.length;
         for (int inputStart = zeros; inputStart < input58.length; ) {
             decoded[--outputStart] = divmod(input58, inputStart, 58, 256);
-            if (input58[inputStart] == 0) {
+            if (input58[inputStart] == 0)
                 ++inputStart; // optimization - skip leading zeros
-            }
         }
         // Ignore extra leading zeroes that were added during the calculation.
-        while (outputStart < decoded.length && decoded[outputStart] == 0) {
+        while (outputStart < decoded.length && decoded[outputStart] == 0)
             ++outputStart;
-        }
+
         // Return decoded data (including original number of leading zeros).
         return Arrays.copyOfRange(decoded, outputStart - zeros, decoded.length);
     }
