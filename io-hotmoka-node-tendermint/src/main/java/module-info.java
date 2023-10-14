@@ -23,7 +23,7 @@ module io.hotmoka.node.tendermint {
 	exports io.hotmoka.node.tendermint.internal.beans to com.google.gson;
 
 	requires transitive io.hotmoka.node.tendermint.api;
-	requires io.hotmoka.tendermint.abci;
+	requires io.hotmoka.node.tendermint.abci;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;

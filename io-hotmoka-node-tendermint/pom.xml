@@ -22,7 +22,7 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-tendermint-abci</artifactId>
+      <artifactId>io-hotmoka-node-tendermint-abci</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

@@ -114,9 +114,9 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-disk-api</module>
     <module>io-hotmoka-node-disk</module>
     <module>io-hotmoka-node-tendermint-api</module>
+    <module>io-hotmoka-node-tendermint-abci</module>
     <module>io-hotmoka-node-tendermint</module>
     <module>io-hotmoka-xodus</module>
-    <module>io-hotmoka-tendermint-abci</module>
     <module>io-hotmoka-annotations</module>
     <module>io-hotmoka-marshalling-api</module>
     <module>io-hotmoka-marshalling</module>
@@ -306,7 +306,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-patricia,
                 io-hotmoka-service,
                 io-hotmoka-remote,
-                io-hotmoka-tendermint-abci,
+                io-hotmoka-node-tendermint-abci,
                 io-hotmoka-node-tendermint-api,
                 io-hotmoka-node-tendermint,
                 io-hotmoka-xodus,
@@ -329,7 +329,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
 
                 <!--  we exclude all modules that go into the automatic folder -->
                 bcel,
-                io-hotmoka-tendermint-abci,
+                io-hotmoka-node-tendermint-abci,
                 io-hotmoka-xodus,
                 grpc-stub,
                 protobuf-java,
@@ -365,7 +365,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
               <outputDirectory>${project.parent.basedir}/modules/automatic</outputDirectory>
               <includeArtifactIds>
                 bcel,
-                io-hotmoka-tendermint-abci,
+                io-hotmoka-node-tendermint-abci,
                 io-hotmoka-ws-client,
                 io-hotmoka-xodus,
                 grpc-stub,
