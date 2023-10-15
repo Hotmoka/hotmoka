@@ -21,7 +21,7 @@ limitations under the License.
  * This is surprising, since subpackages are not split packages.
  */
 
-package io.hotmoka.tendermint_abci;
+package io.hotmoka.tendermint.abci;
 
 import io.grpc.stub.StreamObserver;
 import tendermint.abci.ABCIApplicationGrpc;
@@ -47,13 +47,25 @@ import tendermint.abci.Types.ResponseInitChain;
 import tendermint.abci.Types.ResponseQuery;
 
 /**
- * The Tendermint interface that links a Tendermint process to a Tendermint application.
+ * A Tendermint interface that links a Tendermint process to a Tendermint application.
  * It implements a set of handlers that Tendermint calls to notify events.
  */
 public abstract class ABCI {
 
+	/**
+	 * Creates the Tendermint interface.
+	 */
+	protected ABCI() {}
+
+	/**
+	 * The connected application.
+	 */
 	final ABCIApplicationGrpc.ABCIApplicationImplBase service = new ABCIApplication();
 
+	/**
+	 * The implementation of the application. It forwards the calls to the abstract
+	 * method of the {@link ABCI}.
+	 */
 	private class ABCIApplication extends ABCIApplicationGrpc.ABCIApplicationImplBase {
 
 		@Override
@@ -117,23 +129,83 @@ public abstract class ABCI {
 	    }
 	}
 
+	/**
+	 * Executes a request to initialize a chain.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseInitChain initChain(RequestInitChain request);
 
+	/**
+	 * Executes a echo message request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseEcho echo(RequestEcho request);
 
+	/**
+	 * Executes a chain info request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseInfo info(RequestInfo request);
 
+	/**
+	 * Executes a preliminary check about the validity of a transaction request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseCheckTx checkTx(RequestCheckTx request);
 
+	/**
+	 * Called when the construction of a block begins.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseBeginBlock beginBlock(RequestBeginBlock request);
 
+	/**
+	 * Executes a transaction request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseDeliverTx deliverTx(RequestDeliverTx request);
 
+	/**
+	 * Called when the construction of a block ends.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseEndBlock endBlock(RequestEndBlock request);
 
+	/**
+	 * Called when a new block gets committed.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseCommit commit(RequestCommit request);
 
+	/**
+	 * Executes a query request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseQuery query(RequestQuery request);
 
+	/**
+	 * Executes a flush request.
+	 * 
+	 * @param request the request
+	 * @return the response
+	 */
 	protected abstract ResponseFlush flush(RequestFlush request);
 }

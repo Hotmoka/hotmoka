@@ -65,7 +65,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.tendermint_abci.Server;
+import io.hotmoka.tendermint.abci.Server;
 
 /**
  * An implementation of a node working over the Tendermint generic blockchain engine.

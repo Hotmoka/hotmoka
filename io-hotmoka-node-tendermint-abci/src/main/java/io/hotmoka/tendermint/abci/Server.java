@@ -14,31 +14,58 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.tendermint_abci;
+package io.hotmoka.tendermint.abci;
 
 import java.io.IOException;
 
 import io.grpc.ServerBuilder;
 
+/**
+ * Creates a server connected to an application through the ABCI.
+ */
 public class Server {
 	private final io.grpc.Server server;
 
+	/**
+	 * Creates the server.
+	 * 
+	 * @param port the port where the server is published
+	 * @param abci the ABCI of the application
+	 */
 	public Server(int port, ABCI abci) {
 		this.server = ServerBuilder.forPort(port).addService(abci.service).build();
 	}
 
+	/**
+	 * Starts the server.
+	 * 
+	 * @throws IOException if an I/O error occurs
+	 */
 	public void start() throws IOException {
 		server.start();
 	}
 
+	/**
+	 * Checks if the server is shutdown.
+	 * 
+	 * @return true if and only if that conditoin holds
+	 */
 	public boolean isShutdown() {
 		return server.isShutdown();
 	}
 
+	/**
+	 * Shuts down this server.
+	 */
 	public void shutdown() {
 		server.shutdown();
 	}
 
+	/**
+	 * Awaits for the termination of this server, after being shut down.
+	 * 
+	 * @throws InterruptedException if the thread has been interrupted while waiting
+	 */
 	public void awaitTermination() throws InterruptedException {
 		server.awaitTermination();
 	}
