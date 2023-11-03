@@ -211,8 +211,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		context.writeByte(SELECTOR);
 		context.writeStringUnshared(chainId);
 		super.intoWithoutSignature(context);
-		context.writeCompactInt(jar.length);
-		context.write(jar);
+		context.writeLengthAndBytes(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -232,8 +231,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		TransactionReference classpath = TransactionReference.from(context);
 		BigInteger nonce = context.readBigInteger();
 
-		int jarLength = context.readCompactInt();
-		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
+		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
 		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
 		byte[] signature = unmarshallSignature(context);
 

@@ -103,6 +103,14 @@ public interface MarshallingContext extends AutoCloseable {
 	void write(byte[] bytes) throws IOException;
 
 	/**
+	 * Writes the length of the given bytes and the bytes itself into this context.
+	 * 
+	 * @param bytes the bytes to write
+	 * @throws IOException if an I/O error occurs
+	 */
+	void writeLengthAndBytes(byte[] bytes) throws IOException;
+
+	/**
 	 * Writes the given double into this context.
 	 * 
 	 * @param d the double to write

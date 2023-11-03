@@ -91,13 +91,13 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = context.readBigInteger();
-		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = context.readBigInteger();
+		var caller = StorageReference.from(context);
+		var gasLimit = context.readBigInteger();
+		var classpath = TransactionReference.from(context);
+		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
-		StorageReference receiver = StorageReference.from(context);
+		var receiver = StorageReference.from(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}

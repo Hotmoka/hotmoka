@@ -121,6 +121,12 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
+	public void writeLengthAndBytes(byte[] bytes) throws IOException {
+		writeCompactInt(bytes.length);
+		write(bytes);
+	}
+
+	@Override
 	public void writeDouble(double d) throws IOException {
 		oos.writeDouble(d);
 	}

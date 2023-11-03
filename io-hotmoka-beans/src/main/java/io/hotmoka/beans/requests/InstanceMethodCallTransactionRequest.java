@@ -131,11 +131,8 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
-
 		// we add the signature
-		byte[] signature = getSignature();
-		context.writeCompactInt(signature.length);
-		context.write(signature);
+		context.writeLengthAndBytes(signature);
 	}
 
 	@Override
@@ -148,7 +145,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof InstanceMethodCallTransactionRequest) {
-			InstanceMethodCallTransactionRequest otherCast = (InstanceMethodCallTransactionRequest) other;
+			var otherCast = (InstanceMethodCallTransactionRequest) other;
 			return super.equals(other) && chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
 		}
 		else

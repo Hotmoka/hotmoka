@@ -101,8 +101,8 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		TransactionReference classpath = TransactionReference.from(context);
-		StorageReference manifest = StorageReference.from(context);
+		var classpath = TransactionReference.from(context);
+		var manifest = StorageReference.from(context);
 
 		return new InitializationTransactionRequest(classpath, manifest);
 	}

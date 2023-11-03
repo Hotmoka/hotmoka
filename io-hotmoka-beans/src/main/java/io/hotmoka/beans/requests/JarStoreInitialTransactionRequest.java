@@ -117,8 +117,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeInt(jar.length);
-		context.write(jar);
+		context.writeLengthAndBytes(jar);
 		intoArray(dependencies, context);
 	}
 
@@ -131,8 +130,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException {
-		int jarLength = context.readInt();
-		byte[] jar = context.readBytes(jarLength, "jar length mismatch in request");
+		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
 		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);

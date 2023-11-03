@@ -133,10 +133,10 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * @throws IOException 
 	 */
 	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger initialAmount = context.readBigInteger();
-		BigInteger redInitialAmount = context.readBigInteger();
-		String publicKey = context.readStringUnshared();
+		var classpath = TransactionReference.from(context);
+		var initialAmount = context.readBigInteger();
+		var redInitialAmount = context.readBigInteger();
+		var publicKey = context.readStringUnshared();
 
 		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
 	}

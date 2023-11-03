@@ -48,6 +48,16 @@ public interface UnmarshallingContext extends AutoCloseable {
 	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer, T[]> supplier) throws IOException;
 
 	/**
+	 * Extracts an array of bytes from this context, assuming that it has been saved
+	 * as its length following by its bytes.
+	 * 
+	 * @param mismatchErrorMessage the error message in case of mismatched array length
+	 * @return the array
+	 * @throws IOException if an I/O error occurs
+	 */
+	byte[] readLengthAndBytes(String mismatchErrorMessage) throws IOException;
+
+	/**
 	 * Extracts the next byte from this context.
 	 * 
 	 * @return the next byte
@@ -149,12 +159,12 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * Extracts the next {@code length} bytes from this context.
 	 * 
 	 * @param length the number of bytes to extract
-	 * @param errorMessage the message of the exception thrown if it was not possible
+	 * @param mismatchErrorMessage the message of the exception thrown if it was not possible
 	 *                     to read {@code length} bytes
 	 * @return the bytes
 	 * @throws IOException if an I/O error occurs
 	 */
-	byte[] readBytes(int length, String errorMessage) throws IOException;
+	byte[] readBytes(int length, String mismatchErrorMessage) throws IOException;
 
 	/**
 	 * Extracts the next big integer from this context,  in an optimized way,

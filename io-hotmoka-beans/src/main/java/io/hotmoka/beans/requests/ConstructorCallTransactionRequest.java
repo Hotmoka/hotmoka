@@ -123,11 +123,8 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
-
 		// we add the signature
-		byte[] signature = getSignature();
-		context.writeCompactInt(signature.length);
-		context.write(signature);
+		context.writeLengthAndBytes(getSignature());
 	}
 
 	@Override
@@ -187,12 +184,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @throws IOException if the request cannot be unmarshalled
 	 */
 	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		String chainId = context.readStringUnshared();
-		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = context.readBigInteger();
-		BigInteger gasPrice = context.readBigInteger();
-		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = context.readBigInteger();
+		var chainId = context.readStringUnshared();
+		var caller = StorageReference.from(context);
+		var gasLimit = context.readBigInteger();
+		var gasPrice = context.readBigInteger();
+		var classpath = TransactionReference.from(context);
+		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
 		ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(context);
 		byte[] signature = unmarshallSignature(context);

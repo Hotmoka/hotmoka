@@ -86,6 +86,11 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
+	public byte[] readLengthAndBytes(String mismatchErrorMessage) throws IOException {
+		return readBytes(readCompactInt(), mismatchErrorMessage);
+	}
+
+	@Override
 	public byte readByte() throws IOException {
 		return ois.readByte();
 	}
@@ -143,10 +148,10 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public byte[] readBytes(int length, String errorMessage) throws IOException {
+	public byte[] readBytes(int length, String mismatchErrorMessage) throws IOException {
 		var bytes = new byte[length];
 		if (length != ois.readNBytes(bytes, 0, length))
-			throw new IOException(errorMessage);
+			throw new IOException(mismatchErrorMessage);
 
 		return bytes;
 	}
