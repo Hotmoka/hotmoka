@@ -35,6 +35,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.OutOfGasError;
@@ -191,7 +192,7 @@ public abstract class AbstractCommand implements Runnable {
     	try {
             return s != null && Base58.decode(s).length == 32;
         }
-    	catch (IllegalArgumentException e) {
+    	catch (Base58ConversionException e) {
             return false;
         }
     }

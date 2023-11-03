@@ -59,9 +59,14 @@ public final class Base58 {
      *
      * @param input the base58-encoded string to decode
      * @return the decoded data bytes
-     * @throws IllegalArgumentException if the given string is not a valid base58 string
+     * @throws Base58ConversionException if the given string is not a valid base58 string
      */
-    public static byte[] decode(String input) {
-    	return Base58Impl.decode(input);
+    public static byte[] decode(String input) throws Base58ConversionException {
+    	try {
+    		return Base58Impl.decode(input);
+    	}
+    	catch (RuntimeException e) {
+    		throw new Base58ConversionException(e);
+    	}
     }
 }
