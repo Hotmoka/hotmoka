@@ -72,4 +72,9 @@ public class Identity extends AbstractHashingAlgorithm {
 	public Identity clone() {
 		return new Identity(size);
 	}
+
+	@Override
+	public String getName() {
+		return super.getName() + size;
+	}
 }
