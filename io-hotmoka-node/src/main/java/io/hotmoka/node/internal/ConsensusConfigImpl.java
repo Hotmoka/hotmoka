@@ -83,12 +83,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final boolean allowsUnsignedFaucet;
 
 	/**
-	 * True if and only if the gamete of the node can call, for free, the add method of the accounts ledger
-	 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
-	 */
-	public final boolean allowsMintBurnFromGamete;
-
-	/**
 	 * True if and only if the static verification of the classes of the jars installed in the node must be skipped.
 	 * It defaults to false.
 	 */
@@ -189,7 +183,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
-		this.allowsMintBurnFromGamete = builder.allowsMintBurnFromGamete;
 		this.initialGasPrice = builder.initialGasPrice;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
 		this.ignoresGasPrice = builder.ignoresGasPrice;
@@ -217,7 +210,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				maxCumulativeSizeOfDependencies == otherConfig.maxCumulativeSizeOfDependencies &&
 				allowsSelfCharged == otherConfig.allowsSelfCharged &&
 				allowsUnsignedFaucet == otherConfig.allowsUnsignedFaucet &&
-				allowsMintBurnFromGamete == otherConfig.allowsMintBurnFromGamete &&
 				initialGasPrice.equals(otherConfig.initialGasPrice) &&
 				maxGasPerTransaction.equals(otherConfig.maxGasPerTransaction) &&
 				ignoresGasPrice == otherConfig.ignoresGasPrice &&
@@ -271,10 +263,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("\n");
 		sb.append("# true if and only if the use of the faucet of the gamete is allowed without a valid signature\n");
 		sb.append("allows_unsigned_faucet = " + allowsUnsignedFaucet + "\n");
-		sb.append("\n");
-		sb.append("# true if and only if the gamete of the node can call, for free, the add method of the accounts ledger\n");
-		sb.append("# and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins\n");
-		sb.append("allows_mint_burn_from_gamete = " + allowsMintBurnFromGamete + "\n");
 		sb.append("\n");
 		sb.append("# true if and only if the static verification of the classes of the jars installed in the node must be skipped\n");
 		sb.append("skips_verification = " + skipsVerification + "\n");
@@ -369,11 +357,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public boolean allowsMintBurnFromGamete() {
-		return allowsMintBurnFromGamete;
-	}
-
-	@Override
 	public boolean skipsVerification() {
 		return skipsVerification;
 	}
@@ -454,7 +437,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private long maxErrorLength = 300L;
 		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
-		private boolean allowsMintBurnFromGamete = false;
 		private SignatureAlgorithm signature;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private long maxDependencies = 20;
@@ -503,7 +485,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
 			allowSelfCharged(config.allowsSelfCharged());
 			allowUnsignedFaucet(config.allowsUnsignedFaucet());
-			allowMintBurnFromGamete(config.allowsMintBurnFromGamete());
 			signRequestsWith(config.getSignature());
 			setMaxGasPerTransaction(config.getMaxGasPerTransaction());
 			setInitialGasPrice(config.getInitialGasPrice());
@@ -555,10 +536,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var allowsUnsignedFaucet = toml.getBoolean("allows_unsigned_faucet");
 			if (allowsUnsignedFaucet != null)
 				allowUnsignedFaucet(allowsUnsignedFaucet);
-
-			var allowsMintBurnFromGamete = toml.getBoolean("allows_mint_burn_from_gamete");
-			if (allowsMintBurnFromGamete != null)
-				allowMintBurnFromGamete(allowsMintBurnFromGamete);
 
 			var signature = toml.getString("signature");
 			if (signature != null)
@@ -656,12 +633,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B allowUnsignedFaucet(boolean allowsUnsignedFaucet) {
 			this.allowsUnsignedFaucet = allowsUnsignedFaucet;
-			return getThis();
-		}
-
-		@Override
-		public B allowMintBurnFromGamete(boolean allowsMintBurnFromGamete) {
-			this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 			return getThis();
 		}
 

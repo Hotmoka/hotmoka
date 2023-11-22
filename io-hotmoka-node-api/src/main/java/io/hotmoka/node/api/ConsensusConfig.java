@@ -84,14 +84,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	boolean allowsUnsignedFaucet();
 
 	/**
-	 * Yields true if and only if the gamete of the node can call, for free, the add method of the accounts ledger
-	 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
-	 * 
-	 * @return true if and only if the condition holds
-	 */
-	boolean allowsMintBurnFromGamete();
-
-	/**
 	 * Yields true if and only if the static verification of the classes of the jars installed in the node must be skipped.
 	 * 
 	 * @return true if and only if the condition holds

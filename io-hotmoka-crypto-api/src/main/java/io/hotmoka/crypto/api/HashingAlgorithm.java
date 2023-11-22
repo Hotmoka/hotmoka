@@ -38,7 +38,7 @@ public interface HashingAlgorithm extends Cloneable {
 	 *
 	 * @return the length
 	 */
-	int length(); // TODO: remove at the end?
+	int length();
 
 	/**
 	 * Yields the name of the algorithm.

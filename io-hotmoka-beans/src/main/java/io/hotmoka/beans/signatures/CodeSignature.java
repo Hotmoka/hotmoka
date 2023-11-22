@@ -138,11 +138,6 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsUnsignedFaucet", BasicTypes.BOOLEAN);
 
 	/**
-	 * The method {@code allowsMintBurnFromGamete} of the manifest.
-	 */
-	public final static MethodSignature ALLOWS_MINT_BURN_FROM_GAMETE = new NonVoidMethodSignature(ClassType.MANIFEST, "allowsMintBurnFromGamete", BasicTypes.BOOLEAN);
-
-	/**
 	 * The method {@code skipsVerification} of the manifest.
 	 */
 	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(ClassType.MANIFEST, "skipsVerification", BasicTypes.BOOLEAN);
@@ -266,16 +261,6 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * The method {@code id} of a validator.
 	 */
 	public final static MethodSignature ID = new NonVoidMethodSignature(ClassType.VALIDATOR, "id", ClassType.STRING);
-
-	/**
-	 * The method {@code mint} of an externally owned account.
-	 */
-	public final static MethodSignature EOA_MINT = new VoidMethodSignature(ClassType.EOA, "mint", ClassType.BIG_INTEGER);
-
-	/**
-	 * The method {@code burn} of an externally owned account.
-	 */
-	public final static MethodSignature EOA_BURN = new VoidMethodSignature(ClassType.EOA, "burn", ClassType.BIG_INTEGER);
 
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.

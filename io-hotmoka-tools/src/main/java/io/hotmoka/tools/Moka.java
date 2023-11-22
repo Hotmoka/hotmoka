@@ -21,7 +21,6 @@ import java.net.URL;
 import java.util.logging.LogManager;
 
 import io.hotmoka.tools.internal.moka.BindKey;
-import io.hotmoka.tools.internal.moka.Burn;
 import io.hotmoka.tools.internal.moka.BuyValidation;
 import io.hotmoka.tools.internal.moka.Call;
 import io.hotmoka.tools.internal.moka.Create;
@@ -34,7 +33,6 @@ import io.hotmoka.tools.internal.moka.InitDisk;
 import io.hotmoka.tools.internal.moka.InitTendermint;
 import io.hotmoka.tools.internal.moka.Install;
 import io.hotmoka.tools.internal.moka.Instrument;
-import io.hotmoka.tools.internal.moka.Mint;
 import io.hotmoka.tools.internal.moka.PrintExceptionMessageHandler;
 import io.hotmoka.tools.internal.moka.ResumeTendermint;
 import io.hotmoka.tools.internal.moka.RotateKey;
@@ -58,7 +56,6 @@ import picocli.CommandLine.Command;
 @Command(name = "moka",
 
 	subcommands = { BindKey.class,
-					Burn.class,
 					BuyValidation.class,
 					Call.class,
 					Create.class,
@@ -72,7 +69,6 @@ import picocli.CommandLine.Command;
 					InitTendermint.class,
 					Install.class,
 					Instrument.class,
-					Mint.class,
 			        ResumeTendermint.class,
 			        RotateKey.class,
 			        SellValidation.class,

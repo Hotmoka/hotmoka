@@ -75,15 +75,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B allowUnsignedFaucet(boolean allowsUnsignedFaucet);
 
 	/**
-	 * Specifies to allow the gamete of the node to call, for free, the add method of the accounts ledger
-	 * and the mint/burn methods of the accounts, without paying gas and without paying for the minted coins.
-	 * 
-	 * @param allowsMintBurnFromGamete true if and only if the gamete is allowed
-	 * @return this builder
-	 */
-	B allowMintBurnFromGamete(boolean allowsMintBurnFromGamete);
-
-	/**
 	 * Specifies to signature algorithm to use to sign the requests sent to the node.
 	 * It defaults to ed25519;
 	 * 

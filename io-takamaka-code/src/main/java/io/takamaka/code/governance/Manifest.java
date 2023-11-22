@@ -78,13 +78,6 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	private final boolean allowsUnsignedFaucet;
 
 	/**
-	 * True if and only if the gamete of the node can call, for free, the {@link AccountsLedger#add(java.math.BigInteger, String)}
-	 * and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
-	 * methods, without paying gas and without paying for the minted coins.
-	 */
-	private final boolean allowsMintBurnFromGamete;
-
-	/**
 	 * True if and only if the verification of the classes of the jars installed in the node must be skipped.
 	 */
 	private final boolean skipsVerification;
@@ -131,11 +124,6 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @param maxDependencies the maximal number of dependencies per transaction
 	 * @param maxCumulativeSizeOfDependencies the maximal cumulative size of the the dependencies per transaction
 	 * @param allowsSelfCharged true if and only if the use of the {@code @@SelfCharged} annotation is allowed
-	 * @param allowsFaucet true if and only if the use of the {@code faucet()} methods of the gametes is allowed without a valid signature
-	 * @param allowsMintBurnFromGamete true if and only if the gamete of the node can call, for free,
-	 *                                 the {@link AccountsLedger#add(java.math.BigInteger, String)}
-	 *                                 and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
-	 *                                 methods, without paying gas and without paying for the minted coins
 	 * @param skipsVerification true if and only if the verification of the classes of the jars installed in the node must be skipped
 	 * @param signature the name of the signature algorithm that must be used to sign the requests sent to the node
 	 * @param gamete the account that initially holds all coins
@@ -145,7 +133,7 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 * @throws RequirementViolationException if any parameter is null or any builder yields null or the maximal error length is negative
 	 */
 	public Manifest(String genesisTime, String chainId, long maxErrorLength, long maxDependencies, long maxCumulativeSizeOfDependencies, boolean allowsSelfCharged,
-			boolean allowsFaucet, boolean allowsMintBurnFromGamete, boolean skipsVerification, String signature, Gamete gamete, long verificationVersion,
+			boolean allowsFaucet, boolean skipsVerification, String signature, Gamete gamete, long verificationVersion,
 			Function<Manifest<V>, Validators<V>> builderOfValidators, Function<Manifest<V>, GasStation<V>> builderOfGasStation) {
 
 		super(""); // we pass a non-existent public key, hence this account is not controllable
@@ -168,7 +156,6 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 		this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 		this.allowsSelfCharged = allowsSelfCharged;
 		this.allowsUnsignedFaucet = allowsFaucet;
-		this.allowsMintBurnFromGamete = allowsMintBurnFromGamete;
 		this.skipsVerification = skipsVerification;
 		this.signature = signature;
 		this.validators = builderOfValidators.apply(this);
@@ -245,17 +232,6 @@ public final class Manifest<V extends Validator> extends ExternallyOwnedAccount 
 	 */
 	public final @View boolean allowsUnsignedFaucet() {
 		return allowsUnsignedFaucet;
-	}
-
-	/**
-	 * Determines if the gamete of the node can call, for free, the {@link AccountsLedger#add(java.math.BigInteger, String)}
-	 * and {@link ExternallyOwnedAccount#burn(java.math.BigInteger)}
-	 * methods, without paying gas and without paying for the minted coins.
-	 * 
-	 * @return true if and only if it is allowed
-	 */
-	public final @View boolean allowsMintBurnFromGamete() {
-		return allowsMintBurnFromGamete;
 	}
 
 	/**

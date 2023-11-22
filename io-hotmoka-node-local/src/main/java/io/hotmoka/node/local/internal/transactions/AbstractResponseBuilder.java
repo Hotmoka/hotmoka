@@ -227,26 +227,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		}
 
 		/**
-		 * Determines if the response can call the mint and burn methods of the
-		 * externally owned account, with the given caller.
-		 * 
-		 * @return true if and only if that condition holds
-		 */
-		public final boolean canCallMintBurnFromGamete(Object caller) {
-			StorageReference storageReferenceOfCaller = classLoader.getStorageReferenceOf(caller);
-			return consensus.allowsMintBurnFromGamete() && node.getCaches().getGamete().filter(storageReferenceOfCaller::equals).isPresent();
-		}
-
-		/**
-		 * Adds the given amount of coins to the total supply of the node.
-		 * 
-		 * @param amount the amount of coins to mint (if positive) or burn (if negative)
-		 */
-		public final void addToTotalSupply(BigInteger amount) {
-			node.getCaches().getValidators().map(deserializer::deserialize).ifPresent(validators -> classLoader.increaseCurrentSupply(validators, amount));
-		}
-
-		/**
 		 * Takes note of the given event, emitted during this execution.
 		 * 
 		 * @param event the event

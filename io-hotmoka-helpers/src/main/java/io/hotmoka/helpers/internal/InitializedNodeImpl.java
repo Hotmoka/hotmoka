@@ -174,13 +174,12 @@ public class InitializedNodeImpl implements InitializedNode {
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.STRING, BasicTypes.LONG,
 				BasicTypes.LONG, BasicTypes.LONG,
-				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
+				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
 				ClassType.STRING, ClassType.GAMETE, BasicTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
 			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
 			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
-			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
-			new BooleanValue(consensus.skipsVerification()),
+			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.skipsVerification()),
 			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
@@ -238,13 +237,12 @@ public class InitializedNodeImpl implements InitializedNode {
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(ClassType.MANIFEST, ClassType.STRING, ClassType.STRING, BasicTypes.LONG,
 				BasicTypes.LONG, BasicTypes.LONG,
-				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
+				BasicTypes.BOOLEAN, BasicTypes.BOOLEAN, BasicTypes.BOOLEAN,
 				ClassType.STRING, ClassType.GAMETE, BasicTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
 			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
 			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
-			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.allowsMintBurnFromGamete()),
-			new BooleanValue(consensus.skipsVerification()),
+			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.skipsVerification()),
 			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 

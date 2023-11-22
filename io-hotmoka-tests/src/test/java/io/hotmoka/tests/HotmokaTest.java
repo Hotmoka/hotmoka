@@ -181,7 +181,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 	    			.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
-	    			.allowMintBurnFromGamete(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
 	    			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 	    			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
@@ -265,7 +264,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException {
 		return builder.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
 			.allowUnsignedFaucet(true) // good for testing
-			.allowMintBurnFromGamete(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests

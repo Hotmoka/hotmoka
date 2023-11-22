@@ -238,39 +238,6 @@ public abstract class Runtime {
 		getResponseCreator().event(event);
 	}
 
-	public static void mint(Object caller, Object eoa, BigInteger amount) {
-		AbstractResponseBuilder<?, ?>.ResponseCreator creator = getResponseCreator();
-		if (!creator.canCallMintBurnFromGamete(caller))
-			throw new IllegalArgumentException("the caller is not allowed to mint coins for an account");
-
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("the amount of coins to mint cannot be negative");
-
-		EngineClassLoaderImpl classLoader = creator.getClassLoader();
-		BigInteger balance = classLoader.getBalanceOf(eoa);
-		classLoader.setBalanceOf(eoa, balance.add(amount));
-		creator.addToTotalSupply(amount);
-	}
-
-	public static void burn(Object caller, Object eoa, BigInteger amount) {
-		AbstractResponseBuilder<?, ?>.ResponseCreator creator = getResponseCreator();
-		if (!creator.canCallMintBurnFromGamete(caller))
-			throw new IllegalArgumentException("the caller is not allowed to burn coins from an account");
-
-		if (amount.signum() < 0)
-			throw new IllegalArgumentException("the amount of coins to burn cannot be negative");
-
-		EngineClassLoaderImpl classLoader = creator.getClassLoader();
-		BigInteger balance = classLoader.getBalanceOf(eoa);
-		BigInteger finalBalance = balance.subtract(amount);
-
-		if (finalBalance.signum() < 0)
-			throw new IllegalArgumentException("the final balance of the account, after burning, cannot be negative");
-
-		classLoader.setBalanceOf(eoa, finalBalance);
-		creator.addToTotalSupply(amount.negate());
-	}
-
 	/**
 	 * Runs a given piece of code with a subset of the available gas.
 	 * It first charges the given amount of gas. Then runs the code

@@ -92,20 +92,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		return super.transactionIsSigned() && !isCallToFaucet();
 	}
 
-	@Override
-	protected boolean ignoreGasPrice() {
-		return super.ignoreGasPrice() || 
-			// the add method of the accounts ledger can be called by the gamete with any gas, if the consensus allows it
-			(consensus.allowsMintBurnFromGamete() && isSpecialMethodThatGameteCanCallWithZeroGasPrice() && callerIsGameteOfTheNode());
-	}
-
-	private boolean isSpecialMethodThatGameteCanCallWithZeroGasPrice() {
-		MethodSignature method = request.method;
-		return CodeSignature.ADD_INTO_ACCOUNTS_LEDGER.equals(method) ||
-			CodeSignature.EOA_MINT.equals(method) ||
-			CodeSignature.EOA_BURN.equals(method);
-	}
-
 	private boolean callerIsGameteOfTheNode() {
 		return node.getCaches().getGamete().filter(request.caller::equals).isPresent();
 	}

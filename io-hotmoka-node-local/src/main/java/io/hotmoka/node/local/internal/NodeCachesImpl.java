@@ -217,9 +217,6 @@ public class NodeCachesImpl implements NodeCache {
 			boolean allowsFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_UNSIGNED_FAUCET, manifest))).value;
 
-			boolean allowsMintBurnFromGamete = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_MINT_BURN_FROM_GAMETE, manifest))).value;
-
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.SKIPS_VERIFICATION, manifest))).value;
 
@@ -286,7 +283,6 @@ public class NodeCachesImpl implements NodeCache {
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
 				.allowSelfCharged(allowsSelfCharged)
 				.allowUnsignedFaucet(allowsFaucet)
-				.allowMintBurnFromGamete(allowsMintBurnFromGamete)
 				.skipVerification(skipsVerification)
 				.setVerificationVersion(verificationVersion)
 				.setTicketForNewPoll(ticketForNewPoll)

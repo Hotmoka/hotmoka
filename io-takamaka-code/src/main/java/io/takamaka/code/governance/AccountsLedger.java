@@ -74,9 +74,6 @@ public class AccountsLedger extends Contract {
 	/**
 	 * Adds to this ledger an account for the given public key, if it does not exist already.
 	 * Then sends {@code amount} coins to that account (old or new).
-	 * This method is special since, if its caller is the gamete of the node and
-	 * if {@link Manifest#allowsMintBurnFromGamete()} is true for the manifest of the node,
-	 * then that gamete can successfully call this method with any gas price (hence also for free).
 	 * 
 	 * @param amount the coins to send
 	 * @param publicKey the Base64-encoded public key of the gamete or the Base64-encoded ed25519 public key of the account
