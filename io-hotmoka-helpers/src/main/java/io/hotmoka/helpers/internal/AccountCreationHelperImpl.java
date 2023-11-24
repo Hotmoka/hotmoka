@@ -211,13 +211,14 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
 
-		BigInteger gas = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519());
+		var ed25519 = SignatureAlgorithms.ed25519();
+		BigInteger gas = gasForCreatingAccountWithSignature(ed25519);
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
 		SignatureAlgorithm signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -236,14 +237,15 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-		BigInteger gas1 = gasForCreatingAccountWithSignature(SignatureAlgorithms.ed25519());
+		var ed25519 = SignatureAlgorithms.ed25519();
+		BigInteger gas1 = gasForCreatingAccountWithSignature(ed25519);
 		BigInteger gas2 = gasForTransactionWhosePayerHasSignature(signatureForPayer.getName());
 		BigInteger totalGas = balanceRed.signum() > 0 ? gas1.add(gas2).add(gas2) : gas1.add(gas2);
 
 		gasHandler.accept(totalGas);
 
 		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(SignatureAlgorithms.ed25519().encodingOf(publicKey)); // TODO: why ed25519?
+		String publicKeyEncoded = Base64.getEncoder().encodeToString(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
