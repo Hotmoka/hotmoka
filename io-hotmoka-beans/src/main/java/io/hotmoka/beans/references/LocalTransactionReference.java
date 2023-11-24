@@ -71,7 +71,7 @@ public final class LocalTransactionReference extends TransactionReference {
 	 * @return the string
 	 */
 	private static String bytesToHex(byte[] bytes) {
-	    byte[] hexChars = new byte[bytes.length * 2];
+	    var hexChars = new byte[bytes.length * 2];
 	    int pos = 0;
 	    for (byte b: bytes) {
 	        int v = b & 0xFF;

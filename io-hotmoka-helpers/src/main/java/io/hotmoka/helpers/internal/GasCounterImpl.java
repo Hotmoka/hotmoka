@@ -17,15 +17,19 @@ limitations under the License.
 package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.node.api.Node;
 
@@ -66,7 +70,16 @@ public class GasCounterImpl implements GasCounter {
 	 * @param requests the requests
 	 */
 	public GasCounterImpl(Node node, TransactionRequest<?>... requests) {
-		var references = Stream.of(requests).map(TransactionRequest::getReference).toArray(TransactionReference[]::new);
+		Hasher<TransactionRequest<?>> hasher;
+
+		try {
+			hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("Unepexted exception", e);
+		}
+
+		var references = Stream.of(requests).map(request -> new LocalTransactionReference(hasher.hash(request))).toArray(TransactionReference[]::new);
 		var forPenalty = BigInteger.ZERO;
 		var forCPU = BigInteger.ZERO;
 		var forRAM = BigInteger.ZERO;

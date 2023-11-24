@@ -48,10 +48,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
+import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -64,6 +66,8 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.api.NonceHelper;
@@ -75,11 +79,12 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 	private final static int NUMBER_OF_DAYS = 10;
 	private final static boolean PERFORM_SNAPSHOTS = true;
     private static FileWriter latexFile;
+    private static Hasher<TransactionRequest<?>> hasher;
 
     @BeforeAll
 	static void beforeAll() throws Exception {
+    	hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 		setJar("tokens.jar");
-		
 		latexFile = new FileWriter("erc20_snapshots_comparison.tex");
 		writePreamble(latexFile);
 	}
@@ -265,14 +270,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
         		new VoidMethodSignature(CREATOR, "distribute", ClassType.ACCOUNTS, ClassType.IERC20, BasicTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
     	    node.addInstanceMethodCallTransaction(request);
-    	    trace(request.getReference());
+    	    trace(new LocalTransactionReference(hasher.hash(request)));
     	}
 
     	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new ConstructorCallTransactionRequest
     	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), new ConstructorSignature(COIN));
     	    coin = node.addConstructorCallTransaction(request);
-    	    trace(request.getReference());
+    	    trace(new LocalTransactionReference(hasher.hash(request)));
     	}
 
     	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
@@ -341,7 +346,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
 				TRANSFER, coin, receiver, new IntValue(howMuch));
 			node.addInstanceMethodCallTransaction(request);
-			trace(request.getReference());
+			trace(new LocalTransactionReference(hasher.hash(request)));
 			numberOfTransfers.getAndIncrement();
 		}
 
@@ -349,7 +354,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, new IntValue(howMuch));
             node.addInstanceMethodCallTransaction(request);
-            trace(request.getReference());
+            trace(new LocalTransactionReference(hasher.hash(request)));
             numberOfBurns.getAndIncrement();
 		}
 
@@ -357,7 +362,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, new IntValue(howMuch));
             node.addInstanceMethodCallTransaction(request);
-            trace(request.getReference());
+            trace(new LocalTransactionReference(hasher.hash(request)));
             numberOfMints.getAndIncrement();
 		}
 
