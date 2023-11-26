@@ -18,6 +18,7 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -52,9 +53,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	protected AbstractInstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		if (receiver == null)
-			throw new IllegalArgumentException("receiver cannot be null");
-
+		Objects.requireNonNull(receiver, "receiver cannot be null");
 		this.receiver = receiver;
 	}
 

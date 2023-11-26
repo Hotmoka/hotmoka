@@ -19,6 +19,7 @@ package io.hotmoka.beans.requests;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -50,12 +51,8 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
-		if (actuals == null)
-			throw new IllegalArgumentException("actuals cannot be null");
-
-		for (StorageValue actual: actuals)
-			if (actual == null)
-				throw new IllegalArgumentException("actuals cannot hold null");
+		Objects.requireNonNull(actuals, "actuals cannot be null");
+		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null"));
 
 		this.actuals = actuals;
 	}
@@ -89,6 +86,6 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	@Override
 	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
-		intoArray(actuals, context);
+		context.writeLengthAndArray(actuals);
 	}
 }

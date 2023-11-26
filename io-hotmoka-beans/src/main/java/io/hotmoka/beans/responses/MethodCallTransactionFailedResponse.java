@@ -80,7 +80,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof MethodCallTransactionFailedResponse) {
-			MethodCallTransactionFailedResponse otherCast = (MethodCallTransactionFailedResponse) other;
+			var otherCast = (MethodCallTransactionFailedResponse) other;
 			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
 				&& classNameOfCause.equals(otherCast.classNameOfCause)
 				&& messageOfCause.equals(otherCast.messageOfCause)
@@ -147,15 +147,15 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static MethodCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		BigInteger gasConsumedForPenalty = context.readBigInteger();
-		boolean selfCharged = context.readBoolean();
-		String classNameOfCause = context.readStringUnshared();
-		String messageOfCause = context.readStringUnshared();
-		String where = context.readStringUnshared();
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var gasConsumedForPenalty = context.readBigInteger();
+		var selfCharged = context.readBoolean();
+		var classNameOfCause = context.readStringUnshared();
+		var messageOfCause = context.readStringUnshared();
+		var where = context.readStringUnshared();
 
 		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}

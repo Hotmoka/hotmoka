@@ -115,9 +115,8 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeLong(verificationToolVersion);
-		context.writeInt(instrumentedJar.length);
-		context.write(instrumentedJar);
-		intoArray(dependencies, context);
+		context.writeLengthAndBytes(instrumentedJar);
+		context.writeLengthAndArray(dependencies);
 	}
 
 	/**
@@ -130,8 +129,8 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 */
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException {
 		long verificationToolVersion = context.readLong();
-		byte[] instrumentedJar = instrumentedJarFrom(context);
-		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
+		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
+		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 

@@ -18,6 +18,7 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
@@ -53,11 +54,10 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		if (method == null)
-			throw new IllegalArgumentException("method cannot be null");
+		Objects.requireNonNull(method, "method cannot be null");
 
 		if (method.formals().count() != actuals.length)
-			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
+			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 
 		this.method = method;
 	}
@@ -71,8 +71,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 		if (actuals().count() == 0L)
 			return "  method: " + method;
 		else
-			return "  method: " + method + "\n"
-				+ "  actuals:" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "\n    ", ""));
+			return "  method: " + method + "\n" + "  actuals:" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "\n    ", ""));
 	}
 
 	@Override

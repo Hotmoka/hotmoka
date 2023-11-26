@@ -41,7 +41,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 		// and provision for sharing would just make the size of the histories larger
 		context.writeCompactInt(transactions.length);
 		for (TransactionReference reference: transactions)
-			context.write(reference.getHashAsBytes());
+			context.writeBytes(reference.getHashAsBytes());
 	}
 
 	/**
@@ -56,8 +56,8 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 
 		// we do not share repeated transaction references, since they do not occur in histories
 		// and provision for sharing would just make the size of the histories larger
-		return new MarshallableArrayOfTransactionReferences(context.readArray
-				(_context -> new LocalTransactionReference(_context.readBytes(size, "inconsistent length of transaction reference")),
+		return new MarshallableArrayOfTransactionReferences(context.readLengthAndArray
+				(_context -> new LocalTransactionReference(_context.readBytes(size, "Inconsistent length of transaction reference")),
 						TransactionReference[]::new));
 	}
 }

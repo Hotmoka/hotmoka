@@ -404,7 +404,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 
 	protected static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {
 		try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
-			return context.readArray(TransactionReference::from, TransactionReference[]::new);
+			return context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

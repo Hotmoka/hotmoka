@@ -95,12 +95,14 @@ public interface MarshallingContext extends AutoCloseable {
 	void writeStringUnshared(String s) throws IOException;
 
 	/**
-	 * Writes the given bytes into this context.
+	 * Writes the given bytes into this context. The length of the array is not written,
+	 * hence this method can be applied when the size of the array is known from some
+	 * structural constraint.
 	 * 
 	 * @param bytes the bytes to write
 	 * @throws IOException if an I/O error occurs
 	 */
-	void write(byte[] bytes) throws IOException;
+	void writeBytes(byte[] bytes) throws IOException;
 
 	/**
 	 * Writes the length of the given bytes and the bytes itself into this context.
@@ -109,6 +111,16 @@ public interface MarshallingContext extends AutoCloseable {
 	 * @throws IOException if an I/O error occurs
 	 */
 	void writeLengthAndBytes(byte[] bytes) throws IOException;
+
+	/**
+	 * Writes the length of the given array of marshallables and its elements
+	 * into this context. It is assumed that the array will be read back with
+	 * {@link UnmarshallingContext#readLengthAndArray(io.hotmoka.marshalling.api.Unmarshaller, java.util.function.Function)}.
+	 * 
+	 * @param marshallables the array of marshallables
+	 * @throws IOException if some elements could not be marshalled
+	 */
+	void writeLengthAndArray(Marshallable[] marshallables) throws IOException;
 
 	/**
 	 * Writes the given double into this context.

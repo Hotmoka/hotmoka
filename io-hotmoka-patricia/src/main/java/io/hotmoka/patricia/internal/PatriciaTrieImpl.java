@@ -411,7 +411,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			for (byte[] child: children)
 				if (child != null)
-					context.write(child);
+					context.writeBytes(child);
 		}
 
 		@Override
@@ -504,8 +504,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.write(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
-			context.write(next);
+			context.writeBytes(compactNibblesIntoBytes(sharedNibbles, (byte) 0x00, (byte) 0x01));
+			context.writeBytes(next);
 		}
 
 		@Override
@@ -513,10 +513,10 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < sharedNibbles.length; cursor1++, cursor++)
 				if (sharedNibbles[cursor1] != nibblesOfHashedKey[cursor])
-					throw new NoSuchElementException("key not found in Patricia trie");
+					throw new NoSuchElementException("Key not found in Patricia trie");
 
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
-				throw new RuntimeException("inconsistent key length in Patricia trie");
+				throw new RuntimeException("Inconsistent key length in Patricia trie");
 
 			return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
 		}
@@ -611,8 +611,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		@Override
 		public void into(MarshallingContext context) throws IOException {
-			context.write(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
-			context.write(value);
+			context.writeBytes(compactNibblesIntoBytes(keyEnd, (byte) 0x02, (byte) 0x03));
+			context.writeBytes(value);
 		}
 
 		@Override

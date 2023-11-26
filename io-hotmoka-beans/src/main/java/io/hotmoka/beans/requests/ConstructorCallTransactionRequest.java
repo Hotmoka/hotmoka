@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
@@ -73,14 +74,11 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public ConstructorCallTransactionRequest(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		if (constructor == null)
-			throw new IllegalArgumentException("constructor cannot be null");
+		Objects.requireNonNull(constructor, "constructor cannot be null");
+		Objects.requireNonNull(chainId, "chainId cannot be null");
 
 		if (constructor.formals().count() != actuals.length)
-			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
+			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 
 		this.constructor = constructor;
 		this.chainId = chainId;
@@ -190,9 +188,9 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
+		StorageValue[] actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
 		ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(context);
-		byte[] signature = unmarshallSignature(context);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
 	}

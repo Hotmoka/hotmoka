@@ -18,16 +18,18 @@ package io.hotmoka.beans.types;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A class type that can be used for stored objects in blockchain.
  */
 @Immutable
-public final class ClassType implements StorageType {
+public final class ClassType extends AbstractMarshallable implements StorageType {
 	final static byte SELECTOR = 8;
 	final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
 	final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
@@ -357,9 +359,7 @@ public final class ClassType implements StorageType {
 	 * @param name the name of the class
 	 */
 	public ClassType(String name) {
-		if (name == null)
-			throw new IllegalArgumentException("name cannot be null");
-
+		Objects.requireNonNull(name, "name cannot be null");
 		this.name = name;
 	}
 

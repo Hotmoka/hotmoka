@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
@@ -46,9 +47,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	public NonVoidMethodSignature(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		super(definingClass, methodName, formals);
 
-		if (returnType == null)
-			throw new IllegalArgumentException("returnType cannot be null");
-
+		Objects.requireNonNull(returnType, "returnType cannot be null");
 		this.returnType = returnType;
 	}
 

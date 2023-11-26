@@ -18,6 +18,7 @@ package io.hotmoka.beans.updates;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -60,6 +61,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	public UpdateOfBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
 		super(object, field);
 
+		Objects.requireNonNull(value, "value cannot be null");
 		this.value = value;
 	}
 

@@ -19,6 +19,7 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -325,15 +326,9 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	protected CodeSignature(ClassType definingClass, StorageType... formals) {
-		if (definingClass == null)
-			throw new IllegalArgumentException("definingClass cannot be null");
-
-		if (formals == null)
-			throw new IllegalArgumentException("formals cannot be null");
-
-		for (StorageType formal: formals)
-			if (formal == null)
-				throw new IllegalArgumentException("formals cannot hold null");
+		Objects.requireNonNull(definingClass, "definingClass cannot be null");
+		Objects.requireNonNull(formals, "formals cannot be null");
+		Stream.of(formals).forEach(formal -> Objects.requireNonNull(formal, "formals cannot hold null"));
 
 		this.definingClass = definingClass;
 		this.formals = formals;
@@ -383,9 +378,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		definingClass.into(context);
-		context.writeCompactInt(formals.length);
-		for (StorageType formal: formals)
-			formal.into(context);
+		context.writeLengthAndArray(formals);
 	}
 
 	/**
@@ -402,11 +395,8 @@ public abstract class CodeSignature extends AbstractMarshallable {
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
 
-		ClassType definingClass = (ClassType) StorageType.from(context);
-		int formalsCount = context.readCompactInt();
-		StorageType[] formals = new StorageType[formalsCount];
-		for (int pos = 0; pos < formalsCount; pos++)
-			formals[pos] = StorageType.from(context);
+		var definingClass = (ClassType) StorageType.from(context);
+		StorageType[] formals = context.readLengthAndArray(StorageType::from, StorageType[]::new);
 
 		switch (selector) {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);

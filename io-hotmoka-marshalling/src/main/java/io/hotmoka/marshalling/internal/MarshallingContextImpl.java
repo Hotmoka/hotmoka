@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.ObjectMarshaller;
 
@@ -116,14 +117,22 @@ public class MarshallingContextImpl implements MarshallingContext {
 	}
 
 	@Override
-	public void write(byte[] bytes) throws IOException {
+	public void writeBytes(byte[] bytes) throws IOException {
 		oos.write(bytes);
 	}
 
 	@Override
 	public void writeLengthAndBytes(byte[] bytes) throws IOException {
 		writeCompactInt(bytes.length);
-		write(bytes);
+		writeBytes(bytes);
+	}
+
+	@Override
+	public void writeLengthAndArray(Marshallable[] marshallables) throws IOException {
+		writeCompactInt(marshallables.length);
+
+		for (var marshallable: marshallables)
+			marshallable.into(this);
 	}
 
 	@Override
@@ -173,9 +182,7 @@ public class MarshallingContextImpl implements MarshallingContext {
 		}
 		else {
 			writeByte(3);
-			byte[] bytes = bi.toString().getBytes();
-			writeCompactInt(bytes.length);
-			write(bytes);
+			writeLengthAndBytes(bi.toString().getBytes());
 		}
 	}
 

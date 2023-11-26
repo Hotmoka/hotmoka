@@ -18,6 +18,7 @@ package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -179,14 +180,9 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	 * @param type the type of the field
 	 */
 	public FieldSignature(ClassType definingClass, String name, StorageType type) {
-		if (definingClass == null)
-			throw new IllegalArgumentException("definingClass cannot be null");
-
-		if (name == null)
-			throw new IllegalArgumentException("name cannot be null");
-
-		if (type == null)
-			throw new IllegalArgumentException("type cannot be null");
+		Objects.requireNonNull(definingClass, "definingClass cannot be null");
+		Objects.requireNonNull(name, "name cannot be null");
+		Objects.requireNonNull(type, "type cannot be null");
 
 		this.definingClass = definingClass;
 		this.name = name;

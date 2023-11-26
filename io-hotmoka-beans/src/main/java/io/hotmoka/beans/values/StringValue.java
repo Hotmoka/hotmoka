@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -40,9 +41,7 @@ public final class StringValue extends StorageValue {
 	 * @param value the string
 	 */
 	public StringValue(String value) {
-		if (value == null)
-			throw new IllegalArgumentException("value cannot be null");
-
+		Objects.requireNonNull(value, "value cannot be null");
 		this.value = value;
 	}
 

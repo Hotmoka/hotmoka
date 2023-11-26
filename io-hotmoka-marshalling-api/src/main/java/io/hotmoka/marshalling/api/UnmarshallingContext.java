@@ -37,7 +37,8 @@ public interface UnmarshallingContext extends AutoCloseable {
 	<C> C readObject(Class<C> clazz) throws IOException;
 
 	/**
-	 * Extracts an array of marshallables from this context.
+	 * Extracts length and an array of marshallables from this context, assuming
+	 * that it has been saved with {@link MarshallingContext#writeLengthAndArray(Marshallable[])}.
 	 * 
 	 * @param <T> the type of the marshallables
 	 * @param unmarshaller the object that unmarshals a single marshallable
@@ -45,11 +46,22 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @return the array
 	 * @throws IOException if an I/O error occurs
 	 */
-	<T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer, T[]> supplier) throws IOException;
+	<T extends Marshallable> T[] readLengthAndArray(Unmarshaller<T> unmarshaller, Function<Integer, T[]> supplier) throws IOException;
+
+	/**
+	 * Extracts the next {@code length} bytes from this context.
+	 * 
+	 * @param length the number of bytes to extract
+	 * @param mismatchErrorMessage the message of the exception thrown if it was not possible
+	 *                     to read {@code length} bytes
+	 * @return the bytes
+	 * @throws IOException if an I/O error occurs
+	 */
+	byte[] readBytes(int length, String mismatchErrorMessage) throws IOException;
 
 	/**
 	 * Extracts an array of bytes from this context, assuming that it has been saved
-	 * as its length following by its bytes.
+	 * with {@link MarshallingContext#writeLengthAndBytes(byte[])}.
 	 * 
 	 * @param mismatchErrorMessage the error message in case of mismatched array length
 	 * @return the array
@@ -154,17 +166,6 @@ public interface UnmarshallingContext extends AutoCloseable {
 	 * @throws IOException if an I/O error occurs
 	 */
 	String readStringShared() throws IOException;
-
-	/**
-	 * Extracts the next {@code length} bytes from this context.
-	 * 
-	 * @param length the number of bytes to extract
-	 * @param mismatchErrorMessage the message of the exception thrown if it was not possible
-	 *                     to read {@code length} bytes
-	 * @return the bytes
-	 * @throws IOException if an I/O error occurs
-	 */
-	byte[] readBytes(int length, String mismatchErrorMessage) throws IOException;
 
 	/**
 	 * Extracts the next big integer from this context,  in an optimized way,

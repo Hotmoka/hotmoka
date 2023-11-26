@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.requests;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -53,11 +54,8 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * @param manifest the storage reference that must be set as manifest
 	 */
 	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {
-		if (classpath == null)
-			throw new IllegalArgumentException("classpath cannot be null");
-
-		if (manifest == null)
-			throw new IllegalArgumentException("manifest cannot be null");
+		Objects.requireNonNull(classpath, "classpath cannot be null");
+		Objects.requireNonNull(manifest, "manifest cannot be null");
 
 		this.classpath = classpath;
 		this.manifest = manifest;
@@ -65,15 +63,13 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public String toString() {
-        return getClass().getSimpleName() + ":\n"
-        	+ "  class path: " + classpath + "\n"
-        	+ "  manifest: " + manifest;
+        return getClass().getSimpleName() + ":\n" + "  class path: " + classpath + "\n" + "  manifest: " + manifest;
 	}
 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof InitializationTransactionRequest) {
-			InitializationTransactionRequest otherCast = (InitializationTransactionRequest) other;
+			var otherCast = (InitializationTransactionRequest) other;
 			return classpath.equals(otherCast.classpath) && manifest.equals(otherCast.manifest);
 		}
 		else

@@ -77,7 +77,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		context.writeBigInteger(gasLimit);
 		classpath.into(context);
 		context.writeBigInteger(nonce);
-		intoArray(actuals().toArray(Marshallable[]::new), context);
+		context.writeLengthAndArray(actuals().toArray(Marshallable[]::new));
 		method.into(context);
 		receiver.intoWithoutSelector(context);
 	}
@@ -95,7 +95,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
+		StorageValue[] actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
 		MethodSignature method = (MethodSignature) CodeSignature.from(context);
 		var receiver = StorageReference.from(context);
 

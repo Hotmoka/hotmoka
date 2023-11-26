@@ -76,7 +76,7 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	}
 
 	@Override
-	public <T extends Marshallable> T[] readArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException {
+	public <T extends Marshallable> T[] readLengthAndArray(Unmarshaller<T> unmarshaller, Function<Integer,T[]> supplier) throws IOException {
 		int length = readCompactInt();
 		T[] result = supplier.apply(length);
 		for (int pos = 0; pos < length; pos++)

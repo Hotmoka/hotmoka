@@ -23,6 +23,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -69,8 +70,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	public StaticMethodCallTransactionRequest(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
+		Objects.requireNonNull(chainId, "chainId cannot be null");
 
 		this.chainId = chainId;
 		this.signature = signer.sign(this);
@@ -92,12 +92,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	public StaticMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
-
-		if (signature == null)
-			throw new IllegalArgumentException("signature cannot be null");
-
+		Objects.requireNonNull(chainId, "chainId cannot be null");
+		Objects.requireNonNull(signature, "signature cannot be null");
 		this.chainId = chainId;
 		this.signature = signature;
 	}
@@ -120,7 +116,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof StaticMethodCallTransactionRequest) {
-			StaticMethodCallTransactionRequest otherCast = (StaticMethodCallTransactionRequest) other;
+			var otherCast = (StaticMethodCallTransactionRequest) other;
 			return super.equals(other) && chainId.equals(otherCast.chainId)
 				&& Arrays.equals(signature, otherCast.signature);
 		}
@@ -149,9 +145,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 
 	@Override
 	public String toString() {
-        return super.toString() + ":\n"
-        	+ "  chainId: " + chainId + "\n"
-        	+ "  signature: " + bytesToHex(getSignature());
+        return super.toString() + ":\n" + "  chainId: " + chainId + "\n" + "  signature: " + bytesToHex(signature);
 	}
 
 	@Override
@@ -179,9 +173,9 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
-		StorageValue[] actuals = context.readArray(StorageValue::from, StorageValue[]::new);
-		MethodSignature method = (MethodSignature) CodeSignature.from(context);
-		byte[] signature = unmarshallSignature(context);
+		var actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
+		var method = (MethodSignature) CodeSignature.from(context);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new StaticMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
 	}

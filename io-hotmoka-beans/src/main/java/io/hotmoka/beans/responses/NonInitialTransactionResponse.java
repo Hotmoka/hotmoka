@@ -70,7 +70,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof NonInitialTransactionResponse) {
-			NonInitialTransactionResponse otherCast = (NonInitialTransactionResponse) other;
+			var otherCast = (NonInitialTransactionResponse) other;
 			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(otherCast.gasConsumedForCPU)
 				&& gasConsumedForRAM.equals(otherCast.gasConsumedForRAM) && gasConsumedForStorage.equals(otherCast.gasConsumedForStorage);
 		}
@@ -107,7 +107,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		intoArray(updates, context);
+		context.writeLengthAndArray(updates);
 		context.writeBigInteger(gasConsumedForCPU);
 		context.writeBigInteger(gasConsumedForRAM);
 		context.writeBigInteger(gasConsumedForStorage);

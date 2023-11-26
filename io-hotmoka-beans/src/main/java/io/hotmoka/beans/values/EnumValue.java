@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -45,14 +46,10 @@ public final class EnumValue extends StorageValue {
 	 * @param name the name of the enumeration element
 	 */
 	public EnumValue(String enumClassName, String name) {
+		Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
+		Objects.requireNonNull(name, "name cannot be null");
 		this.enumClassName = enumClassName;
 		this.name = name;
-
-		if (enumClassName == null)
-			throw new IllegalArgumentException("enumClassName cannot be null");
-
-		if (name == null)
-			throw new IllegalArgumentException("name cannot be null");
 	}
 
 	@Override

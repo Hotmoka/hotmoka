@@ -18,8 +18,6 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.annotations.Immutable;
@@ -36,12 +34,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public abstract class TransactionRequest<R extends TransactionResponse> extends AbstractMarshallable {
-
-	/**
-	 * Used to marshal requests that are specific to a node.
-	 * After this selector, the qualified name of the request must follow.
-	 */
-	protected final static byte EXPANSION_SELECTOR = 12;
 
 	/**
 	 * The length of the hash of a transaction request.
@@ -70,40 +62,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(context);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(context);
 		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(context);
-		case EXPANSION_SELECTOR: {
-			// this case deals with requests that only exist in a specific type of node;
-			// hence their fully-qualified name must be available after the expansion selector
-
-			String className = context.readStringUnshared();
-			Class<?> clazz;
-			
-			try {
-				clazz = Class.forName(className, false, ClassLoader.getSystemClassLoader());
-			}
-			catch (ClassNotFoundException e) {
-				throw new IOException("unknown expansion class " + className + " for transaction requests");
-			}
-
-			// only subclass of TransactionRequest are considered, to block potential call injections
-			if (!TransactionRequest.class.isAssignableFrom(clazz))
-				throw new IOException("unknown request class " + className);
-
-			Method from;
-			try {
-				from = clazz.getMethod("from", UnmarshallingContext.class);
-			}
-			catch (NoSuchMethodException | SecurityException e) {
-				throw new IOException("cannot find method " + className + ".from(UnmarshallingContext)");
-			}
-
-			try {
-				return (TransactionRequest<?>) from.invoke(null, context);
-			}
-			catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-				throw new IOException("cannot call method " + className + ".from(UnmarshallingContext)");
-			}
-		}
-		default: throw new IOException("unexpected request selector: " + selector);
+		default: throw new IOException("Unexpected request selector: " + selector);
 		}
 	}
 
@@ -129,17 +88,6 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * The array of hexadecimal digits.
 	 */
 	private final static byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
-
-	/**
-	 * Unmarshals the signature from the given stream.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the signature
-	 * @throws IOException if the signature cannot be unmarshalled
-	 */
-	protected static byte[] unmarshallSignature(UnmarshallingContext context) throws IOException {
-		return context.readLengthAndBytes("signature length mismatch in request");
-	}
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {

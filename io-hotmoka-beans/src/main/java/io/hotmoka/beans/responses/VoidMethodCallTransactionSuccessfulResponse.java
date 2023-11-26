@@ -69,7 +69,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof VoidMethodCallTransactionSuccessfulResponse) {
-			VoidMethodCallTransactionSuccessfulResponse otherCast = (VoidMethodCallTransactionSuccessfulResponse) other;
+			var otherCast = (VoidMethodCallTransactionSuccessfulResponse) other;
 			return super.equals(other) && Arrays.equals(events, otherCast.events);
 		}
 		else
@@ -114,16 +114,16 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static VoidMethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		boolean selfCharged;
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;

@@ -19,6 +19,7 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -50,6 +51,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * @param object the storage reference of the object whose field is modified
 	 */
 	protected Update(StorageReference object) {
+		Objects.requireNonNull(object, "object cannot be null");
 		this.object = object;
 	}
 

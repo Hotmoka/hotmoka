@@ -94,7 +94,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		intoArray(updates, context);
+		context.writeLengthAndArray(updates);
 		gamete.intoWithoutSelector(context);
 	}
 
@@ -107,7 +107,7 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
 		return new GameteCreationTransactionResponse(updates, StorageReference.from(context));
 	}
 }

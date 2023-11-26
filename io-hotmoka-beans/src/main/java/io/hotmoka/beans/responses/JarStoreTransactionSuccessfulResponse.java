@@ -119,9 +119,8 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeLong(verificationToolVersion);
-		context.writeInt(instrumentedJar.length);
-		context.write(instrumentedJar);
-		intoArray(dependencies, context);
+		context.writeLengthAndBytes(instrumentedJar);
+		context.writeLengthAndArray(dependencies);
 	}
 
 	/**
@@ -133,13 +132,13 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();
 		long verificationToolVersion = context.readLong();
-		byte[] instrumentedJar = instrumentedJarFrom(context);
-		Stream<TransactionReference> dependencies = Stream.of(context.readArray(TransactionReference::from, TransactionReference[]::new));
+		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
+		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 

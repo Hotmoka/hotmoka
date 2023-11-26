@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -53,6 +54,7 @@ public final class ClassTag extends Update {
 	public ClassTag(StorageReference object, String className, TransactionReference jar) {
 		super(object);
 
+		Objects.requireNonNull(jar, "jar cannot be null");
 		this.clazz = new ClassType(className);
 		this.jar = jar;
 	}

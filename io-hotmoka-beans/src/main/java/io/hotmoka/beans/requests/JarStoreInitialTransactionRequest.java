@@ -18,6 +18,7 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -50,15 +51,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreInitialTransactionRequest(byte[] jar, TransactionReference... dependencies) {
-		if (jar == null)
-			throw new IllegalArgumentException("jar cannot be null");
-
-		if (dependencies == null)
-			throw new IllegalArgumentException("dependencies cannot be null");
-
-		for (TransactionReference dependency: dependencies)
-			if (dependency == null)
-				throw new IllegalArgumentException("dependencies cannot hold null");
+		Objects.requireNonNull(jar, "jar cannot be null");
+		Objects.requireNonNull(dependencies, "dependencies cannot be null");
+		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies.clone();
@@ -90,7 +85,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
         for (byte b: jar)
             sb.append(String.format("%02x", b));
 
@@ -102,7 +97,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof JarStoreInitialTransactionRequest) {
-			JarStoreInitialTransactionRequest otherCast = (JarStoreInitialTransactionRequest) other;
+			var otherCast = (JarStoreInitialTransactionRequest) other;
 			return Arrays.equals(dependencies, otherCast.dependencies) && Arrays.equals(jar, otherCast.jar);
 		}
 		else
@@ -118,7 +113,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		context.writeLengthAndBytes(jar);
-		intoArray(dependencies, context);
+		context.writeLengthAndArray(dependencies);
 	}
 
 	/**
@@ -131,7 +126,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 */
 	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException {
 		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
-		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
+		TransactionReference[] dependencies = context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);
 	}

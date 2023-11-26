@@ -57,4 +57,14 @@ public enum BasicTypes implements StorageType {
 	public boolean isEager() {
 		return true;
 	}
+
+	@Override
+	public byte[] toByteArray() {
+		return new byte[] { (byte) ordinal() };
+	}
+
+	@Override
+	public int size() {
+		return 1;
+	}
 }

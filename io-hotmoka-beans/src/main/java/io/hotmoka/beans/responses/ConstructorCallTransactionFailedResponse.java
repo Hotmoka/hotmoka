@@ -145,7 +145,7 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 * @throws IOException if the response cannot be unmarshalled
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();

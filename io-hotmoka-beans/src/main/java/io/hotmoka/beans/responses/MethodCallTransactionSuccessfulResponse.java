@@ -72,7 +72,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof MethodCallTransactionSuccessfulResponse) {
-			MethodCallTransactionSuccessfulResponse otherCast = (MethodCallTransactionSuccessfulResponse) other;
+			var otherCast = (MethodCallTransactionSuccessfulResponse) other;
 			return super.equals(other) && result.equals(otherCast.result) && Arrays.equals(events, otherCast.events);
 		}
 		else
@@ -128,17 +128,17 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static MethodCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		StorageValue result = StorageValue.from(context);
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var result = StorageValue.from(context);
 		Stream<StorageReference> events;
 		boolean selfCharged;
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;
@@ -149,7 +149,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 			events = Stream.of(StorageReference.from(context));
 		}
 		else
-			throw new IOException("unexpected response selector: " + selector);
+			throw new IOException("Unexpected response selector: " + selector);
 
 		return new MethodCallTransactionSuccessfulResponse(result, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}

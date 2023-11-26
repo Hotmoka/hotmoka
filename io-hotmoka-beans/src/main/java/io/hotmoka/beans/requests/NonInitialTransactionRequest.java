@@ -18,6 +18,7 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.references.TransactionReference;
@@ -64,26 +65,17 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
 	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
-		if (caller == null)
-			throw new IllegalArgumentException("caller cannot be null");
-
-		if (gasLimit == null)
-			throw new IllegalArgumentException("gasLimit cannot be null");
+		Objects.requireNonNull(caller, "caller cannot be null");
+		Objects.requireNonNull(gasLimit, "gasLimit cannot be null");
+		Objects.requireNonNull(gasPrice, "gasPrice cannot be null");
+		Objects.requireNonNull(classpath, "classpath cannot be null");
+		Objects.requireNonNull(nonce, "nonce cannot be null");
 
 		if (gasLimit.signum() < 0)
 			throw new IllegalArgumentException("gasLimit cannot be negative");
 
-		if (gasPrice == null)
-			throw new IllegalArgumentException("gasPrice cannot be null");
-
 		if (gasPrice.signum() < 0)
 			throw new IllegalArgumentException("gasPrice cannot be negative");
-
-		if (classpath == null)
-			throw new IllegalArgumentException("classpath cannot be null");
-
-		if (nonce == null)
-			throw new IllegalArgumentException("nonce cannot be null");
 
 		if (nonce.signum() < 0)
 			throw new IllegalArgumentException("nonce cannot be negative");
@@ -117,7 +109,7 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof NonInitialTransactionRequest) {
-			NonInitialTransactionRequest<?> otherCast = (NonInitialTransactionRequest<?>) other;
+			var otherCast = (NonInitialTransactionRequest<?>) other;
 			return caller.equals(otherCast.caller) && gasLimit.equals(otherCast.gasLimit) && gasPrice.equals(otherCast.gasPrice)
 				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce);
 		}

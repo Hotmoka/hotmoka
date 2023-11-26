@@ -50,20 +50,6 @@ public abstract class MarshallableImpl implements Marshallable {
 	}
 
 	/**
-	 * Marshals an array of marshallables into a given stream.
-	 * 
-	 * @param marshallables the array of marshallables
-	 * @param context the context holding the stream
-	 * @throws IOException if some elements could not be marshalled
-	 */
-	protected static void intoArray(Marshallable[] marshallables, MarshallingContext context) throws IOException {
-		context.writeCompactInt(marshallables.length);
-
-		for (Marshallable marshallable: marshallables)
-			marshallable.into(context);
-	}
-
-	/**
 	 * Creates a marshalling context for this object.
 	 * 
 	 * @param os the output stream of the context

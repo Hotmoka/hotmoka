@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.beans.nodes;
 
+import java.util.Objects;
+
 /**
  * Node-specific information about a Hotmoka node.
  */
@@ -44,14 +46,9 @@ public class NodeInfo {
 	 * @param ID the identifier of the node inside its network, if any. Otherwise the empty string
 	 */
 	public NodeInfo(String type, String version, String ID) {
-		if (type == null)
-			throw new NullPointerException("type cannot be null");
-		
-		if (version == null)
-			throw new NullPointerException("version cannot be null");
-
-		if (ID == null)
-			throw new NullPointerException("ID cannot be null");
+		Objects.requireNonNull(type, "type cannot be null");
+		Objects.requireNonNull(version, "version cannot be null");
+		Objects.requireNonNull(ID, "ID cannot be null");
 
 		this.type = type;
 		this.version = version;

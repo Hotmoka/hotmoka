@@ -116,19 +116,19 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	 * @throws IOException if the response cannot be unmarshalled
 	 */
 	public static ConstructorCallTransactionSuccessfulResponse from(UnmarshallingContext context, byte selector) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		if (selector == SELECTOR)
-			events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else
-			throw new IOException("unexpected response selector: " + selector);
+			throw new IOException("Unexpected response selector: " + selector);
 
-		StorageReference newObject = StorageReference.from(context);
+		var newObject = StorageReference.from(context);
 		return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

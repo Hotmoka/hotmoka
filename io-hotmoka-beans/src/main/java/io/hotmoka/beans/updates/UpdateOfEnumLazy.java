@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -57,6 +58,8 @@ public final class UpdateOfEnumLazy extends UpdateOfField {
 	public UpdateOfEnumLazy(StorageReference object, FieldSignature field, String enumClassName, String name) {
 		super(object, field);
 
+		Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
+		Objects.requireNonNull(name, "name cannot be null");
 		this.enumClassName = enumClassName;
 		this.name = name;
 	}

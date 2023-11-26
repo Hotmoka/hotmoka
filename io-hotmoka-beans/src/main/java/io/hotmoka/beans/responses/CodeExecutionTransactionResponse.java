@@ -49,16 +49,16 @@ public abstract class CodeExecutionTransactionResponse extends NonInitialTransac
 	}
 
 	/**
-	 * Marshals an array of marshallables into a given stream.
+	 * Marshals an array of references into a given stream.
 	 * 
-	 * @param marshallables the array of marshallables
+	 * @param references the array of marshallables
 	 * @param context the context holding the stream
 	 * @throws IOException if the array cannot be marshalled
 	 */
-	public static void intoArrayWithoutSelector(StorageReference[] marshallables, MarshallingContext context) throws IOException {
-		context.writeCompactInt(marshallables.length);
+	protected static void intoArrayWithoutSelector(StorageReference[] references, MarshallingContext context) throws IOException {
+		context.writeCompactInt(references.length);
 
-		for (StorageReference reference: marshallables)
+		for (var reference: references)
 			reference.intoWithoutSelector(context);
 	}
 }

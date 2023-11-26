@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.updates;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -52,6 +53,7 @@ public final class UpdateOfString extends UpdateOfField {
 	public UpdateOfString(StorageReference object, FieldSignature field, String value) {
 		super(object, field);
 
+		Objects.requireNonNull(value, "value cannot be null");
 		this.value = value;
 	}
 

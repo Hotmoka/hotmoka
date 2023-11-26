@@ -18,6 +18,7 @@ package io.hotmoka.beans.values;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -40,9 +41,7 @@ public final class BigIntegerValue extends StorageValue {
 	 * @param value the big integer
 	 */
 	public BigIntegerValue(BigInteger value) {
-		if (value == null)
-			throw new IllegalArgumentException("value cannot be null");
-
+		Objects.requireNonNull(value, "value cannot be null");
 		this.value = value;
 	}
 

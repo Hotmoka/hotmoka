@@ -133,7 +133,7 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
 		BigInteger gasConsumedForCPU = context.readBigInteger();
 		BigInteger gasConsumedForRAM = context.readBigInteger();
 		BigInteger gasConsumedForStorage = context.readBigInteger();

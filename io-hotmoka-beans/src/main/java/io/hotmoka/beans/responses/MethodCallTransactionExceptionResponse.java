@@ -90,7 +90,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof MethodCallTransactionExceptionResponse) {
-			MethodCallTransactionExceptionResponse otherCast = (MethodCallTransactionExceptionResponse) other;
+			var otherCast = (MethodCallTransactionExceptionResponse) other;
 			return super.equals(other) && Arrays.equals(events, otherCast.events)
 				&& classNameOfCause.equals(otherCast.classNameOfCause)
 				&& messageOfCause.equals(otherCast.messageOfCause)
@@ -102,8 +102,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Arrays.hashCode(events) ^ classNameOfCause.hashCode()
-			^ messageOfCause.hashCode() ^ where.hashCode();
+		return super.hashCode() ^ Arrays.hashCode(events) ^ classNameOfCause.hashCode() ^ messageOfCause.hashCode() ^ where.hashCode();
 	}
 
 	@Override
@@ -139,15 +138,15 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static MethodCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		boolean selfCharged = context.readBoolean();
-		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
-		String classNameOfCause = context.readStringUnshared();
-		String messageOfCause = context.readStringUnshared();
-		String where = context.readStringUnshared();
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var selfCharged = context.readBoolean();
+		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
+		var classNameOfCause = context.readStringUnshared();
+		var messageOfCause = context.readStringUnshared();
+		var where = context.readStringUnshared();
 		return new MethodCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

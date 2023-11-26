@@ -135,14 +135,14 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	 * @throws IOException if the response cannot be unmarshalled
 	 */
 	public static ConstructorCallTransactionExceptionResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		Stream<StorageReference> events = Stream.of(context.readArray(StorageReference::from, StorageReference[]::new));
-		String classNameOfCause = context.readStringUnshared();
-		String messageOfCause = context.readStringUnshared();
-		String where = context.readStringUnshared();
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
+		var classNameOfCause = context.readStringUnshared();
+		var messageOfCause = context.readStringUnshared();
+		var where = context.readStringUnshared();
 		return new ConstructorCallTransactionExceptionResponse(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

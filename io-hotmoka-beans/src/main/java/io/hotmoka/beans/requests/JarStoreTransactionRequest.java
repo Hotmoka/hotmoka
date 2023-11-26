@@ -21,6 +21,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -111,21 +112,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	public JarStoreTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
-		if (jar == null)
-			throw new IllegalArgumentException("jar cannot be null");
-
-		if (dependencies == null)
-			throw new IllegalArgumentException("dependencies cannot be null");
-
-		for (TransactionReference dependency: dependencies)
-			if (dependency == null)
-				throw new IllegalArgumentException("dependencies cannot hold null");
-
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
-
-		if (signature == null)
-			throw new IllegalArgumentException("signature cannot be null");
+		Objects.requireNonNull(jar, "jar cannot be null");
+		Objects.requireNonNull(dependencies, "dependencies cannot be null");
+		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
+		Objects.requireNonNull(chainId, "chainId cannot be null");
+		Objects.requireNonNull(signature, "signature cannot be null");
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
@@ -170,16 +161,12 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
-
-		// we add the signature
-		byte[] signature = getSignature();
-		context.writeCompactInt(signature.length);
-		context.write(signature);
+		context.writeLengthAndBytes(getSignature());
 	}
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
         for (byte b: jar)
             sb.append(String.format("%02x", b));
 
@@ -193,7 +180,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	@Override
 	public boolean equals(Object other) {
 		if (other instanceof JarStoreTransactionRequest) {
-			JarStoreTransactionRequest otherCast = (JarStoreTransactionRequest) other;
+			var otherCast = (JarStoreTransactionRequest) other;
 			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies)
 				&& chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
 		}
@@ -212,7 +199,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		context.writeStringUnshared(chainId);
 		super.intoWithoutSignature(context);
 		context.writeLengthAndBytes(jar);
-		intoArray(dependencies, context);
+		context.writeLengthAndArray(dependencies);
 	}
 
 	/**
@@ -224,16 +211,16 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws IOException if the request could noy be unmarshalled
 	 */
 	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
-		String chainId = context.readStringUnshared();
-		StorageReference caller = StorageReference.from(context);
-		BigInteger gasLimit = context.readBigInteger();
-		BigInteger gasPrice = context.readBigInteger();
-		TransactionReference classpath = TransactionReference.from(context);
-		BigInteger nonce = context.readBigInteger();
+		var chainId = context.readStringUnshared();
+		var caller = StorageReference.from(context);
+		var gasLimit = context.readBigInteger();
+		var gasPrice = context.readBigInteger();
+		var classpath = TransactionReference.from(context);
+		var nonce = context.readBigInteger();
 
-		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
-		TransactionReference[] dependencies = context.readArray(TransactionReference::from, TransactionReference[]::new);
-		byte[] signature = unmarshallSignature(context);
+		byte[] jar = context.readLengthAndBytes("Jar length mismatch in request");
+		TransactionReference[] dependencies = context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
+		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}

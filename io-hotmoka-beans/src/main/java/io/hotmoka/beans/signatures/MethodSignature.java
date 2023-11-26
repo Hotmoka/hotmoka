@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans.signatures;
 
 import java.io.IOException;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
@@ -44,9 +45,7 @@ public abstract class MethodSignature extends CodeSignature {
 	protected MethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, formals);
 
-		if (methodName == null)
-			throw new IllegalArgumentException("methodName cannot be null");
-
+		Objects.requireNonNull(methodName, "methodName cannot be null");
 		this.methodName = methodName;
 	}
 

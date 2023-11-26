@@ -260,7 +260,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = MarshallingContexts.of(baos)) {
-            context.write("hello world".getBytes());
+            context.writeBytes("hello world".getBytes());
             context.flush();
             bytes = baos.toByteArray();
         }
@@ -274,7 +274,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = MarshallingContexts.of(baos)) {
-            context.write(bytesOf("lambdas.jar"));
+            context.writeBytes(bytesOf("lambdas.jar"));
             context.flush();
             bytes = baos.toByteArray();
         }

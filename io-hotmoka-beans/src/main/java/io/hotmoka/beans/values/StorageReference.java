@@ -20,6 +20,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
+import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -58,11 +59,10 @@ public final class StorageReference extends StorageValue implements Serializable
 	 *                    during the same transaction
 	 */
 	public StorageReference(TransactionReference transaction, BigInteger progressive) {
-		if (transaction == null)
-			throw new IllegalArgumentException("transaction cannot be null");
-
-		if (progressive == null)
-			throw new IllegalArgumentException("progressive cannot be null");
+		Objects.requireNonNull(transaction, "transaction cannot be null");
+		Objects.requireNonNull(progressive, "progressive cannot be null");
+		if (progressive.signum() < 0)
+			throw new IllegalArgumentException("progressive cannot be negative");
 
 		this.progressive = progressive;
 		this.transaction = transaction;

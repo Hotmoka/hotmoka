@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -27,7 +28,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * The types that can be used in storage objects in blockchain.
  */
 @Immutable
-public interface StorageType {
+public interface StorageType extends Marshallable {
 
 	/**
 	 * Compares this storage type with another. Puts first basic types, in their order of
