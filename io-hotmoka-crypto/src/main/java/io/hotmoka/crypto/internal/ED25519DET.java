@@ -133,7 +133,7 @@ public class ED25519DET extends AbstractSignatureAlgorithmImpl {
     @Override
    	public PrivateKey privateKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
     	try {
-    		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encoded, 0);
+    		var privateKeyParams = new Ed25519PrivateKeyParameters(encoded, 0);
 			return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded()));
 		}
 		catch (IOException e) {
@@ -153,8 +153,7 @@ public class ED25519DET extends AbstractSignatureAlgorithmImpl {
     	try {
     		PrivateKeyInfo privateKeyInfo = PrivateKeyInfo.getInstance(ASN1Primitive.fromByteArray(new PKCS8EncodedKeySpec(privateKey.getEncoded()).getEncoded()));
     		ASN1Encodable privateKey2 = privateKeyInfo.parsePrivateKey();
-    		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey2).getOctets(), 0);
-    		return privateKeyParams.getEncoded();
+    		return new Ed25519PrivateKeyParameters(((ASN1OctetString) privateKey2).getOctets(), 0).getEncoded();
     	}
     	catch (IOException e) {
     		throw new InvalidKeyException("cannot encode the private key", e);

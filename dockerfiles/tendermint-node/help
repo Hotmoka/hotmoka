@@ -8,9 +8,6 @@ echo
 echo "  help:   prints this help"
 echo
 echo "  init:   creates a node for a brand new blockchain"
-echo "    ALLOW_MINT_BURN_FROM_GAMETE: true if the gamete is allowed to mint and burn"
-echo "                                 coins for any other account"
-echo "      [default: false]"
 echo "    BUYER_SURCHARGE: the extra tax paid when a validator acquires the shares"
 echo "                     of another validator (in percent of the offer cost)"
 echo "                    (0 = 0%, 1000000 = 1%)"

@@ -467,7 +467,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			TransactionReference reference = new LocalTransactionReference(hasher.hash(request));
+			var reference = new LocalTransactionReference(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 
 			StorageValue result;
@@ -484,7 +484,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			TransactionReference reference = new LocalTransactionReference(hasher.hash(request));
+			var reference = new LocalTransactionReference(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result;
 
@@ -526,7 +526,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionReference reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = new LocalTransactionReference(hasher.hash(request));
 		recentCheckTransactionErrors.put(reference, null);
 
 		try {
@@ -575,7 +575,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		TransactionReference reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = new LocalTransactionReference(hasher.hash(request));
 
 		try {
 			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
@@ -749,7 +749,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
 	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
-		TransactionReference reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = new LocalTransactionReference(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
 		if (caches.getResponseUncommitted(reference).isPresent())
@@ -847,7 +847,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			numberOfTransactionsSinceLastReward = numberOfTransactionsSinceLastReward.add(ONE);
 
 			if (response instanceof NonInitialTransactionResponse) {
-				NonInitialTransactionResponse responseAsNonInitial = (NonInitialTransactionResponse) response;
+				var responseAsNonInitial = (NonInitialTransactionResponse) response;
 				BigInteger gasConsumedButPenalty = responseAsNonInitial.gasConsumedForCPU
 						.add(responseAsNonInitial.gasConsumedForStorage)
 						.add(responseAsNonInitial.gasConsumedForRAM);
@@ -881,7 +881,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 	private void scheduleForNotificationOfEvents(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithEvents) {
-			TransactionResponseWithEvents responseWithEvents = (TransactionResponseWithEvents) response;
+			var responseWithEvents = (TransactionResponseWithEvents) response;
 			if (responseWithEvents.getEvents().count() > 0L)
 				scheduleForNotificationOfEvents(responseWithEvents);
 		}

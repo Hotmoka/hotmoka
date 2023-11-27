@@ -57,12 +57,8 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof GameteCreationTransactionResponse) {
-			GameteCreationTransactionResponse otherCast = (GameteCreationTransactionResponse) other;
-			return Arrays.equals(updates, otherCast.updates) && gamete.equals(otherCast.gamete);
-		}
-		else
-			return false;
+		return other instanceof GameteCreationTransactionResponse gctr &&
+			Arrays.equals(updates, gctr.updates) && gamete.equals(gctr.gamete);
 	}
 
 	@Override

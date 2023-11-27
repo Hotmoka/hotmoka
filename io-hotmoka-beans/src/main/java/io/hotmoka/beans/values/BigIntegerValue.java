@@ -52,7 +52,7 @@ public final class BigIntegerValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof BigIntegerValue && ((BigIntegerValue) other).value.equals(value);
+		return other instanceof BigIntegerValue biv && biv.value.equals(value);
 	}
 
 	@Override

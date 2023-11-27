@@ -68,12 +68,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof InitializationTransactionRequest) {
-			var otherCast = (InitializationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && manifest.equals(otherCast.manifest);
-		}
-		else
-			return false;
+		return other instanceof InitializationTransactionRequest itr && classpath.equals(itr.classpath) && manifest.equals(itr.manifest);
 	}
 
 	@Override

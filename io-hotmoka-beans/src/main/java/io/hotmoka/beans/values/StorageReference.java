@@ -75,9 +75,7 @@ public final class StorageReference extends StorageValue implements Serializable
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference &&
-			((StorageReference) other).transaction.equals(transaction) &&
-			((StorageReference) other).progressive.equals(progressive);
+		return other instanceof StorageReference sr && sr.transaction.equals(transaction) && sr.progressive.equals(progressive);
 	}
 
 	@Override

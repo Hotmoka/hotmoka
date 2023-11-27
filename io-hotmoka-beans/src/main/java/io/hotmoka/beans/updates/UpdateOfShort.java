@@ -59,7 +59,7 @@ public final class UpdateOfShort extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfShort && super.equals(other) && ((UpdateOfShort) other).value == value;
+		return other instanceof UpdateOfShort uos && super.equals(other) && uos.value == value;
 	}
 
 	@Override

@@ -52,7 +52,7 @@ public final class StringValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StringValue && ((StringValue) other).value.equals(value);
+		return other instanceof StringValue sv && sv.value.equals(value);
 	}
 
 	@Override
@@ -71,7 +71,7 @@ public final class StringValue extends StorageValue {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if ("".equals(value))
+		if (value.isEmpty())
 			context.writeByte(SELECTOR_EMPTY_STRING);
 		else {
 			context.writeByte(SELECTOR);

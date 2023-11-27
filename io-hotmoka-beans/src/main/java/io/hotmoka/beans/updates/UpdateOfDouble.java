@@ -59,7 +59,7 @@ public final class UpdateOfDouble extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfDouble && super.equals(other) && ((UpdateOfDouble) other).value == value;
+		return other instanceof UpdateOfDouble uod && super.equals(other) && uod.value == value;
 	}
 
 	@Override

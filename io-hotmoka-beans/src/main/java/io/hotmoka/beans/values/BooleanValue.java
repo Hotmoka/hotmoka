@@ -60,7 +60,7 @@ public final class BooleanValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof BooleanValue && ((BooleanValue) other).value == value;
+		return other instanceof BooleanValue bv && bv.value == value;
 	}
 
 	@Override

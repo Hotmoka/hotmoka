@@ -96,7 +96,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
-		MethodSignature method = (MethodSignature) CodeSignature.from(context);
+		var method = (MethodSignature) CodeSignature.from(context);
 		var receiver = StorageReference.from(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);

@@ -70,7 +70,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof NonVoidMethodSignature && returnType.equals(((NonVoidMethodSignature) other).returnType) && super.equals(other);
+		return other instanceof NonVoidMethodSignature nvms && returnType.equals(nvms.returnType) && super.equals(other);
 	}
 
 	@Override

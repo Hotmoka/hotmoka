@@ -63,12 +63,6 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
 	/**
-	 * The extra gas cost for paying to a public key in anonymous way, hence
-	 * storing the new account in the account ledger of the node.
-	 */
-	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = BigInteger.valueOf(500_000L);
-
-	/**
 	 * Creates an object that helps with the creation of new accounts.
 	 * 
 	 * @param node the node whose accounts are considered
@@ -108,11 +102,11 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			eoaType = new ClassType(ClassType.EOA.name + signature.toUpperCase());
 			break;
 		default:
-			throw new IllegalArgumentException("unknown signature algorithm " + signature);
+			throw new IllegalArgumentException("Unknown signature algorithm " + signature);
 		}
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-		SignatureAlgorithm signatureForFaucet = SignatureAlgorithms.empty();
+		var signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
@@ -215,7 +209,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		BigInteger gas = gasForCreatingAccountWithSignature(ed25519);
 
 		// we use an empty signature algorithm and an arbitrary key, since the faucet is unsigned
-		SignatureAlgorithm signatureForFaucet = SignatureAlgorithms.empty();
+		var signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.getEncoder().encodeToString(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only

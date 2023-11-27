@@ -24,4 +24,6 @@ import io.hotmoka.testing.internal.LoggedTestsImpl;
  * Test classes just need to subclass this class in order to use these features.
  */
 public abstract class AbstractLoggedTests extends LoggedTestsImpl {
+
+	protected AbstractLoggedTests() {}
 }

@@ -202,8 +202,8 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof FieldSignature && ((FieldSignature) other).definingClass.equals(definingClass)
-			&& ((FieldSignature) other).name.equals(name) && ((FieldSignature) other).type.equals(type);
+		return other instanceof FieldSignature fs && fs.definingClass.equals(definingClass)
+			&& fs.name.equals(name) && fs.type.equals(type);
 	}
 
 	@Override

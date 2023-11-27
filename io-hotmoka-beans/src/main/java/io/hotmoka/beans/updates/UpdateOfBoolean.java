@@ -60,7 +60,7 @@ public final class UpdateOfBoolean extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfBoolean && super.equals(other) && ((UpdateOfBoolean) other).value == value;
+		return other instanceof UpdateOfBoolean uob && super.equals(other) && uob.value == value;
 	}
 
 	@Override

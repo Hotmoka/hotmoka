@@ -77,18 +77,10 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	public JarStoreTransactionRequest(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
-		if (jar == null)
-			throw new IllegalArgumentException("jar cannot be null");
-
-		if (dependencies == null)
-			throw new IllegalArgumentException("dependencies cannot be null");
-
-		for (TransactionReference dependency: dependencies)
-			if (dependency == null)
-				throw new IllegalArgumentException("dependencies cannot hold null");
-
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
+		Objects.requireNonNull(jar, "jar cannot be null");
+		Objects.requireNonNull(dependencies, "dependencies cannot be null");
+		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
+		Objects.requireNonNull(chainId, "chainId cannot be null");
 
 		this.jar = jar.clone();
 		this.dependencies = dependencies;
@@ -179,13 +171,9 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionRequest) {
-			var otherCast = (JarStoreTransactionRequest) other;
-			return super.equals(otherCast) && Arrays.equals(jar, otherCast.jar) && Arrays.equals(dependencies, otherCast.dependencies)
-				&& chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
-		}
-		else
-			return false;
+		return other instanceof JarStoreTransactionRequest jstr && super.equals(other)
+			&& Arrays.equals(jar, jstr.jar) && Arrays.equals(dependencies, jstr.dependencies)
+			&& chainId.equals(jstr.chainId) && Arrays.equals(signature, jstr.signature);
 	}
 
 	@Override

@@ -19,6 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -73,7 +74,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 	public ConstructorCallTransactionExceptionResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
+		Objects.requireNonNull(classNameOfCause);
 		this.events = events.toArray(StorageReference[]::new);
+		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
@@ -86,15 +89,9 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ConstructorCallTransactionExceptionResponse) {
-			ConstructorCallTransactionExceptionResponse otherCast = (ConstructorCallTransactionExceptionResponse) other;
-			return super.equals(other) && Arrays.equals(events, otherCast.events)
-				&& classNameOfCause.equals(otherCast.classNameOfCause)
-				&& messageOfCause.equals(otherCast.messageOfCause)
-				&& where.equals(otherCast.where);
-		}
-		else
-			return false;
+		return other instanceof ConstructorCallTransactionExceptionResponse ccter && super.equals(other)
+			&& Arrays.equals(events, ccter.events) && classNameOfCause.equals(ccter.classNameOfCause)
+			&& messageOfCause.equals(ccter.messageOfCause) && where.equals(ccter.where);
 	}
 
 	@Override

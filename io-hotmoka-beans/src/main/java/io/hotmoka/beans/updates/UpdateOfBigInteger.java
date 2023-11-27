@@ -72,7 +72,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfBigInteger && super.equals(other) && ((UpdateOfBigInteger) other).value.equals(value);
+		return other instanceof UpdateOfBigInteger uobi && super.equals(other) && uobi.value.equals(value);
 	}
 
 	@Override

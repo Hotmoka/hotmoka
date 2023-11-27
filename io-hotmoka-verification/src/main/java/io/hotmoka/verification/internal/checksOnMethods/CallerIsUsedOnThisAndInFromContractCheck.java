@@ -19,14 +19,12 @@ package io.hotmoka.verification.internal.checksOnMethods;
 import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
-import org.apache.bcel.generic.Instruction;
 import org.apache.bcel.generic.InstructionHandle;
 import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 
 import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.errors.CallerNotOnThisError;
@@ -62,8 +60,7 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 		// we skip NOPs
 		for (ih = ih.getPrev(); ih != null && ih.getInstruction() instanceof NOP; ih = ih.getPrev());
 
-		Instruction ins;
-		return ih != null && (ins = ih.getInstruction()) instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0;
+		return ih != null && ih.getInstruction() instanceof LoadInstruction li && li.getIndex() == 0;
 	}
 
 	/**
@@ -72,17 +69,10 @@ public class CallerIsUsedOnThisAndInFromContractCheck extends CheckOnMethods {
 	private final static String TAKAMAKA_CALLER_SIG = "()L" + Constants.CONTRACT_NAME.replace('.', '/') + ";";
 
 	private boolean isCallToStorageCaller(InstructionHandle ih) throws ClassNotFoundException {
-		Instruction ins = ih.getInstruction();
-		if (ins instanceof InvokeInstruction) {
-			InvokeInstruction invoke = (InvokeInstruction) ins;
-			ReferenceType receiver;
-
-			return "caller".equals(invoke.getMethodName(cpg))
-				&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
-				&& (receiver = invoke.getReferenceType(cpg)) instanceof ObjectType
-				&& classLoader.isStorage(((ObjectType) receiver).getClassName());
-		}
-		else
-			return false;
+		return ih.getInstruction() instanceof InvokeInstruction invoke
+			&& "caller".equals(invoke.getMethodName(cpg))
+			&& TAKAMAKA_CALLER_SIG.equals(invoke.getSignature(cpg))
+			&& invoke.getReferenceType(cpg) instanceof ObjectType receiver
+			&& classLoader.isStorage(receiver.getClassName());
 	}
 }

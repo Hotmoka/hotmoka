@@ -71,7 +71,7 @@ public final class UpdateOfStorage extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfStorage && super.equals(other) && ((UpdateOfStorage) other).value.equals(value);
+		return other instanceof UpdateOfStorage uos && super.equals(other) && uos.value.equals(value);
 	}
 
 	@Override

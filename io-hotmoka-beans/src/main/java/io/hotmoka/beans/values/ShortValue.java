@@ -49,7 +49,7 @@ public final class ShortValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ShortValue && ((ShortValue) other).value == value;
+		return other instanceof ShortValue sv && sv.value == value;
 	}
 
 	@Override

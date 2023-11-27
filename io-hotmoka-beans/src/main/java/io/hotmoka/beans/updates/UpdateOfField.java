@@ -69,7 +69,7 @@ public abstract class UpdateOfField extends Update {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfField && super.equals(other) && ((UpdateOfField) other).field.equals(field);
+		return other instanceof UpdateOfField uof && super.equals(other) && uof.field.equals(field);
 	}
 
 	@Override

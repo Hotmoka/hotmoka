@@ -77,12 +77,8 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreInitialTransactionResponse) {
-			JarStoreInitialTransactionResponse otherCast = (JarStoreInitialTransactionResponse) other;
-			return Arrays.equals(instrumentedJar, otherCast.instrumentedJar) && Arrays.equals(dependencies, otherCast.dependencies);
-		}
-		else
-			return false;
+		return other instanceof JarStoreInitialTransactionResponse jsitr &&
+			Arrays.equals(instrumentedJar, jsitr.instrumentedJar) && Arrays.equals(dependencies, jsitr.dependencies);
 	}
 
 	@Override
@@ -92,7 +88,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 
 	@Override
 	public String toString() {
-		StringBuilder sb = new StringBuilder();
+		var sb = new StringBuilder();
         for (byte b: instrumentedJar)
             sb.append(String.format("%02x", b));
 
@@ -128,7 +124,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * @throws IOException if the response could not be unmarshalled
 	 */
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException {
-		long verificationToolVersion = context.readLong();
+		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
 		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);

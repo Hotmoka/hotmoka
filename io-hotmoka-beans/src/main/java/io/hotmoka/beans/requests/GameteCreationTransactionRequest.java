@@ -95,13 +95,9 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof GameteCreationTransactionRequest) {
-			var otherCast = (GameteCreationTransactionRequest) other;
-			return classpath.equals(otherCast.classpath) && initialAmount.equals(otherCast.initialAmount) && redInitialAmount.equals(otherCast.redInitialAmount)
-				&& publicKey.equals(otherCast.publicKey);
-		}
-		else
-			return false;
+		return other instanceof GameteCreationTransactionRequest gctr &&
+			classpath.equals(gctr.classpath) && initialAmount.equals(gctr.initialAmount) &&
+			redInitialAmount.equals(gctr.redInitialAmount) && publicKey.equals(gctr.publicKey);
 	}
 
 	@Override

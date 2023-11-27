@@ -19,6 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,6 +60,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.events = events.toArray(StorageReference[]::new);
+		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
 	}
 
 	@Override
@@ -68,12 +70,7 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof VoidMethodCallTransactionSuccessfulResponse) {
-			var otherCast = (VoidMethodCallTransactionSuccessfulResponse) other;
-			return super.equals(other) && Arrays.equals(events, otherCast.events);
-		}
-		else
-			return false;
+		return other instanceof VoidMethodCallTransactionSuccessfulResponse vmctsr && super.equals(other) && Arrays.equals(events, vmctsr.events);
 	}
 
 	@Override

@@ -59,7 +59,7 @@ public final class UpdateOfByte extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfByte && super.equals(other) && ((UpdateOfByte) other).value == value;
+		return other instanceof UpdateOfByte uob && super.equals(other) && uob.value == value;
 	}
 
 	@Override

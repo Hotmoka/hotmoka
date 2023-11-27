@@ -53,7 +53,6 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 
 		Objects.requireNonNull(actuals, "actuals cannot be null");
 		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null"));
-
 		this.actuals = actuals;
 	}
 
@@ -75,7 +74,7 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeExecutionTransactionRequest<?> && super.equals(other) && Arrays.equals(actuals, ((CodeExecutionTransactionRequest<?>) other).actuals);
+		return other instanceof CodeExecutionTransactionRequest<?> cetr && super.equals(other) && Arrays.equals(actuals, cetr.actuals);
 	}
 
 	@Override

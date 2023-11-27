@@ -18,6 +18,7 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -71,6 +72,8 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
+		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
+		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
@@ -79,15 +82,9 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof MethodCallTransactionFailedResponse) {
-			var otherCast = (MethodCallTransactionFailedResponse) other;
-			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
-				&& classNameOfCause.equals(otherCast.classNameOfCause)
-				&& messageOfCause.equals(otherCast.messageOfCause)
-				&& where.equals(otherCast.where);
-		}
-		else
-			return false;
+		return other instanceof MethodCallTransactionFailedResponse mctfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(mctfr.gasConsumedForPenalty) && classNameOfCause.equals(mctfr.classNameOfCause)
+			&& messageOfCause.equals(mctfr.messageOfCause) && where.equals(mctfr.where);
 	}
 
 	@Override

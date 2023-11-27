@@ -71,8 +71,8 @@ public final class UpdateOfEnumLazy extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfEnumLazy && super.equals(other) && ((UpdateOfEnumLazy) other).name.equals(name)
-			&& ((UpdateOfEnumLazy) other).enumClassName.equals(enumClassName);
+		return other instanceof UpdateOfEnumLazy uoel && super.equals(other)
+			&& uoel.name.equals(name) && uoel.enumClassName.equals(enumClassName);
 	}
 
 	@Override

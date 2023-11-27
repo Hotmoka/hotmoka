@@ -39,6 +39,12 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 public interface AccountCreationHelper {
 
 	/**
+	 * The extra gas cost for paying to a public key in anonymous way, hence
+	 * storing the new account in the account ledger of the node.
+	 */
+	public final static BigInteger EXTRA_GAS_FOR_ANONYMOUS = BigInteger.valueOf(500_000L);
+
+	/**
 	 * Creates a new account by letting the faucet pay.
 	 * 
 	 * @param signatureAlgorithm the signature algorithm for the new account

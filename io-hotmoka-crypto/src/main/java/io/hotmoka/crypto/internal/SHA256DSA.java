@@ -99,7 +99,7 @@ public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 				String salt = String.format("mnemonic%s", password);
 
 				// 2048 iterations of the key-stretching algorithm PBKDF2 using HMAC-SHA512
-				PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
+				var gen = new PKCS5S2ParametersGenerator(new SHA512Digest());
 				gen.init(mnemonic.getBytes(StandardCharsets.UTF_8), salt.getBytes(StandardCharsets.UTF_8), 2048);
 
 				return ((KeyParameter) gen.generateDerivedParameters(1792)).getKey();
@@ -139,7 +139,7 @@ public class SHA256DSA extends AbstractSignatureAlgorithmImpl {
 
 	@Override
 	public PublicKey publicKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
-		X509EncodedKeySpec pubKeySpec = new X509EncodedKeySpec(encoded);
+		var pubKeySpec = new X509EncodedKeySpec(encoded);
 		return keyFactory.generatePublic(pubKeySpec);
 	}
 

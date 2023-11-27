@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.beans.values;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -43,17 +42,6 @@ public final class LongValue extends StorageValue {
 		this.value = value;
 	}
 
-	/**
-	 * Builds a {@code long} value.
-	 * 
-	 * @param value the value
-	 */
-	public LongValue(BigInteger value) {
-		this.value = value.longValue();
-		if (!BigInteger.valueOf(this.value).equals(value))
-			throw new IllegalArgumentException("value is too big for a long");
-	}
-
 	@Override
 	public String toString() {
 		return Long.toString(value);
@@ -61,7 +49,7 @@ public final class LongValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof LongValue && ((LongValue) other).value == value;
+		return other instanceof LongValue lv && lv.value == value;
 	}
 
 	@Override

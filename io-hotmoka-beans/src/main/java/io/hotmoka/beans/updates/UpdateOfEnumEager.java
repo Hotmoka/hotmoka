@@ -71,8 +71,8 @@ public final class UpdateOfEnumEager extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfEnumEager && super.equals(other) && ((UpdateOfEnumEager) other).name.equals(name)
-			&& ((UpdateOfEnumEager) other).enumClassName.equals(enumClassName);
+		return other instanceof UpdateOfEnumEager uoee && super.equals(other)
+			&& uoee.name.equals(name) && uoee.enumClassName.equals(enumClassName);
 	}
 
 	@Override

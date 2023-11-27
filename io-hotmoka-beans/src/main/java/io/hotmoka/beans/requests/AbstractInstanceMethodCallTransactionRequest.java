@@ -65,8 +65,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AbstractInstanceMethodCallTransactionRequest &&
-			super.equals(other) && receiver.equals(((AbstractInstanceMethodCallTransactionRequest) other).receiver);
+		return other instanceof AbstractInstanceMethodCallTransactionRequest aimctr && super.equals(other) && receiver.equals(aimctr.receiver);
 	}
 
 	@Override

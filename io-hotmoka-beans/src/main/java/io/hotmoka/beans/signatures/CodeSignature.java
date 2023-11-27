@@ -366,8 +366,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeSignature && ((CodeSignature) other).definingClass.equals(definingClass)
-			&& Arrays.equals(((CodeSignature) other).formals, formals);
+		return other instanceof CodeSignature cs && cs.definingClass.equals(definingClass) && Arrays.equals(cs.formals, formals);
 	}
 
 	@Override
@@ -389,7 +388,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * @throws IOException if the code signature cannot be unmarshalled
 	 */
 	public static CodeSignature from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
+		var selector = context.readByte();
 		if (selector == ConstructorSignature.SELECTOR_EOA)
 			return ConstructorSignature.EOA_CONSTRUCTOR;
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)

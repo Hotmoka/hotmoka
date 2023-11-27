@@ -18,6 +18,7 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -70,6 +71,8 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	public ConstructorCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
+		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
+		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
@@ -78,21 +81,14 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ConstructorCallTransactionFailedResponse) {
-			ConstructorCallTransactionFailedResponse otherCast = (ConstructorCallTransactionFailedResponse) other;
-			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
-				&& classNameOfCause.equals(otherCast.classNameOfCause)
-				&& messageOfCause.equals(otherCast.messageOfCause)
-				&& where.equals(otherCast.where);
-		}
-		else
-			return false;
+		return other instanceof ConstructorCallTransactionFailedResponse cctfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(cctfr.gasConsumedForPenalty) && classNameOfCause.equals(cctfr.classNameOfCause)
+			&& messageOfCause.equals(cctfr.messageOfCause) && where.equals(cctfr.where);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ gasConsumedForPenalty.hashCode() ^ classNameOfCause.hashCode()
-			^ messageOfCause.hashCode() ^ where.hashCode();
+		return super.hashCode() ^ gasConsumedForPenalty.hashCode() ^ classNameOfCause.hashCode() ^ messageOfCause.hashCode() ^ where.hashCode();
 	}
 
 	@Override
@@ -146,13 +142,13 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		BigInteger gasConsumedForPenalty = context.readBigInteger();
-		String classNameOfCause = context.readStringUnshared();
-		String messageOfCause = context.readStringUnshared();
-		String where = context.readStringUnshared();
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var gasConsumedForPenalty = context.readBigInteger();
+		var classNameOfCause = context.readStringUnshared();
+		var messageOfCause = context.readStringUnshared();
+		var where = context.readStringUnshared();
 		return new ConstructorCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

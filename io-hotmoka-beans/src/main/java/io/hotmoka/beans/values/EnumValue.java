@@ -59,8 +59,7 @@ public final class EnumValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof EnumValue && ((EnumValue) other).name.equals(name)
-			&& ((EnumValue) other).enumClassName.equals(enumClassName);
+		return other instanceof EnumValue ev && ev.name.equals(name) && ev.enumClassName.equals(enumClassName);
 	}
 
 	@Override

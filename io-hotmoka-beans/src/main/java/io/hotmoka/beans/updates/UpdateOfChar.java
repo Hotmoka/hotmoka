@@ -59,7 +59,7 @@ public final class UpdateOfChar extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfChar && super.equals(other) && ((UpdateOfChar) other).value == value;
+		return other instanceof UpdateOfChar uoc && super.equals(other) && uoc.value == value;
 	}
 
 	@Override

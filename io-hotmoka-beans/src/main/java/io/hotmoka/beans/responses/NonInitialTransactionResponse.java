@@ -19,6 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,7 +62,11 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	protected NonInitialTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null");
+		Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null");
+		Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null");
 		this.updates = updates.toArray(Update[]::new);
+		Stream.of(this.updates).forEach(update -> Objects.requireNonNull(update, "updates cannot hold null"));
 		this.gasConsumedForCPU = gasConsumedForCPU;
 		this.gasConsumedForRAM = gasConsumedForRAM;
 		this.gasConsumedForStorage = gasConsumedForStorage;
@@ -69,13 +74,9 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof NonInitialTransactionResponse) {
-			var otherCast = (NonInitialTransactionResponse) other;
-			return Arrays.equals(updates, otherCast.updates) && gasConsumedForCPU.equals(otherCast.gasConsumedForCPU)
-				&& gasConsumedForRAM.equals(otherCast.gasConsumedForRAM) && gasConsumedForStorage.equals(otherCast.gasConsumedForStorage);
-		}
-		else
-			return false;
+		return other instanceof NonInitialTransactionResponse nitr
+			&& Arrays.equals(updates, nitr.updates) && gasConsumedForCPU.equals(nitr.gasConsumedForCPU)
+			&& gasConsumedForRAM.equals(nitr.gasConsumedForRAM) && gasConsumedForStorage.equals(nitr.gasConsumedForStorage);
 	}
 
 	@Override

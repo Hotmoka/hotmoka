@@ -69,15 +69,15 @@ public final class ClassTag extends Update {
 	public ClassTag(StorageReference object, ClassType clazz, TransactionReference jar) {
 		super(object);
 
+		Objects.requireNonNull(jar, "jar cannot be null");
+		Objects.requireNonNull(clazz, "clazz cannot be null");
 		this.clazz = clazz;
 		this.jar = jar;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ClassTag && super.equals(other)
-			&& ((ClassTag) other).clazz.equals(clazz)
-			&& ((ClassTag) other).jar.equals(jar);
+		return other instanceof ClassTag ct && super.equals(other) && ct.clazz.equals(clazz) && ct.jar.equals(jar);
 	}
 
 	@Override

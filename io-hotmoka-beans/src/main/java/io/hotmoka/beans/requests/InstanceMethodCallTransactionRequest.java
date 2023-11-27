@@ -80,7 +80,6 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
 		Objects.requireNonNull(chainId, "chainId cannot be null");
-
 		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
@@ -137,12 +136,8 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof InstanceMethodCallTransactionRequest) {
-			var otherCast = (InstanceMethodCallTransactionRequest) other;
-			return super.equals(other) && chainId.equals(otherCast.chainId) && Arrays.equals(signature, otherCast.signature);
-		}
-		else
-			return false;
+		return other instanceof InstanceMethodCallTransactionRequest imctr &&
+			super.equals(other) && chainId.equals(imctr.chainId) && Arrays.equals(signature, imctr.signature);
 	}
 
 	@Override
@@ -224,13 +219,13 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
-			String chainId = context.readStringUnshared();
-			StorageReference caller = StorageReference.from(context);
-			BigInteger gasLimit = context.readBigInteger();
-			BigInteger gasPrice = context.readBigInteger();
-			TransactionReference classpath = TransactionReference.from(context);
-			BigInteger nonce = context.readBigInteger();
-			StorageReference receiver = StorageReference.from(context);
+			var chainId = context.readStringUnshared();
+			var caller = StorageReference.from(context);
+			var gasLimit = context.readBigInteger();
+			var gasPrice = context.readBigInteger();
+			var classpath = TransactionReference.from(context);
+			var nonce = context.readBigInteger();
+			var receiver = StorageReference.from(context);
 
 			if (selector == SELECTOR_TRANSFER_INT) {
 				int howMuch = context.readInt();
@@ -252,6 +247,6 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			}
 		}
 		else
-			throw new RuntimeException("unexpected request selector " + selector);
+			throw new RuntimeException("Unexpected request selector " + selector);
 	}
 }

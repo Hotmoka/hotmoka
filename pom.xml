@@ -27,8 +27,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
+    <maven.compiler.release>17</maven.compiler.release>
     <hotmoka.version>1.3.2</hotmoka.version>
     <takamaka.version>1.0.14</takamaka.version>
   </properties>
@@ -123,8 +122,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-exceptions</module>
   </modules>
 
-  <!-- typical dependencies if submodules use JUnit 5 -->
   <dependencies>
+    <!-- typical dependencies if submodules use JUnit 5 -->
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-engine</artifactId>
@@ -175,10 +174,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.11.0</version>
-        <configuration>
-          <source>${maven.compiler.source}</source>
-          <target>${maven.compiler.target}</target>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

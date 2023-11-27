@@ -94,7 +94,7 @@ public final class LocalTransactionReference extends TransactionReference {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof LocalTransactionReference && ((LocalTransactionReference) other).getHash().equals(hash);
+		return other instanceof LocalTransactionReference ltr && ltr.getHash().equals(hash);
 	}
 
 	@Override

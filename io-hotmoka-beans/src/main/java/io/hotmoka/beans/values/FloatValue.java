@@ -49,7 +49,7 @@ public final class FloatValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof FloatValue && ((FloatValue) other).value == value;
+		return other instanceof FloatValue fv && fv.value == value;
 	}
 
 	@Override

@@ -108,13 +108,9 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof NonInitialTransactionRequest) {
-			var otherCast = (NonInitialTransactionRequest<?>) other;
-			return caller.equals(otherCast.caller) && gasLimit.equals(otherCast.gasLimit) && gasPrice.equals(otherCast.gasPrice)
-				&& classpath.equals(otherCast.classpath) && nonce.equals(otherCast.nonce);
-		}
-		else
-			return false;
+		return other instanceof NonInitialTransactionRequest<?> nitr && caller.equals(nitr.caller)
+			&& gasLimit.equals(nitr.gasLimit) && gasPrice.equals(nitr.gasPrice)
+			&& classpath.equals(nitr.classpath) && nonce.equals(nitr.nonce);
 	}
 
 	@Override

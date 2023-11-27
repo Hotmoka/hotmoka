@@ -44,9 +44,9 @@ import org.apache.bcel.generic.InvokeInstruction;
 import org.apache.bcel.generic.LoadInstruction;
 import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
-import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.UncheckPredicate;
 import io.hotmoka.verification.errors.IllegalCallToFromContractError;
 import io.hotmoka.verification.errors.IllegalCallToFromContractOnThisError;
 import io.hotmoka.verification.errors.IllegalCallToPayableConstructorOnThis;
@@ -100,7 +100,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(method -> !method.isStatic())
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ih -> callsFromContractOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToFromContractError(inferSourceFile(), method.getName(), nameOfFromContractCalledDirectly(ih), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 				);
@@ -123,7 +123,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(uncheck(method -> !annotations.isPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ih -> callsPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
@@ -135,7 +135,7 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 				.filter(uncheck(method -> !annotations.isRedPayable(className, method.getName(), method.getArgumentTypes(), method.getReturnType())))
 				.forEachOrdered(method ->
 					instructionsOf(method)
-						.filter(io.hotmoka.exceptions.UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
+						.filter(UncheckPredicate.uncheck(ih -> callsRedPayableFromContractConstructorOnThis(ih, method.getInstructionList())))
 						.map(ih -> new IllegalCallToRedPayableConstructorOnThis(inferSourceFile(), method.getName(), lineOf(method, ih)))
 						.forEachOrdered(this::issue)
 					);
@@ -199,31 +199,25 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 		
 		if (instruction instanceof INVOKEDYNAMIC)
 			return bootstraps.lambdaIsEntry(bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction));
-		else if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC)) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			ReferenceType receiver = invoke.getReferenceType(cpg);
-			return receiver instanceof ObjectType
-				&& annotations.isFromContract
-					(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
-		}
+		else if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC))
+			return invoke.getReferenceType(cpg) instanceof ObjectType receiver
+				&& annotations.isFromContract(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 		else
 			return false;
 	}
 
 	private boolean callsFromContractOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof InvokeInstruction && !(instruction instanceof INVOKESTATIC) && !(instruction instanceof INVOKEDYNAMIC)) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
+		if (instruction instanceof InvokeInstruction invoke && !(invoke instanceof INVOKESTATIC) && !(invoke instanceof INVOKEDYNAMIC)) {
 			Type[] args = invoke.getArgumentTypes(cpg);
-			ReferenceType receiver = invoke.getReferenceType(cpg);
 			int slots = Stream.of(args).mapToInt(Type::getSize).sum();
-			boolean callsFromContract = receiver instanceof ObjectType && annotations.isFromContract
-				(((ObjectType) receiver).getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
+			boolean callsFromContract = invoke.getReferenceType(cpg) instanceof ObjectType receiver && annotations.isFromContract
+				(receiver.getClassName(), invoke.getMethodName(cpg), invoke.getArgumentTypes(cpg), invoke.getReturnType(cpg));
 
 			return callsFromContract &&
 				pushers.getPushers(ih, slots + 1, il, cpg)
 					.map(InstructionHandle::getInstruction)
-					.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+					.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
 		}
 
 		return false;
@@ -231,23 +225,21 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 
 	private boolean callsPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof INVOKESPECIAL) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			String methodName = invoke.getMethodName(cpg);
+		if (instruction instanceof INVOKESPECIAL invokespecial) {
+			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
-				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType) {
+				Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
+				if (invokespecial.getReferenceType(cpg) instanceof ObjectType receiver) {
 					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
-					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
-					Type returnType = invoke.getReturnType(cpg);
+					String classNameOfReceiver = receiver.getClassName();
+					Type returnType = invokespecial.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract &&
 						pushers.getPushers(ih, slots + 1, il, cpg)
 							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+							.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
 				}
 			}
 		}
@@ -257,23 +249,21 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 
 	private boolean callsRedPayableFromContractConstructorOnThis(InstructionHandle ih, InstructionList il) throws ClassNotFoundException {
 		Instruction instruction = ih.getInstruction();
-		if (instruction instanceof INVOKESPECIAL) {
-			InvokeInstruction invoke = (InvokeInstruction) instruction;
-			String methodName = invoke.getMethodName(cpg);
+		if (instruction instanceof INVOKESPECIAL invokespecial) {
+			String methodName = invokespecial.getMethodName(cpg);
 			if (Const.CONSTRUCTOR_NAME.equals(methodName)) {
-				Type[] argumentTypes = invoke.getArgumentTypes(cpg);
-				ReferenceType receiver = invoke.getReferenceType(cpg);
-				if (receiver instanceof ObjectType) {
+				Type[] argumentTypes = invokespecial.getArgumentTypes(cpg);
+				if (invokespecial.getReferenceType(cpg) instanceof ObjectType receiver) {
 					int slots = Stream.of(argumentTypes).mapToInt(Type::getSize).sum();
-					String classNameOfReceiver = ((ObjectType) receiver).getClassName();
-					Type returnType = invoke.getReturnType(cpg);
+					String classNameOfReceiver = receiver.getClassName();
+					Type returnType = invokespecial.getReturnType(cpg);
 					boolean callsPayableFromContract = annotations.isFromContract(classNameOfReceiver, methodName, argumentTypes, returnType) &&
 						annotations.isRedPayable(classNameOfReceiver, methodName, argumentTypes, returnType);
 
 					return callsPayableFromContract &&
 						pushers.getPushers(ih, slots + 1, il, cpg)
 							.map(InstructionHandle::getInstruction)
-							.allMatch(ins -> ins instanceof LoadInstruction && ((LoadInstruction) ins).getIndex() == 0);	
+							.allMatch(ins -> ins instanceof LoadInstruction li && li.getIndex() == 0);	
 				}
 			}
 		}
@@ -290,8 +280,8 @@ public class FromContractCodeIsCalledInCorrectContextCheck extends CheckOnClasse
 	private String nameOfFromContractCalledDirectly(InstructionHandle ih) {
 		Instruction instruction = ih.getInstruction();
 
-		if (instruction instanceof INVOKEDYNAMIC) {
-			BootstrapMethod bootstrap = bootstraps.getBootstrapFor((INVOKEDYNAMIC) instruction);
+		if (instruction instanceof INVOKEDYNAMIC invokedynamic) {
+			BootstrapMethod bootstrap = bootstraps.getBootstrapFor(invokedynamic);
 			Constant constant = cpg.getConstant(bootstrap.getBootstrapArguments()[1]);
 			ConstantMethodHandle mh = (ConstantMethodHandle) constant;
 			Constant constant2 = cpg.getConstant(mh.getReferenceIndex());

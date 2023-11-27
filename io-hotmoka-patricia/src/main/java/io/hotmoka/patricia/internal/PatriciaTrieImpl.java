@@ -538,9 +538,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
 			}
 			else {
-				byte[] sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
+				var sharedNibbles1 = new byte[sharedNibbles.length - lengthOfSharedPortion - 1];
 				System.arraycopy(sharedNibbles, lengthOfSharedPortion + 1, sharedNibbles1, 0, sharedNibbles1.length);
-				byte[] keyEnd2 = new byte[nibblesOfHashedKey.length - cursor - lengthOfSharedPortion - 1];
+				var keyEnd2 = new byte[nibblesOfHashedKey.length - cursor - lengthOfSharedPortion - 1];
 				System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
 				byte selection1 = sharedNibbles[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
@@ -559,7 +559,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives
-					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
+					var sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(this.sharedNibbles, 0, sharedNibbles, 0, lengthOfSharedPortion);
 					return new Extension(sharedNibbles, hasherForNodes.hash(branch)).putInStore();
 				}
@@ -644,9 +644,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				return new Leaf(keyEnd, value.toByteArray()).putInStore();
 			else {
 				// since there is a distinct portion, there must be at least a nibble in keyEnd
-				byte[] keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
+				var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
 				System.arraycopy(keyEnd, lengthOfSharedPortion + 1, keyEnd1, 0, keyEnd1.length);
-				byte[] keyEnd2 = new byte[keyEnd1.length];
+				var keyEnd2 = new byte[keyEnd1.length];
 				System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
 				byte selection1 = keyEnd[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
@@ -659,7 +659,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 				if (lengthOfSharedPortion > 0) {
 					// yield an extension node linked to a branch node with two alternatives leaves
-					byte[] sharedNibbles = new byte[lengthOfSharedPortion];
+					var sharedNibbles = new byte[lengthOfSharedPortion];
 					System.arraycopy(keyEnd, 0, sharedNibbles, 0, lengthOfSharedPortion);
 					return new Extension(sharedNibbles, hasherForNodes.hash(branch)).putInStore();
 				}

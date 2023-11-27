@@ -59,7 +59,7 @@ public final class UpdateOfFloat extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfFloat && super.equals(other) && ((UpdateOfFloat) other).value == value;
+		return other instanceof UpdateOfFloat uof && super.equals(other) && uof.value == value;
 	}
 
 	@Override

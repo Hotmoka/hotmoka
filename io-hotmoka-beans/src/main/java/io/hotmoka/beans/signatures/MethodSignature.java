@@ -56,7 +56,7 @@ public abstract class MethodSignature extends CodeSignature {
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof MethodSignature && methodName.equals(((MethodSignature) other).methodName) && super.equals(other);
+		return other instanceof MethodSignature ms && methodName.equals(ms.methodName) && super.equals(other);
 	}
 
 	@Override

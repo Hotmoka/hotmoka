@@ -101,17 +101,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public ConstructorCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		if (constructor == null)
-			throw new IllegalArgumentException("constructor cannot be null");
+		Objects.requireNonNull(constructor, "constructor cannot be null");
+		Objects.requireNonNull(chainId, "chainId cannot be null");
+		Objects.requireNonNull(signature, "signature cannot be null");
 
 		if (constructor.formals().count() != actuals.length)
 			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
-
-		if (chainId == null)
-			throw new IllegalArgumentException("chainId cannot be null");
-
-		if (signature == null)
-			throw new IllegalArgumentException("signature cannot be null");
 
 		this.constructor = constructor;
 		this.chainId = chainId;
@@ -151,13 +146,8 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ConstructorCallTransactionRequest) {
-			ConstructorCallTransactionRequest otherCast = (ConstructorCallTransactionRequest) other;
-			return super.equals(other) && constructor.equals(otherCast.constructor) && chainId.equals(otherCast.chainId)
-				&& Arrays.equals(signature, otherCast.signature);
-		}
-		else
-			return false;
+		return other instanceof ConstructorCallTransactionRequest cctr && super.equals(other)
+			&& constructor.equals(cctr.constructor) && chainId.equals(cctr.chainId) && Arrays.equals(signature, cctr.signature);
 	}
 
 	@Override
@@ -189,7 +179,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
-		ConstructorSignature constructor = (ConstructorSignature) CodeSignature.from(context);
+		var constructor = (ConstructorSignature) CodeSignature.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);

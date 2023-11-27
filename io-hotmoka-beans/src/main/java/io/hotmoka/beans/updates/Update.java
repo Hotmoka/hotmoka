@@ -66,7 +66,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof Update && ((Update) other).object.equals(object);
+		return other instanceof Update u && u.object.equals(object);
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * @throws IOException if the update cannot be unmarshalled
 	 */
 	public static Update from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
+		var selector = context.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageType.from(context), TransactionReference.from(context));
 		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.BALANCE_FIELD, context.readBigInteger());

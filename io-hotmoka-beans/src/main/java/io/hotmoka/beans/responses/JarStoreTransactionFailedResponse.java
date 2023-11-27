@@ -18,6 +18,7 @@ package io.hotmoka.beans.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -63,6 +64,8 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	public JarStoreTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
+		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
+		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
 		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.gasConsumedForPenalty = gasConsumedForPenalty;
@@ -90,13 +93,9 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionFailedResponse) {
-			JarStoreTransactionFailedResponse otherCast = (JarStoreTransactionFailedResponse) other;
-			return super.equals(other) && gasConsumedForPenalty.equals(otherCast.gasConsumedForPenalty)
-				&& classNameOfCause.equals(otherCast.classNameOfCause) && messageOfCause.equals(otherCast.messageOfCause);
-		}
-		else
-			return false;
+		return other instanceof JarStoreTransactionFailedResponse jstfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(jstfr.gasConsumedForPenalty)
+			&& classNameOfCause.equals(jstfr.classNameOfCause) && messageOfCause.equals(jstfr.messageOfCause);
 	}
 
 	@Override
@@ -134,12 +133,12 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	 */
 	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		BigInteger gasConsumedForPenalty = context.readBigInteger();
-		String classNameOfCause = context.readStringUnshared();
-		String messageOfCause = context.readStringUnshared();
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var gasConsumedForPenalty = context.readBigInteger();
+		var classNameOfCause = context.readStringUnshared();
+		var messageOfCause = context.readStringUnshared();
 		return new JarStoreTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

@@ -370,7 +370,7 @@ public final class ClassType extends AbstractMarshallable implements StorageType
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ClassType && ((ClassType) other).name.equals(name);
+		return other instanceof ClassType ct && ct.name.equals(name);
 	}
 
 	@Override
@@ -380,10 +380,10 @@ public final class ClassType extends AbstractMarshallable implements StorageType
 
 	@Override
 	public int compareAgainst(StorageType other) {
-		if (other instanceof BasicTypes)
+		if (other instanceof ClassType ct)
+			return name.compareTo(ct.name);
+		else // other instanceof BasicTypes
 			return 1;
-		else
-			return name.compareTo(((ClassType) other).name); // other instanceof ClassType
 	}
 
 	@Override

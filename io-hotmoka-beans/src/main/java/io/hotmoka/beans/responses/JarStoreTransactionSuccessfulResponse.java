@@ -19,6 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
@@ -65,6 +66,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 
 		this.instrumentedJar = instrumentedJar.clone();
 		this.dependencies = dependencies.toArray(TransactionReference[]::new);
+		Stream.of(this.dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
 		this.verificationToolVersion = verificationToolVersion;
 	}
 
@@ -85,13 +87,8 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreTransactionSuccessfulResponse) {
-			JarStoreTransactionSuccessfulResponse otherCast = (JarStoreTransactionSuccessfulResponse) other;
-			return super.equals(other) && Arrays.equals(instrumentedJar, otherCast.instrumentedJar)
-				&& Arrays.equals(dependencies, otherCast.dependencies);
-		}
-		else
-			return false;
+		return other instanceof JarStoreTransactionSuccessfulResponse jstsr && super.equals(other)
+			&& Arrays.equals(instrumentedJar, jstsr.instrumentedJar) && Arrays.equals(dependencies, jstsr.dependencies);
 	}
 
 	@Override
@@ -133,10 +130,10 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 */
 	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
-		BigInteger gasConsumedForCPU = context.readBigInteger();
-		BigInteger gasConsumedForRAM = context.readBigInteger();
-		BigInteger gasConsumedForStorage = context.readBigInteger();
-		long verificationToolVersion = context.readLong();
+		var gasConsumedForCPU = context.readBigInteger();
+		var gasConsumedForRAM = context.readBigInteger();
+		var gasConsumedForStorage = context.readBigInteger();
+		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
 		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);

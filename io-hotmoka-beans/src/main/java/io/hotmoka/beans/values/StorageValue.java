@@ -84,7 +84,7 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	 * @throws IOException if the value could not be unmarshalled
 	 */
 	public static StorageValue from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
+		var selector = context.readByte();
 		switch (selector) {
 		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());
 		case BooleanValue.SELECTOR_TRUE: return BooleanValue.TRUE;

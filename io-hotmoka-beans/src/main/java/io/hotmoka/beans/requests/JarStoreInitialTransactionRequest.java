@@ -96,12 +96,8 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof JarStoreInitialTransactionRequest) {
-			var otherCast = (JarStoreInitialTransactionRequest) other;
-			return Arrays.equals(dependencies, otherCast.dependencies) && Arrays.equals(jar, otherCast.jar);
-		}
-		else
-			return false;
+		return other instanceof JarStoreInitialTransactionRequest jsitr &&
+			Arrays.equals(dependencies, jsitr.dependencies) && Arrays.equals(jar, jsitr.jar);
 	}
 
 	@Override

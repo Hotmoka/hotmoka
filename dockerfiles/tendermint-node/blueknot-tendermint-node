@@ -5,8 +5,7 @@
 #   moka create-key
 #   docker run -dit -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8080 -p 26656:26656 -v chain:/home/blueknot/chain veroforchain/tendermint-node:latest init
 
-# in the future, move to 11.0.13-jre-slim
-FROM openjdk:11.0.13
+FROM openjdk:19-jdk-slim
 LABEL "maintainer"="fausto.spoto@vero4chain.it"
 
 USER root

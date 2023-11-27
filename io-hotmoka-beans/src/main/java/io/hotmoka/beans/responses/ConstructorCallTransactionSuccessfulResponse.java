@@ -19,6 +19,7 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -61,8 +62,10 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	public ConstructorCallTransactionSuccessfulResponse(StorageReference newObject, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
+		Objects.requireNonNull(newObject, "newObject cannot be null");
 		this.newObject = newObject;
 		this.events = events.toArray(StorageReference[]::new);
+		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
 	}
 
 	@Override
@@ -79,12 +82,8 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof ConstructorCallTransactionSuccessfulResponse) {
-			ConstructorCallTransactionSuccessfulResponse otherCast = (ConstructorCallTransactionSuccessfulResponse) other;
-			return super.equals(other) && Arrays.equals(events, otherCast.events) && newObject.equals(otherCast.newObject);
-		}
-		else
-			return false;
+		return other instanceof ConstructorCallTransactionSuccessfulResponse cctsr && super.equals(other)
+			&& Arrays.equals(events, cctsr.events) && newObject.equals(cctsr.newObject);
 	}
 
 	@Override

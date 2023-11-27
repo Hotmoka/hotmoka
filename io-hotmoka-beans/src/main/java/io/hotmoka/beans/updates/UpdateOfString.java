@@ -64,7 +64,7 @@ public final class UpdateOfString extends UpdateOfField {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfString && super.equals(other) && ((UpdateOfString) other).value.equals(value);
+		return other instanceof UpdateOfString uos && super.equals(other) && uos.value.equals(value);
 	}
 
 	@Override

@@ -49,7 +49,7 @@ public final class ByteValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ByteValue && ((ByteValue) other).value == value;
+		return other instanceof ByteValue bv && bv.value == value;
 	}
 
 	@Override

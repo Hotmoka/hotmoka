@@ -115,13 +115,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 
 	@Override
 	public boolean equals(Object other) {
-		if (other instanceof StaticMethodCallTransactionRequest) {
-			var otherCast = (StaticMethodCallTransactionRequest) other;
-			return super.equals(other) && chainId.equals(otherCast.chainId)
-				&& Arrays.equals(signature, otherCast.signature);
-		}
-		else
-			return false;
+		return other instanceof StaticMethodCallTransactionRequest smctr && super.equals(other)
+			&& chainId.equals(smctr.chainId) && Arrays.equals(signature, smctr.signature);
 	}
 
 	@Override
