@@ -54,7 +54,7 @@ public class ByteIterable {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ByteIterable && parent.equals(((ByteIterable) other).parent);
+		return other instanceof ByteIterable bi && parent.equals(bi.parent);
 	}
 
 	@Override
