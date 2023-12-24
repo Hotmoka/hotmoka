@@ -130,6 +130,17 @@ public interface UnmarshallingContext extends AutoCloseable {
 	long readLong() throws IOException;
 
 	/**
+	 * Extracts the next long from this context, in an optimized way,
+	 * that tries to use smaller representations for frequent cases.
+	 * This requires that the long was previously marshalled through
+	 * {@link MarshallingContext#writeCompactLong(long)}.
+	 * 
+	 * @return the next long
+	 * @throws IOException if an I/O error occurs
+	 */
+	long readCompactLong() throws IOException;
+
+	/**
 	 * Extracts the next float from this context.
 	 * 
 	 * @return the next float

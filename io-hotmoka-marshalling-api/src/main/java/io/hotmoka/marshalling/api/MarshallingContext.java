@@ -147,6 +147,16 @@ public interface MarshallingContext extends AutoCloseable {
 	void writeLong(long l) throws IOException;
 
 	/**
+	 * Writes the given long into this context, using compact representations for
+	 * frequent cases. This requires that the long
+	 * will be subsequently read through {@link UnmarshallingContext#readCompactLong()}.
+	 * 
+	 * @param l the long to write
+	 * @throws IOException if an I/O error occurs
+	 */
+	void writeCompactLong(long l) throws IOException;
+
+	/**
 	 * Writes the given short into this context.
 	 * 
 	 * @param s the short to write

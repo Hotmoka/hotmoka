@@ -18,12 +18,11 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 
 public class SignedRequests {
@@ -31,7 +30,7 @@ public class SignedRequests {
 
     static {
         try {
-            keys = SignatureAlgorithms.ed25519().getKeyPair(hexToBytes("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
+            keys = SignatureAlgorithms.ed25519().getKeyPair(Hex.fromHexString("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -83,12 +82,6 @@ public class SignedRequests {
     @Test
     @DisplayName("new InstanceMethodCallTransactionRequest(..) receive")
     public void testVoidInstanceMethodCallTransactionRequest() throws Exception {
-        var receiveInt = new VoidMethodSignature(
-                ClassType.PAYABLE_CONTRACT,
-                "receive",
-                BasicTypes.INT
-        );
-
         var transaction = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
 		var storageReference = new StorageReference(transaction, BigInteger.ZERO);
 
@@ -101,7 +94,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 transaction,
-                receiveInt,
+                CodeSignature.RECEIVE_INT,
                 storageReference,
                 new IntValue(300)
         );
@@ -131,12 +124,6 @@ public class SignedRequests {
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) receive")
     public void testVoidStaticMethodCallTransactionRequest() throws Exception {
-        var receiveInt = new VoidMethodSignature(
-                ClassType.PAYABLE_CONTRACT,
-                "receive",
-                BasicTypes.INT
-        );
-
         var request = new StaticMethodCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
@@ -145,7 +132,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                receiveInt,
+                CodeSignature.RECEIVE_INT,
                 new IntValue(300)
         );
 
@@ -181,7 +168,7 @@ public class SignedRequests {
 
     @Test
     @DisplayName("new JarStoreTransactionRequest(..) lambdas jar")
-    public void testJarStoreTransactionReqest() throws Exception {
+    public void testJarStoreTransactionRequest() throws Exception {
         var request = new JarStoreTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
                 new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
@@ -194,17 +181,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("p8eOIXuYQEv/K7qvgxRacUhwUIBo4XWPrHHc0G6Fv9dnlniuJY+sbNZOoAglB14QOASOD/q1rTSjiYRiOQvWCw==", signature);
-    }
-
-    private static byte[] hexToBytes(String hex) {
-    	var result = new byte[hex.length() / 2];
-        for (int i = 0; i < result.length; i++) {
-            int index = i * 2;
-            int val = Integer.parseInt(hex.substring(index, index + 2), 16);
-            result[i] = (byte)val;
-        }
-        return result;
+        assertEquals("ykpExl8XDss5Jy2h24g67vkdZJS4eEjbQy4OspyWnNCUVcCjvP9p/1WZu6l8dCmwq4BIh/HPN2dXWO5doE7VAA==", signature);
     }
 
     private static String toBase64(byte[] bytes) {

@@ -116,10 +116,11 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 		if (i < 0)
 			i += 256;
 
-		if (i == 255)
-			i = readInt();
-
-		return i;
+		switch (i) {
+		case 255: return readInt();
+		case 254: return readShort();
+		default: return i;
+		}
 	}
 
 	@Override
@@ -130,6 +131,20 @@ public class UnmarshallingContextImpl implements UnmarshallingContext {
 	@Override
 	public long readLong() throws IOException {
 		return ois.readLong();
+	}
+
+	@Override
+	public long readCompactLong() throws IOException {
+		int i = readByte();
+		if (i < 0)
+			i += 256;
+
+		switch (i) {
+		case 255: return readLong();
+		case 254: return readInt();
+		case 253: return readShort();
+		default: return i;
+		}
 	}
 
 	@Override

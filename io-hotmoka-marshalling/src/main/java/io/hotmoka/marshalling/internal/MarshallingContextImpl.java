@@ -103,8 +103,12 @@ public class MarshallingContextImpl implements MarshallingContext {
 
 	@Override
 	public void writeCompactInt(int i) throws IOException {
-		if (i < 255)
+		if (i >= 0 && i < 254)
 			writeByte(i);
+		else if (i >= Short.MIN_VALUE && i <= Short.MAX_VALUE) {
+			writeByte(254);
+			writeShort((short) i);
+		}
 		else {
 			writeByte(255);
 			writeInt(i);
@@ -148,6 +152,24 @@ public class MarshallingContextImpl implements MarshallingContext {
 	@Override
 	public void writeLong(long l) throws IOException {
 		oos.writeLong(l);
+	}
+
+	@Override
+	public void writeCompactLong(long l) throws IOException {
+		if (l >= 0 && l < 253)
+			writeByte((int) l);
+		else if (l >= Short.MIN_VALUE && l <= Short.MAX_VALUE) {
+			writeByte(253);
+			writeShort((short) l);
+		}
+		else if (l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE){
+			writeByte(254);
+			writeInt((int) l);
+		}
+		else {
+			writeByte(255);
+			writeLong(l);
+		}
 	}
 
 	@Override
