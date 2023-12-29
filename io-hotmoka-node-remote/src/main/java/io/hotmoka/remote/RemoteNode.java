@@ -14,13 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.remote {
-    exports io.hotmoka.remote;
-    requires io.hotmoka.node;
-    requires io.hotmoka.beans;
-    requires io.hotmoka.annotations;
-    requires io.hotmoka.network;
-    requires io.hotmoka.ws.client;
-    requires com.google.gson;
-    requires java.logging;
+package io.hotmoka.remote;
+
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.Node;
+
+/**
+ * A node that forwards its calls to a remote network service.
+ */
+@ThreadSafe
+public interface RemoteNode extends Node {
 }

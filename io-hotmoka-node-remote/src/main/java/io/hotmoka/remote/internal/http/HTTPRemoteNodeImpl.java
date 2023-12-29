@@ -88,7 +88,7 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     public HTTPRemoteNodeImpl(RemoteNodeConfig config) throws IOException {
         super(config);
 
-        this.url = "http://" + config.url;
+        this.url = "http://" + config.getURL();
     }
 
     @Override

@@ -84,8 +84,8 @@ import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
-import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.remote.RemoteNodeConfigBuilders;
+import io.hotmoka.remote.RemoteNodes;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.testing.AbstractLoggedTests;
@@ -291,21 +291,21 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		NodeService.of(serviceConfig, exposed);
 
-		var remoteNodeConfig = new RemoteNodeConfig.Builder()
+		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
 			// comment for using http
-			.setWebSockets(true)
+			.usesWebSockets(true)
 			.setURL("localhost:8080")
 			.build();
 
-		return RemoteNode.of(remoteNodeConfig);
+		return RemoteNodes.of(remoteNodeConfig);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String url) throws IOException {
-		var remoteNodeConfig = new RemoteNodeConfig.Builder()
+		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
 			//.setWebSockets(true)
 			.setURL(url).build();
-		return RemoteNode.of(remoteNodeConfig);
+		return RemoteNodes.of(remoteNodeConfig);
 	}
 
 	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {

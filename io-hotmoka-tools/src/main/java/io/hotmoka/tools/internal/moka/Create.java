@@ -44,7 +44,7 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import picocli.CommandLine.Command;
@@ -96,7 +96,7 @@ public class Create extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (Node node = RemoteNodes.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				var payer = new StorageReference(Create.this.payer);

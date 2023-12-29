@@ -28,7 +28,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -61,7 +61,7 @@ public class State extends AbstractCommand {
 			checkStorageReference(object);
 			StorageReference reference = new StorageReference(object);
 
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 

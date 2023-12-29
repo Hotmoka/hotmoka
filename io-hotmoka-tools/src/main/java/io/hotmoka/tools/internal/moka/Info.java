@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import io.hotmoka.helpers.ManifestHelpers;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -31,7 +31,7 @@ public class Info extends AbstractCommand {
 
 	@Override
 	protected void execute() throws Exception {
-		try (var node = RemoteNode.of(remoteNodeConfig(url))) {
+		try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
 			System.out.println("\nInfo about the node:\n" + ManifestHelpers.of(node));
 		}
 	}

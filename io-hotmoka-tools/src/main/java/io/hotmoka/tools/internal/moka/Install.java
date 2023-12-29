@@ -34,8 +34,7 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -79,7 +78,7 @@ public class Install extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				checkStorageReference(payer);

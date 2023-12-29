@@ -89,7 +89,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
     protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException {
         this.config = config;
         try {
-        	this.webSocketClient = new WebSocketClient("ws://" + config.url + "/node");
+        	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
         }
         catch (WebSocketException e) {
         	throw new IOException(e);

@@ -28,7 +28,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
-    <hotmoka.version>1.3.3</hotmoka.version>
+    <hotmoka.version>1.4.0</hotmoka.version>
     <takamaka.version>1.0.14</takamaka.version>
   </properties>
 
@@ -103,7 +103,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-network</module>
     <module>io-hotmoka-service</module>
     <module>io-hotmoka-ws-client</module>
-    <module>io-hotmoka-remote</module>
+    <module>io-hotmoka-node-remote</module>
     <module>io-hotmoka-crypto-api</module>
     <module>io-hotmoka-crypto</module>
     <module>io-hotmoka-patricia-api</module>
@@ -290,7 +290,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-crypto-api,
                 io-hotmoka-network,
                 io-hotmoka-service,
-                io-hotmoka-remote,
+                io-hotmoka-node-remote,
                 io-hotmoka-node-api,
                 io-hotmoka-node,
                 io-hotmoka-node-disk-api,
@@ -300,7 +300,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
 				io-hotmoka-patricia-api,
                 io-hotmoka-patricia,
                 io-hotmoka-service,
-                io-hotmoka-remote,
                 io-hotmoka-node-tendermint-abci,
                 io-hotmoka-node-tendermint-api,
                 io-hotmoka-node-tendermint,

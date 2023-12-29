@@ -33,7 +33,7 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -71,7 +71,7 @@ public class ShowAccount extends AbstractCommand {
 		System.out.println("entropy: " + Base64.getEncoder().encodeToString(account.getEntropy()));
 
 		if (balances || keys) {
-			try (Node node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if (balances)
 					showBalances(account, node);
 

@@ -21,7 +21,7 @@ import com.google.gson.GsonBuilder;
 import io.hotmoka.remote.internal.websockets.client.Message;
 
 /**
- * Builder class which builds the STOMP messages by command. The following commands are implemented:
+ * RemoteNodeConfigBuilderImpl class which builds the STOMP messages by command. The following commands are implemented:
  * <ul>
  *     <li>connect - to connect to a webSocket</li>
  *     <li>subscribe - to subscribe to a topic</li>

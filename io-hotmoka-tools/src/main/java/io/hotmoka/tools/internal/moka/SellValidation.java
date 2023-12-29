@@ -38,7 +38,7 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -106,7 +106,7 @@ public class SellValidation extends AbstractCommand {
 
 			passwordOfSeller = ensurePassword(passwordOfSeller, "the seller validator", interactive, false);
 
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				TransactionReference takamakaCode = node.getTakamakaCode();

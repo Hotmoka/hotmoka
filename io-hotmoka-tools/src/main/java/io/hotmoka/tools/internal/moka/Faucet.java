@@ -34,7 +34,7 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -70,7 +70,7 @@ public class Faucet extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				openFaucet();
 			}
 		}

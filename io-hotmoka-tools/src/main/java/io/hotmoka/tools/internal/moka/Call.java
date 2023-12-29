@@ -48,7 +48,7 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import picocli.CommandLine.Command;
@@ -118,7 +118,7 @@ public class Call extends AbstractCommand {
 		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (Node node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
 					this.classpath = node.getClassTag(new StorageReference(Call.this.receiver)).jar;
 				else

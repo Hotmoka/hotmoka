@@ -34,7 +34,7 @@ import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -98,7 +98,7 @@ public class CreateAccount extends AbstractCommand {
 			if (createTendermintValidator)
 				signature = "ed25519";
 
-			try (Node node = this.node = RemoteNode.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
 

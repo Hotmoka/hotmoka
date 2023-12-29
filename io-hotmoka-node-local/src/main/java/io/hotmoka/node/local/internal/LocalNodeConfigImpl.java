@@ -30,7 +30,7 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 
 /**
- * The configuration of a node.
+ * The configuration of a local node.
  * 
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
@@ -153,17 +153,20 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 
 	@Override
 	public boolean equals(Object other) {
-		if (other != null && getClass() == other.getClass()) {
-			var otherConfig = (LocalNodeConfigImpl<?,?>) other;
+		if (other instanceof LocalNodeConfigImpl<?,?> otherConfig && getClass() == other.getClass())
 			return dir.equals(otherConfig.dir) &&
 				maxPollingAttempts == otherConfig.maxPollingAttempts &&
 				pollingDelay == otherConfig.pollingDelay &&
 				requestCacheSize == otherConfig.requestCacheSize &&
 				responseCacheSize == otherConfig.responseCacheSize &&
 				maxGasPerViewTransaction.equals(otherConfig.maxGasPerViewTransaction);
-		}
 		else
 			return false;
+	}
+
+	@Override
+	public int hashCode() {
+		return dir.hashCode() ^ Long.hashCode(maxPollingAttempts) ^ maxGasPerViewTransaction.hashCode();
 	}
 
 	@Override

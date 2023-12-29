@@ -46,7 +46,7 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-remote</artifactId>
+      <artifactId>io-hotmoka-node-remote</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>

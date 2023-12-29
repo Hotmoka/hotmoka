@@ -42,6 +42,7 @@ import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.RemoteNodeConfig;
+import io.hotmoka.remote.RemoteNodeConfigBuilders;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -72,7 +73,7 @@ public abstract class AbstractCommand implements Runnable {
 	protected abstract void execute() throws Exception;
 
 	protected final static RemoteNodeConfig remoteNodeConfig(String url) {
-		return new RemoteNodeConfig.Builder().setURL(url).build();
+		return RemoteNodeConfigBuilders.defaults().setURL(url).build();
 	}
 
 	/**

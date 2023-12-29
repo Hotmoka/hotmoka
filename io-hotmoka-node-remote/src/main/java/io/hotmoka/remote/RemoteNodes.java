@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,25 +19,26 @@ package io.hotmoka.remote;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.Node;
 import io.hotmoka.remote.internal.http.HTTPRemoteNodeImpl;
 import io.hotmoka.remote.internal.websockets.WebSocketsRemoteNodeImpl;
 
 /**
- * A node that forwards its calls to a remote network service.
+ * Providers of nodes that forward their calls to a remote network service.
  */
 @ThreadSafe
-public interface RemoteNode extends Node {
+public abstract class RemoteNodes {
 
-    /**
+	private RemoteNodes() {}
+
+	/**
      * Yields a remote node with the given configuration.
      *
      * @param config the configuration
      * @return the remote node
      * @throws IOException 
      */
-    static RemoteNode of(RemoteNodeConfig config) throws IOException {
+	public static RemoteNode of(RemoteNodeConfig config) throws IOException {
         // there are two implementations: for websockets or for http connections
-        return config.webSockets ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
+        return config.usesWebSockets() ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
     }
 }

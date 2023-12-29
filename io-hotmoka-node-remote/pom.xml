@@ -10,9 +10,9 @@
   </parent>
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-remote</artifactId>
+  <artifactId>io-hotmoka-node-remote</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-remote</name>
+  <name>io-hotmoka-node-remote</name>
   <version>${hotmoka.version}</version>
 
   <dependencies>
@@ -35,6 +35,11 @@
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-ws-client</artifactId>
       <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>toml4j</artifactId>
+      <version>0.7.3</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>

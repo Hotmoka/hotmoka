@@ -28,7 +28,7 @@ import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -66,7 +66,7 @@ public class BindKey extends AbstractCommand {
 	}
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
-		try (var node = RemoteNode.of(remoteNodeConfig(url))) {
+		try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
 
