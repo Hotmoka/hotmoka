@@ -16,38 +16,24 @@ limitations under the License.
 
 package io.hotmoka.node.service;
 
-import io.hotmoka.annotations.Immutable;
-
 /**
- * The configuration of a network service that publishes a Hotmoka node.
+ * The builder of a configuration object.
  */
-@Immutable
-public interface NodeServiceConfig {
-
-	/**
-     * Yields the HTTP port of the server.
-     * 
-     * @return the HTTP port
-     */
-    int getPort();
+public interface NodeServiceConfigBuilder {
 
     /**
-	 * Yields a TOML representation of this configuration.
-	 * 
-	 * @return the TOML representation, as a string
-	 */
-	String toToml();
+     * Sets the HTTP port of the network service.
+     * It defaults to 8080.
+     * 
+     * @param port the port
+     * @return this same builder
+     */
+	NodeServiceConfigBuilder setPort(int port);
 
-	@Override
-	boolean equals(Object other);
-
-	@Override
-	String toString();
-
-	/**
-	 * Yields a builder initialized with the information in this configuration.
-	 * 
-	 * @return the builder
-	 */
-	NodeServiceConfigBuilder toBuilder();
+    /**
+     * Builds the configuration from this builder.
+     * 
+     * @return the configuration
+     */
+	NodeServiceConfig build();
 }

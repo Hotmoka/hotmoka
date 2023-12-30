@@ -8,6 +8,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-node-service</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements a network service that publishes a Hotmoka node.</description>
 
   <parent>
     <artifactId>hotmoka</artifactId>
@@ -61,9 +62,19 @@
       <artifactId>io-hotmoka-network</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
 	<dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>toml4j</artifactId>
+      <version>0.7.3</version>
     </dependency>
 	<dependency>
       <groupId>javax.annotation</groupId>

@@ -23,5 +23,5 @@ module io.hotmoka.node.tendermint.api {
 
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.api;
-	requires io.hotmoka.node.local.api;
+	requires transitive io.hotmoka.node.local.api;
 }

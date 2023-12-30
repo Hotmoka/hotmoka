@@ -18,7 +18,6 @@ package io.hotmoka.node.remote;
 
 import java.io.IOException;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.http.HTTPRemoteNodeImpl;
@@ -27,7 +26,6 @@ import io.hotmoka.node.remote.internal.websockets.WebSocketsRemoteNodeImpl;
 /**
  * Providers of nodes that forward their calls to a remote network service.
  */
-@ThreadSafe
 public abstract class RemoteNodes {
 
 	private RemoteNodes() {}

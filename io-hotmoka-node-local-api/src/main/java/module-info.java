@@ -22,7 +22,7 @@ module io.hotmoka.node.local.api {
 
 	requires transitive io.hotmoka.beans;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
+	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.verification.api;
 	requires io.hotmoka.whitelisting.api;
 }

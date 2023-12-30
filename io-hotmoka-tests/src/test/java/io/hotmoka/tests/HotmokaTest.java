@@ -82,12 +82,12 @@ import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.RemoteNodes;
+import io.hotmoka.node.service.NodeServiceConfigBuilders;
+import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
 
@@ -285,11 +285,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws IOException {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		var serviceConfig = new NodeServiceConfig.Builder()
+		var serviceConfig = NodeServiceConfigBuilders.defaults()
 			.setPort(8080)
-			.setSpringBannerModeOn(false).build();
+			.build();
 
-		NodeService.of(serviceConfig, exposed);
+		NodeServices.of(serviceConfig, exposed);
 
 		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
 			// comment for using http

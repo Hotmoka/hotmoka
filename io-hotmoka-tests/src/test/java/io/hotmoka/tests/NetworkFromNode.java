@@ -56,8 +56,10 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.node.service.NodeService;
+import io.hotmoka.node.service.NodeServiceConfig;
+import io.hotmoka.node.service.NodeServiceConfigBuilders;
+import io.hotmoka.node.service.NodeServices;
 
 /**
  * A test for creating a network server from a Hotmoka node.
@@ -65,7 +67,8 @@ import io.hotmoka.service.NodeServiceConfig;
 class NetworkFromNode extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 
-	private final NodeServiceConfig configNoBanner = new NodeServiceConfig.Builder().setPort(8081).setSpringBannerModeOn(false).build();
+	// TODO: change name
+	private final NodeServiceConfig configNoBanner = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 
 	/**
 	 * The account that holds all funds.
@@ -97,8 +100,8 @@ class NetworkFromNode extends HotmokaTest {
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
 	void startNetworkFromNode() {
-		NodeServiceConfig config = new NodeServiceConfig.Builder().setPort(8081).build();
-		try (NodeService nodeRestService = NodeService.of(config, node)) {
+		var config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
+		try (var service = NodeServices.of(config, node)) {
 		}
 	}
 
@@ -107,7 +110,7 @@ class NetworkFromNode extends HotmokaTest {
 		SignatureAlgorithmResponseModel answer;
 		RestClientService service = new RestClientService();
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (var nodeRestService = NodeServices.of(configNoBanner, node)) {
 			answer = service.get("http://localhost:8081/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
 		}
 
@@ -120,7 +123,7 @@ class NetworkFromNode extends HotmokaTest {
 		TransactionReferenceModel result;
 		RestClientService service = new RestClientService();
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (NodeService nodeRestService = NodeServices.of(configNoBanner, node)) {
 			result = service.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
@@ -131,8 +134,8 @@ class NetworkFromNode extends HotmokaTest {
 	void addJarStoreInitialTransaction() throws IOException {
 		ErrorModel errorModel = null;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
-			JarStoreInitialTransactionRequest request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
+		try (NodeService nodeRestService = NodeServices.of(configNoBanner, node)) {
+			var request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
 
 			try {
 				RestClientService service = new RestClientService();
@@ -155,12 +158,12 @@ class NetworkFromNode extends HotmokaTest {
 	void addJarStoreInitialTransactionWithoutJar() {
 		ErrorModel errorModel = null;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (NodeService nodeRestService = NodeServices.of(configNoBanner, node)) {
 			JsonObject bodyJson = new JsonObject();
 			bodyJson.addProperty("jar", (String) null);
 
 			try {
-				RestClientService service = new RestClientService();
+				var service = new RestClientService();
 				service.post(
 						"http://localhost:8081/add/jarStoreInitialTransaction",
 						bodyJson,
@@ -180,7 +183,7 @@ class NetworkFromNode extends HotmokaTest {
 	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException {
 		StorageReferenceModel result;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (NodeService nodeRestService = NodeServices.of(configNoBanner, node)) {
 			var request = new ConstructorCallTransactionRequest(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,
@@ -208,7 +211,7 @@ class NetworkFromNode extends HotmokaTest {
 	void testGetState() throws InvalidKeyException, SignatureException {
 		StateModel state;
 
-		try (NodeService nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (var nodeRestService = NodeServices.of(configNoBanner, node)) {
 			var request = new ConstructorCallTransactionRequest(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,
@@ -241,7 +244,7 @@ class NetworkFromNode extends HotmokaTest {
 	void testGetClassTag() throws InvalidKeyException, SignatureException {
 		ClassTagModel classTag;
 
-		try (var nodeRestService = NodeService.of(configNoBanner, node)) {
+		try (var nodeRestService = NodeServices.of(configNoBanner, node)) {
 			var request = new ConstructorCallTransactionRequest(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,

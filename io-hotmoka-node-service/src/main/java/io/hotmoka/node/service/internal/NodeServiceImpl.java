@@ -72,8 +72,8 @@ public class NodeServiceImpl implements NodeService {
      */
     private static String[] springArgumentsFor(NodeServiceConfig config) {
     	return new String[] {
-   			"--server.port=" + config.port,
-   			"--spring.main.banner-mode=" + (config.showSpringBanner ? Banner.Mode.CONSOLE : Banner.Mode.OFF)
+   			"--server.port=" + config.getPort(),
+   			"--spring.main.banner-mode=" + Banner.Mode.OFF
     	};
     }
 

@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements a network service that publishes a Hotmoka node.
+ */
 module io.hotmoka.node.service {
 	exports io.hotmoka.node.service;
 
@@ -31,6 +34,7 @@ module io.hotmoka.node.service {
     requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.network;
+	requires io.hotmoka.annotations;
     requires spring.boot;
     requires spring.boot.autoconfigure;
     requires spring.beans;
@@ -42,6 +46,7 @@ module io.hotmoka.node.service {
     requires com.google.gson;
     requires java.instrument;
     requires java.logging;
+    requires transitive toml4j;
     requires org.apache.tomcat.embed.websocket;
 
     // these make it possible to compile under Eclipse...

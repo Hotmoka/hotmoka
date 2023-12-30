@@ -149,14 +149,14 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 		}
 
 		@Override
-	    public RemoteNodeConfigBuilderImpl setURL(String url) {
+	    public RemoteNodeConfigBuilder setURL(String url) {
 			Objects.requireNonNull(url, "url cannot be null");
 	        this.url = url;
 	        return this;
 	    }
 
 	    @Override
-	    public RemoteNodeConfigBuilderImpl usesWebSockets(boolean usesWebSockets) {
+	    public RemoteNodeConfigBuilder usesWebSockets(boolean usesWebSockets) {
 	        this.usesWebSockets = usesWebSockets;
 	        return this;
 	    }
@@ -166,7 +166,7 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 	     *
 	     * @return the configuration
 	     */
-	    public RemoteNodeConfigImpl build() {
+	    public RemoteNodeConfig build() {
 	        return new RemoteNodeConfigImpl(this);
 	    }
 
