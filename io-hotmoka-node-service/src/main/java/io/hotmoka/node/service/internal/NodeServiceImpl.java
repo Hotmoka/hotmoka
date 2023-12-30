@@ -26,8 +26,8 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;
-import io.hotmoka.node.service.NodeService;
-import io.hotmoka.node.service.NodeServiceConfig;
+import io.hotmoka.node.service.api.NodeService;
+import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
 
 /**

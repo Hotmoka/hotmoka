@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.service;
-
-import io.hotmoka.annotations.ThreadSafe;
-
 /**
- * A network service that exposes a REST API to a Hotmoka node.
+ * This module defines the API of a network service that publishes a Hotmoka node.
  */
-@ThreadSafe
-public interface NodeService extends AutoCloseable {
-
-	/**
-	 * Stops the service and releases its resources.
-	 */
-	@Override
-	void close(); // no checked exceptions
+module io.hotmoka.node.service.api {
+	exports io.hotmoka.node.service.api;
+	requires io.hotmoka.annotations;
 }

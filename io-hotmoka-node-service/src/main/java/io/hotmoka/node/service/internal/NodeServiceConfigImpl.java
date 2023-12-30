@@ -22,8 +22,8 @@ import java.nio.file.Path;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.node.service.NodeServiceConfig;
-import io.hotmoka.node.service.NodeServiceConfigBuilder;
+import io.hotmoka.node.service.api.NodeServiceConfig;
+import io.hotmoka.node.service.api.NodeServiceConfigBuilder;
 
 /**
  * The configuration of a network service supported by a Hotmoka node.

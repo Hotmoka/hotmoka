@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <artifactId>hotmoka</artifactId>
+    <groupId>io.hotmoka</groupId>
+    <version>parent</version>
+  </parent>
+  <description>This module defines the API of a network service that publishes a Hotmoka node.</description>
+
+  <artifactId>io-hotmoka-node-service-api</artifactId>
+  <packaging>jar</packaging>
+  <name>io-hotmoka-node-service-api</name>
+  <version>${hotmoka.version}</version>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+  </dependencies>
+
+  <profiles>
+	<profile>
+	  <id>release</id>
+      <build>
+	    <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <configuration>
+              <skipNexusStagingDeployMojo>false</skipNexusStagingDeployMojo>
+            </configuration>
+          </plugin>
+	    </plugins>
+      </build>
+	</profile>
+  </profiles>
+
+</project>

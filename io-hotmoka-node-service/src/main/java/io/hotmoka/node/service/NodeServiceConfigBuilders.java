@@ -21,6 +21,7 @@ import java.nio.file.Path;
 
 import com.moandjiezana.toml.Toml;
 
+import io.hotmoka.node.service.api.NodeServiceConfigBuilder;
 import io.hotmoka.node.service.internal.NodeServiceConfigImpl.NodeServiceConfigBuilderImpl;
 
 /**

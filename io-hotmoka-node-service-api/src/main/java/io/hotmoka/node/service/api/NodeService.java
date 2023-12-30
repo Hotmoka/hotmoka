@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2021 Dinu Berinde and Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,26 +14,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.service;
+package io.hotmoka.node.service.api;
+
+import io.hotmoka.annotations.ThreadSafe;
 
 /**
- * The builder of a configuration object.
+ * A network service that exposes a REST API to a Hotmoka node.
  */
-public interface NodeServiceConfigBuilder {
+@ThreadSafe
+public interface NodeService extends AutoCloseable {
 
-    /**
-     * Sets the HTTP port of the network service.
-     * It defaults to 8080.
-     * 
-     * @param port the port
-     * @return this same builder
-     */
-	NodeServiceConfigBuilder setPort(int port);
-
-    /**
-     * Builds the configuration from this builder.
-     * 
-     * @return the configuration
-     */
-	NodeServiceConfig build();
+	/**
+	 * Stops the service and releases its resources.
+	 */
+	@Override
+	void close(); // no checked exceptions
 }

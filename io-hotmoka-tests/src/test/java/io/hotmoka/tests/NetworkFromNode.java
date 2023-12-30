@@ -56,10 +56,10 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
-import io.hotmoka.node.service.NodeService;
-import io.hotmoka.node.service.NodeServiceConfig;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.service.api.NodeService;
+import io.hotmoka.node.service.api.NodeServiceConfig;
 
 /**
  * A test for creating a network server from a Hotmoka node.

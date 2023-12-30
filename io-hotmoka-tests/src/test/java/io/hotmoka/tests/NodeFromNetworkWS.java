@@ -64,9 +64,9 @@ import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
-import io.hotmoka.node.service.NodeServiceConfig;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetworkWS extends HotmokaTest {
