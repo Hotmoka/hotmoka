@@ -45,7 +45,7 @@ import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.node.remote.api.RemoteNode;
 
 class PollWithTimeWindow extends HotmokaTest {
 	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");

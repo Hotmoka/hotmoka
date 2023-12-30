@@ -52,7 +52,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeSupplier;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.node.remote.api.RemoteNode;
 
 /**
  * A test for the blind auction contract.

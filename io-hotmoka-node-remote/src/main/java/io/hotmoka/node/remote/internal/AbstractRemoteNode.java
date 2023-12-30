@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal;
+package io.hotmoka.node.remote.internal;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -60,9 +60,9 @@ import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.node.AbstractNode;
-import io.hotmoka.remote.RemoteNode;
-import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.remote.internal.websockets.client.WebSocketClient;
+import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.node.remote.api.RemoteNodeConfig;
+import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
 import io.hotmoka.ws.client.WebSocketException;
 
 /**

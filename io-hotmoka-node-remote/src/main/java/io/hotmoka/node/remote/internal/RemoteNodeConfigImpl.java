@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal;
+package io.hotmoka.node.remote.internal;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -22,8 +22,8 @@ import java.util.Objects;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.remote.RemoteNodeConfigBuilder;
+import io.hotmoka.node.remote.api.RemoteNodeConfig;
+import io.hotmoka.node.remote.api.RemoteNodeConfigBuilder;
 
 /**
  * The configuration of a node that forwards all its calls to a remote network service.

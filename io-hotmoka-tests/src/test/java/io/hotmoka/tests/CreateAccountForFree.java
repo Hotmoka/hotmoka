@@ -29,7 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.remote.RemoteNode;
+import io.hotmoka.node.remote.api.RemoteNode;
 
 /**
  * A test for creating an account for free in the Takamaka blockchain.

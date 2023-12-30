@@ -14,17 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote;
+package io.hotmoka.node.remote;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.remote.internal.RemoteNodeConfigImpl.RemoteNodeConfigBuilderImpl;
+import io.hotmoka.node.remote.api.RemoteNodeConfigBuilder;
+import io.hotmoka.node.remote.internal.RemoteNodeConfigImpl.RemoteNodeConfigBuilderImpl;
 
 /**
- * Providers of configuration object builders for a remote node.
+ * Providers of configuration builders for a remote node.
  */
 public abstract class RemoteNodeConfigBuilders {
 

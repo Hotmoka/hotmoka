@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal.websockets.client;
+package io.hotmoka.node.remote.internal.websockets.client;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -35,8 +35,8 @@ import java.util.logging.Logger;
 
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.remote.internal.websockets.client.stomp.StompCommand;
-import io.hotmoka.remote.internal.websockets.client.stomp.StompMessageHelper;
+import io.hotmoka.node.remote.internal.websockets.client.stomp.StompCommand;
+import io.hotmoka.node.remote.internal.websockets.client.stomp.StompMessageHelper;
 import io.hotmoka.ws.client.WebSocket;
 import io.hotmoka.ws.client.WebSocketAdapter;
 import io.hotmoka.ws.client.WebSocketException;

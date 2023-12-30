@@ -41,8 +41,8 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.remote.RemoteNodeConfigBuilders;
+import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
+import io.hotmoka.node.remote.api.RemoteNodeConfig;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);

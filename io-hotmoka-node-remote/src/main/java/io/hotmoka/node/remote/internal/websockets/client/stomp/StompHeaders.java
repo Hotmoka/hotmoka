@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal.websockets.client.stomp;
+package io.hotmoka.node.remote.internal.websockets.client.stomp;
 
 import java.util.HashMap;
 import java.util.Map;

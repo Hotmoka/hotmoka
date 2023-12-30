@@ -14,13 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote;
+package io.hotmoka.node.remote;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.remote.internal.http.HTTPRemoteNodeImpl;
-import io.hotmoka.remote.internal.websockets.WebSocketsRemoteNodeImpl;
+import io.hotmoka.node.remote.api.RemoteNode;
+import io.hotmoka.node.remote.api.RemoteNodeConfig;
+import io.hotmoka.node.remote.internal.http.HTTPRemoteNodeImpl;
+import io.hotmoka.node.remote.internal.websockets.WebSocketsRemoteNodeImpl;
 
 /**
  * Providers of nodes that forward their calls to a remote network service.

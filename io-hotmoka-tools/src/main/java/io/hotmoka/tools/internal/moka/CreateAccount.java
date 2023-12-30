@@ -34,7 +34,7 @@ import io.hotmoka.helpers.AccountCreationHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.remote.RemoteNodes;
+import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

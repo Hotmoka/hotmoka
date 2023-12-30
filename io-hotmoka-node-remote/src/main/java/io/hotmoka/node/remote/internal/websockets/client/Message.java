@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal.websockets.client;
+package io.hotmoka.node.remote.internal.websockets.client;
 
-import io.hotmoka.remote.internal.websockets.client.stomp.StompCommand;
-import io.hotmoka.remote.internal.websockets.client.stomp.StompHeaders;
+import io.hotmoka.node.remote.internal.websockets.client.stomp.StompCommand;
+import io.hotmoka.node.remote.internal.websockets.client.stomp.StompHeaders;
 
 /**
  * It represents a parsed STOMP message, a class which holds the STOMP command,

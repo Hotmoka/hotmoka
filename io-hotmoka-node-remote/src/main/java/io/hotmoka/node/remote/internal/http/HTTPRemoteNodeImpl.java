@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal.http;
+package io.hotmoka.node.remote.internal.http;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
@@ -58,9 +58,9 @@ import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.remote.RemoteNodeConfig;
-import io.hotmoka.remote.internal.AbstractRemoteNode;
-import io.hotmoka.remote.internal.http.client.RestClientService;
+import io.hotmoka.node.remote.api.RemoteNodeConfig;
+import io.hotmoka.node.remote.internal.AbstractRemoteNode;
+import io.hotmoka.node.remote.internal.http.client.RestClientService;
 
 /**
  * The implementation of a node that forwards all its calls to a remote service,

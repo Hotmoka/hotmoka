@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.remote.internal.websockets.client.stomp;
+package io.hotmoka.node.remote.internal.websockets.client.stomp;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import io.hotmoka.remote.internal.websockets.client.Message;
+
+import io.hotmoka.node.remote.internal.websockets.client.Message;
 
 /**
  * RemoteNodeConfigBuilderImpl class which builds the STOMP messages by command. The following commands are implemented:

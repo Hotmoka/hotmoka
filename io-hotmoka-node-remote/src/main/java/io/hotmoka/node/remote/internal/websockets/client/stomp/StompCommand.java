@@ -14,18 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package io.hotmoka.node.remote.internal.websockets.client.stomp;
+
 /**
- * This module implements a remote Hotmoka node.
+ * Enum class which represents the STOMP protocol commands.
  */
-module io.hotmoka.node.remote {
-    exports io.hotmoka.node.remote;
-    requires transitive io.hotmoka.node.remote.api;
-    requires io.hotmoka.node;
-    requires io.hotmoka.beans;
-    requires io.hotmoka.annotations;
-    requires io.hotmoka.network;
-    requires io.hotmoka.ws.client;
-    requires com.google.gson;
-    requires transitive toml4j;
-    requires java.logging;
+public enum StompCommand {
+    SUBSCRIBE,
+    UNSUBSCRIBE,
+    CONNECT,
+    CONNECTED,
+    RECEIPT,
+    SEND,
+    ERROR,
+    MESSAGE
 }

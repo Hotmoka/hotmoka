@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import io.hotmoka.helpers.ManifestHelpers;
-import io.hotmoka.remote.RemoteNodes;
+import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 

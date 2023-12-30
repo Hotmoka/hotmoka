@@ -55,7 +55,7 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
-import io.hotmoka.remote.internal.http.client.RestClientService;
+import io.hotmoka.node.remote.internal.http.client.RestClientService;
 import io.hotmoka.service.NodeService;
 import io.hotmoka.service.NodeServiceConfig;
 

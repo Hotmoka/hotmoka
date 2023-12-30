@@ -20,7 +20,7 @@ module io.hotmoka.tools {
 	requires io.hotmoka.node.disk;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.service;
-	requires io.hotmoka.remote;
+	requires io.hotmoka.node.remote;
 	requires io.hotmoka.constants;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
