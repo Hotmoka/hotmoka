@@ -24,10 +24,10 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.service.NodeServiceConfigBuilders;
+import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 
@@ -70,14 +70,14 @@ public class StartTendermint extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			var networkConfig = new NodeServiceConfig.Builder()
+			var networkConfig = NodeServiceConfigBuilders.defaults()
 				.setPort(port)
 				.build();
 
 			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.build();
 
-			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeService.of(networkConfig, node)) {
+			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeServices.of(networkConfig, node)) {
 				cleanUp();
 				printBanner();
 				waitForEnterKey();

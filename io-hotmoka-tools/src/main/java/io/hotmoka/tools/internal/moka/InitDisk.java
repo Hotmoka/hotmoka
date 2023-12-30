@@ -34,8 +34,9 @@ import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.disk.api.DiskNode;
-import io.hotmoka.service.NodeService;
-import io.hotmoka.service.NodeServiceConfig;
+import io.hotmoka.node.service.NodeServiceConfigBuilders;
+import io.hotmoka.node.service.NodeServices;
+import io.hotmoka.node.service.api.NodeServiceConfig;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -108,7 +109,7 @@ public class InitDisk extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			networkConfig = new NodeServiceConfig.Builder()
+			networkConfig = NodeServiceConfigBuilders.defaults()
 				.setPort(port)
 				.build();
 
@@ -133,7 +134,7 @@ public class InitDisk extends AbstractCommand {
 			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);
 				var initialized = this.initialized = InitializedNodes.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				var service = NodeService.of(networkConfig, node)) {
+				var service = NodeServices.of(networkConfig, node)) {
 
 				printManifest();
 				printBanner();
@@ -153,8 +154,8 @@ public class InitDisk extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + networkConfig.port);
-			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.port + "/get/manifest");
+			System.out.println("The node has been published at localhost:" + networkConfig.getPort());
+			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {

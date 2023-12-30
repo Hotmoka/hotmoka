@@ -29,5 +29,4 @@ module io.hotmoka.beans {
 	requires io.hotmoka.constants;
 	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.exceptions;
 }
