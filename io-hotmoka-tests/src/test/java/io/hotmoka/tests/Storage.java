@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -31,13 +31,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -46,7 +46,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the simple storage class.
  */
 class Storage extends HotmokaTest {
-	private static final ClassType SIMPLE_STORAGE = StorageTypes.of("io.hotmoka.examples.storage.SimpleStorage");
+	private static final ClassType SIMPLE_STORAGE = StorageTypes.classNamed("io.hotmoka.examples.storage.SimpleStorage");
 	private static final VoidMethodSignature SET = new VoidMethodSignature(SIMPLE_STORAGE, "set", INT);
 	private static final NonVoidMethodSignature GET = new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = new ConstructorSignature("io.hotmoka.examples.storage.SimpleStorage");

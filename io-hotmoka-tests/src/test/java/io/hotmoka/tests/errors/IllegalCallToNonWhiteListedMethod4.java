@@ -23,8 +23,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 

@@ -31,13 +31,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.api.CodeSupplier;
@@ -46,7 +46,7 @@ import io.hotmoka.node.api.CodeSupplier;
  * A test for the remote purchase contract.
  */
 class RedGreenDistributor extends HotmokaTest {
-	private static final ClassType DISTRIBUTOR = StorageTypes.of("io.hotmoka.examples.redgreendistributor.Distributor");
+	private static final ClassType DISTRIBUTOR = StorageTypes.classNamed("io.hotmoka.examples.redgreendistributor.Distributor");
 	private static final VoidMethodSignature ADD_AS_PAYEE = new VoidMethodSignature(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 

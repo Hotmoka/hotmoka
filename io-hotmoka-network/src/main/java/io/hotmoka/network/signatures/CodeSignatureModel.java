@@ -16,11 +16,12 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
-import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.types.StorageType;
-
 import java.util.List;
 import java.util.stream.Collectors;
+
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.signatures.CodeSignature;
 
 /**
  * The model of the signature of a method or constructor.
@@ -52,6 +53,6 @@ public abstract class CodeSignatureModel extends SignatureModel {
 	 * @return the storage types
 	 */
 	protected final StorageType[] getFormalsAsTypes() {
-		return this.formals.stream().map(SignatureModel::typeWithName).toArray(StorageType[]::new);
+		return this.formals.stream().map(StorageTypes::named).toArray(StorageType[]::new);
 	}
 }

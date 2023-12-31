@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.nodes.NodeInfo;
@@ -52,8 +53,6 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -141,8 +140,8 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 
 		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, BasicTypes.LONG,
-				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
+			new ConstructorSignature(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
+					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
 			new LongValue(consensus.getInitialInflation()), new IntValue(consensus.getPercentStaked()), new IntValue(consensus.getBuyerSurcharge()),
 			new IntValue(consensus.getSlashingForMisbehaving()), new IntValue(consensus.getSlashingForNotBehaving()));
@@ -152,11 +151,11 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference builder = node.addConstructorCallTransaction(request);
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
-		VoidMethodSignature addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", StorageTypes.STRING, BasicTypes.LONG);
+		var addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64 = encoder.encodeToString(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);
-			InstanceMethodCallTransactionRequest addValidator = new InstanceMethodCallTransactionRequest
+			var addValidator = new InstanceMethodCallTransactionRequest
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 				addValidatorMethod,
 				builder,

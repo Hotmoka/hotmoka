@@ -14,18 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.types;
+package io.hotmoka.beans.types.internal;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.types.BasicType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The basic types of the Takamaka language.
  */
 @Immutable
-public enum BasicTypes implements StorageType {
+public enum BasicTypes implements BasicType {
 	BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
 
 	@Override

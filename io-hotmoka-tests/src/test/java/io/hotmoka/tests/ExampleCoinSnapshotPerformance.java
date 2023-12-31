@@ -19,7 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.level2;
 import static io.hotmoka.beans.Coin.level3;
 import static io.hotmoka.beans.Coin.panarea;
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -46,8 +46,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -60,9 +62,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -194,7 +194,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final VoidMethodSignature MINT;
         private final MethodSignature YIELD_SNAPSHOT;
         private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
-        private final static ClassType CREATOR = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinCreator");
+        private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
 		private StorageReference creator; // the creator (and owner) of the contract
@@ -214,7 +214,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
-    		this.COIN = StorageTypes.of(coinName);
+    		this.COIN = StorageTypes.classNamed(coinName);
     		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, BasicTypes.INT);
     		this.BURN = new VoidMethodSignature(COIN, "burn", StorageTypes.CONTRACT, BasicTypes.INT);
     		this.MINT = new VoidMethodSignature(COIN, "mint", StorageTypes.CONTRACT, BasicTypes.INT);

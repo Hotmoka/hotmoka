@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static io.hotmoka.beans.types.StorageTypes.MODIFIABLE_STORAGE_MAP;
-import static io.hotmoka.beans.types.StorageTypes.STORAGE_MAP_VIEW;
+import static io.hotmoka.beans.StorageTypes.MODIFIABLE_STORAGE_MAP;
+import static io.hotmoka.beans.StorageTypes.STORAGE_MAP_VIEW;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -37,13 +37,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;

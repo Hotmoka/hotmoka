@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,12 +39,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
@@ -54,7 +54,7 @@ import io.hotmoka.node.api.Subscription;
  * A test for the remote purchase contract.
  */
 class RemotePurchase extends HotmokaTest {
-	private static final ClassType PURCHASE = StorageTypes.of("io.hotmoka.examples.remotepurchase.Purchase");
+	private static final ClassType PURCHASE = StorageTypes.classNamed("io.hotmoka.examples.remotepurchase.Purchase");
 	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = new VoidMethodSignature(PURCHASE, "confirmReceived");
 	private static final VoidMethodSignature CONFIRM_PURCHASED = new VoidMethodSignature(PURCHASE, "confirmPurchase", INT);

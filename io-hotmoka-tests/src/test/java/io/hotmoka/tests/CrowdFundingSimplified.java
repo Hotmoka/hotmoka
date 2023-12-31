@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,13 +31,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -46,8 +46,8 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the simplified crowd funding contract.
  */
 class CrowdFundingSimplified extends HotmokaTest {
-	private static final ClassType CAMPAIGN = StorageTypes.of("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
-	private static final ClassType CROWD_FUNDING_SIMPLIFIED = StorageTypes.of("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
+	private static final ClassType CAMPAIGN = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
+	private static final ClassType CROWD_FUNDING_SIMPLIFIED = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature(CROWD_FUNDING_SIMPLIFIED);
 
 	/**

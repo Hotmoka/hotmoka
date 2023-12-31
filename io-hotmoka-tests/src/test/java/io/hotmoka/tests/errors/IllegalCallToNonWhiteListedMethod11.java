@@ -23,7 +23,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 

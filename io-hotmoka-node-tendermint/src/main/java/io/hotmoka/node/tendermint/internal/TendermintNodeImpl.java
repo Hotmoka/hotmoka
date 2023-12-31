@@ -42,8 +42,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -53,9 +55,6 @@ import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -243,10 +242,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final ClassType storageMapView = StorageTypes.of("io.takamaka.code.util.StorageMapView");
-	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", BasicTypes.INT);
+	private static final ClassType storageMapView = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
+	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", StorageTypes.INT);
 	private static final MethodSignature GET_SHARES = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getShares", storageMapView);
-	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", StorageTypes.OBJECT, BasicTypes.INT);
+	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
 	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;

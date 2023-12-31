@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.types;
+package io.hotmoka.beans.api.types;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.Marshallable;
@@ -29,7 +29,7 @@ public interface StorageType extends Marshallable {
 	 * Compares this storage type with another. Puts first basic types, in their order of
 	 * enumeration, then class types ordered wrt class name. This method is not
 	 * called {@code compareTo} since it would conflict with the implicit {@code compareTo()}
-	 * method defined in the enumeration {@link io.hotmoka.beans.types.BasicTypes}.
+	 * method defined in the enumeration {@link io.hotmoka.beans.types.internal.BasicTypes}.
 	 * 
 	 * @param other the other type
 	 * @return -1 if {@code this} comes first, 1 if {@code other} comes first, 0 if they are equal

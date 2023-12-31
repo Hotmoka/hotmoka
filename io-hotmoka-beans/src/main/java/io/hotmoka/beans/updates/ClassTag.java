@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -56,7 +56,7 @@ public final class ClassTag extends Update {
 		super(object);
 
 		Objects.requireNonNull(jar, "jar cannot be null");
-		this.clazz = StorageTypes.of(className);
+		this.clazz = StorageTypes.classNamed(className);
 		this.jar = jar;
 	}
 

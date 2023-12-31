@@ -29,14 +29,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
@@ -47,7 +47,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class PayableFailure extends HotmokaTest {
 
-	private final static ClassType C = StorageTypes.of("io.hotmoka.examples.payablefailure.C");
+	private final static ClassType C = StorageTypes.classNamed("io.hotmoka.examples.payablefailure.C");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

@@ -19,8 +19,8 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
-import static io.hotmoka.beans.types.BasicTypes.SHORT;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.SHORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,14 +34,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -52,7 +52,7 @@ import io.hotmoka.constants.Constants;
  * A test for the ExampleCoin contract (a ERC20 contract).
  */
 class ExampleCoin extends HotmokaTest {
-    private static final ClassType EXAMPLECOIN = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoin");
+    private static final ClassType EXAMPLECOIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin");
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXAMPLECOIN = new ConstructorSignature(EXAMPLECOIN);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);

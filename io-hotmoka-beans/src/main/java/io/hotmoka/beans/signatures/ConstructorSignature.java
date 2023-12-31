@@ -19,8 +19,8 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

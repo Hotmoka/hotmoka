@@ -31,7 +31,7 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 
 /**

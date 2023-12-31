@@ -18,8 +18,8 @@ package io.hotmoka.tests;
 
 import static java.math.BigInteger.ONE;
 import static io.hotmoka.beans.signatures.CodeSignature.RECEIVE_INT;
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -35,16 +35,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
@@ -59,18 +59,18 @@ import io.hotmoka.node.SideEffectsInViewMethodException;
  * A test for basic storage and contract Takamaka classes.
  */
 class Basic extends HotmokaTest {
-	private static final ClassType ALIAS = StorageTypes.of("io.hotmoka.examples.basicdependency.Alias");
-	private static final ClassType SIMPLE = StorageTypes.of("io.hotmoka.examples.basic.Simple");
-	private static final ClassType WITH_LIST = StorageTypes.of("io.hotmoka.examples.basic.WithList");
-	private static final ClassType ENTRY_FILTER = StorageTypes.of("io.hotmoka.examples.basic.FromContractFilter");
+	private static final ClassType ALIAS = StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Alias");
+	private static final ClassType SIMPLE = StorageTypes.classNamed("io.hotmoka.examples.basic.Simple");
+	private static final ClassType WITH_LIST = StorageTypes.classNamed("io.hotmoka.examples.basic.WithList");
+	private static final ClassType ENTRY_FILTER = StorageTypes.classNamed("io.hotmoka.examples.basic.FromContractFilter");
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = new ConstructorSignature(ALIAS);
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "ms");
 	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "m5");
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.of("io.hotmoka.examples.basicdependency.Time"));
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.of("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, BasicTypes.LONG);
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"));
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, BasicTypes.LONG);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
-	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(StorageTypes.of("io.hotmoka.examples.basicdependency.Time"), "toString", StorageTypes.STRING);
-	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(StorageTypes.of("io.hotmoka.examples.basicdependency.Wrapper"), "toString", StorageTypes.STRING);
+	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), "toString", StorageTypes.STRING);
+	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper"), "toString", StorageTypes.STRING);
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	/**
@@ -195,7 +195,7 @@ class Basic extends HotmokaTest {
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _100_000, ONE, classpath, new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT), new IntValue(1973));
 		addInstanceMethodCallTransaction
-			(key, master, _200_000, ONE, classpath, new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "print", StorageTypes.of("io.hotmoka.examples.basicdependency.Time")), sub, internationalTime);
+			(key, master, _200_000, ONE, classpath, new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "print", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time")), sub, internationalTime);
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")

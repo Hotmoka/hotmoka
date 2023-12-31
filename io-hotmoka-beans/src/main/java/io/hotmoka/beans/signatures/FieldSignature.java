@@ -21,11 +21,11 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -198,7 +198,7 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	 * @param type the type of the field
 	 */
 	public FieldSignature(String definingClass, String name, StorageType type) {
-		this(StorageTypes.of(definingClass), name, type);
+		this(StorageTypes.classNamed(definingClass), name, type);
 	}
 
 	@Override

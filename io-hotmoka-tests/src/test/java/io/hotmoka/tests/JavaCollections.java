@@ -24,11 +24,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.NonWhiteListedCallException;
 
@@ -36,8 +36,8 @@ import io.hotmoka.node.NonWhiteListedCallException;
  * A test for the Java HashMap class.
  */
 class JavaCollections extends HotmokaTest {
-	private static final ClassType HASH_MAP_TESTS = StorageTypes.of("io.hotmoka.examples.javacollections.HashMapTests");
-	private static final ClassType HASH_SET_TESTS = StorageTypes.of("io.hotmoka.examples.javacollections.HashSetTests");
+	private static final ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
+	private static final ClassType HASH_SET_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashSetTests");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

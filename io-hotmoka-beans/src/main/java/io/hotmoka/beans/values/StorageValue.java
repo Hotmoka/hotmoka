@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;

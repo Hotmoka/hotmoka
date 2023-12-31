@@ -28,12 +28,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -41,7 +41,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for from contract method.
  */
 class FromContracts extends HotmokaTest {
-	private final static ClassType FROM_CONTRACTS = StorageTypes.of("io.hotmoka.examples.fromcontracts.FromContracts");
+	private final static ClassType FROM_CONTRACTS = StorageTypes.classNamed("io.hotmoka.examples.fromcontracts.FromContracts");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

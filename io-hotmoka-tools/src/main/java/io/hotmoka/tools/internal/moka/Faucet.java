@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
-import static io.hotmoka.beans.types.StorageTypes.GAMETE;
+import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.StorageTypes.GAMETE;
 
 import java.io.IOException;
 import java.math.BigInteger;

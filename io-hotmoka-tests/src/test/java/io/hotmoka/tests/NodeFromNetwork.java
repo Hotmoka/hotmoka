@@ -36,8 +36,10 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -50,8 +52,6 @@ import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -71,7 +71,7 @@ import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
-    private final ClassType HASH_MAP_TESTS = StorageTypes.of("io.hotmoka.examples.javacollections.HashMapTests");
+    private final ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
     private final NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().setPort(8081).build();
     private final RemoteNodeConfig remoteNodeconfig = RemoteNodeConfigBuilders.defaults().setURL("localhost:8081").build();
 

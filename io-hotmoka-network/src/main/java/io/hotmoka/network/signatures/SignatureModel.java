@@ -16,12 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
-import java.util.Objects;
-
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.api.types.StorageType;
 
 /**
  * The model of the signature of a field, method or constructor.
@@ -52,43 +47,8 @@ public abstract class SignatureModel {
 	 */
 	protected static String nameOf(StorageType type) {
     	if (type == null)
-    		throw new RuntimeException("unexpected null type");
-    	else if (type instanceof BasicTypes)
-    		return type.toString();
-    	else if (type instanceof ClassType)
-    		return ((ClassType) type).getName();
+    		throw new RuntimeException("Unexpected null type");
     	else
-    		throw new RuntimeException("unexpected storage type of class " + type.getClass().getName());
+    		return type.toString();
     }
-
-	/**
-	 * Yields the type with the given name.
-	 * 
-	 * @param name the name of the type
-	 * @return the type
-	 */
-	protected static StorageType typeWithName(String name) {
-		Objects.requireNonNull(name, "name cannot be null");
-
-    	switch (name) {
-    	case "boolean":
-            return BasicTypes.BOOLEAN;
-        case "byte":
-            return BasicTypes.BYTE;
-        case "char":
-            return BasicTypes.CHAR;
-        case "short":
-            return BasicTypes.SHORT;
-        case "int":
-            return BasicTypes.INT;
-        case "long":
-            return BasicTypes.LONG;
-        case "float":
-            return BasicTypes.FLOAT;
-        case "double":
-            return BasicTypes.DOUBLE;
-        default:
-        	return StorageTypes.of(name);
-    	}
-	}
 }

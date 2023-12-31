@@ -26,10 +26,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.types.StorageTypes;
 
 /**
  * A test for the memory allocation bytecodes.
@@ -48,6 +48,6 @@ class Allocations extends HotmokaTest {
 
 	@Test @DisplayName("new Allocations()")
 	void createAllocations() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(StorageTypes.of("io.hotmoka.examples.allocations.Allocations")));
+		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(StorageTypes.classNamed("io.hotmoka.examples.allocations.Allocations")));
 	}
 }

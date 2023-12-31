@@ -19,8 +19,8 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -33,13 +33,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -50,7 +50,7 @@ import io.hotmoka.constants.Constants;
  * A test for the remote purchase contract.
  */
 class TicTacToe extends HotmokaTest {
-	private static final ClassType TIC_TAC_TOE = StorageTypes.of("io.hotmoka.examples.tictactoe.TicTacToe");
+	private static final ClassType TIC_TAC_TOE = StorageTypes.classNamed("io.hotmoka.examples.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 	private static final IntValue _1 = new IntValue(1);
 	private static final IntValue _2 = new IntValue(2);

@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import static io.hotmoka.beans.Coin.panarea;
-import static io.hotmoka.beans.types.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -33,14 +33,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
@@ -51,7 +51,7 @@ import io.hotmoka.beans.values.StringValue;
  * A test for a class that uses lambda expressions referring to entries.
  */
 class Lambdas extends HotmokaTest {
-	private static final ClassType LAMBDAS = StorageTypes.of("io.hotmoka.examples.lambdas.Lambdas");
+	private static final ClassType LAMBDAS = StorageTypes.classNamed("io.hotmoka.examples.lambdas.Lambdas");
 	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**

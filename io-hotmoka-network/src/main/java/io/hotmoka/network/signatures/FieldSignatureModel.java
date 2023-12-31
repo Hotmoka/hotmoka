@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.signatures.FieldSignature;
 
 /**
@@ -53,6 +54,6 @@ public final class FieldSignatureModel extends SignatureModel {
 	 * @return the signature
 	 */
 	public FieldSignature toBean() {
-		return new FieldSignature(definingClass, name, typeWithName(type));
+		return new FieldSignature(definingClass, name, StorageTypes.named(type));
 	}
 }

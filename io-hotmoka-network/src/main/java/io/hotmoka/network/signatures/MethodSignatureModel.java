@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -44,8 +45,8 @@ public class MethodSignatureModel extends CodeSignatureModel {
 		super(method);
 
 		this.methodName = method.methodName;
-		if (method instanceof NonVoidMethodSignature)
-			returnType = nameOf(((NonVoidMethodSignature) method).returnType);
+		if (method instanceof NonVoidMethodSignature nvm)
+			returnType = nameOf(nvm.returnType);
 		else
 			returnType = null;
 	}
@@ -61,6 +62,6 @@ public class MethodSignatureModel extends CodeSignatureModel {
 		if (returnType == null)
 			return new VoidMethodSignature(definingClass, methodName, getFormalsAsTypes());
 		else
-			return new NonVoidMethodSignature(definingClass, methodName, typeWithName(returnType), getFormalsAsTypes());
+			return new NonVoidMethodSignature(definingClass, methodName, StorageTypes.named(returnType), getFormalsAsTypes());
 	}
 }

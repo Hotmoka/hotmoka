@@ -30,13 +30,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -44,7 +44,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test of the @SelfCharged annotation.
  */
 class SelfCharged extends HotmokaTest {
-	private final static ClassType SELF_CHARGEABLE = StorageTypes.of("io.hotmoka.examples.selfcharged.SelfChargeable");
+	private final static ClassType SELF_CHARGEABLE = StorageTypes.classNamed("io.hotmoka.examples.selfcharged.SelfChargeable");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

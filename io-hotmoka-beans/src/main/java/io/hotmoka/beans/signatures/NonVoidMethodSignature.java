@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -61,7 +61,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 	 * @param formals the formal arguments of the method
 	 */
 	public NonVoidMethodSignature(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		this(StorageTypes.of(definingClass), methodName, returnType, formals);
+		this(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
 	}
 
 	@Override

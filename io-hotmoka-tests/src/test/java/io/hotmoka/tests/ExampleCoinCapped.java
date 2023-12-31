@@ -19,7 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.InvalidKeyException;
@@ -32,14 +32,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -49,7 +49,7 @@ import io.hotmoka.constants.Constants;
  * A test for the ExampleCoinCapped contract (a ERC20Capped contract).
  */
 class ExampleCoinCapped extends HotmokaTest {
-    private static final ClassType EXCC = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinCapped");
+    private static final ClassType EXCC = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCapped");
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCC = new ConstructorSignature(EXCC);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);

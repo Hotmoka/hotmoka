@@ -19,7 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -31,14 +31,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -48,8 +48,8 @@ import io.hotmoka.beans.values.StorageReference;
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.of("io.takamaka.code.dao.SimpleSharedEntity");
+    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);

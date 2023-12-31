@@ -26,8 +26,10 @@ import java.util.Base64;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -36,8 +38,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -100,7 +100,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "qtesla1":
 		case "qtesla3":
 			methodName = "faucet" + signature.toUpperCase();
-			eoaType = StorageTypes.of(StorageTypes.EOA + signature.toUpperCase());
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
 			break;
 		default:
 			throw new IllegalArgumentException("Unknown signature algorithm " + signature);
@@ -140,7 +140,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		case "sha256dsa":
 		case "qtesla1":
 		case "qtesla3":
-			eoaType = StorageTypes.of(StorageTypes.EOA + signature.toUpperCase());
+			eoaType = StorageTypes.classNamed(StorageTypes.EOA + signature.toUpperCase());
 			break;
 		default:
 			throw new IllegalArgumentException("unknown signature algorithm " + signature);

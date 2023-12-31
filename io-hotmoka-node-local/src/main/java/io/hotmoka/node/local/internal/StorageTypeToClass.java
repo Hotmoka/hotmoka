@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
@@ -61,21 +61,25 @@ public class StorageTypeToClass {
 	 * @throws ClassNotFoundException if some class type cannot be found
 	 */
 	public Class<?> toClass(StorageType type) throws ClassNotFoundException {
-		if (type instanceof BasicTypes) {
-			switch ((BasicTypes) type) {
-			case BOOLEAN: return boolean.class;
-			case BYTE: return byte.class;
-			case CHAR: return char.class;
-			case SHORT: return short.class;
-			case INT: return int.class;
-			case LONG: return long.class;
-			case FLOAT: return float.class;
-			case DOUBLE: return double.class;
-			}
-		}
-		else if (type instanceof ClassType)
-			return classLoader.loadClass(((ClassType) type).getName());
-	
-		throw new IllegalArgumentException("unexpected storage type");
+		if (type == StorageTypes.BOOLEAN)
+			return boolean.class;
+		else if (type == StorageTypes.BYTE)
+			return byte.class;
+		else if (type == StorageTypes.CHAR)
+			return char.class;
+		else if (type == StorageTypes.SHORT)
+			return short.class;
+		else if (type == StorageTypes.INT)
+			return int.class;
+		else if (type == StorageTypes.LONG)
+			return long.class;
+		else if (type == StorageTypes.FLOAT)
+			return float.class;
+		else if (type == StorageTypes.DOUBLE)
+			return double.class;
+		else if (type instanceof ClassType ct)
+			return classLoader.loadClass(ct.getName());
+		else
+			throw new IllegalArgumentException("Unexpected storage type");
 	}
 }

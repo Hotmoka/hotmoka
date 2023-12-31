@@ -28,14 +28,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -44,8 +44,8 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for calls to methods on "this".
  */
 class ConstructorOnThis extends HotmokaTest {
-	private static final ClassType BRIDGE = StorageTypes.of("io.hotmoka.examples.constructoronthis.Bridge");
-	private static final ClassType BRIDGE2 = StorageTypes.of("io.hotmoka.examples.constructoronthis.Bridge2");
+	private static final ClassType BRIDGE = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge");
+	private static final ClassType BRIDGE2 = StorageTypes.classNamed("io.hotmoka.examples.constructoronthis.Bridge2");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 module io.hotmoka.beans.api {
+	exports io.hotmoka.beans.api.types;
 	requires transitive io.hotmoka.marshalling.api;
 	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;

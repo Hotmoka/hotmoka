@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -33,12 +33,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
@@ -49,13 +49,13 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the storage map Takamaka class.
  */
 class Collections extends HotmokaTest {
-	private static final ClassType MAP_TESTS = StorageTypes.of("io.hotmoka.examples.collections.MapTests");
-	private static final ClassType INT_MAP_TESTS = StorageTypes.of("io.hotmoka.examples.collections.IntMapTests");
-	private static final ClassType ARRAY_TESTS = StorageTypes.of("io.hotmoka.examples.collections.ArrayTests");
-	private static final ClassType SET_TESTS = StorageTypes.of("io.hotmoka.examples.collections.SetTests");
-	private static final ClassType MAP_HOLDER = StorageTypes.of("io.hotmoka.examples.collections.MapHolder");
-	private static final ClassType STATE = StorageTypes.of("io.hotmoka.examples.collections.MapHolder$State");
-	private static final ClassType COMPARABLE = StorageTypes.of("java.lang.Comparable");
+	private static final ClassType MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.MapTests");
+	private static final ClassType INT_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.IntMapTests");
+	private static final ClassType ARRAY_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.ArrayTests");
+	private static final ClassType SET_TESTS = StorageTypes.classNamed("io.hotmoka.examples.collections.SetTests");
+	private static final ClassType MAP_HOLDER = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder");
+	private static final ClassType STATE = StorageTypes.classNamed("io.hotmoka.examples.collections.MapHolder$State");
+	private static final ClassType COMPARABLE = StorageTypes.classNamed("java.lang.Comparable");
 
 	/**
 	 * The first object, that holds all funds initially.

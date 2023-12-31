@@ -17,14 +17,14 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.*;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -37,17 +37,17 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import static io.hotmoka.beans.Coin.*;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 
 /**
  * A test showing that it is possible to have a shared entity with unrelated
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntity1AllowsArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType SHARED_ENTITY_1 = StorageTypes.of("io.hotmoka.examples.sharedentities.SharedEntity1");
-    private static final ClassType SIMPLE_SHARED_ENTITY_1 = StorageTypes.of("io.hotmoka.examples.sharedentities.SimpleSharedEntity1");
-    private static final ClassType OFFER_1 = StorageTypes.of(SHARED_ENTITY_1 + "$Offer");
+    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SharedEntity1");
+    private static final ClassType SIMPLE_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SimpleSharedEntity1");
+    private static final ClassType OFFER_1 = StorageTypes.classNamed(SHARED_ENTITY_1 + "$Offer");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY_1, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);

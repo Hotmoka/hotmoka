@@ -30,14 +30,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -45,7 +45,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for {@link io.hotmoka.node.Node#getResponse(io.hotmoka.beans.references.TransactionReference)}.
  */
 class GetResponse extends HotmokaTest {
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.of("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

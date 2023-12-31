@@ -19,9 +19,9 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
-import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
-import static io.hotmoka.beans.types.StorageTypes.SHARED_ENTITY;
+import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.StorageTypes.SHARED_ENTITY;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -33,14 +33,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -49,9 +49,9 @@ import io.hotmoka.beans.values.StorageReference;
  * A test about subclassing of the shared entity contract with a specific class for the shareholders.
  */
 class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
+    private static final ClassType MY_CLASS = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
+    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, BIG_INTEGER);

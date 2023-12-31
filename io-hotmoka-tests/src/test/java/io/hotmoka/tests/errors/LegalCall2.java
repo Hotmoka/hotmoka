@@ -28,20 +28,20 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall2 extends HotmokaTest {
-	private static final ClassType C = StorageTypes.of("io.hotmoka.examples.errors.legalcall2.C");
+	private static final ClassType C = StorageTypes.classNamed("io.hotmoka.examples.errors.legalcall2.C");
 
 	@BeforeEach
 	void beforeEach() throws Exception {

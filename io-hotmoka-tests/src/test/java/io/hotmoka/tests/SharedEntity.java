@@ -19,11 +19,11 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.BasicTypes.INT;
-import static io.hotmoka.beans.types.BasicTypes.LONG;
-import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
-import static io.hotmoka.beans.types.StorageTypes.PAYABLE_CONTRACT;
-import static io.hotmoka.beans.types.StorageTypes.SHARED_ENTITY;
+import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.StorageTypes.PAYABLE_CONTRACT;
+import static io.hotmoka.beans.StorageTypes.SHARED_ENTITY;
+import static io.hotmoka.beans.types.internal.BasicTypes.INT;
+import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -34,13 +34,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
@@ -50,10 +50,10 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the shared entity contract and subclasses.
  */
 class SharedEntity extends HotmokaTest {
-    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.of("io.takamaka.code.dao.SimpleSharedEntity");
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = StorageTypes.of(SHARED_ENTITY + "WithCappedShareholders");
-    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = StorageTypes.of(SHARED_ENTITY + "WithIntegralShares");
-    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = StorageTypes.of(SHARED_ENTITY + "WithCappedShares");
+    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShareholders");
+    private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithIntegralShares");
+    private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShares");
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
     private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, PAYABLE_CONTRACT, BIG_INTEGER);
     private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, PAYABLE_CONTRACT, BIG_INTEGER, INT);

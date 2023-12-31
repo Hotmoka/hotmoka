@@ -24,11 +24,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -342,7 +342,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	public CodeSignature(String definingClass, StorageType... formals) {
-		this(StorageTypes.of(definingClass), formals);
+		this(StorageTypes.classNamed(definingClass), formals);
 	}
 
 	/**

@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
-import static io.hotmoka.beans.types.StorageTypes.PAYABLE_CONTRACT;
+import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.StorageTypes.PAYABLE_CONTRACT;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,24 +33,24 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
+import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 
 class SimplePoll extends HotmokaTest {
 
-	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.of("io.takamaka.code.dao.SimpleSharedEntity");
-	private static final ClassType SIMPLE_POLL = StorageTypes.of("io.takamaka.code.dao.SimplePoll");
-	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.of("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = StorageTypes.of("io.hotmoka.examples.polls.CheckRunPerformedAction");
+	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.classNamed("io.takamaka.code.dao.SimpleSharedEntity");
+	private static final ClassType SIMPLE_POLL = StorageTypes.classNamed("io.takamaka.code.dao.SimplePoll");
+	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.classNamed("io.takamaka.code.dao.SimplePoll$Action");
+	private static final ClassType ACTION = StorageTypes.classNamed("io.hotmoka.examples.polls.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, 
 			PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);

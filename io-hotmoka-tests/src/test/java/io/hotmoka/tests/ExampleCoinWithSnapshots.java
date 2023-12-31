@@ -17,14 +17,14 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -42,7 +42,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 
 import static io.hotmoka.beans.Coin.*;
-import static io.hotmoka.beans.types.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * A test for the ExampleCoinWithSnapshots contract (a ERC20WithSnapshots contract).
  */
 class ExampleCoinWithSnapshots extends HotmokaTest {
-    private static final ClassType EXCWS = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots");
+    private static final ClassType EXCWS = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinWithSnapshots");
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCAS = new ConstructorSignature(EXCWS);
     private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
