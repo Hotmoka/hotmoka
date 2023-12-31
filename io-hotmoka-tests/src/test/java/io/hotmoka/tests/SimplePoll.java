@@ -40,7 +40,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -62,8 +61,8 @@ class SimplePoll extends HotmokaTest {
 	private static final VoidMethodSignature VOTE_POLL_WITH_PARAM = new VoidMethodSignature(SIMPLE_POLL, "vote", BIG_INTEGER);
 	private static final VoidMethodSignature CLOSE_POLL = new VoidMethodSignature(SIMPLE_POLL, "close");
 
-	private static final NonVoidMethodSignature IS_POLL_OVER = new NonVoidMethodSignature(SIMPLE_POLL, "isOver", BasicTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS__RUN_PERFORMED = new NonVoidMethodSignature(ACTION, "isRunPerformed", BasicTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_POLL_OVER = new NonVoidMethodSignature(SIMPLE_POLL, "isOver", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS__RUN_PERFORMED = new NonVoidMethodSignature(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;

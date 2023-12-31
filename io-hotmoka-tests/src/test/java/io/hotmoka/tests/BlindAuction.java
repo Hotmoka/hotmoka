@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
-import static io.hotmoka.beans.types.internal.BasicTypes.BYTE;
-import static io.hotmoka.beans.types.internal.BasicTypes.INT;
+import static io.hotmoka.beans.StorageTypes.BOOLEAN;
+import static io.hotmoka.beans.StorageTypes.BYTE;
+import static io.hotmoka.beans.StorageTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;

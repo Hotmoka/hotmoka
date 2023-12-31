@@ -16,6 +16,23 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static io.hotmoka.beans.Coin.filicudi;
+import static io.hotmoka.beans.Coin.panarea;
+import static io.hotmoka.beans.Coin.stromboli;
+import static io.hotmoka.beans.StorageTypes.BOOLEAN;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PrivateKey;
+import java.security.SignatureException;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
@@ -30,21 +47,6 @@ import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-
-import java.math.BigInteger;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.SignatureException;
-
-import static io.hotmoka.beans.Coin.*;
-import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * A test for the ExampleCoinWithSnapshots contract (a ERC20WithSnapshots contract).

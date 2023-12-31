@@ -19,8 +19,8 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.internal.BasicTypes.INT;
-import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
+import static io.hotmoka.beans.StorageTypes.INT;
+import static io.hotmoka.beans.StorageTypes.LONG;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;

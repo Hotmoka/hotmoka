@@ -36,7 +36,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -61,7 +60,7 @@ class SelfCharged extends HotmokaTest {
 	@Test @DisplayName("new C(100_000).foo() fails when called by an account with zero balance")
 	void failsForNonSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (consensus != null && consensus.allowsSelfCharged()) {
-			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
+			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, StorageTypes.INT), new IntValue(100_000));
 			try {
 				addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "foo"), sc);
 			}
@@ -77,7 +76,7 @@ class SelfCharged extends HotmokaTest {
 	@Test @DisplayName("new C(100_000).goo() succeeds when called by an account with zero balance")
 	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (consensus != null && consensus.allowsSelfCharged()) {
-			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, BasicTypes.INT), new IntValue(100_000));
+			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), new ConstructorSignature(SELF_CHARGEABLE, StorageTypes.INT), new IntValue(100_000));
 			addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "goo"), sc);
 		}
 	}

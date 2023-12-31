@@ -22,7 +22,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.api.types.BasicType;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.types.internal.BasicTypes;
+import io.hotmoka.beans.types.internal.BasicTypeImpl;
 import io.hotmoka.beans.types.internal.ClassTypeImpl;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -37,42 +37,42 @@ public abstract class StorageTypes {
 	/**
 	 * The {@code boolean} basic type of the Takamaka language.
 	 */
-	public final static BasicType BOOLEAN = BasicTypes.BOOLEAN;
+	public final static BasicType BOOLEAN = new BasicTypeImpl(BasicTypeImpl.Instance.BOOLEAN);
 
 	/**
 	 * The {@code byte} basic type of the Takamaka language.
 	 */
-	public final static BasicType BYTE = BasicTypes.BYTE;
+	public final static BasicType BYTE = new BasicTypeImpl(BasicTypeImpl.Instance.BYTE);
 
 	/**
 	 * The {@code char} basic type of the Takamaka language.
 	 */
-	public final static BasicType CHAR = BasicTypes.CHAR;
+	public final static BasicType CHAR = new BasicTypeImpl(BasicTypeImpl.Instance.CHAR);
 
 	/**
 	 * The {@code short} basic type of the Takamaka language.
 	 */
-	public final static BasicType SHORT = BasicTypes.SHORT;
+	public final static BasicType SHORT = new BasicTypeImpl(BasicTypeImpl.Instance.SHORT);
 
 	/**
 	 * The {@code int} basic type of the Takamaka language.
 	 */
-	public final static BasicType INT = BasicTypes.INT;
+	public final static BasicType INT = new BasicTypeImpl(BasicTypeImpl.Instance.INT);
 
 	/**
 	 * The {@code long} basic type of the Takamaka language.
 	 */
-	public final static BasicType LONG = BasicTypes.LONG;
+	public final static BasicType LONG = new BasicTypeImpl(BasicTypeImpl.Instance.LONG);
 
 	/**
 	 * The {@code float} basic type of the Takamaka language.
 	 */
-	public final static BasicType FLOAT = BasicTypes.FLOAT;
+	public final static BasicType FLOAT = new BasicTypeImpl(BasicTypeImpl.Instance.FLOAT);
 	
 	/**
 	 * The {@code double} basic type of the Takamaka language.
 	 */
-	public final static BasicType DOUBLE = BasicTypes.DOUBLE;
+	public final static BasicType DOUBLE = new BasicTypeImpl(BasicTypeImpl.Instance.DOUBLE);
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -406,21 +406,21 @@ public abstract class StorageTypes {
 	 */
 	public static StorageType of(Class<?> clazz) {
 		if (clazz == boolean.class)
-			return BasicTypes.BOOLEAN;
+			return BOOLEAN;
 		else if (clazz == byte.class)
-			return BasicTypes.BYTE;
+			return BYTE;
 		else if (clazz == char.class)
-			return BasicTypes.CHAR;
+			return CHAR;
 		else if (clazz == short.class)
-			return BasicTypes.SHORT;
+			return SHORT;
 		else if (clazz == int.class)
-			return BasicTypes.INT;
+			return INT;
 		else if (clazz == long.class)
-			return BasicTypes.LONG;
+			return LONG;
 		else if (clazz == float.class)
-			return BasicTypes.FLOAT;
+			return FLOAT;
 		else if (clazz == double.class)
-			return BasicTypes.DOUBLE;
+			return DOUBLE;
 		else
 			return StorageTypes.classNamed(clazz.getName());
 	}
@@ -499,11 +499,24 @@ public abstract class StorageTypes {
 			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
 		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
 			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
+		case BasicTypeImpl.BOOLEAN_SELECTOR:
+			return BOOLEAN;
+		case BasicTypeImpl.BYTE_SELECTOR:
+			return BYTE;
+		case BasicTypeImpl.CHAR_SELECTOR:
+			return CHAR;
+		case BasicTypeImpl.SHORT_SELECTOR:
+			return SHORT;
+		case BasicTypeImpl.INT_SELECTOR:
+			return INT;
+		case BasicTypeImpl.LONG_SELECTOR:
+			return LONG;
+		case BasicTypeImpl.FLOAT_SELECTOR:
+			return FLOAT;
+		case BasicTypeImpl.DOUBLE_SELECTOR:
+			return DOUBLE;
 		default:
-			if (selector >= 0 && selector < 8)
-				return BasicTypes.values()[selector];
-			else
-				throw new IOException("Unexpected type selector: " + selector);
+			throw new IOException("Unexpected type selector: " + selector);
 		}
 	}
 }

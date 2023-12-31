@@ -97,7 +97,7 @@ public final class ClassTag extends Update {
 		if (diff != 0)
 			return diff;
 
-		diff = clazz.compareAgainst(((ClassTag) other).clazz);
+		diff = clazz.compareTo(((ClassTag) other).clazz);
 		if (diff != 0)
 			return diff;
 		else

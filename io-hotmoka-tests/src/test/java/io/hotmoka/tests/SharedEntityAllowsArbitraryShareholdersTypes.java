@@ -19,7 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
-import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
+import static io.hotmoka.beans.StorageTypes.LONG;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;

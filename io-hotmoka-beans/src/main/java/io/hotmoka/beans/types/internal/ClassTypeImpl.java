@@ -101,10 +101,10 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	}
 
 	@Override
-	public int compareAgainst(StorageType other) {
+	public int compareTo(StorageType other) {
 		if (other instanceof ClassTypeImpl ct)
 			return name.compareTo(ct.name);
-		else // other instanceof BasicTypes
+		else // other instanceof BasicTypeImpl
 			return 1;
 	}
 

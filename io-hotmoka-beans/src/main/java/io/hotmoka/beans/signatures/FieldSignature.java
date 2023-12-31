@@ -25,7 +25,6 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -111,12 +110,12 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_MAP_NODE, "size", BasicTypes.INT);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_MAP_NODE, "size", StorageTypes.INT);
 
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_SIZE_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_SIZE_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", StorageTypes.INT);
 
 	/**
 	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
@@ -136,7 +135,7 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	/**
 	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "key", BasicTypes.INT);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "key", StorageTypes.INT);
 
 	/**
 	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
@@ -219,12 +218,12 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 
 	@Override
 	public int compareTo(FieldSignature other) {
-		int diff = definingClass.compareAgainst(other.definingClass);
+		int diff = definingClass.compareTo(other.definingClass);
 		if (diff != 0)
 			return diff;
 
 		diff = name.compareTo(other.name);
-		return diff != 0 ? diff : type.compareAgainst(other.type);
+		return diff != 0 ? diff : type.compareTo(other.type);
 	}
 
 	@Override

@@ -28,12 +28,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -72,7 +72,7 @@ class Encapsulation extends HotmokaTest {
 			list1);
 
 		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", BasicTypes.INT),
+			new NonVoidMethodSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
 			encapsulated);
 
 		assertSame(0, result.value);

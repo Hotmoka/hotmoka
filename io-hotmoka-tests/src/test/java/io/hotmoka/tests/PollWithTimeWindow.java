@@ -41,7 +41,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.LongValue;
@@ -57,14 +56,14 @@ class PollWithTimeWindow extends HotmokaTest {
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, 
 		PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);
 	private static final ConstructorSignature POLL_WITH_TIME_WINDOW_CONSTRUCTOR = new ConstructorSignature
-		(POLL_WITH_TIME_WINDOW, StorageTypes.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL, BasicTypes.LONG, BasicTypes.LONG);
+		(POLL_WITH_TIME_WINDOW, StorageTypes.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL, StorageTypes.LONG, StorageTypes.LONG);
 	private static final ConstructorSignature ACTION_CONSTRUCTOR = new ConstructorSignature(ACTION);
 
 	private static final VoidMethodSignature VOTE_POLL = new VoidMethodSignature(POLL_WITH_TIME_WINDOW, "vote");
 	private static final VoidMethodSignature CLOSE_POLL = new VoidMethodSignature(POLL_WITH_TIME_WINDOW, "close");
 
-	private static final NonVoidMethodSignature IS_OVER = new NonVoidMethodSignature(POLL_WITH_TIME_WINDOW, "isOver", BasicTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS_RUN_PERFORMED= new NonVoidMethodSignature(ACTION, "isRunPerformed", BasicTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_OVER = new NonVoidMethodSignature(POLL_WITH_TIME_WINDOW, "isOver", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_RUN_PERFORMED= new NonVoidMethodSignature(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;

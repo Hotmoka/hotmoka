@@ -23,7 +23,6 @@ import java.math.BigInteger;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -43,22 +42,26 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	 * @return the resulting storage value
 	 */
 	public static StorageValue of(String s, StorageType type) {
-		if (type instanceof BasicTypes)
-			switch ((BasicTypes) type) {
-			case BOOLEAN: return new BooleanValue(Boolean.parseBoolean(s));
-			case BYTE: return new ByteValue(Byte.parseByte(s));
-			case CHAR: {
-				if (s.length() != 1)
-					throw new IllegalArgumentException("the value is not a character");
-				else
-					return new CharValue(s.charAt(0));
-			}
-			case SHORT: return new ShortValue(Short.parseShort(s));
-			case INT: return new IntValue(Integer.parseInt(s));
-			case LONG: return new LongValue(Long.parseLong(s));
-			case FLOAT: return new FloatValue(Float.parseFloat(s));
-			default: return new DoubleValue(Double.parseDouble(s));
-			}
+		if (type == StorageTypes.BOOLEAN)
+			return new BooleanValue(Boolean.parseBoolean(s));
+		else if (type == StorageTypes.BYTE)
+			return new ByteValue(Byte.parseByte(s));
+		else if (type == StorageTypes.CHAR) {
+			if (s.length() != 1)
+				throw new IllegalArgumentException("the value is not a character");
+			else
+				return new CharValue(s.charAt(0));
+		}
+		else if (type == StorageTypes.SHORT)
+			return new ShortValue(Short.parseShort(s));
+		else if (type == StorageTypes.INT)
+			return new IntValue(Integer.parseInt(s));
+		else if (type == StorageTypes.LONG)
+			return new LongValue(Long.parseLong(s));
+		else if (type == StorageTypes.FLOAT)
+			return new FloatValue(Float.parseFloat(s));
+		else if (type == StorageTypes.DOUBLE)
+			return new DoubleValue(Double.parseDouble(s));
 		else if (StorageTypes.STRING.equals(type))
 			return new StringValue(s);
 		else if (StorageTypes.BIG_INTEGER.equals(type))

@@ -28,7 +28,6 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -87,17 +86,17 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getMaxErrorLength} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxErrorLength", BasicTypes.LONG);
+	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxErrorLength", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getMaxDependencies} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxDependencies", BasicTypes.LONG);
+	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxDependencies", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getMaxCumulativeSizeOfDependencies} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxCumulativeSizeOfDependencies", BasicTypes.LONG);
+	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxCumulativeSizeOfDependencies", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getTicketForNewPoll} of the validators.
@@ -132,17 +131,17 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code allowsSelfCharged} of the manifest.
 	 */
-	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsSelfCharged", BasicTypes.BOOLEAN);
+	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsSelfCharged", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code allowsUnsignedFaucet} of the manifest.
 	 */
-	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsUnsignedFaucet", BasicTypes.BOOLEAN);
+	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsUnsignedFaucet", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code skipsVerification} of the manifest.
 	 */
-	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(StorageTypes.MANIFEST, "skipsVerification", BasicTypes.BOOLEAN);
+	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(StorageTypes.MANIFEST, "skipsVerification", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code getSignature} of the manifest.
@@ -197,7 +196,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getOblivion} of the gas station.
 	 */
-	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getOblivion", BasicTypes.LONG);
+	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getOblivion", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getStake} of the validators object.
@@ -207,17 +206,17 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getInitialInflation} of the validators object.
 	 */
-	public final static MethodSignature GET_INITIAL_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getInitialInflation", BasicTypes.LONG);
+	public final static MethodSignature GET_INITIAL_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getInitialInflation", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getCurrentInflation} of the validators object.
 	 */
-	public final static MethodSignature GET_CURRENT_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getCurrentInflation", BasicTypes.LONG);
+	public final static MethodSignature GET_CURRENT_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getCurrentInflation", StorageTypes.LONG);
 
 	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
 	 */
-	public final static MethodSignature IGNORES_GAS_PRICE = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "ignoresGasPrice", BasicTypes.BOOLEAN);
+	public final static MethodSignature IGNORES_GAS_PRICE = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "ignoresGasPrice", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code getValidators} of the manifest.
@@ -232,7 +231,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code getVerificationVersion} of the versions object.
 	 */
-	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(StorageTypes.VERSIONS, "getVerificationVersion", BasicTypes.LONG);
+	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(StorageTypes.VERSIONS, "getVerificationVersion", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getPolls} of the validators object.
@@ -277,12 +276,12 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code receive} of a payable contract, with an int argument.
 	 */
-	public final static MethodSignature RECEIVE_INT = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", BasicTypes.INT);
+	public final static MethodSignature RECEIVE_INT = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.INT);
 
 	/**
 	 * The method {@code receive} of a payable contract, with a long argument.
 	 */
-	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", BasicTypes.LONG);
+	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.LONG);
 
 	/**
 	 * The method {@code reward} of the validators contract.
@@ -303,7 +302,7 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	/**
 	 * The method {@code isVoteOver} of the Poll contract.
 	 */
-	public final static MethodSignature IS_VOTE_OVER = new NonVoidMethodSignature(StorageTypes.POLL, "isVoteOver", BasicTypes.BOOLEAN);
+	public final static MethodSignature IS_VOTE_OVER = new NonVoidMethodSignature(StorageTypes.POLL, "isVoteOver", StorageTypes.BOOLEAN);
 	
 	/**
 	 * The method {@code closePoll} of the Poll contract.

@@ -27,23 +27,40 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * The basic types of the Takamaka language.
  */
 @Immutable
-public enum BasicTypes implements BasicType {
-	BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
+public class BasicTypeImpl implements BasicType {
+	private final Instance instance;
+	
+	public static enum Instance {
+		BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
+	}
 
-	@Override
-	public String toString() {
-		return super.toString().toLowerCase();
+	public final static int BOOLEAN_SELECTOR = 0;
+	public final static int BYTE_SELECTOR = 1;
+	public final static int CHAR_SELECTOR = 2;
+	public final static int SHORT_SELECTOR = 3;
+	public final static int INT_SELECTOR = 4;
+	public final static int LONG_SELECTOR = 5;
+	public final static int FLOAT_SELECTOR = 6;
+	public final static int DOUBLE_SELECTOR = 7;
+
+	public BasicTypeImpl(Instance instance) {
+		this.instance = instance;
 	}
 
 	@Override
-	public int compareAgainst(StorageType other) {
-		return other instanceof BasicTypes bt ? compareTo(bt)
+	public String toString() {
+		return instance.toString().toLowerCase();
+	}
+
+	@Override
+	public int compareTo(StorageType other) {
+		return other instanceof BasicType bt ? toString().compareTo(bt.toString())
 			: -1; // other instanceof ClassType
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte((byte) ordinal());
+		context.writeByte((byte) instance.ordinal());
 	}
 
 	@Override
@@ -53,7 +70,7 @@ public enum BasicTypes implements BasicType {
 
 	@Override
 	public byte[] toByteArray() {
-		return new byte[] { (byte) ordinal() };
+		return new byte[] { (byte) instance.ordinal() };
 	}
 
 	@Override

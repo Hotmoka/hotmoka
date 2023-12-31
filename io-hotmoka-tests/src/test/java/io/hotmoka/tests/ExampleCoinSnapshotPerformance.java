@@ -19,7 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.Coin.level2;
 import static io.hotmoka.beans.Coin.level3;
 import static io.hotmoka.beans.Coin.panarea;
-import static io.hotmoka.beans.types.internal.BasicTypes.BOOLEAN;
+import static io.hotmoka.beans.StorageTypes.BOOLEAN;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -62,7 +62,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -215,9 +214,9 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
     		this.COIN = StorageTypes.classNamed(coinName);
-    		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, BasicTypes.INT);
-    		this.BURN = new VoidMethodSignature(COIN, "burn", StorageTypes.CONTRACT, BasicTypes.INT);
-    		this.MINT = new VoidMethodSignature(COIN, "mint", StorageTypes.CONTRACT, BasicTypes.INT);
+    		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
+    		this.BURN = new VoidMethodSignature(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
+    		this.MINT = new VoidMethodSignature(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);
     		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
     	}
 
@@ -269,7 +268,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
-        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, BasicTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
+        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(new LocalTransactionReference(hasher.hash(request)));
     	}

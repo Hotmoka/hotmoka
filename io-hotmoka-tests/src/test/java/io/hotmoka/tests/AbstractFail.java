@@ -34,7 +34,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -45,7 +44,7 @@ import io.hotmoka.constants.Constants;
  */
 class AbstractFail extends HotmokaTest {
 	private static final ClassType ABSTRACT_FAIL = StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFail");
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

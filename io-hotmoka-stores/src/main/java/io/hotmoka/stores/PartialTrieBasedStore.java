@@ -212,7 +212,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Starts a transaction. All updates during the transaction are saved
+	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
 	 * 
 	 * @return the transaction

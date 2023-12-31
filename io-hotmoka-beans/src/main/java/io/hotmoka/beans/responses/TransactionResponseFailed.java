@@ -20,7 +20,7 @@ import java.math.BigInteger;
 
 /**
  * The response of a failed transaction. This means that the transaction
- * could not be executed until its end. All gas provided to the
+ * could not be executed until its end. Instance gas provided to the
  * transaction has been consumed, as a form of penalty.
  */
 public interface TransactionResponseFailed {

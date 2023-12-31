@@ -20,8 +20,8 @@ import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
 import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.StorageTypes.LONG;
 import static io.hotmoka.beans.StorageTypes.SHARED_ENTITY;
-import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;

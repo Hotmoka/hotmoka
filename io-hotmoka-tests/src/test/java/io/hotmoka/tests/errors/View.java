@@ -26,11 +26,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.SideEffectsInViewMethodException;
@@ -54,7 +54,7 @@ class View extends HotmokaTest {
 
 		HotmokaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no1", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
+				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
 
@@ -64,7 +64,7 @@ class View extends HotmokaTest {
 
 		HotmokaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no2", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
+				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, new IntValue(13), new IntValue(17)));
 	}
 
@@ -73,7 +73,7 @@ class View extends HotmokaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
 
 		runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "yes", BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
+			new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			c, new IntValue(13), new IntValue(17));
 	}
 }

@@ -23,7 +23,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -364,7 +363,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            FieldSignature fieldSignature = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
+            FieldSignature fieldSignature = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", StorageTypes.INT);
 
             context.writeObject(FieldSignature.class, fieldSignature);
             context.flush();

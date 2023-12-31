@@ -28,11 +28,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -57,7 +57,7 @@ class Cycle extends HotmokaTest {
 			new ConstructorSignature("io.hotmoka.examples.cycle.Cycle"));
 
 		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.cycle.Cycle", "foo", BasicTypes.INT), cycle);
+			new NonVoidMethodSignature("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
 
 		assertEquals(42, result.value);
 	}

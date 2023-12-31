@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static java.math.BigInteger.ONE;
+import static io.hotmoka.beans.StorageTypes.INT;
+import static io.hotmoka.beans.StorageTypes.LONG;
 import static io.hotmoka.beans.signatures.CodeSignature.RECEIVE_INT;
-import static io.hotmoka.beans.types.internal.BasicTypes.INT;
-import static io.hotmoka.beans.types.internal.BasicTypes.LONG;
+import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -44,7 +44,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.internal.BasicTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
@@ -67,7 +66,7 @@ class Basic extends HotmokaTest {
 	private static final MethodSignature SUB_MS = new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "ms");
 	private static final MethodSignature SUB_M5 = new VoidMethodSignature("io.hotmoka.examples.basic.Sub", "m5");
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"));
-	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, BasicTypes.LONG);
+	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = new ConstructorSignature("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 	private static final MethodSignature TIME_TO_STRING = new NonVoidMethodSignature(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), "toString", StorageTypes.STRING);
 	private static final MethodSignature WRAPPER_TO_STRING = new NonVoidMethodSignature(StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Wrapper"), "toString", StorageTypes.STRING);
@@ -232,14 +231,14 @@ class Basic extends HotmokaTest {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		assertEquals(new BooleanValue(true), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; s2 = \"hello\"; a1.test(s1, s2)=false")
@@ -248,7 +247,7 @@ class Basic extends HotmokaTest {
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s2));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); s1 = \"hello\"; a1.test(s1, s1)=false")
@@ -256,7 +255,7 @@ class Basic extends HotmokaTest {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s1));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s1));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); bi2 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
@@ -265,7 +264,7 @@ class Basic extends HotmokaTest {
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi2));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); bi1 = BigInteger.valueOf(13L); a1.test(bi1, bi2)=false")
@@ -273,7 +272,7 @@ class Basic extends HotmokaTest {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
-			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", BasicTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi1));
+			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi1));
 	}
 
 	@Test @DisplayName("new Simple(13).foo1() throws TransactionException since SideEffectsInViewMethodException")
@@ -305,7 +304,7 @@ class Basic extends HotmokaTest {
 	@Test @DisplayName("new Simple(13).foo4() == 13")
 	void viewMethodOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference s = addConstructorCallTransaction
-			(key, master, _50_000, ONE, classpath, new ConstructorSignature(SIMPLE, BasicTypes.INT), new IntValue(13));
+			(key, master, _50_000, ONE, classpath, new ConstructorSignature(SIMPLE, StorageTypes.INT), new IntValue(13));
 
 		assertEquals(new IntValue(13),
 			runInstanceMethodCallTransaction(master, _50_000, classpath, new NonVoidMethodSignature(SIMPLE, "foo4", INT), s));
