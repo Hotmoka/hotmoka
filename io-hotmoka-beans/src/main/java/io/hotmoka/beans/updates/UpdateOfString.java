@@ -21,7 +21,7 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -89,7 +89,7 @@ public final class UpdateOfString extends UpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
-		return field.type.equals(ClassType.STRING);
+		return field.type.equals(StorageTypes.STRING);
 	}
 
 	@Override

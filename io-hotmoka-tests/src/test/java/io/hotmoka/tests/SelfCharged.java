@@ -36,6 +36,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -43,7 +44,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test of the @SelfCharged annotation.
  */
 class SelfCharged extends HotmokaTest {
-	private final static ClassType SELF_CHARGEABLE = new ClassType("io.hotmoka.examples.selfcharged.SelfChargeable");
+	private final static ClassType SELF_CHARGEABLE = StorageTypes.of("io.hotmoka.examples.selfcharged.SelfChargeable");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

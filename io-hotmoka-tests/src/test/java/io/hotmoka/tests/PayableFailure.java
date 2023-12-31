@@ -36,6 +36,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
@@ -46,7 +47,7 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class PayableFailure extends HotmokaTest {
 
-	private final static ClassType C = new ClassType("io.hotmoka.examples.payablefailure.C");
+	private final static ClassType C = StorageTypes.of("io.hotmoka.examples.payablefailure.C");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

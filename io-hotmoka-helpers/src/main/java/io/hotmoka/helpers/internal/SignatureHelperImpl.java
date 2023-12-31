@@ -21,7 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -48,17 +48,17 @@ public class SignatureHelperImpl implements SignatureHelper {
 		var tag = node.getClassTag(account);
 
 		// first we try without the class loader, that does not work under Android...
-		if (tag.clazz.equals(ClassType.EOA_ED25519))
+		if (tag.clazz.equals(StorageTypes.EOA_ED25519))
 			return SignatureAlgorithms.ed25519();
-		else if (tag.clazz.equals(ClassType.EOA_SHA256DSA))
+		else if (tag.clazz.equals(StorageTypes.EOA_SHA256DSA))
 			return SignatureAlgorithms.sha256dsa();
-		else if (tag.clazz.equals(ClassType.EOA_QTESLA1))
+		else if (tag.clazz.equals(StorageTypes.EOA_QTESLA1))
 			return SignatureAlgorithms.qtesla1();
-		else if (tag.clazz.equals(ClassType.EOA_QTESLA3))
+		else if (tag.clazz.equals(StorageTypes.EOA_QTESLA3))
 			return SignatureAlgorithms.qtesla3();
 
 		TakamakaClassLoader classLoader = classLoaderHelper.classloaderFor(tag.jar);
-		Class<?> clazz = classLoader.loadClass(tag.clazz.name);
+		Class<?> clazz = classLoader.loadClass(tag.clazz.getName());
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
 			return SignatureAlgorithms.ed25519();

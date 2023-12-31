@@ -20,8 +20,8 @@ import static io.hotmoka.beans.Coin.filicudi;
 import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.Coin.stromboli;
 import static io.hotmoka.beans.types.BasicTypes.LONG;
-import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
-import static io.hotmoka.beans.types.ClassType.SHARED_ENTITY;
+import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.types.StorageTypes.SHARED_ENTITY;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -40,6 +40,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -48,10 +49,10 @@ import io.hotmoka.beans.values.StorageReference;
  * A test about subclassing of the shared entity contract with a specific class for the shareholders.
  */
 class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = new ClassType("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
-    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = new ClassType("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
-    private static final ClassType OFFER = new ClassType(SHARED_ENTITY.name + "$Offer");
+    private static final ClassType MY_CLASS = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
+    private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
+    private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, BIG_INTEGER);
     private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_2, MY_CLASS, BIG_INTEGER);
@@ -98,7 +99,7 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
         // the buyer is an account (EOA) and he accepts the offer
         // this would not be valid but the test passes
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
     }
 
@@ -127,7 +128,7 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
         // case 1: ClassCastException
         throwsTransactionExceptionWithCause("java.lang.ClassCastException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
                         sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
         );
 

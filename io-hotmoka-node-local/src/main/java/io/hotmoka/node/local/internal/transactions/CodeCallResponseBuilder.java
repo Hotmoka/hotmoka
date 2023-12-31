@@ -100,7 +100,7 @@ public abstract class CodeCallResponseBuilder
 	 */
 	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(reference);
-		if (!classLoader.isExported(classTag.clazz.name))
+		if (!classLoader.isExported(classTag.clazz.getName()))
 			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.clazz);
 	}
 

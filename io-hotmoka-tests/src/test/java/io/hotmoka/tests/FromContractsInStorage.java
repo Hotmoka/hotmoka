@@ -33,6 +33,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -40,7 +41,7 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for from contract methods in a storage class.
  */
 class FromContractsInStorage extends HotmokaTest {
-	private final static ClassType FROM_CONTRACTS = new ClassType("io.hotmoka.examples.fromcontractsinstorage.FromContracts");
+	private final static ClassType FROM_CONTRACTS = StorageTypes.of("io.hotmoka.examples.fromcontractsinstorage.FromContracts");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -55,14 +56,14 @@ class FromContractsInStorage extends HotmokaTest {
 	@Test @DisplayName("new FromContracts().entry1() yields the eoa that calls the transaction")
 	void callFromContract1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(FROM_CONTRACTS));
-		StorageValue result = addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new NonVoidMethodSignature(FROM_CONTRACTS, "entry1", ClassType.CONTRACT), entries);
+		StorageValue result = addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new NonVoidMethodSignature(FROM_CONTRACTS, "entry1", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);
 	}
 
 	@Test @DisplayName("new FromContracts().entry5() yields the eoa that calls the transaction")
 	void callFromContract5() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference entries = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(FROM_CONTRACTS));
-		StorageValue result = addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new NonVoidMethodSignature(FROM_CONTRACTS, "entry5", ClassType.CONTRACT), entries);
+		StorageValue result = addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new NonVoidMethodSignature(FROM_CONTRACTS, "entry5", StorageTypes.CONTRACT), entries);
 		assertEquals(account(0), result);
 	}
 }

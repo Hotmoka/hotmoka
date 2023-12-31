@@ -38,6 +38,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -47,12 +48,10 @@ import io.hotmoka.beans.values.StorageReference;
  * shareholders' types, since generic types are erased at compilation time.
  */
 class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
-    private static final ClassType MY_CLASS = new ClassType("io.hotmoka.examples.sharedentities.MyClass");
-    private static final ClassType SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SharedEntity");
-    private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
-    private static final ClassType OFFER = new ClassType(SHARED_ENTITY + "$Offer");
+    private static final ClassType MY_CLASS = StorageTypes.of("io.hotmoka.examples.sharedentities.MyClass");
+    private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.of("io.takamaka.code.dao.SimpleSharedEntity");
     private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
-    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER);
+    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
     private StorageReference seller;
@@ -85,17 +84,17 @@ class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new NonVoidMethodSignature(MY_CLASS, "createOffer", OFFER, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, LONG),
+                new NonVoidMethodSignature(MY_CLASS, "createOffer", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
                 sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, ClassType.BIG_INTEGER, OFFER),
+                new VoidMethodSignature(MY_CLASS, "placeOffer", StorageTypes.SHARED_ENTITY, StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
                 sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
 
         // the buyer is an account (EOA) and he accepts the offer: this should not be valid but the test shows that it actually works
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(SIMPLE_SHARED_ENTITY, "accept", ClassType.BIG_INTEGER, ClassType.PAYABLE_CONTRACT, OFFER),
+                new VoidMethodSignature(SIMPLE_SHARED_ENTITY, "accept", StorageTypes.BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.SHARED_ENTITY_OFFER),
                 sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
     }
 }

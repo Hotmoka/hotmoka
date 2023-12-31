@@ -38,7 +38,7 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -98,7 +98,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean isCallToFaucet() {
 		return consensus.allowsUnsignedFaucet() && request.method.methodName.startsWith("faucet")
-			&& request.method.definingClass.equals(ClassType.GAMETE) && request.caller.equals(request.receiver)
+			&& request.method.definingClass.equals(StorageTypes.GAMETE) && request.caller.equals(request.receiver)
 			&& callerIsGameteOfTheNode();
 	}
 
@@ -115,7 +115,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
-		return classLoader.resolveMethod(method.definingClass.name, method.methodName, argTypes, returnType)
+		return classLoader.resolveMethod(method.definingClass.getName(), method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 

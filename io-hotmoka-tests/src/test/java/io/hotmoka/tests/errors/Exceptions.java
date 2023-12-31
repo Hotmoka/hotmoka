@@ -31,7 +31,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -66,7 +66,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo2", ClassType.OBJECT), NullValue.INSTANCE);
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo2", StorageTypes.OBJECT), NullValue.INSTANCE);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);

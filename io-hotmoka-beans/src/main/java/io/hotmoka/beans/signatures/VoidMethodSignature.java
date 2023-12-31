@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -50,7 +51,7 @@ public final class VoidMethodSignature extends MethodSignature {
 	 * @param formals the formal arguments of the method
 	 */
 	public VoidMethodSignature(String definingClass, String methodName, StorageType... formals) {
-		this(new ClassType(definingClass), methodName, formals);
+		this(StorageTypes.of(definingClass), methodName, formals);
 	}
 
 	@Override

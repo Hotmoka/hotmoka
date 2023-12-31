@@ -36,7 +36,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -62,7 +62,7 @@ class AccountWithEnum extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", ClassType.STRING), new StringValue(publicKey));
+			new ConstructorSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", StorageTypes.STRING), new StringValue(publicKey));
 
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignature.RECEIVE_INT, account, new IntValue(100_000));

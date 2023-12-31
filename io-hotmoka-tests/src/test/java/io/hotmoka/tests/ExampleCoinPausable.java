@@ -40,6 +40,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -49,10 +50,10 @@ import io.hotmoka.constants.Constants;
  * A test for the ExampleCoinPausable contract (a ERC20Pausable contract).
  */
 class ExampleCoinPausable extends HotmokaTest {
-    private static final ClassType EXCP = new ClassType("io.hotmoka.examples.tokens.ExampleCoinPausable");
-    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
+    private static final ClassType EXCP = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinPausable");
+    private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCP = new ConstructorSignature(EXCP);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
 
     /**
      * The classpath of the classes of code module.
@@ -217,36 +218,36 @@ class ExampleCoinPausable extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCP, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCP, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token, investor1, ubi_5000);
         // balances = [creator:199999999999999999995000, investor1:500, investor2:0]
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999995000
         BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 creator_balance,
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 5000
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor1_balance,
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _100_000, jar(), new NonVoidMethodSignature(EXCP, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
         BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor2_balance,
                 ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
@@ -270,7 +271,7 @@ class ExampleCoinPausable extends HotmokaTest {
                         addInstanceMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), jar(),
-                                new NonVoidMethodSignature(EXCP, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                                new NonVoidMethodSignature(EXCP, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                                 example_token, investor1, ubi_5000)
                 // token transfers cannot be made when the contract is paused state --> Exception !!!
         );

@@ -22,8 +22,8 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -59,9 +59,9 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 			case FLOAT: return new FloatValue(Float.parseFloat(s));
 			default: return new DoubleValue(Double.parseDouble(s));
 			}
-		else if (ClassType.STRING.equals(type))
+		else if (StorageTypes.STRING.equals(type))
 			return new StringValue(s);
-		else if (ClassType.BIG_INTEGER.equals(type))
+		else if (StorageTypes.BIG_INTEGER.equals(type))
 			return new BigIntegerValue(new BigInteger(s));
 		else if ("null".equals(s))
 			return NullValue.INSTANCE;

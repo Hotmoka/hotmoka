@@ -33,6 +33,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageValue;
 
@@ -41,7 +42,7 @@ import io.hotmoka.beans.values.StorageValue;
  * as a class of the same node.
  */
 class SynonymClass extends HotmokaTest {
-	private final static ClassType SA = new ClassType("io.hotmoka.crypto.SignatureAlgorithm");
+	private final static ClassType SA = StorageTypes.of("io.hotmoka.crypto.SignatureAlgorithm");
 	private final static NonVoidMethodSignature EMPTY = new NonVoidMethodSignature(SA, "empty", SA);
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
 

@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
-import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
+import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.types.StorageTypes.PAYABLE_CONTRACT;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -40,21 +40,22 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 
 class SimplePoll extends HotmokaTest {
 
-	private static final ClassType SIMPLE_SHARED_ENTITY = new ClassType("io.takamaka.code.dao.SimpleSharedEntity");
-	private static final ClassType SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll");
-	private static final ClassType ACTION_SIMPLE_POLL = new ClassType("io.takamaka.code.dao.SimplePoll$Action");
-	private static final ClassType ACTION = new ClassType("io.hotmoka.examples.polls.CheckRunPerformedAction");
+	private static final ClassType SIMPLE_SHARED_ENTITY = StorageTypes.of("io.takamaka.code.dao.SimpleSharedEntity");
+	private static final ClassType SIMPLE_POLL = StorageTypes.of("io.takamaka.code.dao.SimplePoll");
+	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.of("io.takamaka.code.dao.SimplePoll$Action");
+	private static final ClassType ACTION = StorageTypes.of("io.hotmoka.examples.polls.CheckRunPerformedAction");
 
 	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, 
 			PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);
 
-	private static final ConstructorSignature SIMPLE_POLL_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_POLL, ClassType.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL);
+	private static final ConstructorSignature SIMPLE_POLL_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_POLL, StorageTypes.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL);
 	private static final ConstructorSignature ACTION_CONSTRUCTOR = new ConstructorSignature(ACTION);
 
 	private static final VoidMethodSignature VOTE_POLL = new VoidMethodSignature(SIMPLE_POLL, "vote");

@@ -57,7 +57,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -217,7 +217,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
-				new VoidMethodSignature(ClassType.GAMETE, "setMaxFaucet", ClassType.BIG_INTEGER, ClassType.BIG_INTEGER), gamete,
+				new VoidMethodSignature(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,
 				new BigIntegerValue(aLot), new BigIntegerValue(aLot)));
 
 	        var local = AccountsNodes.ofGreenRed(node, gamete, privateKeyOfGamete, aLot, aLot);

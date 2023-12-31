@@ -24,7 +24,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -44,7 +44,7 @@ class IllegalCallToNonWhiteListedMethod5 extends HotmokaTest {
 	void installJar() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				new NonVoidMethodSignature(new ClassType("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod5.C"), "foo", ClassType.STRING))
+				new NonVoidMethodSignature(StorageTypes.of("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod5.C"), "foo", StorageTypes.STRING))
 		);
 	}
 }

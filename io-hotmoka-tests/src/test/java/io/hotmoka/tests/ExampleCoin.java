@@ -41,6 +41,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -51,10 +52,10 @@ import io.hotmoka.constants.Constants;
  * A test for the ExampleCoin contract (a ERC20 contract).
  */
 class ExampleCoin extends HotmokaTest {
-    private static final ClassType EXAMPLECOIN = new ClassType("io.hotmoka.examples.tokens.ExampleCoin");
-    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
+    private static final ClassType EXAMPLECOIN = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoin");
+    private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXAMPLECOIN = new ConstructorSignature(EXAMPLECOIN);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
 
     /**
      * The classpath of the classes of code module.
@@ -116,7 +117,7 @@ class ExampleCoin extends HotmokaTest {
         StringValue token_name = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "name", ClassType.STRING),
+                new NonVoidMethodSignature(EXAMPLECOIN, "name", StorageTypes.STRING),
                 example_token);
         // token_name = example_token.name() = "ExampleCoin"
 
@@ -130,7 +131,7 @@ class ExampleCoin extends HotmokaTest {
         StringValue token_symbol = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "symbol", ClassType.STRING),
+                new NonVoidMethodSignature(EXAMPLECOIN, "symbol", StorageTypes.STRING),
                 example_token);
         // token_symbol = example_token.symbol() == "EXC"
 
@@ -166,7 +167,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 supply, ubi_check);
         // equals_result = supply.equals(200'000*10^18) = true
 
@@ -183,36 +184,36 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token, investor1, ubi_5000);
         // balances = [creator:199999999999999999995000, investor1:500, investor2:0]
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999995000
         BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 creator_balance,
                 ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-5000) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 5000
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor1_balance,
                 ubi_5000);
         // equals_result2 = investor1_balance.equals(5000) = true
 
-        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
         BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 investor2_balance,
                 ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
@@ -229,7 +230,7 @@ class ExampleCoin extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         investor1_prv_key, investor1,
                         _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                        new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                         example_token, investor2, ubi_5000)
                 // investor1 has no funds --> Exception !!!
         );
@@ -243,7 +244,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_4000);
         // Now investor1 is able to spend 4000 MiniEx for creator
@@ -251,7 +252,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_allowance = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT),
+                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT),
                 example_token,
                 creator, investor1);
         // ubi_allowance = allowances[creator[investor1]] = 4000
@@ -259,7 +260,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_allowance,
                 ubi_4000);
         // equals_result = ubi_allowance.equals(4000) = true
@@ -272,22 +273,22 @@ class ExampleCoin extends HotmokaTest {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("0"));
 
-        StorageReference ubi_allowance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1);
+        StorageReference ubi_allowance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT), example_token, creator, investor1);
         // ubi_allowance = allowances[creator[investor1]] = 0
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_allowance,
                 ubi_0);
         // equals_result = ubi_allowance.equals(0) = true
 
-        StorageReference ubi_allowance2 = (StorageReference) runInstanceMethodCallTransaction(investor2, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, investor2, investor1);
+        StorageReference ubi_allowance2 = (StorageReference) runInstanceMethodCallTransaction(investor2, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT), example_token, investor2, investor1);
         // ubi_allowance = allowances[investor1[investor2]] = 0
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_allowance2,
                 ubi_0);
         // equals_result2 = ubi_allowance2.equals(0) = true
@@ -307,7 +308,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_7000);
         // Now investor1 is able to spend 7000 MiniEx for creator
@@ -315,29 +316,29 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue transfer_from_result = (BooleanValue) addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, investor1, ubi_4000);
         // investor1 can spend on creator's behalf --> balances = [creator:..., investor1:4000, investor2:0]
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999996000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18-4000) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 4000
-        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_4000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor1_balance, ubi_4000);
         // equals_result2 = investor1_balance.equals(4000) = true
 
-        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
-        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor2_balance, ubi_0);
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor2_balance, ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        StorageReference ubi_remaining_allowance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT), example_token, creator, investor1);
+        StorageReference ubi_remaining_allowance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT), example_token, creator, investor1);
         // ubi_remaining_allowance = allowances[creator[investor1]] = 7000 - 4000 (just spent) = 3000
-        BooleanValue equals_result4 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), ubi_remaining_allowance, ubi_3000);
+        BooleanValue equals_result4 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), ubi_remaining_allowance, ubi_3000);
         // equals_result4 = ubi_remaining_allowance.equals(3000) = true
 
         assertTrue(approve_result.value && transfer_from_result.value);
@@ -356,7 +357,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_7000);
         // Now investor1 is able to spend 7000 MiniEx for creator
@@ -365,7 +366,7 @@ class ExampleCoin extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         investor2_prv_key, investor2,
                         _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
+                        new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, investor1, ubi_4000)
                 // investor2 cannot spend on creator's behalf --> Exception !!!
@@ -375,25 +376,25 @@ class ExampleCoin extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         investor1_prv_key, investor1,
                         _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
+                        new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, investor1, ubi_8000)
                 // investor1 can spend on creator's behalf, but only 7000 token --> Exception !!!
         );
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000000000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 0
-        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_0);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor1_balance, ubi_0);
         // equals_result2 = investor1_balance.equals(0) = true
 
-        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor2);
+        StorageReference investor2_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor2);
         // investor2_balance = balances[investor2] = 0
-        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor2_balance, ubi_0);
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor2_balance, ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
         assertTrue(approve_result.value);
@@ -411,7 +412,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_1000);
         // balances = [creator:..., investor1:1000, investor2:0]
@@ -419,7 +420,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_1000);
         // Now investor1 is able to spend his tokens through the transferFrom function
@@ -427,7 +428,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue transfer_from_result = (BooleanValue) addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, ClassType.CONTRACT, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, investor1, ubi_900);
         // balances = [creator:..., investor1:1000, investor2:0]
@@ -435,7 +436,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference investor1_tokens_ubi = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT),
+                new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT),
                 example_token,
                 investor1);
         // investor1_tokens_ubi = 1000
@@ -443,7 +444,7 @@ class ExampleCoin extends HotmokaTest {
         StringValue investor1_tokens_string = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(UBI, "toString", ClassType.STRING),
+                new NonVoidMethodSignature(UBI, "toString", StorageTypes.STRING),
                 investor1_tokens_ubi);
         // investor1_tokens_string = "1000"
 
@@ -461,7 +462,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_4000);
         // Now investor1 is able to spend 4000 MiniEx for creator
@@ -469,7 +470,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue increase_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "increaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "increaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_999);
         // Now investor1 is able to spend 4000 + 999 = 4999 MiniEx for creator
@@ -477,7 +478,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_allowance = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT),
+                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT),
                 example_token,
                 creator, investor1);
         // ubi_allowance = allowances[creator[investor1]] = 4999
@@ -485,7 +486,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_allowance,
                 ubi_4999);
         // equals_result = ubi_allowance.equals(4999) = true
@@ -503,7 +504,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_4000);
         // Now investor1 is able to spend 4000 MiniEx for creator
@@ -511,7 +512,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue decrease_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_999);
         // Now investor1 is able to spend 4000 - 999 = 3001 MiniEx for creator
@@ -519,7 +520,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_allowance = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, ClassType.CONTRACT, ClassType.CONTRACT),
+                new NonVoidMethodSignature(EXAMPLECOIN, "allowance", UBI, StorageTypes.CONTRACT, StorageTypes.CONTRACT),
                 example_token,
                 creator, investor1);
         // ubi_allowance = allowances[creator[investor1]] = 3001
@@ -527,7 +528,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT),
+                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_allowance,
                 ubi_3001);
         // equals_result = ubi_allowance.equals(3001) = true
@@ -544,7 +545,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_998);
         // Now investor1 is able to spend 998 MiniEx for creator
@@ -553,7 +554,7 @@ class ExampleCoin extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, ClassType.CONTRACT, UBI),
+                        new NonVoidMethodSignature(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
                         example_token,
                         investor1, ubi_999)
                 // allowances[caller:[spender]] < 999 --> Exception !!!
@@ -573,7 +574,7 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "mint", ClassType.CONTRACT, UBI),
+                new VoidMethodSignature(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_500000);
         // balances = [creator:200000000000000000500000], totalSupply:200000000000000000500000
@@ -581,19 +582,19 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "mint", ClassType.CONTRACT, UBI),
+                new VoidMethodSignature(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_500000);
         // balances = [creator:200000000000000000500000, investor1:500000], totalSupply:200000000000000001000000
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 200000000000000000500000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18 + 500000) = true
 
-        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, investor1);
+        StorageReference investor1_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, investor1);
         // investor1_balance = balances[investor1] = 500000
-        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), investor1_balance, ubi_500000);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor1_balance, ubi_500000);
         // equals_result2 = investor1_balance.equals(500000) = true
 
         StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(
@@ -603,7 +604,7 @@ class ExampleCoin extends HotmokaTest {
                 example_token);
         // supply = example_token.totalSupply() == 200'000*10^18 + 500000 + 500000
 
-        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check2);
+        BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check2);
         // equals_result3 = supply.equals(200'000*10^18 + 500000 + 500000) = true
 
         assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
@@ -619,14 +620,14 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "burn", ClassType.CONTRACT, UBI),
+                new VoidMethodSignature(EXAMPLECOIN, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_500000);
         // balances = [creator:199999999999999999500000], totalSupply:199999999999999999500000
 
-        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, ClassType.CONTRACT), example_token, creator);
+        StorageReference creator_balance = (StorageReference) runInstanceMethodCallTransaction(creator, _500_000, jar(), new NonVoidMethodSignature(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT), example_token, creator);
         // creator_balance = balances[creator] = 199999999999999999500000
-        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), creator_balance, ubi_check);
+        BooleanValue equals_result1 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), creator_balance, ubi_check);
         // equals_result1 = creator_balance.equals(200'000*10^18 - 500000) = true
 
         StorageReference supply = (StorageReference) runInstanceMethodCallTransaction(
@@ -636,7 +637,7 @@ class ExampleCoin extends HotmokaTest {
                 example_token);
         // supply = example_token.totalSupply() == 200'000*10^18 - 500000
 
-        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, ClassType.OBJECT), supply, ubi_check);
+        BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 500000) = true
 
         assertTrue(equals_result1.value && equals_result2.value);

@@ -53,7 +53,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -137,11 +137,11 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 
 		// we create the builder of the validators
 		var _200_000 = BigInteger.valueOf(200_000);
-		String builderClassName = ClassType.TENDERMINT_VALIDATORS + "$Builder";
+		String builderClassName = StorageTypes.TENDERMINT_VALIDATORS + "$Builder";
 
 		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-			new ConstructorSignature(builderClassName, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG,
+			new ConstructorSignature(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, BasicTypes.LONG,
 				BasicTypes.INT, BasicTypes.INT, BasicTypes.INT, BasicTypes.INT),
 			new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
 			new LongValue(consensus.getInitialInflation()), new IntValue(consensus.getPercentStaked()), new IntValue(consensus.getBuyerSurcharge()),
@@ -152,7 +152,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference builder = node.addConstructorCallTransaction(request);
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
-		VoidMethodSignature addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", ClassType.STRING, BasicTypes.LONG);
+		VoidMethodSignature addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", StorageTypes.STRING, BasicTypes.LONG);
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64 = encoder.encodeToString(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);

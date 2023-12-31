@@ -39,7 +39,7 @@ public final class FieldSignatureModel extends SignatureModel {
 	 * @param field the signature of the field
 	 */
 	public FieldSignatureModel(FieldSignature field) {
-		super(field.definingClass.name);
+		super(field.definingClass.getName());
 
 		this.name = field.name;
 		this.type = nameOf(field.type);

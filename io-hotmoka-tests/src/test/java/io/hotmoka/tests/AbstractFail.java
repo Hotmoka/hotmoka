@@ -34,6 +34,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -43,8 +44,8 @@ import io.hotmoka.constants.Constants;
  * A test for the remote purchase contract.
  */
 class AbstractFail extends HotmokaTest {
-	private static final ClassType ABSTRACT_FAIL = new ClassType("io.hotmoka.examples.abstractfail.AbstractFail");
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ClassType ABSTRACT_FAIL = StorageTypes.of("io.hotmoka.examples.abstractfail.AbstractFail");
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.of("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -76,7 +77,7 @@ class AbstractFail extends HotmokaTest {
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", ClassType.STRING), result)).value;
+		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).value;
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

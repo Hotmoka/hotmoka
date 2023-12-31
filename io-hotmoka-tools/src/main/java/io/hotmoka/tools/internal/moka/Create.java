@@ -34,6 +34,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -153,7 +154,7 @@ public class Create extends AbstractCommand {
 		private ConstructorSignature signatureOfConstructor() {
 			StorageType[] formals = Stream.of(constructor.getParameters())
 				.map(Parameter::getType)
-				.map(StorageType::of)
+				.map(StorageTypes::of)
 				.toArray(StorageType[]::new);
 
 			return new ConstructorSignature(className, formals);

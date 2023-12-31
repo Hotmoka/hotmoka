@@ -93,6 +93,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-verification</module>
     <module>io-hotmoka-instrumentation-api</module>
     <module>io-hotmoka-instrumentation</module>
+    <module>io-hotmoka-beans-api</module>
     <module>io-hotmoka-beans</module>
     <module>io-hotmoka-node-api</module>
     <module>io-hotmoka-node</module>
@@ -287,7 +288,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-verification,
                 io-hotmoka-whitelisting-api,
                 io-hotmoka-whitelisting,
-                io-hotmoka-beans,
+                io-hotmoka-beans-api,
+				io-hotmoka-beans,                
                 io-hotmoka-crypto,
                 io-hotmoka-crypto-api,
                 io-hotmoka-network,

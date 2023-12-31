@@ -35,7 +35,7 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -67,7 +67,7 @@ public class Faucet extends HotmokaTest {
 
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
-			new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, BasicTypes.INT, ClassType.STRING),
+			new NonVoidMethodSignature(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, BasicTypes.INT, StorageTypes.STRING),
 			gamete, new IntValue(100_000), new StringValue(publicKey)));
 
 		assertNotNull(account);
@@ -89,7 +89,7 @@ public class Faucet extends HotmokaTest {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
-				new NonVoidMethodSignature(ClassType.GAMETE, "faucet", ClassType.EOA, BasicTypes.INT, ClassType.STRING),
+				new NonVoidMethodSignature(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, BasicTypes.INT, StorageTypes.STRING),
 				gamete, new IntValue(100_000), new StringValue(publicKey))));
 	}
 }

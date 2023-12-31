@@ -28,7 +28,7 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Entropies;
@@ -137,7 +137,7 @@ public class RotateKey extends AbstractCommand {
 					gasLimit,
 					gasPrice,
 					classpath,
-					new VoidMethodSignature(ClassType.EOA, "rotatePublicKey", ClassType.STRING),
+					new VoidMethodSignature(StorageTypes.EOA, "rotatePublicKey", StorageTypes.STRING),
 					account,
 					new StringValue(publicKeyEncoded));
 		}

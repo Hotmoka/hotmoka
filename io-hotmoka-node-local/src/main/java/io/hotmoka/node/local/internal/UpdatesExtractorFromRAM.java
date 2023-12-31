@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
@@ -195,7 +195,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object s) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, new ClassType(fieldClassName));
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.of(fieldClassName));
 
 				if (s == null)
 					// the field has been set to null
@@ -334,9 +334,9 @@ public class UpdatesExtractorFromRAM {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING)));
+					updates.add(new UpdateToNullEager(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.STRING)));
 				else
-					updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, ClassType.STRING), s));
+					updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.STRING), s));
 			}
 
 			/**
@@ -347,7 +347,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param bi the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, ClassType.BIG_INTEGER);
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else
@@ -363,7 +363,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param element the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Enum<?> element) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, new ClassType(fieldClassName));
+				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.of(fieldClassName));
 				if (element == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else

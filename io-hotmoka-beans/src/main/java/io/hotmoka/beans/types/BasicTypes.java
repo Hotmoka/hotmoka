@@ -30,21 +30,12 @@ public enum BasicTypes implements StorageType {
 
 	@Override
 	public String toString() {
-		switch (this) {
-		case BOOLEAN: return "boolean";
-		case BYTE: return "byte";
-		case CHAR: return "char";
-		case SHORT: return "short";
-		case INT: return "int";
-		case LONG: return "long";
-		case FLOAT: return "float";
-		default: return "double";
-		}
+		return super.toString().toLowerCase();
 	}
 
 	@Override
 	public int compareAgainst(StorageType other) {
-		return other instanceof BasicTypes ? compareTo((BasicTypes) other)
+		return other instanceof BasicTypes bt ? compareTo(bt)
 			: -1; // other instanceof ClassType
 	}
 

@@ -26,7 +26,7 @@ import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.types.ClassType;
-import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -118,7 +118,8 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	public static Update from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageType.from(context), TransactionReference.from(context));
+		// TODO: cast -> IOException
+		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageTypes.from(context), TransactionReference.from(context));
 		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_GAS_PRICE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_UBI_VALUE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
@@ -159,7 +160,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		case UpdateOfString.SELECTOR: return new UpdateOfString(StorageReference.from(context), FieldSignature.from(context), context.readStringUnshared());
 		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReference.from(context), FieldSignature.from(context));
 		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReference.from(context), FieldSignature.from(context));
-		default: throw new IOException("unexpected update selector: " + selector);
+		default: throw new IOException("Unexpected update selector: " + selector);
 		}
 	}
 

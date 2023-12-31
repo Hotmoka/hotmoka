@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.helpers.internal;
 
-import static io.hotmoka.beans.types.ClassType.BIG_INTEGER;
-import static io.hotmoka.beans.types.ClassType.GAMETE;
-import static io.hotmoka.beans.types.ClassType.PAYABLE_CONTRACT;
+import static io.hotmoka.beans.types.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.beans.types.StorageTypes.GAMETE;
+import static io.hotmoka.beans.types.StorageTypes.PAYABLE_CONTRACT;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;

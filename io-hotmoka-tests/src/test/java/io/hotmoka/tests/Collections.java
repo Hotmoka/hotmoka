@@ -38,6 +38,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
@@ -48,13 +49,13 @@ import io.hotmoka.beans.values.StorageValue;
  * A test for the storage map Takamaka class.
  */
 class Collections extends HotmokaTest {
-	private static final ClassType MAP_TESTS = new ClassType("io.hotmoka.examples.collections.MapTests");
-	private static final ClassType INT_MAP_TESTS = new ClassType("io.hotmoka.examples.collections.IntMapTests");
-	private static final ClassType ARRAY_TESTS = new ClassType("io.hotmoka.examples.collections.ArrayTests");
-	private static final ClassType SET_TESTS = new ClassType("io.hotmoka.examples.collections.SetTests");
-	private static final ClassType MAP_HOLDER = new ClassType("io.hotmoka.examples.collections.MapHolder");
-	private static final ClassType STATE = new ClassType("io.hotmoka.examples.collections.MapHolder$State");
-	private static final ClassType COMPARABLE = new ClassType("java.lang.Comparable");
+	private static final ClassType MAP_TESTS = StorageTypes.of("io.hotmoka.examples.collections.MapTests");
+	private static final ClassType INT_MAP_TESTS = StorageTypes.of("io.hotmoka.examples.collections.IntMapTests");
+	private static final ClassType ARRAY_TESTS = StorageTypes.of("io.hotmoka.examples.collections.ArrayTests");
+	private static final ClassType SET_TESTS = StorageTypes.of("io.hotmoka.examples.collections.SetTests");
+	private static final ClassType MAP_HOLDER = StorageTypes.of("io.hotmoka.examples.collections.MapHolder");
+	private static final ClassType STATE = StorageTypes.of("io.hotmoka.examples.collections.MapHolder$State");
+	private static final ClassType COMPARABLE = StorageTypes.of("java.lang.Comparable");
 
 	/**
 	 * The first object, that holds all funds initially.
@@ -177,7 +178,7 @@ class Collections extends HotmokaTest {
 	void mapHolderGet0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, ClassType.OBJECT), mapHolder, state);
+		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.value);
 	}
 
@@ -185,7 +186,7 @@ class Collections extends HotmokaTest {
 	void mapHolderGet1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, ClassType.OBJECT), mapHolder, state);
+		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.value);
 	}
 
@@ -193,7 +194,7 @@ class Collections extends HotmokaTest {
 	void mapHolderGet10() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, ClassType.OBJECT), mapHolder, state);
+		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.value);
 	}
 

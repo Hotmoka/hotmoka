@@ -98,7 +98,7 @@ public class UpdateModel {
 
 			this.field = null;
 			this.value = null;
-			this.className = classTag.clazz.name;
+			this.className = classTag.clazz.getName();
 			this.jar = new TransactionReferenceModel(classTag.jar);
 		}
 		else {

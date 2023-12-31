@@ -43,6 +43,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -74,25 +75,25 @@ class BlindAuction extends HotmokaTest {
 	 */
 	private static int REVEAL_TIME = 8_000;
 
-	private static final ClassType BLIND_AUCTION = new ClassType("io.hotmoka.examples.auction.BlindAuction");
+	private static final ClassType BLIND_AUCTION = StorageTypes.of("io.hotmoka.examples.auction.BlindAuction");
 
 	private static final ConstructorSignature CONSTRUCTOR_BLIND_AUCTION = new ConstructorSignature(BLIND_AUCTION, INT, INT);
 
 	private static final ConstructorSignature CONSTRUCTOR_BYTES32_SNAPSHOT = new ConstructorSignature
-		(ClassType.BYTES32_SNAPSHOT,
+		(StorageTypes.BYTES32_SNAPSHOT,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE,
 			BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE, BYTE);
 
-	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(new ClassType("io.hotmoka.examples.auction.BlindAuction$RevealedBid"),
-			ClassType.BIG_INTEGER, BOOLEAN, ClassType.BYTES32_SNAPSHOT);
+	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = new ConstructorSignature(StorageTypes.of("io.hotmoka.examples.auction.BlindAuction$RevealedBid"),
+			StorageTypes.BIG_INTEGER, BOOLEAN, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", ClassType.BIG_INTEGER, ClassType.BYTES32_SNAPSHOT);
+	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", new ClassType("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
+	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", StorageTypes.of("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
-	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", ClassType.PAYABLE_CONTRACT);
+	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 
 	/**
 	 * The hashing algorithm used to hide the bids.

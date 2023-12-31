@@ -18,7 +18,7 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -40,8 +40,8 @@ public class SignedRequests {
     @DisplayName("new ConstructorCallTransactionRequest(..) manifest")
     public void testConstructorCallTransactionRequest() throws Exception {
         var constructorSignature = new ConstructorSignature(
-                ClassType.MANIFEST,
-                ClassType.BIG_INTEGER
+        		StorageTypes.MANIFEST,
+                StorageTypes.BIG_INTEGER
         );
 
         var request = new ConstructorCallTransactionRequest(
@@ -144,10 +144,10 @@ public class SignedRequests {
     @DisplayName("new StaticMethodCallTransactionRequest(..) balance of gasStation")
     public void testNonVoidStaticMethodCallTransactionGasStationRequest() throws Exception {
         var nonVoidMethodSignature = new NonVoidMethodSignature(
-                ClassType.GAS_STATION,
+        		StorageTypes.GAS_STATION,
                 "balance",
-                ClassType.BIG_INTEGER,
-                ClassType.STORAGE
+                StorageTypes.BIG_INTEGER,
+                StorageTypes.STORAGE
         );
 
         var request = new StaticMethodCallTransactionRequest(

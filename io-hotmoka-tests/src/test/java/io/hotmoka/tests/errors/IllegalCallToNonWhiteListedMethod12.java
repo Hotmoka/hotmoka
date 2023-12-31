@@ -32,7 +32,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.NonWhiteListedCallException;
@@ -49,10 +49,10 @@ class IllegalCallToNonWhiteListedMethod12 extends HotmokaTest {
 	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
-		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(ClassType.EOA, ClassType.STRING), new StringValue(publicKey));
+		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(ClassType.OBJECT, "hashCode", BasicTypes.INT), eoa)
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(StorageTypes.OBJECT, "hashCode", BasicTypes.INT), eoa)
 		);
 	}
 }

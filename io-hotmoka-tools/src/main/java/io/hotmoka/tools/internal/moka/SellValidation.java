@@ -28,7 +28,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -125,19 +125,19 @@ public class SellValidation extends AbstractCommand {
 				ConstructorCallTransactionRequest request1;
 				if (buyer == null)
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-						new ConstructorSignature(ClassType.SHARED_ENTITY_OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG),
+						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, BasicTypes.LONG),
 						seller, new BigIntegerValue(power), new BigIntegerValue(cost), new LongValue(duration));
 				else
 					// the reserved buyer is specified as well
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-						new ConstructorSignature(ClassType.SHARED_ENTITY_OFFER, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER, ClassType.BIG_INTEGER, BasicTypes.LONG, ClassType.PAYABLE_CONTRACT),
+						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, BasicTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
 						seller, new BigIntegerValue(power), new BigIntegerValue(cost), new LongValue(duration), new StorageReference(buyer));
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
 					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-					new VoidMethodSignature(ClassType.SHARED_ENTITY, "place", ClassType.BIG_INTEGER, ClassType.SHARED_ENTITY_OFFER),
+					new VoidMethodSignature(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
 					validators, new BigIntegerValue(BigInteger.ZERO), newOffer);
 
 				node.addInstanceMethodCallTransaction(request2);

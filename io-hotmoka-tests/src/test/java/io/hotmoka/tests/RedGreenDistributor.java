@@ -37,6 +37,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.api.CodeSupplier;
@@ -45,7 +46,7 @@ import io.hotmoka.node.api.CodeSupplier;
  * A test for the remote purchase contract.
  */
 class RedGreenDistributor extends HotmokaTest {
-	private static final ClassType DISTRIBUTOR = new ClassType("io.hotmoka.examples.redgreendistributor.Distributor");
+	private static final ClassType DISTRIBUTOR = StorageTypes.of("io.hotmoka.examples.redgreendistributor.Distributor");
 	private static final VoidMethodSignature ADD_AS_PAYEE = new VoidMethodSignature(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
@@ -97,7 +98,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", ClassType.BIG_INTEGER),
+			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", StorageTypes.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
@@ -105,7 +106,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.EOA, "balanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -113,7 +114,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.EOA, "balanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 
@@ -148,7 +149,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
+			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
 			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 		);
 
@@ -156,7 +157,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.EOA, "balanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -164,7 +165,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(ClassType.EOA, "balanceRed", ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 
@@ -182,7 +183,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new ConstructorSignature(ClassType.EOA, ClassType.BIG_INTEGER),
+			new ConstructorSignature(StorageTypes.EOA, StorageTypes.BIG_INTEGER),
 			new BigIntegerValue(_20_000)
 		);
 
@@ -211,7 +212,7 @@ class RedGreenDistributor extends HotmokaTest {
 				_20_000,
 				ONE,
 				jar(),
-				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", ClassType.BIG_INTEGER),
+				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
 				distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
 			)
 		);

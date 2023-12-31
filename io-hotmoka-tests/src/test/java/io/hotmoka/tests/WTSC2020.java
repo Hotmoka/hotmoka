@@ -38,6 +38,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -48,11 +49,11 @@ import io.hotmoka.node.NonWhiteListedCallException;
  */
 class WTSC2020 extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(_50_000);
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.wtsc2020.SimplePyramid");
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
-	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
-	private static final MethodSignature MOST_FREQUENT_INVESTOR = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestor", ClassType.PAYABLE_CONTRACT);
-	private static final MethodSignature MOST_FREQUENT_INVESTOR_CLASS = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestorClass", ClassType.STRING);
+	private static final ClassType SIMPLE_PYRAMID = StorageTypes.of("io.hotmoka.examples.wtsc2020.SimplePyramid");
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
+	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
+	private static final MethodSignature MOST_FREQUENT_INVESTOR = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestor", StorageTypes.PAYABLE_CONTRACT);
+	private static final MethodSignature MOST_FREQUENT_INVESTOR_CLASS = new NonVoidMethodSignature(SIMPLE_PYRAMID, "mostFrequentInvestorClass", StorageTypes.STRING);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 
@@ -116,7 +117,7 @@ class WTSC2020 extends HotmokaTest {
 		// account(0) checks which is the most frequent investor class
 		StringValue result = (StringValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
-		assertEquals(ClassType.EOA.name, result.value);
+		assertEquals(StorageTypes.EOA.getName(), result.value);
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor and fails")

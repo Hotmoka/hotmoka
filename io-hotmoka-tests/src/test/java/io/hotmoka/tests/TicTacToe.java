@@ -39,6 +39,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -49,7 +50,7 @@ import io.hotmoka.constants.Constants;
  * A test for the remote purchase contract.
  */
 class TicTacToe extends HotmokaTest {
-	private static final ClassType TIC_TAC_TOE = new ClassType("io.hotmoka.examples.tictactoe.TicTacToe");
+	private static final ClassType TIC_TAC_TOE = StorageTypes.of("io.hotmoka.examples.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
 	private static final IntValue _1 = new IntValue(1);
 	private static final IntValue _2 = new IntValue(2);
@@ -105,7 +106,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
+			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.value);
@@ -253,7 +254,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", ClassType.STRING),
+			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.value);

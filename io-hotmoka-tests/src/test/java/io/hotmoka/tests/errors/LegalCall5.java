@@ -30,7 +30,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall5 extends HotmokaTest {
@@ -49,6 +49,6 @@ class LegalCall5 extends HotmokaTest {
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
-		addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, new VoidMethodSignature(new ClassType("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
+		addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, new VoidMethodSignature(StorageTypes.of("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
 	}
 }

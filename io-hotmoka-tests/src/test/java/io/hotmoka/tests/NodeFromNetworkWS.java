@@ -52,6 +52,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -70,7 +71,7 @@ import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetworkWS extends HotmokaTest {
-    private final ClassType HASH_MAP_TESTS = new ClassType("io.hotmoka.examples.javacollections.HashMapTests");
+    private final ClassType HASH_MAP_TESTS = StorageTypes.of("io.hotmoka.examples.javacollections.HashMapTests");
     private final NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().setPort(8081).build();
     private final RemoteNodeConfig remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
     	.usesWebSockets(true)
@@ -429,7 +430,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             		_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
             var toString = (StringValue) remote.runStaticMethodCallTransaction
-            	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", ClassType.STRING)));
+            	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
             assertEquals("[how, are, hello, you, ?]", toString.value);
         }
     }

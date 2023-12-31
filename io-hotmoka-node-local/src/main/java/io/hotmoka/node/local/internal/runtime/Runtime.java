@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -69,7 +69,7 @@ public abstract class Runtime {
      */
 	public static Object deserializeLastLazyUpdateFor(Object object, String definingClass, String name, String fieldClassName) {
 		AbstractResponseBuilder<?, ?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
+		return responseCreator.deserializeLastUpdateFor(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, StorageTypes.of(fieldClassName)));
 	}
 
 	/**
@@ -84,7 +84,7 @@ public abstract class Runtime {
      */
 	public static Object deserializeLastLazyUpdateForFinal(Object object, String definingClass, String name, String fieldClassName) {
 		AbstractResponseBuilder<?,?>.ResponseCreator responseCreator = getResponseCreator();
-		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, new ClassType(fieldClassName)));
+		return responseCreator.deserializeLastUpdateForFinal(responseCreator.getClassLoader().getStorageReferenceOf(object), new FieldSignature(definingClass, name, StorageTypes.of(fieldClassName)));
 	}
 
 	/**

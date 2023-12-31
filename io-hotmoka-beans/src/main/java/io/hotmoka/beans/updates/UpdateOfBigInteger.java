@@ -22,7 +22,7 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
@@ -92,7 +92,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
-		return field.type.equals(ClassType.BIG_INTEGER);
+		return field.type.equals(StorageTypes.BIG_INTEGER);
 	}
 
 	@Override

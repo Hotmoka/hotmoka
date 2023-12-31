@@ -31,7 +31,7 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
@@ -234,34 +234,34 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ validators: ").append(validators).append("\n");
 
 			var shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), validators));
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators));
 
 			int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 
 			var offers = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY, "getOffers", ClassType.STORAGE_SET_VIEW), validators));
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY, "getOffers", StorageTypes.STORAGE_SET_VIEW), validators));
 
 			int numOfOffers = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "size", BasicTypes.INT), offers))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_SET_VIEW, "size", BasicTypes.INT), offers))).value;
 
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
 
 			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
 
 			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getSlashingForMisbehaving", BasicTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", BasicTypes.INT), validators))).value;
 
 			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
 
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getSlashingForNotBehaving", BasicTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", BasicTypes.INT), validators))).value;
 
 			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
 
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getPercentStaked", BasicTypes.INT), validators))).value;
 
 			builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
 
@@ -270,18 +270,18 @@ public class ManifestHelperImpl implements ManifestHelper {
 			var validatorsArray = new StorageReference[numOfValidators];
 			for (int num = 0; num < numOfValidators; num++)
 				validatorsArray[num] = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 			Map<StorageReference, SortedSet<StorageReference>> offersPerValidator = new HashMap<>();
 			for (int num = 0; num < numOfOffers; num++) {
 				var offer = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), offers, new IntValue(num)));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, BasicTypes.INT), offers, new IntValue(num)));
 				var seller = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSeller", ClassType.PAYABLE_CONTRACT), offer));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getSeller", StorageTypes.PAYABLE_CONTRACT), offer));
 
 				// the set of offers might contain expired offers since it gets updated lazily
 				boolean isOngoing = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "isOngoing", BasicTypes.BOOLEAN), offer))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", BasicTypes.BOOLEAN), offer))).value;
 
 				if (isOngoing)
 					offersPerValidator.computeIfAbsent(seller, _seller -> new TreeSet<>()).add(offer);
@@ -308,7 +308,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).value;
 
 				SortedSet<StorageReference> saleOffers = offersPerValidator.get(validator);
 				if (saleOffers == null)
@@ -325,14 +325,14 @@ public class ManifestHelperImpl implements ManifestHelper {
 							builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
 
 						BigInteger powerOnSale = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getSharesOnSale", ClassType.BIG_INTEGER), offer))).value;
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))).value;
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).value;
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 						var expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getExpiration", BasicTypes.LONG), offer))).value);
 						StorageValue buyer = node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getBuyer", ClassType.PAYABLE_CONTRACT), offer));
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getBuyer", StorageTypes.PAYABLE_CONTRACT), offer));
 
 						if (isLast) {
 							builder.append("   │  │     ├─ power on sale: ").append(powerOnSale).append("\n");
@@ -405,7 +405,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_POLLS, validators));
 
 			int numOfPolls = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "size", BasicTypes.INT), polls))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_SET_VIEW, "size", BasicTypes.INT), polls))).value;
 
 			if (numOfPolls == 0)
 				builder.append("   │  └─ number of polls: ").append(numOfPolls).append("\n");
@@ -414,7 +414,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfPolls; num++) {
 				var poll = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_SET_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), polls, new IntValue(num)));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, BasicTypes.INT), polls, new IntValue(num)));
 
 				boolean isLast = num == numOfPolls - 1;
 
@@ -424,7 +424,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
 
 				String description = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.POLL, "getDescription", ClassType.STRING), poll))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))).value;
 
 				if (isLast)
 					builder.append("   │     └─ description: ").append(description).append("\n");
@@ -435,10 +435,10 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ initial validators: ").append(initialValidators).append("\n");
 
 			shares = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_VIEW, "getShares", ClassType.STORAGE_MAP_VIEW), initialValidators));
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), initialValidators));
 
 			int numOfInitialValidators = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "size", BasicTypes.INT), shares))).value;
 
 			if (numOfInitialValidators == 0)
 				builder.append("   │  └─ number of initial validators: 0\n");
@@ -447,7 +447,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfInitialValidators; num++) {
 				var validator = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "select", ClassType.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, BasicTypes.INT), shares, new IntValue(num)));
 
 				boolean isLast = num == numOfInitialValidators - 1;
 
@@ -473,7 +473,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.STORAGE_MAP_VIEW, "get", ClassType.OBJECT, ClassType.OBJECT), shares, validator))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).value;
 
 				if (isLast)
 					builder.append("   │     └─ power: ").append(power).append("\n");

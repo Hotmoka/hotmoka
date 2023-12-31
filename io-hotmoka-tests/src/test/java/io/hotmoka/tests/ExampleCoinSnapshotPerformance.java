@@ -62,6 +62,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -192,8 +193,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final VoidMethodSignature BURN;
         private final VoidMethodSignature MINT;
         private final MethodSignature YIELD_SNAPSHOT;
-        private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(ClassType.UNSIGNED_BIG_INTEGER, "toBigInteger", ClassType.BIG_INTEGER);
-        private final static ClassType CREATOR = new ClassType("io.hotmoka.examples.tokens.ExampleCoinCreator");
+        private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
+        private final static ClassType CREATOR = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
 		private StorageReference creator; // the creator (and owner) of the contract
@@ -213,11 +214,11 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private Context(String coinName, int numberOfInvestors) {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
-    		this.COIN = new ClassType(coinName);
-    		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, ClassType.CONTRACT, BasicTypes.INT);
-    		this.BURN = new VoidMethodSignature(COIN, "burn", ClassType.CONTRACT, BasicTypes.INT);
-    		this.MINT = new VoidMethodSignature(COIN, "mint", ClassType.CONTRACT, BasicTypes.INT);
-    		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", ClassType.UNSIGNED_BIG_INTEGER);
+    		this.COIN = StorageTypes.of(coinName);
+    		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, BasicTypes.INT);
+    		this.BURN = new VoidMethodSignature(COIN, "burn", StorageTypes.CONTRACT, BasicTypes.INT);
+    		this.MINT = new VoidMethodSignature(COIN, "mint", StorageTypes.CONTRACT, BasicTypes.INT);
+    		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
     	}
 
     	private void runTest() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {
@@ -261,14 +262,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    privateKeyOfCreator = keys.getPrivate();
     		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
     		var request = new ConstructorCallTransactionRequest
-    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, ClassType.BIG_INTEGER, ClassType.STRING),
+    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
     			new BigIntegerValue(level2(500)), new StringValue(publicKey));
     		creator = node.addConstructorCallTransaction(request);
     	}
 
     	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
-        		new VoidMethodSignature(CREATOR, "distribute", ClassType.ACCOUNTS, ClassType.IERC20, BasicTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
+        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, BasicTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(new LocalTransactionReference(hasher.hash(request)));
     	}

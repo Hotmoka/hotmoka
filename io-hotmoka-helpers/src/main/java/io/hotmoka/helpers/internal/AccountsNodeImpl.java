@@ -51,7 +51,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
@@ -165,7 +165,7 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-			new ConstructorSignature(containerClassName, ClassType.BIG_INTEGER, ClassType.STRING, ClassType.STRING),
+			new ConstructorSignature(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
 			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
 
 		if (greenRed) {
@@ -174,11 +174,11 @@ public class AccountsNodeImpl implements AccountsNode {
 			// we set the red balances of the accounts now
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
-				new VoidMethodSignature(ClassType.ACCOUNTS, "addRedBalances", ClassType.BIG_INTEGER, ClassType.STRING),
+				new VoidMethodSignature(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
 		}
 
-		var get = new NonVoidMethodSignature(ClassType.ACCOUNTS, "get", ClassType.EOA, BasicTypes.INT);
+		var get = new NonVoidMethodSignature(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, BasicTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
 			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _100_000, classpath, get, container, new IntValue(i)));

@@ -41,6 +41,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -51,10 +52,10 @@ import io.hotmoka.constants.Constants;
  * A test for the ExampleCoinOZSnapshot contract (a ERC20OZSnapshot contract).
  */
 class ExampleCoinOZSnapshot extends HotmokaTest {
-    private static final ClassType EXCOZS = new ClassType("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot");
-    private static final ClassType UBI = ClassType.UNSIGNED_BIG_INTEGER;
+    private static final ClassType EXCOZS = StorageTypes.of("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot");
+    private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
     private static final ConstructorSignature CONSTRUCTOR_EXCOZS = new ConstructorSignature(EXCOZS);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, ClassType.STRING);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
 
     /**
      * The classpath of the classes of code module.
@@ -120,7 +121,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BigIntegerValue current_snapshot_id_ub = (BigIntegerValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, classpath_takamaka_code,
-                new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER),
+                new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER),
                 current_snapshot_id);
         // 1.toBigInteger() == BigInteger@1
 
@@ -150,7 +151,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _500_000, panarea(1), jar(),
-                        new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI),
+                        new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, ubi_0)
         );
@@ -183,7 +184,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         //vcreator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
@@ -191,16 +192,16 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
 
-        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_1);
-        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time1);
+        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_1);
+        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time1);
         assertEquals(creator_balance_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_1);
-        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time1);
+        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_1);
+        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time1);
         assertEquals(creator_investor1_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_1);
-        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time1);
+        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_1);
+        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time1);
         assertEquals(creator_investor2_time1_ub.value, new BigInteger("0"));
     }
 
@@ -233,7 +234,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
@@ -242,7 +243,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor2, ubi_4000);
         // creator@transfer(4000, investor2) > [creator:199999999999999999991000, investor1:5000, investor2:4000]
@@ -250,16 +251,16 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
 
-        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_1);
-        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time1);
+        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_1);
+        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time1);
         assertEquals(creator_balance_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_1);
-        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time1);
+        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_1);
+        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time1);
         assertEquals(creator_investor1_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_1);
-        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time1);
+        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_1);
+        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time1);
         assertEquals(creator_investor2_time1_ub.value, new BigInteger("0"));
     }
 
@@ -296,7 +297,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
@@ -312,7 +313,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_3000);
         // creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
@@ -321,28 +322,28 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
         StorageReference ubi_2 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("2"));
 
-        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_1);
-        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time1);
+        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_1);
+        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time1);
         assertEquals(creator_balance_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_1);
-        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time1);
+        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_1);
+        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time1);
         assertEquals(creator_investor1_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_1);
-        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time1);
+        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_1);
+        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time1);
         assertEquals(creator_investor2_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_2);
-        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time2);
+        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_2);
+        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time2);
         assertEquals(creator_balance_time2_ub.value, new BigInteger("199999999999999999995000"));
 
-        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_2);
-        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time2);
+        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_2);
+        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time2);
         assertEquals(creator_investor1_time2_ub.value, new BigInteger("5000"));
 
-        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_2);
-        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time2);
+        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_2);
+        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time2);
         assertEquals(creator_investor2_time2_ub.value, new BigInteger("0"));
     }
 
@@ -386,7 +387,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
@@ -409,7 +410,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_3000);
         // creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
@@ -419,52 +420,52 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         StorageReference ubi_2 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("2"));
         StorageReference ubi_3 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("3"));
 
-        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_1);
-        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time1);
+        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_1);
+        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time1);
         assertEquals(creator_balance_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_1);
-        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time1);
+        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_1);
+        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time1);
         assertEquals(creator_investor1_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_1);
-        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time1);
+        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_1);
+        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time1);
         assertEquals(creator_investor2_time1_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_1);
-        BigIntegerValue totalSupply_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time1);
+        BigIntegerValue totalSupply_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time1);
         assertEquals(totalSupply_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_2);
-        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time2);
+        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_2);
+        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time2);
         assertEquals(creator_balance_time2_ub.value, new BigInteger("199999999999999999995000"));
 
-        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_2);
-        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time2);
+        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_2);
+        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time2);
         assertEquals(creator_investor1_time2_ub.value, new BigInteger("5000"));
 
-        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_2);
-        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time2);
+        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_2);
+        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time2);
         assertEquals(creator_investor2_time2_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_2);
-        BigIntegerValue totalSupply_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time2);
+        BigIntegerValue totalSupply_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time2);
         assertEquals(totalSupply_time2_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_balance_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_3);
-        BigIntegerValue creator_balance_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time3);
+        StorageReference creator_balance_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_3);
+        BigIntegerValue creator_balance_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time3);
         assertEquals(creator_balance_time3_ub.value, new BigInteger("199999999999999999995000"));
 
-        StorageReference creator_investor1_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_3);
-        BigIntegerValue creator_investor1_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time3);
+        StorageReference creator_investor1_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_3);
+        BigIntegerValue creator_investor1_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time3);
         assertEquals(creator_investor1_time3_ub.value, new BigInteger("5000"));
 
-        StorageReference creator_investor2_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_3);
-        BigIntegerValue creator_investor2_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time3);
+        StorageReference creator_investor2_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_3);
+        BigIntegerValue creator_investor2_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time3);
         assertEquals(creator_investor2_time3_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_3);
-        BigIntegerValue totalSupply_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time3);
+        BigIntegerValue totalSupply_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time3);
         assertEquals(totalSupply_time3_ub.value, new BigInteger("200000000000000000000000"));
     }
 
@@ -519,7 +520,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
@@ -528,7 +529,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999990000, investor1:10000]
@@ -537,7 +538,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCOZS, "burn", ClassType.CONTRACT, UBI),
+                new VoidMethodSignature(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_5000);
         // creator@burn(5000, creator) > [creator:199999999999999999985000, investor1:10000]  TotalSupply= 199999999999999999995000
@@ -559,7 +560,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
-                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, ClassType.CONTRACT, UBI),
+                new NonVoidMethodSignature(EXCOZS, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor2, ubi_1000);
         // investor1@transfer(1000, investor2) > [creator:199999999999999999985000, investor1:9000, investor2:1000] TotalSupply= 199999999999999999995000
@@ -574,7 +575,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCOZS, "burn", ClassType.CONTRACT, UBI),
+                new VoidMethodSignature(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_5000);
         // creator@burn(5000, creator) > [creator:199999999999999999980000, investor1:9000, investor2:1000] TotalSupply= 199999999999999999990000
@@ -584,68 +585,68 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         StorageReference ubi_3 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("3"));
         StorageReference ubi_4 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("4"));
 
-        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_1);
-        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time1);
+        StorageReference creator_balance_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_1);
+        BigIntegerValue creator_balance_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time1);
         assertEquals(creator_balance_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_1);
-        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time1);
+        StorageReference creator_investor1_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_1);
+        BigIntegerValue creator_investor1_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time1);
         assertEquals(creator_investor1_time1_ub.value, new BigInteger("0"));
 
-        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_1);
-        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time1);
+        StorageReference creator_investor2_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_1);
+        BigIntegerValue creator_investor2_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time1);
         assertEquals(creator_investor2_time1_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time1 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_1);
-        BigIntegerValue totalSupply_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time1);
+        BigIntegerValue totalSupply_time1_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time1);
         assertEquals(totalSupply_time1_ub.value, new BigInteger("200000000000000000000000"));
 
-        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_2);
-        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time2);
+        StorageReference creator_balance_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_2);
+        BigIntegerValue creator_balance_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time2);
         assertEquals(creator_balance_time2_ub.value, new BigInteger("199999999999999999985000"));
 
-        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_2);
-        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time2);
+        StorageReference creator_investor1_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_2);
+        BigIntegerValue creator_investor1_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time2);
         assertEquals(creator_investor1_time2_ub.value, new BigInteger("10000"));
 
-        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_2);
-        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time2);
+        StorageReference creator_investor2_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_2);
+        BigIntegerValue creator_investor2_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time2);
         assertEquals(creator_investor2_time2_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time2 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_2);
-        BigIntegerValue totalSupply_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time2);
+        BigIntegerValue totalSupply_time2_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time2);
         assertEquals(totalSupply_time2_ub.value, new BigInteger("199999999999999999995000"));
 
-        StorageReference creator_balance_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_3);
-        BigIntegerValue creator_balance_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time3);
+        StorageReference creator_balance_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_3);
+        BigIntegerValue creator_balance_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time3);
         assertEquals(creator_balance_time3_ub.value, new BigInteger("199999999999999999985000"));
 
-        StorageReference creator_investor1_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_3);
-        BigIntegerValue creator_investor1_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time3);
+        StorageReference creator_investor1_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_3);
+        BigIntegerValue creator_investor1_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time3);
         assertEquals(creator_investor1_time3_ub.value, new BigInteger("10000"));
 
-        StorageReference creator_investor2_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_3);
-        BigIntegerValue creator_investor2_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time3);
+        StorageReference creator_investor2_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_3);
+        BigIntegerValue creator_investor2_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time3);
         assertEquals(creator_investor2_time3_ub.value, new BigInteger("0"));
 
         StorageReference totalSupply_time3 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_3);
-        BigIntegerValue totalSupply_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time3);
+        BigIntegerValue totalSupply_time3_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time3);
         assertEquals(totalSupply_time3_ub.value, new BigInteger("199999999999999999995000"));
 
-        StorageReference creator_balance_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, creator, ubi_4);
-        BigIntegerValue creator_balance_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_balance_time4);
+        StorageReference creator_balance_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, creator, ubi_4);
+        BigIntegerValue creator_balance_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_balance_time4);
         assertEquals(creator_balance_time4_ub.value, new BigInteger("199999999999999999985000"));
 
-        StorageReference creator_investor1_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor1, ubi_4);
-        BigIntegerValue creator_investor1_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor1_time4);
+        StorageReference creator_investor1_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor1, ubi_4);
+        BigIntegerValue creator_investor1_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor1_time4);
         assertEquals(creator_investor1_time4_ub.value, new BigInteger("9000"));
 
-        StorageReference creator_investor2_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, ClassType.CONTRACT, UBI), example_token, investor2, ubi_4);
-        BigIntegerValue creator_investor2_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), creator_investor2_time4);
+        StorageReference creator_investor2_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "balanceOfAt", UBI, StorageTypes.CONTRACT, UBI), example_token, investor2, ubi_4);
+        BigIntegerValue creator_investor2_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), creator_investor2_time4);
         assertEquals(creator_investor2_time4_ub.value, new BigInteger("1000"));
 
         StorageReference totalSupply_time4 = (StorageReference) addInstanceMethodCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), new NonVoidMethodSignature(EXCOZS, "totalSupplyAt", UBI, UBI), example_token, ubi_4);
-        BigIntegerValue totalSupply_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", ClassType.BIG_INTEGER), totalSupply_time4);
+        BigIntegerValue totalSupply_time4_ub = (BigIntegerValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER), totalSupply_time4);
         assertEquals(totalSupply_time4_ub.value, new BigInteger("199999999999999999995000"));
     }
 }

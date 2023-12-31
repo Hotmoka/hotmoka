@@ -37,7 +37,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -45,7 +45,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for {@link io.hotmoka.node.Node#getRequest(io.hotmoka.beans.references.TransactionReference)}.
  */
 class GetRequest extends HotmokaTest {
-	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(new ClassType("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
+	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = new ConstructorSignature(StorageTypes.of("io.hotmoka.examples.abstractfail.AbstractFailImpl"), BasicTypes.INT);
 
 	@BeforeAll
 	static void beforeAll() throws Exception {

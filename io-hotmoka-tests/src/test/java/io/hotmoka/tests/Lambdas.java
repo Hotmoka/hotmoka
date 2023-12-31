@@ -40,6 +40,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
@@ -50,8 +51,8 @@ import io.hotmoka.beans.values.StringValue;
  * A test for a class that uses lambda expressions referring to entries.
  */
 class Lambdas extends HotmokaTest {
-	private static final ClassType LAMBDAS = new ClassType("io.hotmoka.examples.lambdas.Lambdas");
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", ClassType.BIG_INTEGER, ClassType.STRING);
+	private static final ClassType LAMBDAS = StorageTypes.of("io.hotmoka.examples.lambdas.Lambdas");
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**
 	 * The first object, that holds all funds initially.
@@ -90,7 +91,7 @@ class Lambdas extends HotmokaTest {
 	@Test @DisplayName("new Lambdas().invest(10)")
 	void createLambdasThenInvest10() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
-		addInstanceMethodCallTransaction(key, eoa, _500_000, panarea(1), jar(), new VoidMethodSignature(LAMBDAS, "invest", ClassType.BIG_INTEGER), lambdas, new BigIntegerValue(BigInteger.ONE));
+		addInstanceMethodCallTransaction(key, eoa, _500_000, panarea(1), jar(), new VoidMethodSignature(LAMBDAS, "invest", StorageTypes.BIG_INTEGER), lambdas, new BigIntegerValue(BigInteger.ONE));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithThis()")
@@ -149,7 +150,7 @@ class Lambdas extends HotmokaTest {
 	void testWhiteListChecks() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, ClassType.OBJECT, ClassType.OBJECT, ClassType.OBJECT),
+			new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT),
 			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L)));
 
 		assertEquals(7, result.value);
@@ -159,7 +160,7 @@ class Lambdas extends HotmokaTest {
 	void testConcatenation() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(LAMBDAS, "concatenation", ClassType.STRING, ClassType.STRING, ClassType.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
+			new NonVoidMethodSignature(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, BasicTypes.LONG, INT),
 			lambdas,
 			new StringValue("hello"), new StringValue("hi"), lambdas, new LongValue(1973L), new IntValue(13));
 

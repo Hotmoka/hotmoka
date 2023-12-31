@@ -16,9 +16,12 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
+import java.util.Objects;
+
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 
 /**
  * The model of the signature of a field, method or constructor.
@@ -53,7 +56,7 @@ public abstract class SignatureModel {
     	else if (type instanceof BasicTypes)
     		return type.toString();
     	else if (type instanceof ClassType)
-    		return ((ClassType) type).name;
+    		return ((ClassType) type).getName();
     	else
     		throw new RuntimeException("unexpected storage type of class " + type.getClass().getName());
     }
@@ -65,8 +68,7 @@ public abstract class SignatureModel {
 	 * @return the type
 	 */
 	protected static StorageType typeWithName(String name) {
-    	if (name == null)
-    		throw new RuntimeException("unexpected null type name");
+		Objects.requireNonNull(name, "name cannot be null");
 
     	switch (name) {
     	case "boolean":
@@ -86,7 +88,7 @@ public abstract class SignatureModel {
         case "double":
             return BasicTypes.DOUBLE;
         default:
-        	return new ClassType(name);
+        	return StorageTypes.of(name);
     	}
 	}
 }

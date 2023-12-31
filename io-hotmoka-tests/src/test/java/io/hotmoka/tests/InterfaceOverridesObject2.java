@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.node.NonWhiteListedCallException;
 
 /**
@@ -47,6 +47,6 @@ class InterfaceOverridesObject2 extends HotmokaTest {
 	void createC() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			addStaticMethodCallTransaction(privateKey(0), account(0), _1_000_000, BigInteger.ONE, jar(),
-				new NonVoidMethodSignature(new ClassType("io.hotmoka.examples.interfaceoverridesobject2.C"), "test", BasicTypes.INT)));
+				new NonVoidMethodSignature(StorageTypes.of("io.hotmoka.examples.interfaceoverridesobject2.C"), "test", BasicTypes.INT)));
 	}
 }

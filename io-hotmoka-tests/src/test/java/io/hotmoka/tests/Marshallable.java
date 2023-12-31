@@ -21,11 +21,9 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
@@ -316,7 +314,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            FieldSignature fieldSignature = new FieldSignature(ClassType.CONTRACT, "balance", ClassType.BIG_INTEGER);
+            FieldSignature fieldSignature = new FieldSignature(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
 
             context.writeObject(FieldSignature.class, fieldSignature);
             context.flush();
@@ -366,7 +364,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            FieldSignature fieldSignature = new FieldSignature(ClassType.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
+            FieldSignature fieldSignature = new FieldSignature(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", BasicTypes.INT);
 
             context.writeObject(FieldSignature.class, fieldSignature);
             context.flush();
@@ -533,11 +531,11 @@ public class Marshallable {
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             ConstructorSignature constructorSignature = new ConstructorSignature(
-                    ClassType.MANIFEST,
-                    ClassType.BIG_INTEGER
+            		StorageTypes.MANIFEST,
+                    StorageTypes.BIG_INTEGER
             );
 
-            ConstructorCallTransactionRequest constructorCall = new ConstructorCallTransactionRequest(
+            var constructorCall = new ConstructorCallTransactionRequest(
                    "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -563,9 +561,9 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            ConstructorSignature constructorSignature = new ConstructorSignature(
-                    ClassType.MANIFEST,
-                    ClassType.BIG_INTEGER
+            var constructorSignature = new ConstructorSignature(
+            		StorageTypes.MANIFEST,
+                    StorageTypes.BIG_INTEGER
             );
 
             constructorSignature.into(context);
@@ -582,14 +580,14 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            NonVoidMethodSignature nonVoidMethodSignature = new NonVoidMethodSignature(
-                    ClassType.GAS_STATION,
+            var nonVoidMethodSignature = new NonVoidMethodSignature(
+            		StorageTypes.GAS_STATION,
                     "balance",
-                    ClassType.BIG_INTEGER,
-                    ClassType.STORAGE
+                    StorageTypes.BIG_INTEGER,
+                    StorageTypes.STORAGE
             );
 
-            StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
+            var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -615,13 +613,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            MethodSignature receiveInt = new VoidMethodSignature(
-                    ClassType.PAYABLE_CONTRACT,
-                    "receive",
-                    BasicTypes.INT
-            );
-
-            StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
+            var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -629,7 +621,7 @@ public class Marshallable {
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
                     new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                    receiveInt,
+                    CodeSignature.RECEIVE_INT,
                     new IntValue(300)
                 );
 
@@ -647,7 +639,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            StaticMethodCallTransactionRequest staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
+            var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -672,13 +664,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            MethodSignature receiveInt = new VoidMethodSignature(
-                    ClassType.PAYABLE_CONTRACT,
-                    "receive",
-                    BasicTypes.INT
-            );
-
-            InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
+            var request = new InstanceMethodCallTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -686,7 +672,7 @@ public class Marshallable {
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
                     new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                    receiveInt,
+                    CodeSignature.RECEIVE_INT,
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     new IntValue(300)
             );
@@ -705,7 +691,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(
+            var request = new InstanceMethodCallTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
@@ -731,7 +717,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            JarStoreTransactionRequest jarStoreTransactionRequest = new JarStoreTransactionRequest(
+            var jarStoreTransactionRequest = new JarStoreTransactionRequest(
                     "".getBytes(),
                     new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,

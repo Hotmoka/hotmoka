@@ -35,6 +35,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -43,9 +44,9 @@ import io.hotmoka.beans.values.StorageReference;
  */
 class SimplePyramid extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
-	private static final ClassType SIMPLE_PYRAMID = new ClassType("io.hotmoka.examples.ponzi.SimplePyramid");
-	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, ClassType.BIG_INTEGER);
-	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", ClassType.BIG_INTEGER);
+	private static final ClassType SIMPLE_PYRAMID = StorageTypes.of("io.hotmoka.examples.ponzi.SimplePyramid");
+	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
+	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeAll

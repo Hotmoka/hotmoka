@@ -37,6 +37,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -45,8 +46,8 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the simplified crowd funding contract.
  */
 class CrowdFundingSimplified extends HotmokaTest {
-	private static final ClassType CAMPAIGN = new ClassType("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
-	private static final ClassType CROWD_FUNDING_SIMPLIFIED = new ClassType("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
+	private static final ClassType CAMPAIGN = StorageTypes.of("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified$Campaign");
+	private static final ClassType CROWD_FUNDING_SIMPLIFIED = StorageTypes.of("io.hotmoka.examples.crowdfunding.CrowdFundingSimplified");
 	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING_SIMPLIFIED = new ConstructorSignature(CROWD_FUNDING_SIMPLIFIED);
 
 	/**
@@ -93,7 +94,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		assertNotNull(campaign);
@@ -103,17 +104,17 @@ class CrowdFundingSimplified extends HotmokaTest {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(1L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
@@ -128,17 +129,17 @@ class CrowdFundingSimplified extends HotmokaTest {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, ClassType.PAYABLE_CONTRACT, ClassType.BIG_INTEGER),
+			new NonVoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(48L)), campaign);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", ClassType.BIG_INTEGER, CAMPAIGN),
+			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, new BigIntegerValue(BigInteger.valueOf(2L)), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction

@@ -36,6 +36,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -44,7 +45,7 @@ import io.hotmoka.beans.values.StorageReference;
  * A test for the use of enumeration types.
  */
 class Enums extends HotmokaTest {
-	private static final ClassType MY_ENUM = new ClassType("io.hotmoka.examples.enums.MyEnum");
+	private static final ClassType MY_ENUM = StorageTypes.of("io.hotmoka.examples.enums.MyEnum");
 
 	@BeforeAll
 	static void beforeAll() throws Exception {
@@ -78,6 +79,6 @@ class Enums extends HotmokaTest {
 		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, BasicTypes.INT), new IntValue(2));
 
-		assertEquals(new EnumValue(MY_ENUM.name, "FUTURE"), element);
+		assertEquals(new EnumValue(MY_ENUM.getName(), "FUTURE"), element);
 	}
 }

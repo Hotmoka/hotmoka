@@ -95,8 +95,8 @@ public class Deserializer {
 				FieldSignature field2 = ((UpdateOfField) update2).getField();
 
 				try {
-					String className1 = field1.definingClass.name;
-					String className2 = field2.definingClass.name;
+					String className1 = field1.definingClass.getName();
+					String className2 = field2.definingClass.getName();
 
 					if (className1.equals(className2)) {
 						int diff = field1.name.compareTo(field2.name);
@@ -231,7 +231,7 @@ public class Deserializer {
 					}
 				});
 	
-			Class<?> clazz = classLoader.loadClass(classTag.clazz.name);
+			Class<?> clazz = classLoader.loadClass(classTag.clazz.getName());
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
 			TransactionReference expected = classTag.jar;
 			if (!actual.equals(expected))

@@ -44,6 +44,7 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
@@ -53,8 +54,8 @@ import io.hotmoka.node.api.Subscription;
  * A test for the remote purchase contract.
  */
 class RemotePurchase extends HotmokaTest {
-	private static final ClassType PURCHASE = new ClassType("io.hotmoka.examples.remotepurchase.Purchase");
-	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE.name + "$PurchaseConfirmed";
+	private static final ClassType PURCHASE = StorageTypes.of("io.hotmoka.examples.remotepurchase.Purchase");
+	private static final String PURCHASE_CONFIRMED_NAME = PURCHASE + "$PurchaseConfirmed";
 	private static final VoidMethodSignature CONFIRM_RECEIVED = new VoidMethodSignature(PURCHASE, "confirmReceived");
 	private static final VoidMethodSignature CONFIRM_PURCHASED = new VoidMethodSignature(PURCHASE, "confirmPurchase", INT);
 	private static final ConstructorSignature CONSTRUCTOR_PURCHASE = new ConstructorSignature("io.hotmoka.examples.remotepurchase.Purchase", INT);
@@ -145,7 +146,7 @@ class RemotePurchase extends HotmokaTest {
 		}
 
 		assertNotNull(event);
-		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).clazz.name);
+		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).clazz.getName());
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
@@ -163,7 +164,7 @@ class RemotePurchase extends HotmokaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).clazz.name)));
+		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).clazz.getName())));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

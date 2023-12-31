@@ -145,7 +145,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClass();
 
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return classLoader.resolveConstructor(request.constructor.definingClass.getName(), argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
@@ -160,7 +160,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClassForFromContract();
 
-			return classLoader.resolveConstructor(request.constructor.definingClass.name, argTypes)
+			return classLoader.resolveConstructor(request.constructor.definingClass.getName(), argTypes)
 				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
 		}
 
@@ -191,7 +191,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) {
 			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass.name);
+				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.definingClass);
 
 			Annotation[][] anns = model.get().getParameterAnnotations();
 			for (int pos = 0; pos < anns.length; pos++)

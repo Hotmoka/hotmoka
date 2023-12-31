@@ -38,6 +38,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.StorageType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
@@ -179,7 +180,7 @@ public class Call extends AbstractCommand {
 					return classloader.loadClass(classOfReceiver);
 				else
 					// receiver is not a class name, let's try as a storage reference
-					return classloader.loadClass(node.getClassTag(receiver).clazz.name);
+					return classloader.loadClass(node.getClassTag(receiver).clazz.getName());
 			}
 		}
 
@@ -307,14 +308,14 @@ public class Call extends AbstractCommand {
 		private MethodSignature signatureOfMethod() {
 			StorageType[] formals = Stream.of(method.getParameters())
 				.map(Parameter::getType)
-				.map(StorageType::of)
+				.map(StorageTypes::of)
 				.toArray(StorageType[]::new);
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
 				return new VoidMethodSignature(clazz.getName(), methodName, formals);
 			else
-				return new NonVoidMethodSignature(clazz.getName(), methodName, StorageType.of(returnType), formals);
+				return new NonVoidMethodSignature(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException {

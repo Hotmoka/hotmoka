@@ -41,7 +41,7 @@ class PrintAPI {
 
 	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
 		TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(tag.jar);
-		this.clazz = classloader.loadClass(tag.clazz.name);
+		this.clazz = classloader.loadClass(tag.clazz.getName());
 		this.whiteListingWizard = classloader.getWhiteListingWizard();
 		printConstructors();
 		printMethods();

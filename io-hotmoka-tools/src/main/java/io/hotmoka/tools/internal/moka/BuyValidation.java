@@ -27,7 +27,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.types.BasicTypes;
-import io.hotmoka.beans.types.ClassType;
+import io.hotmoka.beans.types.StorageTypes;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -98,19 +98,19 @@ public class BuyValidation extends AbstractCommand {
 				InstanceMethodCallTransactionRequest request;
 
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
+						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getBuyerSurcharge", BasicTypes.INT), validators))).value;
 
 				StorageReference offer = new StorageReference(BuyValidation.this.offer);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(ClassType.SHARED_ENTITY_OFFER, "getCost", ClassType.BIG_INTEGER), offer))).value;
+						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).value;
 				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 
 				askForConfirmation(gasLimit, costWithSurcharge);
 
 				request = new InstanceMethodCallTransactionRequest
 						(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-								new VoidMethodSignature(ClassType.ABSTRACT_VALIDATORS, "accept", ClassType.BIG_INTEGER, ClassType.VALIDATOR, ClassType.SHARED_ENTITY_OFFER),
+								new VoidMethodSignature(StorageTypes.ABSTRACT_VALIDATORS, "accept", StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.SHARED_ENTITY_OFFER),
 								validators, new BigIntegerValue(costWithSurcharge), buyer, offer);
 
 				node.addInstanceMethodCallTransaction(request);
