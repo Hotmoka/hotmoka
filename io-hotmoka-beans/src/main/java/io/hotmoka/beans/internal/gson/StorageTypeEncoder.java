@@ -16,16 +16,16 @@ limitations under the License.
 
 package io.hotmoka.beans.internal.gson;
 
-import io.hotmoka.beans.NodeInfos;
-import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * A decoder for {@link NodeInfo}.
+ * An encoder for {@link StorageType}.
  */
-public class NodeInfoEncoder extends MappedEncoder<NodeInfo, NodeInfos.Json> {
+public class StorageTypeEncoder extends MappedEncoder<StorageType, StorageTypes.Json> {
 
-	public NodeInfoEncoder() {
-		super(NodeInfos.Json::new);
+	public StorageTypeEncoder() {
+		super(StorageTypes.Json::new);
 	}
 }

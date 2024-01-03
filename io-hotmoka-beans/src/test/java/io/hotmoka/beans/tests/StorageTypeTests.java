@@ -21,19 +21,28 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
-public class NodeInfoTests extends AbstractLoggedTests {
+public class StorageTypeTests extends AbstractLoggedTests {
 
 	@Test
-	@DisplayName("node informations are correctly encoded into Json and decoded from Json")
+	@DisplayName("basic types are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForBasicType() throws EncodeException, DecodeException {
+		var type1 = StorageTypes.INT;
+		String encoded = new StorageTypes.Encoder().encode(type1);
+		var type2 = new StorageTypes.Decoder().decode(encoded);
+		assertEquals(type1, type2);
+	}
+
+	@Test
+	@DisplayName("class types are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForClassType() throws EncodeException, DecodeException {
-		var info1 = NodeInfos.of("type", "1.2.3", "ID");
-		String encoded = new NodeInfos.Encoder().encode(info1);
-		var info2 = new NodeInfos.Decoder().decode(encoded);
-		assertEquals(info1, info2);
+		var type1 = StorageTypes.STRING;
+		String encoded = new StorageTypes.Encoder().encode(type1);
+		var type2 = new StorageTypes.Decoder().decode(encoded);
+		assertEquals(type1, type2);
 	}
 }

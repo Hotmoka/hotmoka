@@ -37,7 +37,7 @@ public interface NodeInfo {
 	String getID();
 
 	@Override
-	boolean equals(Object obj);
+	boolean equals(Object other);
 
 	@Override
 	int hashCode();

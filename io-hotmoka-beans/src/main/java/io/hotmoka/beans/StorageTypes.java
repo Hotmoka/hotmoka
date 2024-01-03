@@ -21,6 +21,9 @@ import java.io.IOException;
 import io.hotmoka.beans.api.types.BasicType;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
+import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
+import io.hotmoka.beans.internal.gson.StorageTypeJson;
 import io.hotmoka.beans.internal.types.BasicTypeImpl;
 import io.hotmoka.beans.internal.types.ClassTypeImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -408,4 +411,41 @@ public abstract class StorageTypes {
 
 		throw new IOException("Unexpected type selector: " + selector);
 	}
+
+	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends StorageTypeEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends StorageTypeDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends StorageTypeJson {
+
+    	/**
+    	 * Creates the Json representation for the given type.
+    	 * 
+    	 * @param type the type
+    	 */
+    	public Json(StorageType type) {
+    		super(type);
+    	}
+    }
 }

@@ -180,7 +180,7 @@ public class BasicTypeImpl implements BasicType {
 	@Override
 	public String toString() {
 		if (this == BOOLEAN)
-			return "boolen";
+			return "boolean";
 		else if (this == BYTE)
 			return "byte";
 		else if (this == CHAR)

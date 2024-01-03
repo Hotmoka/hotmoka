@@ -27,7 +27,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * A transaction reference that refers to a transaction in the local store of a node.
  */
 public final class LocalTransactionReference extends TransactionReference {
-	private static final long serialVersionUID = -753718566957710717L;
 
 	/**
 	 * The hash of the request that generated the transaction.
@@ -44,13 +43,13 @@ public final class LocalTransactionReference extends TransactionReference {
 
 		// each byte is represented by two successive characters
 		if (hash.length() != TransactionRequest.REQUEST_HASH_LENGTH * 2)
-			throw new IllegalArgumentException("illegal transaction reference " + hash
+			throw new IllegalArgumentException("Illegal transaction reference " + hash
 				+ ": it should hold a hash of " + TransactionRequest.REQUEST_HASH_LENGTH * 2 + " characters");
 
 		hash = hash.toLowerCase();
 
 		if (!hash.chars().allMatch(c -> (c >= '0' && c <='9') || (c >= 'a' && c <= 'f')))
-			throw new IllegalArgumentException("illegal transaction reference " + hash + ": it must be a hexadecimal number");
+			throw new IllegalArgumentException("Illegal transaction reference " + hash + ": it must be a hexadecimal number");
 
 		this.hash = hash;
 	}
