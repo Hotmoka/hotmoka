@@ -42,11 +42,12 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.NodeInfo;
 import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.nodes.NodeInfo;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -192,7 +193,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
+		return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
 	}
 
 	@Override

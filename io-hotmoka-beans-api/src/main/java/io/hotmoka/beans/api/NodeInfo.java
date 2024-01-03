@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,10 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.beans.api {
-	exports io.hotmoka.beans.api;
-	exports io.hotmoka.beans.api.types;
-	requires transitive io.hotmoka.marshalling.api;
-	requires transitive io.hotmoka.crypto.api;
-	requires io.hotmoka.annotations;
+package io.hotmoka.beans.api;
+
+/**
+ * Node-specific information about a Hotmoka node.
+ */
+public interface NodeInfo {
+
+	/**
+	 * Yields the type of the node.
+	 */
+	String getType();
+
+	/**
+	 * Yields the version of the node.
+	 */
+	String getVersion();
+
+	/**
+	 * Yields the identifier of the node inside its network, if any.
+	 */
+	String getID();
+
+	@Override
+	boolean equals(Object obj);
+
+	@Override
+	int hashCode();
 }

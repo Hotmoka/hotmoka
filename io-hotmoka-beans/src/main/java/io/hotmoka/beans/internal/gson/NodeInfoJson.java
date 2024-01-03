@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,30 +14,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.network.nodes;
+package io.hotmoka.beans.internal.gson;
 
 import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
-public class NodeInfoModel {
-	public String type;
-	public String version;
-	public String ID;
+/**
+ * The JSON representation of a {@link NodeInfo}.
+ */
+public abstract class NodeInfoJson implements JsonRepresentation<NodeInfo> {
+	private final String type;
+	private final String version;
+	private final String ID;
 
-	/**
-	 * Builds node-specific information about a Hotmoka node.
-	 * 
-	 * @param input the node info
-	 */
-	public NodeInfoModel(NodeInfo input) {
-		this.type = input.getType();
-		this.version = input.getVersion();
-		this.ID = input.getID();
+	protected NodeInfoJson(NodeInfo info) {
+		this.type = info.getType();
+		this.version = info.getVersion();
+		this.ID = info.getID();
 	}
 
-    public NodeInfoModel() {}
-
-    public NodeInfo toBean() {
-    	return NodeInfos.of(type, version, ID);
-    }
+	@Override
+	public NodeInfo unmap() {
+		return NodeInfos.of(type, version, ID);
+	}
 }

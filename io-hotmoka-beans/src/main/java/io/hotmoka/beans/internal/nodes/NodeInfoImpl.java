@@ -14,29 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.nodes;
+package io.hotmoka.beans.internal.nodes;
 
 import java.util.Objects;
 
+import io.hotmoka.beans.api.NodeInfo;
+
 /**
- * Node-specific information about a Hotmoka node.
+ * Implementation of node-specific information about a Hotmoka node.
  */
-public class NodeInfo {
+public class NodeInfoImpl implements NodeInfo {
 
 	/**
 	 * The type of the node.
 	 */
-	public final String type;
+	private final String type;
 
 	/**
 	 * The version of the node.
 	 */
-	public final String version;
+	private final String version;
 
 	/**
 	 * The identifier of the node inside its network, if any.
 	 */
-	public final String ID;
+	private final String ID;
 
 	/**
 	 * Builds node-specific information about a Hotmoka node.
@@ -45,7 +47,7 @@ public class NodeInfo {
 	 * @param version the version of the node
 	 * @param ID the identifier of the node inside its network, if any. Otherwise the empty string
 	 */
-	public NodeInfo(String type, String version, String ID) {
+	public NodeInfoImpl(String type, String version, String ID) {
 		Objects.requireNonNull(type, "type cannot be null");
 		Objects.requireNonNull(version, "version cannot be null");
 		Objects.requireNonNull(ID, "ID cannot be null");
@@ -53,5 +55,30 @@ public class NodeInfo {
 		this.type = type;
 		this.version = version;
 		this.ID = ID;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof NodeInfo ni && type.equals(ni.getType()) &&
+			version.equals(ni.getVersion()) && ID.equals(ni.getID());
+	}
+
+	@Override
+	public int hashCode() {
+		return type.hashCode() ^ version.hashCode() ^ ID.hashCode();
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	@Override
+	public String getVersion() {
+		return version;
+	}
+
+	@Override
+	public String getID() {
+		return ID;
 	}
 }

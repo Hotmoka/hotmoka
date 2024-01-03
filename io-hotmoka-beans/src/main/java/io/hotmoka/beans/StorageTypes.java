@@ -21,8 +21,8 @@ import java.io.IOException;
 import io.hotmoka.beans.api.types.BasicType;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.types.internal.BasicTypeImpl;
-import io.hotmoka.beans.types.internal.ClassTypeImpl;
+import io.hotmoka.beans.internal.types.BasicTypeImpl;
+import io.hotmoka.beans.internal.types.ClassTypeImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**

@@ -20,8 +20,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.nodes.NodeInfo;
+import io.hotmoka.beans.api.NodeInfo;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
@@ -97,7 +98,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return new NodeInfo(DiskNode.class.getName(), Constants.HOTMOKA_VERSION, "");
+		return NodeInfos.of(DiskNode.class.getName(), Constants.HOTMOKA_VERSION, "");
 	}
 
 	@Override

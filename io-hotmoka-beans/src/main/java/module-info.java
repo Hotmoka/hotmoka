@@ -22,11 +22,17 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.signatures;
 	exports io.hotmoka.beans.updates;
 	exports io.hotmoka.beans.values;
-	exports io.hotmoka.beans.nodes;
 	exports io.hotmoka.beans;
+
+	// beans must be accessible, encoded and decoded by reflection through Gson
+	//opens io.hotmoka.beans.internal to com.google.gson;
+	opens io.hotmoka.beans.internal.gson to com.google.gson;
+
 	requires transitive io.hotmoka.beans.api;
 	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.constants;
 	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;
+	requires io.hotmoka.websockets.beans;
+	requires com.google.gson;
 }
