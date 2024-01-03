@@ -17,14 +17,12 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
-import java.math.BigInteger;
 
 import io.hotmoka.beans.api.types.BasicType;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.types.internal.BasicTypeImpl;
 import io.hotmoka.beans.types.internal.ClassTypeImpl;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -37,337 +35,327 @@ public abstract class StorageTypes {
 	/**
 	 * The {@code boolean} basic type of the Takamaka language.
 	 */
-	public final static BasicType BOOLEAN = new BasicTypeImpl(BasicTypeImpl.Instance.BOOLEAN);
+	public final static BasicType BOOLEAN = BasicTypeImpl.BOOLEAN;
 
 	/**
 	 * The {@code byte} basic type of the Takamaka language.
 	 */
-	public final static BasicType BYTE = new BasicTypeImpl(BasicTypeImpl.Instance.BYTE);
+	public final static BasicType BYTE = BasicTypeImpl.BYTE;
 
 	/**
 	 * The {@code char} basic type of the Takamaka language.
 	 */
-	public final static BasicType CHAR = new BasicTypeImpl(BasicTypeImpl.Instance.CHAR);
+	public final static BasicType CHAR = BasicTypeImpl.CHAR;
 
 	/**
 	 * The {@code short} basic type of the Takamaka language.
 	 */
-	public final static BasicType SHORT = new BasicTypeImpl(BasicTypeImpl.Instance.SHORT);
+	public final static BasicType SHORT = BasicTypeImpl.SHORT;
 
 	/**
 	 * The {@code int} basic type of the Takamaka language.
 	 */
-	public final static BasicType INT = new BasicTypeImpl(BasicTypeImpl.Instance.INT);
+	public final static BasicType INT = BasicTypeImpl.INT;
 
 	/**
 	 * The {@code long} basic type of the Takamaka language.
 	 */
-	public final static BasicType LONG = new BasicTypeImpl(BasicTypeImpl.Instance.LONG);
+	public final static BasicType LONG = BasicTypeImpl.LONG;
 
 	/**
 	 * The {@code float} basic type of the Takamaka language.
 	 */
-	public final static BasicType FLOAT = new BasicTypeImpl(BasicTypeImpl.Instance.FLOAT);
+	public final static BasicType FLOAT = BasicTypeImpl.FLOAT;
 	
 	/**
 	 * The {@code double} basic type of the Takamaka language.
 	 */
-	public final static BasicType DOUBLE = new BasicTypeImpl(BasicTypeImpl.Instance.DOUBLE);
+	public final static BasicType DOUBLE = BasicTypeImpl.DOUBLE;
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
 	 */
-	public final static ClassType OBJECT = classNamed(Object.class.getName());
+	public final static ClassType OBJECT = ClassTypeImpl.OBJECT;
 
 	/**
 	 * The frequently used class type for {@link java.lang.String}.
 	 */
-	public final static ClassType STRING = classNamed(String.class.getName());
+	public final static ClassType STRING = ClassTypeImpl.STRING;
 
 	/**
 	 * The frequently used class type for {@link java.math.BigInteger}.
 	 */
-	public final static ClassType BIG_INTEGER = classNamed(BigInteger.class.getName());
+	public final static ClassType BIG_INTEGER = ClassTypeImpl.BIG_INTEGER;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
 	 */
-	public final static ClassType UNSIGNED_BIG_INTEGER = classNamed(Constants.UNSIGNED_BIG_INTEGER_NAME);
+	public final static ClassType UNSIGNED_BIG_INTEGER = ClassTypeImpl.UNSIGNED_BIG_INTEGER;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.tokens.ERC20}.
 	 */
-	public final static ClassType ERC20 = classNamed(Constants.ERC20_NAME);
+	public final static ClassType ERC20 = ClassTypeImpl.ERC20;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
 	 */
-	public final static ClassType GAS_PRICE_UPDATE = classNamed(Constants.GAS_PRICE_UPDATE_NAME);
+	public final static ClassType GAS_PRICE_UPDATE = ClassTypeImpl.GAS_PRICE_UPDATE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
-	public final static ClassType EOA = classNamed(Constants.EOA_NAME);
+	public final static ClassType EOA = ClassTypeImpl.EOA;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
 	 */
-	public final static ClassType EOA_ED25519 = classNamed(Constants.EOA_ED25519_NAME);
+	public final static ClassType EOA_ED25519 = ClassTypeImpl.EOA_ED25519;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountEHA256DSA}.
 	 */
-	public final static ClassType EOA_SHA256DSA = classNamed(Constants.EOA_SHA256DSA_NAME);
+	public final static ClassType EOA_SHA256DSA = ClassTypeImpl.EOA_SHA256DSA;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
 	 */
-	public final static ClassType EOA_QTESLA1 = classNamed(Constants.EOA_QTESLA1_NAME);
+	public final static ClassType EOA_QTESLA1 = ClassTypeImpl.EOA_QTESLA1;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
 	 */
-	public final static ClassType EOA_QTESLA3 = classNamed(Constants.EOA_QTESLA3_NAME);
+	public final static ClassType EOA_QTESLA3 = ClassTypeImpl.EOA_QTESLA3;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
 	 */
-	public final static ClassType CONTRACT = classNamed(Constants.CONTRACT_NAME);
+	public final static ClassType CONTRACT = ClassTypeImpl.CONTRACT;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
 	 */
-	public final static ClassType GAMETE = classNamed(Constants.GAMETE_NAME);
+	public final static ClassType GAMETE = ClassTypeImpl.GAMETE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
 	 */
-	public final static ClassType ACCOUNT = classNamed(Constants.ACCOUNT_NAME);
+	public final static ClassType ACCOUNT = ClassTypeImpl.ACCOUNT;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Accounts}.
 	 */
-	public final static ClassType ACCOUNTS = classNamed(Constants.ACCOUNTS_NAME);
+	public final static ClassType ACCOUNTS = ClassTypeImpl.ACCOUNTS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.tokens.IERC20}.
 	 */
-	public final static ClassType IERC20 = classNamed(Constants.IERC20_NAME);
+	public final static ClassType IERC20 = ClassTypeImpl.IERC20;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
 	 */
-	public final static ClassType MANIFEST = classNamed(Constants.MANIFEST_NAME);
+	public final static ClassType MANIFEST = ClassTypeImpl.MANIFEST;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Validator}.
 	 */
-	public final static ClassType VALIDATOR = classNamed(Constants.VALIDATOR_NAME);
+	public final static ClassType VALIDATOR = ClassTypeImpl.VALIDATOR;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Validators}.
 	 */
-	public final static ClassType VALIDATORS = classNamed(Constants.VALIDATORS_NAME);
+	public final static ClassType VALIDATORS = ClassTypeImpl.VALIDATORS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.AbstractValidators}.
 	 */
-	public final static ClassType ABSTRACT_VALIDATORS = classNamed(Constants.ABSTRACT_VALIDATORS_NAME);
+	public final static ClassType ABSTRACT_VALIDATORS = ClassTypeImpl.ABSTRACT_VALIDATORS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
 	 */
-	public final static ClassType VERSIONS = classNamed(Constants.VERSIONS_NAME);
+	public final static ClassType VERSIONS = ClassTypeImpl.VERSIONS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.AccountsLedger}.
 	 */
-	public final static ClassType ACCOUNTS_LEDGER = classNamed(Constants.ACCOUNTS_LEDGER_NAME);
+	public final static ClassType ACCOUNTS_LEDGER = ClassTypeImpl.ACCOUNTS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
 	 */
-	public final static ClassType GAS_STATION = classNamed(Constants.GAS_STATION_NAME);
+	public final static ClassType GAS_STATION = ClassTypeImpl.GAS_STATION;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GenericGasStation}.
 	 */
-	public final static ClassType GENERIC_GAS_STATION = classNamed(Constants.GENERIC_GAS_STATION_NAME);
+	public final static ClassType GENERIC_GAS_STATION = ClassTypeImpl.GENERIC_GAS_STATION;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
-	public final static ClassType TENDERMINT_VALIDATORS = classNamed(Constants.TENDERMINT_VALIDATORS_NAME);
+	public final static ClassType TENDERMINT_VALIDATORS = ClassTypeImpl.TENDERMINT_VALIDATORS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
 	 */
-	public final static ClassType TENDERMINT_ED25519_VALIDATOR = classNamed(Constants.TENDERMINT_ED25519_VALIDATOR_NAME);
+	public final static ClassType TENDERMINT_ED25519_VALIDATOR = ClassTypeImpl.TENDERMINT_ED25519_VALIDATOR;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
 	 */
-	public final static ClassType STORAGE = classNamed(Constants.STORAGE_NAME);
+	public final static ClassType STORAGE = ClassTypeImpl.STORAGE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Takamaka}.
 	 */
-	public final static ClassType TAKAMAKA = classNamed(Constants.TAKAMAKA_NAME);
+	public final static ClassType TAKAMAKA = ClassTypeImpl.TAKAMAKA;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Event}.
 	 */
-	public final static ClassType EVENT = classNamed(Constants.EVENT_NAME);
+	public final static ClassType EVENT = ClassTypeImpl.EVENT;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
 	 */
-	public final static ClassType PAYABLE_CONTRACT = classNamed(Constants.PAYABLE_CONTRACT_NAME);
+	public final static ClassType PAYABLE_CONTRACT = ClassTypeImpl.PAYABLE_CONTRACT;
 
 	/**
 	 * The frequently used class type for {@code io.takamaka.code.lang.FromContract}.
 	 */
-	public final static ClassType FROM_CONTRACT = classNamed(Constants.FROM_CONTRACT_NAME);
+	public final static ClassType FROM_CONTRACT = ClassTypeImpl.FROM_CONTRACT;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.View}.
 	 */
-	public final static ClassType VIEW = classNamed(Constants.VIEW_NAME);
+	public final static ClassType VIEW = ClassTypeImpl.VIEW;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.Payable}.
 	 */
-	public final static ClassType PAYABLE = classNamed(Constants.PAYABLE_NAME);
+	public final static ClassType PAYABLE = ClassTypeImpl.PAYABLE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
 	 */
-	public final static ClassType THROWS_EXCEPTIONS = classNamed(Constants.THROWS_EXCEPTIONS_NAME);
+	public final static ClassType THROWS_EXCEPTIONS = ClassTypeImpl.THROWS_EXCEPTIONS;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.
 	 */
-	public final static ClassType BYTES32 = classNamed("io.takamaka.code.util.Bytes32");
+	public final static ClassType BYTES32 = ClassTypeImpl.BYTES32;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32Snapshot}.
 	 */
-	public final static ClassType BYTES32_SNAPSHOT = classNamed("io.takamaka.code.util.Bytes32Snapshot");
+	public final static ClassType BYTES32_SNAPSHOT = ClassTypeImpl.BYTES32_SNAPSHOT;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageArray}.
 	 */
-	public final static ClassType STORAGE_ARRAY = classNamed(Constants.STORAGE_ARRAY_NAME);
+	public final static ClassType STORAGE_ARRAY = ClassTypeImpl.STORAGE_ARRAY;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageListView}.
 	 */
-	public final static ClassType STORAGE_LIST = classNamed(Constants.STORAGE_LIST_VIEW_NAME);
+	public final static ClassType STORAGE_LIST_VIEW = ClassTypeImpl.STORAGE_LIST_VIEW;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList}.
 	 */
-	public final static ClassType STORAGE_LINKED_LIST = classNamed(Constants.STORAGE_LINKED_LIST_NAME);
+	public final static ClassType STORAGE_LINKED_LIST = ClassTypeImpl.STORAGE_LINKED_LIST;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMapView}.
 	 */
-	public final static ClassType STORAGE_MAP_VIEW = classNamed(Constants.STORAGE_MAP_VIEW_NAME);
+	public final static ClassType STORAGE_MAP_VIEW = ClassTypeImpl.STORAGE_MAP_VIEW;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP = classNamed(Constants.STORAGE_TREE_MAP_NAME);
+	public final static ClassType STORAGE_TREE_MAP = ClassTypeImpl.STORAGE_TREE_MAP;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
 	 */
-	public final static ClassType STORAGE_TREE_ARRAY = classNamed(Constants.STORAGE_TREE_ARRAY_NAME);
+	public final static ClassType STORAGE_TREE_ARRAY = ClassTypeImpl.STORAGE_TREE_ARRAY;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_ARRAY_NODE = classNamed(Constants.STORAGE_TREE_ARRAY_NODE_NAME);
+	public final static ClassType STORAGE_TREE_ARRAY_NODE = ClassTypeImpl.STORAGE_TREE_ARRAY_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
 	 */
-	public final static ClassType STORAGE_TREE_INTMAP = classNamed(Constants.STORAGE_TREE_INTMAP_NAME);
+	public final static ClassType STORAGE_TREE_INTMAP = ClassTypeImpl.STORAGE_TREE_INTMAP;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
 	 */
-	public final static ClassType STORAGE_TREE_SET = classNamed(Constants.STORAGE_TREE_SET_NAME);
+	public final static ClassType STORAGE_TREE_SET = ClassTypeImpl.STORAGE_TREE_SET;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = classNamed(Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = ClassTypeImpl.STORAGE_TREE_MAP_BLACK_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_RED_NODE = classNamed(Constants.STORAGE_TREE_MAP_RED_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_RED_NODE = ClassTypeImpl.STORAGE_TREE_MAP_RED_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
 	 */
-	public final static ClassType STORAGE_SET_VIEW = classNamed(Constants.STORAGE_SET_VIEW_NAME);
+	public final static ClassType STORAGE_SET_VIEW = ClassTypeImpl.STORAGE_SET_VIEW;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
 	 */
-	public final static ClassType MODIFIABLE_STORAGE_MAP = classNamed(Constants.STORAGE_MAP_NAME);
+	public final static ClassType STORAGE_MAP = ClassTypeImpl.STORAGE_MAP;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
 	 */
-	public final static ClassType STORAGE_LINKED_LIST_NODE = classNamed(Constants.STORAGE_LINKED_LIST_NODE_NAME);
+	public final static ClassType STORAGE_LINKED_LIST_NODE = ClassTypeImpl.STORAGE_LINKED_LIST_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_MAP_NODE = classNamed(Constants.STORAGE_TREE_MAP_NODE_NAME);
+	public final static ClassType STORAGE_TREE_MAP_NODE = ClassTypeImpl.STORAGE_TREE_MAP_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static ClassType STORAGE_TREE_INTMAP_NODE = classNamed(Constants.STORAGE_TREE_INTMAP_NODE_NAME);
+	public final static ClassType STORAGE_TREE_INTMAP_NODE = ClassTypeImpl.STORAGE_TREE_INTMAP_NODE;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
 	 */
-	public final static ClassType GENERIC_VALIDATORS = classNamed(Constants.GENERIC_VALIDATORS_NAME);
+	public final static ClassType GENERIC_VALIDATORS = ClassTypeImpl.GENERIC_VALIDATORS;
 	
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.Poll}.
 	 */
-	public final static ClassType POLL = classNamed(Constants.POLL_NAME);
+	public final static ClassType POLL = ClassTypeImpl.POLL;
 	
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
 	 */
-	public static final ClassType SHARED_ENTITY =  classNamed(Constants.SHARED_ENTITY_NAME);
+	public static final ClassType SHARED_ENTITY = ClassTypeImpl.SHARED_ENTITY;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity.Offer}.
 	 */
-	public static final ClassType SHARED_ENTITY_OFFER =  classNamed(Constants.SHARED_ENTITY_OFFER_NAME);
+	public static final ClassType SHARED_ENTITY_OFFER =  ClassTypeImpl.SHARED_ENTITY_OFFER;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
-	public static final ClassType SHARED_ENTITY_VIEW =  classNamed(Constants.SHARED_ENTITY_VIEW_NAME);
-
-	/**
-	 * Yields the storage type for a class with the given name.
-	 * 
-	 * @param className the name of the class
-	 * @return the storage type
-	 */
-	public static ClassType classNamed(String className) {
-		return new ClassTypeImpl(className);
-	}
+	public static final ClassType SHARED_ENTITY_VIEW =  ClassTypeImpl.SHARED_ENTITY_VIEW;
 
 	/**
 	 * Yields the storage type with the given name.
@@ -376,26 +364,18 @@ public abstract class StorageTypes {
 	 * @return the storage type
 	 */
 	public static StorageType named(String name) {
-    	switch (name) {
-    	case "boolean":
-            return StorageTypes.BOOLEAN;
-        case "byte":
-            return StorageTypes.BYTE;
-        case "char":
-            return StorageTypes.CHAR;
-        case "short":
-            return StorageTypes.SHORT;
-        case "int":
-            return StorageTypes.INT;
-        case "long":
-            return StorageTypes.LONG;
-        case "float":
-            return StorageTypes.FLOAT;
-        case "double":
-            return StorageTypes.DOUBLE;
-        default:
-        	return StorageTypes.classNamed(name);
-    	}
+		var result = BasicTypeImpl.named(name);
+		return result != null ? result : ClassTypeImpl.named(name);
+	}
+
+	/**
+	 * Yields the class type for a class with the given name.
+	 * 
+	 * @param className the name of the class
+	 * @return the class type
+	 */
+	public static ClassType classNamed(String className) {
+		return ClassTypeImpl.named(className);
 	}
 
 	/**
@@ -404,25 +384,9 @@ public abstract class StorageTypes {
 	 * @param clazz the class
 	 * @return the storage type
 	 */
-	public static StorageType of(Class<?> clazz) {
-		if (clazz == boolean.class)
-			return BOOLEAN;
-		else if (clazz == byte.class)
-			return BYTE;
-		else if (clazz == char.class)
-			return CHAR;
-		else if (clazz == short.class)
-			return SHORT;
-		else if (clazz == int.class)
-			return INT;
-		else if (clazz == long.class)
-			return LONG;
-		else if (clazz == float.class)
-			return FLOAT;
-		else if (clazz == double.class)
-			return DOUBLE;
-		else
-			return StorageTypes.classNamed(clazz.getName());
+	public static StorageType fromClass(Class<?> clazz) {
+		StorageType result = BasicTypeImpl.fromClass(clazz);
+		return result != null ? result : ClassTypeImpl.fromClass(clazz);
 	}
 
 	/**
@@ -434,89 +398,14 @@ public abstract class StorageTypes {
      */
 	public static StorageType from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
-		switch (selector) {
-		case ClassTypeImpl.SELECTOR:
-			return StorageTypes.classNamed(context.readStringShared());
-		case ClassTypeImpl.SELECTOR_BIGINTEGER:
-			return StorageTypes.BIG_INTEGER;
-		case ClassTypeImpl.SELECTOR_ERC20:
-			return StorageTypes.ERC20;
-		case ClassTypeImpl.SELECTOR_IERC20:
-			return StorageTypes.IERC20;
-		case ClassTypeImpl.SELECTOR_STRING:
-			return StorageTypes.STRING;
-		case ClassTypeImpl.SELECTOR_ACCOUNT:
-			return StorageTypes.ACCOUNT;
-		case ClassTypeImpl.SELECTOR_CONTRACT:
-			return StorageTypes.CONTRACT;
-		case ClassTypeImpl.SELECTOR_OBJECT:
-			return StorageTypes.OBJECT;
-		case ClassTypeImpl.SELECTOR_STORAGE:
-			return StorageTypes.STORAGE;
-		case ClassTypeImpl.SELECTOR_MANIFEST:
-			return StorageTypes.MANIFEST;
-		case ClassTypeImpl.SELECTOR_GAS_STATION:
-			return StorageTypes.GAS_STATION;
-		case ClassTypeImpl.SELECTOR_PAYABLE_CONTRACT:
-			return StorageTypes.PAYABLE_CONTRACT;
-		case ClassTypeImpl.SELECTOR_STORAGE_LIST:
-			return StorageTypes.STORAGE_LIST;
-		case ClassTypeImpl.SELECTOR_STORAGE_MAP_VIEW:
-			return StorageTypes.STORAGE_MAP_VIEW;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_ARRAY:
-			return StorageTypes.STORAGE_TREE_ARRAY;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_ARRAY_NODE:
-			return StorageTypes.STORAGE_TREE_ARRAY_NODE;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_INTMAP_NODE:
-			return StorageTypes.STORAGE_TREE_INTMAP_NODE;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_SET:
-			return StorageTypes.STORAGE_TREE_SET;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_MAP:
-			return StorageTypes.STORAGE_TREE_MAP;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
-			return StorageTypes.STORAGE_TREE_MAP_BLACK_NODE;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_MAP_RED_NODE:
-			return StorageTypes.STORAGE_TREE_MAP_RED_NODE;
-		case ClassTypeImpl.SELECTOR_STORAGE_LINKED_LIST_NODE:
-			return StorageTypes.STORAGE_LINKED_LIST_NODE;
-		case ClassTypeImpl.SELECTOR_STORAGE_TREE_MAP_NODE:
-			return StorageTypes.STORAGE_TREE_MAP_NODE;
-		case ClassTypeImpl.SELECTOR_EOA:
-			return StorageTypes.EOA;
-		case ClassTypeImpl.SELECTOR_UNSIGNED_BIG_INTEGER:
-			return StorageTypes.UNSIGNED_BIG_INTEGER;
-		case ClassTypeImpl.SELECTOR_GAS_PRICE_UPDATE:
-			return StorageTypes.GAS_PRICE_UPDATE;
-		case ClassTypeImpl.SELECTOR_GENERIC_GAS_STATION:
-			return StorageTypes.GENERIC_GAS_STATION;
-		case ClassTypeImpl.SELECTOR_EVENT:
-			return StorageTypes.EVENT;
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE:
-			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return StorageTypes.classNamed(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
-		case BasicTypeImpl.BOOLEAN_SELECTOR:
-			return BOOLEAN;
-		case BasicTypeImpl.BYTE_SELECTOR:
-			return BYTE;
-		case BasicTypeImpl.CHAR_SELECTOR:
-			return CHAR;
-		case BasicTypeImpl.SHORT_SELECTOR:
-			return SHORT;
-		case BasicTypeImpl.INT_SELECTOR:
-			return INT;
-		case BasicTypeImpl.LONG_SELECTOR:
-			return LONG;
-		case BasicTypeImpl.FLOAT_SELECTOR:
-			return FLOAT;
-		case BasicTypeImpl.DOUBLE_SELECTOR:
-			return DOUBLE;
-		default:
-			throw new IOException("Unexpected type selector: " + selector);
-		}
+		StorageType result = BasicTypeImpl.withSelector(selector);
+		if (result != null)
+			return result;
+
+		result = ClassTypeImpl.withSelector(selector, context);
+		if (result != null)
+			return result;
+
+		throw new IOException("Unexpected type selector: " + selector);
 	}
 }

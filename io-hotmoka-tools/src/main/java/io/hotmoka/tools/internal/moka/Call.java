@@ -306,16 +306,16 @@ public class Call extends AbstractCommand {
 		}
 
 		private MethodSignature signatureOfMethod() {
-			StorageType[] formals = Stream.of(method.getParameters())
+			var formals = Stream.of(method.getParameters())
 				.map(Parameter::getType)
-				.map(StorageTypes::of)
+				.map(StorageTypes::fromClass)
 				.toArray(StorageType[]::new);
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
 				return new VoidMethodSignature(clazz.getName(), methodName, formals);
 			else
-				return new NonVoidMethodSignature(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
+				return new NonVoidMethodSignature(clazz.getName(), methodName, StorageTypes.fromClass(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException {

@@ -23,4 +23,13 @@ import io.hotmoka.annotations.Immutable;
  */
 @Immutable
 public interface BasicType extends StorageType {
+
+	/**
+	 * Yields the ordinal number of this basic types.
+	 * 
+	 * @return the ordinal number, from 0 to 8, according to the order:
+	 *         {@code boolean}, {@code byte}, {@code char},
+	 *         {@code short}, {@code int}, {@code long}, {@code flota}, {@code double}
+	 */
+	byte ordinal();
 }

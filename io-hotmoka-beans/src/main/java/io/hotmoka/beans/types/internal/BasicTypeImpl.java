@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -28,39 +28,184 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public class BasicTypeImpl implements BasicType {
-	private final Instance instance;
+
+	/**
+	 * The {@code boolean} basic type of the Takamaka language.
+	 */
+	public final static BasicType BOOLEAN = new BasicTypeImpl();
+
+	/**
+	 * The {@code byte} basic type of the Takamaka language.
+	 */
+	public final static BasicType BYTE = new BasicTypeImpl();
+
+	/**
+	 * The {@code char} basic type of the Takamaka language.
+	 */
+	public final static BasicType CHAR = new BasicTypeImpl();
+
+	/**
+	 * The {@code short} basic type of the Takamaka language.
+	 */
+	public final static BasicType SHORT = new BasicTypeImpl();
+
+	/**
+	 * The {@code int} basic type of the Takamaka language.
+	 */
+	public final static BasicType INT = new BasicTypeImpl();
+
+	/**
+	 * The {@code long} basic type of the Takamaka language.
+	 */
+	public final static BasicType LONG = new BasicTypeImpl();
+
+	/**
+	 * The {@code float} basic type of the Takamaka language.
+	 */
+	public final static BasicType FLOAT = new BasicTypeImpl();
 	
-	public static enum Instance {
-		BOOLEAN, BYTE, CHAR, SHORT, INT, LONG, FLOAT, DOUBLE;
+	/**
+	 * The {@code double} basic type of the Takamaka language.
+	 */
+	public final static BasicType DOUBLE = new BasicTypeImpl();
+
+	private BasicTypeImpl() {}
+
+	/**
+	 * Yields the basic type with the given name.
+	 * 
+	 * @param name the name of the type
+	 * @return the storage type, or {@code null} if no basic type with the given name exists
+	 */
+	public static BasicType named(String name) {
+		switch (name) {
+		case "boolean":
+	        return BOOLEAN;
+	    case "byte":
+	        return BYTE;
+	    case "char":
+	        return CHAR;
+	    case "short":
+	        return SHORT;
+	    case "int":
+	        return INT;
+	    case "long":
+	        return LONG;
+	    case "float":
+	        return FLOAT;
+	    case "double":
+	        return DOUBLE;
+	    default:
+	    	return null;
+		}
 	}
 
-	public final static int BOOLEAN_SELECTOR = 0;
-	public final static int BYTE_SELECTOR = 1;
-	public final static int CHAR_SELECTOR = 2;
-	public final static int SHORT_SELECTOR = 3;
-	public final static int INT_SELECTOR = 4;
-	public final static int LONG_SELECTOR = 5;
-	public final static int FLOAT_SELECTOR = 6;
-	public final static int DOUBLE_SELECTOR = 7;
+	/**
+	 * Yields the basic type with the given selector, if any.
+	 * 
+	 * @param selector the selector
+	 * @return the basic type; this is {@code null} if no basic type uses the given selector
+	 */
+	public static BasicType withSelector(byte selector) {
+		switch (selector) {
+		case 0:
+			return BOOLEAN;
+		case 1:
+			return BYTE;
+		case 2:
+			return CHAR;
+		case 3:
+			return SHORT;
+		case 4:
+			return INT;
+		case 5:
+			return LONG;
+		case 6:
+			return FLOAT;
+		case 7:
+			return DOUBLE;
+		default:
+			return null;
+		}
+	}
 
-	public BasicTypeImpl(Instance instance) {
-		this.instance = instance;
+	/**
+	 * Yields the basic type corresponding to the given class.
+	 * 
+	 * @param clazz the class
+	 * @return the basic type; this is {@code null} if {@code clazz} does not refer
+	 *         to a basic type
+	 */
+	public static BasicType fromClass(Class<?> clazz) {
+		if (clazz == boolean.class)
+			return BOOLEAN;
+		else if (clazz == byte.class)
+			return BYTE;
+		else if (clazz == char.class)
+			return CHAR;
+		else if (clazz == short.class)
+			return SHORT;
+		else if (clazz == int.class)
+			return INT;
+		else if (clazz == long.class)
+			return LONG;
+		else if (clazz == float.class)
+			return FLOAT;
+		else if (clazz == double.class)
+			return DOUBLE;
+		else
+			return null;
+	}
+
+	@Override
+	public byte ordinal() {
+		if (this == BOOLEAN)
+			return 0;
+		else if (this == BYTE)
+			return 1;
+		else if (this == CHAR)
+			return 2;
+		else if (this == SHORT)
+			return 3;
+		else if (this == INT)
+			return 4;
+		else if (this == LONG)
+			return 5;
+		else if (this == FLOAT)
+			return 6;
+		else // if (this == DOUBLE)
+			return 7;
 	}
 
 	@Override
 	public String toString() {
-		return instance.toString().toLowerCase();
+		if (this == BOOLEAN)
+			return "boolen";
+		else if (this == BYTE)
+			return "byte";
+		else if (this == CHAR)
+			return "char";
+		else if (this == SHORT)
+			return "short";
+		else if (this == INT)
+			return "int";
+		else if (this == LONG)
+			return "long";
+		else if (this == FLOAT)
+			return "float";
+		else // if (this == DOUBLE)
+			return "double";
 	}
 
 	@Override
 	public int compareTo(StorageType other) {
-		return other instanceof BasicType bt ? toString().compareTo(bt.toString())
+		return other instanceof BasicType bt ? ordinal() - bt.ordinal()
 			: -1; // other instanceof ClassType
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte((byte) instance.ordinal());
+		context.writeByte(ordinal());
 	}
 
 	@Override
@@ -70,11 +215,21 @@ public class BasicTypeImpl implements BasicType {
 
 	@Override
 	public byte[] toByteArray() {
-		return new byte[] { (byte) instance.ordinal() };
+		return new byte[] { ordinal() };
 	}
 
 	@Override
 	public int size() {
 		return 1;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof BasicType bt && ordinal() == bt.ordinal();
+	}
+
+	@Override
+	public int hashCode() {
+		return ordinal();
 	}
 }

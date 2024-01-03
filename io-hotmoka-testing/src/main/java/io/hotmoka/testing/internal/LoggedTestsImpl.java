@@ -68,7 +68,7 @@ public abstract class LoggedTestsImpl {
 		private static void initTestLogging(Class<?> clazz) throws SecurityException, IOException {
 			if (System.getProperty("java.util.logging.config.file") == null) {
 				// if the property is not set, we provide a default
-				handler = new FileHandler(clazz.getSimpleName() + ".log", 1000000, 1);
+				handler = new FileHandler(clazz.getSimpleName() + ".log", 100000000, 1);
 				handler.setFormatter(new MyFormatter());
 				handler.setLevel(Level.INFO);
 

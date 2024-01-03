@@ -26,10 +26,7 @@ public class ByteIterable {
 	}
 
 	public static ByteIterable fromNative(jetbrains.exodus.ByteIterable parent) {
-		if (parent == null)
-			return null;
-		else
-			return new ByteIterable(parent);
+		return parent == null ? null : new ByteIterable(parent);
 	}
 
 	public static ByteIterable fromByte(byte b) {
@@ -60,5 +57,10 @@ public class ByteIterable {
 	@Override
 	public int hashCode() {
 		return parent.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return parent.toString();
 	}
 }

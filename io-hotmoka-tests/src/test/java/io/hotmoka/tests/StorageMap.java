@@ -18,7 +18,7 @@ package io.hotmoka.tests;
 
 import static io.hotmoka.beans.StorageTypes.BOOLEAN;
 import static io.hotmoka.beans.StorageTypes.INT;
-import static io.hotmoka.beans.StorageTypes.MODIFIABLE_STORAGE_MAP;
+import static io.hotmoka.beans.StorageTypes.STORAGE_MAP;
 import static io.hotmoka.beans.StorageTypes.STORAGE_MAP_VIEW;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -58,13 +58,13 @@ import io.hotmoka.beans.values.StringValue;
 class StorageMap extends HotmokaTest {
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ConstructorSignature STORAGE_TREE_MAP_INIT = new ConstructorSignature("io.takamaka.code.util.StorageTreeMap");
-	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = new NonVoidMethodSignature("io.hotmoka.examples.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", MODIFIABLE_STORAGE_MAP);
+	private static final NonVoidMethodSignature MK_EMPTY_EXPORTED_STORAGE_MAP = new NonVoidMethodSignature("io.hotmoka.examples.storagemap.ExportedStorageMapMaker", "mkEmptyExportedStorageMap", STORAGE_MAP);
 	private static final NonVoidMethodSignature STORAGE_MAP_ISEMPTY = new NonVoidMethodSignature(STORAGE_MAP_VIEW, "isEmpty", BOOLEAN);
 	private static final NonVoidMethodSignature STORAGE_MAP_MIN = new NonVoidMethodSignature(STORAGE_MAP_VIEW, "min", StorageTypes.OBJECT);
 	private static final NonVoidMethodSignature STORAGE_MAP_SIZE = new NonVoidMethodSignature(STORAGE_MAP_VIEW, "size", INT);
 	private static final NonVoidMethodSignature STORAGE_MAP_GET = new NonVoidMethodSignature(STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
-	private static final VoidMethodSignature MODIFIABLE_STORAGE_MAP_PUT = new VoidMethodSignature(MODIFIABLE_STORAGE_MAP, "put", StorageTypes.OBJECT, StorageTypes.OBJECT);
-	private static final VoidMethodSignature MODIFIABLE_STORAGE_MAP_REMOVE = new VoidMethodSignature(MODIFIABLE_STORAGE_MAP, "remove", StorageTypes.OBJECT);
+	private static final VoidMethodSignature STORAGE_MAP_PUT = new VoidMethodSignature(STORAGE_MAP, "put", StorageTypes.OBJECT, StorageTypes.OBJECT);
+	private static final VoidMethodSignature STORAGE_MAP_REMOVE = new VoidMethodSignature(STORAGE_MAP, "remove", StorageTypes.OBJECT);
 	private static final StorageValue ONE = new BigIntegerValue(BigInteger.ONE);
 	private static final StorageValue TWO = new BigIntegerValue(BigInteger.valueOf(2L));
 
@@ -123,7 +123,7 @@ class StorageMap extends HotmokaTest {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
-		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa, ONE);
+		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa, ONE);
 		BigIntegerValue get = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_GET, map, eoa);
 
 		assertEquals(ONE, get);
@@ -138,7 +138,7 @@ class StorageMap extends HotmokaTest {
 		KeyPair keys2 = signature().getKeyPair();
 		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey2));
-		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
+		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction
 			(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), map, eoa2);
 
@@ -154,7 +154,7 @@ class StorageMap extends HotmokaTest {
 		KeyPair keys2 = signature().getKeyPair();
 		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey2));
-		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, eoa1, ONE);
+		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP_VIEW, "getOrDefault", StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT), map, eoa2, TWO);
 
 		assertEquals(TWO, get);
@@ -174,7 +174,7 @@ class StorageMap extends HotmokaTest {
 		Random random = new Random();
 		for (int i = 0; i < 10; i++)
 			addInstanceMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
@@ -191,7 +191,7 @@ class StorageMap extends HotmokaTest {
 		Random random = new Random();
 		for (int i = 0; i < 10; i++)
 			addInstanceMethodCallTransaction
-				(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT,
+				(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map, eoa, new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
@@ -206,7 +206,7 @@ class StorageMap extends HotmokaTest {
 		Random random = new Random();
 		for (int i = 0; i < 10; i++)
 			addInstanceMethodCallTransaction
-				(key, account0, _50_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT,
+				(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map, new StringValue("hello"), new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
@@ -226,7 +226,7 @@ class StorageMap extends HotmokaTest {
 				min = bi;
 
 			addInstanceMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, new BigIntegerValue(bi), new StringValue("hello"));
+				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, new BigIntegerValue(bi), new StringValue("hello"));
 		}
 
 		BigIntegerValue result = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_MIN, map);
@@ -249,12 +249,12 @@ class StorageMap extends HotmokaTest {
 		int i = 0;
 		do {
 			addInstanceMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT,
+				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT,
 					map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 		}
 		while (++i < 10);
 
-		addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
+		addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
 		assertEquals(9, size.value);
@@ -276,7 +276,7 @@ class StorageMap extends HotmokaTest {
 		Random random = new Random();
 		for (int i = 0; i < 10; i++) {
 			addInstanceMethodCallTransaction
-				(key, account0, _100_000, BigInteger.ONE, classpath, MODIFIABLE_STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
+				(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, accounts[i], new BigIntegerValue(BigInteger.valueOf(random.nextLong())));
 
 			results[i] = (BooleanValue) addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(STORAGE_MAP_VIEW, "containsKey", BOOLEAN, StorageTypes.OBJECT), map, accounts[i]);
 		}

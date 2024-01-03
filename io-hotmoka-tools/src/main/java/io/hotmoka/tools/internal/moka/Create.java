@@ -154,7 +154,7 @@ public class Create extends AbstractCommand {
 		private ConstructorSignature signatureOfConstructor() {
 			StorageType[] formals = Stream.of(constructor.getParameters())
 				.map(Parameter::getType)
-				.map(StorageTypes::of)
+				.map(StorageTypes::fromClass)
 				.toArray(StorageType[]::new);
 
 			return new ConstructorSignature(className, formals);
