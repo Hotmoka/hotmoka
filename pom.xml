@@ -326,6 +326,9 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 gson,
                 bcprov-jdk15on,
                 picocli,
+                io-hotmoka-websockets-beans,
+                io-hotmoka-websockets-beans-api,
+                jakarta.websocket-client-api,
 
                 <!--  we exclude all modules that go into the automatic folder -->
                 bcel,
@@ -402,6 +405,9 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
               <outputDirectory>${project.parent.basedir}/modules/explicit</outputDirectory>
               <includeArtifactIds>
                 it-univr-bcel,
+                io-hotmoka-websockets-beans,
+                io-hotmoka-websockets-beans-api,
+                jakarta.websocket-client-api,
                 toml4j,
                 gson,
                 bcprov-jdk15on,
