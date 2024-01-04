@@ -27,6 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * A transaction reference that refers to a transaction in the local store of a node.
  */
 public final class LocalTransactionReference extends TransactionReference {
+	private static final long serialVersionUID = 1157696417214320999L;
 
 	/**
 	 * The hash of the request that generated the transaction.
