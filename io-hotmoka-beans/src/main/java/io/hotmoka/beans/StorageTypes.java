@@ -183,7 +183,7 @@ public abstract class StorageTypes {
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.AccountsLedger}.
 	 */
-	public final static ClassType ACCOUNTS_LEDGER = ClassTypeImpl.ACCOUNTS;
+	public final static ClassType ACCOUNTS_LEDGER = ClassTypeImpl.ACCOUNTS_LEDGER;
 
 	/**
 	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
