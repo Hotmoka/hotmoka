@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -65,16 +66,11 @@ public class EntropyImpl implements Entropy	 {
 	/**
 	 * Reads the entropy information from a PEM file.
 	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing <b>.pem</b>
+	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public EntropyImpl(String filePrefix) throws IOException {
-		try (var reader = new PemReader(new FileReader(filePrefix + ".pem"))) {
-			entropy = reader.readPemObject().getContent();
-		}
-
-		if (entropy.length != 16)
-			throw new IllegalArgumentException("illegal entropy length: 16 bytes expected");
+		this(Paths.get(filePrefix + ".pem"));
 	}
 
 	/**
@@ -84,12 +80,17 @@ public class EntropyImpl implements Entropy	 {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public EntropyImpl(Path path) throws IOException {
+		long length = path.toFile().length();
+		// without this check, the access to the file would take very long and terminate with an error anyway
+		if (length > 10000L)
+			throw new IOException("The pem file " + path + " is too long for being a PEM file!");
+
 		try (var reader = new PemReader(new FileReader(path.toFile()))) {
 			entropy = reader.readPemObject().getContent();
 		}
 
 		if (entropy.length != 16)
-			throw new IllegalArgumentException("illegal entropy length: 16 bytes expected");
+			throw new IOException("Illegal entropy length: 16 bytes expected");
 	}
 
 	/**

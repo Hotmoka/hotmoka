@@ -57,12 +57,18 @@ public final class Entropies {
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public static Entropy load(Path path) throws IOException {
-		long length = path.toFile().length();
-		// without this check, the access to the file would take very long and terminate with an error anyway
-		if (length > 10000L)
-			throw new IOException("The pem file " + path + " is too long for being a PEM file!");
-
 		return new EntropyImpl(path);
+	}
+
+	/**
+	 * Yields new entropy information read from a PEM file.
+	 * 
+	 * @param filePrefix the name of the file, without the trailing {@code .pem}
+	 * @return the entropy
+	 * @throws IOException if the PEM file cannot be read
+	 */
+	public static Entropy load(String filePrefix) throws IOException {
+		return new EntropyImpl(filePrefix);
 	}
 
 	/**
