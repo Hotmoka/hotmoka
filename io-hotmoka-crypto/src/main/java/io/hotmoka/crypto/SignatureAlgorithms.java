@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.crypto;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.crypto.internal.AbstractSignatureAlgorithmImpl;
@@ -108,14 +107,5 @@ public final class SignatureAlgorithms {
 	 */
 	public static SignatureAlgorithm of(String name) throws NoSuchAlgorithmException {
 		return AbstractSignatureAlgorithmImpl.of(name);
-	}
-
-	/**
-	 * Yields the signature available algorithms.
-	 * 
-	 * @return the available signature algorithms
-	 */
-	public static Stream<SignatureAlgorithm> available() {
-		return AbstractSignatureAlgorithmImpl.available();
 	}
 }

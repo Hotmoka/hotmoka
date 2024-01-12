@@ -16,9 +16,19 @@ limitations under the License.
 
 package io.hotmoka.crypto.internal;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.security.NoSuchAlgorithmException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 
@@ -145,5 +155,61 @@ public abstract class AbstractHashingAlgorithmImpl implements HashingAlgorithm {
 	@Override
 	public String toString() {
 		return getName();
+	}
+
+	/**
+	 * Yields the hashing algorithm with the given name.
+	 * It looks for a factory method with the given name and invokes it.
+	 * 
+	 * @param name the name of the algorithm, case-insensitive
+	 * @return the algorithm
+	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
+	 */
+	public static HashingAlgorithm of(String name) throws NoSuchAlgorithmException {
+		name = name.toLowerCase();
+
+		try {
+			// only sha256, shabal256 are currently found below
+			Method method = HashingAlgorithms.class.getMethod(name);
+			return (HashingAlgorithm) method.invoke(null);
+		}
+		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
+			throw new NoSuchAlgorithmException("Unknown hashing algorithm " + name +
+					" (alternatives are " + available().map(HashingAlgorithm::toString).collect(Collectors.joining(", ")) + ")", e);
+		}
+	}
+
+	/**
+	 * Yields the available hashing algorithms.
+	 * 
+	 * @return the available hashing algorithms
+	 */
+	private static Stream<HashingAlgorithm> available() {
+		return Stream.of(HashingAlgorithms.class.getDeclaredMethods())
+			.filter(method -> Modifier.isPublic(method.getModifiers()))
+			.filter(method -> Modifier.isStatic(method.getModifiers()))
+			.filter(method -> method.getParameterCount() == 0)
+			.filter(method -> method.getReturnType() == HashingAlgorithm.class)
+			.map(AbstractHashingAlgorithmImpl::tryCreation)
+			.flatMap(Optional::stream);
+	}
+
+	private final static Logger LOGGER = Logger.getLogger(HashingAlgorithms.class.getName());
+
+	/**
+	 * Tries to create a hashing algorithm by using the given supplier method.
+	 * It yields an empty optional if the creation fails.
+	 * 
+	 * @param supplier the supplier method
+	 * @return the hashing algorithm, if any
+	 */
+	private static Optional<HashingAlgorithm> tryCreation(Method supplier) {
+		try {
+			return Optional.of((HashingAlgorithm) supplier.invoke(null));
+		}
+		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			LOGGER.log(Level.WARNING, "discarding hashing algorithm " + supplier.getName() + " since it could not be created", e);
+			return Optional.empty();
+		}
 	}
 }

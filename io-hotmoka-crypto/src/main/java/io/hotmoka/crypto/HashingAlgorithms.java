@@ -16,11 +16,10 @@ limitations under the License.
 
 package io.hotmoka.crypto;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.crypto.internal.AbstractHashingAlgorithmImpl;
 import io.hotmoka.crypto.internal.Identity;
 import io.hotmoka.crypto.internal.SHA256;
 import io.hotmoka.crypto.internal.SHABAL256;
@@ -78,15 +77,6 @@ public final class HashingAlgorithms {
 	 * @throws NoSuchAlgorithmException if the installation does not include the given algorithm
 	 */
 	public static HashingAlgorithm of(String name) throws NoSuchAlgorithmException {
-		name = name.toLowerCase();
-
-		try {
-			// only sha256, shabal256 are currently found below
-			Method method = HashingAlgorithms.class.getMethod(name);
-			return (HashingAlgorithm) method.invoke(null);
-		}
-		catch (NoSuchMethodException | SecurityException | InvocationTargetException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("Unknown hashing algorithm with name " + name, e);
-		}
+		return AbstractHashingAlgorithmImpl.of(name);
 	}
 }

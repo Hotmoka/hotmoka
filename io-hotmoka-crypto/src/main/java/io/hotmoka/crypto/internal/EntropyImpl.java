@@ -98,7 +98,7 @@ public class EntropyImpl implements Entropy	 {
 	 * 
 	 * @param parent the entropy to clone
 	 */
-	public EntropyImpl(io.hotmoka.crypto.api.Entropy parent) {
+	public EntropyImpl(Entropy parent) {
 		this.entropy = parent.getEntropy();
 	}
 
@@ -108,10 +108,10 @@ public class EntropyImpl implements Entropy	 {
 	 * @param entropy the 16 bytes of entropy
 	 */
 	public EntropyImpl(byte[] entropy) {
-		this.entropy = entropy.clone();
-
 		if (entropy.length != 16)
-			throw new IllegalArgumentException("illegal entropy length: 16 bytes expected");
+			throw new IllegalArgumentException("Illegal entropy length: 16 bytes expected");
+
+		this.entropy = entropy.clone();
 	}
 
 	@Override

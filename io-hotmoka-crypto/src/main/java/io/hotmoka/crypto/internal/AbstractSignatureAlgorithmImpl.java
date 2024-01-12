@@ -225,15 +225,9 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 			Method method = SignatureAlgorithms.class.getMethod(name);
 			return (SignatureAlgorithm) method.invoke(null);
 		}
-		catch (InvocationTargetException e) {
-			var cause = e.getCause();
-			if (cause instanceof NoSuchAlgorithmException)
-				throw (NoSuchAlgorithmException) cause;
-			else
-				throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
-		}
-		catch (NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException e) {
-			throw new NoSuchAlgorithmException("Unknown signature algorithm named " + name, e);
+		catch (InvocationTargetException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException e) {
+			throw new NoSuchAlgorithmException("Unknown signature algorithm " + name +
+				" (alternatives are " + available().map(SignatureAlgorithm::toString).collect(Collectors.joining(", ")) + ")", e);
 		}
 	}
 
@@ -242,7 +236,7 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 	 * 
 	 * @return the available signature algorithms
 	 */
-	public static Stream<SignatureAlgorithm> available() {
+	private static Stream<SignatureAlgorithm> available() {
 		return Stream.of(SignatureAlgorithms.class.getDeclaredMethods())
 			.filter(method -> Modifier.isPublic(method.getModifiers()))
 			.filter(method -> Modifier.isStatic(method.getModifiers()))
@@ -264,7 +258,7 @@ public abstract class AbstractSignatureAlgorithmImpl implements SignatureAlgorit
 			return Optional.of((SignatureAlgorithm) supplier.invoke(null));
 		}
 		catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-			LOGGER.log(Level.WARNING, "discarding hashing algorithm " + supplier.getName() + " since it could not be created", e);
+			LOGGER.log(Level.WARNING, "discarding signature algorithm " + supplier.getName() + " since it could not be created", e);
 			return Optional.empty();
 		}
 	}
