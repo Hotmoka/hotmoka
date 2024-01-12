@@ -32,7 +32,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -63,6 +62,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -177,7 +177,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var password = "";
 			var localSignature = SignatureAlgorithms.ed25519det();
 			var keys = entropy.keys(password, localSignature);
-			publicKeyOfGamete = Base64.getEncoder().encodeToString(localSignature.encodingOf(keys.getPublic()));
+			publicKeyOfGamete = Base64.toBase64String(localSignature.encodingOf(keys.getPublic()));
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 	    			.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing

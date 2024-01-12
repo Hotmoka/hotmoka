@@ -25,7 +25,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -58,6 +57,7 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -146,7 +146,7 @@ public class AccountsNodeImpl implements AccountsNode {
 		for (int i = 0; i < funds.length / k; i++) {
 			KeyPair keys = signature.getKeyPair();
 			privateKeys[i] = keys.getPrivate();
-			String publicKey = Base64.getEncoder().encodeToString(signature.encodingOf(keys.getPublic()));
+			String publicKey = Base64.toBase64String(signature.encodingOf(keys.getPublic()));
 			publicKeys.append(i == 0 ? publicKey : (' ' + publicKey));
 			BigInteger fund = funds[i * k];
 			sum = sum.add(fund);

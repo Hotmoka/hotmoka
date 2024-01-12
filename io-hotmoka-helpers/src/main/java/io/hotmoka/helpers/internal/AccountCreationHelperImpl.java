@@ -22,7 +22,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -41,6 +40,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.GasHelpers;
@@ -110,7 +110,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
+		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -157,7 +157,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		gasHandler.accept(totalGas);
 
 		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithm.encodingOf(publicKey));
+		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
 		StorageReference account;
 		TransactionRequest<?> request1;
 
@@ -213,7 +213,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var signatureForFaucet = SignatureAlgorithms.empty();
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		var signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
+		String publicKeyEncoded = Base64.toBase64String(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
 		var request = new InstanceMethodCallTransactionRequest
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -240,7 +240,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		gasHandler.accept(totalGas);
 
 		var signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
-		String publicKeyEncoded = Base64.getEncoder().encodeToString(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
+		String publicKeyEncoded = Base64.toBase64String(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,

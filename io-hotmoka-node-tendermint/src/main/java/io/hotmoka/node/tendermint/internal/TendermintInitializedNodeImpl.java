@@ -28,7 +28,6 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -61,6 +60,8 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
@@ -131,7 +132,6 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
 
-		var encoder = Base64.getEncoder();
 		var ed25519 = SignatureAlgorithms.ed25519();
 
 		// we create the builder of the validators
@@ -153,7 +153,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
 		var addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
 		for (TendermintValidator tv: tendermintValidators) {
-			String publicKeyBase64 = encoder.encodeToString(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
+			String publicKeyBase64 = Base64.toBase64String(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);
 			var addValidator = new InstanceMethodCallTransactionRequest
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
@@ -175,13 +175,13 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 			throw new IllegalArgumentException("It is currently possible to create Tendermint validators only if they use Ed25519 keys");
 
         try {
-        	byte[] encoded = Base64.getDecoder().decode(validator.publicKey);
+        	byte[] encoded = Base64.fromBase64String(validator.publicKey);
         	return SignatureAlgorithms.ed25519().publicKeyFromEncoding(encoded);
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
-        catch (InvalidKeySpecException e) {
+        catch (InvalidKeySpecException | Base64ConversionException e) {
         	throw new IllegalArgumentException(e);
 		}
 	}

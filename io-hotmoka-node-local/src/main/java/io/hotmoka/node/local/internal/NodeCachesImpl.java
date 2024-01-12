@@ -28,7 +28,6 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -54,6 +53,8 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
@@ -331,11 +332,11 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws GeneralSecurityException {
+	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws Exception {
 		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignature(signatureAlgorithm, request));
 	}
 
-	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest request) throws GeneralSecurityException {
+	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest request) throws GeneralSecurityException, Base64ConversionException {
 		return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest::toByteArrayWithoutSignature).verify(request, request.getSignature());
 	}
 
@@ -399,13 +400,14 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param signatureAlgorithm the signing algorithm used for the request
 	 * @return the public key
 	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
-	 * @throws NoSuchProviderException of the signing provider is unknown
-	 * @throws InvalidKeySpecException of the key specification is invalid
+	 * @throws NoSuchProviderException if the signing provider is unknown
+	 * @throws InvalidKeySpecException if the key specification is invalid
+	 * @throws Base64ConversionException if the public key of the account is not legally Base64 encoded
 	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException {
+	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, Base64ConversionException {
 		// we go straight to the transaction that created the object
 		String publicKeyEncodedBase64 = node.getStoreUtilities().getPublicKeyUncommitted(reference);
-		byte[] publicKeyEncoded = Base64.getDecoder().decode(publicKeyEncodedBase64);
+		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
 		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
 
