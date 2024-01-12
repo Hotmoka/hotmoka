@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.nio.file.Path;
-
 import io.hotmoka.crypto.BIP39Dictionaries;
 import io.hotmoka.crypto.BIP39Mnemonics;
 import io.hotmoka.node.Accounts;
@@ -43,7 +41,6 @@ public class ImportAccount extends AbstractCommand {
 
 		var account = BIP39Mnemonics.of(words).toAccount(Accounts::of);
 		System.out.println("The account " + account + " has been imported.");
-		Path fileName = account.dump();
-        System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
+		System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
 	}
 }

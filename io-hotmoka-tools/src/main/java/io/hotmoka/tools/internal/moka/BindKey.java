@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 
@@ -54,15 +53,14 @@ public class BindKey extends AbstractCommand {
 		StorageReference storageReference;
 		if ("anonymous".equals(reference))
 			storageReference = getReferenceFromAccountLedger();
-		else {
+		else {	
 			checkStorageReference(reference);
 			storageReference = new StorageReference(reference);
 		}
 
 		var account = Accounts.of(Entropies.load(Paths.get(key+ ".pem")), storageReference);
 		System.out.println("A new account " + account + " has been created.");
-		Path fileName = account.dump();
-		System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
+		System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
 	}
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {

@@ -99,7 +99,7 @@ public class EntropyImpl implements Entropy	 {
 	 * @param parent the entropy to clone
 	 */
 	public EntropyImpl(Entropy parent) {
-		this.entropy = parent.getEntropy();
+		this.entropy = parent.getEntropyAsBytes();
 	}
 
 	/**
@@ -115,7 +115,7 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	@Override
-	public byte[] getEntropy() {
+	public byte[] getEntropyAsBytes() {
 		return entropy.clone();
 	}
 
@@ -130,36 +130,10 @@ public class EntropyImpl implements Entropy	 {
 	}
 
 	@Override
-	public Path dump(Path where, String filePrefix) throws IOException {
-		var pemObject = new PemObject("ENTROPY", entropy);
-		String fileName = filePrefix + ".pem";
-		Path resolved = where.resolve(fileName);
-
-		try (var pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
-			pemWriter.writeObject(pemObject);
+	public void dump(Path path) throws IOException {
+		try (var pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(path)))) {
+			pemWriter.writeObject(new PemObject("ENTROPY", entropy));
 		}
-
-		return resolved;
-	}
-
-	@Override
-	public Path dump(String filePrefix) throws IOException {
-		var pemObject = new PemObject("ENTROPY", entropy);
-		String fileName = filePrefix + ".pem";
-		Path resolved = Path.of(fileName);
-
-		try (var pemWriter = new PemWriter(new OutputStreamWriter(Files.newOutputStream(resolved)))) {
-			pemWriter.writeObject(pemObject);
-		}
-
-		return resolved;
-	}
-
-	@Override
-	public void delete(String filePrefix) throws IOException {
-		String fileName = filePrefix + ".pem";
-		Path resolved = Path.of(fileName);
-		Files.delete(resolved);
 	}
 
 	@Override
@@ -173,7 +147,7 @@ public class EntropyImpl implements Entropy	 {
 		if (diff != 0)
 			return diff;
 		else
-			return compareBytes(entropy, other.getEntropy());
+			return compareBytes(entropy, other.getEntropyAsBytes());
 	}
 
 	/**

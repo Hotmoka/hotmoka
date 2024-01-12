@@ -18,7 +18,6 @@ package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
-import java.util.Base64;
 import java.util.function.Function;
 
 import io.hotmoka.beans.references.TransactionReference;
@@ -27,6 +26,7 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -68,7 +68,7 @@ public class ShowAccount extends AbstractCommand {
 
 		var account = Accounts.of(reference);
 		System.out.println("reference: " + account.getReference());
-		System.out.println("entropy: " + Base64.getEncoder().encodeToString(account.getEntropy()));
+		System.out.println("entropy: " + Base64.toBase64String(account.getEntropyAsBytes()));
 
 		if (balances || keys) {
 			try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
@@ -90,14 +90,14 @@ public class ShowAccount extends AbstractCommand {
 		KeyPair keys = account.keys(password, algorithm);
 		byte[] privateKey = algorithm.encodingOf(keys.getPrivate());
 		System.out.println("private key Base58: " + Base58.encode(privateKey));
-		System.out.println("private key Base64: " + Base64.getEncoder().encodeToString(privateKey));
+		System.out.println("private key Base64: " + Base64.toBase64String(privateKey));
 		byte[] publicKey = algorithm.encodingOf(keys.getPublic());
 		System.out.println("public key Base58: " + Base58.encode(publicKey));
-		System.out.println("public key Base64: " + Base64.getEncoder().encodeToString(publicKey));
+		System.out.println("public key Base64: " + Base64.toBase64String(publicKey));
 		byte[] concatenated = new byte[privateKey.length + publicKey.length];
 		System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
 		System.arraycopy(publicKey, 0, concatenated, privateKey.length, publicKey.length);
-		System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
+		System.out.println("Concatenated private+public key Base64: " + Base64.toBase64String(concatenated));
 		byte[] hashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKey);
 		String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 		System.out.println("Tendermint-like address: " + hex);

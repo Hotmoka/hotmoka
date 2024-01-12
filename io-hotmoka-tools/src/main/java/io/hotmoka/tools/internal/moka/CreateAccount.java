@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.tools.internal.moka;
 
 import java.math.BigInteger;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -116,8 +115,7 @@ public class CreateAccount extends AbstractCommand {
 				StorageReference accountReference = "faucet".equals(payer) ? createAccountFromFaucet() : createAccountFromPayer();
 				var account = Accounts.of(entropy, accountReference);
 	            System.out.println("A new account " + account + " has been created.");
-	            Path fileName = account.dump();
-	            System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
+	            System.out.println("Its entropy has been saved into the file \"" + account.dump() + "\".");
 	            printPassphrase(account);
 			}
 		}

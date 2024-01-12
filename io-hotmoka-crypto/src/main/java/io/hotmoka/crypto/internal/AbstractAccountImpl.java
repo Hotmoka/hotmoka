@@ -18,7 +18,9 @@ package io.hotmoka.crypto.internal;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import io.hotmoka.crypto.api.Account;
 import io.hotmoka.crypto.api.BIP39Dictionary;
@@ -90,18 +92,15 @@ public abstract class AbstractAccountImpl<R extends Comparable<? super R>> exten
 	}
 
 	@Override
-	public Path dump(Path where) throws IOException {
-		return super.dump(where, toString());
-	}
-
-	@Override
 	public Path dump() throws IOException {
-		return dump(toString());
+		var path = Paths.get(this + ".pem");
+		dump(path);
+		return path;
 	}
 
 	@Override
 	public void delete() throws IOException {
-		delete(toString());
+		Files.delete(Paths.get(this + ".pem"));
 	}
 
 	@Override

@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.Comparator;
 
 import io.hotmoka.beans.CodeExecutionException;
@@ -38,6 +37,7 @@ import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
@@ -165,7 +165,7 @@ public class InitTendermint extends AbstractCommand {
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
 				.setInitialRedSupply(initialRedSupply)
-				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(Base64.toBase64String(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (var node = TendermintNodes.init(nodeConfig, consensus);
@@ -196,13 +196,16 @@ public class InitTendermint extends AbstractCommand {
 						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, new IntValue(num)));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).value;
-					String publicKeyBase58 = Base58.encode(Base64.getDecoder().decode(publicKeyBase64));
+					String publicKeyBase58 = Base58.encode(Base64.fromBase64String(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58
 					try {
-						var entropy = Entropies.load(Paths.get(publicKeyBase58 + ".pem"));
-						Path fileName = Accounts.of(entropy, validator).dump(dir);
-						entropy.delete(publicKeyBase58);
-						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + fileName + "\".");
+						var path = Paths.get(publicKeyBase58 + ".pem");
+						var entropy = Entropies.load(path);
+						var account = Accounts.of(entropy, validator);
+						var pathOfAccount = dir.resolve(account + ".pem");
+						account.dump(pathOfAccount);
+						Files.delete(path);
+						System.out.println("The entropy of the validator #" + num + " has been saved into the file \"" + pathOfAccount + "\".");
 					}
 					catch (IOException e) {
 						System.out.println("Could not bind the key of validator #" + num + "!");

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.tools.internal.moka;
 
-import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyPair;
-import java.util.Base64;
 import java.util.function.Function;
 
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
@@ -59,23 +59,24 @@ public class CreateKey extends AbstractCommand {
 			var publicKeyBase58 = Base58.encode(publicKeyBytes);
 			System.out.println("A new key has been created.");
 			System.out.println("Public key Base58: " + publicKeyBase58);
-			System.out.println("Public key Base64: " + Base64.getEncoder().encodeToString(publicKeyBytes));
+			System.out.println("Public key Base64: " + Base64.toBase64String(publicKeyBytes));
 
 			if (privateKey) {
 				byte[] privateKey = signatureAlgorithmOfNewAccount.encodingOf(keys.getPrivate());
 				System.out.println("Private key Base58: " + Base58.encode(privateKey));
-				System.out.println("Private key Base64: " + Base64.getEncoder().encodeToString(privateKey));
+				System.out.println("Private key Base64: " + Base64.toBase64String(privateKey));
 				var concatenated = new byte[privateKey.length + publicKeyBytes.length];
 				System.arraycopy(privateKey, 0, concatenated, 0, privateKey.length);
 				System.arraycopy(publicKeyBytes, 0, concatenated, privateKey.length, publicKeyBytes.length);
-				System.out.println("Concatenated private+public key Base64: " + Base64.getEncoder().encodeToString(concatenated));
+				System.out.println("Concatenated private+public key Base64: " + Base64.toBase64String(concatenated));
 			}
 
 			byte[] hashedKey = HashingAlgorithms.sha256().getHasher(Function.identity()).hash(publicKeyBytes);
 			String hex = Hex.toHexString(hashedKey, 0, 20).toUpperCase();
 			System.out.println("Tendermint-like address: " + hex);
 
-			Path fileName = entropy.dump(publicKeyBase58);
+			var fileName = Paths.get(publicKeyBase58 + ".pem");
+			entropy.dump(fileName);
 			System.out.println("Its entropy has been saved into the file \"" + fileName + "\".");
 		}
 	}

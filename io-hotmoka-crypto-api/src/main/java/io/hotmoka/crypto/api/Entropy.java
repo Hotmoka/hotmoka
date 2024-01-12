@@ -32,7 +32,7 @@ public interface Entropy extends Comparable<Entropy> {
 	 * 
 	 * @return the entropy (16 bytes)
 	 */
-	byte[] getEntropy();
+	byte[] getEntropyAsBytes();
 
 	/**
 	 * Yields the length of the entropy byte array.
@@ -42,31 +42,12 @@ public interface Entropy extends Comparable<Entropy> {
 	int length();
 
 	/**
-	 * Dumps this entropy into a PEM file.
+	 * Dumps this entropy as a PEM file at the given path.
 	 * 
-	 * @param where the directory where the file must be dumped
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full path of the PEM file ({@code filePrefix} followed by {@code .pem})
+	 * @param path the path of the dumped file
 	 * @throws IOException if the PEM file cannot be created
 	 */
-	Path dump(Path where, String filePrefix) throws IOException;
-
-	/**
-	 * Dumps this entropy into a PEM file in the current directory.
-	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @return the full path of the PEM file ({@code filePrefix} followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
-	Path dump(String filePrefix) throws IOException;
-
-	/**
-	 * Deletes the PEM file in the current directory.
-	 * 
-	 * @param filePrefix the name of the PEM file, without the trailing {@code .pem}
-	 * @throws IOException if the PEM file cannot be deleted
-	 */
-	void delete(String filePrefix) throws IOException;
+	void dump(Path path) throws IOException;
 
 	/**
 	 * Constructs the key pair of this entropy, from the given password.

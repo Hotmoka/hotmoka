@@ -37,17 +37,8 @@ public interface Account<R extends Comparable<? super R>> extends Entropy {
 	R getReference();
 
 	/**
-	 * Dumps the entropy of this account into a PEM file with the name of the reference of this account.
-	 * 
-	 * @param where the directory where the file must be dumped
-	 * @return the full path of the PEM file (name of the reference of this account followed by {@code .pem})
-	 * @throws IOException if the PEM file cannot be created
-	 */
-	Path dump(Path where) throws IOException;
-
-	/**
 	 * Dumps the entropy of this account into a PEM file, in the current directory,
-	 * with the name of the reference of this account.
+	 * with, as name, the reference of this account, followed by {@code .pem}.
 	 * 
 	 * @return the full path of the PEM file (name of the reference of this account followed by {@code .pem})
 	 * @throws IOException if the PEM file cannot be created
@@ -56,7 +47,7 @@ public interface Account<R extends Comparable<? super R>> extends Entropy {
 
 	/**
 	 * Removes the PEM file, in the current directory,
-	 * with the name of the reference of this account, if it exists.
+	 * with the name of the reference of this account, followed by {@code .pem}, if it exists.
 	 * 
 	 * @throws IOException if the PEM file cannot be deleted
 	 */

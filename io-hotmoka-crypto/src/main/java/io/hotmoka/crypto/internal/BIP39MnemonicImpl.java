@@ -48,7 +48,7 @@ public class BIP39MnemonicImpl implements BIP39Mnemonic {
     public BIP39MnemonicImpl(Account<?> account, BIP39Dictionary dictionary) {
     	this.dictionary = dictionary;
 
-    	byte[] entropy = account.getEntropy();
+    	byte[] entropy = account.getEntropyAsBytes();
     	byte[] reference = account.getReferenceAsBytes();
     	byte[] merge = new byte[entropy.length + reference.length];
     	System.arraycopy(entropy, 0, merge, 0, entropy.length);
