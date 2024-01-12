@@ -72,7 +72,13 @@ public class EMPTY extends AbstractSignatureAlgorithmImpl {
 
 	@Override
 	protected KeyPairGenerator mkKeyPairGenerator(SecureRandom random) {
-		return null;
+		return new KeyPairGenerator("empty") {
+
+			@Override
+			public KeyPair generateKeyPair() {
+				return dummyKeys;
+			}
+		};
 	}
 
 	@Override
