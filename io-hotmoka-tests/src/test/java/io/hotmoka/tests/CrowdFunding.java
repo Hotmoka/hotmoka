@@ -38,11 +38,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -99,7 +99,7 @@ class CrowdFunding extends HotmokaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		assertEquals(0, id.value);
+		assertEquals(0, id.getValue());
 	}
 
 	@Test @DisplayName("new CrowdFunding().newCampaign(beneficiary, 50) twice == 1")
@@ -114,7 +114,7 @@ class CrowdFunding extends HotmokaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, new BigIntegerValue(BigInteger.valueOf(50L)));
 
-		assertEquals(1, id.value);
+		assertEquals(1, id.getValue());
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")

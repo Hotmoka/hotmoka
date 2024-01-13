@@ -33,11 +33,11 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.DeserializationError;
 
@@ -86,7 +86,7 @@ class ClassSwap extends HotmokaTest {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
 
-		assertSame(13, get.value);
+		assertSame(13, get.getValue());
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
@@ -94,7 +94,7 @@ class ClassSwap extends HotmokaTest {
 		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
 
-		assertSame(17, get.value);
+		assertSame(17, get.getValue());
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")

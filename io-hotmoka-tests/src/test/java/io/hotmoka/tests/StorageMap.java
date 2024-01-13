@@ -28,7 +28,6 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.Random;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -42,16 +41,16 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
+import io.hotmoka.crypto.Base64;
 
 /**
  * A test for the storage map Takamaka class.
@@ -107,7 +106,7 @@ class StorageMap extends HotmokaTest {
 		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(new IntValue(0), size);
+		assertEquals(StorageValues.intOf(0), size);
 	}
 
 	@Test @DisplayName("new StorageTreeMap().isEmpty() == true")
@@ -122,7 +121,7 @@ class StorageMap extends HotmokaTest {
 	void putThenGet() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa, ONE);
 		BigIntegerValue get = (BigIntegerValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_GET, map, eoa);
@@ -134,26 +133,26 @@ class StorageMap extends HotmokaTest {
 	void putThenGetWithOtherKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
-		String publicKey1 = Base64.getEncoder().encodeToString(signature().encodingOf(keys1.getPublic()));
+		String publicKey1 = Base64.toBase64String(signature().encodingOf(keys1.getPublic()));
 		StorageReference eoa1 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey1));
 		KeyPair keys2 = signature().getKeyPair();
-		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
+		String publicKey2 = Base64.toBase64String(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction
 			(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), map, eoa2);
 
-		assertEquals(NullValue.INSTANCE, get);
+		assertEquals(StorageValues.NULL, get);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k1,v) then get(k2, _default) yields default")
 	void putThenGetWithOtherKeyAndDefaultValue() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys1 = signature().getKeyPair();
-		String publicKey1 = Base64.getEncoder().encodeToString(signature().encodingOf(keys1.getPublic()));
+		String publicKey1 = Base64.toBase64String(signature().encodingOf(keys1.getPublic()));
 		StorageReference eoa1 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey1));
 		KeyPair keys2 = signature().getKeyPair();
-		String publicKey2 = Base64.getEncoder().encodeToString(signature().encodingOf(keys2.getPublic()));
+		String publicKey2 = Base64.toBase64String(signature().encodingOf(keys2.getPublic()));
 		StorageReference eoa2 = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey2));
 		addInstanceMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_MAP_PUT, map, eoa1, ONE);
 		StorageValue get = runInstanceMethodCallTransaction(account0, _50_000, classpath, new NonVoidMethodSignature(STORAGE_MAP_VIEW, "getOrDefault", StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT), map, eoa2, TWO);
@@ -168,7 +167,7 @@ class StorageMap extends HotmokaTest {
 		StorageReference[] accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 		}
 
@@ -179,14 +178,14 @@ class StorageMap extends HotmokaTest {
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(10, size.value);
+		assertEquals(10, size.getValue());
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times the same key then size is 1")
 	void put100TimesSameKeyThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 
 		Random random = new Random();
@@ -197,7 +196,7 @@ class StorageMap extends HotmokaTest {
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(1, size.value);
+		assertEquals(1, size.getValue());
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 times equal string keys then size is 1")
@@ -212,7 +211,7 @@ class StorageMap extends HotmokaTest {
 
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(1, size.value);
+		assertEquals(1, size.getValue());
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 random BigInteger keys then min key is correct")
@@ -242,7 +241,7 @@ class StorageMap extends HotmokaTest {
 		var accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 		}
 
@@ -258,7 +257,7 @@ class StorageMap extends HotmokaTest {
 		addInstanceMethodCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, STORAGE_MAP_REMOVE, map, accounts[random.nextInt(10)]);
 		IntValue size = (IntValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_SIZE, map);
 
-		assertEquals(9, size.value);
+		assertEquals(9, size.getValue());
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
@@ -268,7 +267,7 @@ class StorageMap extends HotmokaTest {
 		StorageReference[] accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
-			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 			accounts[i] = addConstructorCallTransaction(key, account0, _100_000, BigInteger.ONE, classpath, new ConstructorSignature(StorageTypes.EOA, StorageTypes.STRING), new StringValue(publicKey));
 		}
 

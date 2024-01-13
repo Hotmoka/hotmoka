@@ -36,11 +36,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -76,7 +76,7 @@ class Bombing extends HotmokaTest {
 			int amount = 1 + random.nextInt(10);
 
 			try {
-				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
 				e.printStackTrace();

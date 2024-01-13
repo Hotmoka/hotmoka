@@ -30,12 +30,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.NullValue;
 
 /**
  * A test for the installation in the node of a class with the same name
@@ -61,6 +61,6 @@ class SynonymClass extends HotmokaTest {
 		StorageValue result = addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), EMPTY);
 		// we verify that the result is null; this means that the implementation of SignatureAlgorithm
 		// from the store of the node has been run, not that used by the node
-		assertSame(NullValue.INSTANCE, result);
+		assertSame(StorageValues.NULL, result);
 	}
 }

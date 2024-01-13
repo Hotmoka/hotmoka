@@ -24,11 +24,11 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code byte} value stored in blockchain.
+ * Implementation of a {@code byte} value stored in blockchain.
  */
 @Immutable
 public final class ByteValueImpl extends StorageValueImpl implements ByteValue {
-	public static final byte SELECTOR = 2;
+	static final byte SELECTOR = 2;
 
 	/**
 	 * The value.
@@ -56,7 +56,7 @@ public final class ByteValueImpl extends StorageValueImpl implements ByteValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ByteValueImpl bv && bv.value == value;
+		return other instanceof ByteValue bv && bv.getValue() == value;
 	}
 
 	@Override

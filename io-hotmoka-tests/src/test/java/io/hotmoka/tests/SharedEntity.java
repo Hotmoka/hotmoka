@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -42,8 +43,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -85,7 +84,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // invalid: the seller is trying to sell more shares than it owns
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller has not enough shares to sell", () ->
@@ -104,7 +103,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // invalid: the creator is trying to place the offer on behalf of the seller
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "only the seller can place its own offer", () ->
@@ -123,7 +122,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // valid: the seller places the second offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -140,7 +139,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
-                seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -164,7 +163,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer by the seller
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code, OFFER_CONSTRUCTOR,
-                seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -183,7 +182,7 @@ class SharedEntity extends HotmokaTest {
         // invalid: limit reached in initialization
     	throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                        SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
+                        SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(0))
         );
     }
 
@@ -192,7 +191,7 @@ class SharedEntity extends HotmokaTest {
     void maxShareholdersLimitRespectedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // valid
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(1));
     }
 
     @Test
@@ -200,11 +199,11 @@ class SharedEntity extends HotmokaTest {
     void maxShareholdersLimitViolatedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(1));
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(1));
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // the seller places the offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -224,11 +223,11 @@ class SharedEntity extends HotmokaTest {
     void maxShareholdersLimitRespectedAtAcceptance() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(2));
+                SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(2));
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
                 new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
@@ -249,7 +248,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // invalid: the seller tries to sell only 2 of its 10 shares
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell its shares in full", () ->
@@ -268,7 +267,7 @@ class SharedEntity extends HotmokaTest {
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // valid: the seller sells all its 10 shares
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -281,12 +280,12 @@ class SharedEntity extends HotmokaTest {
     @DisplayName("the maximal percent of shares is respected at initialization")
     void shareLimitReachedAtInitialization() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(100));
 
         // invalid: the maximal limit of shares is reached at initialization
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "a shareholder cannot hold more than", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(50))
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(50))
         );
     }
 
@@ -294,12 +293,12 @@ class SharedEntity extends HotmokaTest {
     @DisplayName("the maximal percent of shares cannot be smaller than one")
     void shareLimitIsSmallerThan1() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(100));
 
         // invalid: the limit percent of shares is not positive
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "invalid share limit", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(0))
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(0))
         );
     }
 
@@ -307,12 +306,12 @@ class SharedEntity extends HotmokaTest {
     @DisplayName("the maximal percent of shares cannot be larger than 100")
     void shareLimitIsLargerThan100() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(100));
+        		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(100));
 
         // invalid: the limit percent of shares is larger than 100
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "invalid share limit", () ->
                 addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), new IntValue(101))
+                		SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(101))
         );
     }
 
@@ -321,11 +320,11 @@ class SharedEntity extends HotmokaTest {
     void sharePercentLimitNotReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
     	// create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(70));
+                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(70));
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
@@ -343,11 +342,11 @@ class SharedEntity extends HotmokaTest {
     void sharePercentLimitReached() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
         // create a shared entity
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), new IntValue(50));
+                SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2, seller, buyer, new BigIntegerValue(BigInteger.TEN), new BigIntegerValue(BigInteger.TEN), StorageValues.intOf(50));
 
         // create an offer
         StorageReference offer = addConstructorCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                OFFER_CONSTRUCTOR, seller, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,

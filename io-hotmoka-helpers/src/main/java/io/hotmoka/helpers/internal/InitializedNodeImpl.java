@@ -53,8 +53,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
@@ -95,8 +93,8 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
-			new LongValue(consensus.getInitialInflation()), new IntValue(0),
-			new IntValue(0), new IntValue(0), new IntValue(0));
+			StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(0),
+			StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -114,7 +112,7 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
 			new BigIntegerValue(consensus.getInitialGasPrice()), new BigIntegerValue(consensus.getMaxGasPerTransaction()),
 			StorageValues.booleanOf(consensus.ignoresGasPrice()), new BigIntegerValue(consensus.getTargetGasAtReward()),
-			new LongValue(consensus.getOblivion()));
+			StorageValues.longOf(consensus.getOblivion()));
 
 		return node.addConstructorCallTransaction(request);
 	}
@@ -176,10 +174,10 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
-			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
-			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
+			new StringValue(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
+			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
+			new StringValue(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
@@ -239,10 +237,10 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
-			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
-			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
+			new StringValue(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
+			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
+			new StringValue(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

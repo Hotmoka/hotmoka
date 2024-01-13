@@ -19,9 +19,9 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -54,7 +54,7 @@ public final class UpdateOfLong extends UpdateOfField {
 
 	@Override
 	public StorageValue getValue() {
-		return new LongValue(value);
+		return StorageValues.longOf(value);
 	}
 
 	@Override

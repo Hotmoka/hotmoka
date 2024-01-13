@@ -21,16 +21,15 @@ import java.math.BigInteger;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
+import io.hotmoka.beans.api.values.CharValue;
+import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.FloatValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.requests.MethodCallTransactionRequestModel;
@@ -70,14 +69,14 @@ public class StorageValueModel {
 	 */
 	public StorageValueModel(StorageValue parent) {
     	if (parent == null)
-    		throw new RuntimeException("unexpected null storage value");
+    		throw new RuntimeException("Unexpected null storage value");
     	else if (parent instanceof StorageReference) {
     		value = null;
     		reference = new StorageReferenceModel((StorageReference) parent);
     		type = "reference";
     		enumElementName = null;
     	}
-    	else if (parent == NullValue.INSTANCE) {
+    	else if (parent == StorageValues.NULL) {
     		value = null;
     		reference = null;
     		type = "reference";
@@ -165,7 +164,7 @@ public class StorageValueModel {
 			return new EnumValue(type, enumElementName);
     	else if (type.equals("reference"))
     		if (reference == null)
-    			return NullValue.INSTANCE;
+    			return StorageValues.NULL;
             else
             	return reference.toBean();
     	else if (value == null)
@@ -179,17 +178,17 @@ public class StorageValueModel {
     	else if (type.equals("byte"))
             return StorageValues.byteOf(Byte.parseByte(value));
     	else if (type.equals("char"))
-            return new CharValue(value.charAt(0));
+            return StorageValues.charOf(value.charAt(0));
     	else if (type.equals("short"))
-            return new ShortValue(Short.parseShort(value));
+            return StorageValues.shortOf(Short.parseShort(value));
     	else if (type.equals("int"))
-            return new IntValue(Integer.parseInt(value));
+            return StorageValues.intOf(Integer.parseInt(value));
     	else if (type.equals("long"))
-            return new LongValue(Long.parseLong(value));
+            return StorageValues.longOf(Long.parseLong(value));
     	else if (type.equals("float"))
-            return new FloatValue(Float.parseFloat(value));
+            return StorageValues.floatOf(Float.parseFloat(value));
     	else if (type.equals("double"))
-            return new DoubleValue(Double.parseDouble(value));
+            return StorageValues.doubleOf(Double.parseDouble(value));
     	else
         	throw new RuntimeException("unexpected value type " + type);
     }

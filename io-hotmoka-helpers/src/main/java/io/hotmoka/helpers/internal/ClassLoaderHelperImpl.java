@@ -23,11 +23,11 @@ import java.util.HashSet;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.node.api.Node;
@@ -78,7 +78,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		while (!ws.isEmpty());
 
 		long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).getValue();
 
 		return TakamakaClassLoaders.of(jars.stream(), verificationVersion);
 	}

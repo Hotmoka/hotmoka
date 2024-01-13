@@ -34,14 +34,14 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -52,9 +52,9 @@ import io.hotmoka.constants.Constants;
 class TicTacToe extends HotmokaTest {
 	private static final ClassType TIC_TAC_TOE = StorageTypes.classNamed("io.hotmoka.examples.tictactoe.TicTacToe");
 	private static final ConstructorSignature CONSTRUCTOR_TIC_TAC_TOE = new ConstructorSignature(TIC_TAC_TOE);
-	private static final IntValue _1 = new IntValue(1);
-	private static final IntValue _2 = new IntValue(2);
-	private static final IntValue _3 = new IntValue(3);
+	private static final IntValue _1 = StorageValues.intOf(1);
+	private static final IntValue _2 = StorageValues.intOf(2);
+	private static final IntValue _3 = StorageValues.intOf(3);
 
 	/**
 	 * The creator of the game.
@@ -100,7 +100,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
 			player1, 
@@ -123,7 +123,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -135,7 +135,7 @@ class TicTacToe extends HotmokaTest {
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(panarea(100).longValue()),
+				StorageValues.longOf(panarea(100).longValue()),
 				_1, _1)
 		);
 	}
@@ -151,7 +151,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -163,7 +163,7 @@ class TicTacToe extends HotmokaTest {
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(panarea(100).longValue()),
+				StorageValues.longOf(panarea(100).longValue()),
 				_1, _2)
 		);
 	}
@@ -179,7 +179,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(120).longValue()),
+			StorageValues.longOf(panarea(120).longValue()),
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -191,7 +191,7 @@ class TicTacToe extends HotmokaTest {
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(panarea(119).longValue()),
+				StorageValues.longOf(panarea(119).longValue()),
 				_1, _2)
 		);
 	}
@@ -207,7 +207,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
 		addInstanceMethodCallTransaction(
 			privateKey(3),
@@ -217,7 +217,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
@@ -227,7 +227,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
 		addInstanceMethodCallTransaction(
 			privateKey(3),
@@ -237,7 +237,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
@@ -247,7 +247,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
 
 		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
@@ -272,7 +272,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
 		addInstanceMethodCallTransaction(
 			privateKey(3),
@@ -282,7 +282,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(100).longValue()),
+			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
@@ -292,7 +292,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
 		addInstanceMethodCallTransaction(
 			privateKey(3),
@@ -302,7 +302,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
 		addInstanceMethodCallTransaction(
 			privateKey(2),
@@ -312,7 +312,7 @@ class TicTacToe extends HotmokaTest {
 			jar(),
 			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
-			new LongValue(panarea(0).longValue()),
+			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -324,7 +324,7 @@ class TicTacToe extends HotmokaTest {
 				jar(),
 				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
-				new LongValue(panarea(0).longValue()),
+				StorageValues.longOf(panarea(0).longValue()),
 				_2, _3)
 		);
 	}

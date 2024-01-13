@@ -14,49 +14,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code long} value stored in blockchain.
+ * Implementation of a {@code char} value stored in blockchain.
  */
 @Immutable
-public final class LongValue extends StorageValueImpl {
-	public static final byte SELECTOR = 7;
+public final class CharValueImpl extends StorageValueImpl implements CharValue {
+	static final byte SELECTOR = 3;
 
 	/**
 	 * The value.
 	 */
-	public final long value;
+	private final char value;
 
 	/**
-	 * Builds a {@code long} value.
+	 * Builds a {@code char} value.
 	 * 
 	 * @param value the value
 	 */
-	public LongValue(long value) {
+	public CharValueImpl(char value) {
 		this.value = value;
 	}
 
 	@Override
+	public char getValue() {
+		return value;
+	}
+
+	@Override
 	public String toString() {
-		return Long.toString(value);
+		return Character.toString(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof LongValue lv && lv.value == value;
+		return other instanceof CharValue cv && cv.getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return Long.hashCode(value);
+		return value;
 	}
 
 	@Override
@@ -65,12 +70,12 @@ public final class LongValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Long.compare(value, ((LongValue) other).value);
+			return Character.compare(value, ((CharValueImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeLong(value);
+		context.writeChar(value);
 	}
 }

@@ -42,14 +42,13 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeSupplier;
@@ -120,7 +119,7 @@ class BlindAuction extends HotmokaTest {
 	@Test @DisplayName("three players put bids before end of bidding time")
 	void bids() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
+			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		Random random = new Random();
 		for (int i = 1; i <= NUM_BIDS; i++) {
@@ -138,7 +137,7 @@ class BlindAuction extends HotmokaTest {
 	@Test @DisplayName("three players put bids but bidding time expires")
 	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException {
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(4000), new IntValue(REVEAL_TIME));
+			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 		{
@@ -198,7 +197,7 @@ class BlindAuction extends HotmokaTest {
 	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		long start = System.currentTimeMillis();
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
-			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, new IntValue(BIDDING_TIME), new IntValue(REVEAL_TIME));
+			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		List<BidToReveal> bids = new ArrayList<>();
 

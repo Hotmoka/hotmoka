@@ -29,12 +29,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -66,12 +66,12 @@ class AbstractFail extends HotmokaTest {
 
 	@Test @DisplayName("new AbstractFailImpl()")
 	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 	}
 
 	@Test @DisplayName("new AbstractFailImpl().method() yields an AbstractFailImpl")
 	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);

@@ -32,6 +32,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
@@ -54,7 +55,6 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base64;
@@ -180,7 +180,7 @@ public class AccountsNodeImpl implements AccountsNode {
 		var get = new NonVoidMethodSignature(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
-			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _100_000, classpath, get, container, new IntValue(i)));
+			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _100_000, classpath, get, container, StorageValues.intOf(i)));
 	}
 
 	@Override

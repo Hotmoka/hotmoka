@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -40,7 +41,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -87,7 +87,7 @@ class SharedEntity1AllowsArbitraryShareholdersTypes extends HotmokaTest {
         // create an offer by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(MY_CLASS, "createOffer1", OFFER_1, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
-                sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), new LongValue(1893456000));
+                sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,

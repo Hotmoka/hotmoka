@@ -21,14 +21,7 @@ import java.math.BigInteger;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
@@ -73,25 +66,25 @@ public class Serializer {
 		else if (object instanceof Byte)
 			return StorageValues.byteOf((Byte) object);
 		else if (object instanceof Character)
-			return new CharValue((Character) object);
+			return StorageValues.charOf((Character) object);
 		else if (object instanceof Double)
-			return new DoubleValue((Double) object);
+			return StorageValues.doubleOf((Double) object);
 		else if (object instanceof Float)
-			return new FloatValue((Float) object);
+			return StorageValues.floatOf((Float) object);
 		else if (object instanceof Integer)
-			return new IntValue((Integer) object);
+			return StorageValues.intOf((Integer) object);
 		else if (object instanceof Long)
-			return new LongValue((Long) object);
+			return StorageValues.longOf((Long) object);
 		else if (object instanceof Short)
-			return new ShortValue((Short) object);
+			return StorageValues.shortOf((Short) object);
 		else if (object instanceof String)
 			return new StringValue((String) object);
 		else if (object instanceof Enum<?>)
 			return new EnumValue(object.getClass().getName(), ((Enum<?>) object).name());
 		else if (object == null)
-			return NullValue.INSTANCE;
+			return StorageValues.NULL;
 		else
-			throw new IllegalArgumentException("an object of class " + object.getClass().getName()
+			throw new IllegalArgumentException("An object of class " + object.getClass().getName()
 				+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
 	}
 

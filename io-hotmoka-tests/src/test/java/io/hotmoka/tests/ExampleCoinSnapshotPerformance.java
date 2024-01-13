@@ -47,6 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -63,7 +64,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -268,7 +268,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
-        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, new IntValue(50_000));
+        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(new LocalTransactionReference(hasher.hash(request)));
     	}
@@ -344,7 +344,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
 			var request = new InstanceMethodCallTransactionRequest
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
-				TRANSFER, coin, receiver, new IntValue(howMuch));
+				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
 			node.addInstanceMethodCallTransaction(request);
 			trace(new LocalTransactionReference(hasher.hash(request)));
 			numberOfTransfers.getAndIncrement();
@@ -352,7 +352,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
 		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest
-    			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, new IntValue(howMuch));
+    			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(new LocalTransactionReference(hasher.hash(request)));
             numberOfBurns.getAndIncrement();
@@ -360,7 +360,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest
-    			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, new IntValue(howMuch));
+    			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(new LocalTransactionReference(hasher.hash(request)));
             numberOfMints.getAndIncrement();

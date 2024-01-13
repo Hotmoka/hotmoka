@@ -14,63 +14,48 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code char} value stored in blockchain.
+ * Implemenytation of the {@code null} value stored in blockchain.
  */
 @Immutable
-public final class CharValue extends StorageValueImpl {
-	public static final byte SELECTOR = 3;
+public final class NullValueImpl extends StorageValueImpl implements NullValue {
+	static final byte SELECTOR = 8;
 
 	/**
-	 * The value.
+	 * The {@code null} value.
 	 */
-	public final char value;
+	public final static NullValue NULL = new NullValueImpl();
 
 	/**
-	 * Builds a {@code char} value.
-	 * 
-	 * @param value the value
+	 * Builds the {@code null} value.
 	 */
-	public CharValue(char value) {
-		this.value = value;
-	}
+	private NullValueImpl() {}
 
 	@Override
 	public String toString() {
-		return Character.toString(value);
+		return "null";
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CharValue cv && cv.value == value;
+		return other instanceof NullValue;
 	}
 
 	@Override
 	public int hashCode() {
-		return value;
-	}
-
-	@Override
-	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
-		else
-			return Character.compare(value, ((CharValue) other).value);
+		return 13011973;
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeChar(value);
 	}
 }

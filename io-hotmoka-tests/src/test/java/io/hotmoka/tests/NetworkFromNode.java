@@ -38,13 +38,13 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
@@ -191,7 +191,7 @@ class NetworkFromNode extends HotmokaTest {
 					ONE,
 					classpath,
 					new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT),
-					new IntValue(1973)
+					StorageValues.intOf(1973)
 			);
 
 			var service = new RestClientService();
@@ -219,7 +219,7 @@ class NetworkFromNode extends HotmokaTest {
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,
-					new IntValue(13), new IntValue(25), new IntValue(40)
+					StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40)
 			);
 
 			// we execute the creation of the object
@@ -252,7 +252,7 @@ class NetworkFromNode extends HotmokaTest {
 					ONE,
 					classpath,
 					CONSTRUCTOR_INTERNATIONAL_TIME,
-					new IntValue(13), new IntValue(25), new IntValue(40)
+					StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40)
 			);
 
 			// we execute the creation of the object

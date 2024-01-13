@@ -16,8 +16,15 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
+import io.hotmoka.beans.api.values.CharValue;
+import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.FloatValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
@@ -39,14 +46,7 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.signatures.FieldSignatureModel;
@@ -128,7 +128,7 @@ public class UpdateModel {
 			StorageValue value = this.value.toBean();
 			StorageReference object = this.object.toBean();
 
-			if (value == NullValue.INSTANCE)
+			if (value == StorageValues.NULL)
 				if (field.type.isEager())
 					return new UpdateToNullEager(object, field);
 				else
@@ -149,17 +149,17 @@ public class UpdateModel {
 			else if (value instanceof ByteValue)
 				return new UpdateOfByte(object, field, ((ByteValue) value).getValue());
 			else if (value instanceof CharValue)
-				return new UpdateOfChar(object, field, ((CharValue) value).value);
+				return new UpdateOfChar(object, field, ((CharValue) value).getValue());
 			else if (value instanceof DoubleValue)
-				return new UpdateOfDouble(object, field, ((DoubleValue) value).value);
+				return new UpdateOfDouble(object, field, ((DoubleValue) value).getValue());
 			else if (value instanceof FloatValue)
-				return new UpdateOfFloat(object, field, ((FloatValue) value).value);
+				return new UpdateOfFloat(object, field, ((FloatValue) value).getValue());
 			else if (value instanceof IntValue)
-				return new UpdateOfInt(object, field, ((IntValue) value).value);
+				return new UpdateOfInt(object, field, ((IntValue) value).getValue());
 			else if (value instanceof LongValue)
-				return new UpdateOfLong(object, field, ((LongValue) value).value);
+				return new UpdateOfLong(object, field, ((LongValue) value).getValue());
 			else if (value instanceof ShortValue)
-				return new UpdateOfShort(object, field, ((ShortValue) value).value);
+				return new UpdateOfShort(object, field, ((ShortValue) value).getValue());
 			else
 				throw new RuntimeException("unexpected update value of class " + value.getClass().getName());
 		}

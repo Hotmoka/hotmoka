@@ -39,11 +39,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -149,7 +149,7 @@ class ExampleCoin extends HotmokaTest {
                 example_token);
         // token_decimals = example_token.decimals() = short@18
 
-        assertEquals(token_decimals.value, 18);
+        assertEquals(token_decimals.getValue(), 18);
     }
 
     @Test @DisplayName("Test of ERC20 totalSupply method: example_token.totalSupply() == 200'000*10^18")

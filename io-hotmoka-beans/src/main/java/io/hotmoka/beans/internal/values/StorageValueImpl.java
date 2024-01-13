@@ -26,14 +26,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -41,8 +34,8 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A value that can be stored in the blockchain, passed as argument to an entry
- * or returned from an entry.
+ * Partial implementation of a value that can be stored in the blockchain,
+ * passed as argument to an entry or returned from an entry.
  */
 public abstract class StorageValueImpl extends AbstractMarshallable implements StorageValue {
 
@@ -63,24 +56,24 @@ public abstract class StorageValueImpl extends AbstractMarshallable implements S
 			if (s.length() != 1)
 				throw new IllegalArgumentException("the value is not a character");
 			else
-				return new CharValue(s.charAt(0));
+				return StorageValues.charOf(s.charAt(0));
 		}
 		else if (type == StorageTypes.SHORT)
-			return new ShortValue(Short.parseShort(s));
+			return StorageValues.shortOf(Short.parseShort(s));
 		else if (type == StorageTypes.INT)
-			return new IntValue(Integer.parseInt(s));
+			return StorageValues.intOf(Integer.parseInt(s));
 		else if (type == StorageTypes.LONG)
-			return new LongValue(Long.parseLong(s));
+			return StorageValues.longOf(Long.parseLong(s));
 		else if (type == StorageTypes.FLOAT)
-			return new FloatValue(Float.parseFloat(s));
+			return StorageValues.floatOf(Float.parseFloat(s));
 		else if (type == StorageTypes.DOUBLE)
-			return new DoubleValue(Double.parseDouble(s));
+			return StorageValues.doubleOf(Double.parseDouble(s));
 		else if (StorageTypes.STRING.equals(type))
 			return new StringValue(s);
 		else if (StorageTypes.BIG_INTEGER.equals(type))
 			return new BigIntegerValue(new BigInteger(s));
 		else if ("null".equals(s))
-			return NullValue.INSTANCE;
+			return StorageValues.NULL;
 		else if (!s.contains("#")) {
 			int lastDot = s.lastIndexOf('.');
 			if (lastDot < 0)
@@ -106,22 +99,22 @@ public abstract class StorageValueImpl extends AbstractMarshallable implements S
 		case BooleanValueImpl.SELECTOR_TRUE: return StorageValues.TRUE;
 		case BooleanValueImpl.SELECTOR_FALSE: return StorageValues.FALSE;
 		case ByteValueImpl.SELECTOR: return StorageValues.byteOf(context.readByte());
-		case CharValue.SELECTOR: return new CharValue(context.readChar());
-		case DoubleValue.SELECTOR: return new DoubleValue(context.readDouble());
+		case CharValueImpl.SELECTOR: return StorageValues.charOf(context.readChar());
+		case DoubleValueImpl.SELECTOR: return StorageValues.doubleOf(context.readDouble());
 		case EnumValue.SELECTOR: return new EnumValue(context.readStringUnshared(), context.readStringUnshared());
-		case FloatValue.SELECTOR: return new FloatValue(context.readFloat());
-		case IntValue.SELECTOR: return new IntValue(context.readInt());
-		case LongValue.SELECTOR: return new LongValue(context.readLong());
-		case NullValue.SELECTOR: return NullValue.INSTANCE;
-		case ShortValue.SELECTOR: return new ShortValue(context.readShort());
+		case FloatValueImpl.SELECTOR: return StorageValues.floatOf(context.readFloat());
+		case IntValueImpl.SELECTOR: return StorageValues.intOf(context.readInt());
+		case LongValueImpl.SELECTOR: return StorageValues.longOf(context.readLong());
+		case NullValueImpl.SELECTOR: return StorageValues.NULL;
+		case ShortValueImpl.SELECTOR: return StorageValues.shortOf(context.readShort());
 		case StorageReference.SELECTOR: return StorageReference.from(context);
 		case StringValue.SELECTOR_EMPTY_STRING: return new StringValue("");
 		case StringValue.SELECTOR: return new StringValue(context.readStringUnshared());
 		default:
 			if (selector < 0)
-				return new IntValue((selector + 256) - IntValue.SELECTOR - 1);
+				return StorageValues.intOf((selector + 256) - IntValueImpl.SELECTOR - 1);
 			else
-				return new IntValue(selector - IntValue.SELECTOR - 1);
+				return StorageValues.intOf(selector - IntValueImpl.SELECTOR - 1);
 		}
 	}
 

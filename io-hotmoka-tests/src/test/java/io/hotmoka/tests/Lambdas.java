@@ -34,15 +34,15 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 
@@ -116,7 +116,7 @@ class Lambdas extends HotmokaTest {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT), lambdas);
 
-		assertEquals(11, result.value);
+		assertEquals(11, result.getValue());
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntryOfOtherClass()")
@@ -136,7 +136,7 @@ class Lambdas extends HotmokaTest {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT), lambdas);
 
-		assertEquals(11, result.value);
+		assertEquals(11, result.getValue());
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntryPopResult()")
@@ -152,7 +152,7 @@ class Lambdas extends HotmokaTest {
 			new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT),
 			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L)));
 
-		assertEquals(7, result.value);
+		assertEquals(7, result.getValue());
 	}
 
 	@Test @DisplayName("new Lambdas().concatenation(\"hello\", \"hi\", self, 1973L, 13)==\"\"")
@@ -161,7 +161,7 @@ class Lambdas extends HotmokaTest {
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, StorageTypes.LONG, INT),
 			lambdas,
-			new StringValue("hello"), new StringValue("hi"), lambdas, new LongValue(1973L), new IntValue(13));
+			new StringValue("hello"), new StringValue("hi"), lambdas, StorageValues.longOf(1973L), StorageValues.intOf(13));
 
 		assertEquals("hellohian externally owned account197313", result.value);
 	}

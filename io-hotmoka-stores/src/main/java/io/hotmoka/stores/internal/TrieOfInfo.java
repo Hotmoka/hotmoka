@@ -20,9 +20,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.patricia.PatriciaTries;
@@ -78,7 +78,7 @@ public class TrieOfInfo {
 	 */
 	public long getNumberOfCommits() {
 		return parent.get((byte) 0)
-			.map(commits -> ((LongValue) commits).value)
+			.map(commits -> ((LongValue) commits).getValue())
 			.orElse(0L);
 	}
 
@@ -89,7 +89,7 @@ public class TrieOfInfo {
 	 */
 	public long increaseNumberOfCommits() {
 		long numberOfCommits = getNumberOfCommits() + 1;
-		parent.put((byte) 0, new LongValue(numberOfCommits));
+		parent.put((byte) 0, StorageValues.longOf(numberOfCommits));
 		return numberOfCommits;
 	}
 

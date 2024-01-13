@@ -31,13 +31,14 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -70,13 +71,13 @@ class Enums extends HotmokaTest {
 		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getOrdinal", StorageTypes.INT), testEnums);
 
-		assertSame(1, ordinal.value);
+		assertSame(1, ordinal.getValue());
 	}
 
 	@Test @DisplayName("TestEnums.getFor(2) == MyEnum.FUTURE")
 	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), new IntValue(2));
+			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), StorageValues.intOf(2));
 
 		assertEquals(new EnumValue(MY_ENUM.getName(), "FUTURE"), element);
 	}

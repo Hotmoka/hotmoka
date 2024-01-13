@@ -24,12 +24,22 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code boolean} value stored in blockchain.
+ * Implementation of a {@code boolean} value stored in blockchain.
  */
 @Immutable
 public final class BooleanValueImpl extends StorageValueImpl implements BooleanValue {
 	static final byte SELECTOR_TRUE = 0;
 	static final byte SELECTOR_FALSE = 1;
+
+	/**
+	 * The true Boolean value.
+	 */
+	public final static BooleanValue TRUE = new BooleanValueImpl(true);
+
+	/**
+	 * The false Boolean value.
+	 */
+	public final static BooleanValue FALSE = new BooleanValueImpl(false);
 
 	/**
 	 * The value.
@@ -41,7 +51,7 @@ public final class BooleanValueImpl extends StorageValueImpl implements BooleanV
 	 * 
 	 * @param value the value
 	 */
-	public BooleanValueImpl(boolean value) {
+	private BooleanValueImpl(boolean value) {
 		this.value = value;
 	}
 

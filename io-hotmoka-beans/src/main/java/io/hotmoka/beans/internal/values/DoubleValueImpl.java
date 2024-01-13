@@ -14,49 +14,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.DoubleValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code short} value stored in blockchain.
+ * Implementation of a {@code double} value stored in blockchain.
  */
 @Immutable
-public final class ShortValue extends StorageValueImpl {
-	public static final byte SELECTOR = 9;
+public final class DoubleValueImpl extends StorageValueImpl implements DoubleValue {
+	static final byte SELECTOR = 4;
 
 	/**
 	 * The value.
 	 */
-	public final short value;
+	private final double value;
 
 	/**
-	 * Builds a {@code short} value.
+	 * Builds a {@code double} value.
 	 * 
 	 * @param value the value
 	 */
-	public ShortValue(short value) {
+	public DoubleValueImpl(double value) {
 		this.value = value;
 	}
 
 	@Override
+	public double getValue() {
+		return value;
+	}
+
+	@Override
 	public String toString() {
-		return Short.toString(value);
+		return Double.toString(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ShortValue sv && sv.value == value;
+		return other instanceof DoubleValue dv && dv.getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return value;
+		return Double.hashCode(value);
 	}
 
 	@Override
@@ -65,12 +70,12 @@ public final class ShortValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Short.compare(value, ((ShortValue) other).value);
+			return Double.compare(value, ((DoubleValueImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeShort(value);
+		context.writeDouble(value);
 	}
 }

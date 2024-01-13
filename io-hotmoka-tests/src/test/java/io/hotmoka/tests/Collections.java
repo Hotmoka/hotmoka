@@ -38,11 +38,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -82,85 +82,85 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("MapTests.testIteration1() == 4950")
 	void geometricSum() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_TESTS, "testIteration1", INT));
-		assertEquals(4950, sum.value);
+		assertEquals(4950, sum.getValue());
 	}
 
 	@Test @DisplayName("MapTests.testUpdate1() == 5050")
 	void geometricSumAfterUpdate() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_TESTS, "testUpdate1", INT));
-		assertEquals(5050, sum.value);
+		assertEquals(5050, sum.getValue());
 	}
 
 	@Test @DisplayName("MapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_TESTS, "testUpdate2", INT));
-		assertEquals(5050, sum.value);
+		assertEquals(5050, sum.getValue());
 	}
 
 	@Test @DisplayName("MapTests.testNullValues() == 100L")
 	void nullValuesInMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_TESTS, "testNullValues", LONG));
-		assertEquals(100L, count.value);
+		assertEquals(100L, count.getValue());
 	}
 
 	@Test @DisplayName("IntMapTests.testIteration1() == 4950")
 	void geometricSumIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testIteration1", INT));
-		assertEquals(4950, sum.value);
+		assertEquals(4950, sum.getValue());
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate1() == 5050")
 	void geometricSumAfterUpdateIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate1", INT));
-		assertEquals(5050, sum.value);
+		assertEquals(5050, sum.getValue());
 	}
 
 	@Test @DisplayName("IntMapTests.testUpdate2() == 5050")
 	void geometricSumAfterUpdateIntKeysWithStream() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testUpdate2", INT));
-		assertEquals(5050, sum.value);
+		assertEquals(5050, sum.getValue());
 	}
 
 	@Test @DisplayName("IntMapTests.testNullValues() == 100L()")
 	void nullValuesInMapIntKeys() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(INT_MAP_TESTS, "testNullValues", LONG));
-		assertEquals(100L, count.value);
+		assertEquals(100L, count.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.testRandomInitialization() == 1225")
 	void randomArray() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testRandomInitialization", INT));
-		assertEquals(1225, sum.value);
+		assertEquals(1225, sum.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.countNullsAfterRandomInitialization() == 50L")
 	void randomArrayCountNulls() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		LongValue count = (LongValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "countNullsAfterRandomInitialization", LONG));
-		assertEquals(50L, count.value);
+		assertEquals(50L, count.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault1() == 1325")
 	void randomArrayThenUpdate1() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault1", INT));
-		assertEquals(1325, sum.value);
+		assertEquals(1325, sum.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.testByteArrayThenIncrease() == 1375")
 	void randomArrayThenIncrease() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testByteArrayThenIncrease", INT));
-		assertEquals(1375, sum.value);
+		assertEquals(1375, sum.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.testUpdateWithDefault2() == 1225")
 	void randomArrayThenUpdate2() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testUpdateWithDefault2", INT));
-		assertEquals(1225, sum.value);
+		assertEquals(1225, sum.getValue());
 	}
 
 	@Test @DisplayName("ArrayTests.testGetOrDefault() == 1225")
 	void randomArrayTheGetOrDefault() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		IntValue sum = (IntValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(ARRAY_TESTS, "testGetOrDefault", INT));
-		assertEquals(1225, sum.value);
+		assertEquals(1225, sum.getValue());
 	}
 
 	@Test @DisplayName("SetTests.testRandomInitialization() == true")

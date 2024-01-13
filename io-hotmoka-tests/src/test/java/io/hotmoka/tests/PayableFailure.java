@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -37,8 +38,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -63,7 +62,7 @@ class PayableFailure extends HotmokaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new ConstructorSignature(C));
 
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "foo", C), c, NullValue.INSTANCE));
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "foo", C), c, StorageValues.NULL));
 
 		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).value;
 		assertEquals(_1_000_000, balance);
@@ -75,7 +74,7 @@ class PayableFailure extends HotmokaTest {
 
 		// sends 1000 as payment for a transaction that fails
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "goo", StorageTypes.LONG, C), c, new LongValue(1000), NullValue.INSTANCE));
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
 		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).value;
 

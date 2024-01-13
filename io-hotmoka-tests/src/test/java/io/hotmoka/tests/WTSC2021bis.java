@@ -45,6 +45,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -54,7 +55,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 
@@ -129,7 +129,7 @@ class WTSC2021bis extends HotmokaTest {
 
 			// @creator makes a token transfer to each @investor (investors will now have tokens to trade)
 			addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
-				DISTRIBUTE, creator, containerOfAccounts(), token, new IntValue(50_000));
+				DISTRIBUTE, creator, containerOfAccounts(), token, StorageValues.intOf(50_000));
 
 			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();
 		}
@@ -156,7 +156,7 @@ class WTSC2021bis extends HotmokaTest {
     private boolean createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
     	BooleanValue transfer_result;
 		try {
-			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, new IntValue(howMuch));
+			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
 			throw new RuntimeException(e);

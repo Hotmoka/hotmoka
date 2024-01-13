@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,15 +19,8 @@ package io.hotmoka.beans.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A {@code byte} value stored in blockchain.
+ * The {@code null} value stored in blockchain.
  */
 @Immutable
-public interface ByteValue extends StorageValue {
-
-	/**
-	 * Yields the byte inside this object.
-	 * 
-	 * @return the byte
-	 */
-	byte getValue();
+public interface NullValue extends StorageValue {
 }

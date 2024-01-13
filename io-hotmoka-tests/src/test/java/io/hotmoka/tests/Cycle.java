@@ -31,9 +31,9 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -59,6 +59,6 @@ class Cycle extends HotmokaTest {
 		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
 
-		assertEquals(42, result.value);
+		assertEquals(42, result.getValue());
 	}
 }

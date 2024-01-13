@@ -40,12 +40,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.Subscription;
@@ -85,34 +85,34 @@ class RemotePurchase extends HotmokaTest {
 	@Test @DisplayName("new Purchase(21)")
 	void oddDeposit() {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(21))
+			addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(21))
 		);
 	}
 
 	@Test @DisplayName("new Purchase(20)")
 	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
 	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(18))
 		);
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
 	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var ok = new CompletableFuture<Boolean>();
 
 		// the code of the smart contract uses events having the same contract as key
 		try (Subscription subscription = node.subscribeToEvents(purchase, (key, event) -> ok.complete(false))) {
 			throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-				addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(18))
+				addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(18))
 			);
 		}
 
@@ -128,20 +128,20 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20)")
 	void buyerHonest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
-		addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
 	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var received = new CompletableFuture<StorageReference>();
 		StorageReference event;
 
 		// the code of the smart contract uses events having the same contract as key
 		try (Subscription subscription = node.subscribeToEvents(purchase, (__, _event) -> received.complete(_event))) {
-			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 			event = received.get(20_000, TimeUnit.MILLISECONDS);
 		}
 
@@ -151,7 +151,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
 	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		List<StorageReference> received = new ArrayList<>();
 
@@ -160,7 +160,7 @@ class RemotePurchase extends HotmokaTest {
 			// without key, many events might be notified, hence we look for one of a specific class
 			received.add(_event);
 		})) {
-			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 			Thread.sleep(10_000);
 		}
 
@@ -169,7 +169,7 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")
 	void buyerHonestConfirmationEventSubscriptionClosed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		AtomicBoolean ok = new AtomicBoolean(true);
 
@@ -178,14 +178,14 @@ class RemotePurchase extends HotmokaTest {
 		}
 
 		// the subscription is closed now, hence the event generated below will not set ok to false
-		addInstanceMethodCallTransaction(privateKey(1), buyer, _100_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _100_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 
 		assertTrue(ok.get());
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
 	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase)
@@ -194,8 +194,8 @@ class RemotePurchase extends HotmokaTest {
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20) and then purchase.confirmReceived()")
 	void buyerPaysAndConfirmReception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, new IntValue(20));
-		addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, new IntValue(20));
+		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
+		addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_PURCHASED, purchase, StorageValues.intOf(20));
 		addInstanceMethodCallTransaction(privateKey(1), buyer, _50_000, BigInteger.ONE, jar(), CONFIRM_RECEIVED, purchase);
 	}
 }

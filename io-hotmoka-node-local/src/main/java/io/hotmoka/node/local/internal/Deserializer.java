@@ -30,6 +30,13 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
+import io.hotmoka.beans.api.values.CharValue;
+import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.FloatValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.NullValue;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -37,14 +44,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.CharValue;
-import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.FloatValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
-import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.DeserializationError;
@@ -147,23 +147,23 @@ public class Deserializer {
 			// we use a cache to provide the same value if the same reference gets deserialized twice
 			return cache.computeIfAbsent((StorageReference) value, this::createStorageObject);
 		else if (value instanceof IntValue)
-			return ((IntValue) value).value;
+			return ((IntValue) value).getValue();
 		else if (value instanceof BooleanValue)
 			return ((BooleanValue) value).getValue();
 		else if (value instanceof LongValue)
-			return ((LongValue) value).value;
+			return ((LongValue) value).getValue();
 		else if (value instanceof NullValue)
 			return null;
 		else if (value instanceof ByteValue)
 			return ((ByteValue) value).getValue();
 		else if (value instanceof ShortValue)
-			return ((ShortValue) value).value;
+			return ((ShortValue) value).getValue();
 		else if (value instanceof CharValue)
-			return ((CharValue) value).value;
+			return ((CharValue) value).getValue();
 		else if (value instanceof FloatValue)
-			return ((FloatValue) value).value;
+			return ((FloatValue) value).getValue();
 		else if (value instanceof DoubleValue)
-			return ((DoubleValue) value).value;
+			return ((DoubleValue) value).getValue();
 		else if (value instanceof StringValue)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed:
 			// two parameters of an entry are never alias when they come from outside the node

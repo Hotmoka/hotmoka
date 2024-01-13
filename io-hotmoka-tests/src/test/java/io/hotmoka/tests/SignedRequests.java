@@ -10,6 +10,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -20,7 +21,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -96,7 +96,7 @@ public class SignedRequests {
                 transaction,
                 CodeSignature.RECEIVE_INT,
                 storageReference,
-                new IntValue(300)
+                StorageValues.intOf(300)
         );
 
         String signature = toBase64(request.getSignature());
@@ -133,7 +133,7 @@ public class SignedRequests {
                 BigInteger.valueOf(4000),
                 new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                 CodeSignature.RECEIVE_INT,
-                new IntValue(300)
+                StorageValues.intOf(300)
         );
 
         String signature = toBase64(request.getSignature());

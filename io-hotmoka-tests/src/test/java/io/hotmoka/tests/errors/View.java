@@ -27,11 +27,11 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.tests.HotmokaTest;
@@ -52,20 +52,20 @@ class View extends HotmokaTest {
 	void callNo1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
 
-		HotmokaTest.throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
+		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-				c, new IntValue(13), new IntValue(17)));
+				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
 	void callNo2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
 
-		HotmokaTest.throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
+		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 				new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-				c, new IntValue(13), new IntValue(17)));
+				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
@@ -74,6 +74,6 @@ class View extends HotmokaTest {
 
 		runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-			c, new IntValue(13), new IntValue(17));
+			c, StorageValues.intOf(13), StorageValues.intOf(17));
 	}
 }

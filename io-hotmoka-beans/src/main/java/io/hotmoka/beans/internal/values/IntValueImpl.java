@@ -14,34 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An {@code int} value stored in the store of a node.
  */
 @Immutable
-public final class IntValue extends StorageValueImpl {
-	public static final byte SELECTOR = 14;
+public final class IntValueImpl extends StorageValueImpl implements IntValue {
+	static final byte SELECTOR = 14;
 
 	/**
 	 * The value.
 	 */
-	public final int value;
+	private final int value;
 
 	/**
 	 * Builds an {@code int} value.
 	 * 
 	 * @param value the value
 	 */
-	public IntValue(int value) {
+	public IntValueImpl(int value) {
 		this.value = value;
+	}
+
+	@Override
+	public int getValue() {
+		return value;
 	}
 
 	@Override
@@ -51,7 +56,7 @@ public final class IntValue extends StorageValueImpl {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof IntValue iv && iv.value == value;
+		return other instanceof IntValue iv && iv.getValue() == value;
 	}
 
 	@Override
@@ -65,7 +70,7 @@ public final class IntValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Integer.compare(value, ((IntValue) other).value);
+			return Integer.compare(value, ((IntValueImpl) other).value);
 	}
 
 	@Override

@@ -27,13 +27,13 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -185,9 +185,9 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			StorageValue howMuch = actuals().findFirst().get();
 
 			if (receiveInt)
-				context.writeInt(((IntValue) howMuch).value);
+				context.writeInt(((IntValue) howMuch).getValue());
 			else if (receiveLong)
-				context.writeLong(((LongValue) howMuch).value);
+				context.writeLong(((LongValue) howMuch).getValue());
 			else
 				context.writeBigInteger(((BigIntegerValue) howMuch).value);
 		}
@@ -212,7 +212,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			var gasPrice = context.readBigInteger();
 			var classpath = TransactionReference.from(context);
 			var nonce = context.readBigInteger();
-			StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
+			var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 			var method = (MethodSignature) CodeSignature.from(context);
 			var receiver = StorageReference.from(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
@@ -232,13 +232,13 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 				int howMuch = context.readInt();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, new IntValue(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, StorageValues.intOf(howMuch));
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
 				long howMuch = context.readLong();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_LONG, receiver, new LongValue(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_LONG, receiver, StorageValues.longOf(howMuch));
 			}
 			else {
 				BigInteger howMuch = context.readBigInteger();

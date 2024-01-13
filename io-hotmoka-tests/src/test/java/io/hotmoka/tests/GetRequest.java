@@ -31,13 +31,13 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -58,7 +58,7 @@ class GetRequest extends HotmokaTest {
 
 	@Test @DisplayName("getRequest works for an existing transaction")
 	void getRequest() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionRequest<?> request = getRequest(abstractfail.transaction);
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
 		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).caller);
@@ -67,7 +67,7 @@ class GetRequest extends HotmokaTest {
 	@Test @DisplayName("getRequest works for a non-existing transaction")
 	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, new IntValue(42));
+			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 			String hash = abstractfail.transaction.getHash();
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';

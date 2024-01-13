@@ -19,15 +19,15 @@ package io.hotmoka.beans.api.values;
 import io.hotmoka.annotations.Immutable;
 
 /**
- * A {@code byte} value stored in blockchain.
+ * A {@code char} value stored in blockchain.
  */
 @Immutable
-public interface ByteValue extends StorageValue {
+public interface CharValue extends StorageValue {
 
 	/**
-	 * Yields the byte inside this object.
+	 * Yields the character inside this value.
 	 * 
-	 * @return the byte
-	 */
-	byte getValue();
+	 * @return the character
+	 */	
+	char getValue();
 }

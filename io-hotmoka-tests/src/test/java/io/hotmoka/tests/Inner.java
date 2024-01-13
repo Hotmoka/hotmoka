@@ -30,12 +30,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -71,7 +71,7 @@ class Inner extends HotmokaTest {
 	@Test @DisplayName("(new TestInner().new Inside(1000)).getBalance() == 1000")
 	void newTestInnerInsideGetBalance() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
-		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, new LongValue(1000L));
+		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
 		BigIntegerValue balance = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside);
 		
 		assertEquals(balance.value, BigInteger.valueOf(1000L));
@@ -80,7 +80,7 @@ class Inner extends HotmokaTest {
 	@Test @DisplayName("ti = new TestInner(); (ti.new Inside(1000)).getParent() == ti")
 	void newTestInnerInsideGetParent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
-		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, new LongValue(1000L));
+		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
 		StorageReference parent = (StorageReference) runInstanceMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside);
 		
 		assertEquals(testInner, parent);

@@ -37,13 +37,13 @@ import org.junit.jupiter.api.RepetitionInfo;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -95,7 +95,7 @@ class WTSC2021 extends HotmokaTest {
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
 				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
 				int amount = 1 + random.nextInt(10);
-				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, new IntValue(amount));
+				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, StorageValues.intOf(amount));
 				transfers.getAndIncrement();
 				transactions.getAndIncrement();
 			}

@@ -29,13 +29,13 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -67,7 +67,7 @@ public class Faucet extends HotmokaTest {
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
 			new NonVoidMethodSignature(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
-			gamete, new IntValue(100_000), new StringValue(publicKey)));
+			gamete, StorageValues.intOf(100_000), new StringValue(publicKey)));
 
 		assertNotNull(account);
 	}
@@ -89,6 +89,6 @@ public class Faucet extends HotmokaTest {
 			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
 				new NonVoidMethodSignature(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
-				gamete, new IntValue(100_000), new StringValue(publicKey))));
+				gamete, StorageValues.intOf(100_000), new StringValue(publicKey))));
 	}
 }

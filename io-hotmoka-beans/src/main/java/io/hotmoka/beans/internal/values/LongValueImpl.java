@@ -14,47 +14,68 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * The {@code null} value stored in blockchain.
+ * Implementation of a {@code long} value stored in blockchain.
  */
 @Immutable
-public final class NullValue extends StorageValueImpl {
-	public static final byte SELECTOR = 8;
-
-	public final static NullValue INSTANCE = new NullValue();
+public final class LongValueImpl extends StorageValueImpl implements LongValue {
+	static final byte SELECTOR = 7;
 
 	/**
-	 * Builds the {@code null} value. This constructor is private, so that
-	 * {@link io.hotmoka.beans.values.NullValue#INSTANCE} is the singleton
-	 * value existing of this class.
+	 * The value.
 	 */
-	private NullValue() {}
+	private final long value;
+
+	/**
+	 * Builds a {@code long} value.
+	 * 
+	 * @param value the value
+	 */
+	public LongValueImpl(long value) {
+		this.value = value;
+	}
+
+	@Override
+	public long getValue() {
+		return value;
+	}
 
 	@Override
 	public String toString() {
-		return "null";
+		return Long.toString(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NullValue;
+		return other instanceof LongValue lv && lv.getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return 13011973;
+		return Long.hashCode(value);
+	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		int diff = super.compareTo(other);
+		if (diff != 0)
+			return diff;
+		else
+			return Long.compare(value, ((LongValueImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
+		context.writeLong(value);
 	}
 }

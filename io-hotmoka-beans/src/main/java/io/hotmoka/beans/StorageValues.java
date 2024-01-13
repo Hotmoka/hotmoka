@@ -21,12 +21,26 @@ import java.io.IOException;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
+import io.hotmoka.beans.api.values.CharValue;
+import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.FloatValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.NullValue;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
 import io.hotmoka.beans.internal.values.BooleanValueImpl;
 import io.hotmoka.beans.internal.values.ByteValueImpl;
+import io.hotmoka.beans.internal.values.CharValueImpl;
+import io.hotmoka.beans.internal.values.DoubleValueImpl;
+import io.hotmoka.beans.internal.values.FloatValueImpl;
+import io.hotmoka.beans.internal.values.IntValueImpl;
+import io.hotmoka.beans.internal.values.LongValueImpl;
+import io.hotmoka.beans.internal.values.NullValueImpl;
+import io.hotmoka.beans.internal.values.ShortValueImpl;
 import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -40,12 +54,17 @@ public abstract class StorageValues {
 	/**
 	 * The true Boolean value.
 	 */
-	public final static BooleanValue TRUE = new BooleanValueImpl(true);
+	public final static BooleanValue TRUE = BooleanValueImpl.TRUE;
 
 	/**
 	 * The false Boolean value.
 	 */
-	public final static BooleanValue FALSE = new BooleanValueImpl(false);
+	public final static BooleanValue FALSE = BooleanValueImpl.FALSE;
+
+	/**
+	 * The {@code null} value.
+	 */
+	public final static NullValue NULL = NullValueImpl.NULL;
 
 	/**
 	 * Yields the storage value corresponding to the given boolean value.
@@ -65,6 +84,66 @@ public abstract class StorageValues {
 	 */
 	public static ByteValue byteOf(byte value) {
 		return new ByteValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given character value.
+	 * 
+	 * @param value the character value
+	 * @return the corresponding storage value
+	 */
+	public static CharValue charOf(char value) {
+		return new CharValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given short value.
+	 * 
+	 * @param value the short value
+	 * @return the corresponding storage value
+	 */
+	public static ShortValue shortOf(short value) {
+		return new ShortValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given {@code int} value.
+	 * 
+	 * @param value the {@code int} value
+	 * @return the corresponding storage value
+	 */
+	public static IntValue intOf(int value) {
+		return new IntValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given long value.
+	 * 
+	 * @param value the long value
+	 * @return the corresponding storage value
+	 */
+	public static LongValue longOf(long value) {
+		return new LongValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given double value.
+	 * 
+	 * @param value the double value
+	 * @return the corresponding storage value
+	 */
+	public static DoubleValue doubleOf(double value) {
+		return new DoubleValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given float value.
+	 * 
+	 * @param value the float value
+	 * @return the corresponding storage value
+	 */
+	public static FloatValue floatOf(float value) {
+		return new FloatValueImpl(value);
 	}
 
 	/**

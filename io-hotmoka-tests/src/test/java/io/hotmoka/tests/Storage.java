@@ -32,14 +32,15 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -85,23 +86,23 @@ class Storage extends HotmokaTest {
 	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.value, 0);
+		assertEquals(value.getValue(), 0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
 	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
+		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
 		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.value, 13);
+		assertEquals(value.getValue(), 13);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
 	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, new IntValue(13));
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, new IntValue(17));
+		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
+		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
 		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
-		assertEquals(value.value, 17);
+		assertEquals(value.getValue(), 17);
 	}
 }

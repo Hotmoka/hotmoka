@@ -31,11 +31,11 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.tests.HotmokaTest;
@@ -75,7 +75,7 @@ class Encapsulation extends HotmokaTest {
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
 			encapsulated);
 
-		assertSame(0, result.value);
+		assertSame(0, result.getValue());
 	}
 
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")

@@ -31,8 +31,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 
 /**
  * A test to check if class loaders correctly deal with a static method that calls another static method.
@@ -54,6 +54,6 @@ class StaticFromStatic extends HotmokaTest {
 		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
 
-		assertEquals(42, result.value);
+		assertEquals(42, result.getValue());
 	}
 }

@@ -19,9 +19,9 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -46,7 +46,7 @@ public final class UpdateToNullLazy extends UpdateOfField {
 
 	@Override
 	public StorageValue getValue() {
-		return NullValue.INSTANCE;
+		return StorageValues.NULL;
 	}
 
 	@Override

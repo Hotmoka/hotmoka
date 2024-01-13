@@ -39,6 +39,8 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -49,8 +51,6 @@ import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.IntValue;
-import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base64;
@@ -203,13 +203,13 @@ public class NodeCachesImpl implements NodeCache {
 				(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, gamete))).value;
 
 			long maxErrorLength = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_ERROR_LENGTH, manifest))).getValue();
 
 			long maxDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_DEPENDENCIES, manifest))).getValue();
 
 			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).getValue();
 
 			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.ALLOWS_SELF_CHARGED, manifest))).getValue();
@@ -239,13 +239,13 @@ public class NodeCachesImpl implements NodeCache {
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
 	
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_OBLIVION, gasStation))).getValue();
 	
 			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_INFLATION, validators))).getValue();
 
 			long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_VERIFICATION_VERSION, versions))).getValue();
 
 			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_SUPPLY, validators))).value;
@@ -257,16 +257,16 @@ public class NodeCachesImpl implements NodeCache {
 				(manifest, _100_000, takamakaCode, CodeSignature.GET_FINAL_SUPPLY, validators))).value;
 
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))).getValue();
 
 			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))).getValue();
 
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))).getValue();
 
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))).value;
+				(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))).getValue();
 
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
@@ -430,7 +430,7 @@ public class NodeCachesImpl implements NodeCache {
 			try {
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
-					CodeSignature.GET_CURRENT_INFLATION, getValidators().get()))).value;
+					CodeSignature.GET_CURRENT_INFLATION, getValidators().get()))).getValue();
 			}
 			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				throw new RuntimeException("could not determine the current inflation", e);

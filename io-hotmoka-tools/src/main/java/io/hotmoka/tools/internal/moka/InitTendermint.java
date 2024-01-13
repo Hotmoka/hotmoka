@@ -26,13 +26,14 @@ import java.util.Comparator;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -190,10 +191,10 @@ public class InitTendermint extends AbstractCommand {
 				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators));
 				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))).getValue();
 				for (int num = 0; num < numOfValidators; num++) {
 					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, new IntValue(num)));
+						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).value;
 					String publicKeyBase58 = Base58.encode(Base64.fromBase64String(publicKeyBase64));

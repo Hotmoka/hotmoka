@@ -14,49 +14,54 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code double} value stored in blockchain.
+ * Implementation of a {@code short} value stored in blockchain.
  */
 @Immutable
-public final class DoubleValue extends StorageValueImpl {
-	public static final byte SELECTOR = 4;
+public final class ShortValueImpl extends StorageValueImpl implements ShortValue {
+	static final byte SELECTOR = 9;
 
 	/**
 	 * The value.
 	 */
-	public final double value;
+	public final short value;
 
 	/**
-	 * Builds a {@code double} value.
+	 * Builds a {@code short} value.
 	 * 
 	 * @param value the value
 	 */
-	public DoubleValue(double value) {
+	public ShortValueImpl(short value) {
 		this.value = value;
 	}
 
 	@Override
+	public short getValue() {
+		return value;
+	}
+
+	@Override
 	public String toString() {
-		return Double.toString(value);
+		return Short.toString(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof DoubleValue dv && dv.value == value;
+		return other instanceof ShortValue sv && sv.getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return Double.hashCode(value);
+		return value;
 	}
 
 	@Override
@@ -65,12 +70,12 @@ public final class DoubleValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Double.compare(value, ((DoubleValue) other).value);
+			return Short.compare(value, ((ShortValueImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
-		context.writeDouble(value);
+		context.writeShort(value);
 	}
 }

@@ -14,34 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A {@code float} value stored in blockchain.
+ * Implementation of a {@code float} value stored in blockchain.
  */
 @Immutable
-public final class FloatValue extends StorageValueImpl {
-	public static final byte SELECTOR = 5;
+public final class FloatValueImpl extends StorageValueImpl implements FloatValue {
+	static final byte SELECTOR = 5;
 
 	/**
 	 * The value.
 	 */
-	public final float value;
+	private final float value;
 
 	/**
 	 * Builds a {@code float} value.
 	 * 
 	 * @param value the value
 	 */
-	public FloatValue(float value) {
+	public FloatValueImpl(float value) {
 		this.value = value;
+	}
+
+	@Override
+	public float getValue() {
+		return value;
 	}
 
 	@Override
@@ -51,7 +56,7 @@ public final class FloatValue extends StorageValueImpl {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof FloatValue fv && fv.value == value;
+		return other instanceof FloatValue fv && fv.getValue() == value;
 	}
 
 	@Override
@@ -65,7 +70,7 @@ public final class FloatValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Float.compare(value, ((FloatValue) other).value);
+			return Float.compare(value, ((FloatValueImpl) other).value);
 	}
 
 	@Override
