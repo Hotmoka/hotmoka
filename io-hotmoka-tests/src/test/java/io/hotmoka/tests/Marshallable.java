@@ -26,7 +26,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.FloatValue;
@@ -433,13 +432,12 @@ public class Marshallable {
     }
 
     @Test
-    @DisplayName("new ByteValue(32)")
+    @DisplayName("StorageValues.byteOf(32)")
     public void testByteValue() throws IOException {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            StorageValue storageValue = new ByteValue((byte) 32);
-            storageValue.into(context);
+        	StorageValues.byteOf((byte) 32).into(context);
             context.flush();
             bytes = baos.toByteArray();
         }

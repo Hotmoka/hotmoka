@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.network.updates;
 
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
@@ -147,7 +147,7 @@ public class UpdateModel {
 			else if (value instanceof BooleanValue)
 				return new UpdateOfBoolean(object, field, ((BooleanValue) value).getValue());
 			else if (value instanceof ByteValue)
-				return new UpdateOfByte(object, field, ((ByteValue) value).value);
+				return new UpdateOfByte(object, field, ((ByteValue) value).getValue());
 			else if (value instanceof CharValue)
 				return new UpdateOfChar(object, field, ((CharValue) value).value);
 			else if (value instanceof DoubleValue)

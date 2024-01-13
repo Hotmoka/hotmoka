@@ -20,9 +20,9 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
@@ -177,7 +177,7 @@ public class StorageValueModel {
 		else if (type.equals("boolean"))
             return StorageValues.booleanOf(Boolean.parseBoolean(value));
     	else if (type.equals("byte"))
-            return new ByteValue(Byte.parseByte(value));
+            return StorageValues.byteOf(Byte.parseByte(value));
     	else if (type.equals("char"))
             return new CharValue(value.charAt(0));
     	else if (type.equals("short"))

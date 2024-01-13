@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,11 +20,13 @@ import java.io.IOException;
 
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
 import io.hotmoka.beans.internal.values.BooleanValueImpl;
+import io.hotmoka.beans.internal.values.ByteValueImpl;
 import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -53,6 +55,16 @@ public abstract class StorageValues {
 	 */
 	public static BooleanValue booleanOf(boolean value) {
 		return value ? TRUE : FALSE;
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given byte value.
+	 * 
+	 * @param value the byte value
+	 * @return the corresponding storage value
+	 */
+	public static ByteValue byteOf(byte value) {
+		return new ByteValueImpl(value);
 	}
 
 	/**

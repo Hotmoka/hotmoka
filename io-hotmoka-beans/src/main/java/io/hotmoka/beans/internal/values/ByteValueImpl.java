@@ -14,34 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A {@code byte} value stored in blockchain.
  */
 @Immutable
-public final class ByteValue extends StorageValueImpl {
+public final class ByteValueImpl extends StorageValueImpl implements ByteValue {
 	public static final byte SELECTOR = 2;
 
 	/**
 	 * The value.
 	 */
-	public final byte value;
+	private final byte value;
 
 	/**
 	 * Builds a {@code byte} value.
 	 * 
 	 * @param value the value
 	 */
-	public ByteValue(byte value) {
+	public ByteValueImpl(byte value) {
 		this.value = value;
+	}
+
+	@Override
+	public byte getValue() {
+		return value;
 	}
 
 	@Override
@@ -51,7 +56,7 @@ public final class ByteValue extends StorageValueImpl {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ByteValue bv && bv.value == value;
+		return other instanceof ByteValueImpl bv && bv.value == value;
 	}
 
 	@Override
@@ -65,7 +70,7 @@ public final class ByteValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Byte.compare(value, ((ByteValue) other).value);
+			return Byte.compare(value, ((ByteValueImpl) other).value);
 	}
 
 	@Override

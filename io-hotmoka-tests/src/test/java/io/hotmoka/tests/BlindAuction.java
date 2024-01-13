@@ -19,6 +19,7 @@ package io.hotmoka.tests;
 import static io.hotmoka.beans.StorageTypes.BOOLEAN;
 import static io.hotmoka.beans.StorageTypes.BYTE;
 import static io.hotmoka.beans.StorageTypes.INT;
+import static io.hotmoka.beans.StorageValues.byteOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
@@ -47,7 +48,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -183,14 +183,14 @@ class BlindAuction extends HotmokaTest {
 		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException {
 			this.bytes32 = addConstructorCallTransaction
 				(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
-					new ByteValue(salt[0]), new ByteValue(salt[1]), new ByteValue(salt[2]), new ByteValue(salt[3]),
-					new ByteValue(salt[4]), new ByteValue(salt[5]), new ByteValue(salt[6]), new ByteValue(salt[7]),
-					new ByteValue(salt[8]), new ByteValue(salt[9]), new ByteValue(salt[10]), new ByteValue(salt[11]),
-					new ByteValue(salt[12]), new ByteValue(salt[13]), new ByteValue(salt[14]), new ByteValue(salt[15]),
-					new ByteValue(salt[16]), new ByteValue(salt[17]), new ByteValue(salt[18]), new ByteValue(salt[19]),
-					new ByteValue(salt[20]), new ByteValue(salt[21]), new ByteValue(salt[22]), new ByteValue(salt[23]),
-					new ByteValue(salt[24]), new ByteValue(salt[25]), new ByteValue(salt[26]), new ByteValue(salt[27]),
-					new ByteValue(salt[28]), new ByteValue(salt[29]), new ByteValue(salt[30]), new ByteValue(salt[31]));
+					byteOf(salt[0]), byteOf(salt[1]), byteOf(salt[2]), byteOf(salt[3]),
+					byteOf(salt[4]), byteOf(salt[5]), byteOf(salt[6]), byteOf(salt[7]),
+					byteOf(salt[8]), byteOf(salt[9]), byteOf(salt[10]), byteOf(salt[11]),
+					byteOf(salt[12]), byteOf(salt[13]), byteOf(salt[14]), byteOf(salt[15]),
+					byteOf(salt[16]), byteOf(salt[17]), byteOf(salt[18]), byteOf(salt[19]),
+					byteOf(salt[20]), byteOf(salt[21]), byteOf(salt[22]), byteOf(salt[23]),
+					byteOf(salt[24]), byteOf(salt[25]), byteOf(salt[26]), byteOf(salt[27]),
+					byteOf(salt[28]), byteOf(salt[29]), byteOf(salt[30]), byteOf(salt[31]));
 		}
 	}
 
@@ -202,9 +202,9 @@ class BlindAuction extends HotmokaTest {
 
 		List<BidToReveal> bids = new ArrayList<>();
 
-		BigInteger maxBid = BigInteger.ZERO;
+		var maxBid = BigInteger.ZERO;
 		StorageReference expectedWinner = null;
-		Random random = new Random();
+		var random = new Random();
 		int i = 1;
 		while (i <= NUM_BIDS) {
 			int player = 1 + random.nextInt(3);
@@ -275,14 +275,14 @@ class BlindAuction extends HotmokaTest {
 	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return addConstructorCallTransaction
 			(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
-				new ByteValue(hash[0]), new ByteValue(hash[1]), new ByteValue(hash[2]), new ByteValue(hash[3]),
-				new ByteValue(hash[4]), new ByteValue(hash[5]), new ByteValue(hash[6]), new ByteValue(hash[7]),
-				new ByteValue(hash[8]), new ByteValue(hash[9]), new ByteValue(hash[10]), new ByteValue(hash[11]),
-				new ByteValue(hash[12]), new ByteValue(hash[13]), new ByteValue(hash[14]), new ByteValue(hash[15]),
-				new ByteValue(hash[16]), new ByteValue(hash[17]), new ByteValue(hash[18]), new ByteValue(hash[19]),
-				new ByteValue(hash[20]), new ByteValue(hash[21]), new ByteValue(hash[22]), new ByteValue(hash[23]),
-				new ByteValue(hash[24]), new ByteValue(hash[25]), new ByteValue(hash[26]), new ByteValue(hash[27]),
-				new ByteValue(hash[28]), new ByteValue(hash[29]), new ByteValue(hash[30]), new ByteValue(hash[31]));
+				byteOf(hash[0]), byteOf(hash[1]), byteOf(hash[2]), byteOf(hash[3]),
+				byteOf(hash[4]), byteOf(hash[5]), byteOf(hash[6]), byteOf(hash[7]),
+				byteOf(hash[8]), byteOf(hash[9]), byteOf(hash[10]), byteOf(hash[11]),
+				byteOf(hash[12]), byteOf(hash[13]), byteOf(hash[14]), byteOf(hash[15]),
+				byteOf(hash[16]), byteOf(hash[17]), byteOf(hash[18]), byteOf(hash[19]),
+				byteOf(hash[20]), byteOf(hash[21]), byteOf(hash[22]), byteOf(hash[23]),
+				byteOf(hash[24]), byteOf(hash[25]), byteOf(hash[26]), byteOf(hash[27]),
+				byteOf(hash[28]), byteOf(hash[29]), byteOf(hash[30]), byteOf(hash[31]));
 	}
 
 	private static void sleep(long milliseconds) {

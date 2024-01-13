@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
@@ -72,7 +71,7 @@ public class Serializer {
 		else if (object instanceof Boolean)
 			return StorageValues.booleanOf((Boolean) object);
 		else if (object instanceof Byte)
-			return new ByteValue((Byte) object);
+			return StorageValues.byteOf((Byte) object);
 		else if (object instanceof Character)
 			return new CharValue((Character) object);
 		else if (object instanceof Double)

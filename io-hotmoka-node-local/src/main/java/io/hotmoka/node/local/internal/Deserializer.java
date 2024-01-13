@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
@@ -36,7 +37,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
@@ -155,7 +155,7 @@ public class Deserializer {
 		else if (value instanceof NullValue)
 			return null;
 		else if (value instanceof ByteValue)
-			return ((ByteValue) value).value;
+			return ((ByteValue) value).getValue();
 		else if (value instanceof ShortValue)
 			return ((ShortValue) value).value;
 		else if (value instanceof CharValue)

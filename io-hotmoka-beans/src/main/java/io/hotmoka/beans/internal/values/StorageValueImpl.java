@@ -26,7 +26,6 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
 import io.hotmoka.beans.values.EnumValue;
@@ -59,7 +58,7 @@ public abstract class StorageValueImpl extends AbstractMarshallable implements S
 		if (type == StorageTypes.BOOLEAN)
 			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)
-			return new ByteValue(Byte.parseByte(s));
+			return StorageValues.byteOf(Byte.parseByte(s));
 		else if (type == StorageTypes.CHAR) {
 			if (s.length() != 1)
 				throw new IllegalArgumentException("the value is not a character");
@@ -106,7 +105,7 @@ public abstract class StorageValueImpl extends AbstractMarshallable implements S
 		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());
 		case BooleanValueImpl.SELECTOR_TRUE: return StorageValues.TRUE;
 		case BooleanValueImpl.SELECTOR_FALSE: return StorageValues.FALSE;
-		case ByteValue.SELECTOR: return new ByteValue(context.readByte());
+		case ByteValueImpl.SELECTOR: return StorageValues.byteOf(context.readByte());
 		case CharValue.SELECTOR: return new CharValue(context.readChar());
 		case DoubleValue.SELECTOR: return new DoubleValue(context.readDouble());
 		case EnumValue.SELECTOR: return new EnumValue(context.readStringUnshared(), context.readStringUnshared());
