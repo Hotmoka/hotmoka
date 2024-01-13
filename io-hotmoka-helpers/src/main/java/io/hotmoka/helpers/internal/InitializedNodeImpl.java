@@ -33,9 +33,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -51,11 +53,9 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
@@ -113,7 +113,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			new ConstructorSignature("io.takamaka.code.governance.GenericGasStation$Builder",
 					StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
 			new BigIntegerValue(consensus.getInitialGasPrice()), new BigIntegerValue(consensus.getMaxGasPerTransaction()),
-			new BooleanValue(consensus.ignoresGasPrice()), new BigIntegerValue(consensus.getTargetGasAtReward()),
+			StorageValues.booleanOf(consensus.ignoresGasPrice()), new BigIntegerValue(consensus.getTargetGasAtReward()),
 			new LongValue(consensus.getOblivion()));
 
 		return node.addConstructorCallTransaction(request);
@@ -177,8 +177,8 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
 			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
-			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
-			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.skipsVerification()),
+			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
+			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
@@ -240,8 +240,8 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
 			new StringValue(consensus.getGenesisTime().toString()),
 			new StringValue(consensus.getChainId()), new LongValue(consensus.getMaxErrorLength()), new LongValue(consensus.getMaxDependencies()),
-			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), new BooleanValue(consensus.allowsSelfCharged()),
-			new BooleanValue(consensus.allowsUnsignedFaucet()), new BooleanValue(consensus.skipsVerification()),
+			new LongValue(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
+			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
 			new StringValue(consensus.getSignature().getName()), gamete, new LongValue(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 

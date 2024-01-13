@@ -1,0 +1,117 @@
+/*
+Copyright 2023 Fausto Spoto
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+package io.hotmoka.beans;
+
+import java.io.IOException;
+
+import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
+import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
+import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.values.BooleanValueImpl;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
+
+/**
+ * Providers of storage types.
+ */
+public abstract class StorageValues {
+
+	private StorageValues() {}
+
+	/**
+	 * The true Boolean value.
+	 */
+	public final static BooleanValue TRUE = new BooleanValueImpl(true);
+
+	/**
+	 * The false Boolean value.
+	 */
+	public final static BooleanValue FALSE = new BooleanValueImpl(false);
+
+	/**
+	 * Yields the storage value corresponding to the given boolean value.
+	 * 
+	 * @param value the boolean value
+	 * @return the corresponding storage value
+	 */
+	public static BooleanValue booleanOf(boolean value) {
+		return value ? TRUE : FALSE;
+	}
+
+	/**
+	 * Yields a storage value from the given string and of the given type.
+	 * 
+	 * @param s the string; use {@code "null"} for null; use the fully-qualified
+	 *        representation for enum's (such as "com.mycompany.MyEnum.CONSTANT")
+	 * @param type the type of the storage value
+	 * @return the resulting storage value
+	 */
+	public static StorageValue of(String s, StorageType type) {
+		return StorageValueImpl.of(s, type);
+	}
+
+	/**
+	 * Factory method that unmarshals a value from the given stream.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the value
+	 * @throws IOException if the value could not be unmarshalled
+	 */
+	public static StorageValue from(UnmarshallingContext context) throws IOException {
+		return StorageValueImpl.from(context);
+	}
+
+	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends StorageTypeEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends StorageTypeDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends StorageTypeJson {
+
+    	/**
+    	 * Creates the Json representation for the given type.
+    	 * 
+    	 * @param type the type
+    	 */
+    	public Json(StorageType type) {
+    		super(type);
+    	}
+    }
+}

@@ -19,8 +19,8 @@ package io.hotmoka.node.api;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
-import io.hotmoka.beans.values.StorageValue;
 
 /**
  * The future of a transaction that executes code in a node.

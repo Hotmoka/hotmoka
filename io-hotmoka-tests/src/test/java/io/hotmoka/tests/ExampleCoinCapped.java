@@ -36,11 +36,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -109,7 +109,7 @@ class ExampleCoinCapped extends HotmokaTest {
                 cap, ubi_1M);
         // equals_result = cap.equals(1'000'000*10^18) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test
@@ -137,7 +137,7 @@ class ExampleCoinCapped extends HotmokaTest {
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _100_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_900000);
         // equals_result2 = supply.equals(900'000*10^18) = true
 
-        assertTrue(equals_result1.value && equals_result2.value);
+        assertTrue(equals_result1.getValue() && equals_result2.getValue());
     }
 
     @Test @DisplayName("Test of ERC20Capped _mint method with the generation of some Exceptions (over the cap)")
@@ -177,6 +177,6 @@ class ExampleCoinCapped extends HotmokaTest {
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _100_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_200000);
         // equals_result2 = supply.equals(200'000*10^18) = true
 
-        assertTrue(equals_result1.value && equals_result2.value);
+        assertTrue(equals_result1.getValue() && equals_result2.getValue());
     }
 }

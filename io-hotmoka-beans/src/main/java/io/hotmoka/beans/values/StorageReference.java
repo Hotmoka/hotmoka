@@ -23,6 +23,8 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
@@ -35,10 +37,10 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference extends StorageValue implements Serializable {
+public final class StorageReference extends StorageValueImpl implements Serializable {
 	private static final long serialVersionUID = 1899009680134694798L;
 
-	static final byte SELECTOR = 11;
+	public static final byte SELECTOR = 11;
 
 	/**
 	 * The transaction that created the object.
@@ -85,7 +87,7 @@ public final class StorageReference extends StorageValue implements Serializable
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 

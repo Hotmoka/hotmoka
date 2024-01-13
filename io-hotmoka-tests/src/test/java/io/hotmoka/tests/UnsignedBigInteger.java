@@ -42,11 +42,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -129,7 +129,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_sum, ubi_111);
         // equals_result = ubi_sum.equals(111) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of subtract method: 100.subtract(1).equals(99) == true")
@@ -152,7 +152,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_sub, ubi_99);
         // equals_result = ubi_sub.equals(99) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of subtract method with the generation of an Exception: 100.subtract(101, 'Test Exception')")
@@ -190,7 +190,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_mul, ubi_900);
         // equals_result = ubi_mul.equals(900) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(8).equals(112) == true ")
@@ -213,7 +213,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_div, ubi_112);
         // equals_result = ubi_div.equals(112) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of divide method: 900.divide(11).equals(81) == true ")
@@ -236,7 +236,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_div, ubi_81);
         // equals_result = ubi_div.equals(81) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of divide method with the generation of an Exception: 900.divide(0, 'Test Exception /0')")
@@ -274,7 +274,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_mod, ubi_7);
         // equals_result = ubi_mod.equals(7) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of mod method with the generation of an Exception: 800.mod(0, 'Test Exception /0')")
@@ -312,7 +312,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_pow, ubi_2097152);
         // equals_result = ubi_pow.equals(2097152) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of max method: 800.max(799).equals(800) == true")
@@ -335,7 +335,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_max, ubi__800);
         // equals_result = ubi_max.equals(800) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of min method: 800.min(799).equals(799) == true")
@@ -358,7 +358,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_min, ubi__799);
         // equals_result = ubi_min.equals(799) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of compareTo method: 800.compareTo(799) == 1, 799.compareTo(800) == -1, 800.compareTo(800) == 0")
@@ -413,8 +413,8 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_800, ubi__800);
         // result_equals2 = 800.compareTo(800') = true
 
-        assertFalse(result_equals1.value);
-        assertTrue(result_equals2.value);
+        assertFalse(result_equals1.getValue());
+        assertTrue(result_equals2.getValue());
     }
 
     @Test @DisplayName("Test of hashCode method: 800.hashCode == 800.hashCode(), 800.hashCode != 799.hashCode()")
@@ -508,7 +508,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_result, ubi_99);
         // equals_result = ubi_result.equals(99) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of valueOf method with the generation of an Exception: long@-99.valueOf()")

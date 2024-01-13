@@ -14,15 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.values.BigIntegerValue;
+import io.hotmoka.beans.values.ByteValue;
+import io.hotmoka.beans.values.CharValue;
+import io.hotmoka.beans.values.DoubleValue;
+import io.hotmoka.beans.values.EnumValue;
+import io.hotmoka.beans.values.FloatValue;
+import io.hotmoka.beans.values.IntValue;
+import io.hotmoka.beans.values.LongValue;
+import io.hotmoka.beans.values.NullValue;
+import io.hotmoka.beans.values.ShortValue;
+import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -31,7 +45,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A value that can be stored in the blockchain, passed as argument to an entry
  * or returned from an entry.
  */
-public abstract class StorageValue extends AbstractMarshallable implements Comparable<StorageValue> {
+public abstract class StorageValueImpl extends AbstractMarshallable implements StorageValue {
 
 	/**
 	 * Yields a storage value from the given string and of the given type.
@@ -43,7 +57,7 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 	 */
 	public static StorageValue of(String s, StorageType type) {
 		if (type == StorageTypes.BOOLEAN)
-			return new BooleanValue(Boolean.parseBoolean(s));
+			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)
 			return new ByteValue(Byte.parseByte(s));
 		else if (type == StorageTypes.CHAR) {
@@ -90,8 +104,8 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 		var selector = context.readByte();
 		switch (selector) {
 		case BigIntegerValue.SELECTOR: return new BigIntegerValue(context.readBigInteger());
-		case BooleanValue.SELECTOR_TRUE: return BooleanValue.TRUE;
-		case BooleanValue.SELECTOR_FALSE: return BooleanValue.FALSE;
+		case BooleanValueImpl.SELECTOR_TRUE: return StorageValues.TRUE;
+		case BooleanValueImpl.SELECTOR_FALSE: return StorageValues.FALSE;
 		case ByteValue.SELECTOR: return new ByteValue(context.readByte());
 		case CharValue.SELECTOR: return new CharValue(context.readChar());
 		case DoubleValue.SELECTOR: return new DoubleValue(context.readDouble());
@@ -110,6 +124,11 @@ public abstract class StorageValue extends AbstractMarshallable implements Compa
 			else
 				return new IntValue(selector - IntValue.SELECTOR - 1);
 		}
+	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		return getClass().getName().compareTo(other.getClass().getName());
 	}
 
 	@Override

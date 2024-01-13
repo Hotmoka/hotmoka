@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -36,7 +38,6 @@ import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
@@ -47,7 +48,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.signatures.FieldSignatureModel;
 import io.hotmoka.network.values.StorageReferenceModel;
@@ -145,7 +145,7 @@ public class UpdateModel {
 			else if (value instanceof StorageReference)
 				return new UpdateOfStorage(object, field, ((StorageReference) value));
 			else if (value instanceof BooleanValue)
-				return new UpdateOfBoolean(object, field, ((BooleanValue) value).value);
+				return new UpdateOfBoolean(object, field, ((BooleanValue) value).getValue());
 			else if (value instanceof ByteValue)
 				return new UpdateOfByte(object, field, ((ByteValue) value).value);
 			else if (value instanceof CharValue)

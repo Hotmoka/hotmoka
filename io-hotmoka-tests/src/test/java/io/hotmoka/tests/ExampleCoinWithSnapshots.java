@@ -38,12 +38,12 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -188,7 +188,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         //vcreator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-        assertTrue(transfer_result.value);
+        assertTrue(transfer_result.getValue());
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
 
@@ -238,7 +238,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-        assertTrue(transfer_result.value);
+        assertTrue(transfer_result.getValue());
 
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -247,7 +247,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor2, ubi_4000);
         // creator@transfer(4000, investor2) > [creator:199999999999999999991000, investor1:5000, investor2:4000]
-        assertTrue(transfer_result2.value);
+        assertTrue(transfer_result2.getValue());
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
 
@@ -301,7 +301,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-        assertTrue(transfer_result.value);
+        assertTrue(transfer_result.getValue());
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -317,7 +317,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_3000);
         // creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
-        assertTrue(transfer_result2.value);
+        assertTrue(transfer_result2.getValue());
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
         StorageReference ubi_2 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("2"));
@@ -391,7 +391,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-        assertTrue(transfer_result.value);
+        assertTrue(transfer_result.getValue());
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -414,7 +414,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_3000);
         // creator@transfer(3000, investor1) > [creator:199999999999999999992000, investor1:8000]
-        assertTrue(transfer_result2.value);
+        assertTrue(transfer_result2.getValue());
 
         StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1"));
         StorageReference ubi_2 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("2"));
@@ -524,7 +524,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999995000, investor1:5000]
-        assertTrue(transfer_result.value);
+        assertTrue(transfer_result.getValue());
 
         BooleanValue transfer_result2 = (BooleanValue) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -533,7 +533,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
                 example_token,
                 investor1, ubi_5000);
         // creator@transfer(5000, investor1) > [creator:199999999999999999990000, investor1:10000]
-        assertTrue(transfer_result2.value);
+        assertTrue(transfer_result2.getValue());
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,

@@ -19,14 +19,15 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The {@code null} value stored in blockchain.
  */
 @Immutable
-public final class NullValue extends StorageValue {
-	static final byte SELECTOR = 8;
+public final class NullValue extends StorageValueImpl {
+	public static final byte SELECTOR = 8;
 
 	public final static NullValue INSTANCE = new NullValue();
 
@@ -50,11 +51,6 @@ public final class NullValue extends StorageValue {
 	@Override
 	public int hashCode() {
 		return 13011973;
-	}
-
-	@Override
-	public int compareTo(StorageValue other) {
-		return getClass().getName().compareTo(other.getClass().getName());
 	}
 
 	@Override

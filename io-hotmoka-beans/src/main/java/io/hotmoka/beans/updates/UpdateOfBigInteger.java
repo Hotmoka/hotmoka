@@ -22,10 +22,10 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

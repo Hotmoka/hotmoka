@@ -36,11 +36,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -136,7 +136,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _100_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 500000) = true
 
-        assertTrue(equals_result1.value && equals_result2.value);
+        assertTrue(equals_result1.getValue() && equals_result2.getValue());
     }
 
     @Test
@@ -185,8 +185,8 @@ class ExampleCoinBurnable extends HotmokaTest {
         BooleanValue equals_result4 = (BooleanValue) runInstanceMethodCallTransaction(creator, _100_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 4000) = true
 
-        assertTrue(approve_result.value);
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value && equals_result4.value);
+        assertTrue(approve_result.getValue());
+        assertTrue(equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue() && equals_result4.getValue());
     }
 
     @Test
@@ -242,7 +242,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _100_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor2_balance, ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        assertTrue(approve_result.value);
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(approve_result.getValue());
+        assertTrue(equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue());
     }
 }

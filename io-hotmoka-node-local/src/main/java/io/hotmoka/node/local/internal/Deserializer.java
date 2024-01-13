@@ -28,13 +28,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
@@ -45,7 +46,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -149,7 +149,7 @@ public class Deserializer {
 		else if (value instanceof IntValue)
 			return ((IntValue) value).value;
 		else if (value instanceof BooleanValue)
-			return ((BooleanValue) value).value;
+			return ((BooleanValue) value).getValue();
 		else if (value instanceof LongValue)
 			return ((LongValue) value).value;
 		else if (value instanceof NullValue)

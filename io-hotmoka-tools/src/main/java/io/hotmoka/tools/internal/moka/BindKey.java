@@ -19,10 +19,10 @@ package io.hotmoka.tools.internal.moka;
 import java.nio.file.Paths;
 import java.util.Base64;
 
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;

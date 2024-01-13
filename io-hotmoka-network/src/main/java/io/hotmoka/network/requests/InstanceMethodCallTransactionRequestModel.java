@@ -19,8 +19,8 @@ package io.hotmoka.network.requests;
 import java.math.BigInteger;
 import java.util.Base64;
 
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 

@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -45,7 +46,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
@@ -230,14 +230,14 @@ class Basic extends HotmokaTest {
 	void aliasBetweenStorage1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StorageReference a2 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
-		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.FALSE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a2));
 	}
 
 	@Test @DisplayName("a1 = new Alias(); a1.test(a1, a1)=true")
 	void aliasBetweenStorage2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
-		assertEquals(new BooleanValue(true), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.TRUE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, ALIAS, ALIAS), a1, a1, a1));
 	}
 
@@ -246,7 +246,7 @@ class Basic extends HotmokaTest {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
 		StringValue s2 = new StringValue("hello");
-		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.FALSE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s2));
 	}
 
@@ -254,7 +254,7 @@ class Basic extends HotmokaTest {
 	void aliasBetweenString2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		StringValue s1 = new StringValue("hello");
-		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.FALSE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.STRING, StorageTypes.STRING), a1, s1, s1));
 	}
 
@@ -263,7 +263,7 @@ class Basic extends HotmokaTest {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
 		BigIntegerValue bi2 = new BigIntegerValue(BigInteger.valueOf(13L));
-		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.FALSE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi2));
 	}
 
@@ -271,7 +271,7 @@ class Basic extends HotmokaTest {
 	void aliasBetweenBigInteger2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference a1 = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, CONSTRUCTOR_ALIAS);
 		BigIntegerValue bi1 = new BigIntegerValue(BigInteger.valueOf(13L));
-		assertEquals(new BooleanValue(false), runInstanceMethodCallTransaction
+		assertEquals(StorageValues.FALSE, runInstanceMethodCallTransaction
 			(master, _50_000, classpath, new NonVoidMethodSignature(ALIAS, "test", StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), a1, bi1, bi1));
 	}
 

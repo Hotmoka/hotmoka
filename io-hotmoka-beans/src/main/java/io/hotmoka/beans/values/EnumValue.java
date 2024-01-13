@@ -20,14 +20,16 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An element of an enumeration stored in blockchain.
  */
 @Immutable
-public final class EnumValue extends StorageValue {
-	static final byte SELECTOR = 12;
+public final class EnumValue extends StorageValueImpl {
+	public static final byte SELECTOR = 12;
 
 	/**
 	 * The name of the class of the enumeration.
@@ -69,15 +71,15 @@ public final class EnumValue extends StorageValue {
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 
 		diff = enumClassName.compareTo(((EnumValue) other).enumClassName);
 		if (diff != 0)
 			return diff;
-		else
-			return name.compareTo(((EnumValue) other).name);
+
+		return name.compareTo(((EnumValue) other).name);
 	}
 
 	@Override

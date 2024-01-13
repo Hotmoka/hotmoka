@@ -14,43 +14,40 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A {@code boolean} value stored in blockchain.
  */
 @Immutable
-public final class BooleanValue extends StorageValue {
+public final class BooleanValueImpl extends StorageValueImpl implements BooleanValue {
 	static final byte SELECTOR_TRUE = 0;
 	static final byte SELECTOR_FALSE = 1;
 
 	/**
-	 * The true Boolean value.
-	 */
-	public final static BooleanValue TRUE = new BooleanValue(true);
-
-	/**
-	 * The false Boolean value.
-	 */
-	public final static BooleanValue FALSE = new BooleanValue(false);
-
-	/**
 	 * The value.
 	 */
-	public final boolean value;
+	private final boolean value;
 
 	/**
 	 * Builds a {@code boolean} value.
 	 * 
 	 * @param value the value
 	 */
-	public BooleanValue(boolean value) {
+	public BooleanValueImpl(boolean value) {
 		this.value = value;
+	}
+
+	@Override
+	public boolean getValue() {
+		return value;
 	}
 
 	@Override
@@ -60,7 +57,7 @@ public final class BooleanValue extends StorageValue {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof BooleanValue bv && bv.value == value;
+		return other instanceof BooleanValue bv && bv.getValue() == value;
 	}
 
 	@Override
@@ -70,11 +67,11 @@ public final class BooleanValue extends StorageValue {
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 		else
-			return Boolean.compare(value, ((BooleanValue) other).value);
+			return Boolean.compare(value, ((BooleanValue) other).getValue());
 	}
 
 	@Override

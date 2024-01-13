@@ -18,8 +18,8 @@ package io.hotmoka.network.requests;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 

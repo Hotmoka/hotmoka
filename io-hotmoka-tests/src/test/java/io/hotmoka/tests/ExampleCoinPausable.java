@@ -37,11 +37,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
@@ -114,7 +114,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 example_token);
         // paused = example_token.paused() == false
 
-        assertFalse(paused.value);
+        assertFalse(paused.getValue());
     }
 
     @Test @DisplayName("Test of ERC20Pausable _pause method: example_token.pause(...)")
@@ -135,7 +135,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 example_token);
         // paused = example_token.paused() == true
 
-        assertTrue(paused.value);
+        assertTrue(paused.getValue());
     }
 
     @Test @DisplayName("Test of ERC20Pausable _pause method with the generation of an Exception")
@@ -191,7 +191,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 example_token);
         // paused_after = example_token.paused() == false
 
-        assertTrue(paused_before.value && !paused_after.value);
+        assertTrue(paused_before.getValue() && !paused_after.getValue());
     }
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method with the generation of an Exception")
@@ -252,7 +252,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        assertTrue(transfer_result.value && equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(transfer_result.getValue() && equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception when the contract is in the paused state")

@@ -33,9 +33,9 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.NullValue;
-import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A test for the installation in the node of a class with the same name

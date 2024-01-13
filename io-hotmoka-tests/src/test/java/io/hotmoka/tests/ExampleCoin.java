@@ -38,11 +38,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.beans.values.StringValue;
@@ -171,7 +171,7 @@ class ExampleCoin extends HotmokaTest {
                 supply, ubi_check);
         // equals_result = supply.equals(200'000*10^18) = true
 
-        assertTrue(equals_result.value);
+        assertTrue(equals_result.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 transfer method (and balanceOf): example_token.transfer(recipient, 5000) --> balances[caller]-=5000, balances[recipient]+=5000")
@@ -218,7 +218,7 @@ class ExampleCoin extends HotmokaTest {
                 ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        assertTrue(transfer_result.value && equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(transfer_result.getValue() && equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception: example_token.transfer(recipient, 5000) when the caller has no funds ")
@@ -265,7 +265,7 @@ class ExampleCoin extends HotmokaTest {
                 ubi_4000);
         // equals_result = ubi_allowance.equals(4000) = true
 
-        assertTrue(approve_result.value && equals_result.value);
+        assertTrue(approve_result.getValue() && equals_result.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 allowance method: as soon as the token is created example_token.allowance(X, Y) is always 0 for all X,Y")
@@ -293,7 +293,7 @@ class ExampleCoin extends HotmokaTest {
                 ubi_0);
         // equals_result2 = ubi_allowance2.equals(0) = true
 
-        assertTrue(equals_result.value && equals_result2.value);
+        assertTrue(equals_result.getValue() && equals_result2.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 transferFrom method: example_token.transferFrom(sender, recipient, 7000) --> balances[sender]-=7000, balances[recipient]+=7000")
@@ -341,8 +341,8 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result4 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), ubi_remaining_allowance, ubi_3000);
         // equals_result4 = ubi_remaining_allowance.equals(3000) = true
 
-        assertTrue(approve_result.value && transfer_from_result.value);
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value && equals_result4.value);
+        assertTrue(approve_result.getValue() && transfer_from_result.getValue());
+        assertTrue(equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue() && equals_result4.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 transferFrom method with the generation of some Exceptions")
@@ -397,8 +397,8 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), investor2_balance, ubi_0);
         // equals_result3 = investor2_balance.equals(0) = true
 
-        assertTrue(approve_result.value);
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(approve_result.getValue());
+        assertTrue(equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue());
     }
 
     @Test @DisplayName("iToken Duplication Incident Test (based on transferFrom)")
@@ -448,7 +448,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1_tokens_ubi);
         // investor1_tokens_string = "1000"
 
-        assertTrue(transfer_result.value && approve_result.value && transfer_from_result.value);
+        assertTrue(transfer_result.getValue() && approve_result.getValue() && transfer_from_result.getValue());
         assertEquals(investor1_tokens_string.value, "1000");
     }
 
@@ -491,7 +491,7 @@ class ExampleCoin extends HotmokaTest {
                 ubi_4999);
         // equals_result = ubi_allowance.equals(4999) = true
 
-        assertTrue(approve_result.value && increase_result.value && equals_result.value);
+        assertTrue(approve_result.getValue() && increase_result.getValue() && equals_result.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 decreaseAllowance method: example_token.decreaseAllowance(spender, 999) --> allowances[caller:[spender:-=999]]")
@@ -533,7 +533,7 @@ class ExampleCoin extends HotmokaTest {
                 ubi_3001);
         // equals_result = ubi_allowance.equals(3001) = true
 
-        assertTrue(approve_result.value && decrease_result.value && equals_result.value);
+        assertTrue(approve_result.getValue() && decrease_result.getValue() && equals_result.getValue());
     }
 
     @Test @DisplayName("Test of ERC20 decreaseAllowance method with the generation of an Exception: example_token.decreaseAllowance(spender, 999) --> Exception!! allowances[caller:[spender]] < 999")
@@ -560,7 +560,7 @@ class ExampleCoin extends HotmokaTest {
                 // allowances[caller:[spender]] < 999 --> Exception !!!
         );
 
-        assertTrue(approve_result.value);
+        assertTrue(approve_result.getValue());
     }
 
     @Test
@@ -607,7 +607,7 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result3 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check2);
         // equals_result3 = supply.equals(200'000*10^18 + 500000 + 500000) = true
 
-        assertTrue(equals_result1.value && equals_result2.value && equals_result3.value);
+        assertTrue(equals_result1.getValue() && equals_result2.getValue() && equals_result3.getValue());
     }
 
     @Test
@@ -640,6 +640,6 @@ class ExampleCoin extends HotmokaTest {
         BooleanValue equals_result2 = (BooleanValue) runInstanceMethodCallTransaction(creator, _500_000, classpath_takamaka_code, new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT), supply, ubi_check);
         // equals_result2 = supply.equals(200'000*10^18 - 500000) = true
 
-        assertTrue(equals_result1.value && equals_result2.value);
+        assertTrue(equals_result1.getValue() && equals_result2.getValue());
     }
 }

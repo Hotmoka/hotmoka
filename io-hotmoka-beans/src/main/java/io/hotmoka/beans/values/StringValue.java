@@ -20,15 +20,17 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A string stored in blockchain.
  */
 @Immutable
-public final class StringValue extends StorageValue {
-	static final byte SELECTOR = 10;
-	static final byte SELECTOR_EMPTY_STRING = 13;
+public final class StringValue extends StorageValueImpl {
+	public static final byte SELECTOR = 10;
+	public static final byte SELECTOR_EMPTY_STRING = 13;
 
 	/**
 	 * The string.
@@ -62,7 +64,7 @@ public final class StringValue extends StorageValue {
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 		else

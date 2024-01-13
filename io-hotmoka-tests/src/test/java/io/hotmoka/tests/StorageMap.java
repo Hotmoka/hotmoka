@@ -38,18 +38,19 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 
 /**
@@ -114,7 +115,7 @@ class StorageMap extends HotmokaTest {
 		StorageReference map = addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 		BooleanValue size = (BooleanValue) runInstanceMethodCallTransaction(account0, _50_000, classpath, STORAGE_MAP_ISEMPTY, map);
 
-		assertEquals(BooleanValue.TRUE, size);
+		assertEquals(StorageValues.TRUE, size);
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap().put(k,v) then get(k) yields v")
@@ -236,9 +237,9 @@ class StorageMap extends HotmokaTest {
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys then remove the last then size is 9")
 	void put100RandomThenRemoveLastThenSize() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
+		var map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
-		StorageReference[] accounts = new StorageReference[10];
+		var accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
@@ -282,6 +283,6 @@ class StorageMap extends HotmokaTest {
 		}
 
 		for (BooleanValue result: results)
-			assertTrue(result.value);
+			assertTrue(result.getValue());
 	}
 }

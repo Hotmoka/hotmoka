@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.network.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.values.StorageValueModel;
 

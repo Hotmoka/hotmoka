@@ -37,11 +37,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.StorageReference;
 
@@ -139,7 +139,7 @@ class CrowdFunding extends HotmokaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
-		assertFalse(reached.value);
+		assertFalse(reached.getValue());
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
@@ -164,6 +164,6 @@ class CrowdFunding extends HotmokaTest {
 			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
-		assertTrue(reached.value);
+		assertTrue(reached.getValue());
 	}
 }

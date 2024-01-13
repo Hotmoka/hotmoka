@@ -19,14 +19,16 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A {@code short} value stored in blockchain.
  */
 @Immutable
-public final class ShortValue extends StorageValue {
-	static final byte SELECTOR = 9;
+public final class ShortValue extends StorageValueImpl {
+	public static final byte SELECTOR = 9;
 
 	/**
 	 * The value.
@@ -59,7 +61,7 @@ public final class ShortValue extends StorageValue {
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 		else

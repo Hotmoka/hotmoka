@@ -18,8 +18,10 @@ package io.hotmoka.network.values;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
@@ -30,7 +32,6 @@ import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.ShortValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.requests.MethodCallTransactionRequestModel;
 
@@ -174,7 +175,7 @@ public class StorageValueModel {
 		else if (type.equals(STRING_NAME))
 			return new StringValue(value);
 		else if (type.equals("boolean"))
-            return new BooleanValue(Boolean.parseBoolean(value));
+            return StorageValues.booleanOf(Boolean.parseBoolean(value));
     	else if (type.equals("byte"))
             return new ByteValue(Byte.parseByte(value));
     	else if (type.equals("char"))

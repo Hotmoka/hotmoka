@@ -31,8 +31,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall3 extends HotmokaTest {
@@ -52,6 +52,6 @@ class LegalCall3 extends HotmokaTest {
 		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.legalcall3.C", "test", StorageTypes.BOOLEAN));
 
-		assertFalse(result.value);
+		assertFalse(result.getValue());
 	}
 }

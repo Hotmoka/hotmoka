@@ -18,8 +18,9 @@ package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.ByteValue;
 import io.hotmoka.beans.values.CharValue;
 import io.hotmoka.beans.values.DoubleValue;
@@ -29,7 +30,6 @@ import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.NullValue;
 import io.hotmoka.beans.values.ShortValue;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
@@ -70,7 +70,7 @@ public class Serializer {
 		else if (object instanceof BigInteger)
 			return new BigIntegerValue((BigInteger) object);
 		else if (object instanceof Boolean)
-			return new BooleanValue((Boolean) object);
+			return StorageValues.booleanOf((Boolean) object);
 		else if (object instanceof Byte)
 			return new ByteValue((Byte) object);
 		else if (object instanceof Character)

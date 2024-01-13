@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,11 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-module io.hotmoka.beans.api {
-	exports io.hotmoka.beans.api;
-	exports io.hotmoka.beans.api.types;
-	exports io.hotmoka.beans.api.values;
-	requires transitive io.hotmoka.marshalling.api;
-	requires transitive io.hotmoka.crypto.api;
-	requires io.hotmoka.annotations;
+package io.hotmoka.beans.api.values;
+
+import io.hotmoka.annotations.Immutable;
+
+/**
+ * A {@code boolean} value stored in blockchain.
+ */
+@Immutable
+public interface BooleanValue extends StorageValue {
+	boolean getValue();
 }

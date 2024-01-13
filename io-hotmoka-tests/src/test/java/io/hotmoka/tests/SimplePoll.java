@@ -37,11 +37,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.StorageReference;
 
 class SimplePoll extends HotmokaTest {
@@ -112,7 +112,7 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
-		Assertions.assertFalse(isOver.value);
+		Assertions.assertFalse(isOver.getValue());
 	}
 	
 	@Test
@@ -124,10 +124,10 @@ class SimplePoll extends HotmokaTest {
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertFalse(isOver.value);
+		Assertions.assertFalse(isOver.getValue());
 
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.value);
+		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
 	@Test
@@ -139,12 +139,12 @@ class SimplePoll extends HotmokaTest {
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertFalse(isOver.value);
+		Assertions.assertFalse(isOver.getValue());
 
 		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(4), external, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll));
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.value);
+		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
 	@Test
@@ -158,7 +158,7 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
-		Assertions.assertFalse(isOver.value);
+		Assertions.assertFalse(isOver.getValue());
 		
 		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll));
 	}
@@ -201,12 +201,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.value);
+		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
 	@Test
@@ -222,18 +222,17 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.value);
+		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
 	@Test
 	@DisplayName("new SimplePoll where one of the participants, holding a huge amount of voting power (more than 50% of the total) votes with maximum power")
 	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePower() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -241,18 +240,17 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.value);
+		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
 	@Test
 	@DisplayName("new SimplePoll where one of the participants, holding a huge amount of voting power (more than 50% of the total), votes with less than the maximum power")
 	void SuccessfulSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithLessThanMaximum() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -260,18 +258,17 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(8)));
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertTrue(isActionPerformed.value);
+		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
 	@Test
 	@DisplayName("new SimplePoll where everyone votes but one of the participants, holding a huge amount of voting power (more than 50% of the total), votes zero")
 	void FailingSimplePollWhereOneOfTheStakeHoldersHasWayMorePowerButVotesWithZero() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -283,12 +280,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.value);
+		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
 	@Test
@@ -305,12 +302,12 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertTrue(isOver.value);
+		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), CLOSE_POLL, simplePoll);
 		
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.value);
+		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
 	@Test
@@ -326,9 +323,9 @@ class SimplePoll extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
-		Assertions.assertFalse(isOver.value);
+		Assertions.assertFalse(isOver.getValue());
 
 		BooleanValue isActionPerformed = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS__RUN_PERFORMED, action);
-		Assertions.assertFalse(isActionPerformed.value);
+		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 }

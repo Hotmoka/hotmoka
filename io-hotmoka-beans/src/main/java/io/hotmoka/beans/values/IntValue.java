@@ -19,14 +19,16 @@ package io.hotmoka.beans.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An {@code int} value stored in the store of a node.
  */
 @Immutable
-public final class IntValue extends StorageValue {
-	static final byte SELECTOR = 14;
+public final class IntValue extends StorageValueImpl {
+	public static final byte SELECTOR = 14;
 
 	/**
 	 * The value.
@@ -59,7 +61,7 @@ public final class IntValue extends StorageValue {
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = getClass().getName().compareTo(other.getClass().getName());
+		int diff = super.compareTo(other);
 		if (diff != 0)
 			return diff;
 		else

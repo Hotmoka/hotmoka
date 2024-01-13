@@ -24,9 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -131,7 +132,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();
-		var result = StorageValue.from(context);
+		var result = StorageValues.from(context);
 		Stream<StorageReference> events;
 		boolean selfCharged;
 

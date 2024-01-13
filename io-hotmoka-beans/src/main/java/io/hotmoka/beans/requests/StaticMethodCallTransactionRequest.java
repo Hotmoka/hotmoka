@@ -26,11 +26,12 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -168,7 +169,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReference.from(context);
 		var nonce = context.readBigInteger();
-		var actuals = context.readLengthAndArray(StorageValue::from, StorageValue[]::new);
+		var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var method = (MethodSignature) CodeSignature.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 

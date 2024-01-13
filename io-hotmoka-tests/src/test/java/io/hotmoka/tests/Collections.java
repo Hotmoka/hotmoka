@@ -37,13 +37,13 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BooleanValue;
 import io.hotmoka.beans.values.IntValue;
 import io.hotmoka.beans.values.LongValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 
 /**
  * A test for the storage map Takamaka class.
@@ -166,7 +166,7 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("SetTests.testRandomInitialization() == true")
 	void randomRandomSetInitialization() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		BooleanValue count = (BooleanValue) runStaticMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(SET_TESTS, "testRandomInitialization", BOOLEAN));
-		assertTrue(count.value);
+		assertTrue(count.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder()")
@@ -179,7 +179,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING")
@@ -187,7 +187,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING")
@@ -195,7 +195,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with State")
@@ -203,7 +203,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with State")
@@ -211,7 +211,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with State")
@@ -219,7 +219,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with Comparable")
@@ -227,7 +227,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get0", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with Comparable")
@@ -235,7 +235,7 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get1", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with Comparable")
@@ -243,6 +243,6 @@ class Collections extends HotmokaTest {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), new ConstructorSignature(MAP_HOLDER));
 		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "get10", STATE), mapHolder);
 		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), new NonVoidMethodSignature(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state);
-		assertTrue(result.value);
+		assertTrue(result.getValue());
 	}
 }

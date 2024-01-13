@@ -28,7 +28,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -40,7 +42,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StorageValue;
 import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
@@ -293,13 +294,13 @@ public class Call extends AbstractCommand {
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {
-			StorageType[] formals = signature.formals().toArray(StorageType[]::new);
-			StorageValue[] result = new StorageValue[formals.length];
+			var formals = signature.formals().toArray(StorageType[]::new);
+			var result = new StorageValue[formals.length];
 
 			if (result.length > 0) {
 				int pos = 0;
 				for (String actualAsString: args)
-					result[pos] = StorageValue.of(actualAsString, formals[pos++]);
+					result[pos] = StorageValues.of(actualAsString, formals[pos++]);
 			}
 
 			return result;
