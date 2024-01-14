@@ -20,10 +20,10 @@ import java.nio.file.Paths;
 import java.util.Base64;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
@@ -55,7 +55,7 @@ public class BindKey extends AbstractCommand {
 			storageReference = getReferenceFromAccountLedger();
 		else {	
 			checkStorageReference(reference);
-			storageReference = new StorageReference(reference);
+			storageReference = StorageValues.reference(reference);
 		}
 
 		var account = Accounts.of(Entropies.load(Paths.get(key+ ".pem")), storageReference);

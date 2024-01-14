@@ -23,7 +23,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -55,9 +55,8 @@ public final class ClassTag extends Update {
 	public ClassTag(StorageReference object, String className, TransactionReference jar) {
 		super(object);
 
-		Objects.requireNonNull(jar, "jar cannot be null");
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null");
 		this.clazz = StorageTypes.classNamed(className);
-		this.jar = jar;
 	}
 
 	/**
@@ -70,10 +69,8 @@ public final class ClassTag extends Update {
 	public ClassTag(StorageReference object, ClassType clazz, TransactionReference jar) {
 		super(object);
 
-		Objects.requireNonNull(jar, "jar cannot be null");
-		Objects.requireNonNull(clazz, "clazz cannot be null");
-		this.clazz = clazz;
-		this.jar = jar;
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null");
+		this.clazz = Objects.requireNonNull(clazz, "clazz cannot be null");
 	}
 
 	@Override

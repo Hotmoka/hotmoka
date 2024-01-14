@@ -20,7 +20,6 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 
@@ -45,7 +44,7 @@ public class SignedRequests {
 
         var request = new ConstructorCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(11500),
@@ -64,14 +63,14 @@ public class SignedRequests {
     public void testNonVoidInstanceMethodCallTransactionRequest() throws Exception {
         var request = new InstanceMethodCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                 CodeSignature.GET_GAMETE,
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+                StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
         );
 
         String signature = toBase64(request.getSignature());
@@ -82,7 +81,7 @@ public class SignedRequests {
     @DisplayName("new InstanceMethodCallTransactionRequest(..) receive")
     public void testVoidInstanceMethodCallTransactionRequest() throws Exception {
         var transaction = TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
-		var storageReference = new StorageReference(transaction, BigInteger.ZERO);
+		var storageReference = StorageValues.reference(transaction, BigInteger.ZERO);
 
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var request = new InstanceMethodCallTransactionRequest(
@@ -107,7 +106,7 @@ public class SignedRequests {
     public void testNonVoidStaticMethodCallTransactionRequest() throws Exception {
         var request = new StaticMethodCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),
@@ -125,7 +124,7 @@ public class SignedRequests {
     public void testVoidStaticMethodCallTransactionRequest() throws Exception {
         var request = new StaticMethodCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),
@@ -151,14 +150,14 @@ public class SignedRequests {
 
         var request = new StaticMethodCallTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                 nonVoidMethodSignature,
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+                StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
         );
 
         String signature = toBase64(request.getSignature());
@@ -170,7 +169,7 @@ public class SignedRequests {
     public void testJarStoreTransactionRequest() throws Exception {
         var request = new JarStoreTransactionRequest(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
-                new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+        		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,
                 "chaintest",
                 BigInteger.valueOf(5000),

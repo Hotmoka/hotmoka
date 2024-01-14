@@ -51,6 +51,7 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -75,7 +76,6 @@ import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -379,7 +379,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
 		}
 		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "unexpected exception", e);
+			LOGGER.log(Level.WARNING, "Unexpected exception", e);
 			throw e;
 		}
 
@@ -393,8 +393,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
 		Objects.requireNonNull(reference);
 		try {
-			if (isNotCommitted(reference.transaction))
-				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+			if (isNotCommitted(reference.getTransaction()))
+				throw new NoSuchElementException("Unknown transaction reference " + reference.getTransaction());
 
 			return storeUtilities.getClassTagUncommitted(reference);
 		}
@@ -411,8 +411,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
 		Objects.requireNonNull(reference);
 		try {
-			if (isNotCommitted(reference.transaction))
-				throw new NoSuchElementException("unknown transaction reference " + reference.transaction);
+			if (isNotCommitted(reference.getTransaction()))
+				throw new NoSuchElementException("Unknown transaction reference " + reference.getTransaction());
 
 			return storeUtilities.getStateCommitted(reference);
 		}
@@ -420,7 +420,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			throw e;
 		}
 		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "unexpected exception", e);
+			LOGGER.log(Level.WARNING, "Unexpected exception", e);
 			throw e;
 		}
 	}

@@ -22,8 +22,8 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A response for a transaction that should call a constructor of a storage class in blockchain.

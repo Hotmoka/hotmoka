@@ -72,10 +72,8 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
-		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
-		this.gasConsumedForPenalty = gasConsumedForPenalty;
-		this.classNameOfCause = classNameOfCause;
+		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
 	}

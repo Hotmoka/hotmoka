@@ -25,7 +25,6 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -79,7 +78,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 				return StorageValues.enumElementOf(s.substring(0, lastDot), s.substring(lastDot + 1));
 		}
 		else
-			return new StorageReference(s);
+			return StorageValues.reference(s);
 	}
 
 	/**
@@ -104,7 +103,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case LongValueImpl.SELECTOR: return StorageValues.longOf(context.readLong());
 		case NullValueImpl.SELECTOR: return StorageValues.NULL;
 		case ShortValueImpl.SELECTOR: return StorageValues.shortOf(context.readShort());
-		case StorageReference.SELECTOR: return StorageReference.from(context);
+		case StorageReferenceImpl.SELECTOR: return StorageReferenceImpl.fromWithoutSelector(context);
 		case StringValueImpl.SELECTOR_EMPTY_STRING: return StorageValues.stringOf("");
 		case StringValueImpl.SELECTOR: return StorageValues.stringOf(context.readStringUnshared());
 		default:

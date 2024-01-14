@@ -38,11 +38,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -57,7 +59,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -132,7 +133,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
         }
         catch (Exception e) {
             assertTrue(e instanceof NoSuchElementException);
-            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
+            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         }
     }
 
@@ -157,7 +158,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
         }
         catch (Exception e) {
             assertTrue(e instanceof NoSuchElementException);
-            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
+            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
         }
     }
 
@@ -457,6 +458,6 @@ public class NodeFromNetworkWS extends HotmokaTest {
     }
 
     private static StorageReference getInexistentStorageReference() {
-        return new StorageReference(getInexistentTransactionReference(), BigInteger.valueOf(42));
+        return StorageValues.reference(getInexistentTransactionReference(), BigInteger.valueOf(42));
     }
 }

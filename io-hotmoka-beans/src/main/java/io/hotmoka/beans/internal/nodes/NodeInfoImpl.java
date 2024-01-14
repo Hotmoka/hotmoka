@@ -48,19 +48,14 @@ public class NodeInfoImpl implements NodeInfo {
 	 * @param ID the identifier of the node inside its network, if any. Otherwise the empty string
 	 */
 	public NodeInfoImpl(String type, String version, String ID) {
-		Objects.requireNonNull(type, "type cannot be null");
-		Objects.requireNonNull(version, "version cannot be null");
-		Objects.requireNonNull(ID, "ID cannot be null");
-
-		this.type = type;
-		this.version = version;
-		this.ID = ID;
+		this.type = Objects.requireNonNull(type, "type cannot be null");
+		this.version = Objects.requireNonNull(version, "version cannot be null");
+		this.ID = Objects.requireNonNull(ID, "ID cannot be null");
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NodeInfo ni && type.equals(ni.getType()) &&
-			version.equals(ni.getVersion()) && ID.equals(ni.getID());
+		return other instanceof NodeInfo ni && type.equals(ni.getType()) && version.equals(ni.getVersion()) && ID.equals(ni.getID());
 	}
 
 	@Override

@@ -326,12 +326,9 @@ public abstract class CodeSignature extends AbstractMarshallable {
 	 * @param formals the formal arguments of the method or constructor
 	 */
 	protected CodeSignature(ClassType definingClass, StorageType... formals) {
-		Objects.requireNonNull(definingClass, "definingClass cannot be null");
-		Objects.requireNonNull(formals, "formals cannot be null");
+		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null");
+		this.formals = Objects.requireNonNull(formals, "formals cannot be null");
 		Stream.of(formals).forEach(formal -> Objects.requireNonNull(formal, "formals cannot hold null"));
-
-		this.definingClass = definingClass;
-		this.formals = formals;
 	}
 
 	/**

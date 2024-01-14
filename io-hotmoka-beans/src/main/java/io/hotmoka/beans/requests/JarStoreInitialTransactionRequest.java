@@ -52,12 +52,9 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
 	public JarStoreInitialTransactionRequest(byte[] jar, TransactionReference... dependencies) {
-		Objects.requireNonNull(jar, "jar cannot be null");
-		Objects.requireNonNull(dependencies, "dependencies cannot be null");
+		this.jar = Objects.requireNonNull(jar, "jar cannot be null").clone();
+		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null").clone();
 		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
-
-		this.jar = jar.clone();
-		this.dependencies = dependencies.clone();
 	}
 
 	@Override

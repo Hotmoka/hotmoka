@@ -19,6 +19,7 @@ package io.hotmoka.beans;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
@@ -31,11 +32,13 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.ShortValue;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.values.AbstractStorageValue;
 import io.hotmoka.beans.internal.values.BigIntegerValueImpl;
 import io.hotmoka.beans.internal.values.BooleanValueImpl;
 import io.hotmoka.beans.internal.values.ByteValueImpl;
@@ -47,7 +50,7 @@ import io.hotmoka.beans.internal.values.IntValueImpl;
 import io.hotmoka.beans.internal.values.LongValueImpl;
 import io.hotmoka.beans.internal.values.NullValueImpl;
 import io.hotmoka.beans.internal.values.ShortValueImpl;
-import io.hotmoka.beans.internal.values.AbstractStorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.internal.values.StringValueImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -192,6 +195,28 @@ public abstract class StorageValues {
 	 */
 	public static EnumValue enumElementOf(String enumClassName, String name) {
 		return new EnumValueImpl(enumClassName, name);
+	}
+
+	/**
+	 * Yields a storage reference from its transaction reference and progressive.
+	 * 
+	 * @param transaction the transaction that created the object
+	 * @param progressive the progressive number of the object among those that have been created
+	 *                    during the same transaction
+	 * @return the storage reference
+	 */
+	public static StorageReference reference(TransactionReference transaction, BigInteger progressive) {
+		return new StorageReferenceImpl(transaction, progressive);
+	}
+
+	/**
+	 * Yields a storage reference from its string representation.
+	 * 
+	 * @param s the string representation
+	 * @return the storage reference
+	 */
+	public static StorageReference reference(String s) {
+		return new StorageReferenceImpl(s);
 	}
 
 	/**

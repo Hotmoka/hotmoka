@@ -24,15 +24,16 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.ConsensusConfig;
@@ -303,7 +304,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		public final StorageReference getNextStorageReference() {
 			BigInteger result = nextProgressive;
 			nextProgressive = nextProgressive.add(BigInteger.ONE);
-			return new StorageReference(reference, result);
+			return StorageValues.reference(reference, result);
 		}
 
 		/**

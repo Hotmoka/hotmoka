@@ -24,10 +24,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 @Immutable
@@ -51,9 +51,8 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
-		Objects.requireNonNull(actuals, "actuals cannot be null");
+		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null");
 		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null"));
-		this.actuals = actuals;
 	}
 
 	/**

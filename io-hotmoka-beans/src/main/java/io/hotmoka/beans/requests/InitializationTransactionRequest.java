@@ -22,8 +22,9 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -55,11 +56,8 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * @param manifest the storage reference that must be set as manifest
 	 */
 	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {
-		Objects.requireNonNull(classpath, "classpath cannot be null");
-		Objects.requireNonNull(manifest, "manifest cannot be null");
-
-		this.classpath = classpath;
-		this.manifest = manifest;
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
+		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null");
 	}
 
 	@Override
@@ -94,7 +92,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 */
 	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var classpath = TransactionReferences.from(context);
-		var manifest = StorageReference.from(context);
+		var manifest = StorageReferenceImpl.fromWithoutSelector(context);
 
 		return new InitializationTransactionRequest(classpath, manifest);
 	}

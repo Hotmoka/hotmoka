@@ -21,9 +21,9 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -58,10 +58,8 @@ public final class UpdateOfEnumEager extends UpdateOfField {
 	public UpdateOfEnumEager(StorageReference object, FieldSignature field, String enumClassName, String name) {
 		super(object, field);
 
-		Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
-		Objects.requireNonNull(name, "name cannot be null");
-		this.enumClassName = enumClassName;
-		this.name = name;
+		this.enumClassName = Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
+		this.name = Objects.requireNonNull(name, "name cannot be null");
 	}
 
 	@Override

@@ -24,8 +24,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.stores.internal.MarshallableArrayOfTransactionReferences;
 import io.hotmoka.xodus.ByteIterable;
 

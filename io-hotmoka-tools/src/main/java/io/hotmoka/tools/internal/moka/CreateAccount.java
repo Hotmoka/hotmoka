@@ -22,8 +22,8 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;

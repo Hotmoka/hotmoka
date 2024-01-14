@@ -45,8 +45,7 @@ public abstract class MethodSignature extends CodeSignature {
 	protected MethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, formals);
 
-		Objects.requireNonNull(methodName, "methodName cannot be null");
-		this.methodName = methodName;
+		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null");
 	}
 
 	@Override

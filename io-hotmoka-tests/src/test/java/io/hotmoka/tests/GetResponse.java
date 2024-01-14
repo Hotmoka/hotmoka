@@ -35,10 +35,10 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A test for {@link io.hotmoka.node.Node#getResponse(io.hotmoka.beans.references.TransactionReference)}.
@@ -59,7 +59,7 @@ class GetResponse extends HotmokaTest {
 	@Test @DisplayName("getResponse works for an existing transaction")
 	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
-		TransactionResponse response = getResponse(abstractfail.transaction);
+		TransactionResponse response = getResponse(abstractfail.getTransaction());
 		Assertions.assertTrue(response instanceof ConstructorCallTransactionResponse);
 	}
 
@@ -67,7 +67,7 @@ class GetResponse extends HotmokaTest {
 	void getResponseNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
 			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
-			String hash = abstractfail.transaction.getHash();
+			String hash = abstractfail.getTransaction().getHash();
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';
 			hash = digit + hash.substring(1);

@@ -20,8 +20,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -43,7 +44,7 @@ public class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<Sto
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			var reference = new StorageReference(TransactionReferences.from(context), context.readBigInteger());
+			var reference = StorageValues.reference(TransactionReferences.from(context), context.readBigInteger());
 			memory.put(memory.size(), reference);
 			return reference;
 		}

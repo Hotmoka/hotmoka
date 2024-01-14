@@ -25,9 +25,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -67,10 +68,9 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	public MethodCallTransactionSuccessfulResponse(StorageValue result, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(result);
+		this.result = Objects.requireNonNull(result);
 		this.events = events.toArray(StorageReference[]::new);
 		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
-		this.result = result;
 	}
 
 	@Override
@@ -138,7 +138,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;
@@ -146,7 +146,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		}
 		else if (selector == SELECTOR_ONE_EVENT_NO_SELF_CHARGED) {
 			selfCharged = false;
-			events = Stream.of(StorageReference.from(context));
+			events = Stream.of(StorageReferenceImpl.fromWithoutSelector(context));
 		}
 		else
 			throw new IOException("Unexpected response selector: " + selector);

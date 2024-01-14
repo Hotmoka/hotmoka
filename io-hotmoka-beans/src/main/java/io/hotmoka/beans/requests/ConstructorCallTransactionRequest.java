@@ -28,11 +28,12 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -76,14 +77,12 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	public ConstructorCallTransactionRequest(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		Objects.requireNonNull(constructor, "constructor cannot be null");
-		Objects.requireNonNull(chainId, "chainId cannot be null");
+		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null");
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
 
 		if (constructor.formals().count() != actuals.length)
 			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 
-		this.constructor = constructor;
-		this.chainId = chainId;
 		this.signature = signer.sign(this);
 	}
 
@@ -175,7 +174,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 */
 	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageReference.from(context);
+		var caller = StorageReferenceImpl.fromWithoutSelector(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

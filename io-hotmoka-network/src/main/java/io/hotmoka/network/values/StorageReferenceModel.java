@@ -18,20 +18,21 @@ package io.hotmoka.network.values;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageReference;
 
 public class StorageReferenceModel {
 	public TransactionReferenceModel transaction;
     public String progressive;
 
     public StorageReferenceModel(StorageReference input) {
-    	transaction = new TransactionReferenceModel(input.transaction);
-    	progressive = input.progressive.toString();
+    	transaction = new TransactionReferenceModel(input.getTransaction());
+    	progressive = input.getProgressive().toString();
     }
 
     public StorageReferenceModel() {}
 
     public StorageReference toBean() {
-    	return new StorageReference(transaction.toBean(), new BigInteger(progressive));
+    	return StorageValues.reference(transaction.toBean(), new BigInteger(progressive));
     }
 }

@@ -22,7 +22,7 @@ import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;

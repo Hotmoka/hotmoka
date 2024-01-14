@@ -68,21 +68,16 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
 	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
-		Objects.requireNonNull(classpath, "classpath cannot be null");
-		Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
-		Objects.requireNonNull(redInitialAmount, "redInitialAmount cannot be null");
-		Objects.requireNonNull(publicKey, "publicKey cannot be null");
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
+		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
+		this.redInitialAmount = Objects.requireNonNull(redInitialAmount, "redInitialAmount cannot be null");
+		this.publicKey = Objects.requireNonNull(publicKey, "publicKey cannot be null");
 
 		if (initialAmount.signum() < 0)
 			throw new IllegalArgumentException("initialAmount cannot be negative");
 
 		if (redInitialAmount.signum() < 0)
 			throw new IllegalArgumentException("redInitialAmount cannot be negative");
-
-		this.classpath = classpath;
-		this.initialAmount = initialAmount;
-		this.redInitialAmount = redInitialAmount;
-		this.publicKey = publicKey;
 	}
 
 	@Override

@@ -26,14 +26,15 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.helpers.GasCounters;
@@ -203,7 +204,7 @@ public abstract class AbstractCommand implements Runnable {
         	if (s == null)
         		return false;
 
-        	new StorageReference(s);
+        	StorageValues.reference(s);
             return true;
         }
         catch (Throwable t) {

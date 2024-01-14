@@ -19,8 +19,8 @@ package io.hotmoka.beans.requests;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -80,7 +80,7 @@ public interface SignedTransactionRequest {
 		}
 		catch (IOException e) {
 			// impossible with a byte array output stream
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 }

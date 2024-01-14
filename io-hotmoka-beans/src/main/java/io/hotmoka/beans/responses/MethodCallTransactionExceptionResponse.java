@@ -25,9 +25,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -77,10 +78,9 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 	public MethodCallTransactionExceptionResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.events = events.toArray(StorageReference[]::new);
 		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
-		this.classNameOfCause = classNameOfCause;
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
 	}
@@ -140,7 +140,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();
 		var selfCharged = context.readBoolean();
-		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
+		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		var classNameOfCause = context.readStringUnshared();
 		var messageOfCause = context.readStringUnshared();
 		var where = context.readStringUnshared();

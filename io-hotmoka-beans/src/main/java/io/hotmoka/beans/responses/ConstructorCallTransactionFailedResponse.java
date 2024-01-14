@@ -23,8 +23,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -71,10 +71,8 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	public ConstructorCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
-		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
-		this.gasConsumedForPenalty = gasConsumedForPenalty;
-		this.classNameOfCause = classNameOfCause;
+		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
 		this.where = where == null ? "" : where;
 	}

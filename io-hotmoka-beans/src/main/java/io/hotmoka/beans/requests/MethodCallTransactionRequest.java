@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -54,12 +54,10 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	protected MethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		Objects.requireNonNull(method, "method cannot be null");
+		this.method = Objects.requireNonNull(method, "method cannot be null");
 
 		if (method.formals().count() != actuals.length)
 			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
-
-		this.method = method;
 	}
 
 	@Override

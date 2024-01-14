@@ -32,6 +32,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -42,7 +43,6 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -122,7 +122,7 @@ public class Call extends AbstractCommand {
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
-					this.classpath = node.getClassTag(new StorageReference(Call.this.receiver)).jar;
+					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).jar;
 				else
 					this.classpath = TransactionReferences.of(Call.this.classpath);
 
@@ -136,7 +136,7 @@ public class Call extends AbstractCommand {
 
 				if (!isView) {
 					passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
-					this.payer = new StorageReference(Call.this.payer);
+					this.payer = StorageValues.reference(Call.this.payer);
 				}
 				else
 					this.payer = null;
@@ -191,7 +191,7 @@ public class Call extends AbstractCommand {
 				return null;
 			}
 			catch (ClassNotFoundException e) {
-				return new StorageReference(Call.this.receiver);
+				return StorageValues.reference(Call.this.receiver);
 			}
 		}
 

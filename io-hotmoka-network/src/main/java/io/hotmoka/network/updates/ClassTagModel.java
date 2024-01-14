@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 /**

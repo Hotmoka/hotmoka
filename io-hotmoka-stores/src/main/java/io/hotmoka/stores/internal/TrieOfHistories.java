@@ -21,8 +21,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
@@ -73,7 +73,7 @@ public class TrieOfHistories {
 		// hence with the transaction of the same storage reference of the object
 		var withLast = new TransactionReference[transactions.length + 1];
 		System.arraycopy(transactions, 0, withLast, 0, transactions.length);
-		withLast[transactions.length] = key.transaction;
+		withLast[transactions.length] = key.getTransaction();
 		return Stream.of(withLast);
 	}
 

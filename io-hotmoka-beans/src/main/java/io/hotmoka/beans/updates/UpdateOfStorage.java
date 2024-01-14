@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -60,8 +60,7 @@ public final class UpdateOfStorage extends UpdateOfField {
 	public UpdateOfStorage(StorageReference object, FieldSignature field, StorageReference value) {
 		super(object, field);
 
-		Objects.requireNonNull(value, "value cannot be null");
-		this.value = value;
+		this.value = Objects.requireNonNull(value, "value cannot be null");
 	}
 
 	@Override

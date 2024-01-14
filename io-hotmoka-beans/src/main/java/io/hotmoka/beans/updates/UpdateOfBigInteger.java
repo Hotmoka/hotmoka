@@ -23,9 +23,9 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.FieldSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -61,8 +61,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	public UpdateOfBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
 		super(object, field);
 
-		Objects.requireNonNull(value, "value cannot be null");
-		this.value = value;
+		this.value = Objects.requireNonNull(value, "value cannot be null");
 	}
 
 	@Override

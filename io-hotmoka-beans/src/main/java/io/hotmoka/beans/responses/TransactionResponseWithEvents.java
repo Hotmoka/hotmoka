@@ -19,7 +19,7 @@ package io.hotmoka.beans.responses;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 
 /**
  * A response for a transaction that might contain events.

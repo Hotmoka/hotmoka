@@ -29,9 +29,9 @@ import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.ShortValue;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.network.requests.MethodCallTransactionRequestModel;
 
 /**

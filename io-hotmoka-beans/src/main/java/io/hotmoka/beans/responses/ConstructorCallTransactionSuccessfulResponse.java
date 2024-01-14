@@ -24,8 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -62,8 +63,7 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	public ConstructorCallTransactionSuccessfulResponse(StorageReference newObject, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(newObject, "newObject cannot be null");
-		this.newObject = newObject;
+		this.newObject = Objects.requireNonNull(newObject, "newObject cannot be null");
 		this.events = events.toArray(StorageReference[]::new);
 		Stream.of(this.events).forEach(event -> Objects.requireNonNull(event, "events cannot hold null"));
 	}
@@ -121,13 +121,13 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 		var gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		if (selector == SELECTOR)
-			events = Stream.of(context.readLengthAndArray(StorageReference::from, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else
 			throw new IOException("Unexpected response selector: " + selector);
 
-		var newObject = StorageReference.from(context);
+		var newObject = StorageReferenceImpl.fromWithoutSelector(context);
 		return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

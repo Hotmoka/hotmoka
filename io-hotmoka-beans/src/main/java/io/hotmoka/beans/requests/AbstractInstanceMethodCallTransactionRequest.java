@@ -22,9 +22,9 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -53,8 +53,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	protected AbstractInstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		Objects.requireNonNull(receiver, "receiver cannot be null");
-		this.receiver = receiver;
+		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null");
 	}
 
 	@Override

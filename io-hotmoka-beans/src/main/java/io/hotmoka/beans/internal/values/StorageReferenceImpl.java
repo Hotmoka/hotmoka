@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -25,8 +25,8 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.AbstractStorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -37,47 +37,58 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference extends AbstractStorageValue implements Serializable {
+public final class StorageReferenceImpl extends AbstractStorageValue implements StorageReference, Serializable {
 	private static final long serialVersionUID = 1899009680134694798L;
 
-	public static final byte SELECTOR = 11;
+	static final byte SELECTOR = 11;
 
 	/**
 	 * The transaction that created the object.
 	 */
-	public final TransactionReference transaction;
+	private final TransactionReference transaction;
 
 	/**
 	 * The progressive number of the object among those that have been created
 	 * during the same transaction.
 	 */
-	public final BigInteger progressive;
+	private final BigInteger progressive;
 
 	/**
-	 * Builds a storage reference.
+	 * Builds a storage reference from its transaction reference and progressive.
 	 * 
 	 * @param transaction the transaction that created the object
 	 * @param progressive the progressive number of the object among those that have been created
 	 *                    during the same transaction
 	 */
-	public StorageReference(TransactionReference transaction, BigInteger progressive) {
-		Objects.requireNonNull(transaction, "transaction cannot be null");
-		Objects.requireNonNull(progressive, "progressive cannot be null");
+	public StorageReferenceImpl(TransactionReference transaction, BigInteger progressive) {
+		this.transaction = Objects.requireNonNull(transaction, "transaction cannot be null");
+		this.progressive = Objects.requireNonNull(progressive, "progressive cannot be null");
 		if (progressive.signum() < 0)
 			throw new IllegalArgumentException("progressive cannot be negative");
-
-		this.progressive = progressive;
-		this.transaction = transaction;
-
 	}
 
-	public StorageReference(String s) {
+	/**
+	 * Builds a storage reference from its string representation.
+	 * 
+	 * @param s the string representation
+	 */
+	public StorageReferenceImpl(String s) {
 		this(TransactionReferences.of(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
 	}
 
 	@Override
+	public TransactionReference getTransaction() {
+		return transaction;
+	}
+
+	@Override
+	public BigInteger getProgressive() {
+		return progressive;
+	}
+
+	@Override
 	public boolean equals(Object other) {
-		return other instanceof StorageReference sr && sr.transaction.equals(transaction) && sr.progressive.equals(progressive);
+		return other instanceof StorageReference sr && sr.getTransaction().equals(transaction) && sr.getProgressive().equals(progressive);
 	}
 
 	@Override
@@ -91,11 +102,11 @@ public final class StorageReference extends AbstractStorageValue implements Seri
 		if (diff != 0)
 			return diff;
 
-		diff = transaction.compareTo(((StorageReference) other).transaction);
+		diff = transaction.compareTo(((StorageReferenceImpl) other).transaction);
 		if (diff != 0)
 			return diff;
 
-		return progressive.compareTo(((StorageReference) other).progressive);
+		return progressive.compareTo(((StorageReferenceImpl) other).progressive);
 	}
 
 	@Override
@@ -109,11 +120,7 @@ public final class StorageReference extends AbstractStorageValue implements Seri
 		intoWithoutSelector(context);
 	}
 
-	/**
-	 * Marshals this object into a byte array.
-	 * 
-	 * @return the byte array resulting from marshalling this object
-	 */
+	@Override
 	public final byte[] toByteArrayWithoutSelector() {
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSelector(context);
@@ -122,22 +129,24 @@ public final class StorageReference extends AbstractStorageValue implements Seri
 		}
 		catch (IOException e) {
 			// impossible for a ByteArrayOutputStream
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 	}
 
+	@Override
 	public final void intoWithoutSelector(MarshallingContext context) throws IOException {
 		context.writeObject(StorageReference.class, this);
 	}
 
 	/**
 	 * Factory method that unmarshals a storage reference from the given stream.
+	 * It assumes that there is no selector at the beginning of the marshalled data.
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the storage reference
 	 * @throws IOException 
 	 */
-	public static StorageReference from(UnmarshallingContext context) throws IOException {
+	public static StorageReference fromWithoutSelector(UnmarshallingContext context) throws IOException {
 		return context.readObject(StorageReference.class);
 	}
 }

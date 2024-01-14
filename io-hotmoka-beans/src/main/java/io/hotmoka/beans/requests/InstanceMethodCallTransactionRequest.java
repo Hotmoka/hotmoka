@@ -32,10 +32,11 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -81,8 +82,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	public InstanceMethodCallTransactionRequest(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
-		Objects.requireNonNull(chainId, "chainId cannot be null");
-		this.chainId = chainId;
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
 		this.signature = signer.sign(this);
 	}
 
@@ -103,10 +103,8 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	public InstanceMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
-		Objects.requireNonNull(chainId, "chainId cannot be null");
-		Objects.requireNonNull(signature, "signature cannot be null");
-		this.chainId = chainId;
-		this.signature = signature;
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
+		this.signature = Objects.requireNonNull(signature, "signature cannot be null");
 	}
 
 	/**
@@ -208,26 +206,26 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException {
 		if (selector == SELECTOR) {
 			var chainId = context.readStringUnshared();
-			var caller = StorageReference.from(context);
+			var caller = StorageReferenceImpl.fromWithoutSelector(context);
 			var gasLimit = context.readBigInteger();
 			var gasPrice = context.readBigInteger();
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
 			var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 			var method = (MethodSignature) CodeSignature.from(context);
-			var receiver = StorageReference.from(context);
+			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
 			var chainId = context.readStringUnshared();
-			var caller = StorageReference.from(context);
+			var caller = StorageReferenceImpl.fromWithoutSelector(context);
 			var gasLimit = context.readBigInteger();
 			var gasPrice = context.readBigInteger();
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
-			var receiver = StorageReference.from(context);
+			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 
 			if (selector == SELECTOR_TRANSFER_INT) {
 				int howMuch = context.readInt();

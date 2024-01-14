@@ -25,12 +25,12 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.GasHelpers;
@@ -90,11 +90,11 @@ public class RotateKey extends AbstractCommand {
 		private Run() throws Exception {
 			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
-					this.classpath = node.getClassTag(new StorageReference(RotateKey.this.account)).jar;
+					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).jar;
 				else
 					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
 
-				this.account = new StorageReference(RotateKey.this.account);
+				this.account = StorageValues.reference(RotateKey.this.account);
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);
 				this.entropy = Entropies.random();
 				

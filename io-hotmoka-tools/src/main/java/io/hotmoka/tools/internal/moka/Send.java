@@ -19,9 +19,10 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountCreationHelpers;
@@ -108,14 +109,14 @@ public class Send extends AbstractCommand {
 
 		private void sendCoinsFromPayer() throws Exception {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
-			var payer = new StorageReference(Send.this.payer);
+			var payer = StorageValues.reference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
-			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+			sendCoinsHelper.sendFromPayer(payer, keysOfPayer, StorageValues.reference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
 		}
 
 		private StorageReference sendCoinsToPublicKey() throws Exception {
 			var accountCreationHelper = AccountCreationHelpers.of(node);
-			var payer = new StorageReference(Send.this.payer);
+			var payer = StorageValues.reference(Send.this.payer);
 			KeyPair keysOfPayer = readKeys(Accounts.of(payer), node, passwordOfPayer);
 			var signatureAlgorithmForNewAccount = SignatureAlgorithms.ed25519();
 			return accountCreationHelper.paidBy(payer, keysOfPayer, signatureAlgorithmForNewAccount,
@@ -127,7 +128,7 @@ public class Send extends AbstractCommand {
 			var sendCoinsHelper = SendCoinsHelpers.of(node);
 			
 			try {
-				sendCoinsHelper.sendFromFaucet(new StorageReference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
+				sendCoinsHelper.sendFromFaucet(StorageValues.reference(destination), amount, amountRed, this::askForConfirmation, this::printCosts);
 			}
 			catch (TransactionRejectedException e) {
 				if (e.getMessage().contains("invalid request signature"))

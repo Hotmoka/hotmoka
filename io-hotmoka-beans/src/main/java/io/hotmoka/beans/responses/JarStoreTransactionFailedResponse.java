@@ -64,11 +64,9 @@ public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransac
 	public JarStoreTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
-		Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
-		Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
-		this.classNameOfCause = classNameOfCause;
+		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
+		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
 		this.messageOfCause = messageOfCause == null ? "" : messageOfCause;
-		this.gasConsumedForPenalty = gasConsumedForPenalty;
 	}
 
 	@Override

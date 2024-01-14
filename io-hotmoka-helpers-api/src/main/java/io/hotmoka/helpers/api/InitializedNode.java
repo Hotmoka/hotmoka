@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.helpers.api;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
 
 /**

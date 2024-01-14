@@ -22,8 +22,8 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 @Immutable
@@ -65,11 +65,11 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 */
 	protected NonInitialTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath) {
-		Objects.requireNonNull(caller, "caller cannot be null");
-		Objects.requireNonNull(gasLimit, "gasLimit cannot be null");
-		Objects.requireNonNull(gasPrice, "gasPrice cannot be null");
-		Objects.requireNonNull(classpath, "classpath cannot be null");
-		Objects.requireNonNull(nonce, "nonce cannot be null");
+		this.caller = Objects.requireNonNull(caller, "caller cannot be null");
+		this.gasLimit = Objects.requireNonNull(gasLimit, "gasLimit cannot be null");
+		this.gasPrice = Objects.requireNonNull(gasPrice, "gasPrice cannot be null");
+		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
+		this.nonce = Objects.requireNonNull(nonce, "nonce cannot be null");
 
 		if (gasLimit.signum() < 0)
 			throw new IllegalArgumentException("gasLimit cannot be negative");
@@ -79,12 +79,6 @@ public abstract class NonInitialTransactionRequest<R extends NonInitialTransacti
 
 		if (nonce.signum() < 0)
 			throw new IllegalArgumentException("nonce cannot be negative");
-
-		this.caller = caller;
-		this.gasLimit = gasLimit;
-		this.gasPrice = gasPrice;
-		this.classpath = classpath;
-		this.nonce = nonce;
 	}
 
 	/**

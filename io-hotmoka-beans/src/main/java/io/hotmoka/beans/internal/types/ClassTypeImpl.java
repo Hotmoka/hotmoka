@@ -362,8 +362,7 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	 * @param name the name of the class
 	 */
 	private ClassTypeImpl(String name) {
-		Objects.requireNonNull(name, "name cannot be null");
-		this.name = name;
+		this.name = Objects.requireNonNull(name, "name cannot be null");
 	}
 
 	/**

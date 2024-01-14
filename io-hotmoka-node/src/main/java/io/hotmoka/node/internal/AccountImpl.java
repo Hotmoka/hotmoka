@@ -19,8 +19,9 @@ package io.hotmoka.node.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.node.api.Account;
@@ -42,8 +43,8 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	public AccountImpl(Entropy entropy, StorageReference reference) {
 		super(entropy, reference);
 
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+		if (reference.getProgressive().signum() != 0)
+			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
 	}
 
 	/**
@@ -57,8 +58,8 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	public AccountImpl(StorageReference reference) throws IOException {
 		super(reference);
 
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+		if (reference.getProgressive().signum() != 0)
+			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
 	}
 
 	/**
@@ -73,8 +74,8 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	public AccountImpl(StorageReference reference, String dir) throws IOException {
 		super(reference, dir);
 
-		if (reference.progressive.signum() != 0)
-			throw new IllegalArgumentException("accounts are limited to have 0 as progressive index");
+		if (reference.getProgressive().signum() != 0)
+			throw new IllegalArgumentException("Accounts are limited to have 0 as progressive index");
 	}
 
 	/**
@@ -86,7 +87,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public AccountImpl(String reference) throws IOException {
-		this(new StorageReference(reference));
+		this(StorageValues.reference(reference));
 	}
 
 	/**
@@ -99,7 +100,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @throws IOException if the PEM file cannot be read
 	 */
 	public AccountImpl(String reference, String dir) throws IOException {
-		this(new StorageReference(reference), dir);
+		this(StorageValues.reference(reference), dir);
 	}
 
 	/**
@@ -110,7 +111,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @param reference the byte representation of the reference
 	 */
 	public AccountImpl(Entropy entropy, byte[] reference) {
-		this(entropy, new StorageReference(TransactionReferences.of(reference), BigInteger.ZERO));
+		this(entropy, StorageValues.reference(TransactionReferences.of(reference), BigInteger.ZERO));
 	}
 
     @Override
@@ -124,6 +125,6 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 
 	@Override
 	public byte[] getReferenceAsBytes() {
-		return reference.transaction.getHashAsBytes();
+		return reference.getTransaction().getHashAsBytes();
 	}
 }

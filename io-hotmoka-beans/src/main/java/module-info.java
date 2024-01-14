@@ -20,7 +20,6 @@ module io.hotmoka.beans {
 	exports io.hotmoka.beans.responses;
 	exports io.hotmoka.beans.signatures;
 	exports io.hotmoka.beans.updates;
-	exports io.hotmoka.beans.values;
 	exports io.hotmoka.beans;
 
 	// beans must be accessible, encoded and decoded by reflection through Gson

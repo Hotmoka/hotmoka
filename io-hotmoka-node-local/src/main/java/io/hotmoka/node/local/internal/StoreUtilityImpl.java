@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -34,7 +35,6 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
@@ -160,9 +160,9 @@ public class StoreUtilityImpl implements StoreUtility {
 	@Override
 	public ClassTag getClassTagUncommitted(StorageReference reference) {
 		// we go straight to the transaction that created the object
-		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.transaction);
+		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.getTransaction());
 		if (!(response.get() instanceof TransactionResponseWithUpdates))
-			throw new RuntimeException("Transaction reference " + reference.transaction + " does not contain updates");
+			throw new RuntimeException("Transaction reference " + reference.getTransaction() + " does not contain updates");
 
 		return ((TransactionResponseWithUpdates) response.get()).getUpdates()
 			.filter(update -> update instanceof ClassTag && update.object.equals(reference))
@@ -202,7 +202,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	@Override
 	public Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
 		// accesses directly the transaction that created the object
-		return getLastUpdateUncommitted(object, field, object.transaction);
+		return getLastUpdateUncommitted(object, field, object.getTransaction());
 	}
 
 	private static TransactionResponseWithUpdates enforceHasUpdates(TransactionResponse response) {

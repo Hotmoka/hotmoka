@@ -180,13 +180,9 @@ public final class FieldSignature extends AbstractMarshallable implements Compar
 	 * @param type the type of the field
 	 */
 	public FieldSignature(ClassType definingClass, String name, StorageType type) {
-		Objects.requireNonNull(definingClass, "definingClass cannot be null");
-		Objects.requireNonNull(name, "name cannot be null");
-		Objects.requireNonNull(type, "type cannot be null");
-
-		this.definingClass = definingClass;
-		this.name = name;
-		this.type = type;
+		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null");
+		this.name = Objects.requireNonNull(name, "name cannot be null");
+		this.type = Objects.requireNonNull(type, "type cannot be null");
 	}
 
 	/**

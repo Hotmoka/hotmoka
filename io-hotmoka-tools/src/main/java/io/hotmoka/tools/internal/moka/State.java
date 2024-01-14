@@ -19,6 +19,7 @@ package io.hotmoka.tools.internal.moka;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -26,7 +27,6 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -59,7 +59,7 @@ public class State extends AbstractCommand {
 
 		private Run() throws Exception {
 			checkStorageReference(object);
-			StorageReference reference = new StorageReference(object);
+			var reference = StorageValues.reference(object);
 
 			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.network.values.StorageReferenceModel;
 
 public class EventRequestModel {

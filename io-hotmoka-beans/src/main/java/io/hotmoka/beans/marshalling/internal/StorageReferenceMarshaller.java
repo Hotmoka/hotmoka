@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -54,8 +54,8 @@ public class StorageReferenceMarshaller extends AbstractObjectMarshaller<Storage
 			memory.put(reference, next);
 
 			context.writeByte(255);
-			reference.transaction.into(context);
-			context.writeBigInteger(reference.progressive);
+			reference.getTransaction().into(context);
+			context.writeBigInteger(reference.getProgressive());
 		}
 	}
 }

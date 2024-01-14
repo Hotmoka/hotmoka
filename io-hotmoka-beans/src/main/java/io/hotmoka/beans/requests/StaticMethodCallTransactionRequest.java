@@ -29,10 +29,11 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -72,9 +73,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	public StaticMethodCallTransactionRequest(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		Objects.requireNonNull(chainId, "chainId cannot be null");
-
-		this.chainId = chainId;
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
 		this.signature = signer.sign(this);
 	}
 
@@ -94,10 +93,8 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	public StaticMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
 
-		Objects.requireNonNull(chainId, "chainId cannot be null");
-		Objects.requireNonNull(signature, "signature cannot be null");
-		this.chainId = chainId;
-		this.signature = signature;
+		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
+		this.signature = Objects.requireNonNull(signature, "signature cannot be null").clone();
 	}
 
 	/**
@@ -165,7 +162,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 */
 	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageReference.from(context);
+		var caller = StorageReferenceImpl.fromWithoutSelector(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

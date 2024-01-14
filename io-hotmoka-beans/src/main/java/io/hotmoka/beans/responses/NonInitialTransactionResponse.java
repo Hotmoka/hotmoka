@@ -62,14 +62,11 @@ public abstract class NonInitialTransactionResponse extends TransactionResponse 
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
 	protected NonInitialTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null");
-		Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null");
-		Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null");
+		this.gasConsumedForCPU = Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null");
+		this.gasConsumedForRAM = Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null");
+		this.gasConsumedForStorage = Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null");
 		this.updates = updates.toArray(Update[]::new);
 		Stream.of(this.updates).forEach(update -> Objects.requireNonNull(update, "updates cannot hold null"));
-		this.gasConsumedForCPU = gasConsumedForCPU;
-		this.gasConsumedForRAM = gasConsumedForRAM;
-		this.gasConsumedForStorage = gasConsumedForStorage;
 	}
 
 	@Override
