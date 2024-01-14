@@ -48,7 +48,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeSupplier;
@@ -130,7 +129,7 @@ class BlindAuction extends HotmokaTest {
 			byte[] salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 		}
 	}
 
@@ -150,7 +149,7 @@ class BlindAuction extends HotmokaTest {
 				byte[] salt = new byte[32];
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-				addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
+				addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 				sleep(2000);
 			}
 		});
@@ -176,7 +175,7 @@ class BlindAuction extends HotmokaTest {
 
 		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 			return addConstructorCallTransaction
-        		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, new BigIntegerValue(value), StorageValues.booleanOf(fake), bytes32);
+        		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
 		}
 
 		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException {
@@ -225,7 +224,7 @@ class BlindAuction extends HotmokaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), new BigIntegerValue(deposit), bytes32);
+			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 
         	i++;
 		}

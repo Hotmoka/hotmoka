@@ -49,7 +49,9 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -58,9 +60,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -281,10 +281,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _50_000, takamakaCode, CodeSignature.ID, validator))).value;
+				(manifest, _50_000, takamakaCode, CodeSignature.ID, validator))).getValue();
 
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _50_000, takamakaCode, GET, shares, validator))).value.longValue();
+				(manifest, _50_000, takamakaCode, GET, shares, validator))).getValue().longValue();
 
 			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
 

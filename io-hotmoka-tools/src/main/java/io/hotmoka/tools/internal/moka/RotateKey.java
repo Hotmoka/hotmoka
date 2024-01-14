@@ -22,6 +22,8 @@ import java.security.PublicKey;
 import java.util.Base64;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -29,7 +31,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.GasHelpers;
@@ -119,7 +120,7 @@ public class RotateKey extends AbstractCommand {
 			StorageReference manifest = node.getManifest();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
 			BigInteger gasPrice = getGasPrice();
@@ -137,7 +138,7 @@ public class RotateKey extends AbstractCommand {
 					classpath,
 					new VoidMethodSignature(StorageTypes.EOA, "rotatePublicKey", StorageTypes.STRING),
 					account,
-					new StringValue(publicKeyEncoded));
+					StorageValues.stringOf(publicKeyEncoded));
 		}
 
 		private BigInteger getGasPrice() throws Exception {

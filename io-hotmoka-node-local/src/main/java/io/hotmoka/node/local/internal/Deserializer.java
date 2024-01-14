@@ -28,25 +28,25 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreUtility;
@@ -167,7 +167,7 @@ public class Deserializer {
 		else if (value instanceof StringValue)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed:
 			// two parameters of an entry are never alias when they come from outside the node
-			return new String(((StringValue) value).value);
+			return new String(((StringValue) value).getValue());
 		else if (value instanceof BigIntegerValue)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
 			return new BigInteger(value.toString());
@@ -179,14 +179,14 @@ public class Deserializer {
 				// return Enum.valueOf((Class<? extends Enum>) classLoader.loadClass(ev.enumClassName), ev.name);
 				// since that method internally calls by reflection the valueOf() method of the enum,
 				// which is instrumented and hence will crash; we need a long alternative instead:
-				Class<?> enumClass = classLoader.loadClass(ev.enumClassName);
+				Class<?> enumClass = classLoader.loadClass(ev.getEnumClassName());
 				Optional<Field> fieldOfElement = Stream.of(enumClass.getDeclaredFields())
 					.filter(field -> Modifier.isPublic(field.getModifiers()) && Modifier.isStatic(field.getModifiers()))
-					.filter(field -> field.getName().equals(ev.name))
+					.filter(field -> field.getName().equals(ev.getName()))
 					.filter(field -> field.getType() == enumClass)
 					.findFirst();
 
-				Field field = fieldOfElement.orElseThrow(() -> new DeserializationError("cannot find enum constant " + ev.name));
+				Field field = fieldOfElement.orElseThrow(() -> new DeserializationError("cannot find enum constant " + ev.getName()));
 				// the field is public, but the class might not be public
 				field.setAccessible(true);
 

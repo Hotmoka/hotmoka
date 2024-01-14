@@ -51,6 +51,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -63,9 +64,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
@@ -262,7 +261,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
     		var request = new ConstructorCallTransactionRequest
     			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-    			new BigIntegerValue(level2(500)), new StringValue(publicKey));
+    			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
     		creator = node.addConstructorCallTransaction(request);
     	}
 
@@ -369,7 +368,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
     		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
         	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request);
-            return bi.value.intValue();
+            return bi.getValue().intValue();
         }
 
         private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {

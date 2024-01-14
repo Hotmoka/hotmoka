@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -41,7 +42,6 @@ import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 class SimplePoll extends HotmokaTest {
@@ -90,7 +90,7 @@ class SimplePoll extends HotmokaTest {
 			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(),
 				SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
-						new BigIntegerValue(share0), new BigIntegerValue(share1), new BigIntegerValue(share2), new BigIntegerValue(share3));
+				StorageValues.bigIntegerOf(share0), StorageValues.bigIntegerOf(share1), StorageValues.bigIntegerOf(share2), StorageValues.bigIntegerOf(share3));
 	}
 
 	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
@@ -104,7 +104,6 @@ class SimplePoll extends HotmokaTest {
 	@Test
 	@DisplayName("new SimplePoll where there are not enough votes able to close it")
 	void NotOverSimplePollWithNotEnoughVotes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -118,7 +117,6 @@ class SimplePoll extends HotmokaTest {
 	@Test
 	@DisplayName("new SimplePoll where no one has voted yet")
 	void NotOverSimplePoll() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( BigInteger.valueOf(10), ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -179,18 +177,16 @@ class SimplePoll extends HotmokaTest {
 	@Test
 	@DisplayName("new SimplePoll where someone attempts to vote with more voting power than the maximum")
 	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.TWO)));
+		assertThrows(TransactionException.class, () -> addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(2)));
 	}
 
 	@Test
 	@DisplayName("new SimplePoll() where all the 4 participants (having the same voting power) vote with their maximum voting power")
 	void SuccessfulSimplePollWhereAllStakeHoldersVote() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
@@ -255,7 +251,7 @@ class SimplePoll extends HotmokaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(8)));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(8));
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.getValue());
@@ -273,7 +269,7 @@ class SimplePoll extends HotmokaTest {
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(ZERO));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
 		
 		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
 		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL, simplePoll);
@@ -291,15 +287,14 @@ class SimplePoll extends HotmokaTest {
 	@Test
 	@DisplayName("new SimplePoll where everyone has the same voting power but votes zero")
 	void FailingSimplePollWhereEveryoneVotesWithZero() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		
 		StorageReference simpleSharedEntity = addSimpleSharedEntity( ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);
 		
-		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
-		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, new BigIntegerValue(BigInteger.valueOf(0)));
+		addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
+		addInstanceMethodCallTransaction(privateKey(1), stakeholder1, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
+		addInstanceMethodCallTransaction(privateKey(2), stakeholder2, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
+		addInstanceMethodCallTransaction(privateKey(3), stakeholder3, _10_000_000, ZERO, jar(), VOTE_POLL_WITH_PARAM, simplePoll, StorageValues.bigIntegerOf(0));
 		
 		BooleanValue isOver = (BooleanValue) addInstanceMethodCallTransaction(privateKey(0), stakeholder0, _10_000_000, ZERO, jar(), IS_POLL_OVER, simplePoll);	
 		Assertions.assertTrue(isOver.getValue());

@@ -20,9 +20,6 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.EnumValue;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
@@ -60,7 +57,7 @@ public class Serializer {
 		if (isStorage(object))
 			return builder.classLoader.getStorageReferenceOf(object);
 		else if (object instanceof BigInteger)
-			return new BigIntegerValue((BigInteger) object);
+			return StorageValues.bigIntegerOf((BigInteger) object);
 		else if (object instanceof Boolean)
 			return StorageValues.booleanOf((Boolean) object);
 		else if (object instanceof Byte)
@@ -78,9 +75,9 @@ public class Serializer {
 		else if (object instanceof Short)
 			return StorageValues.shortOf((Short) object);
 		else if (object instanceof String)
-			return new StringValue((String) object);
+			return StorageValues.stringOf((String) object);
 		else if (object instanceof Enum<?>)
-			return new EnumValue(object.getClass().getName(), ((Enum<?>) object).name());
+			return StorageValues.enumElementOf(object.getClass().getName(), ((Enum<?>) object).name());
 		else if (object == null)
 			return StorageValues.NULL;
 		else

@@ -26,9 +26,11 @@ import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -37,9 +39,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -78,7 +78,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 	}
 
 	@Override
@@ -116,7 +116,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 			new NonVoidMethodSignature(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 			gamete,
-			new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKeyEncoded));
+			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
 		return (StorageReference) node.addInstanceMethodCallTransaction(request);
 	}
@@ -170,8 +170,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
 				new NonVoidMethodSignature(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 				accountsLedger,
-				new BigIntegerValue(balance),
-				new StringValue(publicKeyEncoded));
+				StorageValues.bigIntegerOf(balance),
+				StorageValues.stringOf(publicKeyEncoded));
 
 			account = (StorageReference) node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1);
 		}
@@ -180,14 +180,14 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 				new ConstructorSignature(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-				new BigIntegerValue(balance), new StringValue(publicKeyEncoded));
+				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 			account = node.addConstructorCallTransaction((ConstructorCallTransactionRequest) request1);
 		}
 
 		if (balanceRed.signum() > 0) {
 			var request2 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER, account, new BigIntegerValue(balanceRed));
+				CodeSignature.RECEIVE_RED_BIG_INTEGER, account, StorageValues.bigIntegerOf(balanceRed));
 			node.addInstanceMethodCallTransaction(request2);
 			
 			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });
@@ -219,7 +219,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
 			new NonVoidMethodSignature(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 			gamete,
-			new BigIntegerValue(balance), new BigIntegerValue(balanceRed), new StringValue(publicKeyEncoded));
+			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
 		return (StorageReference) node.addInstanceMethodCallTransaction(request);
 	}
@@ -245,13 +245,13 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 			new ConstructorSignature(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-			new BigIntegerValue(balance), new StringValue(publicKeyEncoded));
+			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 		StorageReference validator = node.addConstructorCallTransaction(request1);
 
 		if (balanceRed.signum() > 0) {
 			var request2 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER, validator, new BigIntegerValue(balanceRed));
+				CodeSignature.RECEIVE_RED_BIG_INTEGER, validator, StorageValues.bigIntegerOf(balanceRed));
 			node.addInstanceMethodCallTransaction(request2);
 			
 			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });

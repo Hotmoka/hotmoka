@@ -39,8 +39,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -97,7 +97,7 @@ class Bombing extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), CodeSignature.BALANCE, account(i))).value);
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), CodeSignature.BALANCE, account(i))).getValue());
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));

@@ -30,12 +30,12 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
@@ -196,7 +196,7 @@ public class InitTendermint extends AbstractCommand {
 					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).value;
+						(manifest, _100_000, takamakaCode, CodeSignature.PUBLIC_KEY, validator))).getValue();
 					String publicKeyBase58 = Base58.encode(Base64.fromBase64String(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58
 					try {

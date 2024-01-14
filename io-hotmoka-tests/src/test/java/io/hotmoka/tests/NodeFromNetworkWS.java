@@ -41,6 +41,8 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
@@ -55,9 +57,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -431,7 +431,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
 
             var toString = (StringValue) remote.runStaticMethodCallTransaction
             	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
-            assertEquals("[how, are, hello, you, ?]", toString.value);
+            assertEquals("[how, are, hello, you, ?]", toString.getValue());
         }
     }
 
@@ -443,7 +443,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             	(account(0), _50_000, takamakaCode(), CodeSignature.NONCE, account(0));
 
             BigIntegerValue value = (BigIntegerValue) remote.runInstanceMethodCallTransaction(request);
-            assertEquals(ZERO, value.value);
+            assertEquals(ZERO, value.getValue());
         }
     }
 

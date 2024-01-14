@@ -39,11 +39,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -109,7 +109,7 @@ class TicTacToe extends HotmokaTest {
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
-		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.value);
+		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.getValue());
 	}
 
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
@@ -257,7 +257,7 @@ class TicTacToe extends HotmokaTest {
 			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
-		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.value);
+		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.getValue());
 	}
 
 

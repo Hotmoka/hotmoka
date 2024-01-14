@@ -20,7 +20,10 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -28,9 +31,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -91,7 +92,7 @@ public class BuyValidation extends AbstractCommand {
 				var buyer = new StorageReference(BuyValidation.this.buyer);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
 				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);				
 				InstanceMethodCallTransactionRequest request;
@@ -102,7 +103,7 @@ public class BuyValidation extends AbstractCommand {
 				StorageReference offer = new StorageReference(BuyValidation.this.offer);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).value;
+						(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).getValue();
 				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 
 				askForConfirmation(gasLimit, costWithSurcharge);
@@ -110,7 +111,7 @@ public class BuyValidation extends AbstractCommand {
 				request = new InstanceMethodCallTransactionRequest
 						(signer, buyer, nonceHelper.getNonceOf(buyer), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 								new VoidMethodSignature(StorageTypes.ABSTRACT_VALIDATORS, "accept", StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR, StorageTypes.SHARED_ENTITY_OFFER),
-								validators, new BigIntegerValue(costWithSurcharge), buyer, offer);
+								validators, StorageValues.bigIntegerOf(costWithSurcharge), buyer, offer);
 
 				node.addInstanceMethodCallTransaction(request);
 				System.out.println("Offer accepted");

@@ -22,7 +22,6 @@ import static io.hotmoka.beans.Coin.stromboli;
 import static io.hotmoka.beans.StorageTypes.BOOLEAN;
 import static io.hotmoka.beans.StorageTypes.INT;
 import static io.hotmoka.beans.StorageTypes.LONG;
-import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -43,14 +42,14 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -91,29 +90,25 @@ class UnsignedBigInteger extends HotmokaTest {
                 panarea(1), // gas price
                 classpath, //reference to the classpath of the classes being tested
                 CONSTRUCTOR_UBI_BI, // constructor signature
-                new BigIntegerValue(ZERO)); // actual arguments
+                StorageValues.bigIntegerOf(0)); // actual arguments
 
         // UnsignedBigInteger( String=10 )
-        addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("10"));
+        addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("10"));
 
         // UnsignedBigInteger( String=20, int radix=10 )
-        addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR_INT, new StringValue("20"), StorageValues.intOf(10));
+        addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR_INT, StorageValues.stringOf("20"), StorageValues.intOf(10));
 
         // UnsignedBigInteger( BigInteger=-10 ) --> Exception
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addConstructorCallTransaction(
-                        creator_prv_key, creator,
-                        _100_000, panarea(1), classpath,
-                        CONSTRUCTOR_UBI_BI,
-                        new BigIntegerValue(new BigInteger("-10")))
+        	addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_BI, StorageValues.bigIntegerOf(-10))
         );
     }
 
     @Test @DisplayName("Test of add method (and equals method): 100.add(11).equals(111) == true")
     void add() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
-        StorageReference ubi_111 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("111"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("100"));
+        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("11"));
+        StorageReference ubi_111 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("111"));
 
         StorageReference ubi_sum = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -134,9 +129,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of subtract method: 100.subtract(1).equals(99) == true")
     void subtract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1"));
-        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("100"));
+        StorageReference ubi_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1"));
+        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("99"));
 
         StorageReference ubi_sub = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -157,24 +152,24 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of subtract method with the generation of an Exception: 100.subtract(101, 'Test Exception')")
     void subtractException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi_101 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("101"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("100"));
+        StorageReference ubi_101 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("101"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
             addInstanceMethodCallTransaction(
                     creator_prv_key, creator,
                     _100_000, panarea(1), classpath,
                     new NonVoidMethodSignature(UBI, "subtract", UBI, UBI, StorageTypes.STRING),
-                    ubi_100, ubi_101, new StringValue("Test Exception"))
+                    ubi_100, ubi_101, StorageValues.stringOf("Test Exception"))
             // 100.subtract(101, 'Test Exception') = 'Test Exception' !!!
         );
     }
 
     @Test @DisplayName("Test of multiply method: 100.multiply(9).equals(900) == true")
     void multiply() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("100"));
-        StorageReference ubi_9 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("9"));
-        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
+        StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("100"));
+        StorageReference ubi_9 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("9"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
 
         StorageReference ubi_mul = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -195,9 +190,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of divide method: 900.divide(8).equals(112) == true ")
     void divideApproximation() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
-        StorageReference ubi_112 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("112"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
+        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("8"));
+        StorageReference ubi_112 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("112"));
 
         StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -218,9 +213,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of divide method: 900.divide(11).equals(81) == true ")
     void divideApproximation2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("11"));
-        StorageReference ubi_81 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("81"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
+        StorageReference ubi_11 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("11"));
+        StorageReference ubi_81 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("81"));
 
         StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -241,24 +236,24 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of divide method with the generation of an Exception: 900.divide(0, 'Test Exception /0')")
     void divideException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("900"));
-        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
+        StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
+        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), classpath,
                         new NonVoidMethodSignature(UBI, "divide", UBI, UBI, StorageTypes.STRING),
-                        ubi_900, ubi_0, new StringValue("Test Exception /0"))
+                        ubi_900, ubi_0, StorageValues.stringOf("Test Exception /0"))
                 // 900.divide(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
     }
 
     @Test @DisplayName("Test of mod method: 800.mod(13).equals(7) == true ")
     void mod() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_13 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("13"));
-        StorageReference ubi_7 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("7"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_13 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("13"));
+        StorageReference ubi_7 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("7"));
 
         StorageReference ubi_mod = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -279,23 +274,23 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of mod method with the generation of an Exception: 800.mod(0, 'Test Exception /0')")
     void modException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("0"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                         addInstanceMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), classpath,
                                 new NonVoidMethodSignature(UBI, "mod", UBI, UBI, StorageTypes.STRING),
-                                ubi_800, ubi_0, new StringValue("Test Exception /0"))
+                                ubi_800, ubi_0, StorageValues.stringOf("Test Exception /0"))
                 // 800.mod(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
     }
 
     @Test @DisplayName("Test of pow method: 8.pow(7).equals(2097152) == true")
     void pow() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("8"));
-        StorageReference ubi_2097152 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("2097152"));
+        StorageReference ubi_8 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("8"));
+        StorageReference ubi_2097152 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("2097152"));
         IntValue int_2 = StorageValues.intOf(7);
 
         StorageReference ubi_pow = (StorageReference) addInstanceMethodCallTransaction(
@@ -317,9 +312,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of max method: 800.max(799).equals(800) == true")
     void max() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
         StorageReference ubi_max = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -340,9 +335,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of min method: 800.min(799).equals(799) == true")
     void min() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi__799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
+        StorageReference ubi__799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
 
         StorageReference ubi_min = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -363,9 +358,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of compareTo method: 800.compareTo(799) == 1, 799.compareTo(800) == -1, 800.compareTo(800) == 0")
     void compareToTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
         IntValue result_compare1 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
@@ -395,9 +390,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of equals method: 800.compareTo(799) == false, 800.compareTo(800) == true")
     void equalsTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
         BooleanValue result_equals1 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
@@ -419,9 +414,9 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of hashCode method: 800.hashCode == 800.hashCode(), 800.hashCode != 799.hashCode()")
     void hashCodeTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
-        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("799"));
-        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("800"));
+        StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
+        StorageReference ubi_799 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("799"));
+        StorageReference ubi__800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
 
         IntValue hashcode_ubi1 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
@@ -450,7 +445,7 @@ class UnsignedBigInteger extends HotmokaTest {
 
     @Test @DisplayName("Test of toBigInteger method: 1001.toBigInteger() == BigInteger@1001")
     void toBigIntegerTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
 
         BigIntegerValue bi1 = (BigIntegerValue) runInstanceMethodCallTransaction(
                 creator,
@@ -459,12 +454,12 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_1001);
         // 1001.toBigInteger()
 
-        assertEquals(bi1.value, new BigInteger("1001")); // 1001.toBigInteger() == BigInteger@1001
+        assertEquals(bi1.getValue(), BigInteger.valueOf(1001)); // 1001.toBigInteger() == BigInteger@1001
     }
 
     @Test @DisplayName("Test of toString method: 1001.toString() == '1001'")
     void toStringTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
 
         StringValue string1 = (StringValue) runInstanceMethodCallTransaction(
                 creator,
@@ -473,12 +468,12 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_1001);
         // 1001.toString()
 
-        assertEquals(string1.value, "1001"); // 1001.toString() == '1001'
+        assertEquals(string1.getValue(), "1001"); // 1001.toString() == '1001'
     }
 
     @Test @DisplayName("Test of toString method: 1001.toString(16) == '3e9'")
     void toString2Test() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("1001"));
+        StorageReference ubi_1001 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1001"));
 
         StringValue string2 = (StringValue) runInstanceMethodCallTransaction(
                 creator,
@@ -487,12 +482,12 @@ class UnsignedBigInteger extends HotmokaTest {
                 ubi_1001, StorageValues.intOf(16));
         // 1001.toString(16)
 
-        assertEquals(string2.value, "3e9"); // 1001.toString(16) == '3e9'
+        assertEquals(string2.getValue(), "3e9"); // 1001.toString(16) == '3e9'
     }
 
     @Test @DisplayName("Test of valueOf method: long@99.valueOf().equals(99) == true")
     void valueOfTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, new StringValue("99"));
+        StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("99"));
 
         StorageReference ubi_result = (StorageReference) addStaticMethodCallTransaction(
                 creator_prv_key, creator,

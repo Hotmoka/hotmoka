@@ -37,6 +37,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -52,9 +53,7 @@ import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeSupplier;
@@ -84,7 +83,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of zero validators
 		var request = new ConstructorCallTransactionRequest
@@ -92,7 +91,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			new ConstructorSignature("io.takamaka.code.governance.GenericValidators$Builder", StorageTypes.STRING,
 					StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-			new StringValue(""), new StringValue(""), new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
+			StorageValues.stringOf(""), StorageValues.stringOf(""), StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
 			StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(0),
 			StorageValues.intOf(0), StorageValues.intOf(0), StorageValues.intOf(0));
 
@@ -103,15 +102,15 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _100_000 = BigInteger.valueOf(100_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of a generic gas station
-		ConstructorCallTransactionRequest request = new ConstructorCallTransactionRequest
+		var request = new ConstructorCallTransactionRequest
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature("io.takamaka.code.governance.GenericGasStation$Builder",
 					StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-			new BigIntegerValue(consensus.getInitialGasPrice()), new BigIntegerValue(consensus.getMaxGasPerTransaction()),
-			StorageValues.booleanOf(consensus.ignoresGasPrice()), new BigIntegerValue(consensus.getTargetGasAtReward()),
+			StorageValues.bigIntegerOf(consensus.getInitialGasPrice()), StorageValues.bigIntegerOf(consensus.getMaxGasPerTransaction()),
+			StorageValues.booleanOf(consensus.ignoresGasPrice()), StorageValues.bigIntegerOf(consensus.getTargetGasAtReward()),
 			StorageValues.longOf(consensus.getOblivion()));
 
 		return node.addConstructorCallTransaction(request);
@@ -163,7 +162,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
@@ -173,11 +172,11 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.LONG, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			new StringValue(consensus.getGenesisTime().toString()),
-			new StringValue(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
+			StorageValues.stringOf(consensus.getGenesisTime().toString()),
+			StorageValues.stringOf(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
 			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+			StorageValues.stringOf(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
@@ -226,7 +225,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
@@ -236,11 +235,11 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.LONG, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			new StringValue(consensus.getGenesisTime().toString()),
-			new StringValue(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
+			StorageValues.stringOf(consensus.getGenesisTime().toString()),
+			StorageValues.stringOf(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
 			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			new StringValue(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+			StorageValues.stringOf(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

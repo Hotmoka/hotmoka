@@ -54,9 +54,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token.
@@ -119,7 +117,7 @@ class WTSC2021bis extends HotmokaTest {
 			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 			StorageReference creator = addConstructorCallTransaction
 				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
-				new BigIntegerValue(level2(500)), new StringValue(publicKey));
+				StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
 
 			investors = accounts().limit(NUMBER_OF_INVESTORS).toArray(StorageReference[]::new);
 			privateKeysOfInvestors = privateKeys().limit(NUMBER_OF_INVESTORS).toArray(PrivateKey[]::new);

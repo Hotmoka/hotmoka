@@ -17,31 +17,38 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.values.BigIntegerValueImpl;
 import io.hotmoka.beans.internal.values.BooleanValueImpl;
 import io.hotmoka.beans.internal.values.ByteValueImpl;
 import io.hotmoka.beans.internal.values.CharValueImpl;
 import io.hotmoka.beans.internal.values.DoubleValueImpl;
+import io.hotmoka.beans.internal.values.EnumValueImpl;
 import io.hotmoka.beans.internal.values.FloatValueImpl;
 import io.hotmoka.beans.internal.values.IntValueImpl;
 import io.hotmoka.beans.internal.values.LongValueImpl;
 import io.hotmoka.beans.internal.values.NullValueImpl;
 import io.hotmoka.beans.internal.values.ShortValueImpl;
 import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.beans.internal.values.StringValueImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -137,13 +144,54 @@ public abstract class StorageValues {
 	}
 
 	/**
-	 * Yields the storage value corresponding to the given float value.
+	 * Yields the storage value corresponding to the given {@code float} value.
 	 * 
-	 * @param value the float value
+	 * @param value the {@code float} value
 	 * @return the corresponding storage value
 	 */
 	public static FloatValue floatOf(float value) {
 		return new FloatValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given big integer value.
+	 * 
+	 * @param value the big integer value
+	 * @return the corresponding storage value
+	 */
+	public static BigIntegerValue bigIntegerOf(BigInteger value) {
+		return new BigIntegerValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given {@code long} value.
+	 * 
+	 * @param value the {@code long} value
+	 * @return the corresponding storage value
+	 */
+	public static BigIntegerValue bigIntegerOf(long value) {
+		return new BigIntegerValueImpl(BigInteger.valueOf(value));
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given string.
+	 * 
+	 * @param value the string
+	 * @return the corresponding storage value
+	 */
+	public static StringValue stringOf(String value) {
+		return new StringValueImpl(value);
+	}
+
+	/**
+	 * Yields the storage value corresponding to the given enumeration element.
+	 * 
+	 * @param enumClassName the name of the class of the enumeration
+	 * @param name the name of the enumeration element
+	 * @return the corresponding enumeration element value
+	 */
+	public static EnumValue enumElementOf(String enumClassName, String name) {
+		return new EnumValueImpl(enumClassName, name);
 	}
 
 	/**

@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
@@ -42,7 +43,6 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -93,7 +93,7 @@ class ExampleCoinCapped extends HotmokaTest {
     @Test @DisplayName("Test of ERC20Capped cap method: example_token.cap() == 1'000'000*10^18")
     void totalSupply() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("1000000000000000000000000"));
+        StorageReference ubi_1M = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1000000000000000000000000"));
 
         StorageReference cap = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
@@ -116,8 +116,8 @@ class ExampleCoinCapped extends HotmokaTest {
     @DisplayName("Test of ERC20Capped _mint method (under the cap): example_token.mint(account, 700'000) --> totalSupply+=700'000, balances[account]+=700'000")
     void mint() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("700000000000000000000000"));
-        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("900000000000000000000000"));
+        StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("700000000000000000000000"));
+        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
@@ -143,9 +143,9 @@ class ExampleCoinCapped extends HotmokaTest {
     @Test @DisplayName("Test of ERC20Capped _mint method with the generation of some Exceptions (over the cap)")
     void mintExceptions() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCC);
-        StorageReference ubi_200000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("200000000000000000000000"));
-        StorageReference ubi_800000_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("800000000000000000000001"));
-        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, new StringValue("900000000000000000000000"));
+        StorageReference ubi_200000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("200000000000000000000000"));
+        StorageReference ubi_800000_1 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800000000000000000000001"));
+        StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
                 addInstanceMethodCallTransaction(

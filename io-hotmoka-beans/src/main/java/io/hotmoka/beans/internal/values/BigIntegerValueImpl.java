@@ -14,37 +14,41 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A big integer stored in blockchain.
+ * Implementation of a big integer stored in blockchain.
  */
 @Immutable
-public final class BigIntegerValue extends StorageValueImpl {
-	public static final byte SELECTOR = 6;
+public final class BigIntegerValueImpl extends StorageValueImpl implements BigIntegerValue {
+	static final byte SELECTOR = 6;
 
 	/**
 	 * The big integer.
 	 */
-	public final BigInteger value;
+	private final BigInteger value;
 
 	/**
 	 * Builds a big integer that can be stored in blockchain.
 	 * 
 	 * @param value the big integer
 	 */
-	public BigIntegerValue(BigInteger value) {
-		Objects.requireNonNull(value, "value cannot be null");
-		this.value = value;
+	public BigIntegerValueImpl(BigInteger value) {
+		this.value = Objects.requireNonNull(value, "value cannot be null");
+	}
+
+	@Override
+	public BigInteger getValue() {
+		return value;
 	}
 
 	@Override
@@ -54,7 +58,7 @@ public final class BigIntegerValue extends StorageValueImpl {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof BigIntegerValue biv && biv.value.equals(value);
+		return other instanceof BigIntegerValue biv && biv.getValue().equals(value);
 	}
 
 	@Override
@@ -68,7 +72,7 @@ public final class BigIntegerValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return value.compareTo(((BigIntegerValue) other).value);
+			return value.compareTo(((BigIntegerValueImpl) other).value);
 	}
 
 	@Override

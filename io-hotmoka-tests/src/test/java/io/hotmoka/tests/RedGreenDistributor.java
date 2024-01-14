@@ -32,13 +32,14 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.node.api.CodeSupplier;
 
@@ -99,7 +100,7 @@ class RedGreenDistributor extends HotmokaTest {
 			ONE,
 			jar(),
 			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", StorageTypes.BIG_INTEGER),
-			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
+			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
@@ -118,8 +119,8 @@ class RedGreenDistributor extends HotmokaTest {
 			account(2)
 		);
 
-		Assertions.assertEquals(ZERO, balanceRed1.value);
-		Assertions.assertEquals(ZERO, balanceRed2.value);
+		Assertions.assertEquals(ZERO, balanceRed1.getValue());
+		Assertions.assertEquals(ZERO, balanceRed2.getValue());
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 red and their red balance is 500")
@@ -150,7 +151,7 @@ class RedGreenDistributor extends HotmokaTest {
 			ONE,
 			jar(),
 			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
-			distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
+			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
 		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
@@ -169,8 +170,8 @@ class RedGreenDistributor extends HotmokaTest {
 			account(2)
 		);
 
-		Assertions.assertEquals(500, balanceRed1.value.intValue());
-		Assertions.assertEquals(500, balanceRed2.value.intValue());
+		Assertions.assertEquals(500, balanceRed1.getValue().intValue());
+		Assertions.assertEquals(500, balanceRed2.getValue().intValue());
 	}
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
@@ -184,7 +185,7 @@ class RedGreenDistributor extends HotmokaTest {
 			ONE,
 			jar(),
 			new ConstructorSignature(StorageTypes.EOA, StorageTypes.BIG_INTEGER),
-			new BigIntegerValue(_20_000)
+			StorageValues.bigIntegerOf(_20_000)
 		);
 
 		addInstanceMethodCallTransaction(
@@ -213,7 +214,7 @@ class RedGreenDistributor extends HotmokaTest {
 				ONE,
 				jar(),
 				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
-				distributor, new BigIntegerValue(BigInteger.valueOf(1_000))
+				distributor, StorageValues.bigIntegerOf(1_000)
 			)
 		);
 	}

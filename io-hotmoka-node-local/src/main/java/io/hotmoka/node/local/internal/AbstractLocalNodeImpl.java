@@ -46,6 +46,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -74,9 +75,7 @@ import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -85,8 +84,8 @@ import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreUtility;
@@ -669,9 +668,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, CodeSignature.VALIDATORS_REWARD, validators,
-					new BigIntegerValue(coinsSinceLastReward), new BigIntegerValue(minted),
-					new StringValue(behaving), new StringValue(misbehaving),
-					new BigIntegerValue(gasConsumedSinceLastReward), new BigIntegerValue(numberOfTransactionsSinceLastReward));
+					StorageValues.bigIntegerOf(coinsSinceLastReward), StorageValues.bigIntegerOf(minted),
+					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
+					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
 				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(new LocalTransactionReference(hasher.hash(request)), request);

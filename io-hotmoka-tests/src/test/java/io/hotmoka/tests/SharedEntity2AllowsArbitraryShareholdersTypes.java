@@ -40,7 +40,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -82,21 +81,21 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
 
         // create a shared entity contract (v2)
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath,
-                SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, new BigIntegerValue(BigInteger.TEN));
+                SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, StorageValues.bigIntegerOf(10));
 
         // create an offer by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(MY_CLASS, "createOffer2", OFFER_2, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
-                sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
+                sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY_2, StorageTypes.BIG_INTEGER, OFFER_2),
-                sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+                sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer: this should not be valid but the test shows that it actually works
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                 new VoidMethodSignature(SIMPLE_SHARED_ENTITY_2, "accept", StorageTypes.BIG_INTEGER, OFFER_2),
-                sharedEntity, new BigIntegerValue(BigInteger.TWO), offer);
+                sharedEntity, StorageValues.bigIntegerOf(2), offer);
     }
 }

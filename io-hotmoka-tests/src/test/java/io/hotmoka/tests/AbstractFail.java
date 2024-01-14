@@ -33,10 +33,10 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -76,7 +76,7 @@ class AbstractFail extends HotmokaTest {
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).value;
+		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

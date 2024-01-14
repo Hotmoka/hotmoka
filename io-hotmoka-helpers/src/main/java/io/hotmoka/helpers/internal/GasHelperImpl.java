@@ -21,11 +21,11 @@ import java.math.BigInteger;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.api.Node;
@@ -71,7 +71,7 @@ public class GasHelperImpl implements GasHelper {
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).getValue();
 	}
 
 	@Override

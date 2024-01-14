@@ -32,12 +32,12 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall2 extends HotmokaTest {
@@ -60,6 +60,6 @@ class LegalCall2 extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, new VoidMethodSignature(C, "test"), c);
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", StorageTypes.STRING), c);
 
-		assertEquals("53331", result.value);
+		assertEquals("53331", result.getValue());
 	}
 }

@@ -26,12 +26,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 
 /**
  * A test for the wrong use of the chain identifier in a transaction.
@@ -50,7 +49,7 @@ class WrongChainId extends HotmokaTest {
 
 		throwsTransactionRejectedWithCause("incorrect chain id", () ->
 			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, BigInteger.ZERO, chainId + "noise",
-				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, new BigIntegerValue(_50_000), new StringValue("ciao")))
+				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
 		);
 	}
 }

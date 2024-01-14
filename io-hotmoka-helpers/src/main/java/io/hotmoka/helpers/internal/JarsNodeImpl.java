@@ -35,7 +35,9 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -50,9 +52,7 @@ import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -107,11 +107,11 @@ public class JarsNodeImpl implements JarsNode {
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _50_000, takamakaCode, CodeSignature.NONCE, payer))).value;
+			(payer, _50_000, takamakaCode, CodeSignature.NONCE, payer))).getValue();
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _50_000, takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).value;
+			(payer, _50_000, takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		var jarSuppliers = new JarSupplier[jars.length];

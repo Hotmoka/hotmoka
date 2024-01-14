@@ -19,19 +19,19 @@ package io.hotmoka.network.values;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.EnumValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.requests.MethodCallTransactionRequestModel;
 
 /**
@@ -86,8 +86,8 @@ public class StorageValueModel {
     		EnumValue parentAsEnumValue = (EnumValue) parent;
     		value = null;
     		reference = null;
-    		type = parentAsEnumValue.enumClassName;
-    		enumElementName = parentAsEnumValue.name;
+    		type = parentAsEnumValue.getEnumClassName();
+    		enumElementName = parentAsEnumValue.getName();
     	}
     	else if (parent instanceof BigIntegerValue) {
     		value = parent.toString();
@@ -161,7 +161,7 @@ public class StorageValueModel {
      */
     public StorageValue toBean() {
     	if (enumElementName != null)
-			return new EnumValue(type, enumElementName);
+			return StorageValues.enumElementOf(type, enumElementName);
     	else if (type.equals("reference"))
     		if (reference == null)
     			return StorageValues.NULL;
@@ -170,9 +170,9 @@ public class StorageValueModel {
     	else if (value == null)
     		throw new RuntimeException("unexpected null value");
     	else if (type.equals(BIGINTEGER_NAME))
-			return new BigIntegerValue(new BigInteger(value));
+			return StorageValues.bigIntegerOf(new BigInteger(value));
 		else if (type.equals(STRING_NAME))
-			return new StringValue(value);
+			return StorageValues.stringOf(value);
 		else if (type.equals("boolean"))
             return StorageValues.booleanOf(Boolean.parseBoolean(value));
     	else if (type.equals("byte"))

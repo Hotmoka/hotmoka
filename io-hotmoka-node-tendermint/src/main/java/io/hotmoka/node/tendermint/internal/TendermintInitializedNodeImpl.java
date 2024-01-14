@@ -40,6 +40,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -56,9 +57,7 @@ import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -126,7 +125,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, CodeSignature.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).value;
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
@@ -141,7 +140,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 			new ConstructorSignature(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
-			new BigIntegerValue(consensus.getTicketForNewPoll()), new BigIntegerValue(consensus.getFinalSupply()),
+			StorageValues.bigIntegerOf(consensus.getTicketForNewPoll()), StorageValues.bigIntegerOf(consensus.getFinalSupply()),
 			StorageValues.longOf(consensus.getInitialInflation()), StorageValues.intOf(consensus.getPercentStaked()), StorageValues.intOf(consensus.getBuyerSurcharge()),
 			StorageValues.intOf(consensus.getSlashingForMisbehaving()), StorageValues.intOf(consensus.getSlashingForNotBehaving()));
 
@@ -158,7 +157,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 				addValidatorMethod,
 				builder,
-				new StringValue(publicKeyBase64), StorageValues.longOf(power));
+				StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power));
 			node.addInstanceMethodCallTransaction(addValidator);
 			nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 		}

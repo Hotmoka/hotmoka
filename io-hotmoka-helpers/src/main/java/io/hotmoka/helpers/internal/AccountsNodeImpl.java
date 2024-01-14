@@ -36,7 +36,9 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -54,9 +56,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -128,11 +128,11 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _100_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(payer, _100_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _100_000, classpath, CodeSignature.NONCE, payer))).value;
+			(payer, _100_000, classpath, CodeSignature.NONCE, payer))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;
@@ -165,7 +165,7 @@ public class AccountsNodeImpl implements AccountsNode {
 		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 			new ConstructorSignature(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
-			new BigIntegerValue(sum), new StringValue(balances.toString()), new StringValue(publicKeys.toString())));
+			StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));
 
 		if (greenRed) {
 			nonce = nonce.add(ONE);
@@ -174,7 +174,7 @@ public class AccountsNodeImpl implements AccountsNode {
 			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 				new VoidMethodSignature(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-				this.container, new BigIntegerValue(sumRed), new StringValue(redBalances.toString())));
+				this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
 		}
 
 		var get = new NonVoidMethodSignature(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);

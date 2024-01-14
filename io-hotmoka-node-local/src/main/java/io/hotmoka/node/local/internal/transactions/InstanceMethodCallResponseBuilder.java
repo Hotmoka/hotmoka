@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
@@ -40,7 +41,6 @@ import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -282,7 +282,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				if (firstArg.isPresent()) {
 					StorageValue value = firstArg.get();
 					if (value instanceof BigIntegerValue) {
-						BigInteger amount = ((BigIntegerValue) value).value;
+						BigInteger amount = ((BigIntegerValue) value).getValue();
 						Object caller = getDeserializedCaller();
 						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(amount));
 					}

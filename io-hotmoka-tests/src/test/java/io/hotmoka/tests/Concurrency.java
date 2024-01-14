@@ -37,8 +37,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.CodeSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 
 /**
  * A test for generating transactions in concurrency and check that everything
@@ -87,11 +87,11 @@ class Concurrency extends HotmokaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(num))).value;
+						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(num))).getValue();
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(other))).value;
+						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(other))).getValue();
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;

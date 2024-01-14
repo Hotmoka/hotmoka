@@ -28,17 +28,17 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.node.api.Node;
 
@@ -124,7 +124,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 	@Override
 	public String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(gamete, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+			(gamete, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 	}
 
 	@Override
@@ -136,7 +136,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("└─ manifest: ").append(manifest).append("\n");
 
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(gamete, _100_000, takamakaCode, CodeSignature.GET_GENESIS_TIME, manifest))).value;
+				(gamete, _100_000, takamakaCode, CodeSignature.GET_GENESIS_TIME, manifest))).getValue();
 			builder.append("   ├─ genesisTime: ").append(genesisTime).append("\n");
 
 			String chainId = getChainId();
@@ -173,46 +173,46 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ skipsVerification: ").append(skipsVerification).append("\n");
 
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_SIGNATURE, manifest))).getValue();
 
 			builder.append("   ├─ signature: ").append(signature).append("\n");
 
 			builder.append("   ├─ gamete: ").append(gamete).append("\n");
 
 			BigInteger balanceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, gamete))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, gamete))).getValue();
 
 			builder.append("   │  ├─ balance: ").append(balanceOfGamete).append("\n");
 
 			BigInteger redBalanceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE_RED, gamete))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.BALANCE_RED, gamete))).getValue();
 
 			builder.append("   │  ├─ redBalance: ").append(redBalanceOfGamete).append("\n");
 
 			BigInteger maxFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_FAUCET, gamete))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_FAUCET, gamete))).getValue();
 
 			builder.append("   │  ├─ maxFaucet: ").append(maxFaucet).append("\n");
 
 			BigInteger maxRedFaucet = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_RED_FAUCET, gamete))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_RED_FAUCET, gamete))).getValue();
 
 			builder.append("   │  └─ maxRedFaucet: ").append(maxRedFaucet).append("\n");
 
 			builder.append("   ├─ gasStation: ").append(gasStation).append("\n");
 
 			BigInteger initialGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_GAS_PRICE, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_GAS_PRICE, gasStation))).getValue();
 
 			builder.append("   │  ├─ initialGasPrice: ").append(initialGasPrice).append("\n");
 
 			BigInteger gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).getValue();
 
 			builder.append("   │  ├─ gasPrice: ").append(gasPrice).append("\n");
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_MAX_GAS_PER_TRANSACTION, gasStation))).getValue();
 
 			builder.append("   │  ├─ maxGasPerTransaction: ").append(maxGasPerTransaction).append("\n");
 
@@ -222,7 +222,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   │  ├─ ignoresGasPrice: ").append(ignoresGasPrice).append("\n");
 
 			BigInteger targetGasAtReward = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TARGET_GAS_AT_REWARD, gasStation))).getValue();
 
 			builder.append("   │  ├─ targetGasAtReward: ").append(targetGasAtReward).append("\n");
 
@@ -293,22 +293,22 @@ public class ManifestHelperImpl implements ManifestHelper {
 				builder.append("   │  ├─ validator #").append(num).append(": ").append(validator).append("\n");
 
 				String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).getValue();
 
 				builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).getValue();
 
 				builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger stakedForValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_STAKE, validators, validator))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_STAKE, validators, validator))).getValue();
 
 				builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).getValue();
 
 				SortedSet<StorageReference> saleOffers = offersPerValidator.get(validator);
 				if (saleOffers == null)
@@ -325,9 +325,9 @@ public class ManifestHelperImpl implements ManifestHelper {
 							builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
 
 						BigInteger powerOnSale = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))).value;
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))).getValue();
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).value;
+							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).getValue();
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 						var expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 							(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.SHARED_ENTITY_OFFER, "getExpiration", StorageTypes.LONG), offer))).getValue());
@@ -357,22 +357,22 @@ public class ManifestHelperImpl implements ManifestHelper {
 			}
 
 			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_SUPPLY, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_SUPPLY, validators))).getValue();
 
 			builder.append("   │  ├─ initialSupply: ").append(initialSupply).append("\n");
 
 			BigInteger currentSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_CURRENT_SUPPLY, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_CURRENT_SUPPLY, validators))).getValue();
 
 			builder.append("   │  ├─ currentSupply: ").append(currentSupply).append("\n");
 
 			BigInteger finalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_FINAL_SUPPLY, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_FINAL_SUPPLY, validators))).getValue();
 
 			builder.append("   │  ├─ finalSupply: ").append(finalSupply).append("\n");
 
 			BigInteger initialRedSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_RED_SUPPLY, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_INITIAL_RED_SUPPLY, validators))).getValue();
 
 			builder.append("   │  ├─ initialRedSupply: ").append(initialRedSupply).append("\n");
 
@@ -387,17 +387,17 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append(String.format("   │  ├─ currentInflation: %d (ie. %.6f%%)\n", currentInflation, currentInflation / 1_000_000.0));
 
 			BigInteger height = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_HEIGHT, validators))).getValue();
 
 			builder.append("   │  ├─ height: ").append(height).append("\n");
 
 			BigInteger numberOfTransactions = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_NUMBER_OF_TRANSACTIONS, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_NUMBER_OF_TRANSACTIONS, validators))).getValue();
 
 			builder.append("   │  ├─ numberOfTransactions: ").append(numberOfTransactions).append("\n");
 
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).value;
+				(manifest, _100_000, takamakaCode, CodeSignature.GET_TICKET_FOR_NEW_POLL, validators))).getValue();
 
 			builder.append("   │  ├─ ticketForNewPoll: ").append(ticketForNewPoll).append("\n");
 
@@ -424,7 +424,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
 
 				String description = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))).getValue();
 
 				if (isLast)
 					builder.append("   │     └─ description: ").append(description).append("\n");
@@ -457,7 +457,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ initial validator #").append(num).append(": ").append(validator).append("\n");
 
 				String id = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.ID, validator))).getValue();
 
 				if (isLast)
 					builder.append("   │     ├─ id: ").append(id).append("\n");
@@ -465,7 +465,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ id: ").append(id).append("\n");
 
 				BigInteger balanceOfValidator = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.BALANCE, validator))).getValue();
 
 				if (isLast)
 					builder.append("   │     ├─ balance: ").append(balanceOfValidator).append("\n");
@@ -473,7 +473,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).value;
+					(manifest, _100_000, takamakaCode, new NonVoidMethodSignature(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))).getValue();
 
 				if (isLast)
 					builder.append("   │     └─ power: ").append(power).append("\n");

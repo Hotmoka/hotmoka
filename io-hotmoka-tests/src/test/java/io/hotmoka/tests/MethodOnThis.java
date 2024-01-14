@@ -33,10 +33,10 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -66,9 +66,9 @@ class MethodOnThis extends HotmokaTest {
 		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
 		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
 
-		assertEquals(BigInteger.ZERO, balanceOfBridge.value);
-		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.value);
-		assertEquals(BigInteger.valueOf(100L), balanceOfSub.value);
+		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
+		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());
+		assertEquals(BigInteger.valueOf(100L), balanceOfSub.getValue());
 	}
 
 	@Test @DisplayName("new Bridge2().foo(100) then Bridge2 has balance 0 and its Sub2 field has balance 100")
@@ -81,8 +81,8 @@ class MethodOnThis extends HotmokaTest {
 		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
 		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), new NonVoidMethodSignature(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
 
-		assertEquals(BigInteger.ZERO, balanceOfBridge.value);
-		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.value);
-		assertEquals(BigInteger.valueOf(100L), balanceOfSub.value);
+		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
+		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());
+		assertEquals(BigInteger.valueOf(100L), balanceOfSub.getValue());
 	}
 }

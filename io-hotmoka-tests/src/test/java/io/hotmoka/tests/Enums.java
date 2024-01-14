@@ -35,10 +35,10 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -60,13 +60,13 @@ class Enums extends HotmokaTest {
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT)")
 	void testEnumAsActual() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.enums.TestEnums", MY_ENUM), new EnumValue("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
+			new ConstructorSignature("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
 	}
 
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT).getOrdinal() == 1")
 	void testGetOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testEnums = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.enums.TestEnums", MY_ENUM), new EnumValue("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
+			new ConstructorSignature("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
 
 		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getOrdinal", StorageTypes.INT), testEnums);
@@ -79,6 +79,6 @@ class Enums extends HotmokaTest {
 		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), StorageValues.intOf(2));
 
-		assertEquals(new EnumValue(MY_ENUM.getName(), "FUTURE"), element);
+		assertEquals(StorageValues.enumElementOf(MY_ENUM.getName(), "FUTURE"), element);
 	}
 }

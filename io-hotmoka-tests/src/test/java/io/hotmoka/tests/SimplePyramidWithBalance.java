@@ -30,21 +30,22 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
  * A test for the simple pyramid with balance contract.
  */
 class SimplePyramidWithBalance extends HotmokaTest {
-	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(BigInteger.valueOf(10_000L));
+	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(10_000);
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.ponzi.SimplePyramidWithBalance");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
@@ -67,7 +68,7 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
 		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), CodeSignature.BALANCE, account(0));
-		assertTrue(balance0.value.compareTo(BigInteger.valueOf(190_000)) <= 0);
+		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
@@ -77,6 +78,6 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
 		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), CodeSignature.BALANCE, account(0));
-		assertTrue(balance0.value.compareTo(BigInteger.valueOf(201_000)) > 0);
+		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

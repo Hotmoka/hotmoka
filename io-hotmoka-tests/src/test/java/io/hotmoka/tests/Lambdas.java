@@ -39,12 +39,11 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 
 /**
  * A test for a class that uses lambda expressions referring to entries.
@@ -84,36 +83,36 @@ class Lambdas extends HotmokaTest {
 
 	@Test @DisplayName("new Lambdas()")
 	void createLambdas() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 	}
 
 	@Test @DisplayName("new Lambdas().invest(10)")
 	void createLambdasThenInvest10() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
-		addInstanceMethodCallTransaction(key, eoa, _500_000, panarea(1), jar(), new VoidMethodSignature(LAMBDAS, "invest", StorageTypes.BIG_INTEGER), lambdas, new BigIntegerValue(BigInteger.ONE));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
+		addInstanceMethodCallTransaction(key, eoa, _500_000, panarea(1), jar(), new VoidMethodSignature(LAMBDAS, "invest", StorageTypes.BIG_INTEGER), lambdas, StorageValues.bigIntegerOf(1));
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithThis()")
 	void testLambdaWithThis() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, panarea(1), jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithThis"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThis()")
 	void testLambdaWithoutThis() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThis"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testLambdaWithoutThisGetStatic()")
 	void testLambdaWithoutThisGetStatic() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testLambdaWithoutThisGetStatic"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
 	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntry", INT), lambdas);
 
 		assertEquals(11, result.getValue());
@@ -121,19 +120,19 @@ class Lambdas extends HotmokaTest {
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntryOfOtherClass()")
 	void testMethodReferenceToEntryOfOtherClass() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testMethodReferenceToEntryOfOtherClass"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
 	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testMethodReferenceToEntrySameContract", INT), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")
 	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new NonVoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntry", INT), lambdas);
 
 		assertEquals(11, result.getValue());
@@ -141,28 +140,28 @@ class Lambdas extends HotmokaTest {
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntryPopResult()")
 	void testConstructorReferenceToEntryPopResult() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), new VoidMethodSignature(LAMBDAS, "testConstructorReferenceToEntryPopResult"), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().whiteListChecks(13,1,1973)==7")
 	void testWhiteListChecks() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT),
-			lambdas, new BigIntegerValue(BigInteger.valueOf(13L)), new BigIntegerValue(BigInteger.valueOf(1L)), new BigIntegerValue(BigInteger.valueOf(1973L)));
+			lambdas, StorageValues.bigIntegerOf(13L), StorageValues.bigIntegerOf(1L), StorageValues.bigIntegerOf(1973L));
 
 		assertEquals(7, result.getValue());
 	}
 
 	@Test @DisplayName("new Lambdas().concatenation(\"hello\", \"hi\", self, 1973L, 13)==\"\"")
 	void testConcatenation() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, new BigIntegerValue(_100_000), new StringValue(publicKey));
+		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		StringValue result = (StringValue) addInstanceMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, StorageTypes.LONG, INT),
 			lambdas,
-			new StringValue("hello"), new StringValue("hi"), lambdas, StorageValues.longOf(1973L), StorageValues.intOf(13));
+			StorageValues.stringOf("hello"), StorageValues.stringOf("hi"), lambdas, StorageValues.longOf(1973L), StorageValues.intOf(13));
 
-		assertEquals("hellohian externally owned account197313", result.value);
+		assertEquals("hellohian externally owned account197313", result.getValue());
 	}
 }

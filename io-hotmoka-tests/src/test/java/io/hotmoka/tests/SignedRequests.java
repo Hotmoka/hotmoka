@@ -20,7 +20,6 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -53,7 +52,7 @@ public class SignedRequests {
                 BigInteger.valueOf(500),
                 new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                 constructorSignature,
-                new BigIntegerValue(BigInteger.valueOf(999))
+                StorageValues.bigIntegerOf(999)
         );
 
         String signature = toBase64(request.getSignature());

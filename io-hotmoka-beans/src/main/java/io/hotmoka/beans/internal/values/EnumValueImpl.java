@@ -14,32 +14,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.values;
+package io.hotmoka.beans.internal.values;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * An element of an enumeration stored in blockchain.
  */
 @Immutable
-public final class EnumValue extends StorageValueImpl {
-	public static final byte SELECTOR = 12;
+public final class EnumValueImpl extends StorageValueImpl implements EnumValue {
+	static final byte SELECTOR = 12;
 
 	/**
 	 * The name of the class of the enumeration.
 	 */
-	public final String enumClassName;
+	private final String enumClassName;
 
 	/**
 	 * The name of the enumeration element.
 	 */
-	public final String name;
+	private final String name;
 
 	/**
 	 * Builds an element of an enumeration.
@@ -47,11 +47,19 @@ public final class EnumValue extends StorageValueImpl {
 	 * @param enumClassName the class of the enumeration
 	 * @param name the name of the enumeration element
 	 */
-	public EnumValue(String enumClassName, String name) {
-		Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
-		Objects.requireNonNull(name, "name cannot be null");
-		this.enumClassName = enumClassName;
-		this.name = name;
+	public EnumValueImpl(String enumClassName, String name) {
+		this.enumClassName = Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
+		this.name = Objects.requireNonNull(name, "name cannot be null");
+	}
+
+	@Override
+	public String getEnumClassName() {
+		return enumClassName;
+	}
+
+	@Override
+	public String getName() {
+		return name;
 	}
 
 	@Override
@@ -61,7 +69,7 @@ public final class EnumValue extends StorageValueImpl {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof EnumValue ev && ev.name.equals(name) && ev.enumClassName.equals(enumClassName);
+		return other instanceof EnumValue ev && ev.getName().equals(name) && ev.getEnumClassName().equals(enumClassName);
 	}
 
 	@Override
@@ -75,11 +83,11 @@ public final class EnumValue extends StorageValueImpl {
 		if (diff != 0)
 			return diff;
 
-		diff = enumClassName.compareTo(((EnumValue) other).enumClassName);
+		diff = enumClassName.compareTo(((EnumValueImpl) other).enumClassName);
 		if (diff != 0)
 			return diff;
 
-		return name.compareTo(((EnumValue) other).name);
+		return name.compareTo(((EnumValueImpl) other).name);
 	}
 
 	@Override

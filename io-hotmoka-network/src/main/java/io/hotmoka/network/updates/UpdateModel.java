@@ -17,15 +17,18 @@ limitations under the License.
 package io.hotmoka.network.updates;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.DoubleValue;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.FloatValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -45,10 +48,7 @@ import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
-import io.hotmoka.beans.values.BigIntegerValue;
-import io.hotmoka.beans.values.EnumValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.network.signatures.FieldSignatureModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
@@ -120,7 +120,7 @@ public class UpdateModel {
 	 */
 	public Update toBean() {
 		if (object == null)
-			throw new RuntimeException("unexpected null update object");
+			throw new RuntimeException("Unexpected null update object");
 		else if (className != null)
 			return new ClassTag(object.toBean(), className, jar.toBean());
 		else {
@@ -133,35 +133,35 @@ public class UpdateModel {
 					return new UpdateToNullEager(object, field);
 				else
 					return new UpdateToNullLazy(object, field);
-			else if (value instanceof EnumValue)
+			else if (value instanceof EnumValue ev)
 				if (field.type.isEager())
-					return new UpdateOfEnumEager(object, field, ((EnumValue) value).enumClassName, ((EnumValue) value).name);
+					return new UpdateOfEnumEager(object, field, ev.getEnumClassName(), ev.getName());
 				else
-					return new UpdateOfEnumLazy(object, field, ((EnumValue) value).enumClassName, ((EnumValue) value).name);
-			else if (value instanceof BigIntegerValue)
-				return new UpdateOfBigInteger(object, field, ((BigIntegerValue) value).value);
-			else if (value instanceof StringValue)
-				return new UpdateOfString(object, field, ((StringValue) value).value);
-			else if (value instanceof StorageReference)
-				return new UpdateOfStorage(object, field, ((StorageReference) value));
-			else if (value instanceof BooleanValue)
-				return new UpdateOfBoolean(object, field, ((BooleanValue) value).getValue());
-			else if (value instanceof ByteValue)
-				return new UpdateOfByte(object, field, ((ByteValue) value).getValue());
-			else if (value instanceof CharValue)
-				return new UpdateOfChar(object, field, ((CharValue) value).getValue());
-			else if (value instanceof DoubleValue)
-				return new UpdateOfDouble(object, field, ((DoubleValue) value).getValue());
-			else if (value instanceof FloatValue)
-				return new UpdateOfFloat(object, field, ((FloatValue) value).getValue());
-			else if (value instanceof IntValue)
-				return new UpdateOfInt(object, field, ((IntValue) value).getValue());
-			else if (value instanceof LongValue)
-				return new UpdateOfLong(object, field, ((LongValue) value).getValue());
-			else if (value instanceof ShortValue)
-				return new UpdateOfShort(object, field, ((ShortValue) value).getValue());
+					return new UpdateOfEnumLazy(object, field, ev.getEnumClassName(), ev.getName());
+			else if (value instanceof BigIntegerValue biv)
+				return new UpdateOfBigInteger(object, field, biv.getValue());
+			else if (value instanceof StringValue sv)
+				return new UpdateOfString(object, field, sv.getValue());
+			else if (value instanceof StorageReference sr)
+				return new UpdateOfStorage(object, field, sr);
+			else if (value instanceof BooleanValue bv)
+				return new UpdateOfBoolean(object, field, bv.getValue());
+			else if (value instanceof ByteValue bv)
+				return new UpdateOfByte(object, field, bv.getValue());
+			else if (value instanceof CharValue cv)
+				return new UpdateOfChar(object, field, cv.getValue());
+			else if (value instanceof DoubleValue dv)
+				return new UpdateOfDouble(object, field, dv.getValue());
+			else if (value instanceof FloatValue fv)
+				return new UpdateOfFloat(object, field, fv.getValue());
+			else if (value instanceof IntValue iv)
+				return new UpdateOfInt(object, field, iv.getValue());
+			else if (value instanceof LongValue lv)
+				return new UpdateOfLong(object, field, lv.getValue());
+			else if (value instanceof ShortValue sv)
+				return new UpdateOfShort(object, field, sv.getValue());
 			else
-				throw new RuntimeException("unexpected update value of class " + value.getClass().getName());
+				throw new RuntimeException("Unexpected update value of class " + value.getClass().getName());
 		}
 	}
 }

@@ -27,13 +27,13 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -189,7 +189,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			else if (receiveLong)
 				context.writeLong(((LongValue) howMuch).getValue());
 			else
-				context.writeBigInteger(((BigIntegerValue) howMuch).value);
+				context.writeBigInteger(((BigIntegerValue) howMuch).getValue());
 		}
 		else
 			super.intoWithoutSignature(context);
@@ -244,7 +244,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_BIG_INTEGER, receiver, new BigIntegerValue(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_BIG_INTEGER, receiver, StorageValues.bigIntegerOf(howMuch));
 			}
 		}
 		else

@@ -25,6 +25,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.values.BigIntegerValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
@@ -32,9 +34,7 @@ import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
@@ -241,11 +241,11 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
-		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
+		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 	}
 
 	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
-		return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).value;
+		return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 	}
 
 	/**

@@ -21,6 +21,7 @@ import java.security.KeyPair;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -29,9 +30,7 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -115,7 +114,7 @@ public class SellValidation extends AbstractCommand {
 				var seller = new StorageReference(SellValidation.this.seller);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
 				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
@@ -125,19 +124,19 @@ public class SellValidation extends AbstractCommand {
 				if (buyer == null)
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-						seller, new BigIntegerValue(power), new BigIntegerValue(cost), StorageValues.longOf(duration));
+						seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
 				else
 					// the reserved buyer is specified as well
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
-						seller, new BigIntegerValue(power), new BigIntegerValue(cost), StorageValues.longOf(duration), new StorageReference(buyer));
+						seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), new StorageReference(buyer));
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
 					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 					new VoidMethodSignature(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
-					validators, new BigIntegerValue(BigInteger.ZERO), newOffer);
+					validators, StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer);
 
 				node.addInstanceMethodCallTransaction(request2);
 				System.out.println("Offer " + newOffer + " placed");

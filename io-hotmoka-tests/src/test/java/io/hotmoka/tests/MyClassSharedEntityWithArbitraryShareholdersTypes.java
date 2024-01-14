@@ -42,7 +42,6 @@ import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -84,23 +83,23 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
         // create a shared entity contract (v3)
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath,
-                MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR, sellerContractMyClass, new BigIntegerValue(BigInteger.TEN));
+                MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR, sellerContractMyClass, StorageValues.bigIntegerOf(10));
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(MY_CLASS, "createOffer", OFFER, BIG_INTEGER, BIG_INTEGER, LONG),
-                sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
+                sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
-                sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+                sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // this would not be valid but the test passes
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                 new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
-                sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer);
+                sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer);
     }
 
 
@@ -112,31 +111,31 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
         // create a shared entity contract (v3)
         StorageReference sharedEntity = addConstructorCallTransaction(privateKey(0), creator, _200_000, panarea(1), classpath,
-                MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, new BigIntegerValue(BigInteger.TEN));
+                MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, StorageValues.bigIntegerOf(10));
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new NonVoidMethodSignature(MY_CLASS, "createOffer", OFFER, BIG_INTEGER, BIG_INTEGER, LONG),
-                sellerContractMyClass, new BigIntegerValue(BigInteger.TWO), new BigIntegerValue(BigInteger.TWO), StorageValues.longOf(1893456000));
+                sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
-                sellerContractMyClass, sharedEntity, new BigIntegerValue(BigInteger.ZERO), offer);
+                sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // case 1: ClassCastException
         throwsTransactionExceptionWithCause("java.lang.ClassCastException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                         new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
-                        sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
+                        sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
 
         // case 2: IllegalArgumentException
         throwsTransactionExceptionWithCause("java.lang.IllegalArgumentException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
                         new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, MY_CLASS, OFFER),
-                        sharedEntity, new BigIntegerValue(BigInteger.TWO), buyer, offer)
+                        sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
     }
 }

@@ -34,10 +34,10 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 
 /**
@@ -64,7 +64,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "foo", C), c, StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).value;
+		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).getValue();
 		assertEquals(_1_000_000, balance);
 	}
 
@@ -76,7 +76,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).value;
+		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).getValue();
 
 		// 1000 is back in the balance of the caller
 		assertEquals(_1_000_000, balance);

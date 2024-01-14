@@ -31,24 +31,25 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BigIntegerValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.node.NonWhiteListedCallException;
 
 /**
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.
  */
 class WTSC2020 extends HotmokaTest {
-	private static final BigIntegerValue MINIMUM_INVESTMENT = new BigIntegerValue(_50_000);
+	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(_50_000);
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = new ConstructorSignature(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final MethodSignature INVEST = new VoidMethodSignature(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
@@ -79,7 +80,7 @@ class WTSC2020 extends HotmokaTest {
 		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
 
 		// no money back yet
-		assertEquals(BigInteger.valueOf(19_950_000), balance0.value);
+		assertEquals(BigInteger.valueOf(19_950_000), balance0.getValue());
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
@@ -97,7 +98,7 @@ class WTSC2020 extends HotmokaTest {
 		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
 
 		// the money is back!
-		assertEquals(balance0.value, BigInteger.valueOf(20_006_666));
+		assertEquals(balance0.getValue(), BigInteger.valueOf(20_006_666));
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor class")
@@ -117,7 +118,7 @@ class WTSC2020 extends HotmokaTest {
 		// account(0) checks which is the most frequent investor class
 		StringValue result = (StringValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
-		assertEquals(StorageTypes.EOA.getName(), result.value);
+		assertEquals(StorageTypes.EOA.getName(), result.getValue());
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor and fails")

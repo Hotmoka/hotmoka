@@ -20,10 +20,10 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.function.Function;
 
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.MethodSignature;
-import io.hotmoka.beans.values.BigIntegerValue;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
@@ -107,10 +107,10 @@ public class ShowAccount extends AbstractCommand {
 		TransactionReference takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
 		BigInteger balance = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
-				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE, reference))).value;
+				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE, reference))).getValue();
 		System.out.println("balance: " + balance);
 		BigInteger balanceRed = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
-				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE_RED, reference))).value;
+				new InstanceMethodCallTransactionRequest(reference, _100_000, takamakaCode, MethodSignature.BALANCE_RED, reference))).getValue();
 		System.out.println("balance red: " + balanceRed);
 	}
 }

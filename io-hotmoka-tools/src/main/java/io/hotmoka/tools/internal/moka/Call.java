@@ -31,6 +31,7 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
@@ -42,7 +43,6 @@ import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.values.StorageReference;
-import io.hotmoka.beans.values.StringValue;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -221,7 +221,7 @@ public class Call extends AbstractCommand {
 			else {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).value;
+					(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).getValue();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
 				BigInteger gasPrice = getGasPrice();
