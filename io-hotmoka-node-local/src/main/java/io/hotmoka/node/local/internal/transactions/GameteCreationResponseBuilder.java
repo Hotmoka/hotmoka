@@ -21,7 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;

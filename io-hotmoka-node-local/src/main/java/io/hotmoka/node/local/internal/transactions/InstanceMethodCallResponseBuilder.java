@@ -28,9 +28,9 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;

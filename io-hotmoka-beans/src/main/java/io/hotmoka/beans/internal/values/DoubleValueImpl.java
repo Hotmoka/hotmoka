@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of a {@code double} value stored in blockchain.
  */
 @Immutable
-public final class DoubleValueImpl extends StorageValueImpl implements DoubleValue {
+public final class DoubleValueImpl extends AbstractStorageValue implements DoubleValue {
 	static final byte SELECTOR = 4;
 
 	/**

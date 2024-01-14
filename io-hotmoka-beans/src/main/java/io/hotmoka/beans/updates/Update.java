@@ -23,9 +23,9 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -119,7 +119,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		var selector = context.readByte();
 		switch (selector) {
 		// TODO: cast -> IOException
-		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageTypes.from(context), TransactionReference.from(context));
+		case ClassTag.SELECTOR: return new ClassTag(StorageReference.from(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
 		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_GAS_PRICE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_UBI_VALUE: return new UpdateOfBigInteger(StorageReference.from(context), FieldSignature.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());

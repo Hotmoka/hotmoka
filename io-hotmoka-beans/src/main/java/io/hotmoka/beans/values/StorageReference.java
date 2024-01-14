@@ -23,11 +23,11 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.beans.internal.values.AbstractStorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -37,7 +37,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * same transaction are disambiguated by a progressive number.
  */
 @Immutable
-public final class StorageReference extends StorageValueImpl implements Serializable {
+public final class StorageReference extends AbstractStorageValue implements Serializable {
 	private static final long serialVersionUID = 1899009680134694798L;
 
 	public static final byte SELECTOR = 11;
@@ -72,7 +72,7 @@ public final class StorageReference extends StorageValueImpl implements Serializ
 	}
 
 	public StorageReference(String s) {
-		this(new LocalTransactionReference(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
+		this(TransactionReferences.of(s.split("#")[0]), new BigInteger(s.split("#")[1], 16));
 	}
 
 	@Override

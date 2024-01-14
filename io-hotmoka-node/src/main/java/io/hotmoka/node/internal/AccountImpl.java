@@ -19,7 +19,7 @@ package io.hotmoka.node.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.references.LocalTransactionReference;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
@@ -110,7 +110,7 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 	 * @param reference the byte representation of the reference
 	 */
 	public AccountImpl(Entropy entropy, byte[] reference) {
-		this(entropy, new StorageReference(new LocalTransactionReference(reference), BigInteger.ZERO));
+		this(entropy, new StorageReference(TransactionReferences.of(reference), BigInteger.ZERO));
 	}
 
     @Override

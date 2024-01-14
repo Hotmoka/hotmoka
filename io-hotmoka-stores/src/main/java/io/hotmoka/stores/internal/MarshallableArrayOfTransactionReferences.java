@@ -18,8 +18,8 @@ package io.hotmoka.stores.internal;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -57,7 +57,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 		// we do not share repeated transaction references, since they do not occur in histories
 		// and provision for sharing would just make the size of the histories larger
 		return new MarshallableArrayOfTransactionReferences(context.readLengthAndArray
-				(_context -> new LocalTransactionReference(_context.readBytes(size, "Inconsistent length of transaction reference")),
+				(_context -> TransactionReferences.of(_context.readBytes(size, "Inconsistent length of transaction reference")),
 						TransactionReference[]::new));
 	}
 }

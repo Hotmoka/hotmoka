@@ -25,7 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;

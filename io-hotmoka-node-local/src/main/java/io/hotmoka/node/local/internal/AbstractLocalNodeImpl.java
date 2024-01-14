@@ -48,10 +48,10 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
@@ -466,7 +466,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			var reference = new LocalTransactionReference(hasher.hash(request));
+			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 
 			StorageValue result;
@@ -483,7 +483,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
-			var reference = new LocalTransactionReference(hasher.hash(request));
+			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
 			StorageValue result;
 
@@ -525,7 +525,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		var reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request));
 		recentCheckTransactionErrors.put(reference, null);
 
 		try {
@@ -574,7 +574,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
-		var reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
 			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
@@ -673,7 +673,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(new LocalTransactionReference(hasher.hash(request)), request);
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -748,7 +748,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
 	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
-		var reference = new LocalTransactionReference(hasher.hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
 		if (caches.getResponseUncommitted(reference).isPresent())

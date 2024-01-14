@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.UnmarshallingContexts;

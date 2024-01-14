@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 

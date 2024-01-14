@@ -28,8 +28,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
@@ -404,7 +405,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 
 	protected static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {
 		try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(bytes.getBytes()))) {
-			return context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
+			return context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		}
 		catch (IOException e) {
 			throw new UncheckedIOException(e);

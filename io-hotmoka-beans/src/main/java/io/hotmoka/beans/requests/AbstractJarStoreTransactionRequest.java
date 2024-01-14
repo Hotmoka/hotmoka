@@ -19,7 +19,7 @@ package io.hotmoka.beans.requests;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 
 /**
  * A request for a transaction that installs a jar in a node.

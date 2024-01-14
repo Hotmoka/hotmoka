@@ -19,7 +19,7 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 
 /**
  * The builder of a configuration object.

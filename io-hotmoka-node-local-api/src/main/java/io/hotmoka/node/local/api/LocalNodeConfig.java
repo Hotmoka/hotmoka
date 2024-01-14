@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 
 /**
  * The configuration of a node.

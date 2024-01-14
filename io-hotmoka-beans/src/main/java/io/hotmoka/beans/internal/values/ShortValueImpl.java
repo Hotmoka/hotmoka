@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of a {@code short} value stored in blockchain.
  */
 @Immutable
-public final class ShortValueImpl extends StorageValueImpl implements ShortValue {
+public final class ShortValueImpl extends AbstractStorageValue implements ShortValue {
 	static final byte SELECTOR = 9;
 
 	/**

@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.network.nodes;
 
 import io.hotmoka.beans.NodeInfos;
-import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.nodes.NodeInfo;
 
 public class NodeInfoModel {
 	public String type;

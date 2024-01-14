@@ -18,7 +18,7 @@ package io.hotmoka.beans.responses;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 
 /**
  * A response for a transaction that successfully installed a jar in the blockchain.

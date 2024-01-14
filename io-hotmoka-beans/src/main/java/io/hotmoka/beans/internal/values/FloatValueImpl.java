@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of a {@code float} value stored in blockchain.
  */
 @Immutable
-public final class FloatValueImpl extends StorageValueImpl implements FloatValue {
+public final class FloatValueImpl extends AbstractStorageValue implements FloatValue {
 	static final byte SELECTOR = 5;
 
 	/**

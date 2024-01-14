@@ -49,11 +49,11 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -269,14 +269,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
         		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
-    	    trace(new LocalTransactionReference(hasher.hash(request)));
+    	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
     	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new ConstructorCallTransactionRequest
     	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), new ConstructorSignature(COIN));
     	    coin = node.addConstructorCallTransaction(request);
-    	    trace(new LocalTransactionReference(hasher.hash(request)));
+    	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
     	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
@@ -345,7 +345,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
 				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
 			node.addInstanceMethodCallTransaction(request);
-			trace(new LocalTransactionReference(hasher.hash(request)));
+			trace(TransactionReferences.of(hasher.hash(request)));
 			numberOfTransfers.getAndIncrement();
 		}
 
@@ -353,7 +353,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
-            trace(new LocalTransactionReference(hasher.hash(request)));
+            trace(TransactionReferences.of(hasher.hash(request)));
             numberOfBurns.getAndIncrement();
 		}
 
@@ -361,7 +361,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		var request = new InstanceMethodCallTransactionRequest
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
-            trace(new LocalTransactionReference(hasher.hash(request)));
+            trace(TransactionReferences.of(hasher.hash(request)));
             numberOfMints.getAndIncrement();
 		}
 

@@ -14,45 +14,46 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.references;
+package io.hotmoka.beans.internal.references;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A transaction reference that refers to a transaction in the local store of a node.
+ * Implementation of a transaction reference that refers to a transaction in the store of a node.
  */
-public final class LocalTransactionReference extends TransactionReference {
+public final class TransactionReferenceImpl extends AbstractMarshallable implements TransactionReference {
 	private static final long serialVersionUID = 1157696417214320999L;
 
 	/**
 	 * The hash of the request that generated the transaction.
 	 */
-	public final String hash;
+	private final String hash;
 
 	/**
 	 * Builds a transaction reference.
 	 * 
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its bytes
 	 */
-	public LocalTransactionReference(String hash) {
-		Objects.requireNonNull(hash, "hash cannot be null");
+	public TransactionReferenceImpl(String hash) {
+		this.hash = Objects.requireNonNull(hash, "hash cannot be null").toLowerCase();
 
 		// each byte is represented by two successive characters
 		if (hash.length() != TransactionRequest.REQUEST_HASH_LENGTH * 2)
 			throw new IllegalArgumentException("Illegal transaction reference " + hash
 				+ ": it should hold a hash of " + TransactionRequest.REQUEST_HASH_LENGTH * 2 + " characters");
 
-		hash = hash.toLowerCase();
-
 		if (!hash.chars().allMatch(c -> (c >= '0' && c <='9') || (c >= 'a' && c <= 'f')))
 			throw new IllegalArgumentException("Illegal transaction reference " + hash + ": it must be a hexadecimal number");
-
-		this.hash = hash;
 	}
 
 	/**
@@ -60,8 +61,24 @@ public final class LocalTransactionReference extends TransactionReference {
 	 * 
 	 * @param hash the hash of the transaction, as a byte array
 	 */
-	public LocalTransactionReference(byte[] hash) {
+	public TransactionReferenceImpl(byte[] hash) {
 		this(bytesToHex(hash));
+	}
+
+	/**
+	 * Yields a transaction reference unmarshalled from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the transaction reference
+	 * @throws IOException if the reference could not be unmarshalled
+     */
+	public static TransactionReference from(UnmarshallingContext context) throws IOException {
+		return context.readObject(TransactionReference.class);
+	}
+
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 
 	/**
@@ -94,7 +111,7 @@ public final class LocalTransactionReference extends TransactionReference {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof LocalTransactionReference ltr && ltr.getHash().equals(hash);
+		return other instanceof TransactionReferenceImpl ltr && ltr.getHash().equals(hash);
 	}
 
 	@Override

@@ -15,7 +15,8 @@ limitations under the License.
 */
 
 module io.hotmoka.beans.api {
-	exports io.hotmoka.beans.api;
+	exports io.hotmoka.beans.api.nodes;
+	exports io.hotmoka.beans.api.transactions;
 	exports io.hotmoka.beans.api.types;
 	exports io.hotmoka.beans.api.values;
 	requires transitive io.hotmoka.marshalling.api;

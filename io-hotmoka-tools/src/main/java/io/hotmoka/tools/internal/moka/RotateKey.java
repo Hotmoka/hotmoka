@@ -23,9 +23,9 @@ import java.util.Base64;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.signatures.CodeSignature;
@@ -92,7 +92,7 @@ public class RotateKey extends AbstractCommand {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
 					this.classpath = node.getClassTag(new StorageReference(RotateKey.this.account)).jar;
 				else
-					this.classpath = new LocalTransactionReference(RotateKey.this.classpath);
+					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
 
 				this.account = new StorageReference(RotateKey.this.account);
 				passwordOfAccount = ensurePassword(passwordOfAccount, "the account", interactive, false);

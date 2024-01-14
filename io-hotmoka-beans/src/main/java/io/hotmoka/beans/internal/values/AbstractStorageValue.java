@@ -34,10 +34,10 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * Partial implementation of a value that can be stored in the blockchain,
  * passed as argument to an entry or returned from an entry.
  */
-public abstract class StorageValueImpl extends AbstractMarshallable implements StorageValue {
+public abstract class AbstractStorageValue extends AbstractMarshallable implements StorageValue {
 
 	/**
-	 * Yields a storage value fronamem the given string and of the given type.
+	 * Yields a storage value from the given string and of the given type.
 	 * 
 	 * @param s the string; use "null" (without quotes) for null; use the fully-qualified
 	 *        representation for enum's (such as "com.mycompany.MyEnum.CONSTANT")

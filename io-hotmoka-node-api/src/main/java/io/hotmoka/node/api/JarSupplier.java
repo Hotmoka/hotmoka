@@ -18,7 +18,7 @@ package io.hotmoka.node.api;
 
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 
 /**
  * The future of a transaction that stores a jar in a node.

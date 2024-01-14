@@ -21,9 +21,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
@@ -79,7 +79,7 @@ public class GasCounterImpl implements GasCounter {
 			throw new RuntimeException("Unepexted exception", e);
 		}
 
-		var references = Stream.of(requests).map(request -> new LocalTransactionReference(hasher.hash(request))).toArray(TransactionReference[]::new);
+		var references = Stream.of(requests).map(hasher::hash).map(TransactionReferences::of).toArray(TransactionReference[]::new);
 		var forPenalty = BigInteger.ZERO;
 		var forCPU = BigInteger.ZERO;
 		var forRAM = BigInteger.ZERO;

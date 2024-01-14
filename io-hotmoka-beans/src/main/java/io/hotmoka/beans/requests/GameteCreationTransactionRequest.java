@@ -21,7 +21,8 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -123,7 +124,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * @throws IOException 
 	 */
 	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var classpath = TransactionReference.from(context);
+		var classpath = TransactionReferences.from(context);
 		var initialAmount = context.readBigInteger();
 		var redInitialAmount = context.readBigInteger();
 		var publicKey = context.readStringUnshared();

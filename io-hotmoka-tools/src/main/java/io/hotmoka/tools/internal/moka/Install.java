@@ -22,9 +22,9 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
 
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -91,7 +91,7 @@ public class Install extends AbstractCommand {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				TransactionReference[] dependencies;
 				if (libs != null)
-					dependencies = libs.stream().map(LocalTransactionReference::new).distinct().toArray(TransactionReference[]::new);
+					dependencies = libs.stream().map(TransactionReferences::of).distinct().toArray(TransactionReference[]::new);
 				else
 					dependencies = new TransactionReference[] { takamakaCode };
 
@@ -103,7 +103,7 @@ public class Install extends AbstractCommand {
 					gas = new BigInteger(gasLimit);
 
 				TransactionReference classpath = "takamakaCode".equals(Install.this.classpath) ?
-					takamakaCode : new LocalTransactionReference(Install.this.classpath);
+					takamakaCode : TransactionReferences.of(Install.this.classpath);
 
 				askForConfirmation(gas);
 

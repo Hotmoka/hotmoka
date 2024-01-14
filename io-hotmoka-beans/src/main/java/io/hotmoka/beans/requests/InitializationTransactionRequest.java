@@ -20,7 +20,8 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -92,7 +93,7 @@ public class InitializationTransactionRequest extends InitialTransactionRequest<
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var classpath = TransactionReference.from(context);
+		var classpath = TransactionReferences.from(context);
 		var manifest = StorageReference.from(context);
 
 		return new InitializationTransactionRequest(classpath, manifest);

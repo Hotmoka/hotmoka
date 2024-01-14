@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of a {@code boolean} value stored in blockchain.
  */
 @Immutable
-public final class BooleanValueImpl extends StorageValueImpl implements BooleanValue {
+public final class BooleanValueImpl extends AbstractStorageValue implements BooleanValue {
 	static final byte SELECTOR_TRUE = 0;
 	static final byte SELECTOR_FALSE = 1;
 

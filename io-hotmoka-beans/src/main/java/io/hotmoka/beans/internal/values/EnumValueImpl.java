@@ -28,7 +28,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * An element of an enumeration stored in blockchain.
  */
 @Immutable
-public final class EnumValueImpl extends StorageValueImpl implements EnumValue {
+public final class EnumValueImpl extends AbstractStorageValue implements EnumValue {
 	static final byte SELECTOR = 12;
 
 	/**

@@ -18,7 +18,7 @@ package io.hotmoka.beans.internal.nodes;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.NodeInfo;
+import io.hotmoka.beans.api.nodes.NodeInfo;
 
 /**
  * Implementation of node-specific information about a Hotmoka node.

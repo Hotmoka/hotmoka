@@ -23,7 +23,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -135,7 +136,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 		var gasConsumedForStorage = context.readBigInteger();
 		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
-		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
+		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
 		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 

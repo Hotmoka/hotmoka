@@ -28,11 +28,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -108,7 +108,7 @@ public class Create extends AbstractCommand {
 				var nonceHelper = NonceHelpers.of(node);
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 
-				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : new LocalTransactionReference(Create.this.classpath);
+				TransactionReference classpath = "takamakaCode".equals(Create.this.classpath) ? takamakaCode : TransactionReferences.of(Create.this.classpath);
 				TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.clazz = classloader.loadClass(className);
 				this.whiteListingWizard = classloader.getWhiteListingWizard();

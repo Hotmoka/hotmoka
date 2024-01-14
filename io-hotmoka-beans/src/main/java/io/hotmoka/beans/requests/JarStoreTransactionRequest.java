@@ -25,7 +25,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
@@ -203,11 +204,11 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		var caller = StorageReference.from(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReference.from(context);
+		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 
 		byte[] jar = context.readLengthAndBytes("Jar length mismatch in request");
-		TransactionReference[] dependencies = context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
+		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);

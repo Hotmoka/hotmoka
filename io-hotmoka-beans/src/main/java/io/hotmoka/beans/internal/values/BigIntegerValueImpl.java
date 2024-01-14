@@ -29,7 +29,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of a big integer stored in blockchain.
  */
 @Immutable
-public final class BigIntegerValueImpl extends StorageValueImpl implements BigIntegerValue {
+public final class BigIntegerValueImpl extends AbstractStorageValue implements BigIntegerValue {
 	static final byte SELECTOR = 6;
 
 	/**

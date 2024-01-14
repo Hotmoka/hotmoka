@@ -22,7 +22,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -122,7 +123,7 @@ public class JarStoreInitialTransactionRequest extends InitialTransactionRequest
 	 */
 	public static JarStoreInitialTransactionRequest from(UnmarshallingContext context) throws IOException {
 		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
-		TransactionReference[] dependencies = context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new);
+		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 
 		return new JarStoreInitialTransactionRequest(jar, dependencies);
 	}

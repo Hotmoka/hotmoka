@@ -29,11 +29,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
@@ -124,7 +124,7 @@ public class Call extends AbstractCommand {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
 					this.classpath = node.getClassTag(new StorageReference(Call.this.receiver)).jar;
 				else
-					this.classpath = new LocalTransactionReference(Call.this.classpath);
+					this.classpath = TransactionReferences.of(Call.this.classpath);
 
 				this.classloader = ClassLoaderHelpers.of(node).classloaderFor(classpath);
 				this.receiver = computeReceiver();

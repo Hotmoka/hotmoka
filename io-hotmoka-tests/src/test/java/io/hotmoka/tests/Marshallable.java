@@ -14,10 +14,10 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.references.LocalTransactionReference;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
@@ -320,7 +320,7 @@ public class Marshallable {
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             StorageReference storageReference = new StorageReference(
-            		new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+            		TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
             		new BigInteger("19992")
             );
 
@@ -338,7 +338,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            TransactionReference transactionReference = new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
+            var transactionReference = TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882");
             context.writeObject(TransactionReference.class, transactionReference);
             context.flush();
             bytes = baos.toByteArray();
@@ -514,12 +514,12 @@ public class Marshallable {
 
             var constructorCall = new ConstructorCallTransactionRequest(
                    "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(11500),
                     BigInteger.valueOf(500),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     constructorSignature,
                     StorageValues.bigIntegerOf(999)
             );
@@ -566,14 +566,14 @@ public class Marshallable {
 
             var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     nonVoidMethodSignature,
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
             );
 
             staticMethodCallTransactionRequest.intoWithoutSignature(context);
@@ -592,12 +592,12 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     CodeSignature.RECEIVE_INT,
                     StorageValues.intOf(300)
                 );
@@ -618,12 +618,12 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var staticMethodCallTransactionRequest = new StaticMethodCallTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     CodeSignature.NONCE
             );
 
@@ -643,14 +643,14 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var request = new InstanceMethodCallTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     CodeSignature.RECEIVE_INT,
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     StorageValues.intOf(300)
             );
 
@@ -670,14 +670,14 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var request = new InstanceMethodCallTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     CodeSignature.GET_GAMETE,
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
             );
 
             request.intoWithoutSignature(context);
@@ -696,12 +696,12 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var jarStoreTransactionRequest = new JarStoreTransactionRequest(
                     "".getBytes(),
-                    new StorageReference(new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
+                    new StorageReference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                     BigInteger.ONE,
                     "chaintest",
                     BigInteger.valueOf(5000),
                     BigInteger.valueOf(4000),
-                    new LocalTransactionReference("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
+                    TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
                     bytesOf("lambdas.jar")
             );
 

@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;

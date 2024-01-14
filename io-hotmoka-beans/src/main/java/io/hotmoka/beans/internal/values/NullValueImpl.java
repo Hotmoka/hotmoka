@@ -26,7 +26,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implemenytation of the {@code null} value stored in blockchain.
  */
 @Immutable
-public final class NullValueImpl extends StorageValueImpl implements NullValue {
+public final class NullValueImpl extends AbstractStorageValue implements NullValue {
 	static final byte SELECTOR = 8;
 
 	/**

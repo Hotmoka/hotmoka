@@ -33,8 +33,8 @@ import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.LocalTransactionReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -72,7 +72,7 @@ class GetRequest extends HotmokaTest {
 			// re replace the first digit: the resulting transaction reference does not exist
 			char digit = (hash.charAt(0) == '0') ? '1' : '0';
 			hash = digit + hash.substring(1);
-			getRequest(new LocalTransactionReference(hash));
+			getRequest(TransactionReferences.of(hash));
 			fail("missing exception");
 		}
 		catch (NoSuchElementException e) {

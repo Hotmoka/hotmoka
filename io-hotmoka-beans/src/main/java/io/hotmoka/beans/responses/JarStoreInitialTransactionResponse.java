@@ -21,7 +21,8 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -126,7 +127,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException {
 		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
-		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReference::from, TransactionReference[]::new));
+		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
 		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
 	}
 

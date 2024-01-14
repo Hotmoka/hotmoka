@@ -19,7 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import java.io.IOException;
 
 import io.hotmoka.beans.TransactionRejectedException;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;

@@ -19,7 +19,7 @@ package io.hotmoka.helpers.api;
 import java.util.NoSuchElementException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
 
 /**

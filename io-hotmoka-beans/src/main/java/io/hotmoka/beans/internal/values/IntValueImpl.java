@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * An {@code int} value stored in the store of a node.
  */
 @Immutable
-public final class IntValueImpl extends StorageValueImpl implements IntValue {
+public final class IntValueImpl extends AbstractStorageValue implements IntValue {
 	static final byte SELECTOR = 14;
 
 	/**

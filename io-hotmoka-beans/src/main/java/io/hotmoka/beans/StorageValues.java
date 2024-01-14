@@ -47,7 +47,7 @@ import io.hotmoka.beans.internal.values.IntValueImpl;
 import io.hotmoka.beans.internal.values.LongValueImpl;
 import io.hotmoka.beans.internal.values.NullValueImpl;
 import io.hotmoka.beans.internal.values.ShortValueImpl;
-import io.hotmoka.beans.internal.values.StorageValueImpl;
+import io.hotmoka.beans.internal.values.AbstractStorageValue;
 import io.hotmoka.beans.internal.values.StringValueImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -203,7 +203,7 @@ public abstract class StorageValues {
 	 * @return the resulting storage value
 	 */
 	public static StorageValue of(String s, StorageType type) {
-		return StorageValueImpl.of(s, type);
+		return AbstractStorageValue.of(s, type);
 	}
 
 	/**
@@ -214,7 +214,7 @@ public abstract class StorageValues {
 	 * @throws IOException if the value could not be unmarshalled
 	 */
 	public static StorageValue from(UnmarshallingContext context) throws IOException {
-		return StorageValueImpl.from(context);
+		return AbstractStorageValue.from(context);
 	}
 
 	/**

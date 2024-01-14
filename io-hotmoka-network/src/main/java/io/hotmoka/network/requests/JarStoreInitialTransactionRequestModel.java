@@ -20,7 +20,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.references.TransactionReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.values.TransactionReferenceModel;
 

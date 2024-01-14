@@ -26,8 +26,9 @@ import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.references.TransactionReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
@@ -177,7 +178,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var caller = StorageReference.from(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
-		var classpath = TransactionReference.from(context);
+		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var constructor = (ConstructorSignature) CodeSignature.from(context);
