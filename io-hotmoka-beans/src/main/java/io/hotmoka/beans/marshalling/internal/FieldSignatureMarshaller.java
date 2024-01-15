@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.signatures.FieldSignature;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -54,9 +54,9 @@ public class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSign
 			memory.put(field, next);
 
 			context.writeByte(255);
-			field.definingClass.into(context);
-			context.writeStringUnshared(field.name);
-			field.type.into(context);
+			field.getDefiningClass().into(context);
+			context.writeStringUnshared(field.getName());
+			field.getType().into(context);
 		}
 	}
 }

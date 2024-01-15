@@ -82,7 +82,7 @@ public class State extends AbstractCommand {
 			Stream.of(updates)
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
-				.filter(update -> !update.field.definingClass.equals(tag.clazz))
+				.filter(update -> !update.field.getDefiningClass().equals(tag.clazz))
 				.forEachOrdered(this::printUpdate);
 		}
 
@@ -90,7 +90,7 @@ public class State extends AbstractCommand {
 			Stream.of(updates)
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.field.definingClass.equals(tag.clazz))
+				.filter(update -> update.field.getDefiningClass().equals(tag.clazz))
 				.forEachOrdered(this::printUpdate);
 		}
 
@@ -108,10 +108,10 @@ public class State extends AbstractCommand {
 		}
 
 		private void printUpdate(UpdateOfField update) {
-			if (tag.clazz.equals(update.field.definingClass))
-				System.out.println(ANSI_RESET + "  " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update));
+			if (tag.clazz.equals(update.field.getDefiningClass()))
+				System.out.println(ANSI_RESET + "  " + update.field.getName() + ":" + update.field.getType() + " = " + valueToPrint(update));
 			else
-				System.out.println(ANSI_CYAN + "\u25b2 " + update.field.name + ":" + update.field.type + " = " + valueToPrint(update) + ANSI_GREEN + " (inherited from " + update.field.definingClass + ")");
+				System.out.println(ANSI_CYAN + "\u25b2 " + update.field.getName() + ":" + update.field.getType() + " = " + valueToPrint(update) + ANSI_GREEN + " (inherited from " + update.field.getDefiningClass() + ")");
 		}
 
 		private String valueToPrint(UpdateOfField update) {

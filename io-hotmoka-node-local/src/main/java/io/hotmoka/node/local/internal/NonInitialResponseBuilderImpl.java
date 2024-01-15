@@ -30,13 +30,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.Signatures;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -561,10 +562,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return true if and only if that condition holds
 		 */
 		protected final boolean isUpdateToBalanceOrNonceOfCaller(Update update) {
-			if (update instanceof UpdateOfField && update.object.equals(request.caller)) {
-				FieldSignature field = ((UpdateOfField) update).getField();
-				return FieldSignature.BALANCE_FIELD.equals(field) || FieldSignature.RED_BALANCE_FIELD.equals(field)
-					|| FieldSignature.EOA_NONCE_FIELD.equals(field);
+			if (update instanceof UpdateOfField uof && update.object.equals(request.caller)) {
+				FieldSignature field = uof.getField();
+				return Signatures.BALANCE_FIELD.equals(field) || Signatures.RED_BALANCE_FIELD.equals(field) || Signatures.EOA_NONCE_FIELD.equals(field);
 			}
 
 			return false;
@@ -577,7 +577,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger chargePayerForAllGasPromised() {
 			BigInteger cost = costOf(request.gasLimit);
-
 			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
 			BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
 

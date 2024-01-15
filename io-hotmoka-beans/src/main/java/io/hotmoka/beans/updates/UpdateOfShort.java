@@ -20,9 +20,9 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

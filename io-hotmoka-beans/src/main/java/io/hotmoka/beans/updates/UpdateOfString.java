@@ -20,11 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.Signatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -88,12 +89,12 @@ public final class UpdateOfString extends UpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
-		return field.type.equals(StorageTypes.STRING);
+		return field.getType().equals(StorageTypes.STRING);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.EOA_PUBLIC_KEY_FIELD.equals(field)) {
+		if (Signatures.EOA_PUBLIC_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);
 		}

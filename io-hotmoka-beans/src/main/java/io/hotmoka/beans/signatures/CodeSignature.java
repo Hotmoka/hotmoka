@@ -391,15 +391,22 @@ public abstract class CodeSignature extends AbstractMarshallable {
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
 
-		// TODO: cast -> IOException
-		var definingClass = (ClassType) StorageTypes.from(context);
+		ClassType definingClass;
+
+		try {
+			definingClass = (ClassType) StorageTypes.from(context);
+		}
+		catch (ClassCastException e) {
+			throw new IOException("Failed to unmarshal a code signature", e);
+		}
+
 		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
 
 		switch (selector) {
 		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
 		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readStringUnshared(), formals);
 		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
-		default: throw new IOException("unexpected code signature selector: " + selector);
+		default: throw new IOException("Unexpected code signature selector: " + selector);
 		}
 	}
 

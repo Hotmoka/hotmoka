@@ -20,9 +20,10 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -94,52 +95,52 @@ public final class UpdateOfStorage extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.EVENT_CREATOR_FIELD.equals(field)) {
+		if (Signatures.EVENT_CREATOR_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_EVENT_CREATOR);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_MAP_ROOT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_ROOT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_INTMAP_ROOT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_INTMAP_ROOT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_ROOT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_MAP_NODE_LEFT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_LEFT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_MAP_NODE_RIGHT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_MAP_NODE_RIGHT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_MAP_NODE_KEY_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_MAP_NODE_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_KEY);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_MAP_NODE_VALUE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_VALUE);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_INTMAP_NODE_VALUE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_INTMAP_NODE_LEFT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);
 		}
-		else if (FieldSignature.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD.equals(field)) {
+		else if (Signatures.STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT);
 			intoWithoutField(context);
 			value.intoWithoutSelector(context);

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
@@ -43,7 +44,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -90,20 +90,20 @@ public class Deserializer {
 
 		@Override
 		public int compare(Update update1, Update update2) {
-			if (update1 instanceof UpdateOfField && update2 instanceof UpdateOfField) {
-				FieldSignature field1 = ((UpdateOfField) update1).getField();
-				FieldSignature field2 = ((UpdateOfField) update2).getField();
+			if (update1 instanceof UpdateOfField uof1 && update2 instanceof UpdateOfField uof2) {
+				FieldSignature field1 = uof1.getField();
+				FieldSignature field2 = uof2.getField();
 
 				try {
-					String className1 = field1.definingClass.getName();
-					String className2 = field2.definingClass.getName();
+					String className1 = field1.getDefiningClass().getName();
+					String className2 = field2.getDefiningClass().getName();
 
 					if (className1.equals(className2)) {
-						int diff = field1.name.compareTo(field2.name);
+						int diff = field1.getName().compareTo(field2.getName());
 						if (diff != 0)
 							return diff;
 						else
-							return field1.type.toString().compareTo(field2.type.toString());
+							return field1.getType().toString().compareTo(field2.getType().toString()); // TODO: types are comparable!
 					}
 
 					Class<?> clazz1 = classLoader.loadClass(className1);
@@ -223,7 +223,7 @@ public class Deserializer {
 				.sorted(updateComparator)
 				.forEachOrdered(update -> {
 					try {
-						formals.add(storageTypeToClass.toClass(update.getField().type));
+						formals.add(storageTypeToClass.toClass(update.getField().getType()));
 						actuals.add(deserialize(update.getValue()));
 					}
 					catch (ClassNotFoundException e) {

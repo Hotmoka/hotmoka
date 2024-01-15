@@ -20,9 +20,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import io.hotmoka.beans.Signatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -44,10 +45,14 @@ public class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<Field
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			// TODO: cast -> IOException
-			var field = new FieldSignature((ClassType) StorageTypes.from(context), context.readStringUnshared(), StorageTypes.from(context));
-			memory.put(memory.size(), field);
-			return field;
+			try {
+				var field = Signatures.field((ClassType) StorageTypes.from(context), context.readStringUnshared(), StorageTypes.from(context));
+				memory.put(memory.size(), field);
+				return field;
+			}
+			catch (ClassCastException e) {
+				throw new IOException("Failed field unmarshalling", e);
+			}
 		}
 		else if (selector == 254)
 			return memory.get(context.readInt());

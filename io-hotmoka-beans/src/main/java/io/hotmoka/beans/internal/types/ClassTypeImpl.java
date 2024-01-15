@@ -318,7 +318,7 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	 */
 	public static final ClassType SHARED_ENTITY_VIEW =  new ClassTypeImpl(Constants.SHARED_ENTITY_VIEW_NAME);
 	
-	private final static byte SELECTOR = 8;
+	private final static byte SELECTOR = 8;  // we start at 8 to distinguish the class types from the basic types
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE = 9;
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE_LANG = 10;
 	private final static byte SELECTOR_IO_TAKAMAKA_CODE_UTIL = 11;
@@ -327,6 +327,7 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	private final static byte SELECTOR_STORAGE_TREE_MAP_NODE = 13;
 	private final static byte SELECTOR_STORAGE_LINKED_LIST_NODE = 14;
 	private final static byte SELECTOR_EOA = 15;
+	private final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 	private final static byte SELECTOR_STRING = 17;
 	private final static byte SELECTOR_ACCOUNT = 18;
 	private final static byte SELECTOR_MANIFEST = 19;
@@ -349,7 +350,6 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	private final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
 	private final static byte SELECTOR_STORAGE_TREE_SET = 39;
 	private final static byte SELECTOR_GAS_STATION = 40;
-	private final static byte SELECTOR_GAS_PRICE_UPDATE = 16;
 
 	/**
 	 * The name of the class type.
@@ -628,7 +628,7 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
 		}
 		else {
-			context.writeByte(SELECTOR); // to distinguish from the basic types
+			context.writeByte(SELECTOR);
 			context.writeStringShared(name);
 		}
 	}

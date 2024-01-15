@@ -23,7 +23,7 @@ import java.io.IOException;
  * than standard Java serialization. Typically, this works because
  * of context information about the structure of the object.
  */
-public interface Marshallable {
+public interface Marshallable { // TODO: make this generic wrt the type of context?
 
 	/**
 	 * Marshals this object into a given stream. This method in general

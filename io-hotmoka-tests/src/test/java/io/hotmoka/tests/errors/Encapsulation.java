@@ -61,7 +61,7 @@ class Encapsulation extends HotmokaTest {
 		StorageReference list1 = (StorageReference) node.getState(encapsulated)
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
-			.filter(update -> "list1".equals(update.getField().name))
+			.filter(update -> "list1".equals(update.getField().getName()))
 			.map(UpdateOfField::getValue)
 			.findFirst()
 			.get();
@@ -87,7 +87,7 @@ class Encapsulation extends HotmokaTest {
 		StorageReference list2 = (StorageReference) node.getState(encapsulated)
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
-			.filter(update -> "list2".equals(update.getField().name))
+			.filter(update -> "list2".equals(update.getField().getName()))
 			.map(UpdateOfField::getValue)
 			.findFirst()
 			.get();

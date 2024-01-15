@@ -28,9 +28,10 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.Signatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
@@ -191,37 +192,37 @@ public class UpdatesExtractorFromRAM {
 			 * @param fieldDefiningClass the class of the field. This can only be the class of the storage object or one of its superclasses
 			 * @param fieldName the name of the field
 			 * @param fieldClassName the name of the type of the field
-			 * @param s the value set to the field
+			 * @param o the value set to the field
 			 */
-			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object s) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
+			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Object o) {
+				FieldSignature field = Signatures.field(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 
-				if (s == null)
+				if (o == null)
 					// the field has been set to null
 					updates.add(new UpdateToNullLazy(storageReference, field));
-				else if (classLoader.getStorage().isAssignableFrom(s.getClass())) {
+				else if (classLoader.getStorage().isAssignableFrom(o.getClass())) {
 					// the field has been set to a storage object
-					StorageReference storageReference2 = classLoader.getStorageReferenceOf(s);
+					StorageReference storageReference2 = classLoader.getStorageReferenceOf(o);
 					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
 					if (seen.add(storageReference2))
-						workingSet.add(s);
+						workingSet.add(o);
 				}
 				// the following cases occur if the declared type of the field is Object but it is updated
 				// to an object whose type is allowed in storage
-				else if (s instanceof String)
-					updates.add(new UpdateOfString(storageReference, field, (String) s));
-				else if (s instanceof BigInteger)
-					updates.add(new UpdateOfBigInteger(storageReference, field, (BigInteger) s));
-				else if (s instanceof Enum<?>) {
-					if (hasInstanceFields(s.getClass()))
-						throw new DeserializationError("field " + field + " of a storage object cannot hold an enumeration of class " + s.getClass().getName() + ": it has instance non-transient fields");
+				else if (o instanceof String s)
+					updates.add(new UpdateOfString(storageReference, field, s));
+				else if (o instanceof BigInteger bi)
+					updates.add(new UpdateOfBigInteger(storageReference, field, bi));
+				else if (o instanceof Enum<?> e) {
+					if (hasInstanceFields(e.getClass()))
+						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + e.getClass().getName() + ": it has instance non-transient fields");
 
-					updates.add(new UpdateOfEnumLazy(storageReference, field, s.getClass().getName(), ((Enum<?>) s).name()));
+					updates.add(new UpdateOfEnumLazy(storageReference, field, e.getClass().getName(), e.name()));
 				}
 				else
-					throw new DeserializationError("field " + field + " of a storage object cannot hold a " + s.getClass().getName());
+					throw new DeserializationError("Field " + field + " of a storage object cannot hold a " + o.getClass().getName());
 			}
 
 			/**
@@ -244,7 +245,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, boolean s) {
-				updates.add(new UpdateOfBoolean(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
+				updates.add(new UpdateOfBoolean(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
 			}
 
 			/**
@@ -255,7 +256,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, byte s) {
-				updates.add(new UpdateOfByte(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
+				updates.add(new UpdateOfByte(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
 			}
 
 			/**
@@ -266,7 +267,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, char s) {
-				updates.add(new UpdateOfChar(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.CHAR), s));
+				updates.add(new UpdateOfChar(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.CHAR), s));
 			}
 
 			/**
@@ -277,7 +278,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, double s) {
-				updates.add(new UpdateOfDouble(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.DOUBLE), s));
+				updates.add(new UpdateOfDouble(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.DOUBLE), s));
 			}
 
 			/**
@@ -288,7 +289,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, float s) {
-				updates.add(new UpdateOfFloat(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.FLOAT), s));
+				updates.add(new UpdateOfFloat(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.FLOAT), s));
 			}
 
 			/**
@@ -299,7 +300,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, int s) {
-				updates.add(new UpdateOfInt(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.INT), s));
+				updates.add(new UpdateOfInt(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.INT), s));
 			}
 
 			/**
@@ -310,7 +311,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, long s) {
-				updates.add(new UpdateOfLong(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.LONG), s));
+				updates.add(new UpdateOfLong(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.LONG), s));
 			}
 
 			/**
@@ -321,7 +322,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, short s) {
-				updates.add(new UpdateOfShort(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.SHORT), s));
+				updates.add(new UpdateOfShort(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.SHORT), s));
 			}
 
 			/**
@@ -333,9 +334,9 @@ public class UpdatesExtractorFromRAM {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.STRING)));
+					updates.add(new UpdateToNullEager(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.STRING)));
 				else
-					updates.add(new UpdateOfString(storageReference, new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.STRING), s));
+					updates.add(new UpdateOfString(storageReference, Signatures.field(fieldDefiningClass, fieldName, StorageTypes.STRING), s));
 			}
 
 			/**
@@ -346,7 +347,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param bi the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
+				FieldSignature field = Signatures.field(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else
@@ -362,7 +363,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param element the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Enum<?> element) {
-				FieldSignature field = new FieldSignature(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
+				FieldSignature field = Signatures.field(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 				if (element == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else

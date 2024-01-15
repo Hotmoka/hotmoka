@@ -21,11 +21,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.Signatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -91,46 +92,46 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	@Override
 	public boolean isEager() {
 		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
-		return field.type.equals(StorageTypes.BIG_INTEGER);
+		return field.getType().equals(StorageTypes.BIG_INTEGER);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (FieldSignature.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
+		if (Signatures.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts do not use the red balance, that remains at 0
 			context.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (FieldSignature.BALANCE_FIELD.equals(field) && value.signum() == 0) {
+		else if (Signatures.BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts have zero balance
 			context.writeByte(SELECTOR_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (FieldSignature.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
+		else if (Signatures.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since EOAs starts with nonce at zero
 			context.writeByte(SELECTOR_NONCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (FieldSignature.BALANCE_FIELD.equals(field)) {
+		else if (Signatures.BALANCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_BALANCE);
 			super.intoWithoutField(context);
 		}
-		else if (FieldSignature.RED_BALANCE_FIELD.equals(field)) {
+		else if (Signatures.RED_BALANCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_RED_BALANCE);
 			super.intoWithoutField(context);
 		}
-		else if (FieldSignature.EOA_NONCE_FIELD.equals(field)) {
+		else if (Signatures.EOA_NONCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_NONCE);
 			super.intoWithoutField(context);
 		}
-		else if (FieldSignature.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
+		else if (Signatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_GAS_PRICE);
 			super.intoWithoutField(context);
 		}
-		else if (FieldSignature.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {
+		else if (Signatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_UBI_VALUE);
 			super.intoWithoutField(context);
 		}

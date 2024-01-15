@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.network.updates;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
@@ -30,7 +31,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.FieldSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
@@ -129,12 +129,12 @@ public class UpdateModel {
 			StorageReference object = this.object.toBean();
 
 			if (value == StorageValues.NULL)
-				if (field.type.isEager())
+				if (field.getType().isEager())
 					return new UpdateToNullEager(object, field);
 				else
 					return new UpdateToNullLazy(object, field);
 			else if (value instanceof EnumValue ev)
-				if (field.type.isEager())
+				if (field.getType().isEager())
 					return new UpdateOfEnumEager(object, field, ev.getEnumClassName(), ev.getName());
 				else
 					return new UpdateOfEnumLazy(object, field, ev.getEnumClassName(), ev.getName());
