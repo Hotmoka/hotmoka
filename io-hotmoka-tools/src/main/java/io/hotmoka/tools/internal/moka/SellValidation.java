@@ -19,6 +19,7 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -29,7 +30,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -123,13 +123,13 @@ public class SellValidation extends AbstractCommand {
 				ConstructorCallTransactionRequest request1;
 				if (buyer == null)
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
-						seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
+							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
+							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
 				else
 					// the reserved buyer is specified as well
 					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-						new ConstructorSignature(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
-						seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), StorageValues.reference(buyer));
+							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
+							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), StorageValues.reference(buyer));
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				

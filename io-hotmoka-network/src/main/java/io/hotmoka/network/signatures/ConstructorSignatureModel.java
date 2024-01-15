@@ -16,7 +16,8 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
-import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 
 /**
  * The model of the signature of a constructor of a class.
@@ -40,6 +41,6 @@ public final class ConstructorSignatureModel extends CodeSignatureModel {
 	 * @return the constructor signature
 	 */
 	public ConstructorSignature toBean() {
-		return new ConstructorSignature(definingClass, getFormalsAsTypes());
+		return ConstructorSignatures.of(definingClass, getFormalsAsTypes());
 	}
 }

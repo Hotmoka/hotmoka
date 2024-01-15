@@ -23,9 +23,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -46,7 +46,7 @@ class IllegalTypeForStorageField2 extends HotmokaTest {
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
 			addConstructorCallTransaction
 				(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				new ConstructorSignature("io.takamaka.tests.errors.illegaltypeforstoragefield2.C", StorageTypes.OBJECT),
+				ConstructorSignatures.of("io.takamaka.tests.errors.illegaltypeforstoragefield2.C", StorageTypes.OBJECT),
 				StorageValues.enumElementOf("io.takamaka.tests.errors.illegaltypeforstoragefield2.MyEnum", "FIRST"))
 		);
 	}

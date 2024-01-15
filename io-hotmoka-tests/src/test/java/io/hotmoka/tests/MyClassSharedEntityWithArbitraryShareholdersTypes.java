@@ -33,14 +33,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
@@ -52,9 +53,9 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
     private static final ClassType MY_CLASS_SHARED_ENTITY_1 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity1");
     private static final ClassType MY_CLASS_SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.MyClassSharedEntity2");
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
-    private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
-    private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, BIG_INTEGER);
-    private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR = new ConstructorSignature(MY_CLASS_SHARED_ENTITY_2, MY_CLASS, BIG_INTEGER);
+    private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS);
+    private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_1_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS_SHARED_ENTITY_1, MY_CLASS, BIG_INTEGER);
+    private static final ConstructorSignature MY_CLASS_SHARED_ENTITY_2_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS_SHARED_ENTITY_2, MY_CLASS, BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
     private StorageReference seller;

@@ -33,15 +33,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
@@ -50,7 +51,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
  */
 class CrowdFunding extends HotmokaTest {
 	private static final ClassType CROWD_FUNDING = StorageTypes.classNamed("io.hotmoka.examples.crowdfunding.CrowdFunding");
-	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = new ConstructorSignature(CROWD_FUNDING);
+	private static final ConstructorSignature CONSTRUCTOR_CROWD_FUNDING = ConstructorSignatures.of(CROWD_FUNDING);
 
 	/**
 	 * The first object, that holds all funds initially.

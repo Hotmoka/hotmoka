@@ -28,12 +28,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
@@ -55,7 +55,7 @@ class Encapsulation extends HotmokaTest {
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
 	void modifiesList1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
+				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list1
 		StorageReference list1 = (StorageReference) node.getState(encapsulated)
@@ -81,7 +81,7 @@ class Encapsulation extends HotmokaTest {
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
 	void modifiesList2Fails() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
+				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
 		// we determine the storage reference of list2
 		StorageReference list2 = (StorageReference) node.getState(encapsulated)

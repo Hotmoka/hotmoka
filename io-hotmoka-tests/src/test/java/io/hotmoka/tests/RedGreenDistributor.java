@@ -31,6 +31,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.CodeSupplier;
@@ -69,12 +69,12 @@ class RedGreenDistributor extends HotmokaTest {
 
 	@Test @DisplayName("new RedGreenDistributor()")
 	void createDistributor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 green and their red balance is zero")
 	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(1), account(1),
@@ -125,7 +125,7 @@ class RedGreenDistributor extends HotmokaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then adds two payees without red, distributes 1000 red and their red balance is 500")
 	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(1), account(1),
@@ -176,7 +176,7 @@ class RedGreenDistributor extends HotmokaTest {
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
 	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		KeyPair keys = signature().getKeyPair();
 		CodeSupplier<StorageReference> eoa = postConstructorCallTransaction(
@@ -184,7 +184,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new ConstructorSignature(StorageTypes.EOA, StorageTypes.BIG_INTEGER),
+			ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.BIG_INTEGER),
 			StorageValues.bigIntegerOf(_20_000)
 		);
 
@@ -221,7 +221,7 @@ class RedGreenDistributor extends HotmokaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then fails while adding a payee without enough coins")
 	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		throwsTransactionRejectedException(() ->
 			addInstanceMethodCallTransaction(
@@ -237,7 +237,7 @@ class RedGreenDistributor extends HotmokaTest {
 
 	@Test @DisplayName("new RedGreenDistributor() then adds a payee paying with both red and green")
 	void createDistributorThenAddsPayeePayingWithRedAndGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), new ConstructorSignature(DISTRIBUTOR));
+		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(
 			privateKey(3), account(3),

@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -37,7 +37,7 @@ class IllegalCallToNonWhiteListedMethod13 extends HotmokaTest {
 	@Test @DisplayName("new Random()")
 	void testNonWhiteListedCall() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new ConstructorSignature(Random.class.getName()))
+			addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(Random.class.getName()))
 		);
 	}
 }

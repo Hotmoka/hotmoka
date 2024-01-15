@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
@@ -26,7 +27,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.marshalling.MarshallingContexts;
 
@@ -508,7 +508,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            var constructorSignature = new ConstructorSignature(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER);
+            var constructorSignature = ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER);
 
             var constructorCall = new ConstructorCallTransactionRequest(
                    "".getBytes(),
@@ -531,12 +531,12 @@ public class Marshallable {
     }
 
     @Test
-    @DisplayName("new ConstructorSignature(..) manifest")
+    @DisplayName("ConstructorSignatures.of(..) manifest")
     public void testConstructorSignature() throws IOException {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            new ConstructorSignature(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER).into(context);
+        	ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER).into(context);
             context.flush();
             bytes = baos.toByteArray();
         }

@@ -30,7 +30,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class NonVoidMethodSignature extends MethodSignature {
-	final static byte SELECTOR = 1;
+	public final static byte SELECTOR = 1;
 
 	/**
 	 * The type of the returned type;

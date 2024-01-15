@@ -30,13 +30,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
@@ -61,7 +61,7 @@ class AccountWithEnum extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-			new ConstructorSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", StorageTypes.STRING), StorageValues.stringOf(publicKey));
+				ConstructorSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", StorageTypes.STRING), StorageValues.stringOf(publicKey));
 
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignature.RECEIVE_INT, account, StorageValues.intOf(100_000));

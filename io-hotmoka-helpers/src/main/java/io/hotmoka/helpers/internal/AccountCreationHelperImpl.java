@@ -25,6 +25,7 @@ import java.security.SignatureException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -179,7 +179,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			request1 = new ConstructorCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
-				new ConstructorSignature(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+				ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 				StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 			account = node.addConstructorCallTransaction((ConstructorCallTransactionRequest) request1);
 		}
@@ -244,7 +244,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		var request1 = new ConstructorCallTransactionRequest
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
-			new ConstructorSignature(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+			ConstructorSignatures.of(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 			StorageValues.bigIntegerOf(balance), StorageValues.stringOf(publicKeyEncoded));
 		StorageReference validator = node.addConstructorCallTransaction(request1);
 

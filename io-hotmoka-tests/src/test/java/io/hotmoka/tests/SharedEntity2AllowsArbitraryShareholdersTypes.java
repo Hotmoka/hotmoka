@@ -31,14 +31,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
@@ -51,8 +52,8 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
     private static final ClassType SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SharedEntity2");
     private static final ClassType SIMPLE_SHARED_ENTITY_2 = StorageTypes.classNamed("io.hotmoka.examples.sharedentities.SimpleSharedEntity2");
     private static final ClassType OFFER_2 = StorageTypes.classNamed(SHARED_ENTITY_2 + "$Offer");
-    private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = new ConstructorSignature(MY_CLASS);
-    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY_2, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
+    private static final ConstructorSignature MY_CLASS_CONSTRUCTOR = ConstructorSignatures.of(MY_CLASS);
+    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY_2, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER);
     private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
     private StorageReference creator;
     private StorageReference seller;

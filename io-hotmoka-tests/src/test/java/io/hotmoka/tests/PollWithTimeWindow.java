@@ -34,14 +34,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -52,11 +53,11 @@ class PollWithTimeWindow extends HotmokaTest {
 	private static final ClassType ACTION_SIMPLE_POLL = StorageTypes.classNamed("io.takamaka.code.dao.SimplePoll$Action");
 	private static final ClassType ACTION = StorageTypes.classNamed("io.hotmoka.examples.polls.CheckRunPerformedAction");
 
-	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, 
+	private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY, 
 		PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER, BIG_INTEGER);
-	private static final ConstructorSignature POLL_WITH_TIME_WINDOW_CONSTRUCTOR = new ConstructorSignature
+	private static final ConstructorSignature POLL_WITH_TIME_WINDOW_CONSTRUCTOR = ConstructorSignatures.of
 		(POLL_WITH_TIME_WINDOW, StorageTypes.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL, StorageTypes.LONG, StorageTypes.LONG);
-	private static final ConstructorSignature ACTION_CONSTRUCTOR = new ConstructorSignature(ACTION);
+	private static final ConstructorSignature ACTION_CONSTRUCTOR = ConstructorSignatures.of(ACTION);
 
 	private static final VoidMethodSignature VOTE_POLL = new VoidMethodSignature(POLL_WITH_TIME_WINDOW, "vote");
 	private static final VoidMethodSignature CLOSE_POLL = new VoidMethodSignature(POLL_WITH_TIME_WINDOW, "close");

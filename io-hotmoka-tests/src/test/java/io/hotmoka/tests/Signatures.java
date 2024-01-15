@@ -31,6 +31,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -39,7 +40,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -61,17 +61,17 @@ class Signatures extends HotmokaTest {
 		var sha256dsa = SignatureAlgorithms.sha256dsa();
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();
 		var sha256dsaPublicKey = StorageValues.stringOf(Base64.toBase64String(sha256dsa.encodingOf(sha256dsaKeyPair.getPublic())));
-		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
+		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
 
 		var qtesla1 = SignatureAlgorithms.qtesla1();
 		KeyPair qteslaKeyPair = qtesla1.getKeyPair();
 		var qteslaPublicKey = StorageValues.stringOf(Base64.toBase64String(qtesla1.encodingOf(qteslaKeyPair.getPublic())));
-		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1", StorageTypes.INT, StorageTypes.STRING), amount, qteslaPublicKey);
+		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1", StorageTypes.INT, StorageTypes.STRING), amount, qteslaPublicKey);
 
 		var ed25519 = SignatureAlgorithms.ed25519();
 		KeyPair ed25519KeyPair = ed25519.getKeyPair();
 		var ed25519PublicKey = StorageValues.stringOf(Base64.toBase64String(ed25519.encodingOf(ed25519KeyPair.getPublic())));
-		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountED25519", StorageTypes.INT, StorageTypes.STRING), amount, ed25519PublicKey);
+		addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountED25519", StorageTypes.INT, StorageTypes.STRING), amount, ed25519PublicKey);
 	}
 
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
@@ -82,21 +82,21 @@ class Signatures extends HotmokaTest {
 		var sha256dsa = SignatureAlgorithms.sha256dsa();
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();
 		var sha256dsaPublicKey = StorageValues.stringOf(Base64.toBase64String(sha256dsa.encodingOf(sha256dsaKeyPair.getPublic())));
-		StorageReference sha256dsaAccount = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
+		StorageReference sha256dsaAccount = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountSHA256DSA", StorageTypes.INT, StorageTypes.STRING), amount, sha256dsaPublicKey);
 		var sha256dsaResult = (BigIntegerValue) node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(sha256dsa.getSigner(sha256dsaKeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), sha256dsaAccount, ZERO, chainId, _100_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973)));
 		assertEquals(BigInteger.valueOf(1973), sha256dsaResult.getValue());
 
 		var qtesla1 = SignatureAlgorithms.qtesla1();
 		KeyPair qteslaKeyPair = qtesla1.getKeyPair();
 		var qteslaPublicKey = StorageValues.stringOf(Base64.toBase64String(qtesla1.encodingOf(qteslaKeyPair.getPublic())));
-		StorageReference qteslaAccount = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1", StorageTypes.INT, StorageTypes.STRING), amount, qteslaPublicKey);
+		StorageReference qteslaAccount = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1", StorageTypes.INT, StorageTypes.STRING), amount, qteslaPublicKey);
 		var qteslaResult = (BigIntegerValue) node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(qtesla1.getSigner(qteslaKeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), qteslaAccount, ZERO, chainId, _500_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973)));
 		assertEquals(BigInteger.valueOf(1973), qteslaResult.getValue());
 
 		var ed25519 = SignatureAlgorithms.ed25519();
 		KeyPair ed25519KeyPair = ed25519.getKeyPair();
 		var ed25519PublicKey = StorageValues.stringOf(Base64.toBase64String(ed25519.encodingOf(ed25519KeyPair.getPublic())));
-		StorageReference ed25519Account = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), new ConstructorSignature("io.takamaka.code.lang.ExternallyOwnedAccountED25519", StorageTypes.INT, StorageTypes.STRING), amount, ed25519PublicKey);
+		StorageReference ed25519Account = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), ConstructorSignatures.of("io.takamaka.code.lang.ExternallyOwnedAccountED25519", StorageTypes.INT, StorageTypes.STRING), amount, ed25519PublicKey);
 		var ed25519Result = (BigIntegerValue) node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(ed25519.getSigner(ed25519KeyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature), ed25519Account, ZERO, chainId, _500_000, ONE, takamakaCode(), callee, StorageValues.longOf(1973)));
 		assertEquals(BigInteger.valueOf(1973), ed25519Result.getValue());
 	}

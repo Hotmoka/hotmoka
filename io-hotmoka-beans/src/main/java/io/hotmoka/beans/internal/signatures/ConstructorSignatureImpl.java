@@ -14,12 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.signatures;
+package io.hotmoka.beans.internal.signatures;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -28,7 +29,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * The signature of a constructor of a class.
  */
 @Immutable
-public final class ConstructorSignature extends AbstractCodeSignature {
+public final class ConstructorSignatureImpl extends AbstractCodeSignature implements ConstructorSignature {
 	final static byte SELECTOR = 0;
 	final static byte SELECTOR_EOA = 3;
 
@@ -38,7 +39,7 @@ public final class ConstructorSignature extends AbstractCodeSignature {
 	 * @param definingClass the class of the constructor
 	 * @param formals the formal arguments of the constructor
 	 */
-	public ConstructorSignature(ClassType definingClass, StorageType... formals) {
+	public ConstructorSignatureImpl(ClassType definingClass, StorageType... formals) {
 		super(definingClass, formals);
 	}
 
@@ -48,7 +49,7 @@ public final class ConstructorSignature extends AbstractCodeSignature {
 	 * @param definingClass the name of the class of the constructor
 	 * @param formals the formal arguments of the constructor
 	 */
-	public ConstructorSignature(String definingClass, StorageType... formals) {
+	public ConstructorSignatureImpl(String definingClass, StorageType... formals) {
 		super(definingClass, formals);
 	}
 
@@ -59,7 +60,7 @@ public final class ConstructorSignature extends AbstractCodeSignature {
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorSignature && super.equals(other);
+		return other instanceof ConstructorSignatureImpl && super.equals(other);
 	}
 
 	@Override
@@ -75,5 +76,5 @@ public final class ConstructorSignature extends AbstractCodeSignature {
 	/**
 	 * The constructor of an externally owned account.
 	 */
-	public final static ConstructorSignature EOA_CONSTRUCTOR = new ConstructorSignature(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	public final static ConstructorSignatureImpl EOA_CONSTRUCTOR = new ConstructorSignatureImpl(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 }

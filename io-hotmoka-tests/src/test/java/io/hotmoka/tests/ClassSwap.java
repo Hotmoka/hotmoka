@@ -30,13 +30,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.DeserializationError;
@@ -45,7 +46,7 @@ import io.hotmoka.node.DeserializationError;
  * A test for the creation of classes with the same name but from different jars.
  */
 class ClassSwap extends HotmokaTest {
-	private static final ConstructorSignature CONSTRUCTOR_C = new ConstructorSignature("C");
+	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of("C");
 	private static final MethodSignature GET = new NonVoidMethodSignature("C", "get", StorageTypes.INT);
 
 	/**

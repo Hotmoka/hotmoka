@@ -23,6 +23,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.signatures.AbstractCodeSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

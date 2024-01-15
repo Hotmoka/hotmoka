@@ -26,12 +26,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.tests.HotmokaTest;
@@ -50,7 +50,7 @@ class View extends HotmokaTest {
 
 	@Test @DisplayName("install jar then call to View.no1() fails")
 	void callNo1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
@@ -60,7 +60,7 @@ class View extends HotmokaTest {
 
 	@Test @DisplayName("install jar then call to View.no2() fails")
 	void callNo2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
@@ -70,7 +70,7 @@ class View extends HotmokaTest {
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
 	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), new ConstructorSignature("io.hotmoka.examples.errors.view.C"));
+		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
 
 		runInstanceMethodCallTransaction(account(0), _100_000, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),

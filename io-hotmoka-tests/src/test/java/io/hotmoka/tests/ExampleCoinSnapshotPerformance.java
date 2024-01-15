@@ -46,6 +46,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -61,7 +62,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -260,7 +260,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    privateKeyOfCreator = keys.getPrivate();
     		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
     		var request = new ConstructorCallTransactionRequest
-    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), new ConstructorSignature(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+    			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
     			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
     		creator = node.addConstructorCallTransaction(request);
     	}
@@ -274,7 +274,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new ConstructorCallTransactionRequest
-    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), new ConstructorSignature(COIN));
+    	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
     	    coin = node.addConstructorCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}

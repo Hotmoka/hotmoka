@@ -26,11 +26,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.signatures.CodeSignature;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -39,7 +41,6 @@ import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -159,7 +160,7 @@ public class Create extends AbstractCommand {
 				.map(StorageTypes::fromClass)
 				.toArray(StorageType[]::new);
 
-			return new ConstructorSignature(className, formals);
+			return ConstructorSignatures.of(className, formals);
 		}
 
 		private Constructor<?> askForConstructor() throws ClassNotFoundException {

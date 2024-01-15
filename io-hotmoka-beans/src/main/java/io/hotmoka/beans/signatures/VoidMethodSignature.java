@@ -29,8 +29,8 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class VoidMethodSignature extends MethodSignature {
-	final static byte SELECTOR = 2;
-	final static byte SELECTOR_REWARD = 4;
+	public final static byte SELECTOR = 2;
+	public final static byte SELECTOR_REWARD = 4;
 
 	/**
 	 * Builds the signature of a method, that returns no value.

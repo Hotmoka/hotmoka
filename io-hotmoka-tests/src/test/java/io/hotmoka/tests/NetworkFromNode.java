@@ -38,14 +38,15 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -64,7 +65,7 @@ import io.hotmoka.node.service.api.NodeServiceConfig;
  * A test for creating a network server from a Hotmoka node.
  */
 class NetworkFromNode extends HotmokaTest {
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = new ConstructorSignature("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
+	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 
@@ -190,7 +191,7 @@ class NetworkFromNode extends HotmokaTest {
 					_50_000,
 					ONE,
 					classpath,
-					new ConstructorSignature("io.hotmoka.examples.basic.Sub", INT),
+					ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT),
 					StorageValues.intOf(1973)
 			);
 

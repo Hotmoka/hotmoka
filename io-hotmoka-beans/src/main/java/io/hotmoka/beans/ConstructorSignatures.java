@@ -16,9 +16,10 @@ limitations under the License.
 
 package io.hotmoka.beans;
 
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.signatures.ConstructorSignature;
+import io.hotmoka.beans.internal.signatures.ConstructorSignatureImpl;
 
 /**
  * Providers of constructor signatures.
@@ -35,7 +36,7 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(ClassType definingClass, StorageType... formals) {
-		return new ConstructorSignature(definingClass, formals);
+		return new ConstructorSignatureImpl(definingClass, formals);
 	}
 
 	/**
@@ -46,11 +47,11 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(String definingClass, StorageType... formals) {
-		return new ConstructorSignature(definingClass, formals);
+		return new ConstructorSignatureImpl(definingClass, formals);
 	}
 
 	/**
 	 * The constructor of an externally owned account.
 	 */
-	public final static ConstructorSignature EOA_CONSTRUCTOR = ConstructorSignature.EOA_CONSTRUCTOR;
+	public final static ConstructorSignature EOA_CONSTRUCTOR = ConstructorSignatureImpl.EOA_CONSTRUCTOR;
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.signatures;
+package io.hotmoka.beans.internal.signatures;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,11 +24,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -119,10 +122,10 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	 * @return the code signature
 	 * @throws IOException if the code signature cannot be unmarshalled
 	 */
-	public static AbstractCodeSignature from(UnmarshallingContext context) throws IOException {
+	public static CodeSignature from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
-		if (selector == ConstructorSignature.SELECTOR_EOA)
-			return ConstructorSignature.EOA_CONSTRUCTOR;
+		if (selector == ConstructorSignatureImpl.SELECTOR_EOA)
+			return ConstructorSignatures.EOA_CONSTRUCTOR;
 		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
 			return VoidMethodSignature.VALIDATORS_REWARD;
 
@@ -138,7 +141,7 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
 
 		switch (selector) {
-		case ConstructorSignature.SELECTOR: return new ConstructorSignature(definingClass, formals);
+		case ConstructorSignatureImpl.SELECTOR: return ConstructorSignatures.of(definingClass, formals);
 		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readStringUnshared(), formals);
 		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
 		default: throw new IOException("Unexpected code signature selector: " + selector);

@@ -34,16 +34,17 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
@@ -54,8 +55,8 @@ import io.hotmoka.constants.Constants;
 class ExampleCoinOZSnapshot extends HotmokaTest {
     private static final ClassType EXCOZS = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinOZSnapshot");
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
-    private static final ConstructorSignature CONSTRUCTOR_EXCOZS = new ConstructorSignature(EXCOZS);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
+    private static final ConstructorSignature CONSTRUCTOR_EXCOZS = ConstructorSignatures.of(EXCOZS);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);
 
     /**
      * The classpath of the classes of code module.

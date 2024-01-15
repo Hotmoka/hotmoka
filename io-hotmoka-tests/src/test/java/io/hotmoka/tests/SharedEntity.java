@@ -34,14 +34,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
@@ -53,12 +54,12 @@ class SharedEntity extends HotmokaTest {
     private static final ClassType SHARED_ENTITY_WITH_INTEGRAL_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithIntegralShares");
     private static final ClassType SHARED_ENTITY_WITH_CAPPED_SHARES = StorageTypes.classNamed(SHARED_ENTITY + "WithCappedShares");
     private static final ClassType OFFER = StorageTypes.SHARED_ENTITY_OFFER;
-    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = new ConstructorSignature(SIMPLE_SHARED_ENTITY, PAYABLE_CONTRACT, BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, PAYABLE_CONTRACT, BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, PAYABLE_CONTRACT, BIG_INTEGER);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, BIG_INTEGER, INT);
-    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2 = new ConstructorSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, INT);
-    private static final ConstructorSignature OFFER_CONSTRUCTOR = new ConstructorSignature(OFFER, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, LONG);
+    private static final ConstructorSignature SIMPLE_SHARED_ENTITY_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_SHARED_ENTITY, PAYABLE_CONTRACT, BIG_INTEGER);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS_CONSTRUCTOR = ConstructorSignatures.of(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, PAYABLE_CONTRACT, BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_INTEGRAL_SHARES_CONSTRUCTOR = ConstructorSignatures.of(SHARED_ENTITY_WITH_INTEGRAL_SHARES, PAYABLE_CONTRACT, BIG_INTEGER);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR = ConstructorSignatures.of(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, BIG_INTEGER, INT);
+    private static final ConstructorSignature SHARED_ENTITY_WITH_CAPPED_SHARES_CONSTRUCTOR_2 = ConstructorSignatures.of(SHARED_ENTITY_WITH_CAPPED_SHARES, PAYABLE_CONTRACT, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, INT);
+    private static final ConstructorSignature OFFER_CONSTRUCTOR = ConstructorSignatures.of(OFFER, PAYABLE_CONTRACT, BIG_INTEGER, BIG_INTEGER, LONG);
     private static final BigInteger _500_000 = BigInteger.valueOf(500_000);
     private StorageReference creator;
     private StorageReference seller;

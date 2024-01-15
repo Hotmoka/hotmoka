@@ -33,15 +33,16 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
@@ -50,7 +51,7 @@ import io.hotmoka.beans.signatures.VoidMethodSignature;
  */
 class Lambdas extends HotmokaTest {
 	private static final ClassType LAMBDAS = StorageTypes.classNamed("io.hotmoka.examples.lambdas.Lambdas");
-	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = new ConstructorSignature("io.hotmoka.examples.lambdas.Lambdas", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	private static final ConstructorSignature CONSTRUCTOR_LAMBDAS = ConstructorSignatures.of("io.hotmoka.examples.lambdas.Lambdas", StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**
 	 * The first object, that holds all funds initially.

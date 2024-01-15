@@ -37,10 +37,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
@@ -48,7 +50,6 @@ import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
@@ -57,9 +58,9 @@ import io.hotmoka.constants.Constants;
  */
 class UnsignedBigInteger extends HotmokaTest {
     private static final ClassType UBI = StorageTypes.UNSIGNED_BIG_INTEGER;
-    private static final ConstructorSignature CONSTRUCTOR_UBI_BI = new ConstructorSignature(UBI, StorageTypes.BIG_INTEGER);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = new ConstructorSignature(UBI, StorageTypes.STRING);
-    private static final ConstructorSignature CONSTRUCTOR_UBI_STR_INT = new ConstructorSignature(UBI, StorageTypes.STRING, INT);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_BI = ConstructorSignatures.of(UBI, StorageTypes.BIG_INTEGER);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR = ConstructorSignatures.of(UBI, StorageTypes.STRING);
+    private static final ConstructorSignature CONSTRUCTOR_UBI_STR_INT = ConstructorSignatures.of(UBI, StorageTypes.STRING, INT);
 
     /**
      * The classpath of the classes being tested.
