@@ -26,11 +26,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall5 extends HotmokaTest {
@@ -49,6 +49,6 @@ class LegalCall5 extends HotmokaTest {
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
-		addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, new VoidMethodSignature(StorageTypes.classNamed("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
+		addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
 	}
 }

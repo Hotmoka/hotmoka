@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -43,7 +44,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test about subclassing of the shared entity contract with a specific class for the shareholders.
@@ -93,13 +93,13 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
                 sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // this would not be valid but the test passes
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_1, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
+        		MethodSignatures.ofVoid(MY_CLASS_SHARED_ENTITY_1, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer);
     }
 
@@ -121,21 +121,21 @@ class MyClassSharedEntityWithArbitraryShareholdersTypes extends HotmokaTest {
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(MY_CLASS, "placeOffer", SHARED_ENTITY, BIG_INTEGER, OFFER),
                 sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer
         // case 1: ClassCastException
         throwsTransactionExceptionWithCause("java.lang.ClassCastException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
+                		MethodSignatures.ofVoid(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, StorageTypes.PAYABLE_CONTRACT, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
 
         // case 2: IllegalArgumentException
         throwsTransactionExceptionWithCause("java.lang.IllegalArgumentException", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                        new VoidMethodSignature(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, MY_CLASS, OFFER),
+                		MethodSignatures.ofVoid(MY_CLASS_SHARED_ENTITY_2, "accept", BIG_INTEGER, MY_CLASS, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
     }

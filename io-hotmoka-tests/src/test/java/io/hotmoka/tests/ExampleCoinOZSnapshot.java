@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -46,7 +47,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -539,7 +539,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_5000);
         // creator@burn(5000, creator) > [creator:199999999999999999985000, investor1:10000]  TotalSupply= 199999999999999999995000
@@ -576,7 +576,7 @@ class ExampleCoinOZSnapshot extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXCOZS, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_5000);
         // creator@burn(5000, creator) > [creator:199999999999999999980000, investor1:9000, investor2:1000] TotalSupply= 199999999999999999990000

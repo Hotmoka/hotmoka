@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -44,7 +45,6 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -99,7 +99,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
@@ -122,7 +122,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
@@ -134,7 +134,7 @@ class TicTacToe extends HotmokaTest {
 				_100_000,
 				panarea(1),
 				jar(),
-				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+				MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				StorageValues.longOf(panarea(100).longValue()),
 				_1, _1)
@@ -150,7 +150,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
@@ -162,7 +162,7 @@ class TicTacToe extends HotmokaTest {
 				_100_000,
 				panarea(1),
 				jar(),
-				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+				MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				StorageValues.longOf(panarea(100).longValue()),
 				_1, _2)
@@ -178,7 +178,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(120).longValue()),
 			_1, _1);
@@ -190,7 +190,7 @@ class TicTacToe extends HotmokaTest {
 				_100_000,
 				panarea(1),
 				jar(),
-				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+				MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				StorageValues.longOf(panarea(119).longValue()),
 				_1, _2)
@@ -206,7 +206,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
@@ -216,7 +216,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
@@ -226,7 +226,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
@@ -236,7 +236,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
@@ -246,7 +246,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
@@ -271,7 +271,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
@@ -281,7 +281,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
@@ -291,7 +291,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
@@ -301,7 +301,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
@@ -311,7 +311,7 @@ class TicTacToe extends HotmokaTest {
 			_100_000,
 			panarea(1),
 			jar(),
-			new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+			MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
@@ -323,7 +323,7 @@ class TicTacToe extends HotmokaTest {
 				_100_000,
 				panarea(1),
 				jar(),
-				new VoidMethodSignature(TIC_TAC_TOE, "play", LONG, INT, INT),
+				MethodSignatures.ofVoid(TIC_TAC_TOE, "play", LONG, INT, INT),
 				ticTacToe,
 				StorageValues.longOf(panarea(0).longValue()),
 				_2, _3)

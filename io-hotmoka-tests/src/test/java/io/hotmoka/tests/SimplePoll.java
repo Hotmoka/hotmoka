@@ -34,16 +34,17 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 class SimplePoll extends HotmokaTest {
 
@@ -58,9 +59,9 @@ class SimplePoll extends HotmokaTest {
 	private static final ConstructorSignature SIMPLE_POLL_ENTITY_CONSTRUCTOR = ConstructorSignatures.of(SIMPLE_POLL, StorageTypes.SHARED_ENTITY_VIEW, ACTION_SIMPLE_POLL);
 	private static final ConstructorSignature ACTION_CONSTRUCTOR = ConstructorSignatures.of(ACTION);
 
-	private static final VoidMethodSignature VOTE_POLL = new VoidMethodSignature(SIMPLE_POLL, "vote");
-	private static final VoidMethodSignature VOTE_POLL_WITH_PARAM = new VoidMethodSignature(SIMPLE_POLL, "vote", BIG_INTEGER);
-	private static final VoidMethodSignature CLOSE_POLL = new VoidMethodSignature(SIMPLE_POLL, "close");
+	private static final MethodSignature VOTE_POLL = MethodSignatures.ofVoid(SIMPLE_POLL, "vote");
+	private static final MethodSignature VOTE_POLL_WITH_PARAM = MethodSignatures.ofVoid(SIMPLE_POLL, "vote", BIG_INTEGER);
+	private static final MethodSignature CLOSE_POLL = MethodSignatures.ofVoid(SIMPLE_POLL, "close");
 
 	private static final NonVoidMethodSignature IS_POLL_OVER = new NonVoidMethodSignature(SIMPLE_POLL, "isOver", StorageTypes.BOOLEAN);
 	private static final NonVoidMethodSignature IS__RUN_PERFORMED = new NonVoidMethodSignature(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);

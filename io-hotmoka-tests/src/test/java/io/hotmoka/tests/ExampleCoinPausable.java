@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -44,7 +45,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -125,7 +125,7 @@ class ExampleCoinPausable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCP, "pause"),
+                MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 
@@ -146,7 +146,7 @@ class ExampleCoinPausable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCP, "pause"),
+                MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 
@@ -154,7 +154,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
-                        new VoidMethodSignature(EXCP, "pause"),
+                        MethodSignatures.ofVoid(EXCP, "pause"),
                         example_token)
                 // The contract cannot be put in the paused state if it was already paused --> Exception !!!
         );
@@ -167,7 +167,7 @@ class ExampleCoinPausable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCP, "pause"),
+                MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 
@@ -181,7 +181,7 @@ class ExampleCoinPausable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCP, "unpause"),
+                MethodSignatures.ofVoid(EXCP, "unpause"),
                 example_token);
         // The contract has been removed from the paused state
 
@@ -203,7 +203,7 @@ class ExampleCoinPausable extends HotmokaTest {
                         addInstanceMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), jar(),
-                                new VoidMethodSignature(EXCP, "unpause"),
+                                MethodSignatures.ofVoid(EXCP, "unpause"),
                                 example_token)
                 // The contract cannot be removed from the paused state if it was not paused --> Exception !!!
         );
@@ -264,7 +264,7 @@ class ExampleCoinPausable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCP, "pause"),
+                MethodSignatures.ofVoid(EXCP, "pause"),
                 example_token);
         // The contract has been put in the paused state
 

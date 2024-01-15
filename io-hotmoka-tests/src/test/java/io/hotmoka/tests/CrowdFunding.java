@@ -34,6 +34,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -44,7 +45,6 @@ import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test for the crowd funding contract.
@@ -127,12 +127,12 @@ class CrowdFunding extends HotmokaTest {
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
+			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(48L), id);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
+			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(1L), id);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
@@ -152,12 +152,12 @@ class CrowdFunding extends HotmokaTest {
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
+			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(48L), id);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
+			MethodSignatures.ofVoid(CROWD_FUNDING, "contribute", StorageTypes.BIG_INTEGER, INT),
 			crowdFunding, StorageValues.bigIntegerOf(2L), id);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction

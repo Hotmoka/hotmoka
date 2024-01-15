@@ -14,24 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.signatures;
+package io.hotmoka.beans.internal.signatures;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The signature of a method of a class, that does not return any value.
  */
 @Immutable
-public final class VoidMethodSignature extends AbstractMethodSignature {
-	public final static byte SELECTOR = 2;
-	public final static byte SELECTOR_REWARD = 4;
+public final class VoidMethodSignatureImpl extends AbstractMethodSignature implements VoidMethodSignature {
+	final static byte SELECTOR = 2;
+	final static byte SELECTOR_REWARD = 4;
 
 	/**
 	 * Builds the signature of a method, that returns no value.
@@ -40,7 +40,7 @@ public final class VoidMethodSignature extends AbstractMethodSignature {
 	 * @param methodName the name of the method
 	 * @param formals the formal arguments of the method
 	 */
-	public VoidMethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
+	public VoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, methodName, formals);
 	}
 
@@ -51,7 +51,7 @@ public final class VoidMethodSignature extends AbstractMethodSignature {
 	 * @param methodName the name of the method
 	 * @param formals the formal arguments of the method
 	 */
-	public VoidMethodSignature(String definingClass, String methodName, StorageType... formals) {
+	public VoidMethodSignatureImpl(String definingClass, String methodName, StorageType... formals) {
 		this(StorageTypes.classNamed(definingClass), methodName, formals);
 	}
 

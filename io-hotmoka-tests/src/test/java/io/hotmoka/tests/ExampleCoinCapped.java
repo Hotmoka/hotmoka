@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -43,7 +44,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -123,7 +123,7 @@ class ExampleCoinCapped extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCC, "mint", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_700000);
         // balances = [creator:900000000000000000000000], totalSupply:900000000000000000000000
@@ -152,7 +152,7 @@ class ExampleCoinCapped extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
-                        new VoidMethodSignature(EXCC, "mint", StorageTypes.CONTRACT, UBI),
+                        MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, ubi_800000_1)
                 // creator cannot mine if the total supply exceeds the cap --> Exception !!!
@@ -162,7 +162,7 @@ class ExampleCoinCapped extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
-                        new VoidMethodSignature(EXCC, "mint", StorageTypes.CONTRACT, UBI),
+                        MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
                         example_token,
                         creator, ubi_900000)
                 // creator cannot mine if the total supply exceeds the cap --> Exception !!!

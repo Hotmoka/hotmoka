@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -43,7 +44,6 @@ import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test for the shared entity contract and subclasses.
@@ -89,7 +89,7 @@ class SharedEntity extends HotmokaTest {
         // invalid: the seller is trying to sell more shares than it owns
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller has not enough shares to sell", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(0), offer)
         );
     }
@@ -108,7 +108,7 @@ class SharedEntity extends HotmokaTest {
         // invalid: the creator is trying to place the offer on behalf of the seller
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "only the seller can place its own offer", () ->
                 addInstanceMethodCallTransaction(privateKey(0), creator, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(0), offer)
         );
     }
@@ -126,7 +126,7 @@ class SharedEntity extends HotmokaTest {
 
         // valid: the seller places the second offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
     }
 
@@ -143,13 +143,13 @@ class SharedEntity extends HotmokaTest {
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // invalid: the buyer provides too little money
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "not enough money to accept the offer", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(0), buyer, offer)
         );
     }
@@ -167,12 +167,12 @@ class SharedEntity extends HotmokaTest {
 
         // the seller places his offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // valid: the buyer provides enough money to accept the offer
         addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer);
     }
 
@@ -207,13 +207,13 @@ class SharedEntity extends HotmokaTest {
 
         // the seller places the offer
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // invalid: the maximal limit of shareholders has been reached
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "too many shareholders, the limit is 1", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(10), buyer, offer)
         );
     }
@@ -230,12 +230,12 @@ class SharedEntity extends HotmokaTest {
                 OFFER_CONSTRUCTOR, seller, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // valid
         addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHAREHOLDERS, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(10), buyer, offer);
     }
 
@@ -253,7 +253,7 @@ class SharedEntity extends HotmokaTest {
         // invalid: the seller tries to sell only 2 of its 10 shares
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "the seller must sell its shares in full", () ->
                 addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(0), offer)
         );
     }
@@ -271,7 +271,7 @@ class SharedEntity extends HotmokaTest {
 
         // valid: the seller sells all its 10 shares
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_INTEGRAL_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
     }
@@ -328,12 +328,12 @@ class SharedEntity extends HotmokaTest {
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // valid
         addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer);
     }
 
@@ -350,13 +350,13 @@ class SharedEntity extends HotmokaTest {
 
         // place the offer on the shared entity
         addInstanceMethodCallTransaction(privateKey(1), seller, _500_000, panarea(1), classpath_takamaka_code,
-                new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
+        		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHARES, "place", BIG_INTEGER, OFFER),
                 sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // invalid: the share limit has been reached
         throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "a shareholder cannot hold more than", () ->
                 addInstanceMethodCallTransaction(privateKey(2), buyer, _500_000, panarea(1), classpath_takamaka_code,
-                        new VoidMethodSignature(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
+                		MethodSignatures.ofVoid(SHARED_ENTITY_WITH_CAPPED_SHARES, "accept", BIG_INTEGER, PAYABLE_CONTRACT, OFFER),
                         sharedEntity, StorageValues.bigIntegerOf(2), buyer, offer)
         );
     }

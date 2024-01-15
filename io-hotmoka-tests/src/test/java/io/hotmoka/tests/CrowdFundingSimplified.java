@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -41,7 +42,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test for the simplified crowd funding contract.
@@ -110,12 +110,12 @@ class CrowdFundingSimplified extends HotmokaTest {
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
+			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(48L), campaign);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
+			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(1L), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
@@ -135,12 +135,12 @@ class CrowdFundingSimplified extends HotmokaTest {
 
 		addInstanceMethodCallTransaction
 			(privateKey(2), funder1, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
+			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(48L), campaign);
 
 		addInstanceMethodCallTransaction
 			(privateKey(3), funder2, _100_000, BigInteger.ONE, jar(),
-			new VoidMethodSignature(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
+			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(2L), campaign);
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction

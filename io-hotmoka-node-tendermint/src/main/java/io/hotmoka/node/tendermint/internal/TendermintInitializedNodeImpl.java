@@ -55,7 +55,6 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.crypto.Base64;
@@ -149,7 +148,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference builder = node.addConstructorCallTransaction(request);
 
 		// we populate the builder with a Tendermint validator at a time; this guarantees that they are created with 0 as progressive identifier 
-		var addValidatorMethod = new VoidMethodSignature(builderClassName, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
+		var addValidatorMethod = MethodSignatures.ofVoid(builderClassName, "addValidator", StorageTypes.STRING, StorageTypes.LONG);
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64 = Base64.toBase64String(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);

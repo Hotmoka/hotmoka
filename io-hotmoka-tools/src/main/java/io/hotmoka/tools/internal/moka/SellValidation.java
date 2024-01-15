@@ -30,7 +30,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -135,7 +134,7 @@ public class SellValidation extends AbstractCommand {
 				
 				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
 					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
-					new VoidMethodSignature(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
+					MethodSignatures.ofVoid(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
 					validators, StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer);
 
 				node.addInstanceMethodCallTransaction(request2);

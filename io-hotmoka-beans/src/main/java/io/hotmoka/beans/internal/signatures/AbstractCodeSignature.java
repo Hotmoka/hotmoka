@@ -25,13 +25,13 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -126,8 +126,8 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		var selector = context.readByte();
 		if (selector == ConstructorSignatureImpl.SELECTOR_EOA)
 			return ConstructorSignatures.EOA_CONSTRUCTOR;
-		else if (selector == VoidMethodSignature.SELECTOR_REWARD)
-			return VoidMethodSignature.VALIDATORS_REWARD;
+		else if (selector == VoidMethodSignatureImpl.SELECTOR_REWARD)
+			return VoidMethodSignatureImpl.VALIDATORS_REWARD;
 
 		ClassType definingClass;
 
@@ -142,7 +142,7 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 
 		switch (selector) {
 		case ConstructorSignatureImpl.SELECTOR: return ConstructorSignatures.of(definingClass, formals);
-		case VoidMethodSignature.SELECTOR: return new VoidMethodSignature(definingClass, context.readStringUnshared(), formals);
+		case VoidMethodSignatureImpl.SELECTOR: return MethodSignatures.ofVoid(definingClass, context.readStringUnshared(), formals);
 		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
 		default: throw new IOException("Unexpected code signature selector: " + selector);
 		}

@@ -20,7 +20,7 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.beans.internal.signatures.VoidMethodSignatureImpl;
 
 /**
  * Providers of method signatures.
@@ -38,7 +38,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static MethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignature(definingClass, methodName, formals);
+		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
 	}
 
 	/**
@@ -50,7 +50,7 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static MethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignature(definingClass, methodName, formals);
+		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
 	}
 
 	/**

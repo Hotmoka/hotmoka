@@ -43,7 +43,6 @@ import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -315,7 +314,7 @@ public class Call extends AbstractCommand {
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
-				return new VoidMethodSignature(clazz.getName(), methodName, formals);
+				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
 			else
 				return new NonVoidMethodSignature(clazz.getName(), methodName, StorageTypes.fromClass(returnType), formals);
 		}

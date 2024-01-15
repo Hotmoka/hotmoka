@@ -27,12 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.tests.HotmokaTest;
 
 class Exceptions extends HotmokaTest {
@@ -52,7 +52,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo1"));
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid("io.hotmoka.examples.errors.exceptions.C", "foo1"));
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);
@@ -66,7 +66,7 @@ class Exceptions extends HotmokaTest {
 		TransactionReference exceptions = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("exceptions.jar"), takamakaCode());
 
 		try {
-			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, new VoidMethodSignature("io.hotmoka.examples.errors.exceptions.C", "foo2", StorageTypes.OBJECT), StorageValues.NULL);
+			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, exceptions, MethodSignatures.ofVoid("io.hotmoka.examples.errors.exceptions.C", "foo2", StorageTypes.OBJECT), StorageValues.NULL);
 		}
 		catch (Exception e) {
 			assertTrue(e instanceof TransactionException);

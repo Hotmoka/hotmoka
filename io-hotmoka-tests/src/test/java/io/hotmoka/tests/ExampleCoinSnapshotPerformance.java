@@ -47,6 +47,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -64,7 +65,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
@@ -188,8 +188,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private final int numberOfInvestors;
         private final ClassType COIN;
         private final MethodSignature TRANSFER;
-        private final VoidMethodSignature BURN;
-        private final VoidMethodSignature MINT;
+        private final MethodSignature BURN;
+        private final MethodSignature MINT;
         private final MethodSignature YIELD_SNAPSHOT;
         private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
         private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
@@ -214,8 +214,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		this.numberOfInvestors = numberOfInvestors;
     		this.COIN = StorageTypes.classNamed(coinName);
     		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
-    		this.BURN = new VoidMethodSignature(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
-    		this.MINT = new VoidMethodSignature(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);
+    		this.BURN = MethodSignatures.ofVoid(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
+    		this.MINT = MethodSignatures.ofVoid(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);
     		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
     	}
 
@@ -267,7 +267,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
     		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
-        		new VoidMethodSignature(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
+    			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}

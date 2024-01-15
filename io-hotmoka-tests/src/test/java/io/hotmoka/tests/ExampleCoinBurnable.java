@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -43,7 +44,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -117,7 +117,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCB, "burn", UBI),
+                MethodSignatures.ofVoid(EXCB, "burn", UBI),
                 example_token,
                 ubi_500000);
         // balances = [creator:199999999999999999500000], totalSupply:199999999999999999500000
@@ -161,7 +161,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _100_000, panarea(1), jar(),
-                new VoidMethodSignature(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_4000);
         // investor1 can burn on creator's behalf --> balances = [creator: 199999999999999999996000, investor1:0]
@@ -212,7 +212,7 @@ class ExampleCoinBurnable extends HotmokaTest {
                         addInstanceMethodCallTransaction(
                                 investor2_prv_key, investor2,
                                 _100_000, panarea(1), jar(),
-                                new VoidMethodSignature(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
+                                MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
                                 example_token,
                                 creator, ubi_4000)
                 // investor2 cannot burn tokens on creator's behalf --> Exception !!!
@@ -222,7 +222,7 @@ class ExampleCoinBurnable extends HotmokaTest {
                         addInstanceMethodCallTransaction(
                                 investor1_prv_key, investor1,
                                 _100_000, panarea(1), jar(),
-                                new VoidMethodSignature(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
+                                MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
                                 example_token,
                                 creator, ubi_8000)
                 // investor1 can burn on creator's behalf, but only 7000 token --> Exception !!!

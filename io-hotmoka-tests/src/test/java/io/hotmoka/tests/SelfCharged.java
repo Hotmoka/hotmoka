@@ -31,13 +31,13 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test of the @SelfCharged annotation.
@@ -62,7 +62,7 @@ class SelfCharged extends HotmokaTest {
 		if (consensus != null && consensus.allowsSelfCharged()) {
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), ConstructorSignatures.of(SELF_CHARGEABLE, StorageTypes.INT), StorageValues.intOf(100_000));
 			try {
-				addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "foo"), sc);
+				addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), MethodSignatures.ofVoid(SELF_CHARGEABLE, "foo"), sc);
 			}
 			catch (TransactionRejectedException e) {
 				assertEquals("the payer has not enough funds to buy 10000 units of gas", e.getMessage());
@@ -77,7 +77,7 @@ class SelfCharged extends HotmokaTest {
 	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		if (consensus != null && consensus.allowsSelfCharged()) {
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), ConstructorSignatures.of(SELF_CHARGEABLE, StorageTypes.INT), StorageValues.intOf(100_000));
-			addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), new VoidMethodSignature(SELF_CHARGEABLE, "goo"), sc);
+			addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), MethodSignatures.ofVoid(SELF_CHARGEABLE, "goo"), sc);
 		}
 	}
 }

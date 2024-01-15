@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.network.signatures;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * The model of the signature of a method of a class.
@@ -60,7 +60,7 @@ public class MethodSignatureModel extends CodeSignatureModel {
 	 */
 	public MethodSignature toBean() {
 		if (returnType == null)
-			return new VoidMethodSignature(definingClass, methodName, getFormalsAsTypes());
+			return MethodSignatures.ofVoid(definingClass, methodName, getFormalsAsTypes());
 		else
 			return new NonVoidMethodSignature(definingClass, methodName, StorageTypes.named(returnType), getFormalsAsTypes());
 	}

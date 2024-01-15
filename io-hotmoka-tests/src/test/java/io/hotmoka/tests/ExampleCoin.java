@@ -35,6 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -47,7 +48,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -576,7 +576,7 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_500000);
         // balances = [creator:200000000000000000500000], totalSupply:200000000000000000500000
@@ -584,7 +584,7 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
                 example_token,
                 investor1, ubi_500000);
         // balances = [creator:200000000000000000500000, investor1:500000], totalSupply:200000000000000001000000
@@ -622,7 +622,7 @@ class ExampleCoin extends HotmokaTest {
         addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
-                new VoidMethodSignature(EXAMPLECOIN, "burn", StorageTypes.CONTRACT, UBI),
+                MethodSignatures.ofVoid(EXAMPLECOIN, "burn", StorageTypes.CONTRACT, UBI),
                 example_token,
                 creator, ubi_500000);
         // balances = [creator:199999999999999999500000], totalSupply:199999999999999999500000

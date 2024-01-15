@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -41,7 +42,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 
 /**
  * A test showing that it is possible to have a shared entity with unrelated
@@ -91,12 +91,12 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
 
         // the seller places his offer using his contract
         addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(MY_CLASS, "placeOffer", SHARED_ENTITY_2, StorageTypes.BIG_INTEGER, OFFER_2),
+        		MethodSignatures.ofVoid(MY_CLASS, "placeOffer", SHARED_ENTITY_2, StorageTypes.BIG_INTEGER, OFFER_2),
                 sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer: this should not be valid but the test shows that it actually works
         addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
-                new VoidMethodSignature(SIMPLE_SHARED_ENTITY_2, "accept", StorageTypes.BIG_INTEGER, OFFER_2),
+        		MethodSignatures.ofVoid(SIMPLE_SHARED_ENTITY_2, "accept", StorageTypes.BIG_INTEGER, OFFER_2),
                 sharedEntity, StorageValues.bigIntegerOf(2), offer);
     }
 }

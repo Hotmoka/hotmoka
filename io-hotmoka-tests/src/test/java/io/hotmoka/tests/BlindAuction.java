@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -49,7 +50,6 @@ import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -88,9 +88,9 @@ class BlindAuction extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"),
 			StorageTypes.BIG_INTEGER, BOOLEAN, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature BID = new VoidMethodSignature(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
+	private static final MethodSignature BID = MethodSignatures.ofVoid(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature REVEAL = new VoidMethodSignature(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
+	private static final MethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
 	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 

@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -291,27 +291,27 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
-	public final static MethodSignature RECEIVE_BIG_INTEGER = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.BIG_INTEGER);
+	public final static MethodSignature RECEIVE_BIG_INTEGER = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code receiveRed} of a payable contract, with a big integer argument.
 	 */
-	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receiveRed", StorageTypes.BIG_INTEGER);
+	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receiveRed", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code receive} of a payable contract, with an int argument.
 	 */
-	public final static MethodSignature RECEIVE_INT = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.INT);
+	public final static MethodSignature RECEIVE_INT = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.INT);
 
 	/**
 	 * The method {@code receive} of a payable contract, with a long argument.
 	 */
-	public final static MethodSignature RECEIVE_LONG = new VoidMethodSignature(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.LONG);
+	public final static MethodSignature RECEIVE_LONG = MethodSignatures.ofVoid(StorageTypes.PAYABLE_CONTRACT, "receive", StorageTypes.LONG);
 
 	/**
 	 * The method {@code reward} of the validators contract.
 	 */
-	public final static MethodSignature VALIDATORS_REWARD = new VoidMethodSignature
+	public final static MethodSignature VALIDATORS_REWARD = MethodSignatures.ofVoid
 		(StorageTypes.VALIDATORS, "reward", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
 
 	/**
@@ -332,15 +332,15 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The method {@code closePoll} of the Poll contract.
 	 */
-	public final static MethodSignature CLOSE_POLL = new VoidMethodSignature(StorageTypes.POLL, "closePoll");
+	public final static MethodSignature CLOSE_POLL = MethodSignatures.ofVoid(StorageTypes.POLL, "closePoll");
 	
 	/**
 	 * The method {@code vote} of the Poll contract.
 	 */
-	public final static MethodSignature VOTE = new VoidMethodSignature(StorageTypes.POLL, "vote");
+	public final static MethodSignature VOTE = MethodSignatures.ofVoid(StorageTypes.POLL, "vote");
 	
 	/**
 	 * The method {@code vote} of the Poll contract with the share parameter.
 	 */
-	public final static MethodSignature VOTE_WITH_SHARE = new VoidMethodSignature(StorageTypes.POLL, "vote", StorageTypes.BIG_INTEGER);
+	public final static MethodSignature VOTE_WITH_SHARE = MethodSignatures.ofVoid(StorageTypes.POLL, "vote", StorageTypes.BIG_INTEGER);
 }

@@ -32,15 +32,16 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.CodeSupplier;
 
 /**
@@ -48,7 +49,7 @@ import io.hotmoka.node.api.CodeSupplier;
  */
 class RedGreenDistributor extends HotmokaTest {
 	private static final ClassType DISTRIBUTOR = StorageTypes.classNamed("io.hotmoka.examples.redgreendistributor.Distributor");
-	private static final VoidMethodSignature ADD_AS_PAYEE = new VoidMethodSignature(DISTRIBUTOR, "addAsPayee");
+	private static final MethodSignature ADD_AS_PAYEE = MethodSignatures.ofVoid(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeAll
@@ -99,7 +100,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new VoidMethodSignature(DISTRIBUTOR, "distributeGreen", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofVoid(DISTRIBUTOR, "distributeGreen", StorageTypes.BIG_INTEGER),
 			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
@@ -150,7 +151,7 @@ class RedGreenDistributor extends HotmokaTest {
 			_20_000,
 			ONE,
 			jar(),
-			new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofVoid(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
 			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
@@ -213,7 +214,7 @@ class RedGreenDistributor extends HotmokaTest {
 				_20_000,
 				ONE,
 				jar(),
-				new VoidMethodSignature(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
+				MethodSignatures.ofVoid(DISTRIBUTOR, "distributeRed", StorageTypes.BIG_INTEGER),
 				distributor, StorageValues.bigIntegerOf(1_000)
 			)
 		);
