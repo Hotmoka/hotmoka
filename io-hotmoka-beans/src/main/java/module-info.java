@@ -28,7 +28,7 @@ module io.hotmoka.beans {
 	requires transitive io.hotmoka.beans.api;
 	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.constants;
-	requires transitive io.hotmoka.crypto.api;
+	requires io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.websockets.beans;
 	requires com.google.gson;

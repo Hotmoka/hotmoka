@@ -21,6 +21,7 @@ module io.hotmoka.node.local.api {
 	exports io.hotmoka.node.local.api;
 
 	requires transitive io.hotmoka.beans;
+	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.verification.api;

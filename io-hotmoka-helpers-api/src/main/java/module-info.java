@@ -22,6 +22,7 @@ module io.hotmoka.helpers.api {
 	exports io.hotmoka.helpers.api;
 
 	requires io.hotmoka.annotations;
+	requires transitive io.hotmoka.crypto.api;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.verification.api;
 	requires io.hotmoka.node.api;

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import io.hotmoka.beans.api.signatures.MethodSignature;
+import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
@@ -37,7 +38,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static MethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
+	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, StorageType... formals) {
 		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
 	}
 
@@ -49,7 +50,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static MethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
+	public static VoidMethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
 		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
 	}
 
@@ -266,27 +267,27 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
 	 */
-	public final static MethodSignature RECEIVE_BIG_INTEGER = AbstractMethodSignature.RECEIVE_BIG_INTEGER;
+	public final static VoidMethodSignature RECEIVE_BIG_INTEGER = AbstractMethodSignature.RECEIVE_BIG_INTEGER;
 
 	/**
 	 * The method {@code receiveRed} of a payable contract, with a big integer argument.
 	 */
-	public final static MethodSignature RECEIVE_RED_BIG_INTEGER = AbstractMethodSignature.RECEIVE_RED_BIG_INTEGER;
+	public final static VoidMethodSignature RECEIVE_RED_BIG_INTEGER = AbstractMethodSignature.RECEIVE_RED_BIG_INTEGER;
 
 	/**
 	 * The method {@code receive} of a payable contract, with an {@code int} argument.
 	 */
-	public final static MethodSignature RECEIVE_INT = AbstractMethodSignature.RECEIVE_INT;
+	public final static VoidMethodSignature RECEIVE_INT = AbstractMethodSignature.RECEIVE_INT;
 
 	/**
 	 * The method {@code receive} of a payable contract, with a {@code long} argument.
 	 */
-	public final static MethodSignature RECEIVE_LONG = AbstractMethodSignature.RECEIVE_LONG;
+	public final static VoidMethodSignature RECEIVE_LONG = AbstractMethodSignature.RECEIVE_LONG;
 
 	/**
 	 * The method {@code reward} of the validators contract.
 	 */
-	public final static MethodSignature VALIDATORS_REWARD = AbstractMethodSignature.VALIDATORS_REWARD;
+	public final static VoidMethodSignature VALIDATORS_REWARD = AbstractMethodSignature.VALIDATORS_REWARD;
 
 	/**
 	 * The method {@code newPoll} of the generic validators contract.
@@ -306,15 +307,15 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code closePoll} of a {@code Poll} contract.
 	 */
-	public final static MethodSignature CLOSE_POLL = AbstractMethodSignature.CLOSE_POLL;
+	public final static VoidMethodSignature CLOSE_POLL = AbstractMethodSignature.CLOSE_POLL;
 	
 	/**
 	 * The method {@code vote} of a {@code Poll} contract.
 	 */
-	public final static MethodSignature VOTE = AbstractMethodSignature.VOTE;
+	public final static VoidMethodSignature VOTE = AbstractMethodSignature.VOTE;
 	
 	/**
 	 * The method {@code vote} of a {@code Poll} contract with the share parameter.
 	 */
-	public final static MethodSignature VOTE_WITH_SHARE = AbstractMethodSignature.VOTE_WITH_SHARE;
+	public final static VoidMethodSignature VOTE_WITH_SHARE = AbstractMethodSignature.VOTE_WITH_SHARE;
 }
