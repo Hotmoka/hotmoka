@@ -23,13 +23,14 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The signature of a method of a class, that returns a value.
  */
 @Immutable
-public final class NonVoidMethodSignature extends MethodSignature {
+public final class NonVoidMethodSignature extends AbstractMethodSignature {
 	public final static byte SELECTOR = 1;
 
 	/**

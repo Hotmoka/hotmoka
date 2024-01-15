@@ -467,7 +467,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.getMethodName() + ')');
 
 			StorageValue result;
 
@@ -484,7 +484,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.methodName + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.getMethodName() + ')');
 			StorageValue result;
 
 			synchronized (deliverTransactionLock) {

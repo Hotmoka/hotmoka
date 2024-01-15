@@ -31,13 +31,13 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
@@ -64,7 +64,7 @@ class AccountWithEnum extends HotmokaTest {
 				ConstructorSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", StorageTypes.STRING), StorageValues.stringOf(publicKey));
 
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
-			MethodSignature.RECEIVE_INT, account, StorageValues.intOf(100_000));
+			MethodSignatures.RECEIVE_INT, account, StorageValues.intOf(100_000));
 
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
 			new NonVoidMethodSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);

@@ -60,7 +60,7 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorSignatureImpl && super.equals(other);
+		return other instanceof ConstructorSignature && super.equals(other);
 	}
 
 	@Override

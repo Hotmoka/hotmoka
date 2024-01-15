@@ -14,23 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.signatures;
+package io.hotmoka.beans.internal.signatures;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.signatures.AbstractCodeSignature;
+import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The signature of a method of a class.
  */
 @Immutable
-public abstract class MethodSignature extends AbstractCodeSignature {
+public abstract class AbstractMethodSignature extends AbstractCodeSignature implements MethodSignature {
 
 	/**
 	 * The name of the method.
@@ -44,10 +46,15 @@ public abstract class MethodSignature extends AbstractCodeSignature {
 	 * @param methodName the name of the method
 	 * @param formals the formal arguments of the method
 	 */
-	protected MethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
+	protected AbstractMethodSignature(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, formals);
 
 		this.methodName = Objects.requireNonNull(methodName, "methodName cannot be null");
+	}
+
+	@Override
+	public final String getMethodName() {
+		return methodName;
 	}
 
 	@Override
@@ -57,7 +64,7 @@ public abstract class MethodSignature extends AbstractCodeSignature {
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof MethodSignature ms && methodName.equals(ms.methodName) && super.equals(other);
+		return other instanceof MethodSignature ms && methodName.equals(ms.getMethodName()) && super.equals(other);
 	}
 
 	@Override

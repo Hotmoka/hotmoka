@@ -23,11 +23,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
@@ -73,7 +73,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 	
-		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.methodName, argTypes, returnType)
+		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
@@ -105,7 +105,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.getDefiningClass() + "." + request.method.methodName);
+				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.getDefiningClass() + "." + request.method.getMethodName());
 
 			Annotation[][] anns = model.get().getParameterAnnotations();
 			String methodName = model.get().getName();

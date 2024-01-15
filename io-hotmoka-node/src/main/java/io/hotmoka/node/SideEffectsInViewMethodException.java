@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.beans.signatures.MethodSignature;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 
 /**
  * An exception thrown when a transaction for the execution of a
