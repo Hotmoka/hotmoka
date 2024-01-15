@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -35,7 +36,7 @@ import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
-import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.AbstractCodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -158,9 +159,9 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public void intoWithoutSignature(MarshallingContext context) throws IOException {
 		MethodSignature staticTarget = getStaticTarget();
-		boolean receiveInt = CodeSignature.RECEIVE_INT.equals(staticTarget);
-		boolean receiveLong = CodeSignature.RECEIVE_LONG.equals(staticTarget);
-		boolean receiveBigInteger = CodeSignature.RECEIVE_BIG_INTEGER.equals(staticTarget);
+		boolean receiveInt = MethodSignatures.RECEIVE_INT.equals(staticTarget);
+		boolean receiveLong = MethodSignatures.RECEIVE_LONG.equals(staticTarget);
+		boolean receiveBigInteger = MethodSignatures.RECEIVE_BIG_INTEGER.equals(staticTarget);
 
 		if (receiveInt)
 			context.writeByte(SELECTOR_TRANSFER_INT);
@@ -212,7 +213,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
 			var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-			var method = (MethodSignature) CodeSignature.from(context);
+			var method = (MethodSignature) AbstractCodeSignature.from(context);
 			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
@@ -231,19 +232,19 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 				int howMuch = context.readInt();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_INT, receiver, StorageValues.intOf(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, StorageValues.intOf(howMuch));
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
 				long howMuch = context.readLong();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_LONG, receiver, StorageValues.longOf(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, StorageValues.longOf(howMuch));
 			}
 			else {
 				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, CodeSignature.RECEIVE_BIG_INTEGER, receiver, StorageValues.bigIntegerOf(howMuch));
+				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, StorageValues.bigIntegerOf(howMuch));
 			}
 		}
 		else

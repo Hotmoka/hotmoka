@@ -29,6 +29,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -36,7 +37,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 
@@ -64,7 +64,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "foo", C), c, StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).getValue();
+		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 		assertEquals(_1_000_000, balance);
 	}
 
@@ -76,7 +76,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), new VoidMethodSignature(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0))).getValue();
+		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 
 		// 1000 is back in the balance of the caller
 		assertEquals(_1_000_000, balance);

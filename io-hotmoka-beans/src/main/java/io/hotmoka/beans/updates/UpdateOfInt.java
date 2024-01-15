@@ -19,7 +19,7 @@ package io.hotmoka.beans.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -84,17 +84,17 @@ public final class UpdateOfInt extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (Signatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
+		if (FieldSignatures.STORAGE_TREE_MAP_NODE_SIZE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE_SIZE);
 			intoWithoutField(context);
 			context.writeCompactInt(value);
 		}
-		else if (Signatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD.equals(field)) {
+		else if (FieldSignatures.STORAGE_TREE_INTMAP_NODE_SIZE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE);
 			intoWithoutField(context);
 			context.writeCompactInt(value);
 		}
-		else if (Signatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD.equals(field)) {
+		else if (FieldSignatures.STORAGE_TREE_INTMAP_NODE_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY);
 			intoWithoutField(context);
 			context.writeCompactInt(value);

@@ -31,6 +31,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -51,7 +52,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -128,11 +128,11 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _100_000, classpath, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
+			(payer, _100_000, classpath, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _100_000, classpath, CodeSignature.NONCE, payer))).getValue();
+			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;

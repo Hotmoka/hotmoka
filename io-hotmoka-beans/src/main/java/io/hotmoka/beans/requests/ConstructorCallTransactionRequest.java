@@ -32,7 +32,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
+import io.hotmoka.beans.signatures.AbstractCodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -180,7 +180,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var constructor = (ConstructorSignature) CodeSignature.from(context);
+		var constructor = (ConstructorSignature) AbstractCodeSignature.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);

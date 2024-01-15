@@ -19,8 +19,8 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.security.KeyPair;
 import java.security.PublicKey;
-import java.util.Base64;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
@@ -29,8 +29,8 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.helpers.GasHelpers;
@@ -120,13 +120,13 @@ public class RotateKey extends AbstractCommand {
 			StorageReference manifest = node.getManifest();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, node.getTakamakaCode(), CodeSignature.GET_CHAIN_ID, manifest))).getValue();
+				(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
 			BigInteger gasPrice = getGasPrice();
 			var signatureAlgorithmOfAccount = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			PublicKey publicKey = entropy.keys(passwordOfAccount, signatureAlgorithmOfAccount).getPublic();
-			String publicKeyEncoded = Base64.getEncoder().encodeToString(signatureAlgorithmOfAccount.encodingOf(publicKey));
+			String publicKeyEncoded = Base64.toBase64String(signatureAlgorithmOfAccount.encodingOf(publicKey));
 
 			return new InstanceMethodCallTransactionRequest(
 					signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),

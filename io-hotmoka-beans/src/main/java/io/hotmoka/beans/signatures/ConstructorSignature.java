@@ -19,6 +19,7 @@ package io.hotmoka.beans.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -27,7 +28,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * The signature of a constructor of a class.
  */
 @Immutable
-public final class ConstructorSignature extends CodeSignature {
+public final class ConstructorSignature extends AbstractCodeSignature {
 	final static byte SELECTOR = 0;
 	final static byte SELECTOR_EOA = 3;
 
@@ -53,7 +54,7 @@ public final class ConstructorSignature extends CodeSignature {
 
 	@Override
 	public String toString() {
-		return definingClass + commaSeparatedFormals();
+		return getDefiningClass() + commaSeparatedFormals();
 	}
 
     @Override
@@ -70,4 +71,9 @@ public final class ConstructorSignature extends CodeSignature {
 			super.into(context);
 		}
 	}
+
+	/**
+	 * The constructor of an externally owned account.
+	 */
+	public final static ConstructorSignature EOA_CONSTRUCTOR = new ConstructorSignature(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 }

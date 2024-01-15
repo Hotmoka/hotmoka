@@ -30,6 +30,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
@@ -77,7 +77,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(BigInteger.valueOf(19_950_000), balance0.getValue());
@@ -95,7 +95,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.getValue(), BigInteger.valueOf(20_006_666));

@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -39,7 +40,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
@@ -98,7 +98,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean isCallToFaucet() {
 		return consensus.allowsUnsignedFaucet() && request.method.methodName.startsWith("faucet")
-			&& request.method.definingClass.equals(StorageTypes.GAMETE) && request.caller.equals(request.receiver)
+			&& request.method.getDefiningClass().equals(StorageTypes.GAMETE) && request.caller.equals(request.receiver)
 			&& callerIsGameteOfTheNode();
 	}
 
@@ -115,7 +115,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
-		return classLoader.resolveMethod(method.definingClass.getName(), method.methodName, argTypes, returnType)
+		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.methodName, argTypes, returnType)
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
@@ -277,7 +277,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
-			if (isSystemCall() && request.method.equals(CodeSignature.VALIDATORS_REWARD) && manifest.isPresent() && request.caller.equals(manifest.get())) {
+			if (isSystemCall() && request.method.equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.caller.equals(manifest.get())) {
 				Optional<StorageValue> firstArg = request.actuals().findFirst();
 				if (firstArg.isPresent()) {
 					StorageValue value = firstArg.get();

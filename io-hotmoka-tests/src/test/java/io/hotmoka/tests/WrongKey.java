@@ -26,11 +26,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 
 /**
  * A test for wrong use of keys for signing a transaction.
@@ -54,7 +54,7 @@ class WrongKey extends HotmokaTest {
 
 		throwsTransactionRejectedWithCause("invalid request signature", () ->
 			node.addConstructorCallTransaction(new ConstructorCallTransactionRequest(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, BigInteger.ZERO, chainId,
-				_100_000, panarea(1), takamakaCode(), CodeSignature.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
+				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
 		);
 	}
 }

@@ -32,6 +32,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.nodes.NodeInfo;
@@ -50,7 +51,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.crypto.api.Signer;
@@ -107,11 +107,11 @@ public class JarsNodeImpl implements JarsNode {
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _50_000, takamakaCode, CodeSignature.NONCE, payer))).getValue();
+			(payer, _50_000, takamakaCode, MethodSignatures.NONCE, payer))).getValue();
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(payer, _50_000, takamakaCode, CodeSignature.GET_CHAIN_ID, parent.getManifest()))).getValue();
+			(payer, _50_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, parent.getManifest()))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		var jarSuppliers = new JarSupplier[jars.length];

@@ -24,7 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -100,52 +100,52 @@ public class StoreUtilityImpl implements StoreUtility {
 
 	@Override
 	public Optional<StorageReference> getGasStationUncommitted() {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, Signatures.MANIFEST_GAS_STATION_FIELD));
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getValidatorsUncommitted() {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, Signatures.MANIFEST_VALIDATORS_FIELD));
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getGameteUncommitted() {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, Signatures.MANIFEST_GAMETE_FIELD));
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getVersionsUncommitted() {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, Signatures.MANIFEST_VERSIONS_FIELD));		
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 
 	@Override
 	public BigInteger getBalanceUncommitted(StorageReference contract) {
-		return getBigIntegerFieldUncommitted(contract, Signatures.BALANCE_FIELD);
+		return getBigIntegerFieldUncommitted(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
 	@Override
 	public BigInteger getRedBalanceUncommitted(StorageReference contract) {
-		return getBigIntegerFieldUncommitted(contract, Signatures.RED_BALANCE_FIELD);
+		return getBigIntegerFieldUncommitted(contract, FieldSignatures.RED_BALANCE_FIELD);
 	}
 
 	@Override
 	public BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
-		return getBigIntegerFieldUncommitted(validators, Signatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
+		return getBigIntegerFieldUncommitted(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
 	@Override
 	public String getPublicKeyUncommitted(StorageReference account) {
-		return getStringFieldUncommitted(account, Signatures.EOA_PUBLIC_KEY_FIELD);
+		return getStringFieldUncommitted(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
 	}
 
 	@Override
 	public StorageReference getCreatorUncommitted(StorageReference event) {
-		return getReferenceFieldUncommitted(event, Signatures.EVENT_CREATOR_FIELD);
+		return getReferenceFieldUncommitted(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
 	@Override
 	public BigInteger getNonceUncommitted(StorageReference account) {
-		return getBigIntegerFieldUncommitted(account, Signatures.EOA_NONCE_FIELD);
+		return getBigIntegerFieldUncommitted(account, FieldSignatures.EOA_NONCE_FIELD);
 	}
 
 	@Override

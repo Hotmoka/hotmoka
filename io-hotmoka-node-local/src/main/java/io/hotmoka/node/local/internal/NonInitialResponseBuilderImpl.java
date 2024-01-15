@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -564,7 +564,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final boolean isUpdateToBalanceOrNonceOfCaller(Update update) {
 			if (update instanceof UpdateOfField uof && update.object.equals(request.caller)) {
 				FieldSignature field = uof.getField();
-				return Signatures.BALANCE_FIELD.equals(field) || Signatures.RED_BALANCE_FIELD.equals(field) || Signatures.EOA_NONCE_FIELD.equals(field);
+				return FieldSignatures.BALANCE_FIELD.equals(field) || FieldSignatures.RED_BALANCE_FIELD.equals(field) || FieldSignatures.EOA_NONCE_FIELD.equals(field);
 			}
 
 			return false;

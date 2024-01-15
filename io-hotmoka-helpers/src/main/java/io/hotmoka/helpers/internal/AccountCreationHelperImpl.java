@@ -25,6 +25,7 @@ import java.security.SignatureException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -37,7 +38,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Base64;
@@ -78,7 +78,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 	}
 
 	@Override
@@ -87,7 +87,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
 		String methodName;
 		ClassType eoaType;
@@ -163,7 +163,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		if (addToLedger) {
 			var accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_ACCOUNTS_LEDGER, manifest));
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest));
 
 			request1 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer),
@@ -187,7 +187,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		if (balanceRed.signum() > 0) {
 			var request2 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER, account, StorageValues.bigIntegerOf(balanceRed));
+						MethodSignatures.RECEIVE_RED_BIG_INTEGER, account, StorageValues.bigIntegerOf(balanceRed));
 			node.addInstanceMethodCallTransaction(request2);
 			
 			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });
@@ -204,7 +204,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
 		var ed25519 = SignatureAlgorithms.ed25519();
 		BigInteger gas = gasForCreatingAccountWithSignature(ed25519);
@@ -251,7 +251,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		if (balanceRed.signum() > 0) {
 			var request2 = new InstanceMethodCallTransactionRequest
 				(signer, payer, nonceHelper.getNonceOf(payer), chainId, gas2, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER, validator, StorageValues.bigIntegerOf(balanceRed));
+						MethodSignatures.RECEIVE_RED_BIG_INTEGER, validator, StorageValues.bigIntegerOf(balanceRed));
 			node.addInstanceMethodCallTransaction(request2);
 			
 			requestsHandler.accept(new TransactionRequest<?>[] { request1, request2 });

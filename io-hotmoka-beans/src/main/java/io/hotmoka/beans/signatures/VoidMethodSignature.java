@@ -56,7 +56,7 @@ public final class VoidMethodSignature extends MethodSignature {
 
 	@Override
 	public String toString() {
-		return "void " + definingClass + "." + methodName + commaSeparatedFormals();
+		return "void " + getDefiningClass() + "." + methodName + commaSeparatedFormals();
 	}
 
     @Override

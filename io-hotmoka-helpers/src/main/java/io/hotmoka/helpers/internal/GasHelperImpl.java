@@ -19,6 +19,7 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -26,7 +27,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.api.Node;
 
@@ -53,7 +53,7 @@ public class GasHelperImpl implements GasHelper {
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_STATION, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest));
 	}
 
 	@Override
@@ -63,7 +63,7 @@ public class GasHelperImpl implements GasHelper {
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.IGNORES_GAS_PRICE, gasStation))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))).getValue();
 
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (ignoresGasPrice)
@@ -71,7 +71,7 @@ public class GasHelperImpl implements GasHelper {
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAS_PRICE, gasStation))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))).getValue();
 	}
 
 	@Override

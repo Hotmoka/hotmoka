@@ -268,6 +268,6 @@ class NetworkFromNode extends HotmokaTest {
 		}
 
 		// the state that the class tag holds the name of the class that has been created
-		assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.definingClass.getName(), classTag.className);
+		assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.getDefiningClass().getName(), classTag.className);
 	}
 }

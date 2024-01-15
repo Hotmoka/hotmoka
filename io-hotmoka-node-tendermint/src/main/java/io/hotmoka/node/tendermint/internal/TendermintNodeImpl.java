@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -58,7 +59,6 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
@@ -281,7 +281,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _50_000, takamakaCode, CodeSignature.ID, validator))).getValue();
+				(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))).getValue();
 
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 				(manifest, _50_000, takamakaCode, GET, shares, validator))).getValue().longValue();

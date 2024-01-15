@@ -9,6 +9,7 @@ import java.util.Base64;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
@@ -17,7 +18,6 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Hex;
@@ -69,7 +69,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                CodeSignature.GET_GAMETE,
+                MethodSignatures.GET_GAMETE,
                 StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
         );
 
@@ -92,7 +92,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 transaction,
-                CodeSignature.RECEIVE_INT,
+                MethodSignatures.RECEIVE_INT,
                 storageReference,
                 StorageValues.intOf(300)
         );
@@ -112,7 +112,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                CodeSignature.NONCE
+                MethodSignatures.NONCE
         );
 
         String signature = toBase64(request.getSignature());
@@ -130,7 +130,7 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                CodeSignature.RECEIVE_INT,
+                MethodSignatures.RECEIVE_INT,
                 StorageValues.intOf(300)
         );
 

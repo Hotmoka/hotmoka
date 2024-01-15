@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static io.hotmoka.beans.MethodSignatures.RECEIVE_INT;
 import static io.hotmoka.beans.StorageTypes.INT;
 import static io.hotmoka.beans.StorageTypes.LONG;
-import static io.hotmoka.beans.signatures.CodeSignature.RECEIVE_INT;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;

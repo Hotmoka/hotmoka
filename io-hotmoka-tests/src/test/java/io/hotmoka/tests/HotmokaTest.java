@@ -41,6 +41,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.Coin;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -58,7 +59,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -205,13 +205,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();
 	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-	    		(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
 			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 
 			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(gamete, _100_000, takamakaCode, CodeSignature.NONCE, gamete))).getValue();
+				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))).getValue();
 
 			BigInteger aLot = Coin.level6(1000000000);
 
@@ -523,7 +523,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, _100_000, node.getClassTag(account).jar, CodeSignature.NONCE, account))).getValue();
+					(account, _100_000, node.getClassTag(account).jar, MethodSignatures.NONCE, account))).getValue();
 
 			nonces.put(account, nonce);
 			return nonce;
@@ -546,7 +546,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			var classTag = node.getClassTag(account);
 			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account, _100_000, classTag.jar, CodeSignature.BALANCE, account))).getValue();
+				(account, _100_000, classTag.jar, MethodSignatures.BALANCE, account))).getValue();
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing the balance", e);

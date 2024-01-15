@@ -36,6 +36,7 @@ import org.junit.jupiter.api.Test;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -54,7 +55,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -446,7 +446,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	BigIntegerValue value;
 
     	try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeconfig)) {
-			var request = new InstanceMethodCallTransactionRequest(account(0), _100_000, takamakaCode(), CodeSignature.NONCE, account(0));
+			var request = new InstanceMethodCallTransactionRequest(account(0), _100_000, takamakaCode(), MethodSignatures.NONCE, account(0));
 			value = (BigIntegerValue) remote.runInstanceMethodCallTransaction(request);
         }
 

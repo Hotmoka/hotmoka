@@ -21,7 +21,7 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
@@ -97,41 +97,41 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (Signatures.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
+		if (FieldSignatures.RED_BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts do not use the red balance, that remains at 0
 			context.writeByte(SELECTOR_RED_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (Signatures.BALANCE_FIELD.equals(field) && value.signum() == 0) {
+		else if (FieldSignatures.BALANCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since most contracts have zero balance
 			context.writeByte(SELECTOR_BALANCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (Signatures.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
+		else if (FieldSignatures.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
 			// this case is frequent, since EOAs starts with nonce at zero
 			context.writeByte(SELECTOR_NONCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this
 		}
-		else if (Signatures.BALANCE_FIELD.equals(field)) {
+		else if (FieldSignatures.BALANCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_BALANCE);
 			super.intoWithoutField(context);
 		}
-		else if (Signatures.RED_BALANCE_FIELD.equals(field)) {
+		else if (FieldSignatures.RED_BALANCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_RED_BALANCE);
 			super.intoWithoutField(context);
 		}
-		else if (Signatures.EOA_NONCE_FIELD.equals(field)) {
+		else if (FieldSignatures.EOA_NONCE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_NONCE);
 			super.intoWithoutField(context);
 		}
-		else if (Signatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
+		else if (FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_GAS_PRICE);
 			super.intoWithoutField(context);
 		}
-		else if (Signatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {
+		else if (FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_UBI_VALUE);
 			super.intoWithoutField(context);
 		}

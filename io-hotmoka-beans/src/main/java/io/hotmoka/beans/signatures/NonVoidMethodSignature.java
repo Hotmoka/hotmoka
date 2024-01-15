@@ -65,7 +65,7 @@ public final class NonVoidMethodSignature extends MethodSignature {
 
 	@Override
 	public String toString() {
-		return returnType + " " + definingClass + "." + methodName + commaSeparatedFormals();
+		return returnType + " " + getDefiningClass() + "." + methodName + commaSeparatedFormals();
 	}
 
     @Override

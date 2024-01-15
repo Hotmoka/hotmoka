@@ -36,12 +36,12 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.CodeSignature;
 
 /**
  * A test for generating many coin transfers and count their speed.
@@ -76,7 +76,7 @@ class Bombing extends HotmokaTest {
 			int amount = 1 + random.nextInt(10);
 
 			try {
-				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), CodeSignature.RECEIVE_INT, to, StorageValues.intOf(amount));
+				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
 			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
 				e.printStackTrace();
@@ -97,7 +97,7 @@ class Bombing extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), CodeSignature.BALANCE, account(i))).getValue());
+			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))).getValue());
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));

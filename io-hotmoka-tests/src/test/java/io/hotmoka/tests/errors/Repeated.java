@@ -31,6 +31,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -40,7 +41,6 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.tests.HotmokaTest;
 
@@ -96,7 +96,7 @@ class Repeated extends HotmokaTest {
 		}
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
-		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _100_000, ONE, takamakaCode(), CodeSignature.BALANCE, account(0)))).getValue();
+		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signer, account(0), nonce, chainId, _100_000, ONE, takamakaCode(), MethodSignatures.BALANCE, account(0)))).getValue();
 		assertEquals(BigInteger.valueOf(999900000), balance);
 
 		// we run the original request now, that will pass since the nonce is correct this time

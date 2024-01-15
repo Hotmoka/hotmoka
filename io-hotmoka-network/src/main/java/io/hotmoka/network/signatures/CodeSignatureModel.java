@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.signatures.CodeSignature;
 
 /**
  * The model of the signature of a method or constructor.
@@ -39,7 +39,7 @@ public abstract class CodeSignatureModel extends SignatureModel {
 	 * @param signature the original signature to copy
 	 */
 	protected CodeSignatureModel(CodeSignature signature) {
-		super(signature.definingClass.getName());
+		super(signature.getDefiningClass().getName());
 
 		this.formals = signature.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
 	}

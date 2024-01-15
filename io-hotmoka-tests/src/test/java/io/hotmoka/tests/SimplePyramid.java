@@ -28,6 +28,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -35,7 +36,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.signatures.MethodSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
@@ -64,7 +64,7 @@ class SimplePyramid extends HotmokaTest {
 	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
@@ -73,7 +73,7 @@ class SimplePyramid extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceMethodCallTransaction(privateKey(2), account(2), _20_000, BigInteger.ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), CodeSignature.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(201_000)) >= 0);
 	}
 }

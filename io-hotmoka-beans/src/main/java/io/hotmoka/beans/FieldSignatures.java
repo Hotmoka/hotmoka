@@ -25,11 +25,11 @@ import io.hotmoka.beans.internal.signatures.FieldSignatureImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * Providers of signatures (fields, constructors, methods).
+ * Providers of field signatures.
  */
-public abstract class Signatures {
+public abstract class FieldSignatures {
 
-	private Signatures() {}
+	private FieldSignatures() {}
 
 	/**
 	 * Yields the signature of a field.
@@ -39,7 +39,7 @@ public abstract class Signatures {
 	 * @param type the type of the field
 	 * @return the field signature
 	 */
-	public static FieldSignature field(ClassType definingClass, String name, StorageType type) {
+	public static FieldSignature of(ClassType definingClass, String name, StorageType type) {
 		return new FieldSignatureImpl(definingClass, name, type);
 	}
 
@@ -51,7 +51,7 @@ public abstract class Signatures {
 	 * @param type the type of the field
 	 * @return the field signature
 	 */
-	public static FieldSignature field(String definingClass, String name, StorageType type) {
+	public static FieldSignature of(String definingClass, String name, StorageType type) {
 		return new FieldSignatureImpl(StorageTypes.classNamed(definingClass), name, type);
 	}
 
@@ -62,7 +62,7 @@ public abstract class Signatures {
 	 * @return the field signature
 	 * @throws IOException if the field signature could not be unmarshalled
 	 */
-	public static FieldSignature field(UnmarshallingContext context) throws IOException {
+	public static FieldSignature from(UnmarshallingContext context) throws IOException {
 		return FieldSignatureImpl.from(context);
 	}
 

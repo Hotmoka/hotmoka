@@ -34,11 +34,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.signatures.CodeSignature;
 
 /**
  * A test for generating transactions in concurrency and check that everything
@@ -87,16 +87,16 @@ class Concurrency extends HotmokaTest {
 
 					// we ask for the balance of the account bound to the this worker
 					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(num))).getValue();
+						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(num))).getValue();
 
 					// we ask for the balance of the account bound to the other worker
 					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
-						(account(num), _50_000, takamakaCode(), CodeSignature.BALANCE, account(other))).getValue();
+						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(other))).getValue();
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
 					addInstanceMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
-						CodeSignature.RECEIVE_INT, account(other), StorageValues.intOf(sent));
+							MethodSignatures.RECEIVE_INT, account(other), StorageValues.intOf(sent));
 				}
 			}
 			catch (TransactionRejectedException e) {

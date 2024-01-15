@@ -28,6 +28,7 @@ import java.security.SignatureException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -37,7 +38,6 @@ import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.VoidMethodSignature;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.GasHelpers;
@@ -75,7 +75,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_CHAIN_ID, manifest))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 	}
 
 	@Override
@@ -94,7 +94,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			(signer,
 			payer, nonceHelper.getNonceOf(payer),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			CodeSignature.RECEIVE_BIG_INTEGER,
+			MethodSignatures.RECEIVE_BIG_INTEGER,
 			destination,
 			StorageValues.bigIntegerOf(amount));
 
@@ -106,7 +106,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
 				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-				CodeSignature.RECEIVE_RED_BIG_INTEGER,
+				MethodSignatures.RECEIVE_RED_BIG_INTEGER,
 				destination,
 				StorageValues.bigIntegerOf(amountRed));
 
@@ -121,7 +121,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-			(manifest, _100_000, takamakaCode, CodeSignature.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
 		gasHandler.accept(_100_000);
 

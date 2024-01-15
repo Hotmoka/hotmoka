@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.Signatures;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
@@ -94,7 +94,7 @@ public final class UpdateOfString extends UpdateOfField {
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		if (Signatures.EOA_PUBLIC_KEY_FIELD.equals(field)) {
+		if (FieldSignatures.EOA_PUBLIC_KEY_FIELD.equals(field)) {
 			context.writeByte(SELECTOR_PUBLIC_KEY);
 			super.intoWithoutField(context);
 		}

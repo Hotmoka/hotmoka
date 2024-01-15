@@ -32,6 +32,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -50,7 +51,6 @@ import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.CodeSignature;
 import io.hotmoka.beans.signatures.ConstructorSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
@@ -82,7 +82,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _200_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _200_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of zero validators
@@ -101,7 +101,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _100_000 = BigInteger.valueOf(100_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _100_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _100_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of a generic gas station
@@ -161,7 +161,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
@@ -224,7 +224,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = new InstanceMethodCallTransactionRequest
-			(gamete, _1_000_000, takamakaCodeReference, CodeSignature.NONCE, gamete);
+			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
