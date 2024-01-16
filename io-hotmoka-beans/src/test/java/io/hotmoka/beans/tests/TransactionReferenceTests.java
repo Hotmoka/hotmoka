@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -21,19 +21,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
-public class NodeInfoTests extends AbstractLoggedTests {
+public class TransactionReferenceTests extends AbstractLoggedTests {
 
 	@Test
-	@DisplayName("node informations are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForNodeInfo() throws EncodeException, DecodeException {
-		var info1 = NodeInfos.of("type", "1.2.3", "ID");
-		String encoded = new NodeInfos.Encoder().encode(info1);
-		var info2 = new NodeInfos.Decoder().decode(encoded);
-		assertEquals(info1, info2);
+	@DisplayName("transaction references are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForTransactionReference() throws EncodeException, DecodeException {
+		var reference1 = TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678");
+		String encoded = new TransactionReferences.Encoder().encode(reference1);
+		var reference2 = new TransactionReferences.Decoder().decode(encoded);
+		assertEquals(reference1, reference2);
 	}
 }

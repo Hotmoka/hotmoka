@@ -36,6 +36,95 @@ public abstract class StorageTypes {
 	private StorageTypes() {}
 
 	/**
+	 * Yields the storage type with the given name.
+	 * 
+	 * @param name the name of the type
+	 * @return the storage type
+	 */
+	public static StorageType named(String name) {
+		var result = BasicTypeImpl.named(name);
+		return result != null ? result : ClassTypeImpl.named(name);
+	}
+
+	/**
+	 * Yields the class type for a class with the given name.
+	 * 
+	 * @param className the name of the class
+	 * @return the class type
+	 */
+	public static ClassType classNamed(String className) {
+		return ClassTypeImpl.named(className);
+	}
+
+	/**
+	 * Yields the storage type corresponding to the given class.
+	 * 
+	 * @param clazz the class
+	 * @return the storage type
+	 */
+	public static StorageType fromClass(Class<?> clazz) {
+		StorageType result = BasicTypeImpl.fromClass(clazz);
+		return result != null ? result : ClassTypeImpl.fromClass(clazz);
+	}
+
+	/**
+	 * Yields the storage type unmarshalled from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the storage type
+	 * @throws IOException if the type cannot be marshalled
+     */
+	public static StorageType from(UnmarshallingContext context) throws IOException {
+		byte selector = context.readByte();
+		StorageType result = BasicTypeImpl.withSelector(selector);
+		if (result != null)
+			return result;
+
+		result = ClassTypeImpl.withSelector(selector, context);
+		if (result != null)
+			return result;
+
+		throw new IOException("Unexpected type selector: " + selector);
+	}
+
+	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends StorageTypeEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends StorageTypeDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends StorageTypeJson {
+
+    	/**
+    	 * Creates the Json representation for the given type.
+    	 * 
+    	 * @param type the type
+    	 */
+    	public Json(StorageType type) {
+    		super(type);
+    	}
+    }
+
+	/**
 	 * The {@code boolean} basic type of the Takamaka language.
 	 */
 	public final static BasicType BOOLEAN = BasicTypeImpl.BOOLEAN;
@@ -359,93 +448,4 @@ public abstract class StorageTypes {
 	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
 	 */
 	public static final ClassType SHARED_ENTITY_VIEW =  ClassTypeImpl.SHARED_ENTITY_VIEW;
-
-	/**
-	 * Yields the storage type with the given name.
-	 * 
-	 * @param name the name of the type
-	 * @return the storage type
-	 */
-	public static StorageType named(String name) {
-		var result = BasicTypeImpl.named(name);
-		return result != null ? result : ClassTypeImpl.named(name);
-	}
-
-	/**
-	 * Yields the class type for a class with the given name.
-	 * 
-	 * @param className the name of the class
-	 * @return the class type
-	 */
-	public static ClassType classNamed(String className) {
-		return ClassTypeImpl.named(className);
-	}
-
-	/**
-	 * Yields the storage type corresponding to the given class.
-	 * 
-	 * @param clazz the class
-	 * @return the storage type
-	 */
-	public static StorageType fromClass(Class<?> clazz) {
-		StorageType result = BasicTypeImpl.fromClass(clazz);
-		return result != null ? result : ClassTypeImpl.fromClass(clazz);
-	}
-
-	/**
-	 * Yields the storage type unmarshalled from the given context.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the storage type
-	 * @throws IOException if the type cannot be marshalled
-     */
-	public static StorageType from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
-		StorageType result = BasicTypeImpl.withSelector(selector);
-		if (result != null)
-			return result;
-
-		result = ClassTypeImpl.withSelector(selector, context);
-		if (result != null)
-			return result;
-
-		throw new IOException("Unexpected type selector: " + selector);
-	}
-
-	/**
-	 * Gson encoder.
-	 */
-	public static class Encoder extends StorageTypeEncoder {
-
-		/**
-		 * Creates a new encoder.
-		 */
-		public Encoder() {}
-	}
-
-	/**
-	 * Gson decoder.
-	 */
-	public static class Decoder extends StorageTypeDecoder {
-
-		/**
-		 * Creates a new decoder.
-		 */
-		public Decoder() {}
-	}
-
-    /**
-     * Json representation.
-     */
-    public static class Json extends StorageTypeJson {
-
-    	/**
-    	 * Creates the Json representation for the given type.
-    	 * 
-    	 * @param type the type
-    	 */
-    	public Json(StorageType type) {
-    		super(type);
-    	}
-    }
 }

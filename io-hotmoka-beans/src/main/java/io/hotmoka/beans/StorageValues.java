@@ -35,9 +35,9 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
-import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
-import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.gson.StorageValueDecoder;
+import io.hotmoka.beans.internal.gson.StorageValueEncoder;
+import io.hotmoka.beans.internal.gson.StorageValueJson;
 import io.hotmoka.beans.internal.values.AbstractStorageValue;
 import io.hotmoka.beans.internal.values.BigIntegerValueImpl;
 import io.hotmoka.beans.internal.values.BooleanValueImpl;
@@ -245,7 +245,7 @@ public abstract class StorageValues {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends StorageTypeEncoder {
+	public static class Encoder extends StorageValueEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -256,7 +256,7 @@ public abstract class StorageValues {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends StorageTypeDecoder {
+	public static class Decoder extends StorageValueDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -267,15 +267,15 @@ public abstract class StorageValues {
     /**
      * Json representation.
      */
-    public static class Json extends StorageTypeJson {
+    public static class Json extends StorageValueJson {
 
     	/**
-    	 * Creates the Json representation for the given type.
+    	 * Creates the Json representation for the given storage value.
     	 * 
-    	 * @param type the type
+    	 * @param value the storage value
     	 */
-    	public Json(StorageType type) {
-    		super(type);
+    	public Json(StorageValue value) {
+    		super(value);
     	}
     }
 }

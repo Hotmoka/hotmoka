@@ -19,6 +19,9 @@ package io.hotmoka.beans;
 import java.io.IOException;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
+import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
+import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
 import io.hotmoka.beans.internal.references.TransactionReferenceImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -59,4 +62,41 @@ public abstract class TransactionReferences {
 	public static TransactionReference from(UnmarshallingContext context) throws IOException {
 		return TransactionReferenceImpl.from(context);
 	}
+
+	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends TransactionReferenceEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends TransactionReferenceDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends TransactionReferenceJson {
+
+    	/**
+    	 * Creates the Json representation for the given transaction reference.
+    	 * 
+    	 * @param reference the transaction reference
+    	 */
+    	public Json(TransactionReference reference) {
+    		super(reference);
+    	}
+    }
 }
