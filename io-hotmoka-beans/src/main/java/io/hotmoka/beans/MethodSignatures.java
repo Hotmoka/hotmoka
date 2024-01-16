@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.beans;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
@@ -24,6 +26,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.beans.internal.signatures.NonVoidMethodSignatureImpl;
 import io.hotmoka.beans.internal.signatures.VoidMethodSignatureImpl;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * Providers of method signatures.
@@ -80,6 +83,17 @@ public abstract class MethodSignatures {
 	 */
 	public static VoidMethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
 		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
+	}
+
+	/**
+	 * Unmarshals a constructor signature from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the constructor signature
+	 * @throws IOException if the constructor signature cannot be unmarshalled
+	 */
+	public static MethodSignature from(UnmarshallingContext context) throws IOException {
+		return AbstractMethodSignature.from(context);
 	}
 
 	/**

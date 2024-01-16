@@ -20,13 +20,13 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.signatures.AbstractCodeSignature;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -99,7 +99,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var method = (MethodSignature) AbstractCodeSignature.from(context);
+		var method = MethodSignatures.from(context);
 		var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);

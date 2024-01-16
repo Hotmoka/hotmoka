@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.ConstructorSignatures;
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
@@ -33,7 +31,6 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
-import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * The signature of a method or constructor.
@@ -83,7 +80,7 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	 * 
 	 * @return the formal arguments
 	 */
-	public final Stream<StorageType> formals() {
+	public final Stream<StorageType> getFormals() {
 		return Stream.of(formals);
 	}
 
@@ -93,58 +90,19 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	 * @return the string
 	 */
 	protected final String commaSeparatedFormals() {
-		return formals()
+		return getFormals()
 			.map(StorageType::toString)
 			.collect(Collectors.joining(",", "(", ")"));
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass) && Arrays.equals(cs.formals().toArray(StorageType[]::new), formals); // TODO: optimize
+		return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass) && Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals); // TODO: optimize
 	}
 
 	@Override
 	public int hashCode() {
 		return definingClass.hashCode() ^ Arrays.hashCode(formals);
-	}
-
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		definingClass.into(context);
-		context.writeLengthAndArray(formals);
-	}
-
-	/**
-	 * Factory method that unmarshals a code signature from the given stream.
-	 * 
-	 * @param context the unmarshalling context
-	 * @return the code signature
-	 * @throws IOException if the code signature cannot be unmarshalled
-	 */
-	public static CodeSignature from(UnmarshallingContext context) throws IOException {
-		var selector = context.readByte();
-		if (selector == ConstructorSignatureImpl.SELECTOR_EOA)
-			return ConstructorSignatures.EOA_CONSTRUCTOR;
-		else if (selector == VoidMethodSignatureImpl.SELECTOR_REWARD)
-			return VoidMethodSignatureImpl.VALIDATORS_REWARD;
-
-		ClassType definingClass;
-
-		try {
-			definingClass = (ClassType) StorageTypes.from(context);
-		}
-		catch (ClassCastException e) {
-			throw new IOException("Failed to unmarshal a code signature", e);
-		}
-
-		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
-
-		switch (selector) {
-		case ConstructorSignatureImpl.SELECTOR: return ConstructorSignatures.of(definingClass, formals);
-		case VoidMethodSignatureImpl.SELECTOR: return MethodSignatures.ofVoid(definingClass, context.readStringUnshared(), formals);
-		case NonVoidMethodSignatureImpl.SELECTOR: return MethodSignatures.of(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
-		default: throw new IOException("Unexpected code signature selector: " + selector);
-		}
 	}
 
 	@Override

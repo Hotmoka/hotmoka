@@ -152,7 +152,7 @@ public abstract class CodeCallResponseBuilder
 	 */
 	protected final Class<?>[] formalsAsClass() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
+		for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 	
 		return classes.toArray(Class<?>[]::new);
@@ -168,7 +168,7 @@ public abstract class CodeCallResponseBuilder
 	 */
 	protected final Class<?>[] formalsAsClassForFromContract() throws ClassNotFoundException {
 		List<Class<?>> classes = new ArrayList<>();
-		for (StorageType type: request.getStaticTarget().formals().collect(Collectors.toList()))
+		for (StorageType type: request.getStaticTarget().getFormals().collect(Collectors.toList()))
 			classes.add(storageTypeToClass.toClass(type));
 	
 		classes.add(classLoader.getContract());

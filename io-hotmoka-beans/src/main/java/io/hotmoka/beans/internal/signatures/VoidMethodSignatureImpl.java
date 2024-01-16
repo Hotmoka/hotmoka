@@ -30,8 +30,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class VoidMethodSignatureImpl extends AbstractMethodSignature implements VoidMethodSignature {
-	final static byte SELECTOR = 2;
-	final static byte SELECTOR_REWARD = 4;
 
 	/**
 	 * Builds the signature of a method, that returns no value.
@@ -57,7 +55,7 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 
 	@Override
 	public String toString() {
-		return "void " + getDefiningClass() + "." + methodName + commaSeparatedFormals();
+		return "void " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
 	}
 
     @Override
@@ -65,13 +63,14 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 		return other instanceof VoidMethodSignature && super.equals(other);
 	}
 
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		if (equals(VALIDATORS_REWARD))
-			context.writeByte(SELECTOR_REWARD);
-		else {
-			context.writeByte(SELECTOR);
-			super.into(context);
-		}
-	}
+    @Override
+    public void into(MarshallingContext context) throws IOException {
+    	getDefiningClass().into(context);
+    	context.writeStringUnshared(getMethodName());
+
+    	var formals = getFormals().toArray(StorageType[]::new);
+    	context.writeCompactInt(formals.length * 2); // this signals that the method is void (see from() inside AbstractMethodSignature)
+    	for (var formal: formals)
+    		formal.into(context);
+    }
 }

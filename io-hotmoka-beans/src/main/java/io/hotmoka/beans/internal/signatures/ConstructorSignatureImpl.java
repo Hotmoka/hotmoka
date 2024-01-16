@@ -19,19 +19,19 @@ package io.hotmoka.beans.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * The signature of a constructor of a class.
  */
 @Immutable
 public final class ConstructorSignatureImpl extends AbstractCodeSignature implements ConstructorSignature {
-	final static byte SELECTOR = 0;
-	final static byte SELECTOR_EOA = 3;
 
 	/**
 	 * Builds the signature of a constructor.
@@ -63,18 +63,35 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 		return other instanceof ConstructorSignature && super.equals(other);
 	}
 
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		if (equals(EOA_CONSTRUCTOR))
-			context.writeByte(SELECTOR_EOA);
-		else {
-			context.writeByte(SELECTOR);
-			super.into(context);
+    @Override
+    public void into(MarshallingContext context) throws IOException {
+    	getDefiningClass().into(context);
+		context.writeLengthAndArray(getFormals().toArray(StorageType[]::new));
+    }
+
+    /**
+	 * Factory method that unmarshals a constructor signature from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the constructor signature
+	 * @throws IOException if the constructor signature cannot be unmarshalled
+	 */
+	public static ConstructorSignature from(UnmarshallingContext context) throws IOException {
+		ClassType definingClass;
+
+		try {
+			definingClass = (ClassType) StorageTypes.from(context);
 		}
+		catch (ClassCastException e) {
+			throw new IOException("Failed to unmarshal a code signature", e);
+		}
+
+		var formals = context.readLengthAndArray(StorageTypes::from, StorageType[]::new);
+		return ConstructorSignatures.of(definingClass, formals);
 	}
 
 	/**
-	 * The constructor of an externally owned account.
+	 * The constructor of an externally owned account with a big integer amount.
 	 */
 	public final static ConstructorSignatureImpl EOA_CONSTRUCTOR = new ConstructorSignatureImpl(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 }

@@ -31,7 +31,6 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature implements NonVoidMethodSignature {
-	final static byte SELECTOR = 1;
 
 	/**
 	 * The type of the returned value.
@@ -71,18 +70,24 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 
 	@Override
 	public String toString() {
-		return returnType + " " + getDefiningClass() + "." + methodName + commaSeparatedFormals();
+		return returnType + " " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
 	}
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof NonVoidMethodSignatureImpl nvms && returnType.equals(nvms.returnType) && super.equals(other);
+		return other instanceof NonVoidMethodSignature nvms && returnType.equals(nvms.getReturnType()) && super.equals(other);
 	}
 
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(SELECTOR);
-		super.into(context);
-		returnType.into(context);
-	}
+    @Override
+    public void into(MarshallingContext context) throws IOException {
+    	getDefiningClass().into(context);
+    	context.writeStringUnshared(getMethodName());
+
+    	var formals = getFormals().toArray(StorageType[]::new);
+    	context.writeCompactInt(formals.length * 2 + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
+    	for (var formal: formals)
+    		formal.into(context);
+
+    	returnType.into(context);
+    }
 }

@@ -36,7 +36,6 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.signatures.AbstractCodeSignature;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -213,7 +212,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			var classpath = TransactionReferences.from(context);
 			var nonce = context.readBigInteger();
 			var actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-			var method = (MethodSignature) AbstractCodeSignature.from(context);
+			var method = MethodSignatures.from(context);
 			var receiver = StorageReferenceImpl.fromWithoutSelector(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 

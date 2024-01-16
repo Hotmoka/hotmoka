@@ -41,7 +41,7 @@ public abstract class CodeSignatureModel extends SignatureModel {
 	protected CodeSignatureModel(CodeSignature signature) {
 		super(signature.getDefiningClass().getName());
 
-		this.formals = signature.formals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
+		this.formals = signature.getFormals().map(CodeSignatureModel::nameOf).collect(Collectors.toList());
 	}
 
 	public CodeSignatureModel() {}

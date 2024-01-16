@@ -56,7 +56,7 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 
 		this.method = Objects.requireNonNull(method, "method cannot be null");
 
-		if (method.formals().count() != actuals.length)
+		if (method.getFormals().count() != actuals.length)
 			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 	}
 

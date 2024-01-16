@@ -17,10 +17,11 @@ limitations under the License.
 package io.hotmoka.beans.api.signatures;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.marshalling.api.Marshallable;
 
 /**
  * The signature of a constructor of a class.
  */
 @Immutable
-public interface ConstructorSignature extends CodeSignature {
+public interface ConstructorSignature extends Marshallable, CodeSignature {
 }

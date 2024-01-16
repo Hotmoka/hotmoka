@@ -27,7 +27,7 @@ import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * The signature of a method of a class.
@@ -38,7 +38,7 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The name of the method.
 	 */
-	public final String methodName;
+	private final String methodName;
 
 	/**
 	 * Builds the signature of a method.
@@ -73,10 +73,40 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		return super.hashCode() ^ methodName.hashCode();
 	}
 
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		super.into(context);
-		context.writeStringUnshared(methodName);
+	/**
+	 * Factory method that unmarshals a method signature from the given stream.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the method signature
+	 * @throws IOException if the method signature cannot be unmarshalled
+	 */
+	public static MethodSignature from(UnmarshallingContext context) throws IOException {
+		ClassType definingClass;
+
+		try {
+			definingClass = (ClassType) StorageTypes.from(context);
+		}
+		catch (ClassCastException e) {
+			throw new IOException("Failed to unmarshal a code signature", e);
+		}
+
+		var methodName = context.readStringUnshared();
+
+		int length = context.readCompactInt();
+
+		// we determine if the method is void or not, by looking at the parity of the number of formals
+		// (see the into() method in NonVoidMethodSignatureImpl and VoidMethodSignatureImpl)
+		boolean isVoid = length % 2 == 0;
+		length /= 2;
+
+		var formals = new StorageType[length];
+		for (int pos = 0; pos < length; pos++)
+			formals[pos] = StorageTypes.from(context);
+
+		if (isVoid)
+			return MethodSignatures.ofVoid(definingClass, methodName, formals);
+		else
+			return MethodSignatures.of(definingClass, methodName, StorageTypes.from(context), formals);
 	}
 
 	/**

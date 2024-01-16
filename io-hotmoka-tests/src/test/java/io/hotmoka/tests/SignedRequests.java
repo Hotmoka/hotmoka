@@ -51,7 +51,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("8xMW6vu9SYIFmZkGq906s7rvsclXTTJmA2mpc7QTf9Tgz7WeuJMByAX5ihBKbq5m8dmR9PD/Uv7ALmSL0iJGDg==", signature);
+        assertEquals("6QJdhtgsC/YSdy7wSjKUKaQ9CqsY0QgSGt7HXTvyeiTD56vughXdSmx1DNGSmqxwBpLkqrPX6jzDzpAJwsSSAw==", signature);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("xHZjYO3/yKgYum/cBXFrjNFe8uzS01Sf0EDWcqGNKnkLG+LvdcqbL7BrRgX0IqWq42rlhht6nl9ZwN3sPGfaDg==", signature);
+        assertEquals("6h/4ZNDDOv93EOBxswheealsDLtVo9GYgkNEeeKNMny57vphpcenJUJepgRe9ecD6WKROT3LtJAOAKte0P5uDA==", signature);
     }
 
     @Test
@@ -112,7 +112,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("E6i4z6oj8/iUtHBRaLJyJ+w9erPqpy6B5Frtee2nWScfF00QOJCPGPMeXIRCUA8pw1s639dX3Mn0C0TlkYHsAQ==", signature);
+        assertEquals("8VRzrSRA4H+H79YeKTbXw76ESnjOV4DSDkJraqIssmD4XmHcu+q/yu/MyHEtgF9Hw6yyg3lNTc/U6xq39PtqDA==", signature);
     }
 
     @Test
@@ -131,7 +131,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("/klFrbZfosMu3IRHpT351OuL1lyS+WnBh+puBlR70ryziPXrA88NbC8QVt0l+UPovE/7R+5eDx/7u07fX7tHCA==", signature);
+        assertEquals("BRV/S7Ra4m8I7FoDn1DU/aAOCjCOD0ScewTIhFtSEODo7mSEFxrE2+DSJQ10ipK/k6QLQEVGvnE79p0v7ijiBw==", signature);
     }
 
     @Test
@@ -157,7 +157,7 @@ public class SignedRequests {
         );
 
         String signature = toBase64(request.getSignature());
-        assertEquals("2ayYF3hfqesk7ihTWbrzu3l2NBDKq1O10oVxfADuvmvQKbFROT/+6aXIDXmJaql67nPPi4PtMBCe1TJatD/3Ag==", signature);
+        assertEquals("wYcJfA/sT8qLBvctYu0jm0xst5XFTKr7/KbLhPLyuyzwaDFIjTwgC3VW+viGpexOZmZutTjYbLqB3dywulU+Dg==", signature);
     }
 
     @Test

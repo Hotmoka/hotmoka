@@ -142,7 +142,7 @@ public class Create extends AbstractCommand {
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {
-			var formals = signature.formals().toArray(StorageType[]::new);
+			var formals = signature.getFormals().toArray(StorageType[]::new);
 			var result = new StorageValue[formals.length];
 
 			if (result.length > 0) {

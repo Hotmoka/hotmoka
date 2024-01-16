@@ -21,13 +21,12 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.marshalling.api.Marshallable;
 
 /**
  * The signature of a method or constructor.
  */
 @Immutable
-public interface CodeSignature extends Marshallable {
+public interface CodeSignature {
 
 	/**
 	 * Yields the class of the method or constructor.
@@ -41,7 +40,7 @@ public interface CodeSignature extends Marshallable {
 	 * 
 	 * @return the formal arguments
 	 */
-	Stream<StorageType> formals();
+	Stream<StorageType> getFormals();
 
 	@Override
 	boolean equals(Object other);

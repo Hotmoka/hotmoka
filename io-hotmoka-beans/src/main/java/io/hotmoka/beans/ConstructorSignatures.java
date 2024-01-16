@@ -16,10 +16,13 @@ limitations under the License.
 
 package io.hotmoka.beans;
 
+import java.io.IOException;
+
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.signatures.ConstructorSignatureImpl;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * Providers of constructor signatures.
@@ -48,6 +51,17 @@ public abstract class ConstructorSignatures {
 	 */
 	public static ConstructorSignature of(String definingClass, StorageType... formals) {
 		return new ConstructorSignatureImpl(definingClass, formals);
+	}
+
+	/**
+	 * Unmarshals a constructor signature from the given context.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the constructor signature
+	 * @throws IOException if the constructor signature cannot be unmarshalled
+	 */
+	public static ConstructorSignature from(UnmarshallingContext context) throws IOException {
+		return ConstructorSignatureImpl.from(context);
 	}
 
 	/**

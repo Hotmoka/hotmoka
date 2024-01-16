@@ -526,7 +526,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdABAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnABMBGg==", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXc/BAAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQALOwAAfQABQEGAAPnEwEa", toBase64String(bytes));
     }
 
     @Test
@@ -540,7 +540,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXcEABMBGg==", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXcDEwEa", toBase64String(bytes));
     }
 
     @Test
@@ -573,7 +573,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdIBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELAAEoARcAB2JhbGFuY2Ua", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXdHBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQELACgAB2JhbGFuY2UDFxo=", toBase64String(bytes));
     }
 
     @Test
@@ -599,7 +599,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdKBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLAIbAQQAB3JlY2VpdmU=", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXdJBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQEOAAABLBsAB3JlY2VpdmUCBA==", toBase64String(bytes));
     }
 
     @Test
@@ -624,7 +624,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdDBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEgAABW5vbmNlGg==", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXdCBgAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQASAAVub25jZQEa", toBase64String(bytes));
     }
 
     @Test
@@ -677,7 +677,7 @@ public class Marshallable {
             bytes = baos.toByteArray();
         }
 
-        Assertions.assertEquals("rO0ABXdRBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQABEwAACWdldEdhbWV0ZQr/AAZHYW1ldGUA", toBase64String(bytes));
+        Assertions.assertEquals("rO0ABXdQBQAJY2hhaW50ZXN0///Q5JZGjCX8pZF5iF+nxf9PRA770ODJbCQmt5lzNmGYggQAE4gAD6AABQATAAlnZXRHYW1ldGUBCv8ABkdhbWV0ZQA=", toBase64String(bytes));
     }
 
     @Test

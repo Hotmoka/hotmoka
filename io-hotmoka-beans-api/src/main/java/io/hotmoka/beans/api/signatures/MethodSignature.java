@@ -17,12 +17,13 @@ limitations under the License.
 package io.hotmoka.beans.api.signatures;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.marshalling.api.Marshallable;
 
 /**
  * The signature of a method of a class.
  */
 @Immutable
-public interface MethodSignature extends CodeSignature {
+public interface MethodSignature extends Marshallable, CodeSignature {
 
 	/**
 	 * Yields the name of the method.

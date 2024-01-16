@@ -25,13 +25,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.signatures.AbstractCodeSignature;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.crypto.api.Signer;
@@ -80,7 +80,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null");
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
 
-		if (constructor.formals().count() != actuals.length)
+		if (constructor.getFormals().count() != actuals.length)
 			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 
 		this.signature = signer.sign(this);
@@ -106,7 +106,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		Objects.requireNonNull(chainId, "chainId cannot be null");
 		Objects.requireNonNull(signature, "signature cannot be null");
 
-		if (constructor.formals().count() != actuals.length)
+		if (constructor.getFormals().count() != actuals.length)
 			throw new IllegalArgumentException("argument count mismatch between formals and actuals");
 
 		this.constructor = constructor;
@@ -180,7 +180,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
-		var constructor = (ConstructorSignature) AbstractCodeSignature.from(context);
+		var constructor = ConstructorSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
 		return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
