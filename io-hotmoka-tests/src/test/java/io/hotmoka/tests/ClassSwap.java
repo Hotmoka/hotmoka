@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
@@ -39,7 +40,6 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.DeserializationError;
 
 /**
@@ -47,7 +47,7 @@ import io.hotmoka.node.DeserializationError;
  */
 class ClassSwap extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of("C");
-	private static final MethodSignature GET = new NonVoidMethodSignature("C", "get", StorageTypes.INT);
+	private static final MethodSignature GET = MethodSignatures.of("C", "get", StorageTypes.INT);
 
 	/**
 	 * The only account of the blockchain.

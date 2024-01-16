@@ -41,7 +41,6 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.CodeSupplier;
 
 /**
@@ -108,7 +107,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -116,7 +115,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 
@@ -159,7 +158,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -167,7 +166,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			new NonVoidMethodSignature(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 

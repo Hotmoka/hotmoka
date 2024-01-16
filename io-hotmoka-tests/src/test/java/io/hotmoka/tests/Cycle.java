@@ -29,12 +29,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for the deserialization of a cyclic data structure.
@@ -57,7 +57,7 @@ class Cycle extends HotmokaTest {
 			ConstructorSignatures.of("io.hotmoka.examples.cycle.Cycle"));
 
 		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
+			MethodSignatures.of("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
 
 		assertEquals(42, result.getValue());
 	}

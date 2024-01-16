@@ -35,7 +35,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.tests.HotmokaTest;
@@ -72,7 +71,7 @@ class Encapsulation extends HotmokaTest {
 			list1);
 
 		IntValue result = (IntValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
+			MethodSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
 			encapsulated);
 
 		assertSame(0, result.getValue());

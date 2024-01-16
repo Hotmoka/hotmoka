@@ -56,7 +56,6 @@ import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -431,7 +430,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             		_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
             var toString = (StringValue) remote.runStaticMethodCallTransaction
-            	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, new NonVoidMethodSignature(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
+            	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, MethodSignatures.of(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
             assertEquals("[how, are, hello, you, ?]", toString.getValue());
         }
     }

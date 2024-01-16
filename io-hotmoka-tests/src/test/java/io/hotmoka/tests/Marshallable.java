@@ -27,7 +27,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.marshalling.MarshallingContexts;
 
 public class Marshallable {
@@ -550,7 +549,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-            var nonVoidMethodSignature = new NonVoidMethodSignature(
+            var nonVoidMethodSignature = MethodSignatures.of(
             		StorageTypes.GAS_STATION,
                     "balance",
                     StorageTypes.BIG_INTEGER,

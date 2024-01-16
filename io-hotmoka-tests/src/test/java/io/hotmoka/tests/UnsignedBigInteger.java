@@ -38,6 +38,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -50,7 +51,6 @@ import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -114,14 +114,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_sum = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "add", UBI, UBI),
+                MethodSignatures.of(UBI, "add", UBI, UBI),
                 ubi_100, ubi_11);
         // ubi_sum = 100.add(11) = 111
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_sum, ubi_111);
         // equals_result = ubi_sum.equals(111) = true
 
@@ -137,14 +137,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_sub = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "subtract", UBI, UBI),
+                MethodSignatures.of(UBI, "subtract", UBI, UBI),
                 ubi_100, ubi_1);
         // ubi_sub = 100.subtract(1) = 99
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_sub, ubi_99);
         // equals_result = ubi_sub.equals(99) = true
 
@@ -160,7 +160,7 @@ class UnsignedBigInteger extends HotmokaTest {
             addInstanceMethodCallTransaction(
                     creator_prv_key, creator,
                     _100_000, panarea(1), classpath,
-                    new NonVoidMethodSignature(UBI, "subtract", UBI, UBI, StorageTypes.STRING),
+                    MethodSignatures.of(UBI, "subtract", UBI, UBI, StorageTypes.STRING),
                     ubi_100, ubi_101, StorageValues.stringOf("Test Exception"))
             // 100.subtract(101, 'Test Exception') = 'Test Exception' !!!
         );
@@ -175,14 +175,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_mul = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "multiply", UBI, UBI),
+                MethodSignatures.of(UBI, "multiply", UBI, UBI),
                 ubi_100, ubi_9);
         // ubi_mul = 100.multiply(9) = 900
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_mul, ubi_900);
         // equals_result = ubi_mul.equals(900) = true
 
@@ -198,14 +198,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "divide", UBI, UBI),
+                MethodSignatures.of(UBI, "divide", UBI, UBI),
                 ubi_900, ubi_8);
         // ubi_div = 900.divide(8) = 112,5 --> 112 (perfectly matches division with uint256 on Solidity)
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_div, ubi_112);
         // equals_result = ubi_div.equals(112) = true
 
@@ -221,14 +221,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_div = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "divide", UBI, UBI),
+                MethodSignatures.of(UBI, "divide", UBI, UBI),
                 ubi_900, ubi_11);
         // ubi_div = 900.divide(11) = 81,818181818 --> 81 (perfectly matches division with uint256 on Solidity)
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_div, ubi_81);
         // equals_result = ubi_div.equals(81) = true
 
@@ -244,7 +244,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 addInstanceMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), classpath,
-                        new NonVoidMethodSignature(UBI, "divide", UBI, UBI, StorageTypes.STRING),
+                        MethodSignatures.of(UBI, "divide", UBI, UBI, StorageTypes.STRING),
                         ubi_900, ubi_0, StorageValues.stringOf("Test Exception /0"))
                 // 900.divide(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
@@ -259,14 +259,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_mod = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "mod", UBI, UBI),
+                MethodSignatures.of(UBI, "mod", UBI, UBI),
                 ubi_800, ubi_13);
         // ubi_mod = 800.mod(13) = 7
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_mod, ubi_7);
         // equals_result = ubi_mod.equals(7) = true
 
@@ -282,7 +282,7 @@ class UnsignedBigInteger extends HotmokaTest {
                         addInstanceMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), classpath,
-                                new NonVoidMethodSignature(UBI, "mod", UBI, UBI, StorageTypes.STRING),
+                                MethodSignatures.of(UBI, "mod", UBI, UBI, StorageTypes.STRING),
                                 ubi_800, ubi_0, StorageValues.stringOf("Test Exception /0"))
                 // 800.mod(0, 'Test Exception /0') = 'Test Exception /0' !!!
         );
@@ -297,14 +297,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_pow = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "pow", UBI, INT),
+                MethodSignatures.of(UBI, "pow", UBI, INT),
                 ubi_8, int_2);
         // ubi_pow = 8.pow(7) = 2097152
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_pow, ubi_2097152);
         // equals_result = ubi_pow.equals(2097152) = true
 
@@ -320,14 +320,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_max = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "max", UBI, UBI),
+                MethodSignatures.of(UBI, "max", UBI, UBI),
                 ubi_800, ubi_799);
         // ubi_max = 800.max(799) = 800
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_max, ubi__800);
         // equals_result = ubi_max.equals(800) = true
 
@@ -343,14 +343,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_min = (StorageReference) addInstanceMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "min", UBI, UBI),
+                MethodSignatures.of(UBI, "min", UBI, UBI),
                 ubi_800, ubi_799);
         // ubi_min = 800.min(799) = 799
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_min, ubi__799);
         // equals_result = ubi_min.equals(799) = true
 
@@ -366,21 +366,21 @@ class UnsignedBigInteger extends HotmokaTest {
         IntValue result_compare1 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
+                MethodSignatures.of(UBI, "compareTo", INT, UBI),
                 ubi_800, ubi_799);
         // result_compare1 = 800.compareTo(799) = 1
 
         IntValue result_compare2 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
+                MethodSignatures.of(UBI, "compareTo", INT, UBI),
                 ubi_799, ubi_800);
         // result_compare2 = 799.compareTo(800) = -1
 
         IntValue result_compare3 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "compareTo", INT, UBI),
+                MethodSignatures.of(UBI, "compareTo", INT, UBI),
                 ubi_800, ubi__800);
         // result_compare3 = 800.compareTo(800') = 0
 
@@ -398,14 +398,14 @@ class UnsignedBigInteger extends HotmokaTest {
         BooleanValue result_equals1 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_800, ubi_799);
         // result_equals1 = 800.compareTo(799) = false
 
         BooleanValue result_equals2 = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_800, ubi__800);
         // result_equals2 = 800.compareTo(800') = true
 
@@ -422,21 +422,21 @@ class UnsignedBigInteger extends HotmokaTest {
         IntValue hashcode_ubi1 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "hashCode", INT),
+                MethodSignatures.of(UBI, "hashCode", INT),
                 ubi_800);
         // 800.hashCode()
 
         IntValue hashcode_ubi2 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "hashCode", INT),
+                MethodSignatures.of(UBI, "hashCode", INT),
                 ubi_799);
         // 799.hashCode()
 
         IntValue hashcode_ubi3 = (IntValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "hashCode", INT),
+                MethodSignatures.of(UBI, "hashCode", INT),
                 ubi__800);
         // 800'.hashCode()
 
@@ -451,7 +451,7 @@ class UnsignedBigInteger extends HotmokaTest {
         BigIntegerValue bi1 = (BigIntegerValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "toBigInteger", StorageTypes.BIG_INTEGER),
+                MethodSignatures.of(UBI, "toBigInteger", StorageTypes.BIG_INTEGER),
                 ubi_1001);
         // 1001.toBigInteger()
 
@@ -465,7 +465,7 @@ class UnsignedBigInteger extends HotmokaTest {
         StringValue string1 = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "toString", StorageTypes.STRING),
+                MethodSignatures.of(UBI, "toString", StorageTypes.STRING),
                 ubi_1001);
         // 1001.toString()
 
@@ -479,7 +479,7 @@ class UnsignedBigInteger extends HotmokaTest {
         StringValue string2 = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "toString", StorageTypes.STRING, INT),
+                MethodSignatures.of(UBI, "toString", StorageTypes.STRING, INT),
                 ubi_1001, StorageValues.intOf(16));
         // 1001.toString(16)
 
@@ -493,14 +493,14 @@ class UnsignedBigInteger extends HotmokaTest {
         StorageReference ubi_result = (StorageReference) addStaticMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
-                new NonVoidMethodSignature(UBI, "valueOf", UBI, LONG),
+                MethodSignatures.of(UBI, "valueOf", UBI, LONG),
                 StorageValues.longOf(99));
         // ubi_result = long@99.valueOf() = 99
 
         BooleanValue equals_result = (BooleanValue) runInstanceMethodCallTransaction(
                 creator,
                 _100_000, classpath,
-                new NonVoidMethodSignature(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
+                MethodSignatures.of(UBI, "equals", BOOLEAN, StorageTypes.OBJECT),
                 ubi_result, ubi_99);
         // equals_result = ubi_result.equals(99) = true
 
@@ -513,7 +513,7 @@ class UnsignedBigInteger extends HotmokaTest {
                 addStaticMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), classpath,
-                        new NonVoidMethodSignature(UBI, "valueOf", UBI, LONG),
+                        MethodSignatures.of(UBI, "valueOf", UBI, LONG),
                         StorageValues.longOf(-99))
                 // long@-99.valueOf() = Exception !!!
         );

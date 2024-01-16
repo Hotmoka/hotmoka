@@ -64,7 +64,6 @@ import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
@@ -191,7 +190,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         private final MethodSignature BURN;
         private final MethodSignature MINT;
         private final MethodSignature YIELD_SNAPSHOT;
-        private final static MethodSignature TO_BIG_INTEGER = new NonVoidMethodSignature(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
+        private final static MethodSignature TO_BIG_INTEGER = MethodSignatures.of(StorageTypes.UNSIGNED_BIG_INTEGER, "toBigInteger", StorageTypes.BIG_INTEGER);
         private final static ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
         private final Random random = new Random(192846374);
         private final NonceHelper nonceHelper = NonceHelpers.of(node);
@@ -213,10 +212,10 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		this.coinName = coinName;
     		this.numberOfInvestors = numberOfInvestors;
     		this.COIN = StorageTypes.classNamed(coinName);
-    		this.TRANSFER = new NonVoidMethodSignature(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
+    		this.TRANSFER = MethodSignatures.of(COIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
     		this.BURN = MethodSignatures.ofVoid(COIN, "burn", StorageTypes.CONTRACT, StorageTypes.INT);
     		this.MINT = MethodSignatures.ofVoid(COIN, "mint", StorageTypes.CONTRACT, StorageTypes.INT);
-    		this.YIELD_SNAPSHOT = new NonVoidMethodSignature(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
+    		this.YIELD_SNAPSHOT = MethodSignatures.of(COIN, "yieldSnapshot", StorageTypes.UNSIGNED_BIG_INTEGER);
     	}
 
     	private void runTest() throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {

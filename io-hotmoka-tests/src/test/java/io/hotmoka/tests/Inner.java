@@ -30,14 +30,15 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for inner classes.
@@ -49,9 +50,9 @@ class Inner extends HotmokaTest {
 	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of("io.hotmoka.examples.inner.TestInner$Inside",
 			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"), StorageTypes.LONG);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = new NonVoidMethodSignature("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.of("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = new NonVoidMethodSignature("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.of("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
 			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"));
 
 	@BeforeAll

@@ -43,7 +43,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for the simple storage class.
@@ -51,7 +50,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 class Storage extends HotmokaTest {
 	private static final ClassType SIMPLE_STORAGE = StorageTypes.classNamed("io.hotmoka.examples.storage.SimpleStorage");
 	private static final MethodSignature SET = MethodSignatures.ofVoid(SIMPLE_STORAGE, "set", INT);
-	private static final MethodSignature GET = new NonVoidMethodSignature(SIMPLE_STORAGE, "get", INT);
+	private static final MethodSignature GET = MethodSignatures.of(SIMPLE_STORAGE, "get", INT);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = ConstructorSignatures.of("io.hotmoka.examples.storage.SimpleStorage");
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 

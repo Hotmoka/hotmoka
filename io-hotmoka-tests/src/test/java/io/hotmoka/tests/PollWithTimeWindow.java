@@ -45,7 +45,6 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.remote.api.RemoteNode;
 
 class PollWithTimeWindow extends HotmokaTest {
@@ -62,9 +61,8 @@ class PollWithTimeWindow extends HotmokaTest {
 
 	private static final MethodSignature VOTE_POLL = MethodSignatures.ofVoid(POLL_WITH_TIME_WINDOW, "vote");
 	private static final MethodSignature CLOSE_POLL = MethodSignatures.ofVoid(POLL_WITH_TIME_WINDOW, "close");
-
-	private static final NonVoidMethodSignature IS_OVER = new NonVoidMethodSignature(POLL_WITH_TIME_WINDOW, "isOver", StorageTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS_RUN_PERFORMED= new NonVoidMethodSignature(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
+	private static final MethodSignature IS_OVER = MethodSignatures.of(POLL_WITH_TIME_WINDOW, "isOver", StorageTypes.BOOLEAN);
+	private static final MethodSignature IS_RUN_PERFORMED = MethodSignatures.of(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;

@@ -31,6 +31,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -39,7 +40,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for the use of enumeration types.
@@ -66,10 +66,10 @@ class Enums extends HotmokaTest {
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT).getOrdinal() == 1")
 	void testGetOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference testEnums = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, jar(),
-				ConstructorSignatures.of("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
+			ConstructorSignatures.of("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
 
 		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getOrdinal", StorageTypes.INT), testEnums);
+			MethodSignatures.of("io.hotmoka.examples.enums.TestEnums", "getOrdinal", StorageTypes.INT), testEnums);
 
 		assertSame(1, ordinal.getValue());
 	}
@@ -77,7 +77,7 @@ class Enums extends HotmokaTest {
 	@Test @DisplayName("TestEnums.getFor(2) == MyEnum.FUTURE")
 	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException {
 		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), StorageValues.intOf(2));
+			MethodSignatures.of("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), StorageValues.intOf(2));
 
 		assertEquals(StorageValues.enumElementOf(MY_ENUM.getName(), "FUTURE"), element);
 	}

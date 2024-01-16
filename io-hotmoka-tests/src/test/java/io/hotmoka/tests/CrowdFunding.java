@@ -44,7 +44,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for the crowd funding contract.
@@ -97,7 +96,7 @@ class CrowdFunding extends HotmokaTest {
 	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		assertEquals(0, id.getValue());
@@ -107,12 +106,12 @@ class CrowdFunding extends HotmokaTest {
 	void createTwoCampaigns() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		assertEquals(1, id.getValue());
@@ -122,7 +121,7 @@ class CrowdFunding extends HotmokaTest {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceMethodCallTransaction
@@ -137,7 +136,7 @@ class CrowdFunding extends HotmokaTest {
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
+			MethodSignatures.of(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
 		assertFalse(reached.getValue());
@@ -147,7 +146,7 @@ class CrowdFunding extends HotmokaTest {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		IntValue id = (IntValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceMethodCallTransaction
@@ -162,7 +161,7 @@ class CrowdFunding extends HotmokaTest {
 
 		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			new NonVoidMethodSignature(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
+			MethodSignatures.of(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
 		assertTrue(reached.getValue());

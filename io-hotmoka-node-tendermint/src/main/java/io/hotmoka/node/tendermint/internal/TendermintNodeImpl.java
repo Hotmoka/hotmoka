@@ -60,7 +60,6 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -245,10 +244,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ClassType storageMapView = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
-	private static final MethodSignature SIZE = new NonVoidMethodSignature(storageMapView, "size", StorageTypes.INT);
-	private static final MethodSignature GET_SHARES = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getShares", storageMapView);
-	private static final MethodSignature SELECT = new NonVoidMethodSignature(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
-	private static final MethodSignature GET = new NonVoidMethodSignature(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
+	private static final MethodSignature SIZE = MethodSignatures.of(storageMapView, "size", StorageTypes.INT);
+	private static final MethodSignature GET_SHARES = MethodSignatures.of(StorageTypes.VALIDATORS, "getShares", storageMapView);
+	private static final MethodSignature SELECT = MethodSignatures.of(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
+	private static final MethodSignature GET = MethodSignatures.of(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 

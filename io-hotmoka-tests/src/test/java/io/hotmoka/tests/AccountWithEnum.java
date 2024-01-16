@@ -38,7 +38,6 @@ import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for an externally owned account with an enum field.
@@ -67,7 +66,7 @@ class AccountWithEnum extends HotmokaTest {
 			MethodSignatures.RECEIVE_INT, account, StorageValues.intOf(100_000));
 
 		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);
+				MethodSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);
 
 		assertEquals(0, result.getValue());
 	}

@@ -19,7 +19,6 @@ import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.SignatureAlgorithms;
 
@@ -138,7 +137,7 @@ public class SignedRequests {
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) balance of gasStation")
     public void testNonVoidStaticMethodCallTransactionGasStationRequest() throws Exception {
-        var nonVoidMethodSignature = new NonVoidMethodSignature(
+        var nonVoidMethodSignature = MethodSignatures.of(
         		StorageTypes.GAS_STATION,
                 "balance",
                 StorageTypes.BIG_INTEGER,

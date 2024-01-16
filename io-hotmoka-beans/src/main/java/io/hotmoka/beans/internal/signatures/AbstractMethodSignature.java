@@ -23,10 +23,10 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -82,212 +82,212 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The method {@code balance} of a contract.
 	 */
-	public final static MethodSignature BALANCE = new NonVoidMethodSignature(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature BALANCE = MethodSignatures.of(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code balanceRed} of a contract.
 	 */
-	public final static MethodSignature BALANCE_RED = new NonVoidMethodSignature(StorageTypes.CONTRACT, "balanceRed", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature BALANCE_RED = MethodSignatures.of(StorageTypes.CONTRACT, "balanceRed", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code publicKey} of an account.
 	 */
-	public final static MethodSignature PUBLIC_KEY = new NonVoidMethodSignature(StorageTypes.ACCOUNT, "publicKey", StorageTypes.STRING);
+	public final static NonVoidMethodSignature PUBLIC_KEY = MethodSignatures.of(StorageTypes.ACCOUNT, "publicKey", StorageTypes.STRING);
 
 	/**
 	 * The method {@code nonce} of an account.
 	 */
-	public final static MethodSignature NONCE = new NonVoidMethodSignature(StorageTypes.ACCOUNT, "nonce", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature NONCE = MethodSignatures.of(StorageTypes.ACCOUNT, "nonce", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getGenesisTime} of the manifest.
 	 */
-	public final static MethodSignature GET_GENESIS_TIME = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getGenesisTime", StorageTypes.STRING);
+	public final static NonVoidMethodSignature GET_GENESIS_TIME = MethodSignatures.of(StorageTypes.MANIFEST, "getGenesisTime", StorageTypes.STRING);
 
 	/**
 	 * The method {@code getChainId} of the manifest.
 	 */
-	public final static MethodSignature GET_CHAIN_ID = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getChainId", StorageTypes.STRING);
+	public final static NonVoidMethodSignature GET_CHAIN_ID = MethodSignatures.of(StorageTypes.MANIFEST, "getChainId", StorageTypes.STRING);
 
 	/**
 	 * The method {@code getMaxErrorLength} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_ERROR_LENGTH = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxErrorLength", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_MAX_ERROR_LENGTH = MethodSignatures.of(StorageTypes.MANIFEST, "getMaxErrorLength", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getMaxDependencies} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxDependencies", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_MAX_DEPENDENCIES = MethodSignatures.of(StorageTypes.MANIFEST, "getMaxDependencies", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getMaxCumulativeSizeOfDependencies} of the manifest.
 	 */
-	public final static MethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getMaxCumulativeSizeOfDependencies", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES = MethodSignatures.of(StorageTypes.MANIFEST, "getMaxCumulativeSizeOfDependencies", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getTicketForNewPoll} of the validators.
 	 */
-	public final static MethodSignature GET_TICKET_FOR_NEW_POLL = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getTicketForNewPoll", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_TICKET_FOR_NEW_POLL = MethodSignatures.of(StorageTypes.VALIDATORS, "getTicketForNewPoll", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getHeight} of the validators.
 	 */
-	public final static MethodSignature GET_HEIGHT = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getHeight", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_HEIGHT = MethodSignatures.of(StorageTypes.VALIDATORS, "getHeight", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getCurrentSupply} of the validators.
 	 */
-	public final static MethodSignature GET_CURRENT_SUPPLY = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getCurrentSupply", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_CURRENT_SUPPLY = MethodSignatures.of(StorageTypes.VALIDATORS, "getCurrentSupply", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getNumberOfTransactions} of the validators.
 	 */
-	public final static MethodSignature GET_NUMBER_OF_TRANSACTIONS = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getNumberOfTransactions", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_NUMBER_OF_TRANSACTIONS = MethodSignatures.of(StorageTypes.VALIDATORS, "getNumberOfTransactions", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getMaxFaucet} of the gamete.
 	 */
-	public final static MethodSignature GET_MAX_FAUCET = new NonVoidMethodSignature(StorageTypes.GAMETE, "getMaxFaucet", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_MAX_FAUCET = MethodSignatures.of(StorageTypes.GAMETE, "getMaxFaucet", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getMaxRedFaucet} of the gamete.
 	 */
-	public final static MethodSignature GET_MAX_RED_FAUCET = new NonVoidMethodSignature(StorageTypes.GAMETE, "getMaxRedFaucet", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_MAX_RED_FAUCET = MethodSignatures.of(StorageTypes.GAMETE, "getMaxRedFaucet", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code allowsSelfCharged} of the manifest.
 	 */
-	public final static MethodSignature ALLOWS_SELF_CHARGED = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsSelfCharged", StorageTypes.BOOLEAN);
+	public final static NonVoidMethodSignature ALLOWS_SELF_CHARGED = MethodSignatures.of(StorageTypes.MANIFEST, "allowsSelfCharged", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code allowsUnsignedFaucet} of the manifest.
 	 */
-	public final static MethodSignature ALLOWS_UNSIGNED_FAUCET = new NonVoidMethodSignature(StorageTypes.MANIFEST, "allowsUnsignedFaucet", StorageTypes.BOOLEAN);
+	public final static NonVoidMethodSignature ALLOWS_UNSIGNED_FAUCET = MethodSignatures.of(StorageTypes.MANIFEST, "allowsUnsignedFaucet", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code skipsVerification} of the manifest.
 	 */
-	public final static MethodSignature SKIPS_VERIFICATION = new NonVoidMethodSignature(StorageTypes.MANIFEST, "skipsVerification", StorageTypes.BOOLEAN);
+	public final static NonVoidMethodSignature SKIPS_VERIFICATION = MethodSignatures.of(StorageTypes.MANIFEST, "skipsVerification", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code getSignature} of the manifest.
 	 */
-	public final static MethodSignature GET_SIGNATURE = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getSignature", StorageTypes.STRING);
+	public final static NonVoidMethodSignature GET_SIGNATURE = MethodSignatures.of(StorageTypes.MANIFEST, "getSignature", StorageTypes.STRING);
 
 	/**
 	 * The method {@code getGamete} of the manifest.
 	 */
-	public final static MethodSignature GET_GAMETE = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getGamete", StorageTypes.GAMETE);
+	public final static NonVoidMethodSignature GET_GAMETE = MethodSignatures.of(StorageTypes.MANIFEST, "getGamete", StorageTypes.GAMETE);
 
 	/**
 	 * The method {@code getGasStation} of the manifest.
 	 */
-	public final static MethodSignature GET_GAS_STATION = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getGasStation", StorageTypes.GAS_STATION);
+	public final static NonVoidMethodSignature GET_GAS_STATION = MethodSignatures.of(StorageTypes.MANIFEST, "getGasStation", StorageTypes.GAS_STATION);
 
 	/**
 	 * The method {@code getVersions} of the manifest.
 	 */
-	public final static MethodSignature GET_VERSIONS = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getVersions", StorageTypes.VERSIONS);
+	public final static NonVoidMethodSignature GET_VERSIONS = MethodSignatures.of(StorageTypes.MANIFEST, "getVersions", StorageTypes.VERSIONS);
 
 	/**
 	 * The method {@code getAccountsLedger} of the manifest.
 	 */
-	public final static MethodSignature GET_ACCOUNTS_LEDGER = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getAccountsLedger", StorageTypes.ACCOUNTS_LEDGER);
+	public final static NonVoidMethodSignature GET_ACCOUNTS_LEDGER = MethodSignatures.of(StorageTypes.MANIFEST, "getAccountsLedger", StorageTypes.ACCOUNTS_LEDGER);
 
 	/**
 	 * The method {@code get} of the account ledger.
 	 */
-	public final static MethodSignature GET_FROM_ACCOUNTS_LEDGER = new NonVoidMethodSignature(StorageTypes.ACCOUNTS_LEDGER, "get", StorageTypes.EOA, StorageTypes.STRING);
+	public final static NonVoidMethodSignature GET_FROM_ACCOUNTS_LEDGER = MethodSignatures.of(StorageTypes.ACCOUNTS_LEDGER, "get", StorageTypes.EOA, StorageTypes.STRING);
 
 	/**
 	 * The method {@code getGasPrice} of the gas station.
 	 */
-	public final static MethodSignature GET_GAS_PRICE = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getGasPrice", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_GAS_PRICE = MethodSignatures.of(StorageTypes.GAS_STATION, "getGasPrice", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getMaxGasPerTransaction} of the gas station.
 	 */
-	public final static MethodSignature GET_MAX_GAS_PER_TRANSACTION = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getMaxGasPerTransaction", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_MAX_GAS_PER_TRANSACTION = MethodSignatures.of(StorageTypes.GAS_STATION, "getMaxGasPerTransaction", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getInitialGasPrice} of the gas station.
 	 */
-	public final static MethodSignature GET_INITIAL_GAS_PRICE = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getInitialGasPrice", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_INITIAL_GAS_PRICE = MethodSignatures.of(StorageTypes.GAS_STATION, "getInitialGasPrice", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getTargetGasAtReward} of the gas station.
 	 */
-	public final static MethodSignature GET_TARGET_GAS_AT_REWARD = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getTargetGasAtReward", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_TARGET_GAS_AT_REWARD = MethodSignatures.of(StorageTypes.GAS_STATION, "getTargetGasAtReward", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getOblivion} of the gas station.
 	 */
-	public final static MethodSignature GET_OBLIVION = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "getOblivion", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_OBLIVION = MethodSignatures.of(StorageTypes.GAS_STATION, "getOblivion", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getStake} of the validators object.
 	 */
-	public final static MethodSignature GET_STAKE = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getStake", StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR);
+	public final static NonVoidMethodSignature GET_STAKE = MethodSignatures.of(StorageTypes.VALIDATORS, "getStake", StorageTypes.BIG_INTEGER, StorageTypes.VALIDATOR);
 
 	/**
 	 * The method {@code getInitialInflation} of the validators object.
 	 */
-	public final static MethodSignature GET_INITIAL_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getInitialInflation", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_INITIAL_INFLATION = MethodSignatures.of(StorageTypes.VALIDATORS, "getInitialInflation", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getCurrentInflation} of the validators object.
 	 */
-	public final static MethodSignature GET_CURRENT_INFLATION = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getCurrentInflation", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_CURRENT_INFLATION = MethodSignatures.of(StorageTypes.VALIDATORS, "getCurrentInflation", StorageTypes.LONG);
 
 	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
 	 */
-	public final static MethodSignature IGNORES_GAS_PRICE = new NonVoidMethodSignature(StorageTypes.GAS_STATION, "ignoresGasPrice", StorageTypes.BOOLEAN);
+	public final static NonVoidMethodSignature IGNORES_GAS_PRICE = MethodSignatures.of(StorageTypes.GAS_STATION, "ignoresGasPrice", StorageTypes.BOOLEAN);
 
 	/**
 	 * The method {@code getValidators} of the manifest.
 	 */
-	public final static MethodSignature GET_VALIDATORS = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getValidators", StorageTypes.VALIDATORS);
+	public final static NonVoidMethodSignature GET_VALIDATORS = MethodSignatures.of(StorageTypes.MANIFEST, "getValidators", StorageTypes.VALIDATORS);
 
 	/**
 	 * The method {@code getInitialValidators} of the manifest.
 	 */
-	public final static MethodSignature GET_INITIAL_VALIDATORS = new NonVoidMethodSignature(StorageTypes.MANIFEST, "getInitialValidators", StorageTypes.SHARED_ENTITY_VIEW);
+	public final static NonVoidMethodSignature GET_INITIAL_VALIDATORS = MethodSignatures.of(StorageTypes.MANIFEST, "getInitialValidators", StorageTypes.SHARED_ENTITY_VIEW);
 
 	/**
 	 * The method {@code getVerificationVersion} of the versions object.
 	 */
-	public final static MethodSignature GET_VERIFICATION_VERSION = new NonVoidMethodSignature(StorageTypes.VERSIONS, "getVerificationVersion", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_VERIFICATION_VERSION = MethodSignatures.of(StorageTypes.VERSIONS, "getVerificationVersion", StorageTypes.LONG);
 
 	/**
 	 * The method {@code getPolls} of the validators object.
 	 */
-	public final static MethodSignature GET_POLLS = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getPolls", StorageTypes.STORAGE_SET_VIEW);
+	public final static NonVoidMethodSignature GET_POLLS = MethodSignatures.of(StorageTypes.VALIDATORS, "getPolls", StorageTypes.STORAGE_SET_VIEW);
 
 	/**
 	 * The method {@code getInitialSupply} of the validators object.
 	 */
-	public final static MethodSignature GET_INITIAL_SUPPLY = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getInitialSupply", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_INITIAL_SUPPLY = MethodSignatures.of(StorageTypes.VALIDATORS, "getInitialSupply", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getInitialRedSupply} of the validators object.
 	 */
-	public final static MethodSignature GET_INITIAL_RED_SUPPLY = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getInitialRedSupply", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_INITIAL_RED_SUPPLY = MethodSignatures.of(StorageTypes.VALIDATORS, "getInitialRedSupply", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code getFinalSupply} of the validators object.
 	 */
-	public final static MethodSignature GET_FINAL_SUPPLY = new NonVoidMethodSignature(StorageTypes.VALIDATORS, "getFinalSupply", StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature GET_FINAL_SUPPLY = MethodSignatures.of(StorageTypes.VALIDATORS, "getFinalSupply", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The method {@code add} of the account ledger.
 	 */
-	public final static MethodSignature ADD_INTO_ACCOUNTS_LEDGER = new NonVoidMethodSignature(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	public final static NonVoidMethodSignature ADD_INTO_ACCOUNTS_LEDGER = MethodSignatures.of(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 
 	/**
 	 * The method {@code id} of a validator.
 	 */
-	public final static MethodSignature ID = new NonVoidMethodSignature(StorageTypes.VALIDATOR, "id", StorageTypes.STRING);
+	public final static NonVoidMethodSignature ID = MethodSignatures.of(StorageTypes.VALIDATOR, "id", StorageTypes.STRING);
 
 	/**
 	 * The method {@code receive} of a payable contract, with a big integer argument.
@@ -318,17 +318,17 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The method {@code newPoll} of the generic validators contract.
 	 */
-	public final static MethodSignature NEW_POLL = new NonVoidMethodSignature(StorageTypes.GENERIC_VALIDATORS, "newPoll", StorageTypes.POLL);
+	public final static NonVoidMethodSignature NEW_POLL = MethodSignatures.of(StorageTypes.GENERIC_VALIDATORS, "newPoll", StorageTypes.POLL);
 	
 	/**
 	 * The method {@code newPollWithTimeParams} of the generic validators contract with time parameters.
 	 */
-	public final static MethodSignature NEW_POLL_WITH_TIME_PARAMS = new NonVoidMethodSignature(StorageTypes.GENERIC_VALIDATORS, "newPollWithTimeParams", StorageTypes.POLL, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
+	public final static NonVoidMethodSignature NEW_POLL_WITH_TIME_PARAMS = MethodSignatures.of(StorageTypes.GENERIC_VALIDATORS, "newPollWithTimeParams", StorageTypes.POLL, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
 	
 	/**
 	 * The method {@code isVoteOver} of the Poll contract.
 	 */
-	public final static MethodSignature IS_VOTE_OVER = new NonVoidMethodSignature(StorageTypes.POLL, "isVoteOver", StorageTypes.BOOLEAN);
+	public final static NonVoidMethodSignature IS_VOTE_OVER = MethodSignatures.of(StorageTypes.POLL, "isVoteOver", StorageTypes.BOOLEAN);
 	
 	/**
 	 * The method {@code closePoll} of the Poll contract.

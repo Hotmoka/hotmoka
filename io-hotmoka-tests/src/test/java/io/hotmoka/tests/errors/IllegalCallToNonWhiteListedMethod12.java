@@ -27,12 +27,12 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.tests.HotmokaTest;
@@ -51,7 +51,7 @@ class IllegalCallToNonWhiteListedMethod12 extends HotmokaTest {
 		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.STRING), StorageValues.stringOf(publicKey));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), new NonVoidMethodSignature(StorageTypes.OBJECT, "hashCode", StorageTypes.INT), eoa)
+			addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), MethodSignatures.of(StorageTypes.OBJECT, "hashCode", StorageTypes.INT), eoa)
 		);
 	}
 }

@@ -41,7 +41,6 @@ import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test showing that it is possible to have a shared entity with unrelated
@@ -84,7 +83,7 @@ class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
 
         // create an offer (v3) by the seller using his contract
         StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                new NonVoidMethodSignature(MY_CLASS, "createOffer", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
+                MethodSignatures.of(MY_CLASS, "createOffer", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
                 sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract

@@ -14,29 +14,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.signatures;
+package io.hotmoka.beans.internal.signatures;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * The signature of a method of a class, that returns a value.
  */
 @Immutable
-public final class NonVoidMethodSignature extends AbstractMethodSignature {
-	public final static byte SELECTOR = 1;
+public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature implements NonVoidMethodSignature {
+	final static byte SELECTOR = 1;
 
 	/**
-	 * The type of the returned type;
+	 * The type of the returned value.
 	 */
-	public final StorageType returnType;
+	private final StorageType returnType;
 
 	/**
 	 * Builds the signature of a method, that returns a value.
@@ -46,22 +46,27 @@ public final class NonVoidMethodSignature extends AbstractMethodSignature {
 	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
 	 */
-	public NonVoidMethodSignature(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
+	public NonVoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		super(definingClass, methodName, formals);
 
 		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null");
 	}
 
 	/**
-	 * Builds the signature of a method, that returns no value.
+	 * Builds the signature of a method, that returns a value.
 	 * 
 	 * @param definingClass the name of the class of the method
 	 * @param methodName the name of the method
 	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
 	 */
-	public NonVoidMethodSignature(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
+	public NonVoidMethodSignatureImpl(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		this(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
+	}
+
+	@Override
+	public StorageType getReturnType() {
+		return returnType;
 	}
 
 	@Override
@@ -71,7 +76,7 @@ public final class NonVoidMethodSignature extends AbstractMethodSignature {
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof NonVoidMethodSignature nvms && returnType.equals(nvms.returnType) && super.equals(other);
+		return other instanceof NonVoidMethodSignatureImpl nvms && returnType.equals(nvms.returnType) && super.equals(other);
 	}
 
 	@Override

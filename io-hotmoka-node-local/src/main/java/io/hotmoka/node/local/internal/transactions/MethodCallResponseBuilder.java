@@ -24,11 +24,11 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.MethodSignature;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -70,7 +70,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 		MethodSignature method = request.method;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 	
 		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)

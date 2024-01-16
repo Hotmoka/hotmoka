@@ -37,7 +37,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall2 extends HotmokaTest {
@@ -58,7 +57,7 @@ class LegalCall2 extends HotmokaTest {
 		TransactionReference classpath = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall2.jar"), takamakaCode());
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, ConstructorSignatures.of(C));
 		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, MethodSignatures.ofVoid(C, "test"), c);
-		StringValue result = (StringValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, new NonVoidMethodSignature(C, "toString", StorageTypes.STRING), c);
+		StringValue result = (StringValue) addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, classpath, MethodSignatures.of(C, "toString", StorageTypes.STRING), c);
 
 		assertEquals("53331", result.getValue());
 	}

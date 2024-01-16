@@ -44,7 +44,6 @@ import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for generating many coin transfers and count their speed.
@@ -116,7 +115,7 @@ class WTSC2021 extends HotmokaTest {
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
-		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), new NonVoidMethodSignature(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
+		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.of(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
 
 		totalTime += System.currentTimeMillis() - start;
 

@@ -30,6 +30,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.MethodSignature;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -41,7 +42,6 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.NodeInternal;
 
@@ -112,7 +112,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 */
 	private Method getFromContractMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
 		MethodSignature method = request.method;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).returnType) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
 		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)

@@ -49,7 +49,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -92,7 +91,7 @@ class BlindAuction extends HotmokaTest {
 
 	private static final MethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
-	private static final MethodSignature AUCTION_END = new NonVoidMethodSignature(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
+	private static final MethodSignature AUCTION_END = MethodSignatures.of(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 
 	/**
 	 * The hashing algorithm used to hide the bids.

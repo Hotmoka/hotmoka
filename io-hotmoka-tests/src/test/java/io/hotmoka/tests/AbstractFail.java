@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -37,7 +38,6 @@ import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -75,9 +75,9 @@ class AbstractFail extends HotmokaTest {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 
 		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
-			(privateKey(0), account(0), _100_000, panarea(1), jar(), new NonVoidMethodSignature(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
+			(privateKey(0), account(0), _100_000, panarea(1), jar(), MethodSignatures.of(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), new NonVoidMethodSignature(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
+		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.of(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

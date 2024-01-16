@@ -44,7 +44,6 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.constants.Constants;
 
 /**
@@ -107,7 +106,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
+			MethodSignatures.of(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.getValue());
@@ -255,7 +254,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			new NonVoidMethodSignature(TIC_TAC_TOE, "toString", StorageTypes.STRING),
+			MethodSignatures.of(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.getValue());

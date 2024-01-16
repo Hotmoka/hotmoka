@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
@@ -40,7 +41,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 
@@ -77,7 +77,7 @@ class Signatures extends HotmokaTest {
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
 	void createAccountsWithDistinctSigningAlgorithmsAndUseThem() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
 		var amount = StorageValues.intOf(_10_000_000.intValue());
-		var callee = new NonVoidMethodSignature("io.takamaka.code.lang.Coin", "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+		var callee = MethodSignatures.of("io.takamaka.code.lang.Coin", "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 
 		var sha256dsa = SignatureAlgorithms.sha256dsa();
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();

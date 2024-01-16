@@ -28,11 +28,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test to check if class loaders correctly deal with a static method that calls another static method.
@@ -52,7 +52,7 @@ class StaticFromStatic extends HotmokaTest {
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
 	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
-			new NonVoidMethodSignature("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
+			MethodSignatures.of("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
 
 		assertEquals(42, result.getValue());
 	}

@@ -31,7 +31,6 @@ import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -143,7 +142,7 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		switch (selector) {
 		case ConstructorSignatureImpl.SELECTOR: return ConstructorSignatures.of(definingClass, formals);
 		case VoidMethodSignatureImpl.SELECTOR: return MethodSignatures.ofVoid(definingClass, context.readStringUnshared(), formals);
-		case NonVoidMethodSignature.SELECTOR: return new NonVoidMethodSignature(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
+		case NonVoidMethodSignatureImpl.SELECTOR: return MethodSignatures.of(definingClass, context.readStringUnshared(), StorageTypes.from(context), formals);
 		default: throw new IOException("Unexpected code signature selector: " + selector);
 		}
 	}

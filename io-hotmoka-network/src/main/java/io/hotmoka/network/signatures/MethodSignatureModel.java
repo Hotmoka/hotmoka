@@ -19,7 +19,7 @@ package io.hotmoka.network.signatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 
 /**
  * The model of the signature of a method of a class.
@@ -46,7 +46,7 @@ public class MethodSignatureModel extends CodeSignatureModel {
 
 		this.methodName = method.getMethodName();
 		if (method instanceof NonVoidMethodSignature nvm)
-			returnType = nameOf(nvm.returnType);
+			returnType = nameOf(nvm.getReturnType());
 		else
 			returnType = null;
 	}
@@ -62,6 +62,6 @@ public class MethodSignatureModel extends CodeSignatureModel {
 		if (returnType == null)
 			return MethodSignatures.ofVoid(definingClass, methodName, getFormalsAsTypes());
 		else
-			return new NonVoidMethodSignature(definingClass, methodName, StorageTypes.named(returnType), getFormalsAsTypes());
+			return MethodSignatures.of(definingClass, methodName, StorageTypes.named(returnType), getFormalsAsTypes());
 	}
 }

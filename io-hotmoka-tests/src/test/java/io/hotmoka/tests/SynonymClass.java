@@ -29,13 +29,14 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.CodeExecutionException;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.signatures.NonVoidMethodSignature;
 
 /**
  * A test for the installation in the node of a class with the same name
@@ -43,7 +44,7 @@ import io.hotmoka.beans.signatures.NonVoidMethodSignature;
  */
 class SynonymClass extends HotmokaTest {
 	private final static ClassType SA = StorageTypes.classNamed("io.hotmoka.crypto.SignatureAlgorithm");
-	private final static NonVoidMethodSignature EMPTY = new NonVoidMethodSignature(SA, "empty", SA);
+	private final static NonVoidMethodSignature EMPTY = MethodSignatures.of(SA, "empty", SA);
 	private final static BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeAll
