@@ -19,7 +19,6 @@ package io.hotmoka.beans.internal.gson;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -38,7 +37,6 @@ public abstract class FieldSignatureJson implements JsonRepresentation<FieldSign
 
 	@Override
 	public FieldSignature unmap() {
-		// this cast might actually fail if the JSON is inconsistent
-		return FieldSignatures.of((ClassType) StorageTypes.named(definingClass), name, StorageTypes.named(type));
+		return FieldSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.named(type));
 	}
 }

@@ -97,7 +97,10 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass) && Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals); // TODO: optimize
+		if (other instanceof AbstractCodeSignature acs)
+			return acs.definingClass.equals(definingClass) && Arrays.equals(acs.formals, formals); // optimization
+		else
+			return other instanceof CodeSignature cs && cs.getDefiningClass().equals(definingClass) && Arrays.equals(cs.getFormals().toArray(StorageType[]::new), formals);
 	}
 
 	@Override

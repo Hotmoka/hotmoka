@@ -214,7 +214,7 @@ public abstract class MethodSignatures {
 	/**
 	 * The method {@code get} of the account ledger.
 	 */
-	public final static NonVoidMethodSignature GET_FROM_ACCOUNTS_LEDGER = AbstractMethodSignature.GET_FROM_ACCOUNTS_LEDGER; // TODO: check name
+	public final static NonVoidMethodSignature GET_FROM_ACCOUNTS_LEDGER = AbstractMethodSignature.GET_FROM_ACCOUNTS_LEDGER;
 
 	/**
 	 * The method {@code getGasPrice} of the gas station.

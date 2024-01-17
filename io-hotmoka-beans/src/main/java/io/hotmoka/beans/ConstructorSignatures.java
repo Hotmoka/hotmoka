@@ -21,6 +21,9 @@ import java.io.IOException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.gson.ConstructorSignatureDecoder;
+import io.hotmoka.beans.internal.gson.ConstructorSignatureEncoder;
+import io.hotmoka.beans.internal.gson.ConstructorSignatureJson;
 import io.hotmoka.beans.internal.signatures.ConstructorSignatureImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -65,6 +68,43 @@ public abstract class ConstructorSignatures {
 	}
 
 	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends ConstructorSignatureEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends ConstructorSignatureDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends ConstructorSignatureJson {
+
+    	/**
+    	 * Creates the Json representation for the given constructor signature.
+    	 * 
+    	 * @param constructor the constructor signature
+    	 */
+    	public Json(ConstructorSignature constructor) {
+    		super(constructor);
+    	}
+    }
+
+    /**
 	 * The constructor of an externally owned account.
 	 */
 	public final static ConstructorSignature EOA_CONSTRUCTOR = ConstructorSignatureImpl.EOA_CONSTRUCTOR;

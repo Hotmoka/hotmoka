@@ -119,8 +119,14 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	public static Update from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		// TODO: cast -> IOException
-		case ClassTag.SELECTOR: return new ClassTag(StorageReferenceImpl.fromWithoutSelector(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
+		case ClassTag.SELECTOR: {
+			try {
+				return new ClassTag(StorageReferenceImpl.fromWithoutSelector(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
+			}
+			catch (ClassCastException e) {
+				throw new IOException("Failed unmrshalling a class tag", e);
+			}
+		}
 		case UpdateOfBigInteger.SELECTOR_BALANCE: return new UpdateOfBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.BALANCE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_GAS_PRICE: return new UpdateOfBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.GENERIC_GAS_STATION_GAS_PRICE_FIELD, context.readBigInteger());
 		case UpdateOfBigInteger.SELECTOR_UBI_VALUE: return new UpdateOfBigInteger(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.UNSIGNED_BIG_INTEGER_VALUE_FIELD, context.readBigInteger());
