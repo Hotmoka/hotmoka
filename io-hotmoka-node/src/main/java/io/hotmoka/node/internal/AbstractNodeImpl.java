@@ -26,19 +26,26 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Implementation of the shared code of a node. The goal of this class is to provide
@@ -113,7 +120,7 @@ public abstract class AbstractNodeImpl implements Node {
 	 * @return the jar supplier
 	 */
 	protected final JarSupplier jarSupplierFor(TransactionReference reference) {
-		return jarSupplierFor(reference, () -> ((JarStoreNonInitialTransactionResponse) getPolledResponse(reference)).getOutcomeAt(reference));
+		return jarSupplierFor(reference, () -> getOutcomeAt((JarStoreNonInitialTransactionResponse) getPolledResponse(reference), reference));
 	}
 
 	/**
@@ -123,7 +130,7 @@ public abstract class AbstractNodeImpl implements Node {
 	 * @return the code supplier
 	 */
 	protected final CodeSupplier<StorageReference> constructorSupplierFor(TransactionReference reference) {
-		return codeSupplierFor(reference, () -> ((ConstructorCallTransactionResponse) getPolledResponse(reference)).getOutcome());
+		return codeSupplierFor(reference, () -> getOutcome((ConstructorCallTransactionResponse) getPolledResponse(reference)));
 	}
 
 	/**
@@ -133,9 +140,44 @@ public abstract class AbstractNodeImpl implements Node {
 	 * @return the code supplier
 	 */
 	protected final CodeSupplier<StorageValue> methodSupplierFor(TransactionReference reference) {
-		return codeSupplierFor(reference, () -> ((MethodCallTransactionResponse) getPolledResponse(reference)).getOutcome());
+		return codeSupplierFor(reference, () -> getOutcome((MethodCallTransactionResponse) getPolledResponse(reference)));
 	}
 
+	protected final StorageValue getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
+		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
+			return mctsr.result;
+		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+			throw new CodeExecutionException(mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
+		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
+			throw new TransactionException(mctfr.classNameOfCause, mctfr.messageOfCause, mctfr.where);
+		else
+			return null; // void methods return no value
+	}
+
+	private StorageReference getOutcome(ConstructorCallTransactionResponse response) throws CodeExecutionException, TransactionException {
+		if (response instanceof ConstructorCallTransactionExceptionResponse ccter)
+			throw new CodeExecutionException(ccter.classNameOfCause, ccter.messageOfCause, ccter.where);
+		else if (response instanceof ConstructorCallTransactionFailedResponse cctfr)
+			throw new TransactionException(cctfr.classNameOfCause, cctfr.messageOfCause, cctfr.where);
+		else
+			return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
+	}
+
+	/**
+	 * Yields the outcome of the execution having this response, performed
+	 * at the given transaction reference.
+	 * 
+	 * @param reference the transaction reference
+	 * @return the outcome
+	 * @throws TransactionException if the outcome of the transaction is this exception
+	 */
+	private TransactionReference getOutcomeAt(JarStoreNonInitialTransactionResponse response, TransactionReference reference) throws TransactionException {
+		if (response instanceof JarStoreTransactionFailedResponse jstfr)
+			throw new TransactionException(jstfr.classNameOfCause, jstfr.messageOfCause, "");
+		else
+			return reference;
+	}
+	
 	/**
 	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
 	 * 
@@ -152,7 +194,7 @@ public abstract class AbstractNodeImpl implements Node {
 			throw e;
 		}
 		catch (Throwable t) {
-			logger.log(Level.WARNING, "unexpected exception", t);
+			logger.log(Level.WARNING, "Unexpected exception", t);
 			throw new TransactionRejectedException(t);
 		}
 	}

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.Coin.panarea;
+import static io.hotmoka.helpers.Coin.panarea;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;

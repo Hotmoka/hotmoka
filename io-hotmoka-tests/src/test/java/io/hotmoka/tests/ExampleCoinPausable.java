@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.Coin.filicudi;
-import static io.hotmoka.beans.Coin.panarea;
-import static io.hotmoka.beans.Coin.stromboli;
 import static io.hotmoka.beans.StorageTypes.BOOLEAN;
+import static io.hotmoka.helpers.Coin.filicudi;
+import static io.hotmoka.helpers.Coin.panarea;
+import static io.hotmoka.helpers.Coin.stromboli;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -32,19 +32,19 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.constants.Constants;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test for the ExampleCoinPausable contract (a ERC20Pausable contract).

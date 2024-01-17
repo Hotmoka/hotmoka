@@ -19,15 +19,15 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.MethodSignatures;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Implementation of an object that helps with nonce operations.

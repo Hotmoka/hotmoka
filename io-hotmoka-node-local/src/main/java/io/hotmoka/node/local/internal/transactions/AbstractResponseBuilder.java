@@ -25,7 +25,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -37,6 +36,7 @@ import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
@@ -133,7 +133,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException;
 
 	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.beans.TransactionException}, if it not
+	 * Wraps the given throwable in a {@link io.hotmoka.node.api.TransactionException}, if it not
 	 * already an instance of that exception.
 	 * 
 	 * @param t the throwable to wrap

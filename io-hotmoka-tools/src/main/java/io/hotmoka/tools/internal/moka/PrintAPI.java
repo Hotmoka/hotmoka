@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 

@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.updates.Update;
@@ -106,11 +105,6 @@ public class ConstructorCallTransactionExceptionResponse extends ConstructorCall
 			return super.toString() + "\n  throws: " + classNameOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
 		else
 			return super.toString() + "\n  throws: " + classNameOfCause + ":" + messageOfCause + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
-	}
-
-	@Override
-	public StorageReference getOutcome() throws CodeExecutionException {
-		throw new CodeExecutionException(classNameOfCause, messageOfCause, where);
 	}
 
 	@Override

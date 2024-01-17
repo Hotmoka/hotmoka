@@ -92,11 +92,6 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 	}
 
 	@Override
-	public StorageReference getOutcome() {
-		return newObject;
-	}
-
-	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(events.length == 0 ? SELECTOR_NO_EVENTS : SELECTOR);
 		super.into(context);

@@ -27,12 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.IntValue;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test to check if class loaders correctly deal with a static method that calls another static method.

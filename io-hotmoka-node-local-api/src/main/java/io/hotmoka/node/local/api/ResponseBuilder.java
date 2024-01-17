@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * The creator of a response from a request. It executes a transaction from the request and builds the corresponding response.

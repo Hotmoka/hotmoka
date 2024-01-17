@@ -108,12 +108,6 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	}
 
 	@Override
-	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
-		// the outcome is the reference to the transaction where this response has been executed
-		return transactionReference;
-	}
-
-	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);

@@ -24,13 +24,10 @@ import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.function.Consumer;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -48,7 +45,10 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountCreationHelper;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * An object that helps with the creation of new accounts.

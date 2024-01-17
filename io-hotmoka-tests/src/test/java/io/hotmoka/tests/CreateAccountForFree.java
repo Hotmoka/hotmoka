@@ -27,8 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 
 /**

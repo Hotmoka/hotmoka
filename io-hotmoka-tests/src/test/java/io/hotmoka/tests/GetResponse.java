@@ -29,17 +29,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test for {@link io.hotmoka.node.Node#getResponse(io.hotmoka.beans.references.TransactionReference)}.

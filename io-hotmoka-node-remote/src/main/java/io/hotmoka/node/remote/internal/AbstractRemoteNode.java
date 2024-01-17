@@ -27,9 +27,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
@@ -60,6 +57,9 @@ import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
@@ -304,7 +304,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
 
     /**
      * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match {@link io.hotmoka.beans.TransactionRejectedException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
+     * If the type doesn't match {@link io.hotmoka.node.api.TransactionRejectedException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
      *
      * @param <T> the return type of the callable
      * @param what the callable

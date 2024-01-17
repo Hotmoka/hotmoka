@@ -18,17 +18,17 @@ package io.hotmoka.helpers.internal;
 
 import java.security.NoSuchAlgorithmException;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.helpers.api.SignatureHelper;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**

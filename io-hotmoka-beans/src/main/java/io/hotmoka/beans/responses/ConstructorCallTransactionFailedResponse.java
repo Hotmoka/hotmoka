@@ -22,8 +22,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -113,11 +111,6 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
-	}
-
-	@Override
-	public StorageReference getOutcome() throws TransactionException {
-		throw new TransactionException(classNameOfCause, messageOfCause, where);
 	}
 
 	@Override

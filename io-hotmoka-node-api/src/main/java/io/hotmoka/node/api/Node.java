@@ -22,9 +22,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;

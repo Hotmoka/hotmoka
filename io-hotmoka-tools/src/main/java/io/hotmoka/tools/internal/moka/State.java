@@ -18,16 +18,16 @@ package io.hotmoka.tools.internal.moka;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

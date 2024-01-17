@@ -26,11 +26,11 @@ import java.util.stream.Stream;
 
 import com.google.protobuf.ByteString;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
 import tendermint.abci.Types.RequestBeginBlock;

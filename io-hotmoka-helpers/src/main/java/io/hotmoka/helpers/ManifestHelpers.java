@@ -17,12 +17,12 @@ limitations under the License.
 package io.hotmoka.helpers;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of helpers for accessing the manifest of a node.

@@ -24,15 +24,15 @@ import java.security.SignatureException;
 import java.util.NoSuchElementException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of nodes that give access to a previously installed set of accounts.

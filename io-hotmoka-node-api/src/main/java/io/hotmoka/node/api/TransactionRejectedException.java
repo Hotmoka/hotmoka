@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node.api;
 
 /**
  * An exception raised when a transaction cannot even be started.

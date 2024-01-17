@@ -30,13 +30,10 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
@@ -60,10 +57,13 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A decorator of a node, that creates some initial accounts in it.

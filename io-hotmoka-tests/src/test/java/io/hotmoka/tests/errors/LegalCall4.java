@@ -27,16 +27,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
 
 class LegalCall4 extends HotmokaTest {

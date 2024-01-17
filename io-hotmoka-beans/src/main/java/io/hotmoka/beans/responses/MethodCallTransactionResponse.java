@@ -20,9 +20,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.updates.Update;
 
 /**
@@ -52,15 +49,4 @@ public abstract class MethodCallTransactionResponse extends CodeExecutionTransac
 
 		this.selfCharged = selfCharged;
 	}
-
-	/**
-	 * Yields the outcome of the execution having this response.
-	 * 
-	 * @return the outcome
-	 * @throws CodeExecutionException if the transaction failed with an exception inside the user code in store,
-	 *                                allowed to be thrown outside the store
-	 * @throws TransactionException if the transaction failed with an exception outside the user code in store,
-	 *                              or not allowed to be thrown outside the store
-	 */
-	public abstract StorageValue getOutcome() throws TransactionException, CodeExecutionException;
 }

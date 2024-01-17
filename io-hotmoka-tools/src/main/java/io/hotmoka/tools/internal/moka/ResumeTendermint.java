@@ -19,10 +19,10 @@ package io.hotmoka.tools.internal.moka;
 import java.math.BigInteger;
 import java.nio.file.Path;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.ManifestHelpers;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.service.api.NodeServiceConfig;

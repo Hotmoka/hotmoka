@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -31,6 +30,7 @@ import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
 
 /**

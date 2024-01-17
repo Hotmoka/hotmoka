@@ -21,11 +21,11 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A helper for minting and burning coins of an account in the accounts ledger

@@ -22,8 +22,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -115,11 +113,6 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
-	}
-
-	@Override
-	public StorageValue getOutcome() throws TransactionException {
-		throw new TransactionException(classNameOfCause, messageOfCause, where);
 	}
 
 	@Override

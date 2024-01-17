@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.SignatureHelper;
 import io.hotmoka.helpers.internal.SignatureHelperImpl;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of helpers to determine the signature algorithm to use for an externally owned account.

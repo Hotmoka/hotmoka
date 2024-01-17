@@ -26,7 +26,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -36,6 +35,7 @@ import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.Serializer;

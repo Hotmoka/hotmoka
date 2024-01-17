@@ -21,9 +21,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -55,8 +52,11 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
 

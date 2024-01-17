@@ -22,13 +22,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;

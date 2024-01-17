@@ -19,11 +19,11 @@ package io.hotmoka.helpers.api;
 import java.security.NoSuchAlgorithmException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A helper to determine the signature algorithm to use for an externally owned account.

@@ -20,8 +20,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.updates.Update;
 
 /**
@@ -46,14 +44,4 @@ public abstract class JarStoreNonInitialTransactionResponse extends NonInitialTr
 	public boolean equals(Object other) {
 		return other instanceof JarStoreNonInitialTransactionResponse && super.equals(other);
 	}
-
-	/**
-	 * Yields the outcome of the execution having this response, performed
-	 * at the given transaction reference.
-	 * 
-	 * @param transactionReference the transaction reference
-	 * @return the outcome
-	 * @throws TransactionException if the outcome of the transaction is this exception
-	 */
-	public abstract TransactionReference getOutcomeAt(TransactionReference transactionReference) throws TransactionException;
 }

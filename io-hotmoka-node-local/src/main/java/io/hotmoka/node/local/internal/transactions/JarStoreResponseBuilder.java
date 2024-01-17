@@ -22,13 +22,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.instrumentation.InstrumentedJars;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;

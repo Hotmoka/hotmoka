@@ -29,13 +29,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
@@ -43,6 +40,9 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test for the simple pyramid contract, used at the WTSC2020 workshop.

@@ -41,7 +41,6 @@ import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -57,6 +56,7 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;

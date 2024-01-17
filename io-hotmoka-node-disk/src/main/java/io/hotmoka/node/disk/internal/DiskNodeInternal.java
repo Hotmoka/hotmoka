@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 
 /**

@@ -97,11 +97,6 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 	}
 
 	@Override
-	public StorageValue getOutcome() {
-		return result;
-	}
-
-	@Override
 	public void into(MarshallingContext context) throws IOException {
 		boolean optimized = events.length == 0 && !selfCharged;
 		boolean optimized1 = events.length == 1 && !selfCharged;

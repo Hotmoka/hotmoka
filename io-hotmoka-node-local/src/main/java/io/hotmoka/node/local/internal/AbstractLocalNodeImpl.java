@@ -45,12 +45,9 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -81,9 +78,12 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
@@ -472,7 +472,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			StorageValue result;
 
 			synchronized (deliverTransactionLock) {
-				result = new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse());
 			}
 
 			LOGGER.info(reference + ": running success");
@@ -488,7 +488,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			StorageValue result;
 
 			synchronized (deliverTransactionLock) {
-				result = new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse().getOutcome();
+				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse());
 			}
 
 			LOGGER.info(reference + ": running success");

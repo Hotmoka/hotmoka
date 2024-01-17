@@ -20,9 +20,6 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.updates.Update;
 
 /**
@@ -42,15 +39,4 @@ public abstract class ConstructorCallTransactionResponse extends CodeExecutionTr
 	public ConstructorCallTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
-
-	/**
-	 * Yields the outcome of the execution having this response.
-	 * 
-	 * @return the outcome
-	 * @throws CodeExecutionException if the transaction failed with an exception inside the user code in store,
-	 *                                allowed to be thrown outside the store
-	 * @throws TransactionException if the transaction failed with an exception outside the user code in store,
-	 *                              or not allowed to be thrown outside the store
-	 */
-	public abstract StorageReference getOutcome() throws TransactionException, CodeExecutionException;
 }

@@ -16,12 +16,12 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.helpers.internal.SendCoinsHelperImpl;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Providers of objects that help with sending coins to accounts.

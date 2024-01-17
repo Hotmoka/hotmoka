@@ -25,11 +25,8 @@ import java.util.Base64;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
@@ -41,7 +38,10 @@ import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 

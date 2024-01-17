@@ -20,9 +20,9 @@ import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.CodeExecutionException;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * The model of an exception thrown by a REST method.

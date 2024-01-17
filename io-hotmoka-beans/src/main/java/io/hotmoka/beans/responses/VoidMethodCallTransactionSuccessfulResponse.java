@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -82,11 +81,6 @@ public class VoidMethodCallTransactionSuccessfulResponse extends MethodCallTrans
 	@Override
 	public String toString() {
         return super.toString() + "\n  events:\n" + getEvents().map(StorageReference::toString).collect(Collectors.joining("\n    ", "    ", ""));
-	}
-
-	@Override
-	public StorageValue getOutcome() {
-		return null; // a void method has no result
 	}
 
 	@Override

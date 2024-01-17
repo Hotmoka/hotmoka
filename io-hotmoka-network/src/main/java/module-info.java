@@ -34,6 +34,7 @@ module io.hotmoka.network {
     opens io.hotmoka.network.nodes to com.google.gson;
 
 	requires transitive io.hotmoka.beans;
+	requires io.hotmoka.node.api;
 	requires io.hotmoka.crypto;
 	requires com.google.gson;
 }

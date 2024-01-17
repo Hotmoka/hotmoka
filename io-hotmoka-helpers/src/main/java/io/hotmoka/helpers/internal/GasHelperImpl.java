@@ -18,17 +18,17 @@ package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.MethodSignatures;
-import io.hotmoka.beans.TransactionException;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.helpers.api.GasHelper;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * An object that helps with gas operations.

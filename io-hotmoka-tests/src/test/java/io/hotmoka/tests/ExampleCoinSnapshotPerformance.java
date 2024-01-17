@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.Coin.level2;
-import static io.hotmoka.beans.Coin.level3;
-import static io.hotmoka.beans.Coin.panarea;
 import static io.hotmoka.beans.StorageTypes.BOOLEAN;
+import static io.hotmoka.helpers.Coin.level2;
+import static io.hotmoka.helpers.Coin.level3;
+import static io.hotmoka.helpers.Coin.panarea;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -45,14 +45,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import io.hotmoka.beans.CodeExecutionException;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionException;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
@@ -69,6 +66,9 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.

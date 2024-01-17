@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.TransactionRejectedException;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
@@ -32,6 +31,7 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
  * Implementation of a counter of the gas consumed for the execution of a set of requests.
