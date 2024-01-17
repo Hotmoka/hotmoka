@@ -24,6 +24,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.types.AbstractStorageType;
 import io.hotmoka.beans.internal.types.BasicTypeImpl;
 import io.hotmoka.beans.internal.types.ClassTypeImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -42,8 +43,7 @@ public abstract class StorageTypes {
 	 * @return the storage type
 	 */
 	public static StorageType named(String name) {
-		var result = BasicTypeImpl.named(name);
-		return result != null ? result : ClassTypeImpl.named(name);
+		return AbstractStorageType.named(name);
 	}
 
 	/**
@@ -63,8 +63,7 @@ public abstract class StorageTypes {
 	 * @return the storage type
 	 */
 	public static StorageType fromClass(Class<?> clazz) {
-		StorageType result = BasicTypeImpl.fromClass(clazz);
-		return result != null ? result : ClassTypeImpl.fromClass(clazz);
+		return AbstractStorageType.fromClass(clazz);
 	}
 
 	/**
@@ -75,16 +74,7 @@ public abstract class StorageTypes {
 	 * @throws IOException if the type cannot be marshalled
      */
 	public static StorageType from(UnmarshallingContext context) throws IOException {
-		byte selector = context.readByte();
-		StorageType result = BasicTypeImpl.withSelector(selector);
-		if (result != null)
-			return result;
-
-		result = ClassTypeImpl.withSelector(selector, context);
-		if (result != null)
-			return result;
-
-		throw new IOException("Unexpected type selector: " + selector);
+		return AbstractStorageType.from(context);
 	}
 
 	/**

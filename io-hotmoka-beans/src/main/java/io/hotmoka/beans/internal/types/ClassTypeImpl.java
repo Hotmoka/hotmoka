@@ -23,7 +23,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.constants.Constants;
-import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -31,7 +30,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A class type that can be used for stored objects in blockchain.
  */
 @Immutable
-public final class ClassTypeImpl extends AbstractMarshallable implements ClassType {
+public final class ClassTypeImpl extends AbstractStorageType implements ClassType {
 
 	/**
 	 * The frequently used class type for {@link java.lang.Object}.
@@ -440,7 +439,7 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 	 * @param context the unmarshalling context
 	 * @return the class type, if any; this is {@code null} if the selector is illegal
      */
-	public static ClassType withSelector(byte selector, UnmarshallingContext context) throws IOException {
+	static ClassType withSelector(byte selector, UnmarshallingContext context) throws IOException {
 		switch (selector) {
 		case SELECTOR:
 			return named(context.readStringShared());
@@ -511,16 +510,6 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 		}
 	}
 
-	/**
-	 * Yields the class type corresponding to the given class.
-	 * 
-	 * @param clazz the class
-	 * @return the class type
-	 */
-	public static ClassType fromClass(Class<?> clazz) {
-		return ClassTypeImpl.named(clazz.getName());
-	}
-
 	@Override
 	public String getName() {
 		return name;
@@ -543,8 +532,8 @@ public final class ClassTypeImpl extends AbstractMarshallable implements ClassTy
 
 	@Override
 	public int compareTo(StorageType other) {
-		if (other instanceof ClassTypeImpl ct)
-			return name.compareTo(ct.name);
+		if (other instanceof ClassType ct)
+			return name.compareTo(ct.getName());
 		else // other instanceof BasicTypeImpl
 			return 1;
 	}

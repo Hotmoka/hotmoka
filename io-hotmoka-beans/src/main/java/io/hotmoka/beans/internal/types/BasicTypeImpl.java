@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * The basic types of the Takamaka language.
  */
 @Immutable
-public class BasicTypeImpl implements BasicType {
+public class BasicTypeImpl extends AbstractStorageType implements BasicType {
 
 	/**
 	 * The {@code boolean} basic type of the Takamaka language.
@@ -72,41 +72,12 @@ public class BasicTypeImpl implements BasicType {
 	private BasicTypeImpl() {}
 
 	/**
-	 * Yields the basic type with the given name.
-	 * 
-	 * @param name the name of the type
-	 * @return the storage type, or {@code null} if no basic type with the given name exists
-	 */
-	public static BasicType named(String name) {
-		switch (name) {
-		case "boolean":
-	        return BOOLEAN;
-	    case "byte":
-	        return BYTE;
-	    case "char":
-	        return CHAR;
-	    case "short":
-	        return SHORT;
-	    case "int":
-	        return INT;
-	    case "long":
-	        return LONG;
-	    case "float":
-	        return FLOAT;
-	    case "double":
-	        return DOUBLE;
-	    default:
-	    	return null;
-		}
-	}
-
-	/**
 	 * Yields the basic type with the given selector, if any.
 	 * 
 	 * @param selector the selector
 	 * @return the basic type; this is {@code null} if no basic type uses the given selector
 	 */
-	public static BasicType withSelector(byte selector) {
+	static BasicType withSelector(byte selector) {
 		switch (selector) {
 		case 0:
 			return BOOLEAN;
@@ -127,34 +98,6 @@ public class BasicTypeImpl implements BasicType {
 		default:
 			return null;
 		}
-	}
-
-	/**
-	 * Yields the basic type corresponding to the given class.
-	 * 
-	 * @param clazz the class
-	 * @return the basic type; this is {@code null} if {@code clazz} does not refer
-	 *         to a basic type
-	 */
-	public static BasicType fromClass(Class<?> clazz) {
-		if (clazz == boolean.class)
-			return BOOLEAN;
-		else if (clazz == byte.class)
-			return BYTE;
-		else if (clazz == char.class)
-			return CHAR;
-		else if (clazz == short.class)
-			return SHORT;
-		else if (clazz == int.class)
-			return INT;
-		else if (clazz == long.class)
-			return LONG;
-		else if (clazz == float.class)
-			return FLOAT;
-		else if (clazz == double.class)
-			return DOUBLE;
-		else
-			return null;
 	}
 
 	@Override
@@ -211,16 +154,6 @@ public class BasicTypeImpl implements BasicType {
 	@Override
 	public boolean isEager() {
 		return true;
-	}
-
-	@Override
-	public byte[] toByteArray() {
-		return new byte[] { ordinal() };
-	}
-
-	@Override
-	public int size() {
-		return 1;
 	}
 
 	@Override
