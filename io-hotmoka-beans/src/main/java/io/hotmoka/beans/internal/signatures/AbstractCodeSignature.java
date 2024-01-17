@@ -24,7 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
@@ -47,7 +46,7 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 	 * The formal arguments of the method or constructor.
 	 */
 	private final StorageType[] formals;
-	
+
 	/**
 	 * Builds the signature of a method or constructor.
 	 * 
@@ -58,16 +57,6 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 		this.definingClass = Objects.requireNonNull(definingClass, "definingClass cannot be null");
 		this.formals = Objects.requireNonNull(formals, "formals cannot be null");
 		Stream.of(formals).forEach(formal -> Objects.requireNonNull(formal, "formals cannot hold null"));
-	}
-
-	/**
-	 * Builds the signature of a method or constructor.
-	 * 
-	 * @param definingClass the name of the class of the method or constructor
-	 * @param formals the formal arguments of the method or constructor
-	 */
-	public AbstractCodeSignature(String definingClass, StorageType... formals) {
-		this(StorageTypes.classNamed(definingClass), formals);
 	}
 
 	@Override

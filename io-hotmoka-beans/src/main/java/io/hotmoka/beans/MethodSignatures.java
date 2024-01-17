@@ -17,12 +17,16 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.gson.MethodSignatureDecoder;
+import io.hotmoka.beans.internal.gson.MethodSignatureEncoder;
+import io.hotmoka.beans.internal.gson.MethodSignatureJson;
 import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
 import io.hotmoka.beans.internal.signatures.NonVoidMethodSignatureImpl;
 import io.hotmoka.beans.internal.signatures.VoidMethodSignatureImpl;
@@ -58,7 +62,33 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static NonVoidMethodSignature of(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals);
+		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
+	}
+
+	/**
+	 * Yields the signature of a method, that returns a value.
+	 * 
+	 * @param definingClass the class of the method
+	 * @param methodName the name of the method
+	 * @param returnType the type of the returned value
+	 * @param formals the formal arguments of the method
+	 * @return the signature of the method
+	 */
+	public static NonVoidMethodSignature of(ClassType definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
+		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals.toArray(StorageType[]::new));
+	}
+
+	/**
+	 * Yields the signature of a method, that returns a value.
+	 * 
+	 * @param definingClass the name of the class of the method
+	 * @param methodName the name of the method
+	 * @param returnType the type of the returned value
+	 * @param formals the formal arguments of the method
+	 * @return the signature of the method
+	 */
+	public static NonVoidMethodSignature of(String definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
+		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals.toArray(StorageType[]::new));
 	}
 
 	/**
@@ -82,7 +112,31 @@ public abstract class MethodSignatures {
 	 * @return the signature of the method
 	 */
 	public static VoidMethodSignature ofVoid(String definingClass, String methodName, StorageType... formals) {
-		return new VoidMethodSignatureImpl(definingClass, methodName, formals);
+		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, formals);
+	}
+
+	/**
+	 * Yields the signature of a method, that returns no value.
+	 * 
+	 * @param definingClass the class of the method
+	 * @param methodName the name of the method
+	 * @param formals the formal arguments of the method
+	 * @return the signature of the method
+	 */
+	public static VoidMethodSignature ofVoid(ClassType definingClass, String methodName, Stream<StorageType> formals) {
+		return new VoidMethodSignatureImpl(definingClass, methodName, formals.toArray(StorageType[]::new));
+	}
+
+	/**
+	 * Yields the signature of a method, that returns no value.
+	 * 
+	 * @param definingClass the name of the class of the method
+	 * @param methodName the name of the method
+	 * @param formals the formal arguments of the method
+	 * @return the signature of the method
+	 */
+	public static VoidMethodSignature ofVoid(String definingClass, String methodName, Stream<StorageType> formals) {
+		return new VoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, formals.toArray(StorageType[]::new));
 	}
 
 	/**
@@ -97,6 +151,43 @@ public abstract class MethodSignatures {
 	}
 
 	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends MethodSignatureEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends MethodSignatureDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends MethodSignatureJson {
+
+    	/**
+    	 * Creates the Json representation for the given method signature.
+    	 * 
+    	 * @param method the method signature
+    	 */
+    	public Json(MethodSignature method) {
+    		super(method);
+    	}
+    }
+
+    /**
 	 * The method {@code balance} of a contract.
 	 */
 	public final static NonVoidMethodSignature BALANCE = AbstractMethodSignature.BALANCE;

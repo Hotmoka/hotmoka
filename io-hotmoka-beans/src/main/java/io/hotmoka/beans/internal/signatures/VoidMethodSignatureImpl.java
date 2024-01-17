@@ -19,7 +19,6 @@ package io.hotmoka.beans.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
@@ -40,17 +39,6 @@ public final class VoidMethodSignatureImpl extends AbstractMethodSignature imple
 	 */
 	public VoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, methodName, formals);
-	}
-
-	/**
-	 * Builds the signature of a method, that returns no value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param formals the formal arguments of the method
-	 */
-	public VoidMethodSignatureImpl(String definingClass, String methodName, StorageType... formals) {
-		this(StorageTypes.classNamed(definingClass), methodName, formals);
 	}
 
 	@Override

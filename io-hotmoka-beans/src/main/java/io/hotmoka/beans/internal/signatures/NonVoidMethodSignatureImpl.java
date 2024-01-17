@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
@@ -49,18 +48,6 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
 		super(definingClass, methodName, formals);
 
 		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null");
-	}
-
-	/**
-	 * Builds the signature of a method, that returns a value.
-	 * 
-	 * @param definingClass the name of the class of the method
-	 * @param methodName the name of the method
-	 * @param returnType the type of the returned value
-	 * @param formals the formal arguments of the method
-	 */
-	public NonVoidMethodSignatureImpl(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
-		this(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
 	}
 
 	@Override

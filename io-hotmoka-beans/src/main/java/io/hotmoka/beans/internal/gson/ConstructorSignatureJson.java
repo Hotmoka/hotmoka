@@ -38,6 +38,6 @@ public abstract class ConstructorSignatureJson implements JsonRepresentation<Con
 
 	@Override
 	public ConstructorSignature unmap() {
-		return ConstructorSignatures.of(StorageTypes.classNamed(definingClass), Stream.of(formals).map(StorageTypes::named).toArray(StorageType[]::new));
+		return ConstructorSignatures.of(StorageTypes.classNamed(definingClass), Stream.of(formals).map(StorageTypes::named));
 	}
 }

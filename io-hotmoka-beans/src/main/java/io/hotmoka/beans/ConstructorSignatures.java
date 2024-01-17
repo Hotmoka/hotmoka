@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
@@ -53,7 +54,29 @@ public abstract class ConstructorSignatures {
 	 * @return the signature of the constructor
 	 */
 	public static ConstructorSignature of(String definingClass, StorageType... formals) {
-		return new ConstructorSignatureImpl(definingClass, formals);
+		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass), formals);
+	}
+
+	/**
+	 * Yields the signature of a constructor.
+	 * 
+	 * @param definingClass the class defining the constructor
+	 * @param formals the formal arguments of the constructor
+	 * @return the signature of the constructor
+	 */
+	public static ConstructorSignature of(ClassType definingClass, Stream<StorageType> formals) {
+		return new ConstructorSignatureImpl(definingClass, formals.toArray(StorageType[]::new));
+	}
+
+	/**
+	 * Yields the signature of a constructor.
+	 * 
+	 * @param definingClass the name of the class defining the constructor
+	 * @param formals the formal arguments of the constructor
+	 * @return the signature of the constructor
+	 */
+	public static ConstructorSignature of(String definingClass, Stream<StorageType> formals) {
+		return new ConstructorSignatureImpl(StorageTypes.classNamed(definingClass), formals.toArray(StorageType[]::new));
 	}
 
 	/**

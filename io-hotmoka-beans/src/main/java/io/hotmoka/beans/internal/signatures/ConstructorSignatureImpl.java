@@ -43,16 +43,6 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 		super(definingClass, formals);
 	}
 
-	/**
-	 * Builds the signature of a constructor.
-	 * 
-	 * @param definingClass the name of the class of the constructor
-	 * @param formals the formal arguments of the constructor
-	 */
-	public ConstructorSignatureImpl(String definingClass, StorageType... formals) {
-		super(definingClass, formals);
-	}
-
 	@Override
 	public String toString() {
 		return getDefiningClass() + commaSeparatedFormals();
@@ -93,5 +83,5 @@ public final class ConstructorSignatureImpl extends AbstractCodeSignature implem
 	/**
 	 * The constructor of an externally owned account with a big integer amount.
 	 */
-	public final static ConstructorSignatureImpl EOA_CONSTRUCTOR = new ConstructorSignatureImpl(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
+	public final static ConstructorSignature EOA_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 }

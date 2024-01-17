@@ -21,6 +21,7 @@ import java.io.OutputStream;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
@@ -40,123 +41,123 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 	/**
 	 * The field that holds the balance in contracts.
 	 */
-	public final static FieldSignatureImpl BALANCE_FIELD = new FieldSignatureImpl(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature BALANCE_FIELD = FieldSignatures.of(StorageTypes.CONTRACT, "balance", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the red balance in contracts.
 	 */
-	public final static FieldSignatureImpl RED_BALANCE_FIELD = new FieldSignatureImpl(StorageTypes.CONTRACT, "balanceRed", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature RED_BALANCE_FIELD = FieldSignatures.of(StorageTypes.CONTRACT, "balanceRed", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the nonce in externally owned accounts.
 	 */
-	public final static FieldSignatureImpl EOA_NONCE_FIELD = new FieldSignatureImpl(StorageTypes.EOA, "nonce", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature EOA_NONCE_FIELD = FieldSignatures.of(StorageTypes.EOA, "nonce", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the public key in externally owned accounts.
 	 */
-	public final static FieldSignatureImpl EOA_PUBLIC_KEY_FIELD = new FieldSignatureImpl(StorageTypes.EOA, "publicKey", StorageTypes.STRING);
+	public final static FieldSignature EOA_PUBLIC_KEY_FIELD = FieldSignatures.of(StorageTypes.EOA, "publicKey", StorageTypes.STRING);
 
 	/**
 	 * The field of the manifest that holds the contract of the validators of the node.
 	 */
-	public final static FieldSignatureImpl MANIFEST_VALIDATORS_FIELD = new FieldSignatureImpl(Constants.MANIFEST_NAME, "validators", StorageTypes.VALIDATORS);
+	public final static FieldSignature MANIFEST_VALIDATORS_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "validators", StorageTypes.VALIDATORS);
 
 	/**
 	 * The field of the manifest that holds the object that keeps track
 	 * of the versions of the modules of the node.
 	 */
-	public final static FieldSignatureImpl MANIFEST_VERSIONS_FIELD = new FieldSignatureImpl(Constants.MANIFEST_NAME, "versions", StorageTypes.VERSIONS);
+	public final static FieldSignature MANIFEST_VERSIONS_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "versions", StorageTypes.VERSIONS);
 
 	/**
 	 * The field of the manifest that holds the gas station.
 	 */
-	public final static FieldSignatureImpl MANIFEST_GAS_STATION_FIELD = new FieldSignatureImpl(StorageTypes.MANIFEST, "gasStation", StorageTypes.GAS_STATION);
+	public final static FieldSignature MANIFEST_GAS_STATION_FIELD = FieldSignatures.of(StorageTypes.MANIFEST, "gasStation", StorageTypes.GAS_STATION);
 
 	/**
 	 * The field of the manifest that holds the gamete account of the node.
 	 */
-	public final static FieldSignatureImpl MANIFEST_GAMETE_FIELD = new FieldSignatureImpl(Constants.MANIFEST_NAME, "gamete", StorageTypes.GAMETE);
+	public final static FieldSignature MANIFEST_GAMETE_FIELD = FieldSignatures.of(Constants.MANIFEST_NAME, "gamete", StorageTypes.GAMETE);
 
 	/**
 	 * The field that holds the creator of an event.
 	 */
-	public final static FieldSignatureImpl EVENT_CREATOR_FIELD = new FieldSignatureImpl(StorageTypes.EVENT, "creator", StorageTypes.CONTRACT);
+	public final static FieldSignature EVENT_CREATOR_FIELD = FieldSignatures.of(StorageTypes.EVENT, "creator", StorageTypes.CONTRACT);
 
 	/**
 	 * The field that holds the gas price inside a {@code io.takamaka.code.governance.GenericGasStation}.
 	 */
-	public final static FieldSignatureImpl GENERIC_GAS_STATION_GAS_PRICE_FIELD = new FieldSignatureImpl(StorageTypes.GENERIC_GAS_STATION, "gasPrice", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature GENERIC_GAS_STATION_GAS_PRICE_FIELD = FieldSignatures.of(StorageTypes.GENERIC_GAS_STATION, "gasPrice", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the current supply inside a {@code io.takamaka.code.governance.AbstractValidators}.
 	 */
-	public final static FieldSignatureImpl ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD = new FieldSignatureImpl(StorageTypes.ABSTRACT_VALIDATORS, "currentSupply", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD = FieldSignatures.of(StorageTypes.ABSTRACT_VALIDATORS, "currentSupply", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the gas price inside a {@code io.takamaka.code.math.UnsignedBigInteger.value}.
 	 */
-	public final static FieldSignatureImpl UNSIGNED_BIG_INTEGER_VALUE_FIELD = new FieldSignatureImpl(StorageTypes.UNSIGNED_BIG_INTEGER, "value", StorageTypes.BIG_INTEGER);
+	public final static FieldSignature UNSIGNED_BIG_INTEGER_VALUE_FIELD = FieldSignatures.of(StorageTypes.UNSIGNED_BIG_INTEGER, "value", StorageTypes.BIG_INTEGER);
 
 	/**
 	 * The field that holds the root of a {@code io.takamaka.code.util.StorageTreeMap}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_ROOT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP, "root", StorageTypes.STORAGE_TREE_MAP_NODE);
+	public final static FieldSignature STORAGE_TREE_MAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP, "root", StorageTypes.STORAGE_TREE_MAP_NODE);
 
 	/**
 	 * The field that holds the root of a {@code io.takamaka.code.util.StorageIntTreeMap}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_ROOT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP, "root", StorageTypes.STORAGE_TREE_INTMAP_NODE);
+	public final static FieldSignature STORAGE_TREE_INTMAP_ROOT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP, "root", StorageTypes.STORAGE_TREE_INTMAP_NODE);
 
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_NODE_SIZE_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP_NODE, "size", StorageTypes.INT);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_SIZE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "size", StorageTypes.INT);
 
 	/**
 	 * The field that holds the size of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_NODE_SIZE_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", StorageTypes.INT);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_SIZE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "size", StorageTypes.INT);
 
 	/**
 	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_NODE_VALUE_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP_NODE, "value", StorageTypes.OBJECT);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "value", StorageTypes.OBJECT);
 
 	/**
 	 * The field that holds the left child of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_NODE_LEFT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP_NODE, "left", StorageTypes.STORAGE_TREE_INTMAP_NODE);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_LEFT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "left", StorageTypes.STORAGE_TREE_INTMAP_NODE);
 
 	/**
 	 * The field that holds the right child of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP_NODE, "right", StorageTypes.STORAGE_TREE_INTMAP_NODE);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_RIGHT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "right", StorageTypes.STORAGE_TREE_INTMAP_NODE);
 
 	/**
 	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_INTMAP_NODE_KEY_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_INTMAP_NODE, "key", StorageTypes.INT);
+	public final static FieldSignature STORAGE_TREE_INTMAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_INTMAP_NODE, "key", StorageTypes.INT);
 
 	/**
 	 * The field that holds the left tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_NODE_LEFT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP_NODE, "left", StorageTypes.STORAGE_TREE_MAP_NODE);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_LEFT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "left", StorageTypes.STORAGE_TREE_MAP_NODE);
 
 	/**
 	 * The field that holds the right tree of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_NODE_RIGHT_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP_NODE, "right", StorageTypes.STORAGE_TREE_MAP_NODE);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_RIGHT_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "right", StorageTypes.STORAGE_TREE_MAP_NODE);
 
 	/**
 	 * The field that holds the key of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_NODE_KEY_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP_NODE, "key", StorageTypes.OBJECT);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_KEY_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "key", StorageTypes.OBJECT);
 
 	/**
 	 * The field that holds the value of a {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
-	public final static FieldSignatureImpl STORAGE_TREE_MAP_NODE_VALUE_FIELD = new FieldSignatureImpl(StorageTypes.STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
+	public final static FieldSignature STORAGE_TREE_MAP_NODE_VALUE_FIELD = FieldSignatures.of(StorageTypes.STORAGE_TREE_MAP_NODE, "value", StorageTypes.OBJECT);
 
 	/**
 	 * The class of the field.
