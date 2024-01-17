@@ -31,6 +31,7 @@ import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 
+import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -126,7 +127,7 @@ class NetworkFromNode extends HotmokaTest {
 			result = service.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
 		}
 
-		assertEquals(node.getTakamakaCode().getHash(), result.hash);
+		assertEquals(Hex.toHexString(node.getTakamakaCode().getHash()), result.hash);
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")

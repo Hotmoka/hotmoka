@@ -125,6 +125,6 @@ public class AccountImpl extends AbstractAccount<StorageReference> implements Ac
 
 	@Override
 	public byte[] getReferenceAsBytes() {
-		return reference.getTransaction().getHashAsBytes();
+		return reference.getTransaction().getHash();
 	}
 }

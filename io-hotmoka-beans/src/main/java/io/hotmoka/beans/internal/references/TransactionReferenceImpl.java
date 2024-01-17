@@ -18,12 +18,12 @@ package io.hotmoka.beans.internal.references;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.util.Arrays;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -37,7 +37,7 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	/**
 	 * The hash of the request that generated the transaction.
 	 */
-	private final String hash;
+	private final byte[] hash;
 
 	/**
 	 * Builds a transaction reference.
@@ -45,15 +45,16 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param hash the hash of the transaction, as the hexadecimal representation of its bytes
 	 */
 	public TransactionReferenceImpl(String hash) {
-		this.hash = Objects.requireNonNull(hash, "hash cannot be null").toLowerCase();
-
 		// each byte is represented by two successive characters
-		if (hash.length() != TransactionRequest.REQUEST_HASH_LENGTH * 2)
-			throw new IllegalArgumentException("Illegal transaction reference " + hash
-				+ ": it should hold a hash of " + TransactionRequest.REQUEST_HASH_LENGTH * 2 + " characters");
+		if (hash.length() != REQUEST_HASH_LENGTH * 2)
+			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
 
-		if (!hash.chars().allMatch(c -> (c >= '0' && c <='9') || (c >= 'a' && c <= 'f')))
-			throw new IllegalArgumentException("Illegal transaction reference " + hash + ": it must be a hexadecimal number");
+		try {
+			this.hash = Hex.fromHexString(hash);
+		}
+		catch (HexConversionException e) {
+			throw new IllegalArgumentException(e);
+		}
 	}
 
 	/**
@@ -62,7 +63,10 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	 * @param hash the hash of the transaction, as a byte array
 	 */
 	public TransactionReferenceImpl(byte[] hash) {
-		this(bytesToHex(hash));
+		if (hash.length != REQUEST_HASH_LENGTH)
+			throw new IllegalArgumentException("Illegal transaction reference: it should be " + REQUEST_HASH_LENGTH + " bytes long");
+
+		this.hash = hash.clone();
 	}
 
 	/**
@@ -77,61 +81,29 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	}
 
 	@Override
-	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
-	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	private static String bytesToHex(byte[] bytes) {
-	    var hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * The string of the hexadecimal digits.
-	 */
-	private final static String HEX_CHARS = "0123456789abcdef";
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = HEX_CHARS.getBytes();
-
-	@Override
 	public boolean equals(Object other) {
-		return other instanceof TransactionReferenceImpl ltr && ltr.getHash().equals(hash);
+		if (other instanceof TransactionReferenceImpl tri) // optimization
+			return Arrays.equals(tri.hash, hash);
+		else
+			return other instanceof TransactionReference tr && Arrays.equals(tr.getHash(), hash);
 	}
 
 	@Override
 	public int hashCode() {
-		return hash.hashCode();
+		return Arrays.hashCode(hash);
 	}
 
 	@Override
 	public String toString() {
-		return hash;
+		return Hex.toHexString(hash);
 	}
 
 	@Override
 	public int compareTo(TransactionReference other) {
-		return hash.compareTo(other.getHash());
-	}
-
-	@Override
-	public String getHash() {
-		return hash;
+		if (other instanceof TransactionReferenceImpl tri) // optimization
+			return Arrays.compare(hash, tri.hash);
+		else
+			return Arrays.compare(hash, other.getHash());
 	}
 
 	@Override
@@ -140,14 +112,12 @@ public final class TransactionReferenceImpl extends AbstractMarshallable impleme
 	}
 
 	@Override
-	public byte[] getHashAsBytes() {
-		var val = new byte[hash.length() / 2];
-		for (int i = 0; i < val.length; i++) {
-			int index = i * 2;
-			int j = Integer.parseInt(hash.substring(index, index + 2), 16);
-			val[i] = (byte) j;
-		}
+	public byte[] getHash() {
+		return hash.clone();
+	}
 
-		return val;
+	@Override
+	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
+		return new BeanMarshallingContext(os);
 	}
 }

@@ -22,6 +22,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -48,12 +49,8 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			return StorageValues.booleanOf(Boolean.parseBoolean(s));
 		else if (type == StorageTypes.BYTE)
 			return StorageValues.byteOf(Byte.parseByte(s));
-		else if (type == StorageTypes.CHAR) {
-			if (s.length() != 1)
-				throw new IllegalArgumentException("The value is not a character");
-			else
-				return StorageValues.charOf(s.charAt(0));
-		}
+		else if (type == StorageTypes.CHAR && s.length() == 1)
+			return StorageValues.charOf(s.charAt(0));
 		else if (type == StorageTypes.SHORT)
 			return StorageValues.shortOf(Short.parseShort(s));
 		else if (type == StorageTypes.INT)
@@ -64,21 +61,22 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 			return StorageValues.floatOf(Float.parseFloat(s));
 		else if (type == StorageTypes.DOUBLE)
 			return StorageValues.doubleOf(Double.parseDouble(s));
-		else if (StorageTypes.STRING.equals(type))
-			return StorageValues.stringOf(s);
+		else if ((type instanceof ClassType || type.equals(StorageTypes.BIG_INTEGER) || StorageTypes.STRING.equals(type)) && "null".equals(s))
+			return StorageValues.NULL;
 		else if (StorageTypes.BIG_INTEGER.equals(type))
 			return StorageValues.bigIntegerOf(new BigInteger(s));
-		else if ("null".equals(s))
-			return StorageValues.NULL;
-		else if (!s.contains("#")) {
-			int lastDot = s.lastIndexOf('.');
-			if (lastDot < 0)
-				throw new IllegalArgumentException("Cannot interpret value " + s);
-			else
-				return StorageValues.enumElementOf(s.substring(0, lastDot), s.substring(lastDot + 1));
-		}
-		else
-			return StorageValues.reference(s);
+		else if (StorageTypes.STRING.equals(type))
+			return StorageValues.stringOf(s);
+		else if (type instanceof ClassType)
+			if (s.contains("#"))
+				return StorageValues.reference(s);
+			else {
+				int lastDot = s.lastIndexOf('.');
+				if (lastDot > 0)
+					return StorageValues.enumElementOf(s.substring(0, lastDot), s.substring(lastDot + 1));
+			}
+
+		throw new IllegalArgumentException("Cannot transform " + s + " into a storage value");
 	}
 
 	/**

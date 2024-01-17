@@ -68,10 +68,9 @@ class GetResponse extends HotmokaTest {
 	void getResponseNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		try {
 			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
-			String hash = abstractfail.getTransaction().getHash();
-			// re replace the first digit: the resulting transaction reference does not exist
-			char digit = (hash.charAt(0) == '0') ? '1' : '0';
-			hash = digit + hash.substring(1);
+			byte[] hash = abstractfail.getTransaction().getHash();
+			// we modify the first byte: the resulting transaction reference does not exist
+			hash[0]++;
 			getResponse(TransactionReferences.of(hash));
 			fail("missing exception");
 		}

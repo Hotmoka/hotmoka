@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -41,7 +40,7 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 		// and provision for sharing would just make the size of the histories larger
 		context.writeCompactInt(transactions.length);
 		for (TransactionReference reference: transactions)
-			context.writeBytes(reference.getHashAsBytes());
+			context.writeBytes(reference.getHash());
 	}
 
 	/**
@@ -52,12 +51,9 @@ public class MarshallableArrayOfTransactionReferences extends AbstractMarshallab
 	 * @throws IOException if the array could not be unmarshalled
 	 */
 	static MarshallableArrayOfTransactionReferences from(UnmarshallingContext context) throws IOException {
-		int size = TransactionRequest.REQUEST_HASH_LENGTH;
-
 		// we do not share repeated transaction references, since they do not occur in histories
 		// and provision for sharing would just make the size of the histories larger
 		return new MarshallableArrayOfTransactionReferences(context.readLengthAndArray
-				(_context -> TransactionReferences.of(_context.readBytes(size, "Inconsistent length of transaction reference")),
-						TransactionReference[]::new));
+			(_context -> TransactionReferences.of(_context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Inconsistent length of transaction reference")), TransactionReference[]::new));
 	}
 }

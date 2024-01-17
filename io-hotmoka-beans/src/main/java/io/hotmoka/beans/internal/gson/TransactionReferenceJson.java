@@ -18,6 +18,8 @@ package io.hotmoka.beans.internal.gson;
 
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -27,11 +29,11 @@ public abstract class TransactionReferenceJson implements JsonRepresentation<Tra
 	private final String hash;
 
 	protected TransactionReferenceJson(TransactionReference reference) {
-		this.hash = reference.getHash();
+		this.hash = Hex.toHexString(reference.getHash());
 	}
 
 	@Override
-	public TransactionReference unmap() throws IllegalArgumentException {
-		return TransactionReferences.of(hash);
+	public TransactionReference unmap() throws IllegalArgumentException, HexConversionException {
+		return TransactionReferences.of(Hex.fromHexString(hash));
 	}
 }

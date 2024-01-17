@@ -54,7 +54,7 @@ public class TransactionReferenceMarshaller extends AbstractObjectMarshaller<Tra
 			memory.put(transaction, next);
 
 			context.writeByte(255);
-			context.writeBytes(transaction.getHashAsBytes());
+			context.writeBytes(transaction.getHash());
 		}
 	}
 }

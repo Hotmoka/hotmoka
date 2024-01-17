@@ -38,6 +38,7 @@ import com.google.gson.Gson;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
@@ -101,7 +102,7 @@ public class TendermintPoster {
 	 * @param hash the hash of the transaction to look for
 	 * @return the Hotmoka transaction request
 	 */
-	Optional<TransactionRequest<?>> getRequest(String hash) {
+	Optional<TransactionRequest<?>> getRequest(byte[] hash) {
 		try {
 			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
 			if (response.error != null)
@@ -118,7 +119,7 @@ public class TendermintPoster {
 			}
 		}
 		catch (IOException | InterruptedException | TimeoutException e) {
-			logger.log(Level.WARNING, "failed getting transaction at " + hash, e);
+			logger.log(Level.WARNING, "failed getting transaction at " + Hex.toHexString(hash), e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -130,7 +131,7 @@ public class TendermintPoster {
 	 * @return the error, if any. If the transaction didn't commit or committed successfully,
 	 *         the result is an empty optional
 	 */
-	Optional<String> getErrorMessage(String hash) {
+	Optional<String> getErrorMessage(byte[] hash) {
 		try {
 			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
 
@@ -150,7 +151,7 @@ public class TendermintPoster {
 			}
 		}
 		catch (InterruptedException | TimeoutException | IOException e) {
-			logger.log(Level.WARNING, "failed getting error message at " + hash, e);
+			logger.log(Level.WARNING, "failed getting error message at " + Hex.toHexString(hash), e);
 			throw new RuntimeException(e);
 		}
 	}
@@ -348,9 +349,9 @@ public class TendermintPoster {
 	 * @throws TimeoutException if writing the request failed after repeated trying for some time
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
-	private String tx(String hash) throws IOException, TimeoutException, InterruptedException {
+	private String tx(byte[] hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-			Base64.getEncoder().encodeToString(hexStringToByteArray(hash)) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
+			Base64.getEncoder().encodeToString(hash) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
 	
 		return postToTendermint(jsonTendermintRequest);
 	}
@@ -382,21 +383,6 @@ public class TendermintPoster {
 	private String status() throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"status\", \"id\": " + nextId.getAndIncrement() + "}";
 		return postToTendermint(jsonTendermintRequest);
-	}
-
-	/**
-	 * Transforms a hexadecimal string into a byte array.
-	 * 
-	 * @param s the string
-	 * @return the byte array
-	 */
-	private static byte[] hexStringToByteArray(String s) {
-	    int len = s.length();
-	    byte[] data = new byte[len / 2];
-	    for (int i = 0; i < len; i += 2)
-	        data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character.digit(s.charAt(i+1), 16));
-	
-	    return data;
 	}
 
 	/**

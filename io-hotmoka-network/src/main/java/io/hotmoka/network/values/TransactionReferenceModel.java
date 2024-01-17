@@ -18,16 +18,13 @@ package io.hotmoka.network.values;
 
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.HexConversionException;
 
 /**
  * The model of a transaction reference.
  */
 public class TransactionReferenceModel {
-
-	/**
-	 * The type of transaction.
-	 */
-	public String type;
 
 	/**
 	 * Used at least for local transactions.
@@ -40,12 +37,7 @@ public class TransactionReferenceModel {
      * @param reference the transaction reference to copy
      */
     public TransactionReferenceModel(TransactionReference reference) {
-    	if (reference instanceof TransactionReference) {
-    		this.type = "local";
-    		this.hash = reference.getHash();
-    	}
-    	else
-    		throw new RuntimeException("unexpected transaction reference of type " + reference.getClass().getName());
+    	this.hash = Hex.toHexString(reference.getHash());
     }
 
     public TransactionReferenceModel() {}
@@ -56,13 +48,11 @@ public class TransactionReferenceModel {
      * @return the transaction reference
      */
     public TransactionReference toBean() {
-    	if (type == null)
-    		throw new RuntimeException("unexpected null transaction reference type");
-
-    	switch (type) {
-    	case "local": return TransactionReferences.of(hash);
-    	default:
-    		throw new RuntimeException("unexpected transaction reference type " + type);
+    	try {
+    		return TransactionReferences.of(Hex.fromHexString(hash));
+    	}
+    	catch (HexConversionException e) {
+    		throw new IllegalArgumentException(e);
     	}
     }
 }

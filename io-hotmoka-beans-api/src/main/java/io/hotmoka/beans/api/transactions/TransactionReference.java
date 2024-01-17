@@ -28,16 +28,14 @@ import io.hotmoka.marshalling.api.Marshallable;
 public interface TransactionReference extends Marshallable, Serializable, Comparable<TransactionReference> {
 
 	/**
-	 * Yields the hash of the request that generated the transaction.
-	 * 
-	 * @return the hash
+	 * The length of the hash of a transaction reference.
 	 */
-	String getHash();
+	public final static int REQUEST_HASH_LENGTH = 32;
 
 	/**
-	 * Yields the hash of the request, as an array of bytes.
+	 * Yields the hash of the request.
 	 * 
 	 * @return the hash
 	 */
-	byte[] getHashAsBytes();
+	byte[] getHash();
 }

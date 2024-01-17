@@ -36,11 +36,6 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public abstract class TransactionRequest<R extends TransactionResponse> extends AbstractMarshallable {
 
 	/**
-	 * The length of the hash of a transaction request.
-	 */
-	public final static int REQUEST_HASH_LENGTH = 32;
-
-	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * 
 	 * @param context the unmarshalling context

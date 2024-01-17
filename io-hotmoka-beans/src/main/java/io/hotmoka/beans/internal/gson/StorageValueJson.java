@@ -34,6 +34,7 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**
@@ -94,7 +95,7 @@ public abstract class StorageValueJson implements JsonRepresentation<StorageValu
 	}
 
 	@Override
-	public StorageValue unmap() throws IllegalArgumentException {
+	public StorageValue unmap() throws IllegalArgumentException, HexConversionException {
 		if (bigIntegerValue != null)
 			return StorageValues.bigIntegerOf(bigIntegerValue);
 		else if (booleanValue != null)
