@@ -70,7 +70,6 @@ public interface SignedTransactionRequest {
 	 * Marshals this object into a byte array, without taking its signature into account.
 	 * 
 	 * @return the byte array resulting from marshalling this object
-	 * @throws IOException if this object cannot be marshalled
 	 */
 	default byte[] toByteArrayWithoutSignature() {
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {

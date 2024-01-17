@@ -29,6 +29,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 @Immutable
 public abstract class AbstractStorageType extends AbstractMarshallable implements StorageType {
 
+	@Override
+	public final String getName() {
+		return toString();
+	}
+
 	/**
 	 * Yields the storage type with the given name.
 	 * 

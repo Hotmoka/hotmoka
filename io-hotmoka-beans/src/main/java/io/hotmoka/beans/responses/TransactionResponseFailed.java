@@ -34,11 +34,15 @@ public interface TransactionResponseFailed {
 
 	/**
 	 * Yields the fully-qualified class name of the cause exception.
+	 * 
+	 * @return the fully-qualified class name of the cause exception
 	 */
 	String getClassNameOfCause();
 
 	/**
 	 * Yields the message of the cause exception.
+	 * 
+	 * @return the message of the cause exception
 	 */
 	String getMessageOfCause();
 }

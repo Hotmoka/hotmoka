@@ -170,137 +170,137 @@ public abstract class StorageTypes {
 	public final static ClassType BIG_INTEGER = ClassTypeImpl.BIG_INTEGER;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.math.UnsignedBigInteger}.
+	 * The frequently used class type for {@code io.takamaka.code.math.UnsignedBigInteger}.
 	 */
 	public final static ClassType UNSIGNED_BIG_INTEGER = ClassTypeImpl.UNSIGNED_BIG_INTEGER;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.tokens.ERC20}.
+	 * The frequently used class type for {@code io.takamaka.code.tokens.ERC20}.
 	 */
 	public final static ClassType ERC20 = ClassTypeImpl.ERC20;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.GasPriceUpdate}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.GasPriceUpdate}.
 	 */
 	public final static ClassType GAS_PRICE_UPDATE = ClassTypeImpl.GAS_PRICE_UPDATE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccount}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ExternallyOwnedAccount}.
 	 */
 	public final static ClassType EOA = ClassTypeImpl.EOA;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ExternallyOwnedAccountED25519}.
 	 */
 	public final static ClassType EOA_ED25519 = ClassTypeImpl.EOA_ED25519;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountEHA256DSA}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ExternallyOwnedAccountEHA256DSA}.
 	 */
 	public final static ClassType EOA_SHA256DSA = ClassTypeImpl.EOA_SHA256DSA;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ExternallyOwnedAccountQTESLA1}.
 	 */
 	public final static ClassType EOA_QTESLA1 = ClassTypeImpl.EOA_QTESLA1;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ExternallyOwnedAccountQTESLA3}.
 	 */
 	public final static ClassType EOA_QTESLA3 = ClassTypeImpl.EOA_QTESLA3;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Contract}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Contract}.
 	 */
 	public final static ClassType CONTRACT = ClassTypeImpl.CONTRACT;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Gamete}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Gamete}.
 	 */
 	public final static ClassType GAMETE = ClassTypeImpl.GAMETE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Account}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Account}.
 	 */
 	public final static ClassType ACCOUNT = ClassTypeImpl.ACCOUNT;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Accounts}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Accounts}.
 	 */
 	public final static ClassType ACCOUNTS = ClassTypeImpl.ACCOUNTS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.tokens.IERC20}.
+	 * The frequently used class type for {@code io.takamaka.code.tokens.IERC20}.
 	 */
 	public final static ClassType IERC20 = ClassTypeImpl.IERC20;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.Manifest}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.Manifest}.
 	 */
 	public final static ClassType MANIFEST = ClassTypeImpl.MANIFEST;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.Validator}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.Validator}.
 	 */
 	public final static ClassType VALIDATOR = ClassTypeImpl.VALIDATOR;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.Validators}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.Validators}.
 	 */
 	public final static ClassType VALIDATORS = ClassTypeImpl.VALIDATORS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.AbstractValidators}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.AbstractValidators}.
 	 */
 	public final static ClassType ABSTRACT_VALIDATORS = ClassTypeImpl.ABSTRACT_VALIDATORS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.Versions}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.Versions}.
 	 */
 	public final static ClassType VERSIONS = ClassTypeImpl.VERSIONS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.AccountsLedger}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.AccountsLedger}.
 	 */
 	public final static ClassType ACCOUNTS_LEDGER = ClassTypeImpl.ACCOUNTS_LEDGER;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.GasStation}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.GasStation}.
 	 */
 	public final static ClassType GAS_STATION = ClassTypeImpl.GAS_STATION;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.GenericGasStation}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.GenericGasStation}.
 	 */
 	public final static ClassType GENERIC_GAS_STATION = ClassTypeImpl.GENERIC_GAS_STATION;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintValidators}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.tendermint.TendermintValidators}.
 	 */
 	public final static ClassType TENDERMINT_VALIDATORS = ClassTypeImpl.TENDERMINT_VALIDATORS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.tendermint.TendermintED25519Validator}.
 	 */
 	public final static ClassType TENDERMINT_ED25519_VALIDATOR = ClassTypeImpl.TENDERMINT_ED25519_VALIDATOR;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Storage}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Storage}.
 	 */
 	public final static ClassType STORAGE = ClassTypeImpl.STORAGE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Takamaka}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Takamaka}.
 	 */
 	public final static ClassType TAKAMAKA = ClassTypeImpl.TAKAMAKA;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Event}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Event}.
 	 */
 	public final static ClassType EVENT = ClassTypeImpl.EVENT;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.PayableContract}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.PayableContract}.
 	 */
 	public final static ClassType PAYABLE_CONTRACT = ClassTypeImpl.PAYABLE_CONTRACT;
 
@@ -310,132 +310,132 @@ public abstract class StorageTypes {
 	public final static ClassType FROM_CONTRACT = ClassTypeImpl.FROM_CONTRACT;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.View}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.View}.
 	 */
 	public final static ClassType VIEW = ClassTypeImpl.VIEW;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.Payable}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.Payable}.
 	 */
 	public final static ClassType PAYABLE = ClassTypeImpl.PAYABLE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.lang.ThrowsExceptions}.
+	 * The frequently used class type for {@code io.takamaka.code.lang.ThrowsExceptions}.
 	 */
 	public final static ClassType THROWS_EXCEPTIONS = ClassTypeImpl.THROWS_EXCEPTIONS;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32}.
+	 * The frequently used class type for {@code io.takamaka.code.util.Bytes32}.
 	 */
 	public final static ClassType BYTES32 = ClassTypeImpl.BYTES32;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.Bytes32Snapshot}.
+	 * The frequently used class type for {@code io.takamaka.code.util.Bytes32Snapshot}.
 	 */
 	public final static ClassType BYTES32_SNAPSHOT = ClassTypeImpl.BYTES32_SNAPSHOT;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageArray}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageArray}.
 	 */
 	public final static ClassType STORAGE_ARRAY = ClassTypeImpl.STORAGE_ARRAY;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageListView}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageListView}.
 	 */
 	public final static ClassType STORAGE_LIST_VIEW = ClassTypeImpl.STORAGE_LIST_VIEW;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageLinkedList}.
 	 */
 	public final static ClassType STORAGE_LINKED_LIST = ClassTypeImpl.STORAGE_LINKED_LIST;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageMapView}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageMapView}.
 	 */
 	public final static ClassType STORAGE_MAP_VIEW = ClassTypeImpl.STORAGE_MAP_VIEW;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP = ClassTypeImpl.STORAGE_TREE_MAP;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeArray}.
 	 */
 	public final static ClassType STORAGE_TREE_ARRAY = ClassTypeImpl.STORAGE_TREE_ARRAY;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeArray.Node}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeArray.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_ARRAY_NODE = ClassTypeImpl.STORAGE_TREE_ARRAY_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeIntMap}.
 	 */
 	public final static ClassType STORAGE_TREE_INTMAP = ClassTypeImpl.STORAGE_TREE_INTMAP;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeSet}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeSet}.
 	 */
 	public final static ClassType STORAGE_TREE_SET = ClassTypeImpl.STORAGE_TREE_SET;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.BlackNode}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap.BlackNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_BLACK_NODE = ClassTypeImpl.STORAGE_TREE_MAP_BLACK_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.RedNode}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap.RedNode}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_RED_NODE = ClassTypeImpl.STORAGE_TREE_MAP_RED_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageSetView}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageSetView}.
 	 */
 	public final static ClassType STORAGE_SET_VIEW = ClassTypeImpl.STORAGE_SET_VIEW;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageMap}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageMap}.
 	 */
 	public final static ClassType STORAGE_MAP = ClassTypeImpl.STORAGE_MAP;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageLinkedList.Node}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageLinkedList.Node}.
 	 */
 	public final static ClassType STORAGE_LINKED_LIST_NODE = ClassTypeImpl.STORAGE_LINKED_LIST_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeMap.Node}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_MAP_NODE = ClassTypeImpl.STORAGE_TREE_MAP_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.util.StorageTreeIntMap.Node}.
+	 * The frequently used class type for {@code io.takamaka.code.util.StorageTreeIntMap.Node}.
 	 */
 	public final static ClassType STORAGE_TREE_INTMAP_NODE = ClassTypeImpl.STORAGE_TREE_INTMAP_NODE;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.governance.GenericValidators}.
+	 * The frequently used class type for {@code io.takamaka.code.governance.GenericValidators}.
 	 */
 	public final static ClassType GENERIC_VALIDATORS = ClassTypeImpl.GENERIC_VALIDATORS;
 	
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.dao.Poll}.
+	 * The frequently used class type for {@code io.takamaka.code.dao.Poll}.
 	 */
 	public final static ClassType POLL = ClassTypeImpl.POLL;
 	
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity}.
+	 * The frequently used class type for {@code io.takamaka.code.dao.SharedEntity}.
 	 */
 	public static final ClassType SHARED_ENTITY = ClassTypeImpl.SHARED_ENTITY;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntity.Offer}.
+	 * The frequently used class type for {@code io.takamaka.code.dao.SharedEntity.Offer}.
 	 */
 	public static final ClassType SHARED_ENTITY_OFFER =  ClassTypeImpl.SHARED_ENTITY_OFFER;
 
 	/**
-	 * The frequently used class type for {@link io.takamaka.code.dao.SharedEntityView}.
+	 * The frequently used class type for {@code io.takamaka.code.dao.SharedEntityView}.
 	 */
 	public static final ClassType SHARED_ENTITY_VIEW =  ClassTypeImpl.SHARED_ENTITY_VIEW;
 }

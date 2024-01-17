@@ -65,6 +65,11 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 		return super.toString() + "\n" + toStringMethod();
 	}
 
+	/**
+	 * Yields a string description of the method called by this request.
+	 * 
+	 * @return the description
+	 */
 	protected final String toStringMethod() {
 		if (actuals().count() == 0L)
 			return "  method: " + method;

@@ -34,7 +34,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * A response for a successful transaction that calls a method in blockchain.
- * The method is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
+ * The method is annotated as {@code io.takamaka.code.lang.ThrowsExceptions}.
  * It has been called without problems but it threw an instance of {@link java.lang.Exception}.
  */
 @Immutable

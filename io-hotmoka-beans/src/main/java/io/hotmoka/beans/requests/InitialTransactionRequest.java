@@ -21,7 +21,14 @@ import io.hotmoka.beans.responses.InitialTransactionResponse;
 
 /**
  * A request for a transaction that can only be executed before the initialization of a node.
+ * 
+ * @param <R> the type of the corresponding response
  */
 @Immutable
 public abstract class InitialTransactionRequest<R extends InitialTransactionResponse> extends TransactionRequest<R> {
+
+	/**
+	 * Creates the request.
+	 */
+	protected InitialTransactionRequest() {}
 }

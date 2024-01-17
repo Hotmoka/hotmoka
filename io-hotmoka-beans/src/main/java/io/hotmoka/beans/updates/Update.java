@@ -100,6 +100,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * or they are both updates to the same field signature.
 	 * 
 	 * @param other the other update
+	 * @return true if and only if that condition holds
 	 */
 	public abstract boolean sameProperty(Update other);
 

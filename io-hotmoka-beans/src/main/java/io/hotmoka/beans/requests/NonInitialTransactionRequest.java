@@ -26,6 +26,11 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
+/**
+ * A request for a transaction that can only be run after the node has been initialized.
+ *
+ * @param <R> the type of the corresponding response
+ */
 @Immutable
 public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> extends TransactionRequest<R> {
 

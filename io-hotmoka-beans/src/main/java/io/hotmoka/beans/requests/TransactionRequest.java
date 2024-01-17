@@ -36,6 +36,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public abstract class TransactionRequest<R extends TransactionResponse> extends AbstractMarshallable {
 
 	/**
+	 * Creates the request.
+	 */
+	protected TransactionRequest() {}
+
+	/**
 	 * Factory method that unmarshals a request from the given stream.
 	 * 
 	 * @param context the unmarshalling context

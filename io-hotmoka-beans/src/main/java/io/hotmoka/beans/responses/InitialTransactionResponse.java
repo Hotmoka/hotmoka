@@ -23,4 +23,9 @@ import io.hotmoka.annotations.Immutable;
  */
 @Immutable
 public abstract class InitialTransactionResponse extends TransactionResponse {
+
+	/**
+	 * Creates the request.
+	 */
+	protected InitialTransactionResponse() {}
 }

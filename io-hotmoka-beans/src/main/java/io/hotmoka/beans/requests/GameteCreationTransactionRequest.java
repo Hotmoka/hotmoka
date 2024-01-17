@@ -116,7 +116,7 @@ public class GameteCreationTransactionRequest extends InitialTransactionRequest<
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the request
-	 * @throws IOException 
+	 * @throws IOException if the unmarshalling failed
 	 */
 	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var classpath = TransactionReferences.from(context);

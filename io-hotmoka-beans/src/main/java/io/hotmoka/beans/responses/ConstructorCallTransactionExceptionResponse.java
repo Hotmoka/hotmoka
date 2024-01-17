@@ -33,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
  * A response for a successful transaction that calls a constructor of a storage
- * class in blockchain. The constructor is annotated as {@link io.takamaka.code.lang.ThrowsExceptions}.
+ * class in blockchain. The constructor is annotated as {@code io.takamaka.code.lang.ThrowsExceptions}.
  * It has been called without problems but it threw an instance of {@link java.lang.Exception}.
  */
 @Immutable

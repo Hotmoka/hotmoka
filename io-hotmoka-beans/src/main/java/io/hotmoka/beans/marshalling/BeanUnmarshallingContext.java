@@ -29,6 +29,12 @@ import io.hotmoka.marshalling.AbstractUnmarshallingContext;
  */
 public class BeanUnmarshallingContext extends AbstractUnmarshallingContext {
 
+	/**
+	 * Creates the context.
+	 * 
+	 * @param is the stream from which bytes get unmarshalled
+	 * @throws IOException if the context cannot be created
+	 */
 	public BeanUnmarshallingContext(InputStream is) throws IOException {
 		super(is);
 

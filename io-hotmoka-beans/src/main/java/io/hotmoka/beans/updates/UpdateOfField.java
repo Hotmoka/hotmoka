@@ -103,6 +103,12 @@ public abstract class UpdateOfField extends Update {
 		field.into(context);
 	}
 
+	/**
+	 * Marshals this object into the given context, without the field information.
+	 * 
+	 * @param context the context
+	 * @throws IOException if marshalling fails
+	 */
 	protected final void intoWithoutField(MarshallingContext context) throws IOException {
 		super.into(context);
 	}

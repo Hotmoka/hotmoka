@@ -54,6 +54,7 @@ public class JarStoreInitialTransactionResponse extends InitialTransactionRespon
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
 	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
 	 */
 	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
 		this.instrumentedJar = instrumentedJar.clone();

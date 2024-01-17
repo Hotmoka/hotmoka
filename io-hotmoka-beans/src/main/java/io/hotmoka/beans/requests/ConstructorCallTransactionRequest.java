@@ -66,6 +66,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param signer the signer of the request
 	 * @param caller the externally owned caller contract that pays for the transaction
 	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier of the network where the request will be sent
 	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed

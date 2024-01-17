@@ -26,6 +26,13 @@ import io.hotmoka.marshalling.api.Marshallable;
 public interface StorageType extends Marshallable, Comparable<StorageType> {
 
 	/**
+	 * Yields the fully-qualified name of this type.
+	 * 
+	 * @return the fully-qualified name
+	 */
+	String getName();
+
+	/**
 	 * Compares this storage type with another. Puts first basic types, by name,
 	 * then class types ordered wrt class name.
 	 * 

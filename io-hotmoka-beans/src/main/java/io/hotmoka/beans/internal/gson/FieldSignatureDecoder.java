@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines the API of the beans exchanged among Hotmoka nodes.
- */
-module io.hotmoka.beans.api {
-	exports io.hotmoka.beans.api.nodes;
-	exports io.hotmoka.beans.api.signatures;
-	exports io.hotmoka.beans.api.transactions;
-	exports io.hotmoka.beans.api.types;
-	exports io.hotmoka.beans.api.values;
+package io.hotmoka.beans.internal.gson;
 
-	requires transitive io.hotmoka.marshalling.api;
-	requires io.hotmoka.crypto.api;
-	requires io.hotmoka.annotations;
+import io.hotmoka.beans.FieldSignatures;
+import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.websockets.beans.MappedDecoder;
+
+/**
+ * A decoder for {@link FieldSignature}.
+ */
+public class FieldSignatureDecoder extends MappedDecoder<FieldSignature, FieldSignatures.Json> {
+
+	public FieldSignatureDecoder() {
+		super(FieldSignatures.Json.class);
+	}
 }

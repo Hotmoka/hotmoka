@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-beans</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements the beans exchanged among Hotmoka nodes.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

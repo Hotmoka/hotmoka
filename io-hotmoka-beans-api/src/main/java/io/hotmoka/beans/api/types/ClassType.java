@@ -23,11 +23,4 @@ import io.hotmoka.annotations.Immutable;
  */
 @Immutable
 public interface ClassType extends StorageType {
-
-	/**
-	 * Yields the fully-qualified name of this class.
-	 * 
-	 * @return the fully-qualified name
-	 */
-	String getName();
 }

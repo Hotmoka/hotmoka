@@ -57,6 +57,7 @@ public class JarStoreTransactionSuccessfulResponse extends JarStoreNonInitialTra
 	 * 
 	 * @param instrumentedJar the bytes of the jar to install, instrumented
 	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation

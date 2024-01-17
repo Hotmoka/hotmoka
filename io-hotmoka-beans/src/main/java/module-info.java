@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements the beans exchanged among Hotmoka nodes.
+ */
 module io.hotmoka.beans {
 	exports io.hotmoka.beans.marshalling;
 	exports io.hotmoka.beans.requests;

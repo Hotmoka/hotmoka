@@ -21,6 +21,9 @@ import java.io.IOException;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.internal.gson.FieldSignatureDecoder;
+import io.hotmoka.beans.internal.gson.FieldSignatureEncoder;
+import io.hotmoka.beans.internal.gson.FieldSignatureJson;
 import io.hotmoka.beans.internal.signatures.FieldSignatureImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -67,6 +70,43 @@ public abstract class FieldSignatures {
 	}
 
 	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends FieldSignatureEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends FieldSignatureDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends FieldSignatureJson {
+
+    	/**
+    	 * Creates the Json representation for the given field signature.
+    	 * 
+    	 * @param field the field signature
+    	 */
+    	public Json(FieldSignature field) {
+    		super(field);
+    	}
+    }
+
+    /**
 	 * The field that holds the balance in contracts.
 	 */
 	public final static FieldSignature BALANCE_FIELD = FieldSignatureImpl.BALANCE_FIELD;

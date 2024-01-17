@@ -29,6 +29,12 @@ import io.hotmoka.marshalling.AbstractMarshallingContext;
  */
 public class BeanMarshallingContext extends AbstractMarshallingContext {
 
+	/**
+	 * Creates the context.
+	 * 
+	 * @param oos the stream where bytes are marshalled.
+	 * @throws IOException if the context cannot be created
+	 */
 	public BeanMarshallingContext(OutputStream oos) throws IOException {
 		super(oos);
 		

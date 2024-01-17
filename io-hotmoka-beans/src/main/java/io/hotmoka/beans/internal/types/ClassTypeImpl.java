@@ -33,6 +33,285 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public final class ClassTypeImpl extends AbstractStorageType implements ClassType {
 
 	/**
+	 * The name of the class type.
+	 */
+	private final String name;
+
+	/**
+	 * Builds a class type that can be used for storage objects in blockchain.
+	 * 
+	 * @param name the name of the class
+	 */
+	private ClassTypeImpl(String name) {
+		if ("boolean".equals(name) || "byte".equals(name) || "char".equals(name) || "short".equals(name) ||
+				"int".equals(name) || "long".equals(name) || "float".equals(name) || "double".equals(name))
+			throw new IllegalArgumentException("Refusing to create a class type whose name is that of a basic type: " + name);
+
+		if ("void".equals(name))
+			throw new IllegalArgumentException("Refusing to create a class type named void");
+
+		this.name = Objects.requireNonNull(name, "name cannot be null");
+	}
+
+	/**
+	 * Yields the class type for a class with the given name.
+	 * 
+	 * @param className the name of the class
+	 * @return the class type
+	 */
+	public static ClassType named(String className) {
+		switch (className) {
+		case "java.math.BigInteger": return BIG_INTEGER;
+		case "java.lang.Object": return OBJECT;
+		case "java.lang.String": return STRING;
+		case Constants.UNSIGNED_BIG_INTEGER_NAME: return UNSIGNED_BIG_INTEGER;
+		case Constants.ERC20_NAME: return ERC20;
+		case Constants.GAS_PRICE_UPDATE_NAME: return GAS_PRICE_UPDATE;
+		case Constants.EOA_NAME: return EOA;
+		case Constants.EOA_ED25519_NAME: return EOA_ED25519;
+		case Constants.EOA_SHA256DSA_NAME: return EOA_SHA256DSA;
+		case Constants.EOA_QTESLA1_NAME: return EOA_QTESLA1;
+		case Constants.EOA_QTESLA3_NAME: return EOA_QTESLA3;
+		case Constants.CONTRACT_NAME: return CONTRACT;
+		case Constants.GAMETE_NAME: return GAMETE;
+		case Constants.ACCOUNT_NAME: return ACCOUNT;
+		case Constants.ACCOUNTS_NAME: return ACCOUNTS;
+		case Constants.IERC20_NAME: return IERC20;
+		case Constants.MANIFEST_NAME: return MANIFEST;
+		case Constants.VALIDATOR_NAME: return VALIDATOR;
+		case Constants.VALIDATORS_NAME: return VALIDATORS;
+		case Constants.ABSTRACT_VALIDATORS_NAME: return ABSTRACT_VALIDATORS;
+		case Constants.VERSIONS_NAME: return VERSIONS;
+		case Constants.ACCOUNTS_LEDGER_NAME: return ACCOUNTS_LEDGER;
+		case Constants.GAS_STATION_NAME: return GAS_STATION;
+		case Constants.GENERIC_GAS_STATION_NAME: return GENERIC_GAS_STATION;
+		case Constants.TENDERMINT_VALIDATORS_NAME: return TENDERMINT_VALIDATORS;
+		case Constants.TENDERMINT_ED25519_VALIDATOR_NAME: return TENDERMINT_ED25519_VALIDATOR;
+		case Constants.STORAGE_NAME: return STORAGE;
+		case Constants.TAKAMAKA_NAME: return TAKAMAKA;
+		case Constants.EVENT_NAME: return EVENT;
+		case Constants.PAYABLE_CONTRACT_NAME: return PAYABLE_CONTRACT;
+		case Constants.FROM_CONTRACT_NAME: return FROM_CONTRACT;
+		case Constants.VIEW_NAME: return VIEW;
+		case Constants.PAYABLE_NAME: return PAYABLE;
+		case Constants.THROWS_EXCEPTIONS_NAME: return THROWS_EXCEPTIONS;
+		case "io.takamaka.code.util.Bytes32": return BYTES32;
+		case "io.takamaka.code.util.Bytes32Snapshot": return BYTES32_SNAPSHOT;
+		case Constants.STORAGE_ARRAY_NAME: return STORAGE_ARRAY;
+		case Constants.STORAGE_LIST_VIEW_NAME: return STORAGE_LIST_VIEW;
+		case Constants.STORAGE_LINKED_LIST_NAME: return STORAGE_LINKED_LIST;
+		case Constants.STORAGE_MAP_VIEW_NAME: return STORAGE_MAP_VIEW;
+		case Constants.STORAGE_TREE_MAP_NAME: return STORAGE_TREE_MAP;
+		case Constants.STORAGE_TREE_ARRAY_NAME: return STORAGE_TREE_ARRAY;
+		case Constants.STORAGE_TREE_ARRAY_NODE_NAME: return STORAGE_TREE_ARRAY_NODE;
+		case Constants.STORAGE_TREE_INTMAP_NAME: return STORAGE_TREE_INTMAP;
+		case Constants.STORAGE_TREE_SET_NAME: return STORAGE_TREE_SET;
+		case Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME: return STORAGE_TREE_MAP_BLACK_NODE;
+		case Constants.STORAGE_TREE_MAP_RED_NODE_NAME: return STORAGE_TREE_MAP_RED_NODE;
+		case Constants.STORAGE_SET_VIEW_NAME: return STORAGE_SET_VIEW;
+		case Constants.STORAGE_MAP_NAME: return STORAGE_MAP;
+		case Constants.STORAGE_LINKED_LIST_NODE_NAME: return STORAGE_LINKED_LIST_NODE;
+		case Constants.STORAGE_TREE_MAP_NODE_NAME: return STORAGE_TREE_MAP_NODE;
+		case Constants.STORAGE_TREE_INTMAP_NODE_NAME: return STORAGE_TREE_INTMAP_NODE;
+		case Constants.GENERIC_VALIDATORS_NAME: return GENERIC_VALIDATORS;
+		case Constants.POLL_NAME: return POLL;
+		case Constants.SHARED_ENTITY_NAME: return SHARED_ENTITY;
+		case Constants.SHARED_ENTITY_OFFER_NAME: return SHARED_ENTITY_OFFER;
+		default: return new ClassTypeImpl(className);
+		}
+	}
+
+	/**
+	 * Yields the class type with the given selector, unmarshalled from the given context.
+	 * 
+	 * @param selector the selector, already unmarshalled from the context
+	 * @param context the unmarshalling context
+	 * @return the class type, if any; this is {@code null} if the selector is illegal
+     */
+	static ClassType withSelector(byte selector, UnmarshallingContext context) throws IOException {
+		switch (selector) {
+		case SELECTOR:
+			return named(context.readStringShared());
+		case SELECTOR_BIGINTEGER:
+			return BIG_INTEGER;
+		case SELECTOR_ERC20:
+			return ERC20;
+		case SELECTOR_IERC20:
+			return IERC20;
+		case SELECTOR_STRING:
+			return STRING;
+		case SELECTOR_ACCOUNT:
+			return ACCOUNT;
+		case SELECTOR_CONTRACT:
+			return CONTRACT;
+		case SELECTOR_OBJECT:
+			return OBJECT;
+		case SELECTOR_STORAGE:
+			return STORAGE;
+		case SELECTOR_MANIFEST:
+			return MANIFEST;
+		case SELECTOR_GAS_STATION:
+			return GAS_STATION;
+		case SELECTOR_PAYABLE_CONTRACT:
+			return PAYABLE_CONTRACT;
+		case SELECTOR_STORAGE_LIST:
+			return STORAGE_LIST_VIEW;
+		case SELECTOR_STORAGE_MAP_VIEW:
+			return STORAGE_MAP_VIEW;
+		case SELECTOR_STORAGE_TREE_ARRAY:
+			return STORAGE_TREE_ARRAY;
+		case SELECTOR_STORAGE_TREE_ARRAY_NODE:
+			return STORAGE_TREE_ARRAY_NODE;
+		case SELECTOR_STORAGE_TREE_INTMAP_NODE:
+			return STORAGE_TREE_INTMAP_NODE;
+		case SELECTOR_STORAGE_TREE_SET:
+			return STORAGE_TREE_SET;
+		case SELECTOR_STORAGE_TREE_MAP:
+			return STORAGE_TREE_MAP;
+		case SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
+			return STORAGE_TREE_MAP_BLACK_NODE;
+		case SELECTOR_STORAGE_TREE_MAP_RED_NODE:
+			return STORAGE_TREE_MAP_RED_NODE;
+		case SELECTOR_STORAGE_LINKED_LIST_NODE:
+			return STORAGE_LINKED_LIST_NODE;
+		case SELECTOR_STORAGE_TREE_MAP_NODE:
+			return STORAGE_TREE_MAP_NODE;
+		case SELECTOR_EOA:
+			return EOA;
+		case SELECTOR_UNSIGNED_BIG_INTEGER:
+			return UNSIGNED_BIG_INTEGER;
+		case SELECTOR_GAS_PRICE_UPDATE:
+			return GAS_PRICE_UPDATE;
+		case SELECTOR_GENERIC_GAS_STATION:
+			return GENERIC_GAS_STATION;
+		case SELECTOR_EVENT:
+			return EVENT;
+		case SELECTOR_IO_TAKAMAKA_CODE:
+			return named(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared());
+		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_LANG:
+			return named(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared());
+		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
+			return named(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
+		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
+			return named(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
+		default:
+			return null;
+		}
+	}
+
+	@Override
+	public String toString() {
+		return name;
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof ClassTypeImpl ct && ct.name.equals(name);
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public int compareTo(StorageType other) {
+		if (other instanceof ClassType ct)
+			return name.compareTo(ct.getName());
+		else // other instanceof BasicTypeImpl
+			return 1;
+	}
+
+	@Override
+	public void into(MarshallingContext context) throws IOException {
+		if (equals(BIG_INTEGER))
+			context.writeByte(SELECTOR_BIGINTEGER);
+		else if (equals(UNSIGNED_BIG_INTEGER))
+			context.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
+		else if (equals(GAS_PRICE_UPDATE))
+			context.writeByte(SELECTOR_GAS_PRICE_UPDATE);
+		else if (equals(ERC20))
+			context.writeByte(SELECTOR_ERC20);
+		else if (equals(IERC20))
+			context.writeByte(SELECTOR_IERC20);
+		else if (equals(STRING))
+			context.writeByte(SELECTOR_STRING);
+		else if (equals(ACCOUNT))
+			context.writeByte(SELECTOR_ACCOUNT);
+		else if (equals(MANIFEST))
+			context.writeByte(SELECTOR_MANIFEST);
+		else if (equals(GAS_STATION))
+			context.writeByte(SELECTOR_GAS_STATION);
+		else if (equals(STORAGE_TREE_ARRAY))
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
+		else if (equals(STORAGE_TREE_ARRAY_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
+		else if (equals(OBJECT))
+			context.writeByte(SELECTOR_OBJECT);
+		else if (equals(CONTRACT))
+			context.writeByte(SELECTOR_CONTRACT);
+		else if (equals(STORAGE))
+			context.writeByte(SELECTOR_STORAGE);
+		else if (equals(PAYABLE_CONTRACT))
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (equals(STORAGE_MAP_VIEW))
+			context.writeByte(SELECTOR_STORAGE_MAP_VIEW);
+		else if (equals(STORAGE_TREE_MAP))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP);
+		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
+		else if (equals(STORAGE_TREE_MAP_RED_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
+		else if (equals(STORAGE_TREE_INTMAP_NODE))
+			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
+		else if (equals(STORAGE_TREE_SET))
+			context.writeByte(SELECTOR_STORAGE_TREE_SET);
+		else if (equals(STORAGE_LIST_VIEW))
+			context.writeByte(SELECTOR_STORAGE_LIST);
+		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))
+			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
+		else if (name.equals(Constants.STORAGE_LINKED_LIST_NODE_NAME))
+			context.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
+		else if (equals(PAYABLE_CONTRACT))
+			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
+		else if (equals(EOA))
+			context.writeByte(SELECTOR_EOA);
+		else if (equals(GENERIC_GAS_STATION))
+			context.writeByte(SELECTOR_GENERIC_GAS_STATION);
+		else if (equals(EVENT))
+			context.writeByte(SELECTOR_EVENT);
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
+			// we drop the initial io.takamaka.code.lang. portion of the package name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
+			// we drop the initial io.takamaka.code.util. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
+			// we drop the initial io.takamaka.code.tokens. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length()));
+		}
+		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
+			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
+			// we drop the initial io.takamaka.code. portion of the name
+			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
+		}
+		else {
+			context.writeByte(SELECTOR);
+			context.writeStringShared(name);
+		}
+	}
+
+	@Override
+	public boolean isEager() {
+		return equals(BIG_INTEGER) || equals(STRING);
+	}
+
+	/**
 	 * The frequently used class type for {@link java.lang.Object}.
 	 */
 	public final static ClassType OBJECT = new ClassTypeImpl(Object.class.getName());
@@ -349,281 +628,4 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 	private final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE = 38;
 	private final static byte SELECTOR_STORAGE_TREE_SET = 39;
 	private final static byte SELECTOR_GAS_STATION = 40;
-
-	/**
-	 * The name of the class type.
-	 */
-	private final String name;
-
-	/**
-	 * Builds a class type that can be used for storage objects in blockchain.
-	 * 
-	 * @param name the name of the class
-	 */
-	private ClassTypeImpl(String name) {
-		this.name = Objects.requireNonNull(name, "name cannot be null");
-	}
-
-	/**
-	 * Yields the class type for a class with the given name.
-	 * 
-	 * @param className the name of the class
-	 * @return the class type
-	 */
-	public static ClassType named(String className) {
-		switch (className) {
-		case "java.math.BigInteger": return BIG_INTEGER;
-		case "java.lang.Object": return OBJECT;
-		case "java.lang.String": return STRING;
-		case Constants.UNSIGNED_BIG_INTEGER_NAME: return UNSIGNED_BIG_INTEGER;
-		case Constants.ERC20_NAME: return ERC20;
-		case Constants.GAS_PRICE_UPDATE_NAME: return GAS_PRICE_UPDATE;
-		case Constants.EOA_NAME: return EOA;
-		case Constants.EOA_ED25519_NAME: return EOA_ED25519;
-		case Constants.EOA_SHA256DSA_NAME: return EOA_SHA256DSA;
-		case Constants.EOA_QTESLA1_NAME: return EOA_QTESLA1;
-		case Constants.EOA_QTESLA3_NAME: return EOA_QTESLA3;
-		case Constants.CONTRACT_NAME: return CONTRACT;
-		case Constants.GAMETE_NAME: return GAMETE;
-		case Constants.ACCOUNT_NAME: return ACCOUNT;
-		case Constants.ACCOUNTS_NAME: return ACCOUNTS;
-		case Constants.IERC20_NAME: return IERC20;
-		case Constants.MANIFEST_NAME: return MANIFEST;
-		case Constants.VALIDATOR_NAME: return VALIDATOR;
-		case Constants.VALIDATORS_NAME: return VALIDATORS;
-		case Constants.ABSTRACT_VALIDATORS_NAME: return ABSTRACT_VALIDATORS;
-		case Constants.VERSIONS_NAME: return VERSIONS;
-		case Constants.ACCOUNTS_LEDGER_NAME: return ACCOUNTS_LEDGER;
-		case Constants.GAS_STATION_NAME: return GAS_STATION;
-		case Constants.GENERIC_GAS_STATION_NAME: return GENERIC_GAS_STATION;
-		case Constants.TENDERMINT_VALIDATORS_NAME: return TENDERMINT_VALIDATORS;
-		case Constants.TENDERMINT_ED25519_VALIDATOR_NAME: return TENDERMINT_ED25519_VALIDATOR;
-		case Constants.STORAGE_NAME: return STORAGE;
-		case Constants.TAKAMAKA_NAME: return TAKAMAKA;
-		case Constants.EVENT_NAME: return EVENT;
-		case Constants.PAYABLE_CONTRACT_NAME: return PAYABLE_CONTRACT;
-		case Constants.FROM_CONTRACT_NAME: return FROM_CONTRACT;
-		case Constants.VIEW_NAME: return VIEW;
-		case Constants.PAYABLE_NAME: return PAYABLE;
-		case Constants.THROWS_EXCEPTIONS_NAME: return THROWS_EXCEPTIONS;
-		case "io.takamaka.code.util.Bytes32": return BYTES32;
-		case "io.takamaka.code.util.Bytes32Snapshot": return BYTES32_SNAPSHOT;
-		case Constants.STORAGE_ARRAY_NAME: return STORAGE_ARRAY;
-		case Constants.STORAGE_LIST_VIEW_NAME: return STORAGE_LIST_VIEW;
-		case Constants.STORAGE_LINKED_LIST_NAME: return STORAGE_LINKED_LIST;
-		case Constants.STORAGE_MAP_VIEW_NAME: return STORAGE_MAP_VIEW;
-		case Constants.STORAGE_TREE_MAP_NAME: return STORAGE_TREE_MAP;
-		case Constants.STORAGE_TREE_ARRAY_NAME: return STORAGE_TREE_ARRAY;
-		case Constants.STORAGE_TREE_ARRAY_NODE_NAME: return STORAGE_TREE_ARRAY_NODE;
-		case Constants.STORAGE_TREE_INTMAP_NAME: return STORAGE_TREE_INTMAP;
-		case Constants.STORAGE_TREE_SET_NAME: return STORAGE_TREE_SET;
-		case Constants.STORAGE_TREE_MAP_BLACK_NODE_NAME: return STORAGE_TREE_MAP_BLACK_NODE;
-		case Constants.STORAGE_TREE_MAP_RED_NODE_NAME: return STORAGE_TREE_MAP_RED_NODE;
-		case Constants.STORAGE_SET_VIEW_NAME: return STORAGE_SET_VIEW;
-		case Constants.STORAGE_MAP_NAME: return STORAGE_MAP;
-		case Constants.STORAGE_LINKED_LIST_NODE_NAME: return STORAGE_LINKED_LIST_NODE;
-		case Constants.STORAGE_TREE_MAP_NODE_NAME: return STORAGE_TREE_MAP_NODE;
-		case Constants.STORAGE_TREE_INTMAP_NODE_NAME: return STORAGE_TREE_INTMAP_NODE;
-		case Constants.GENERIC_VALIDATORS_NAME: return GENERIC_VALIDATORS;
-		case Constants.POLL_NAME: return POLL;
-		case Constants.SHARED_ENTITY_NAME: return SHARED_ENTITY;
-		case Constants.SHARED_ENTITY_OFFER_NAME: return SHARED_ENTITY_OFFER;
-		default: return new ClassTypeImpl(className);
-		}
-	}
-
-	/**
-	 * Yields the class type with the given selector, unmarshalled from the given context.
-	 * 
-	 * @param selector the selector, already unmarshalled from the context
-	 * @param context the unmarshalling context
-	 * @return the class type, if any; this is {@code null} if the selector is illegal
-     */
-	static ClassType withSelector(byte selector, UnmarshallingContext context) throws IOException {
-		switch (selector) {
-		case SELECTOR:
-			return named(context.readStringShared());
-		case SELECTOR_BIGINTEGER:
-			return BIG_INTEGER;
-		case SELECTOR_ERC20:
-			return ERC20;
-		case SELECTOR_IERC20:
-			return IERC20;
-		case SELECTOR_STRING:
-			return STRING;
-		case SELECTOR_ACCOUNT:
-			return ACCOUNT;
-		case SELECTOR_CONTRACT:
-			return CONTRACT;
-		case SELECTOR_OBJECT:
-			return OBJECT;
-		case SELECTOR_STORAGE:
-			return STORAGE;
-		case SELECTOR_MANIFEST:
-			return MANIFEST;
-		case SELECTOR_GAS_STATION:
-			return GAS_STATION;
-		case SELECTOR_PAYABLE_CONTRACT:
-			return PAYABLE_CONTRACT;
-		case SELECTOR_STORAGE_LIST:
-			return STORAGE_LIST_VIEW;
-		case SELECTOR_STORAGE_MAP_VIEW:
-			return STORAGE_MAP_VIEW;
-		case SELECTOR_STORAGE_TREE_ARRAY:
-			return STORAGE_TREE_ARRAY;
-		case SELECTOR_STORAGE_TREE_ARRAY_NODE:
-			return STORAGE_TREE_ARRAY_NODE;
-		case SELECTOR_STORAGE_TREE_INTMAP_NODE:
-			return STORAGE_TREE_INTMAP_NODE;
-		case SELECTOR_STORAGE_TREE_SET:
-			return STORAGE_TREE_SET;
-		case SELECTOR_STORAGE_TREE_MAP:
-			return STORAGE_TREE_MAP;
-		case SELECTOR_STORAGE_TREE_MAP_BLACK_NODE:
-			return STORAGE_TREE_MAP_BLACK_NODE;
-		case SELECTOR_STORAGE_TREE_MAP_RED_NODE:
-			return STORAGE_TREE_MAP_RED_NODE;
-		case SELECTOR_STORAGE_LINKED_LIST_NODE:
-			return STORAGE_LINKED_LIST_NODE;
-		case SELECTOR_STORAGE_TREE_MAP_NODE:
-			return STORAGE_TREE_MAP_NODE;
-		case SELECTOR_EOA:
-			return EOA;
-		case SELECTOR_UNSIGNED_BIG_INTEGER:
-			return UNSIGNED_BIG_INTEGER;
-		case SELECTOR_GAS_PRICE_UPDATE:
-			return GAS_PRICE_UPDATE;
-		case SELECTOR_GENERIC_GAS_STATION:
-			return GENERIC_GAS_STATION;
-		case SELECTOR_EVENT:
-			return EVENT;
-		case SELECTOR_IO_TAKAMAKA_CODE:
-			return named(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_LANG:
-			return named(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_UTIL:
-			return named(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME + context.readStringShared());
-		case ClassTypeImpl.SELECTOR_IO_TAKAMAKA_CODE_TOKENS:
-			return named(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME + context.readStringShared());
-		default:
-			return null;
-		}
-	}
-
-	@Override
-	public String getName() {
-		return name;
-	}
-
-	@Override
-	public String toString() {
-		return name;
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		return other instanceof ClassTypeImpl ct && ct.name.equals(name);
-	}
-
-	@Override
-	public int hashCode() {
-		return name.hashCode();
-	}
-
-	@Override
-	public int compareTo(StorageType other) {
-		if (other instanceof ClassType ct)
-			return name.compareTo(ct.getName());
-		else // other instanceof BasicTypeImpl
-			return 1;
-	}
-
-	@Override
-	public void into(MarshallingContext context) throws IOException {
-		if (equals(BIG_INTEGER))
-			context.writeByte(SELECTOR_BIGINTEGER);
-		else if (equals(UNSIGNED_BIG_INTEGER))
-			context.writeByte(SELECTOR_UNSIGNED_BIG_INTEGER);
-		else if (equals(GAS_PRICE_UPDATE))
-			context.writeByte(SELECTOR_GAS_PRICE_UPDATE);
-		else if (equals(ERC20))
-			context.writeByte(SELECTOR_ERC20);
-		else if (equals(IERC20))
-			context.writeByte(SELECTOR_IERC20);
-		else if (equals(STRING))
-			context.writeByte(SELECTOR_STRING);
-		else if (equals(ACCOUNT))
-			context.writeByte(SELECTOR_ACCOUNT);
-		else if (equals(MANIFEST))
-			context.writeByte(SELECTOR_MANIFEST);
-		else if (equals(GAS_STATION))
-			context.writeByte(SELECTOR_GAS_STATION);
-		else if (equals(STORAGE_TREE_ARRAY))
-			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY);
-		else if (equals(STORAGE_TREE_ARRAY_NODE))
-			context.writeByte(SELECTOR_STORAGE_TREE_ARRAY_NODE);
-		else if (equals(OBJECT))
-			context.writeByte(SELECTOR_OBJECT);
-		else if (equals(CONTRACT))
-			context.writeByte(SELECTOR_CONTRACT);
-		else if (equals(STORAGE))
-			context.writeByte(SELECTOR_STORAGE);
-		else if (equals(PAYABLE_CONTRACT))
-			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (equals(STORAGE_MAP_VIEW))
-			context.writeByte(SELECTOR_STORAGE_MAP_VIEW);
-		else if (equals(STORAGE_TREE_MAP))
-			context.writeByte(SELECTOR_STORAGE_TREE_MAP);
-		else if (equals(STORAGE_TREE_MAP_BLACK_NODE))
-			context.writeByte(SELECTOR_STORAGE_TREE_MAP_BLACK_NODE);
-		else if (equals(STORAGE_TREE_MAP_RED_NODE))
-			context.writeByte(SELECTOR_STORAGE_TREE_MAP_RED_NODE);
-		else if (equals(STORAGE_TREE_INTMAP_NODE))
-			context.writeByte(SELECTOR_STORAGE_TREE_INTMAP_NODE);
-		else if (equals(STORAGE_TREE_SET))
-			context.writeByte(SELECTOR_STORAGE_TREE_SET);
-		else if (equals(STORAGE_LIST_VIEW))
-			context.writeByte(SELECTOR_STORAGE_LIST);
-		else if (name.equals(Constants.STORAGE_TREE_MAP_NODE_NAME))
-			context.writeByte(SELECTOR_STORAGE_TREE_MAP_NODE);
-		else if (name.equals(Constants.STORAGE_LINKED_LIST_NODE_NAME))
-			context.writeByte(SELECTOR_STORAGE_LINKED_LIST_NODE);
-		else if (equals(PAYABLE_CONTRACT))
-			context.writeByte(SELECTOR_PAYABLE_CONTRACT);
-		else if (equals(EOA))
-			context.writeByte(SELECTOR_EOA);
-		else if (equals(GENERIC_GAS_STATION))
-			context.writeByte(SELECTOR_GENERIC_GAS_STATION);
-		else if (equals(EVENT))
-			context.writeByte(SELECTOR_EVENT);
-		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME)) {
-			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_LANG);
-			// we drop the initial io.takamaka.code.lang. portion of the package name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_LANG_PACKAGE_NAME.length()));
-		}
-		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME)) {
-			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_UTIL);
-			// we drop the initial io.takamaka.code.util. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_UTIL_PACKAGE_NAME.length()));
-		}
-		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME)) {
-			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE_TOKENS);
-			// we drop the initial io.takamaka.code.tokens. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_TOKENS_PACKAGE_NAME.length()));
-		}
-		else if (name.startsWith(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME)) {
-			context.writeByte(SELECTOR_IO_TAKAMAKA_CODE);
-			// we drop the initial io.takamaka.code. portion of the name
-			context.writeStringShared(name.substring(Constants.IO_TAKAMAKA_CODE_PACKAGE_NAME.length()));
-		}
-		else {
-			context.writeByte(SELECTOR);
-			context.writeStringShared(name);
-		}
-	}
-
-	@Override
-	public boolean isEager() {
-		return equals(BIG_INTEGER) || equals(STRING);
-	}
 }

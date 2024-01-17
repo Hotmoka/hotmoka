@@ -35,13 +35,28 @@ import java.math.BigInteger;
  */
 public enum Coin {
 
+	/** The panarea coin */
 	PANAREA,
+
+	/** The alicudi coin */
 	ALICUDI,
+
+	/** The filicudi coin */
 	FILICUDI,
+
+	/** The stromboli coin */
 	STROMBOLI,
+
+	/** The vulcano coin */
 	VULCANO,
+
+	/** The salina coin */
 	SALINA,
+
+	/** The lipari coin */
 	LIPARI,
+
+	/** The moka coin */
 	MOKA;
 
 	/**

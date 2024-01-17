@@ -30,6 +30,11 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
+/**
+ * A request for executing a constructor or a method.
+ * 
+ * @param <R> the type of the corresponding response
+ */
 @Immutable
 public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequest<R> {
 
