@@ -36,16 +36,9 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.updates.UpdateOfChar;
-import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfFloat;
-import io.hotmoka.beans.updates.UpdateOfInt;
-import io.hotmoka.beans.updates.UpdateOfLong;
-import io.hotmoka.beans.updates.UpdateOfShort;
 import io.hotmoka.beans.updates.UpdateOfStorage;
-import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.network.signatures.FieldSignatureModel;
@@ -140,7 +133,7 @@ public class UpdateModel {
 			else if (value instanceof BigIntegerValue biv)
 				return Updates.ofBigInteger(object, field, biv.getValue());
 			else if (value instanceof StringValue sv)
-				return new UpdateOfString(object, field, sv.getValue());
+				return Updates.ofString(object, field, sv.getValue());
 			else if (value instanceof StorageReference sr)
 				return new UpdateOfStorage(object, field, sr);
 			else if (value instanceof BooleanValue bv)
@@ -148,17 +141,17 @@ public class UpdateModel {
 			else if (value instanceof ByteValue bv)
 				return Updates.ofByte(object, field, bv.getValue());
 			else if (value instanceof CharValue cv)
-				return new UpdateOfChar(object, field, cv.getValue());
+				return Updates.ofChar(object, field, cv.getValue());
 			else if (value instanceof DoubleValue dv)
-				return new UpdateOfDouble(object, field, dv.getValue());
+				return Updates.ofDouble(object, field, dv.getValue());
 			else if (value instanceof FloatValue fv)
-				return new UpdateOfFloat(object, field, fv.getValue());
+				return Updates.ofFloat(object, field, fv.getValue());
 			else if (value instanceof IntValue iv)
-				return new UpdateOfInt(object, field, iv.getValue());
+				return Updates.ofInt(object, field, iv.getValue());
 			else if (value instanceof LongValue lv)
-				return new UpdateOfLong(object, field, lv.getValue());
+				return Updates.ofLong(object, field, lv.getValue());
 			else if (value instanceof ShortValue sv)
-				return new UpdateOfShort(object, field, sv.getValue());
+				return Updates.ofShort(object, field, sv.getValue());
 			else
 				throw new RuntimeException("Unexpected update value of class " + value.getClass().getName());
 		}

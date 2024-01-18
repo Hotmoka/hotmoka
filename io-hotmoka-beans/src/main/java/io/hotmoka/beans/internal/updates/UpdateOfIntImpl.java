@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -23,29 +23,27 @@ import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfInt;
+import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that an integer field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code int}.
  */
 @Immutable
-public final class UpdateOfInt extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 20;
-	public final static byte SELECTOR_SMALL = 21;
-	public final static byte SELECTOR_VERY_SMALL = 22;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
+public final class UpdateOfIntImpl extends UpdateOfFieldImpl implements UpdateOfInt {
+	final static byte SELECTOR = 20;
+	final static byte SELECTOR_SMALL = 21;
+	final static byte SELECTOR_VERY_SMALL = 22;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final int value;
+	private final int value;
 
 	/**
 	 * Builds an update of an {@code int} field.
@@ -54,20 +52,20 @@ public final class UpdateOfInt extends UpdateOfFieldImpl {
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfInt(StorageReference object, FieldSignature field, int value) {
+	public UpdateOfIntImpl(StorageReference object, FieldSignature field, int value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public IntValue getValue() {
 		return StorageValues.intOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfInt uoi && super.equals(other) && uoi.value == value;
+		return other instanceof UpdateOfInt uoi && super.equals(other) && uoi.getValue().getValue() == value;
 	}
 
 	@Override
@@ -81,7 +79,7 @@ public final class UpdateOfInt extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Integer.compare(value, ((UpdateOfInt) other).value);
+			return Integer.compare(value, ((UpdateOfIntImpl) other).value);
 	}
 
 	@Override

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -22,51 +22,49 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfDouble;
+import io.hotmoka.beans.api.values.DoubleValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that a character field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code double}.
  */
 @Immutable
-public final class UpdateOfChar extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 6;
+public final class UpdateOfDoubleImpl extends UpdateOfFieldImpl implements UpdateOfDouble {
+	final static byte SELECTOR = 7;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final char value;
+	private final double value;
 
 	/**
-	 * Builds an update of an {@code char} field.
+	 * Builds an update of a {@code double} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfChar(StorageReference object, FieldSignature field, char value) {
+	public UpdateOfDoubleImpl(StorageReference object, FieldSignature field, double value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
-		return StorageValues.charOf(value);
+	public DoubleValue getValue() {
+		return StorageValues.doubleOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfChar uoc && super.equals(other) && uoc.value == value;
+		return other instanceof UpdateOfDouble uod && super.equals(other) && uod.getValue().getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ value;
+		return super.hashCode() ^ Double.hashCode(value);
 	}
 
 	@Override
@@ -75,13 +73,13 @@ public final class UpdateOfChar extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Character.compare(value, ((UpdateOfChar) other).value);
+			return Double.compare(value, ((UpdateOfDoubleImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeChar(value);
+		context.writeDouble(value);
 	}
 }

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -22,51 +22,49 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfLong;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that a float field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code long}.
  */
 @Immutable
-public final class UpdateOfFloat extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 10;
+public final class UpdateOfLongImpl extends UpdateOfFieldImpl implements UpdateOfLong {
+	final static byte SELECTOR = 11;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final float value;
+	private final long value;
 
 	/**
-	 * Builds an update of an {@code float} field.
+	 * Builds an update of an {@code long} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfFloat(StorageReference object, FieldSignature field, float value) {
+	public UpdateOfLongImpl(StorageReference object, FieldSignature field, long value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
-		return StorageValues.floatOf(value);
+	public LongValue getValue() {
+		return StorageValues.longOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfFloat uof && super.equals(other) && uof.value == value;
+		return other instanceof UpdateOfLong uol && super.equals(other) && uol.getValue().getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Float.hashCode(value);
+		return super.hashCode() ^ Long.hashCode(value);
 	}
 
 	@Override
@@ -75,13 +73,13 @@ public final class UpdateOfFloat extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Float.compare(value, ((UpdateOfFloat) other).value);
+			return Long.compare(value, ((UpdateOfLongImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeFloat(value);
+		context.writeLong(value);
 	}
 }

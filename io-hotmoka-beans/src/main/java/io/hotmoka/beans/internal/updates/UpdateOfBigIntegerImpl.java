@@ -90,7 +90,7 @@ public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements U
 
 	@Override
 	public boolean isEager() {
-		// a lazy BigInteger could be stored into a lazy Object or Serializable or Comparable or Number field
+		// a lazy BigInteger could also be stored into a lazy Object or Serializable or Comparable or Number field
 		return field.getType().equals(StorageTypes.BIG_INTEGER);
 	}
 

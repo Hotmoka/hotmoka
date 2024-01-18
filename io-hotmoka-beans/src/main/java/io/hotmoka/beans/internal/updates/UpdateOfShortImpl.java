@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -22,51 +22,49 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfShort;
+import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that a long field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code short}.
  */
 @Immutable
-public final class UpdateOfLong extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 11;
+public final class UpdateOfShortImpl extends UpdateOfFieldImpl implements UpdateOfShort {
+	final static byte SELECTOR = 15;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final long value;
+	private final short value;
 
 	/**
-	 * Builds an update of an {@code long} field.
+	 * Builds an update of an {@code short} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfLong(StorageReference object, FieldSignature field, long value) {
+	public UpdateOfShortImpl(StorageReference object, FieldSignature field, short value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
-		return StorageValues.longOf(value);
+	public ShortValue getValue() {
+		return StorageValues.shortOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfLong uol && super.equals(other) && uol.value == value;
+		return other instanceof UpdateOfShort uos && super.equals(other) && uos.getValue().getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Long.hashCode(value);
+		return super.hashCode() ^ value;
 	}
 
 	@Override
@@ -75,13 +73,13 @@ public final class UpdateOfLong extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Long.compare(value, ((UpdateOfLong) other).value);
+			return Short.compare(value, ((UpdateOfShortImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeLong(value);
+		context.writeShort(value);
 	}
 }

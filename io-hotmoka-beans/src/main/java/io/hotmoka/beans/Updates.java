@@ -28,6 +28,13 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.api.updates.UpdateOfBoolean;
 import io.hotmoka.beans.api.updates.UpdateOfByte;
+import io.hotmoka.beans.api.updates.UpdateOfChar;
+import io.hotmoka.beans.api.updates.UpdateOfDouble;
+import io.hotmoka.beans.api.updates.UpdateOfFloat;
+import io.hotmoka.beans.api.updates.UpdateOfInt;
+import io.hotmoka.beans.api.updates.UpdateOfLong;
+import io.hotmoka.beans.api.updates.UpdateOfShort;
+import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
@@ -37,6 +44,13 @@ import io.hotmoka.beans.internal.updates.ClassTagImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfBigIntegerImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfBooleanImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfByteImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfCharImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfDoubleImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfFloatImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfIntImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfLongImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfShortImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfStringImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -71,7 +85,7 @@ public abstract class Updates {
 	}
 
 	/**
-	 * Yields an update of a {@link boolean} field.
+	 * Yields an update of a {@code boolean} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -83,7 +97,7 @@ public abstract class Updates {
 	}
 
 	/**
-	 * Yields an update of a {@link byte} field.
+	 * Yields an update of a {@code byte} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
@@ -92,6 +106,90 @@ public abstract class Updates {
 	 */
 	public static UpdateOfByte ofByte(StorageReference object, FieldSignature field, byte value) {
 		return new UpdateOfByteImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@code char} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfChar ofChar(StorageReference object, FieldSignature field, char value) {
+		return new UpdateOfCharImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@code short} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfShort ofShort(StorageReference object, FieldSignature field, short value) {
+		return new UpdateOfShortImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@code int} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfInt ofInt(StorageReference object, FieldSignature field, int value) {
+		return new UpdateOfIntImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@code long} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfLong ofLong(StorageReference object, FieldSignature field, long value) {
+		return new UpdateOfLongImpl(object, field, value);
+	}
+
+	/*
+	 * Yields an update of a {@code float} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfFloat ofFloat(StorageReference object, FieldSignature field, float value) {
+		return new UpdateOfFloatImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@code double} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfDouble ofDouble(StorageReference object, FieldSignature field, double value) {
+		return new UpdateOfDoubleImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@link java.lang.String} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfString ofString(StorageReference object, FieldSignature field, String value) {
+		return new UpdateOfStringImpl(object, field, value);
 	}
 
 	/**

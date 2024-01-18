@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -22,46 +22,44 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfChar;
+import io.hotmoka.beans.api.values.CharValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that a short field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code char}.
  */
 @Immutable
-public final class UpdateOfShort extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 15;
+public final class UpdateOfCharImpl extends UpdateOfFieldImpl implements UpdateOfChar {
+	final static byte SELECTOR = 6;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final short value;
+	private final char value;
 
 	/**
-	 * Builds an update of an {@code short} field.
+	 * Builds an update of an {@code char} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfShort(StorageReference object, FieldSignature field, short value) {
+	public UpdateOfCharImpl(StorageReference object, FieldSignature field, char value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
-		return StorageValues.shortOf(value);
+	public CharValue getValue() {
+		return StorageValues.charOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfShort uos && super.equals(other) && uos.value == value;
+		return other instanceof UpdateOfChar uoc && super.equals(other) && uoc.getValue().getValue() == value;
 	}
 
 	@Override
@@ -75,13 +73,13 @@ public final class UpdateOfShort extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return Short.compare(value, ((UpdateOfShort) other).value);
+			return Character.compare(value, ((UpdateOfCharImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeShort(value);
+		context.writeChar(value);
 	}
 }

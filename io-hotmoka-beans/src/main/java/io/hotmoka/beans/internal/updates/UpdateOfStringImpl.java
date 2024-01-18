@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -25,26 +25,23 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
+import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that the {@link java.lang.String}
- * field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@link java.lang.String}.
  */
 @Immutable
-public final class UpdateOfString extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 17;
-	public final static byte SELECTOR_PUBLIC_KEY = 32;
+public final class UpdateOfStringImpl extends UpdateOfFieldImpl implements UpdateOfString {
+	final static byte SELECTOR = 17;
+	final static byte SELECTOR_PUBLIC_KEY = 32;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final String value;
+	private final String value;
 
 	/**
 	 * Builds an update of a {@link java.lang.String} field.
@@ -53,20 +50,20 @@ public final class UpdateOfString extends UpdateOfFieldImpl {
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfString(StorageReference object, FieldSignature field, String value) {
+	public UpdateOfStringImpl(StorageReference object, FieldSignature field, String value) {
 		super(object, field);
 
 		this.value = Objects.requireNonNull(value, "value cannot be null");
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public StringValue getValue() {
 		return StorageValues.stringOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfString uos && super.equals(other) && uos.value.equals(value);
+		return other instanceof UpdateOfString uos && super.equals(other) && uos.getValue().getValue().equals(value);
 	}
 
 	@Override
@@ -76,6 +73,7 @@ public final class UpdateOfString extends UpdateOfFieldImpl {
 
 	@Override
 	public String toString() {
+		// we add the double quotes around the string literal
 		return "<" + getObject() + "|" + getField() + "|\"" + getValue() + "\">";
 	}
 
@@ -85,12 +83,12 @@ public final class UpdateOfString extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return value.compareTo(((UpdateOfString) other).value);
+			return value.compareTo(((UpdateOfStringImpl) other).value);
 	}
 
 	@Override
 	public boolean isEager() {
-		// a lazy String could be stored into a lazy Object or Serializable or Comparable or CharSequence field
+		// a lazy String could also be stored into a lazy Object or Serializable or Comparable or CharSequence field
 		return field.getType().equals(StorageTypes.STRING);
 	}
 
