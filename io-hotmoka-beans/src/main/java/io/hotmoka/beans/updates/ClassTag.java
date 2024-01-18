@@ -23,7 +23,9 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -32,8 +34,8 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * object and is not modified later anymore.
  */
 @Immutable
-public final class ClassTag extends Update {
-	final static byte SELECTOR = 0;
+public final class ClassTag extends AbstractUpdate {
+	public final static byte SELECTOR = 0;
 
 	/**
 	 * The class of the object.
@@ -85,7 +87,7 @@ public final class ClassTag extends Update {
 
 	@Override
 	public String toString() {
-		return "<" + object + ".class|" + clazz + "|@" + jar + ">";
+		return "<" + getObject() + ".class|" + clazz + "|@" + jar + ">";
 	}
 
 	@Override

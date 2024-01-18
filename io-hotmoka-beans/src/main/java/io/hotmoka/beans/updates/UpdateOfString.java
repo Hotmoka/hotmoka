@@ -24,6 +24,7 @@ import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -36,8 +37,8 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateOfString extends UpdateOfField {
-	final static byte SELECTOR = 17;
-	final static byte SELECTOR_PUBLIC_KEY = 32;
+	public final static byte SELECTOR = 17;
+	public final static byte SELECTOR_PUBLIC_KEY = 32;
 
 	/**
 	 * The new value of the field.
@@ -74,7 +75,7 @@ public final class UpdateOfString extends UpdateOfField {
 
 	@Override
 	public String toString() {
-		return "<" + object + "|" + getField() + "|\"" + getValue() + "\">";
+		return "<" + getObject() + "|" + getField() + "|\"" + getValue() + "\">";
 	}
 
 	@Override

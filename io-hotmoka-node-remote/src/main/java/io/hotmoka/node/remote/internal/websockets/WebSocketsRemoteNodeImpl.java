@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
@@ -35,7 +36,6 @@ import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;

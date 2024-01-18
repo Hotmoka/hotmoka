@@ -27,13 +27,13 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.NodeCache;
@@ -162,13 +162,13 @@ public class StoreUtilityImpl implements StoreUtility {
 	public ClassTag getClassTagUncommitted(StorageReference reference) {
 		// we go straight to the transaction that created the object
 		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.getTransaction());
-		if (!(response.get() instanceof TransactionResponseWithUpdates))
+		if (response.get() instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates()
+					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+					.map(update -> (ClassTag) update)
+					.findFirst().get();
+		else
 			throw new RuntimeException("Transaction reference " + reference.getTransaction() + " does not contain updates");
-
-		return ((TransactionResponseWithUpdates) response.get()).getUpdates()
-			.filter(update -> update instanceof ClassTag && update.object.equals(reference))
-			.map(update -> (ClassTag) update)
-			.findFirst().get();
 	}
 
 	@Override
@@ -186,7 +186,7 @@ public class StoreUtilityImpl implements StoreUtility {
 
 		return getStore().getHistoryUncommitted(object)
 			.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
-			.filter(update -> update.isEager() && update instanceof UpdateOfField && update.object.equals(object) &&
+			.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
 					fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
 			.map(update -> (UpdateOfField) update);
 	}
@@ -224,12 +224,12 @@ public class StoreUtilityImpl implements StoreUtility {
 	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
 			TransactionResponse response = node.getResponse(transaction);
-			if (!(response instanceof TransactionResponseWithUpdates))
+			if (response instanceof TransactionResponseWithUpdates trwu)
+				trwu.getUpdates()
+					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
+					.forEach(updates::add);
+			else
 				throw new RuntimeException("Storage reference " + transaction + " does not contain updates");
-	
-			((TransactionResponseWithUpdates) response).getUpdates()
-				.filter(update -> update.object.equals(object) && updates.stream().noneMatch(update::sameProperty))
-				.forEach(updates::add);
 		}
 		catch (TransactionRejectedException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
@@ -269,7 +269,7 @@ public class StoreUtilityImpl implements StoreUtility {
 		return ((TransactionResponseWithUpdates) response).getUpdates()
 			.filter(update -> update instanceof UpdateOfField)
 			.map(update -> (UpdateOfField) update)
-			.filter(update -> update.object.equals(object) && update.getField().equals(field))
+			.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
 			.findFirst();
 	}
 }

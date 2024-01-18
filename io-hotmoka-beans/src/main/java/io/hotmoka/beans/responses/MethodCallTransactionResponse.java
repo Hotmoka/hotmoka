@@ -20,7 +20,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.api.updates.Update;
 
 /**
  * A response for a transaction that should call a method in blockchain.

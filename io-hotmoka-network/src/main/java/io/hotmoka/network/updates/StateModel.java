@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.api.updates.Update;
 
 /**
  * The model of the state of an object: just the set of its updates.

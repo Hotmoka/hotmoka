@@ -22,6 +22,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -33,12 +34,12 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateOfInt extends UpdateOfField {
-	final static byte SELECTOR = 20;
-	final static byte SELECTOR_SMALL = 21;
-	final static byte SELECTOR_VERY_SMALL = 22;
-	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
-	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
-	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
+	public final static byte SELECTOR = 20;
+	public final static byte SELECTOR_SMALL = 21;
+	public final static byte SELECTOR_VERY_SMALL = 22;
+	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_SIZE = 27;
+	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_SIZE = 29;
+	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_KEY = 30;
 
 	/**
 	 * The new value of the field.

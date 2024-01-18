@@ -33,12 +33,12 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -562,7 +562,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return true if and only if that condition holds
 		 */
 		protected final boolean isUpdateToBalanceOrNonceOfCaller(Update update) {
-			if (update instanceof UpdateOfField uof && update.object.equals(request.caller)) {
+			if (update instanceof UpdateOfField uof && update.getObject().equals(request.caller)) {
 				FieldSignature field = uof.getField();
 				return FieldSignatures.BALANCE_FIELD.equals(field) || FieldSignatures.RED_BALANCE_FIELD.equals(field) || FieldSignatures.EOA_NONCE_FIELD.equals(field);
 			}

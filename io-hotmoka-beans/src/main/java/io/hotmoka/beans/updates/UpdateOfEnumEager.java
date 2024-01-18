@@ -22,6 +22,7 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -35,7 +36,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateOfEnumEager extends UpdateOfField {
-	final static byte SELECTOR = 8;
+	public final static byte SELECTOR = 8;
 
 	/**
 	 * The name of the enumeration class whose element is being assigned to the field.

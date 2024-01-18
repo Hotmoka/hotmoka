@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.node.api.CodeExecutionException;

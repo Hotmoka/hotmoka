@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.TransactionRequest;
@@ -40,7 +41,6 @@ import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.updates.Update;
 
 /**
  * Shared implementation of the store of a node. It keeps information about the state of the objects created
@@ -183,7 +183,7 @@ public abstract class AbstractStore implements Store {
 
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
-		Set<Update> covered = addedUpdates.filter(update -> update.object.equals(object)).collect(Collectors.toSet());
+		Set<Update> covered = addedUpdates.filter(update -> update.getObject().equals(object)).collect(Collectors.toSet());
 		var simplified = new ArrayList<TransactionReference>();
 		simplified.add(added);
 	
@@ -216,22 +216,22 @@ public abstract class AbstractStore implements Store {
 			throw new IllegalStateException("The history contains a reference to a transaction not in store");
 		}
 
-		TransactionResponse response = maybeResponse.get();
-		if (!(response instanceof TransactionResponseWithUpdates)) {
+		if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
+			// we check if there is at least an update for a field of the object
+			// that is not yet covered by another update in a previous element of the history
+			Set<Update> diff = trwu.getUpdates()
+				.filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty))
+				.collect(Collectors.toSet());
+
+			if (!diff.isEmpty()) {
+				// the transaction reference actually adds at least one useful update
+				history.add(reference);
+				covered.addAll(diff);
+			}
+		}
+		else {
 			logger.log(Level.WARNING, "the history contains a reference to a transaction without updates");
 			throw new IllegalStateException("The history contains a reference to a transaction without updates");
-		}
-
-		// we check if there is at least an update for a field of the object
-		// that is not yet covered by another update in a previous element of the history
-		Set<Update> diff = ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update.object.equals(object) && covered.stream().noneMatch(update::sameProperty))
-			.collect(Collectors.toSet());
-
-		if (!diff.isEmpty()) {
-			// the transaction reference actually adds at least one useful update
-			history.add(reference);
-			covered.addAll(diff);
 		}
 	}
 }

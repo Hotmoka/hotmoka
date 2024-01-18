@@ -32,7 +32,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateToNullEager extends UpdateOfField {
-	final static byte SELECTOR = 18;
+	public final static byte SELECTOR = 18;
 
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field.

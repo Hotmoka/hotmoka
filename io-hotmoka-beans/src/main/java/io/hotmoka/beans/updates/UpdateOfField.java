@@ -21,17 +21,17 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that the field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * Implementation of an update of a field of an object.
  */
 @Immutable
-public abstract class UpdateOfField extends Update {
+public abstract class UpdateOfField extends AbstractUpdate {
 
 	/**
 	 * The field that is modified.
@@ -78,18 +78,18 @@ public abstract class UpdateOfField extends Update {
 
 	@Override
 	public String toString() {
-		return "<" + object + "|" + getField() + "|" + getValue() + ">";
+		return "<" + getObject() + "|" + getField() + "|" + getValue() + ">";
 	}
 
 	@Override
 	public final boolean sameProperty(Update other) {
-		return other instanceof UpdateOfField && getField().equals(((UpdateOfField) other).getField());
+		return other instanceof UpdateOfField uof && field.equals(uof.field);
 	}
 
 	@Override
 	public int compareTo(Update other) {
-		if (other instanceof UpdateOfField) {
-			int diff = field.compareTo(((UpdateOfField) other).field);
+		if (other instanceof UpdateOfField uof) {
+			int diff = field.compareTo(uof.field);
 			if (diff != 0)
 				return diff;
 		}

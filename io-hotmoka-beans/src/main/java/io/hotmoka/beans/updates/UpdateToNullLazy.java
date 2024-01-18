@@ -32,7 +32,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateToNullLazy extends UpdateOfField {
-	final static byte SELECTOR = 19;
+	public final static byte SELECTOR = 19;
 
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field of lazy type.

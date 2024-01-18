@@ -18,6 +18,7 @@ package io.hotmoka.network.updates;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
@@ -32,7 +33,6 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.updates.ClassTag;
-import io.hotmoka.beans.updates.Update;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -91,7 +91,7 @@ public class UpdateModel {
 	 * @param update the update
 	 */
 	public UpdateModel(Update update) {
-		this.object = new StorageReferenceModel(update.object);
+		this.object = new StorageReferenceModel(update.getObject());
 
 		if (update instanceof ClassTag) {
 			ClassTag classTag = (ClassTag) update;

@@ -22,7 +22,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.updates.Update;
+import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -132,7 +133,7 @@ public class ConstructorCallTransactionFailedResponse extends ConstructorCallTra
 	 * @throws IOException if the response cannot be unmarshalled
 	 */
 	public static ConstructorCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
-		Stream<Update> updates = Stream.of(context.readLengthAndArray(Update::from, Update[]::new));
+		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();

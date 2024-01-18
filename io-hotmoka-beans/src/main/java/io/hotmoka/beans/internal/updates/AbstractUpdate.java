@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -26,47 +26,58 @@ import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.updates.ClassTag;
+import io.hotmoka.beans.updates.UpdateOfBigInteger;
+import io.hotmoka.beans.updates.UpdateOfBoolean;
+import io.hotmoka.beans.updates.UpdateOfByte;
+import io.hotmoka.beans.updates.UpdateOfChar;
+import io.hotmoka.beans.updates.UpdateOfDouble;
+import io.hotmoka.beans.updates.UpdateOfEnumEager;
+import io.hotmoka.beans.updates.UpdateOfEnumLazy;
+import io.hotmoka.beans.updates.UpdateOfFloat;
+import io.hotmoka.beans.updates.UpdateOfInt;
+import io.hotmoka.beans.updates.UpdateOfLong;
+import io.hotmoka.beans.updates.UpdateOfShort;
+import io.hotmoka.beans.updates.UpdateOfStorage;
+import io.hotmoka.beans.updates.UpdateOfString;
+import io.hotmoka.beans.updates.UpdateToNullEager;
+import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * An update states that a property of an object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * Shared implementation of an update.
  */
 @Immutable
-public abstract class Update extends AbstractMarshallable implements Comparable<Update> {
+public abstract class AbstractUpdate extends AbstractMarshallable implements Update {
 
 	/**
 	 * The storage reference of the object whose field is modified.
 	 */
-	public final StorageReference object;
+	private final StorageReference object;
 
 	/**
 	 * Builds an update.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 */
-	protected Update(StorageReference object) {
+	protected AbstractUpdate(StorageReference object) {
 		this.object = Objects.requireNonNull(object, "object cannot be null");
 	}
 
-	/**
-	 * Yields the storage reference of the object whose field is modified.
-	 * 
-	 * @return the storage reference
-	 */
+	@Override
 	public final StorageReference getObject() {
 		return object;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof Update u && u.object.equals(object);
+		return other instanceof Update u && u.getObject().equals(object);
 	}
 
 	@Override
@@ -80,29 +91,13 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 		if (diff != 0)
 			return diff;
 		else
-			return object.compareTo(other.object);
+			return object.compareTo(other.getObject());
 	}
 
-	/**
-	 * Determines if the information expressed by this update is set immediately
-	 * when a storage object is deserialized from blockchain. Otherwise, the
-	 * information will only be set on-demand.
-	 * 
-	 * @return true if and only if the information is eager
-	 */
+	@Override
 	public boolean isEager() {
 		return true; // subclasses may redefine
 	}
-
-	/**
-	 * Determines if this update is for the same property of the {@code other},
-	 * although possibly for a different object. For instance, they are both class tags
-	 * or they are both updates to the same field signature.
-	 * 
-	 * @param other the other update
-	 * @return true if and only if that condition holds
-	 */
-	public abstract boolean sameProperty(Update other);
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
@@ -116,7 +111,7 @@ public abstract class Update extends AbstractMarshallable implements Comparable<
 	 * @return the update
 	 * @throws IOException if the update cannot be unmarshalled
 	 */
-	public static Update from(UnmarshallingContext context) throws IOException {
+	public static AbstractUpdate from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
 		case ClassTag.SELECTOR: {

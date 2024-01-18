@@ -25,6 +25,7 @@ import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -37,15 +38,15 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateOfBigInteger extends UpdateOfField {
-	final static byte SELECTOR = 2;
-	final static byte SELECTOR_BALANCE = 1;
-	final static byte SELECTOR_NONCE = 12;
-	final static byte SELECTOR_RED_BALANCE = 13;
-	final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
-	final static byte SELECTOR_GAS_PRICE = 37;
-	final static byte SELECTOR_UBI_VALUE = 38;
-	final static byte SELECTOR_BALANCE_TO_ZERO = 39;
-	final static byte SELECTOR_NONCE_TO_ZERO = 40;
+	public final static byte SELECTOR = 2;
+	public final static byte SELECTOR_BALANCE = 1;
+	public final static byte SELECTOR_NONCE = 12;
+	public final static byte SELECTOR_RED_BALANCE = 13;
+	public final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
+	public final static byte SELECTOR_GAS_PRICE = 37;
+	public final static byte SELECTOR_UBI_VALUE = 38;
+	public final static byte SELECTOR_BALANCE_TO_ZERO = 39;
+	public final static byte SELECTOR_NONCE_TO_ZERO = 40;
 
 	/**
 	 * The new value of the field.

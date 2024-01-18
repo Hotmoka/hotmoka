@@ -21,6 +21,7 @@ import java.io.IOException;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -32,7 +33,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class UpdateOfShort extends UpdateOfField {
-	final static byte SELECTOR = 15;
+	public final static byte SELECTOR = 15;
 
 	/**
 	 * The new value of the field.
