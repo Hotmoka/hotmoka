@@ -31,8 +31,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.updates.UpdateToNullEager;
-import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -147,8 +145,8 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 		case UpdateOfStorageImpl.SELECTOR_EVENT_CREATOR: return Updates.ofStorage(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EVENT_CREATOR_FIELD, StorageReferenceImpl.fromWithoutSelector(context));
 		case UpdateOfStringImpl.SELECTOR_PUBLIC_KEY: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.EOA_PUBLIC_KEY_FIELD, context.readStringUnshared());
 		case UpdateOfStringImpl.SELECTOR: return Updates.ofString(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), context.readStringUnshared());
-		case UpdateToNullEager.SELECTOR: return new UpdateToNullEager(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context));
-		case UpdateToNullLazy.SELECTOR: return new UpdateToNullLazy(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context));
+		case UpdateToNullImpl.SELECTOR_EAGER: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), true);
+		case UpdateToNullImpl.SELECTOR_LAZY: return Updates.toNull(StorageReferenceImpl.fromWithoutSelector(context), FieldSignatures.from(context), false);
 		default: throw new IOException("Unexpected update selector: " + selector);
 		}
 	}

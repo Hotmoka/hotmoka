@@ -14,55 +14,62 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.UpdateToNull;
+import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update that states that the field of a given storage object has been
- * modified to {@code null}. The field is declared with a lazy type.
- * Updates are stored in blockchain and describe the shape of storage objects.
+ * Implementation of an update of a field to {@code null}.
  */
 @Immutable
-public final class UpdateToNullLazy extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 19;
+public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateToNull {
+	final static byte SELECTOR_EAGER = 18;
+	final static byte SELECTOR_LAZY = 19;
 
 	/**
-	 * Builds an update of a {@link java.math.BigInteger} field of lazy type.
+	 * True if and only if the update is eager.
+	 */
+	private final boolean eager;
+
+	/**
+	 * Builds an update of a field to {@code null}.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
+	 * @param eager true if and only if the update is eager
 	 */
-	public UpdateToNullLazy(StorageReference object, FieldSignature field) {
+	public UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager) {
 		super(object, field);
+
+		this.eager = eager;
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public NullValue getValue() {
 		return StorageValues.NULL;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateToNullLazy && super.equals(other);
+		return other instanceof UpdateToNull uon && super.equals(other) && uon.isEager() == eager;
 	}
 
 	@Override
 	public boolean isEager() {
-		return false;
+		return eager;
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(SELECTOR);
+		context.writeByte(eager ? SELECTOR_EAGER : SELECTOR_LAZY);
 		super.into(context);
 	}
 }

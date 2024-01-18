@@ -34,8 +34,6 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.updates.UpdateToNullEager;
-import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -186,7 +184,7 @@ public class UpdatesExtractorFromRAM {
 
 				if (o == null)
 					// the field has been set to null
-					updates.add(new UpdateToNullLazy(storageReference, field));
+					updates.add(Updates.toNull(storageReference, field, false));
 				else if (classLoader.getStorage().isAssignableFrom(o.getClass())) {
 					// the field has been set to a storage object
 					StorageReference storageReference2 = classLoader.getStorageReferenceOf(o);
@@ -203,10 +201,11 @@ public class UpdatesExtractorFromRAM {
 				else if (o instanceof BigInteger bi)
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else if (o instanceof Enum<?> e) {
-					if (hasInstanceFields(e.getClass()))
-						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + e.getClass().getName() + ": it has instance non-transient fields");
+					var clazz = e.getClass();
+					if (hasInstanceFields(clazz))
+						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + clazz.getName() + ": it has instance non-transient fields");
 
-					updates.add(Updates.ofEnum(storageReference, field, e.getClass().getName(), e.name(), false));
+					updates.add(Updates.ofEnum(storageReference, field, clazz.getName(), e.name(), false));
 				}
 				else
 					throw new DeserializationError("Field " + field + " of a storage object cannot hold a " + o.getClass().getName());
@@ -321,7 +320,7 @@ public class UpdatesExtractorFromRAM {
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String s) {
 				if (s == null)
-					updates.add(new UpdateToNullEager(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING)));
+					updates.add(Updates.toNull(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), true));
 				else
 					updates.add(Updates.ofString(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.STRING), s));
 			}
@@ -336,13 +335,13 @@ public class UpdatesExtractorFromRAM {
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, BigInteger bi) {
 				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BIG_INTEGER);
 				if (bi == null)
-					updates.add(new UpdateToNullEager(storageReference, field));
+					updates.add(Updates.toNull(storageReference, field, true));
 				else
 					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 			}
 
 			/**
-			 * Takes note that a field of {@code enum} type has changed its value and consequently adds it to the set of updates.
+			 * Takes note that a field of enumeration type has changed its value and consequently adds it to the set of updates.
 			 * 
 			 * @param fieldDefiningClass the class of the field. This can only be the class of this storage object or one of its superclasses
 			 * @param fieldName the name of the field
@@ -352,7 +351,7 @@ public class UpdatesExtractorFromRAM {
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, String fieldClassName, Enum<?> element) {
 				FieldSignature field = FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.classNamed(fieldClassName));
 				if (element == null)
-					updates.add(new UpdateToNullEager(storageReference, field));
+					updates.add(Updates.toNull(storageReference, field, true));
 				else
 					updates.add(Updates.ofEnum(storageReference, field, element.getClass().getName(), element.name(), true));
 			}

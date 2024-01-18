@@ -37,6 +37,7 @@ import io.hotmoka.beans.api.updates.UpdateOfLong;
 import io.hotmoka.beans.api.updates.UpdateOfShort;
 import io.hotmoka.beans.api.updates.UpdateOfStorage;
 import io.hotmoka.beans.api.updates.UpdateOfString;
+import io.hotmoka.beans.api.updates.UpdateToNull;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
@@ -55,6 +56,7 @@ import io.hotmoka.beans.internal.updates.UpdateOfLongImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfShortImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfStorageImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfStringImpl;
+import io.hotmoka.beans.internal.updates.UpdateToNullImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -210,7 +212,7 @@ public abstract class Updates {
 		return new UpdateOfEnumImpl(object, field, enumClassName, name, eager);
 	}
 
-		/**
+	/**
 	 * Yields an update of a field of storage (reference) type.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
@@ -220,6 +222,18 @@ public abstract class Updates {
 	 */
 	public static UpdateOfStorage ofStorage(StorageReference object, FieldSignature field, StorageReference value) {
 		return new UpdateOfStorageImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a field to {@code null}.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param eager true if and only if the update is eager
+	 * @return the update
+	 */
+	public static UpdateToNull toNull(StorageReference object, FieldSignature field, boolean eager) {
+		return new UpdateToNullImpl(object, field, eager);
 	}
 
 	/**

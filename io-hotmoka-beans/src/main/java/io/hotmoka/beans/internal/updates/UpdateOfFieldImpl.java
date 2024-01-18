@@ -30,7 +30,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * Implementation of an update of a field of an object.
  */
 @Immutable
-public abstract class UpdateOfFieldImpl extends AbstractUpdate implements UpdateOfField {
+abstract class UpdateOfFieldImpl extends AbstractUpdate implements UpdateOfField {
 
 	/**
 	 * The field that is modified.
