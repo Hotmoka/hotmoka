@@ -14,17 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.api.updates;
+package io.hotmoka.beans.internal.gson;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.NullValue;
+import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * An update of a field to {@code null}.
+ * A decoder for {@link Update}.
  */
-@Immutable
-public interface UpdateToNull extends UpdateOfField {
+public class UpdateDecoder extends MappedDecoder<Update, Updates.Json> {
 
-	@Override
-	NullValue getValue();
+	public UpdateDecoder() {
+		super(Updates.Json.class);
+	}
 }

@@ -22,7 +22,6 @@ import java.math.BigInteger;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfBigInteger;
@@ -39,9 +38,9 @@ import io.hotmoka.beans.api.updates.UpdateOfStorage;
 import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.beans.api.updates.UpdateToNull;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
-import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
-import io.hotmoka.beans.internal.gson.StorageTypeJson;
+import io.hotmoka.beans.internal.gson.UpdateDecoder;
+import io.hotmoka.beans.internal.gson.UpdateEncoder;
+import io.hotmoka.beans.internal.gson.UpdateJson;
 import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.beans.internal.updates.ClassTagImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfBigIntegerImpl;
@@ -162,7 +161,7 @@ public abstract class Updates {
 		return new UpdateOfLongImpl(object, field, value);
 	}
 
-	/*
+	/**
 	 * Yields an update of a {@code float} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
@@ -250,7 +249,7 @@ public abstract class Updates {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends StorageTypeEncoder {
+	public static class Encoder extends UpdateEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -261,7 +260,7 @@ public abstract class Updates {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends StorageTypeDecoder {
+	public static class Decoder extends UpdateDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -272,15 +271,15 @@ public abstract class Updates {
     /**
      * Json representation.
      */
-    public static class Json extends StorageTypeJson {
+    public static class Json extends UpdateJson {
 
     	/**
-    	 * Creates the Json representation for the given type.
+    	 * Creates the Json representation for the given update.
     	 * 
-    	 * @param type the type
+    	 * @param update the update
     	 */
-    	public Json(StorageType type) {
-    		super(type);
+    	public Json(Update update) {
+    		super(update);
     	}
     }
 }
