@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -22,21 +22,20 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * Implementation of an update of a field of an object.
  */
 @Immutable
-public abstract class UpdateOfField extends AbstractUpdate {
+public abstract class UpdateOfFieldImpl extends AbstractUpdate implements UpdateOfField {
 
 	/**
 	 * The field that is modified.
 	 */
-	public final FieldSignature field;
+	protected final FieldSignature field;
 
 	/**
 	 * Builds an update.
@@ -44,31 +43,20 @@ public abstract class UpdateOfField extends AbstractUpdate {
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 */
-	protected UpdateOfField(StorageReference object, FieldSignature field) {
+	protected UpdateOfFieldImpl(StorageReference object, FieldSignature field) {
 		super(object);
 
 		this.field = Objects.requireNonNull(field, "field cannot be null");
 	}
 
-	/**
-	 * Yields the field whose value is updated.
-	 *
-	 * @return the field
-	 */
+	@Override
 	public final FieldSignature getField() {
 		return field;
 	}
 
-	/**
-	 * Yields the value set into the updated field.
-	 * 
-	 * @return the value
-	 */
-	public abstract StorageValue getValue();
-
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfField uof && super.equals(other) && uof.field.equals(field);
+		return other instanceof UpdateOfField uof && super.equals(other) && uof.getField().equals(field);
 	}
 
 	@Override
@@ -83,13 +71,13 @@ public abstract class UpdateOfField extends AbstractUpdate {
 
 	@Override
 	public final boolean sameProperty(Update other) {
-		return other instanceof UpdateOfField uof && field.equals(uof.field);
+		return other instanceof UpdateOfField uof && field.equals(uof.getField());
 	}
 
 	@Override
 	public int compareTo(Update other) {
 		if (other instanceof UpdateOfField uof) {
-			int diff = field.compareTo(uof.field);
+			int diff = field.compareTo(uof.getField());
 			if (diff != 0)
 				return diff;
 		}

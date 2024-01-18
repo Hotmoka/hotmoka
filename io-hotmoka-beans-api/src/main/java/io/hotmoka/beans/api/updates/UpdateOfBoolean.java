@@ -17,26 +17,14 @@ limitations under the License.
 package io.hotmoka.beans.api.updates;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.values.BooleanValue;
 
 /**
- * An update that states that an object belongs to a given class.
+ * An update of a field of type {@code boolean}.
  */
 @Immutable
-public interface ClassTag extends Update {
+public interface UpdateOfBoolean extends UpdateOfField {
 
-	/**
-	 * Yields the class of the object.
-	 * 
-	 * @return the class of the object
-	 */
-	ClassType getClazz();
-
-	/**
-	 * Yields the reference of the transaction that installed the jar from which the class was resolved.
-	 * 
-	 * @return the reference
-	 */
-	TransactionReference getJar();
+	@Override
+	BooleanValue getValue();
 }

@@ -17,18 +17,26 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.math.BigInteger;
 
+import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfBigInteger;
+import io.hotmoka.beans.api.updates.UpdateOfBoolean;
+import io.hotmoka.beans.api.updates.UpdateOfByte;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
 import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.beans.internal.updates.ClassTagImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfBigIntegerImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfBooleanImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfByteImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -48,6 +56,42 @@ public abstract class Updates {
 	 */
 	public static ClassTag classTag(StorageReference object, ClassType clazz, TransactionReference jar) {
 		return new ClassTagImpl(object, clazz, jar);
+	}
+
+	/**
+	 * Yields an update of a {@link java.math.BigInteger} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfBigInteger ofBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
+		return new UpdateOfBigIntegerImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@link boolean} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfBoolean ofBoolean(StorageReference object, FieldSignature field, boolean value) {
+		return new UpdateOfBooleanImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of a {@link byte} field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfByte ofByte(StorageReference object, FieldSignature field, byte value) {
+		return new UpdateOfByteImpl(object, field, value);
 	}
 
 	/**

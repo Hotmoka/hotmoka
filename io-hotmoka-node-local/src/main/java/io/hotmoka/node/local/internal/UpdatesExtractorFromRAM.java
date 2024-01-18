@@ -34,9 +34,6 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.updates.UpdateOfBigInteger;
-import io.hotmoka.beans.updates.UpdateOfBoolean;
-import io.hotmoka.beans.updates.UpdateOfByte;
 import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
@@ -214,7 +211,7 @@ public class UpdatesExtractorFromRAM {
 				else if (o instanceof String s)
 					updates.add(new UpdateOfString(storageReference, field, s));
 				else if (o instanceof BigInteger bi)
-					updates.add(new UpdateOfBigInteger(storageReference, field, bi));
+					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 				else if (o instanceof Enum<?> e) {
 					if (hasInstanceFields(e.getClass()))
 						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + e.getClass().getName() + ": it has instance non-transient fields");
@@ -245,7 +242,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, boolean s) {
-				updates.add(new UpdateOfBoolean(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
+				updates.add(Updates.ofBoolean(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BOOLEAN), s));
 			}
 
 			/**
@@ -256,7 +253,7 @@ public class UpdatesExtractorFromRAM {
 			 * @param s the value set to the field
 			 */
 			private void addUpdateFor(String fieldDefiningClass, String fieldName, byte s) {
-				updates.add(new UpdateOfByte(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
+				updates.add(Updates.ofByte(storageReference, FieldSignatures.of(fieldDefiningClass, fieldName, StorageTypes.BYTE), s));
 			}
 
 			/**
@@ -351,7 +348,7 @@ public class UpdatesExtractorFromRAM {
 				if (bi == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else
-					updates.add(new UpdateOfBigInteger(storageReference, field, bi));
+					updates.add(Updates.ofBigInteger(storageReference, field, bi));
 			}
 
 			/**

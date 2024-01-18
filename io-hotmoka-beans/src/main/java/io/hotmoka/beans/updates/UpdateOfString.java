@@ -27,6 +27,7 @@ import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -36,7 +37,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfString extends UpdateOfField {
+public final class UpdateOfString extends UpdateOfFieldImpl {
 	public final static byte SELECTOR = 17;
 	public final static byte SELECTOR_PUBLIC_KEY = 32;
 

@@ -22,6 +22,7 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.ByteValue;
@@ -35,14 +36,10 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.updates.UpdateOfBigInteger;
-import io.hotmoka.beans.updates.UpdateOfBoolean;
-import io.hotmoka.beans.updates.UpdateOfByte;
 import io.hotmoka.beans.updates.UpdateOfChar;
 import io.hotmoka.beans.updates.UpdateOfDouble;
 import io.hotmoka.beans.updates.UpdateOfEnumEager;
 import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfFloat;
 import io.hotmoka.beans.updates.UpdateOfInt;
 import io.hotmoka.beans.updates.UpdateOfLong;
@@ -141,15 +138,15 @@ public class UpdateModel {
 				else
 					return new UpdateOfEnumLazy(object, field, ev.getEnumClassName(), ev.getName());
 			else if (value instanceof BigIntegerValue biv)
-				return new UpdateOfBigInteger(object, field, biv.getValue());
+				return Updates.ofBigInteger(object, field, biv.getValue());
 			else if (value instanceof StringValue sv)
 				return new UpdateOfString(object, field, sv.getValue());
 			else if (value instanceof StorageReference sr)
 				return new UpdateOfStorage(object, field, sr);
 			else if (value instanceof BooleanValue bv)
-				return new UpdateOfBoolean(object, field, bv.getValue());
+				return Updates.ofBoolean(object, field, bv.getValue());
 			else if (value instanceof ByteValue bv)
-				return new UpdateOfByte(object, field, bv.getValue());
+				return Updates.ofByte(object, field, bv.getValue());
 			else if (value instanceof CharValue cv)
 				return new UpdateOfChar(object, field, cv.getValue());
 			else if (value instanceof DoubleValue dv)

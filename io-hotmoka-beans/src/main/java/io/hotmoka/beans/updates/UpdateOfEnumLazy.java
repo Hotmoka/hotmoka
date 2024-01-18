@@ -25,6 +25,7 @@ import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -35,7 +36,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * describe the shape of storage objects.
  */
 @Immutable
-public final class UpdateOfEnumLazy extends UpdateOfField {
+public final class UpdateOfEnumLazy extends UpdateOfFieldImpl {
 	public final static byte SELECTOR = 9;
 
 	/**

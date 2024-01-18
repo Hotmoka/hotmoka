@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -26,32 +26,30 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfBigInteger;
+import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that the {@link java.math.BigInteger}
- * field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@link java.math.BigInteger}.
  */
 @Immutable
-public final class UpdateOfBigInteger extends UpdateOfField {
-	public final static byte SELECTOR = 2;
-	public final static byte SELECTOR_BALANCE = 1;
-	public final static byte SELECTOR_NONCE = 12;
-	public final static byte SELECTOR_RED_BALANCE = 13;
-	public final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
-	public final static byte SELECTOR_GAS_PRICE = 37;
-	public final static byte SELECTOR_UBI_VALUE = 38;
-	public final static byte SELECTOR_BALANCE_TO_ZERO = 39;
-	public final static byte SELECTOR_NONCE_TO_ZERO = 40;
+public final class UpdateOfBigIntegerImpl extends UpdateOfFieldImpl implements UpdateOfBigInteger {
+	final static byte SELECTOR = 2;
+	final static byte SELECTOR_BALANCE = 1;
+	final static byte SELECTOR_NONCE = 12;
+	final static byte SELECTOR_RED_BALANCE = 13;
+	final static byte SELECTOR_RED_BALANCE_TO_ZERO = 14;
+	final static byte SELECTOR_GAS_PRICE = 37;
+	final static byte SELECTOR_UBI_VALUE = 38;
+	final static byte SELECTOR_BALANCE_TO_ZERO = 39;
+	final static byte SELECTOR_NONCE_TO_ZERO = 40;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final BigInteger value;
+	private final BigInteger value;
 
 	/**
 	 * Builds an update of a {@link java.math.BigInteger} field.
@@ -60,20 +58,20 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfBigInteger(StorageReference object, FieldSignature field, BigInteger value) {
+	public UpdateOfBigIntegerImpl(StorageReference object, FieldSignature field, BigInteger value) {
 		super(object, field);
 
 		this.value = Objects.requireNonNull(value, "value cannot be null");
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public BigIntegerValue getValue() {
 		return StorageValues.bigIntegerOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfBigInteger uobi && super.equals(other) && uobi.value.equals(value);
+		return other instanceof UpdateOfBigInteger uobi && super.equals(other) && uobi.getValue().getValue().equals(value);
 	}
 
 	@Override
@@ -87,7 +85,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 		if (diff != 0)
 			return diff;
 		else
-			return value.compareTo(((UpdateOfBigInteger) other).value);
+			return value.compareTo(((UpdateOfBigIntegerImpl) other).value);
 	}
 
 	@Override
@@ -111,7 +109,7 @@ public final class UpdateOfBigInteger extends UpdateOfField {
 			return; // note this
 		}
 		else if (FieldSignatures.EOA_NONCE_FIELD.equals(field) && value.signum() == 0) {
-			// this case is frequent, since EOAs starts with nonce at zero
+			// this case is frequent, since EOAs start with nonce at zero
 			context.writeByte(SELECTOR_NONCE_TO_ZERO);
 			super.intoWithoutField(context);
 			return; // note this

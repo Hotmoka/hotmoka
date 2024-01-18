@@ -17,26 +17,26 @@ limitations under the License.
 package io.hotmoka.beans.api.updates;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.values.StorageValue;
 
 /**
- * An update that states that an object belongs to a given class.
+ * Implementation of an update of a field of an object.
  */
 @Immutable
-public interface ClassTag extends Update {
+public interface UpdateOfField extends Update {
 
 	/**
-	 * Yields the class of the object.
-	 * 
-	 * @return the class of the object
+	 * Yields the field whose value is updated.
+	 *
+	 * @return the field
 	 */
-	ClassType getClazz();
+	FieldSignature getField();
 
 	/**
-	 * Yields the reference of the transaction that installed the jar from which the class was resolved.
+	 * Yields the value set into the updated field.
 	 * 
-	 * @return the reference
+	 * @return the value
 	 */
-	TransactionReference getJar();
+	StorageValue getValue();
 }

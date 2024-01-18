@@ -32,7 +32,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  */
 @Immutable
 public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
-	public final static byte SELECTOR = 0;
+	final static byte SELECTOR = 0;
 
 	/**
 	 * The class of the object.

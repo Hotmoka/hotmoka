@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 
@@ -22,51 +22,49 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfByte;
+import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that a boolean field of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of type {@code byte}.
  */
 @Immutable
-public final class UpdateOfBoolean extends UpdateOfField {
-	public final static byte SELECTOR_FALSE = 3;
-	public final static byte SELECTOR_TRUE = 4;
+public final class UpdateOfByteImpl extends UpdateOfFieldImpl implements UpdateOfByte {
+	final static byte SELECTOR = 5;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final boolean value;
+	private final byte value;
 
 	/**
-	 * Builds an update of an {@code boolean} field.
+	 * Builds an update of a {@code byte} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfBoolean(StorageReference object, FieldSignature field, boolean value) {
+	public UpdateOfByteImpl(StorageReference object, FieldSignature field, byte value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public StorageValue getValue() {
-		return StorageValues.booleanOf(value);
+	public ByteValue getValue() {
+		return StorageValues.byteOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfBoolean uob && super.equals(other) && uob.value == value;
+		return other instanceof UpdateOfByte uob && super.equals(other) && uob.getValue().getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Boolean.hashCode(value);
+		return super.hashCode() ^ value;
 	}
 
 	@Override
@@ -75,12 +73,13 @@ public final class UpdateOfBoolean extends UpdateOfField {
 		if (diff != 0)
 			return diff;
 		else
-			return Boolean.compare(value, ((UpdateOfBoolean) other).value);
+			return Byte.compare(value, ((UpdateOfByteImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
+		context.writeByte(SELECTOR);
 		super.into(context);
+		context.writeByte(value);
 	}
 }
