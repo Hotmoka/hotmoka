@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -23,57 +23,53 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfStorage;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update of a field states that the field of storage type
- * of a given storage object has been
- * modified to a given value. Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of storage (reference) type.
  */
 @Immutable
-public final class UpdateOfStorage extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 16;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_LEFT = 23;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT = 24;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
-	public final static byte SELECTOR_STORAGE_TREE_MAP_ROOT = 28;
-	public final static byte SELECTOR_EVENT_CREATOR = 31;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE = 33;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT = 34;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT = 35;
-	public final static byte SELECTOR_STORAGE_TREE_INTMAP_ROOT = 36;
+public final class UpdateOfStorageImpl extends UpdateOfFieldImpl implements UpdateOfStorage {
+	final static byte SELECTOR = 16;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_LEFT = 23;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_RIGHT = 24;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_KEY = 25;
+	final static byte SELECTOR_STORAGE_TREE_MAP_NODE_VALUE = 26;
+	final static byte SELECTOR_STORAGE_TREE_MAP_ROOT = 28;
+	final static byte SELECTOR_EVENT_CREATOR = 31;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_VALUE = 33;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_LEFT = 34;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_NODE_RIGHT = 35;
+	final static byte SELECTOR_STORAGE_TREE_INTMAP_ROOT = 36;
 
 	/**
 	 * The new value of the field.
 	 */
-	public final StorageReference value;
+	private final StorageReference value;
 
 	/**
-	 * Builds an update.
+	 * Builds an update of a field of storage (reference) type.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfStorage(StorageReference object, FieldSignature field, StorageReference value) {
+	public UpdateOfStorageImpl(StorageReference object, FieldSignature field, StorageReference value) {
 		super(object, field);
 
 		this.value = Objects.requireNonNull(value, "value cannot be null");
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public StorageReference getValue() {
 		return value;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfStorage uos && super.equals(other) && uos.value.equals(value);
+		return other instanceof UpdateOfStorage uos && super.equals(other) && uos.getValue().equals(value);
 	}
 
 	@Override
@@ -92,7 +88,7 @@ public final class UpdateOfStorage extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 		else
-			return value.compareTo(((UpdateOfStorage) other).value);
+			return value.compareTo(((UpdateOfStorageImpl) other).value);
 	}
 
 	@Override

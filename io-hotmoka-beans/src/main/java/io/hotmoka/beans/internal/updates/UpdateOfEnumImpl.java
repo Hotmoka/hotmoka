@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -23,31 +23,33 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.updates.UpdateOfEnum;
+import io.hotmoka.beans.api.values.EnumValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.updates.UpdateOfFieldImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update that states that the enumeration
- * field of a given storage object has been
- * modified to a given value. The type of the field is lazy.
- * Updates are stored in blockchain and
- * describe the shape of storage objects.
+ * The implementation of an update of a field of enumeration type.
  */
 @Immutable
-public final class UpdateOfEnumLazy extends UpdateOfFieldImpl {
-	public final static byte SELECTOR = 9;
+public final class UpdateOfEnumImpl extends UpdateOfFieldImpl implements UpdateOfEnum {
+	final static byte SELECTOR_EAGER = 8;
+	final static byte SELECTOR_LAZY = 9;
 
 	/**
 	 * The name of the enumeration class whose element is being assigned to the field.
 	 */
-	public final String enumClassName;
+	private final String enumClassName;
 
 	/**
 	 * The name of the enumeration value put as new value of the field.
 	 */
-	public final String name;
+	private final String name;
+
+	/**
+	 * True if and only if the update is eager.
+	 */
+	private final boolean eager;
 
 	/**
 	 * Builds an update of an enumeration field.
@@ -56,23 +58,35 @@ public final class UpdateOfEnumLazy extends UpdateOfFieldImpl {
 	 * @param field the field that is modified
 	 * @param enumClassName the name of the enumeration class whose element is being assigned to the field
 	 * @param name the name of the enumeration value put as new value of the field
+	 * @param eager true if and only if the update is eager
 	 */
-	public UpdateOfEnumLazy(StorageReference object, FieldSignature field, String enumClassName, String name) {
+	public UpdateOfEnumImpl(StorageReference object, FieldSignature field, String enumClassName, String name, boolean eager) {
 		super(object, field);
 
 		this.enumClassName = Objects.requireNonNull(enumClassName, "enumClassName cannot be null");
 		this.name = Objects.requireNonNull(name, "name cannot be null");
+		this.eager = eager;
 	}
 
 	@Override
-	public StorageValue getValue() {
+	public EnumValue getValue() {
 		return StorageValues.enumElementOf(enumClassName, name);
 	}
 
 	@Override
+	public String getEnumClassName() {
+		return enumClassName;
+	}
+
+	@Override
+	public String getName() {
+		return name;
+	}
+
+	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfEnumLazy uoel && super.equals(other)
-			&& uoel.name.equals(name) && uoel.enumClassName.equals(enumClassName);
+		return other instanceof UpdateOfEnum uoee && super.equals(other) && uoee.isEager() == eager
+			&& uoee.getEnumClassName().equals(enumClassName) && uoee.getName().equals(name);
 	}
 
 	@Override
@@ -86,21 +100,25 @@ public final class UpdateOfEnumLazy extends UpdateOfFieldImpl {
 		if (diff != 0)
 			return diff;
 
-		diff = enumClassName.compareTo(((UpdateOfEnumLazy) other).enumClassName);
+		diff = enumClassName.compareTo(((UpdateOfEnumImpl) other).enumClassName);
 		if (diff != 0)
 			return diff;
-		else
-			return name.compareTo(((UpdateOfEnumLazy) other).name);
+
+		diff = name.compareTo(((UpdateOfEnumImpl) other).name);
+		if (diff != 0)
+			return diff;
+
+		return Boolean.compare(eager, ((UpdateOfEnumImpl) other).eager);
 	}
 
 	@Override
 	public boolean isEager() {
-		return false;
+		return eager;
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(SELECTOR);
+		context.writeByte(eager ? SELECTOR_EAGER : SELECTOR_LAZY);
 		super.into(context);
 		context.writeStringUnshared(enumClassName);
 		context.writeStringUnshared(name);

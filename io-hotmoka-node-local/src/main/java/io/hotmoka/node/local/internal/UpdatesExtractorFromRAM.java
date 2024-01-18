@@ -34,9 +34,6 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.updates.UpdateOfEnumEager;
-import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.instrumentation.InstrumentationFields;
@@ -193,7 +190,7 @@ public class UpdatesExtractorFromRAM {
 				else if (classLoader.getStorage().isAssignableFrom(o.getClass())) {
 					// the field has been set to a storage object
 					StorageReference storageReference2 = classLoader.getStorageReferenceOf(o);
-					updates.add(new UpdateOfStorage(storageReference, field, storageReference2));
+					updates.add(Updates.ofStorage(storageReference, field, storageReference2));
 
 					// if the new value has not yet been considered, we put in the list of object still to be processed
 					if (seen.add(storageReference2))
@@ -209,7 +206,7 @@ public class UpdatesExtractorFromRAM {
 					if (hasInstanceFields(e.getClass()))
 						throw new DeserializationError("Field " + field + " of a storage object cannot hold an enumeration of class " + e.getClass().getName() + ": it has instance non-transient fields");
 
-					updates.add(new UpdateOfEnumLazy(storageReference, field, e.getClass().getName(), e.name()));
+					updates.add(Updates.ofEnum(storageReference, field, e.getClass().getName(), e.name(), false));
 				}
 				else
 					throw new DeserializationError("Field " + field + " of a storage object cannot hold a " + o.getClass().getName());
@@ -357,7 +354,7 @@ public class UpdatesExtractorFromRAM {
 				if (element == null)
 					updates.add(new UpdateToNullEager(storageReference, field));
 				else
-					updates.add(new UpdateOfEnumEager(storageReference, field, element.getClass().getName(), element.name()));
+					updates.add(Updates.ofEnum(storageReference, field, element.getClass().getName(), element.name(), true));
 			}
 
 			/**

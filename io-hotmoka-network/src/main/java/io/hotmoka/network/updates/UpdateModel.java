@@ -36,9 +36,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.updates.UpdateOfEnumEager;
-import io.hotmoka.beans.updates.UpdateOfEnumLazy;
-import io.hotmoka.beans.updates.UpdateOfStorage;
 import io.hotmoka.beans.updates.UpdateToNullEager;
 import io.hotmoka.beans.updates.UpdateToNullLazy;
 import io.hotmoka.network.signatures.FieldSignatureModel;
@@ -127,15 +124,15 @@ public class UpdateModel {
 					return new UpdateToNullLazy(object, field);
 			else if (value instanceof EnumValue ev)
 				if (field.getType().isEager())
-					return new UpdateOfEnumEager(object, field, ev.getEnumClassName(), ev.getName());
+					return Updates.ofEnum(object, field, ev.getEnumClassName(), ev.getName(), true);
 				else
-					return new UpdateOfEnumLazy(object, field, ev.getEnumClassName(), ev.getName());
+					return Updates.ofEnum(object, field, ev.getEnumClassName(), ev.getName(), false);
 			else if (value instanceof BigIntegerValue biv)
 				return Updates.ofBigInteger(object, field, biv.getValue());
 			else if (value instanceof StringValue sv)
 				return Updates.ofString(object, field, sv.getValue());
 			else if (value instanceof StorageReference sr)
-				return new UpdateOfStorage(object, field, sr);
+				return Updates.ofStorage(object, field, sr);
 			else if (value instanceof BooleanValue bv)
 				return Updates.ofBoolean(object, field, bv.getValue());
 			else if (value instanceof ByteValue bv)

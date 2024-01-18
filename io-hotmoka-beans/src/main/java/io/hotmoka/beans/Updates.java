@@ -30,10 +30,12 @@ import io.hotmoka.beans.api.updates.UpdateOfBoolean;
 import io.hotmoka.beans.api.updates.UpdateOfByte;
 import io.hotmoka.beans.api.updates.UpdateOfChar;
 import io.hotmoka.beans.api.updates.UpdateOfDouble;
+import io.hotmoka.beans.api.updates.UpdateOfEnum;
 import io.hotmoka.beans.api.updates.UpdateOfFloat;
 import io.hotmoka.beans.api.updates.UpdateOfInt;
 import io.hotmoka.beans.api.updates.UpdateOfLong;
 import io.hotmoka.beans.api.updates.UpdateOfShort;
+import io.hotmoka.beans.api.updates.UpdateOfStorage;
 import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
@@ -46,10 +48,12 @@ import io.hotmoka.beans.internal.updates.UpdateOfBooleanImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfByteImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfCharImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfDoubleImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfEnumImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfFloatImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfIntImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfLongImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfShortImpl;
+import io.hotmoka.beans.internal.updates.UpdateOfStorageImpl;
 import io.hotmoka.beans.internal.updates.UpdateOfStringImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -190,6 +194,32 @@ public abstract class Updates {
 	 */
 	public static UpdateOfString ofString(StorageReference object, FieldSignature field, String value) {
 		return new UpdateOfStringImpl(object, field, value);
+	}
+
+	/**
+	 * Yields an update of an enumeration field.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param enumClassName the name of the enumeration class whose element is being assigned to the field
+	 * @param name the name of the enumeration value put as new value of the field
+	 * @param eager true if and only if the update is eager
+	 * @return the update
+	 */
+	public static UpdateOfEnum ofEnum(StorageReference object, FieldSignature field, String enumClassName, String name, boolean eager) {
+		return new UpdateOfEnumImpl(object, field, enumClassName, name, eager);
+	}
+
+		/**
+	 * Yields an update of a field of storage (reference) type.
+	 * 
+	 * @param object the storage reference of the object whose field is modified
+	 * @param field the field that is modified
+	 * @param value the new value of the field
+	 * @return the update
+	 */
+	public static UpdateOfStorage ofStorage(StorageReference object, FieldSignature field, StorageReference value) {
+		return new UpdateOfStorageImpl(object, field, value);
 	}
 
 	/**
