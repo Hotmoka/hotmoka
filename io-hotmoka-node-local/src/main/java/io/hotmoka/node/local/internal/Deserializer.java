@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
@@ -45,7 +46,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -231,11 +231,11 @@ public class Deserializer {
 					}
 				});
 	
-			Class<?> clazz = classLoader.loadClass(classTag.clazz.getName());
+			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 			TransactionReference actual = classLoader.transactionThatInstalledJarFor(clazz);
-			TransactionReference expected = classTag.jar;
+			TransactionReference expected = classTag.getJar();
 			if (!actual.equals(expected))
-				throw new DeserializationError("Class " + classTag.clazz + " was instantiated from jar at " + expected + " not from jar at " + actual);
+				throw new DeserializationError("Class " + classTag.getClazz() + " was instantiated from jar at " + expected + " not from jar at " + actual);
 	
 			// we add the fictitious argument that avoids name clashes
 			formals.add(Dummy.class);

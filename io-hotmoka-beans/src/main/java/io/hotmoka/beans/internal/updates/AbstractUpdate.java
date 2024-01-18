@@ -25,12 +25,12 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -111,12 +111,12 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 	 * @return the update
 	 * @throws IOException if the update cannot be unmarshalled
 	 */
-	public static AbstractUpdate from(UnmarshallingContext context) throws IOException {
+	public static Update from(UnmarshallingContext context) throws IOException {
 		var selector = context.readByte();
 		switch (selector) {
-		case ClassTag.SELECTOR: {
+		case ClassTagImpl.SELECTOR: {
 			try {
-				return new ClassTag(StorageReferenceImpl.fromWithoutSelector(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
+				return Updates.classTag(StorageReferenceImpl.fromWithoutSelector(context), (ClassType) StorageTypes.from(context), TransactionReferences.from(context));
 			}
 			catch (ClassCastException e) {
 				throw new IOException("Failed unmrshalling a class tag", e);

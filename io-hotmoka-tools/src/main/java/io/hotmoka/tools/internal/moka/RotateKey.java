@@ -89,7 +89,7 @@ public class RotateKey extends AbstractCommand {
 		private Run() throws Exception {
 			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
-					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).jar;
+					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).getJar();
 				else
 					this.classpath = TransactionReferences.of(RotateKey.this.classpath);
 

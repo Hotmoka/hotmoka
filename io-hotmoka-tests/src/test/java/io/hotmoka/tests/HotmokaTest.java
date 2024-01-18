@@ -225,7 +225,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
 			throw new ExceptionInInitializerError(e);
 		}
 	}
@@ -239,8 +238,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			var takamakaCode = Paths.get("../modules/explicit/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
-			if (node instanceof TendermintNode)
-				TendermintInitializedNodes.of((TendermintNode) node, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
+			if (node instanceof TendermintNode tn)
+				TendermintInitializedNodes.of(tn, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
 			else
 				InitializedNodes.of(node, consensus, takamakaCode);
 		}
@@ -522,7 +521,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-					(account, _100_000, node.getClassTag(account).jar, MethodSignatures.NONCE, account))).getValue();
+					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))).getValue();
 
 			nonces.put(account, nonce);
 			return nonce;
@@ -545,7 +544,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			var classTag = node.getClassTag(account);
 			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
-				(account, _100_000, classTag.jar, MethodSignatures.BALANCE, account))).getValue();
+				(account, _100_000, classTag.getJar(), MethodSignatures.BALANCE, account))).getValue();
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing the balance", e);

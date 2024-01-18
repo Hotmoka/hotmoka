@@ -148,7 +148,7 @@ class RemotePurchase extends HotmokaTest {
 		}
 
 		assertNotNull(event);
-		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).clazz.getName());
+		assertEquals(PURCHASE_CONFIRMED_NAME, node.getClassTag(event).getClazz().getName());
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
@@ -166,7 +166,7 @@ class RemotePurchase extends HotmokaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).clazz.getName())));
+		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName())));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

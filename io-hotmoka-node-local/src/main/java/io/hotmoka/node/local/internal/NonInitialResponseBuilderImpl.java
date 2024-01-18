@@ -33,12 +33,12 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -169,7 +169,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.clazz.getName());
+		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
 			return SignatureAlgorithms.ed25519();
@@ -191,7 +191,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException {
 		ClassTag classTag = node.getClassTag(request.caller);
-		Class<?> clazz = classLoader.loadClass(classTag.clazz.getName());
+		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
 	}
@@ -213,7 +213,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	
 		// otherwise we check
 		ClassTag classTag = node.getClassTag(payer);
-		Class<?> clazz = classLoader.loadClass(classTag.clazz.getName());
+		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getContract().isAssignableFrom(clazz))
 			throw new TransactionRejectedException("the payer of a request must be a contract");
 	}

@@ -18,12 +18,17 @@ package io.hotmoka.beans;
 
 import java.io.IOException;
 
+import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.StorageTypeDecoder;
 import io.hotmoka.beans.internal.gson.StorageTypeEncoder;
 import io.hotmoka.beans.internal.gson.StorageTypeJson;
 import io.hotmoka.beans.internal.updates.AbstractUpdate;
+import io.hotmoka.beans.internal.updates.ClassTagImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -32,6 +37,18 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public abstract class Updates {
 
 	private Updates() {}
+
+	/**
+	 * Yields an update for the class tag of an object.
+	 * 
+	 * @param object the storage reference of the object whose class name is set
+	 * @param clazz the class of the object
+	 * @param jar the reference to the transaction that installed the jar from which the class was resolved
+	 * @return the update
+	 */
+	public static ClassTag classTag(StorageReference object, ClassType clazz, TransactionReference jar) {
+		return new ClassTagImpl(object, clazz, jar);
+	}
 
 	/**
 	 * Yields the update unmarshalled from the given context.

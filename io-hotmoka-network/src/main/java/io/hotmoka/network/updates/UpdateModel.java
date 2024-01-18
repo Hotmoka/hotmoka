@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
@@ -32,7 +35,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -98,8 +100,8 @@ public class UpdateModel {
 
 			this.field = null;
 			this.value = null;
-			this.className = classTag.clazz.getName();
-			this.jar = new TransactionReferenceModel(classTag.jar);
+			this.className = classTag.getClazz().getName();
+			this.jar = new TransactionReferenceModel(classTag.getJar());
 		}
 		else {
 			UpdateOfField updateOfField = (UpdateOfField) update;
@@ -122,7 +124,7 @@ public class UpdateModel {
 		if (object == null)
 			throw new RuntimeException("Unexpected null update object");
 		else if (className != null)
-			return new ClassTag(object.toBean(), className, jar.toBean());
+			return Updates.classTag(object.toBean(), StorageTypes.classNamed(className), jar.toBean());
 		else {
 			FieldSignature field = this.field.toBean();
 			StorageValue value = this.value.toBean();

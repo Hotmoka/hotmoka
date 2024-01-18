@@ -16,8 +16,10 @@ limitations under the License.
 
 package io.hotmoka.network.updates;
 
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 /**
@@ -41,8 +43,8 @@ public class ClassTagModel {
 	 * @param classTag the class tag
 	 */
 	public ClassTagModel(ClassTag classTag) {
-		this.className = classTag.clazz.getName();
-		this.jar = new TransactionReferenceModel(classTag.jar);
+		this.className = classTag.getClazz().getName();
+		this.jar = new TransactionReferenceModel(classTag.getJar());
 	}
 
 	public ClassTagModel() {}
@@ -54,6 +56,6 @@ public class ClassTagModel {
 	 * @return the class tag
 	 */
 	public ClassTag toBean(StorageReference object) {
-		return new ClassTag(object, className, jar.toBean());
+		return Updates.classTag(object, StorageTypes.classNamed(className), jar.toBean());
 	}
 }

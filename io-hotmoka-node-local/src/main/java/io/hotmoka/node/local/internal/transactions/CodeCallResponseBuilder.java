@@ -32,7 +32,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -87,7 +86,7 @@ public abstract class CodeCallResponseBuilder
 			.map(actual -> (StorageReference) actual)
 			.collect(Collectors.toList());
 
-		for (StorageReference arg: args)
+		for (var arg: args)
 			enforceExported(arg);
 	}
 
@@ -99,9 +98,9 @@ public abstract class CodeCallResponseBuilder
 	 * @throws ClassNotFoundException if the class tag of {@code reference} cannot be found in the Takamaka program
 	 */
 	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException {
-		ClassTag classTag = node.getClassTag(reference);
-		if (!classLoader.isExported(classTag.clazz.getName()))
-			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + classTag.clazz);
+		var clazz = node.getClassTag(reference).getClazz();
+		if (!classLoader.isExported(clazz.getName()))
+			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);
 	}
 
 	/**

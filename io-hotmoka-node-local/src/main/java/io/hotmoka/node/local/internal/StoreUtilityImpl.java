@@ -27,13 +27,13 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.NodeCache;
@@ -85,7 +85,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	public Optional<TransactionReference> getTakamakaCodeUncommitted() {
 		return getStore().getManifestUncommitted()
 			.map(this::getClassTagUncommitted)
-			.map(_classTag -> _classTag.jar);
+			.map(ClassTag::getJar);
 	}
 
 	@Override
@@ -155,7 +155,7 @@ public class StoreUtilityImpl implements StoreUtility {
 
 	@Override
 	public String getClassNameUncommitted(StorageReference reference) {
-		return getClassTagUncommitted(reference).clazz.getName();
+		return getClassTagUncommitted(reference).getClazz().getName();
 	}
 
 	@Override

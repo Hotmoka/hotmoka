@@ -30,10 +30,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfBigInteger;
 import io.hotmoka.beans.updates.UpdateOfBoolean;
 import io.hotmoka.beans.updates.UpdateOfByte;
@@ -159,7 +159,7 @@ public class UpdatesExtractorFromRAM {
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(new ClassTag(storageReference, clazz.getName(), classLoader.transactionThatInstalledJarFor(clazz)));
+					updates.add(Updates.classTag(storageReference, StorageTypes.classForClass(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
 
 				Class<?> previous = null;
 				while (previous != classLoader.getStorage()) {

@@ -121,7 +121,7 @@ public class Call extends AbstractCommand {
 		private Run() throws Exception {
 			try (Node node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
-					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).jar;
+					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).getJar();
 				else
 					this.classpath = TransactionReferences.of(Call.this.classpath);
 
@@ -180,7 +180,7 @@ public class Call extends AbstractCommand {
 					return classloader.loadClass(classOfReceiver);
 				else
 					// receiver is not a class name, let's try as a storage reference
-					return classloader.loadClass(node.getClassTag(receiver).clazz.getName());
+					return classloader.loadClass(node.getClassTag(receiver).getClazz().getName());
 			}
 		}
 
@@ -308,14 +308,14 @@ public class Call extends AbstractCommand {
 		private MethodSignature signatureOfMethod() {
 			var formals = Stream.of(method.getParameters())
 				.map(Parameter::getType)
-				.map(StorageTypes::fromClass)
+				.map(StorageTypes::forClass)
 				.toArray(StorageType[]::new);
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
 				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
 			else
-				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.fromClass(returnType), formals);
+				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.forClass(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException {

@@ -14,61 +14,44 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.updates;
+package io.hotmoka.beans.internal.updates;
 
 import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.updates.AbstractUpdate;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * An update that states that an object belongs to a given class.
- * It is stored in blockchain by the transaction that created the
- * object and is not modified later anymore.
+ * Implementation of an update that states that an object belongs to a given class.
  */
 @Immutable
-public final class ClassTag extends AbstractUpdate {
+public final class ClassTagImpl extends AbstractUpdate implements ClassTag {
 	public final static byte SELECTOR = 0;
 
 	/**
 	 * The class of the object.
 	 */
-	public final ClassType clazz;
+	private final ClassType clazz;
 
 	/**
-	 * The transaction that installed the jar from which the class was resolved.
+	 * The reference to the transaction that installed the jar from which the class was resolved.
 	 */
-	public final TransactionReference jar;
-
-	/**
-	 * Builds an update for the class tag of an object.
-	 * 
-	 * @param object the storage reference of the object whose class name is set
-	 * @param className the name of the class of the object
-	 * @param jar the transaction that installed the jar from which the class was resolved
-	 */
-	public ClassTag(StorageReference object, String className, TransactionReference jar) {
-		super(object);
-
-		this.jar = Objects.requireNonNull(jar, "jar cannot be null");
-		this.clazz = StorageTypes.classNamed(className);
-	}
+	private final TransactionReference jar;
 
 	/**
 	 * Builds an update for the class tag of an object.
 	 * 
 	 * @param object the storage reference of the object whose class name is set
 	 * @param clazz the class of the object
-	 * @param jar the transaction that installed the jar from which the class was resolved
+	 * @param jar the reference to the transaction that installed the jar from which the class was resolved
 	 */
-	public ClassTag(StorageReference object, ClassType clazz, TransactionReference jar) {
+	public ClassTagImpl(StorageReference object, ClassType clazz, TransactionReference jar) {
 		super(object);
 
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null");
@@ -76,8 +59,18 @@ public final class ClassTag extends AbstractUpdate {
 	}
 
 	@Override
+	public ClassType getClazz() {
+		return clazz;
+	}
+
+	@Override
+	public TransactionReference getJar() {
+		return jar;
+	}
+
+	@Override
 	public boolean equals(Object other) {
-		return other instanceof ClassTag ct && super.equals(other) && ct.clazz.equals(clazz) && ct.jar.equals(jar);
+		return other instanceof ClassTag ct && super.equals(other) && ct.getClazz().equals(clazz) && ct.getJar().equals(jar);
 	}
 
 	@Override
@@ -96,11 +89,11 @@ public final class ClassTag extends AbstractUpdate {
 		if (diff != 0)
 			return diff;
 
-		diff = clazz.compareTo(((ClassTag) other).clazz);
+		diff = clazz.compareTo(((ClassTagImpl) other).clazz);
 		if (diff != 0)
 			return diff;
 		else
-			return jar.compareTo(((ClassTag) other).jar);
+			return jar.compareTo(((ClassTagImpl) other).jar);
 	}
 
 	@Override

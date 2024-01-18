@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.updates.ClassTag;
 import io.hotmoka.beans.updates.UpdateOfField;
 import io.hotmoka.beans.updates.UpdateOfString;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -82,7 +82,7 @@ public class State extends AbstractCommand {
 			Stream.of(updates)
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
-				.filter(update -> !update.field.getDefiningClass().equals(tag.clazz))
+				.filter(update -> !update.field.getDefiningClass().equals(tag.getClazz()))
 				.forEachOrdered(this::printUpdate);
 		}
 
@@ -90,14 +90,14 @@ public class State extends AbstractCommand {
 			Stream.of(updates)
 				.filter(update -> update instanceof UpdateOfField)
 				.map(update -> (UpdateOfField) update)
-				.filter(update -> update.field.getDefiningClass().equals(tag.clazz))
+				.filter(update -> update.field.getDefiningClass().equals(tag.getClazz()))
 				.forEachOrdered(this::printUpdate);
 		}
 
 		private void printHeader() {
-			ClassType clazz = tag.clazz;
+			ClassType clazz = tag.getClazz();
 			System.out.println(ANSI_RED + "\nThis is the state of object " + object + "@" + url + "\n");
-			System.out.println(ANSI_RESET + "class " + clazz + " (from jar installed at " + tag.jar + ")");
+			System.out.println(ANSI_RESET + "class " + clazz + " (from jar installed at " + tag.getJar() + ")");
 		}
 
 		private ClassTag getClassTag() {
@@ -108,7 +108,7 @@ public class State extends AbstractCommand {
 		}
 
 		private void printUpdate(UpdateOfField update) {
-			if (tag.clazz.equals(update.field.getDefiningClass()))
+			if (tag.getClazz().equals(update.field.getDefiningClass()))
 				System.out.println(ANSI_RESET + "  " + update.field.getName() + ":" + update.field.getType() + " = " + valueToPrint(update));
 			else
 				System.out.println(ANSI_CYAN + "\u25b2 " + update.field.getName() + ":" + update.field.getType() + " = " + valueToPrint(update) + ANSI_GREEN + " (inherited from " + update.field.getDefiningClass() + ")");

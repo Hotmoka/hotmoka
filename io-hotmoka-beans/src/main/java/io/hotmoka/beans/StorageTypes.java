@@ -62,8 +62,18 @@ public abstract class StorageTypes {
 	 * @param clazz the class
 	 * @return the storage type
 	 */
-	public static StorageType fromClass(Class<?> clazz) {
+	public static StorageType forClass(Class<?> clazz) {
 		return AbstractStorageType.fromClass(clazz);
+	}
+
+	/**
+	 * Yields the class type corresponding to the given class.
+	 * 
+	 * @param clazz the class
+	 * @return the class type
+	 */
+	public static ClassType classForClass(Class<?> clazz) {
+		return ClassTypeImpl.named(clazz.getName());
 	}
 
 	/**
