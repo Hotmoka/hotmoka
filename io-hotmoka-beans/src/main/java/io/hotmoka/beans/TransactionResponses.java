@@ -20,15 +20,20 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.responses.GameteCreationTransactionResponseImpl;
+import io.hotmoka.beans.internal.responses.InitializationTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreTransactionFailedResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
@@ -55,6 +60,27 @@ public abstract class TransactionResponses {
 	}
 
 	/**
+	 * Yields the response of a transaction that creates a gamete.
+	 * 
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gamete the created gamete
+	 * @return the response
+	 */
+	public static GameteCreationTransactionResponse gameteCreation(Stream<Update> updates, StorageReference gamete) {
+		return new GameteCreationTransactionResponseImpl(updates, gamete);
+	}
+
+	/**
+	 * Yields the response of a transaction that marks the node as initialized.
+	 * After this transaction, no more initial transactions can be executed.
+	 * 
+	 * @return the response
+	 */
+	public static InitializationTransactionResponse initialization() {
+		return new InitializationTransactionResponseImpl();
+	}
+
+		/**
 	 * Builds the response of a failed transaction that should have installed a jar in a yet non-initialized node.
 	 * 
 	 * @param classNameOfCause the fully-qualified class name of the cause exception

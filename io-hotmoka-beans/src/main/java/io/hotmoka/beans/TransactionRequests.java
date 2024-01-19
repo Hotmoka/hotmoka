@@ -21,6 +21,8 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
@@ -29,6 +31,8 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.requests.GameteCreationTransactionRequestImpl;
+import io.hotmoka.beans.internal.requests.InitializationTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
@@ -51,6 +55,33 @@ public abstract class TransactionRequests {
 	 */
 	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
 		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+	}
+
+	/**
+	 * Yields a transaction request to create a gamete.
+	 * 
+	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
+	 *                  have been already installed by a previous transaction
+	 * @param initialAmount the amount of green coins provided to the gamete
+	 * @param redInitialAmount the amount of red coins provided to the gamete
+	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
+	 * @return the request
+	 */
+	public static GameteCreationTransactionRequest gameteCreation(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, redInitialAmount, publicKey);
+	}
+
+	/**
+	 * Yields a transaction request to mark the node as initialized.
+	 * After this transaction, no more initial transactions can be executed.
+	 * 
+	 * @param classpath the reference to the jar containing the basic Takamaka classes. This must
+	 *                  have been already installed by a previous transaction
+	 * @param manifest the storage reference that must be set as manifest
+	 * @return the request
+	 */
+	public static InitializationTransactionRequest initialization(TransactionReference classpath, StorageReference manifest) {
+		return new InitializationTransactionRequestImpl(classpath, manifest);
 	}
 
 	/**

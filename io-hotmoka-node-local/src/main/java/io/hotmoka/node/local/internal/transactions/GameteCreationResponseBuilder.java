@@ -20,9 +20,10 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -48,7 +49,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
-		return node.getCaches().getClassLoader(request.classpath);
+		return node.getCaches().getClassLoader(request.getClasspath());
 	}
 
 	@Override
@@ -58,13 +59,13 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 			@Override
 			protected GameteCreationTransactionResponse body() {
 				try {
-					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.publicKey);
-					classLoader.setBalanceOf(gamete, request.initialAmount);
-					classLoader.setRedBalanceOf(gamete, request.redInitialAmount);
-					return new GameteCreationTransactionResponse(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
+					Object gamete = classLoader.getGamete().getDeclaredConstructor(String.class).newInstance(request.getPublicKey());
+					classLoader.setBalanceOf(gamete, request.getInitialAmount());
+					classLoader.setRedBalanceOf(gamete, request.getRedInitialAmount());
+					return TransactionResponses.gameteCreation(updatesExtractor.extractUpdatesFrom(Stream.of(gamete)), classLoader.getStorageReferenceOf(gamete));
 				}
 				catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-					throw new RuntimeException("unexpected exception", e);
+					throw new RuntimeException("Unexpected exception", e);
 				}
 			}
 		}

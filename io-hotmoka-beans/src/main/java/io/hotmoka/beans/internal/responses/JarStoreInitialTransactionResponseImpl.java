@@ -32,7 +32,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class JarStoreInitialTransactionResponseImpl extends TransactionResponseImpl implements JarStoreInitialTransactionResponse {
-	public final static byte SELECTOR = 1;
+	final static byte SELECTOR = 1;
 
 	/**
 	 * The bytes of the jar to install, instrumented.

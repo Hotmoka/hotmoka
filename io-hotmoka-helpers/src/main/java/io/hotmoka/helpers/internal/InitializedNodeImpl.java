@@ -37,6 +37,8 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
@@ -48,8 +50,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
@@ -146,7 +146,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;
@@ -183,7 +183,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
 	/**
@@ -212,7 +212,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(new GameteCreationTransactionRequest(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
 
 		if (producerOfGasStationBuilder == null)
 			producerOfGasStationBuilder = this::createGenericGasStationBuilder;
@@ -246,7 +246,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
 
 		// we install the manifest and initialize the node
-		parent.addInitializationTransaction(new InitializationTransactionRequest(takamakaCodeReference, manifest));
+		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
 	}
 
 	@Override

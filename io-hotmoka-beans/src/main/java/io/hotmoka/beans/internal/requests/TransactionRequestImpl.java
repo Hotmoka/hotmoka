@@ -24,8 +24,6 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
@@ -57,7 +55,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
-		case InitializationTransactionRequest.SELECTOR: return InitializationTransactionRequest.from(context);
+		case InitializationTransactionRequestImpl.SELECTOR: return InitializationTransactionRequestImpl.from(context);
 		case InstanceMethodCallTransactionRequest.SELECTOR:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_LONG:
@@ -65,7 +63,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 			return InstanceMethodCallTransactionRequest.from(context, selector);
 		case JarStoreInitialTransactionRequestImpl.SELECTOR: return JarStoreInitialTransactionRequestImpl.from(context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return JarStoreTransactionRequestImpl.from(context);
-		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(context);
+		case GameteCreationTransactionRequestImpl.SELECTOR: return GameteCreationTransactionRequestImpl.from(context);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(context);
 		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(context);
 		default: throw new IOException("Unexpected request selector: " + selector);

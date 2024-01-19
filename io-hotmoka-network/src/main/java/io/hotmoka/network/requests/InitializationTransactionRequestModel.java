@@ -16,7 +16,8 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
@@ -30,13 +31,13 @@ public class InitializationTransactionRequestModel extends InitialTransactionReq
      * @param request the request to copy
      */
     public InitializationTransactionRequestModel(InitializationTransactionRequest request) {
-    	this.manifest = new StorageReferenceModel(request.manifest);
-    	this.classpath = new TransactionReferenceModel(request.classpath);
+    	this.manifest = new StorageReferenceModel(request.getManifest());
+    	this.classpath = new TransactionReferenceModel(request.getClasspath());
     }
 
     public InitializationTransactionRequestModel() {}
 
     public InitializationTransactionRequest toBean() {
-    	return new InitializationTransactionRequest(classpath.toBean(), manifest.toBean());
+    	return TransactionRequests.initialization(classpath.toBean(), manifest.toBean());
     }
 }

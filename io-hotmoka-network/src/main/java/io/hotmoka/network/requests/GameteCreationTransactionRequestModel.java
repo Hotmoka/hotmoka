@@ -18,7 +18,8 @@ package io.hotmoka.network.requests;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 public class GameteCreationTransactionRequestModel extends InitialTransactionRequestModel {
@@ -33,15 +34,15 @@ public class GameteCreationTransactionRequestModel extends InitialTransactionReq
      * @param request the request to copy
      */
     public GameteCreationTransactionRequestModel(GameteCreationTransactionRequest request) {
-    	this.initialAmount = request.initialAmount.toString();
-    	this.redInitialAmount = request.redInitialAmount.toString();
-    	this.publicKey = request.publicKey;
-    	this.classpath = new TransactionReferenceModel(request.classpath);
+    	this.initialAmount = request.getInitialAmount().toString();
+    	this.redInitialAmount = request.getRedInitialAmount().toString();
+    	this.publicKey = request.getPublicKey();
+    	this.classpath = new TransactionReferenceModel(request.getClasspath());
     }
 
     public GameteCreationTransactionRequestModel() {}
 
     public GameteCreationTransactionRequest toBean() {
-    	return new GameteCreationTransactionRequest(classpath.toBean(), new BigInteger(initialAmount), new BigInteger(redInitialAmount), publicKey);
+    	return TransactionRequests.gameteCreation(classpath.toBean(), new BigInteger(initialAmount), new BigInteger(redInitialAmount), publicKey);
     }
 }

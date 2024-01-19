@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -22,43 +22,40 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request for creating an initial gamete. It is an account of class
+ * A request for creating an initial gamete, that is, an account of class
  * {@code io.takamaka.code.lang.Gamete} that holds the initial coins of the network.
  */
 @Immutable
-public class GameteCreationTransactionRequest extends TransactionRequestImpl<GameteCreationTransactionResponse> implements InitialTransactionRequest<GameteCreationTransactionResponse> {
-	public final static byte SELECTOR = 2;
+public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl<GameteCreationTransactionResponse> implements GameteCreationTransactionRequest {
+	final static byte SELECTOR = 2;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
 	 * have been already installed by a previous transaction.
 	 */
-	public final TransactionReference classpath;
+	private final TransactionReference classpath;
 
 	/**
-	 * The amount of coin provided to the gamete.
+	 * The amount of coins provided to the gamete.
 	 */
-
-	public final BigInteger initialAmount;
+	private final BigInteger initialAmount;
 
 	/**
-	 * The amount of red coin provided to the gamete.
+	 * The amount of red coins provided to the gamete.
 	 */
-
-	public final BigInteger redInitialAmount;
+	private final BigInteger redInitialAmount;
 
 	/**
 	 * The Base64-encoded public key that will be assigned to the gamete.
 	 */
-	public final String publicKey;
+	private final String publicKey;
 
 	/**
 	 * Builds the transaction request.
@@ -69,7 +66,7 @@ public class GameteCreationTransactionRequest extends TransactionRequestImpl<Gam
 	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public GameteCreationTransactionRequest(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
+	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
 		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
 		this.redInitialAmount = Objects.requireNonNull(redInitialAmount, "redInitialAmount cannot be null");
@@ -83,6 +80,26 @@ public class GameteCreationTransactionRequest extends TransactionRequestImpl<Gam
 	}
 
 	@Override
+	public final TransactionReference getClasspath() {
+		return classpath;
+	}
+
+	@Override
+	public final BigInteger getInitialAmount() {
+		return initialAmount;
+	}
+
+	@Override
+	public final BigInteger getRedInitialAmount() {
+		return redInitialAmount;
+	}
+
+	@Override
+	public final String getPublicKey() {
+		return publicKey;
+	}
+
+	@Override
 	public String toString() {
         return getClass().getSimpleName() + ":\n"
         	+ "  class path: " + classpath + "\n"
@@ -93,7 +110,7 @@ public class GameteCreationTransactionRequest extends TransactionRequestImpl<Gam
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GameteCreationTransactionRequest gctr &&
+		return other instanceof GameteCreationTransactionRequestImpl gctr &&
 			classpath.equals(gctr.classpath) && initialAmount.equals(gctr.initialAmount) &&
 			redInitialAmount.equals(gctr.redInitialAmount) && publicKey.equals(gctr.publicKey);
 	}
@@ -120,12 +137,12 @@ public class GameteCreationTransactionRequest extends TransactionRequestImpl<Gam
 	 * @return the request
 	 * @throws IOException if the unmarshalling failed
 	 */
-	public static GameteCreationTransactionRequest from(UnmarshallingContext context) throws IOException {
+	public static GameteCreationTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var classpath = TransactionReferences.from(context);
 		var initialAmount = context.readBigInteger();
 		var redInitialAmount = context.readBigInteger();
 		var publicKey = context.readStringUnshared();
 
-		return new GameteCreationTransactionRequest(classpath, initialAmount, redInitialAmount, publicKey);
+		return new GameteCreationTransactionRequestImpl(classpath, initialAmount, redInitialAmount, publicKey);
 	}
 }

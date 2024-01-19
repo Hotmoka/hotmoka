@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,20 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.network.responses;
+package io.hotmoka.beans.api.responses;
 
-import io.hotmoka.beans.TransactionResponses;
-import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
+import io.hotmoka.annotations.Immutable;
 
 /**
- * The model of a response for a transaction that initializes a node.
+ * A response for a transaction that initializes a node.
  * After that, no more initial transactions can be executed.
  */
-public class InitializationTransactionResponseModel extends TransactionResponseModel {
-
-    public InitializationTransactionResponseModel() {}
-
-    public InitializationTransactionResponse toBean() {
-        return TransactionResponses.initialization();
-    }
+@Immutable
+public interface InitializationTransactionResponse extends InitialTransactionResponse {
 }

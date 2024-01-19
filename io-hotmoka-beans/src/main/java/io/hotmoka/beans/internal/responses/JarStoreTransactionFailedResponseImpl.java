@@ -33,8 +33,8 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class JarStoreTransactionFailedResponseImpl extends NonInitialTransactionResponseImpl implements JarStoreTransactionFailedResponse {
-	public final static byte SELECTOR = 3;
-	
+	final static byte SELECTOR = 3;
+
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */

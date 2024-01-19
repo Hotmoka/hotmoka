@@ -14,29 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.InitialTransactionResponse;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
+import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A response for a transaction that initializes a node.
- * After that, no more initial transactions can be executed.
+ * Implementation of a response for a transaction that initializes a node.
  */
 @Immutable
-public class InitializationTransactionResponse extends TransactionResponseImpl implements InitialTransactionResponse {
-	public final static byte SELECTOR = 14;
+public class InitializationTransactionResponseImpl extends TransactionResponseImpl implements InitializationTransactionResponse {
+	final static byte SELECTOR = 14;
 
 	/**
 	 * Builds the transaction response.
 	 */
-	public InitializationTransactionResponse() {
-	}
+	public InitializationTransactionResponseImpl() {}
 
 	@Override
 	public boolean equals(Object other) {
@@ -65,7 +62,7 @@ public class InitializationTransactionResponse extends TransactionResponseImpl i
 	 * @param context the unmarshalling context
 	 * @return the request
      */
-	public static InitializationTransactionResponse from(UnmarshallingContext context) {
-		return new InitializationTransactionResponse();
+	public static InitializationTransactionResponseImpl from(UnmarshallingContext context) {
+		return new InitializationTransactionResponseImpl();
 	}
 }

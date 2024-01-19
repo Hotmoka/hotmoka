@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -22,33 +22,32 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request to initialize a node. It sets the manifest of a node.
+ * Implementation of a request to initialize a node. It sets the manifest of a node.
  * After the manifest has been set, no more initial transactions can be executed,
  * hence the node is considered initialized. The manifest cannot be set twice.
  */
 @Immutable
-public class InitializationTransactionRequest extends TransactionRequestImpl<InitializationTransactionResponse> implements InitialTransactionRequest<InitializationTransactionResponse> {
-	public final static byte SELECTOR = 10;
+public class InitializationTransactionRequestImpl extends TransactionRequestImpl<InitializationTransactionResponse> implements InitializationTransactionRequest {
+	final static byte SELECTOR = 10;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must
 	 * have been already installed by a previous transaction.
 	 */
-	public final TransactionReference classpath;
+	private final TransactionReference classpath;
 
 	/**
 	 * The storage reference that must be set as manifest.
 	 */
-	public final StorageReference manifest;
+	private final StorageReference manifest;
 
 	/**
 	 * Builds the transaction request.
@@ -57,9 +56,19 @@ public class InitializationTransactionRequest extends TransactionRequestImpl<Ini
 	 *                  have been already installed by a previous transaction
 	 * @param manifest the storage reference that must be set as manifest
 	 */
-	public InitializationTransactionRequest(TransactionReference classpath, StorageReference manifest) {
+	public InitializationTransactionRequestImpl(TransactionReference classpath, StorageReference manifest) {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
 		this.manifest = Objects.requireNonNull(manifest, "manifest cannot be null");
+	}
+
+	@Override
+	public TransactionReference getClasspath() {
+		return classpath;
+	}
+
+	@Override
+	public StorageReference getManifest() {
+		return manifest;
 	}
 
 	@Override
@@ -69,7 +78,7 @@ public class InitializationTransactionRequest extends TransactionRequestImpl<Ini
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof InitializationTransactionRequest itr && classpath.equals(itr.classpath) && manifest.equals(itr.manifest);
+		return other instanceof InitializationTransactionRequestImpl itr && classpath.equals(itr.classpath) && manifest.equals(itr.manifest);
 	}
 
 	@Override
@@ -92,10 +101,10 @@ public class InitializationTransactionRequest extends TransactionRequestImpl<Ini
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InitializationTransactionRequest from(UnmarshallingContext context) throws IOException {
+	public static InitializationTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var classpath = TransactionReferences.from(context);
 		var manifest = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return new InitializationTransactionRequest(classpath, manifest);
+		return new InitializationTransactionRequestImpl(classpath, manifest);
 	}
 }

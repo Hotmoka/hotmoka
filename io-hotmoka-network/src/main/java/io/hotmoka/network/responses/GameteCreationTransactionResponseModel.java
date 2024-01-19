@@ -19,7 +19,8 @@ package io.hotmoka.network.responses;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 
@@ -41,12 +42,12 @@ public class GameteCreationTransactionResponseModel extends TransactionResponseM
      */
     public GameteCreationTransactionResponseModel(GameteCreationTransactionResponse response) {
         this.updates = response.getUpdates().map(UpdateModel::new).collect(Collectors.toList());
-        this.gamete = new StorageReferenceModel(response.gamete);
+        this.gamete = new StorageReferenceModel(response.getGamete());
     }
 
     public GameteCreationTransactionResponseModel() {}
 
     public GameteCreationTransactionResponse toBean() {
-        return new GameteCreationTransactionResponse(updates.stream().map(UpdateModel::toBean), gamete.toBean());
+        return TransactionResponses.gameteCreation(updates.stream().map(UpdateModel::toBean), gamete.toBean());
     }
 }

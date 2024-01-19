@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 
@@ -49,8 +49,7 @@ class CreateAccountForFree extends HotmokaTest {
 		if (!(node instanceof RemoteNode)){
 			try { 
 				// all other nodes are expected to reject this, since the node is already initialized
-				node.addGameteCreationTransaction(new GameteCreationTransactionRequest
-					(takamakaCode(), _50_000, _50_000, publicKey));
+				node.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCode(), _50_000, _50_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
 				assertTrue(e.getMessage().contains("Cannot run an initial transaction request in an already initialized node"));

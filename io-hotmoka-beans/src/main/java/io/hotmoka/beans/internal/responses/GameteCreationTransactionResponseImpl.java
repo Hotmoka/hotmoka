@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,11 +24,9 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.Updates;
-import io.hotmoka.beans.api.responses.InitialTransactionResponse;
-import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -36,8 +34,8 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A response for a transaction that installs a jar in a yet not initialized blockchain.
  */
 @Immutable
-public class GameteCreationTransactionResponse extends TransactionResponseImpl implements InitialTransactionResponse, TransactionResponseWithUpdates {
-	public final static byte SELECTOR = 0;
+public class GameteCreationTransactionResponseImpl extends TransactionResponseImpl implements GameteCreationTransactionResponse {
+	final static byte SELECTOR = 0;
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -47,7 +45,7 @@ public class GameteCreationTransactionResponse extends TransactionResponseImpl i
 	/**
 	 * The created gamete.
 	 */
-	public final StorageReference gamete;
+	private final StorageReference gamete;
 
 	/**
 	 * Builds the transaction response.
@@ -55,14 +53,14 @@ public class GameteCreationTransactionResponse extends TransactionResponseImpl i
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param gamete the created gamete
 	 */
-	public GameteCreationTransactionResponse(Stream<Update> updates, StorageReference gamete) {
+	public GameteCreationTransactionResponseImpl(Stream<Update> updates, StorageReference gamete) {
 		this.updates = updates.toArray(Update[]::new);
 		this.gamete = gamete;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GameteCreationTransactionResponse gctr &&
+		return other instanceof GameteCreationTransactionResponseImpl gctr &&
 			Arrays.equals(updates, gctr.updates) && gamete.equals(gctr.gamete);
 	}
 
@@ -74,6 +72,11 @@ public class GameteCreationTransactionResponse extends TransactionResponseImpl i
 	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);
+	}
+
+	@Override
+	public StorageReference getGamete() {
+		return gamete;
 	}
 
 	@Override
@@ -107,8 +110,8 @@ public class GameteCreationTransactionResponse extends TransactionResponseImpl i
 	 * @return the response
 	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException {
+	public static GameteCreationTransactionResponseImpl from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		return new GameteCreationTransactionResponse(updates, StorageValues.referenceWithoutSelectorFrom(context));
+		return new GameteCreationTransactionResponseImpl(updates, StorageValues.referenceWithoutSelectorFrom(context));
 	}
 }

@@ -32,15 +32,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.InitializationTransactionResponse;
 
 /**
  * Shared implementation of the store of a node. It keeps information about the state of the objects created
@@ -86,18 +86,18 @@ public abstract class AbstractStore implements Store {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 
-			if (response instanceof TransactionResponseWithUpdates)
-				expandHistory(reference, (TransactionResponseWithUpdates) response);
+			if (response instanceof TransactionResponseWithUpdates trwu)
+				expandHistory(reference, trwu);
 
 			if (response instanceof InitializationTransactionResponse) {
-				StorageReference manifest = ((InitializationTransactionRequest) request).manifest;
+				StorageReference manifest = ((InitializationTransactionRequest) request).getManifest();
 				setManifest(manifest);
 				logger.info(manifest + ": set as manifest");
 				logger.info("the node has been initialized");
 			}
 
-			if (response instanceof GameteCreationTransactionResponse)
-				logger.info(((GameteCreationTransactionResponse) response).gamete + ": created as gamete");
+			if (response instanceof GameteCreationTransactionResponse gctr)
+				logger.info(gctr.getGamete() + ": created as gamete");
 		}
 	}
 
