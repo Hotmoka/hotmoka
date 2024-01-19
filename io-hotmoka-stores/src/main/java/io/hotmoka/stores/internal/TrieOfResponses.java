@@ -25,11 +25,11 @@ import java.util.logging.Logger;
 
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.patricia.PatriciaTries;
@@ -133,19 +133,15 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) {
-		if (response instanceof JarStoreTransactionSuccessfulResponse) {
-			var jstsr = (JarStoreTransactionSuccessfulResponse) response;
-			return new JarStoreTransactionSuccessfulResponse
+		if (response instanceof JarStoreTransactionSuccessfulResponse jstsr)
+			return TransactionResponses.jarStoreSuccessful
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
 				jstsr.getGasConsumedForCPU(), jstsr.getGasConsumedForRAM(), jstsr.getGasConsumedForStorage());
-		}
-		else if (response instanceof JarStoreInitialTransactionResponse) {
-			var jsitr = (JarStoreInitialTransactionResponse) response;
+		else if (response instanceof JarStoreInitialTransactionResponse jsitr)
 			return TransactionResponses.jarStoreInitial(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
-		}
 		else {
-			logger.log(Level.SEVERE, "unexpected response containing jar, of class " + response.getClass().getName());
-			return (TransactionResponse) response;
+			logger.log(Level.SEVERE, "Unexpected response containing jar, of class " + response.getClass().getName());
+			return response;
 		}
 	}
 

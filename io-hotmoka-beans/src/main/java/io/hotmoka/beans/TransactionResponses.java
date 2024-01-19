@@ -17,15 +17,21 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
 import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
+import io.hotmoka.beans.internal.responses.JarStoreTransactionFailedResponseImpl;
+import io.hotmoka.beans.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
 import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -46,6 +52,38 @@ public abstract class TransactionResponses {
 	 */
 	public static JarStoreInitialTransactionResponse jarStoreInitial(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
 		return new JarStoreInitialTransactionResponseImpl(instrumentedJar, dependencies, verificationToolVersion);
+	}
+
+	/**
+	 * Builds the response of a failed transaction that should have installed a jar in a yet non-initialized node.
+	 * 
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @return the response
+	 */
+	public static JarStoreTransactionFailedResponse jarStoreFailed(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		return new JarStoreTransactionFailedResponseImpl(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	}
+
+	/**
+	 * Builds the response of a successful transaction that installed a jar in a yet non-initialized node.
+	 * 
+	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static JarStoreTransactionSuccessfulResponse jarStoreSuccessful(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new JarStoreTransactionSuccessfulResponseImpl(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
 	/**

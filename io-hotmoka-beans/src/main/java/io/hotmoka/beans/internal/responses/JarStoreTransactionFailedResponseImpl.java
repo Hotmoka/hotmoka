@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -23,34 +23,32 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Updates;
-import io.hotmoka.beans.api.responses.FailedTransactionResponse;
-import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.internal.responses.NonInitialTransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A response for a failed transaction that should have installed a jar in the node.
+ * Implementation of a response for a failed transaction that should have installed a jar in the node.
  */
 @Immutable
-public class JarStoreTransactionFailedResponse extends NonInitialTransactionResponseImpl implements JarStoreTransactionResponse, FailedTransactionResponse {
+public class JarStoreTransactionFailedResponseImpl extends NonInitialTransactionResponseImpl implements JarStoreTransactionFailedResponse {
 	public final static byte SELECTOR = 3;
 	
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
-	public final BigInteger gasConsumedForPenalty;
+	private final BigInteger gasConsumedForPenalty;
 
 	/**
 	 * The fully-qualified class name of the cause exception.
 	 */
-	public final String classNameOfCause;
+	private final String classNameOfCause;
 
 	/**
 	 * The message of the cause exception.
 	 */
-	public final String messageOfCause;
+	private final String messageOfCause;
 
 	/**
 	 * Builds the transaction response.
@@ -63,7 +61,7 @@ public class JarStoreTransactionFailedResponse extends NonInitialTransactionResp
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public JarStoreTransactionFailedResponse(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public JarStoreTransactionFailedResponseImpl(String classNameOfCause, String messageOfCause, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
@@ -93,7 +91,7 @@ public class JarStoreTransactionFailedResponse extends NonInitialTransactionResp
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionFailedResponse jstfr && super.equals(other)
+		return other instanceof JarStoreTransactionFailedResponseImpl jstfr && super.equals(other)
 			&& gasConsumedForPenalty.equals(jstfr.gasConsumedForPenalty)
 			&& classNameOfCause.equals(jstfr.classNameOfCause) && messageOfCause.equals(jstfr.messageOfCause);
 	}
@@ -126,7 +124,7 @@ public class JarStoreTransactionFailedResponse extends NonInitialTransactionResp
 	 * @return the response
 	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static JarStoreTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
+	public static JarStoreTransactionFailedResponseImpl from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
@@ -134,6 +132,6 @@ public class JarStoreTransactionFailedResponse extends NonInitialTransactionResp
 		var gasConsumedForPenalty = context.readBigInteger();
 		var classNameOfCause = context.readStringUnshared();
 		var messageOfCause = context.readStringUnshared();
-		return new JarStoreTransactionFailedResponse(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+		return new JarStoreTransactionFailedResponseImpl(classNameOfCause, messageOfCause, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

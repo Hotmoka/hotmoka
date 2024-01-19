@@ -18,7 +18,8 @@ package io.hotmoka.network.responses;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.network.updates.UpdateModel;
 
 public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionResponseModel {
@@ -42,14 +43,14 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
         super(response);
 
         this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
-        this.classNameOfCause = response.classNameOfCause;
-        this.messageOfCause = response.messageOfCause;
+        this.classNameOfCause = response.getClassNameOfCause();
+        this.messageOfCause = response.getMessageOfCause();
     }
 
     public JarStoreTransactionFailedResponseModel() {}
 
     public JarStoreTransactionFailedResponse toBean() {
-        return new JarStoreTransactionFailedResponse(
+        return TransactionResponses.jarStoreFailed(
         	classNameOfCause,
         	messageOfCause,
         	updates.stream().map(UpdateModel::toBean),

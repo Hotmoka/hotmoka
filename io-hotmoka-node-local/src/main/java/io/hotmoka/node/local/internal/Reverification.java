@@ -32,12 +32,12 @@ import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -204,7 +204,7 @@ public class Reverification {
 		// there remains only this possibility:
 		var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
-		var replacement = new JarStoreTransactionFailedResponse(
+		var replacement = TransactionResponses.jarStoreFailed(
 			VerificationException.class.getName(), error,
 			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 			currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage(),
@@ -224,7 +224,7 @@ public class Reverification {
 			// there remains only this possibility
 			var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
 
-			replacement = new JarStoreTransactionSuccessfulResponse(
+			replacement = TransactionResponses.jarStoreSuccessful(
 				response.getInstrumentedJar(), response.getDependencies(),
 				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
 				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());

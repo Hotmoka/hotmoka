@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -25,19 +25,18 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.Updates;
-import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.internal.responses.NonInitialTransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A response for a successful transaction that installs a jar in a blockchain.
+ * Implementation of a response for a successful transaction that installs a jar in a blockchain.
  */
 @Immutable
-public class JarStoreTransactionSuccessfulResponse extends NonInitialTransactionResponseImpl implements JarStoreTransactionResponse, TransactionResponseWithInstrumentedJar {
+public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransactionResponseImpl implements JarStoreTransactionSuccessfulResponse, TransactionResponseWithInstrumentedJar {
 	public final static byte SELECTOR = 2;
 
 	/**
@@ -67,7 +66,7 @@ public class JarStoreTransactionSuccessfulResponse extends NonInitialTransaction
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public JarStoreTransactionSuccessfulResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	public JarStoreTransactionSuccessfulResponseImpl(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.instrumentedJar = instrumentedJar.clone();
@@ -93,7 +92,7 @@ public class JarStoreTransactionSuccessfulResponse extends NonInitialTransaction
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionSuccessfulResponse jstsr && super.equals(other)
+		return other instanceof JarStoreTransactionSuccessfulResponseImpl jstsr && super.equals(other)
 			&& Arrays.equals(instrumentedJar, jstsr.instrumentedJar) && Arrays.equals(dependencies, jstsr.dependencies);
 	}
 
@@ -128,7 +127,7 @@ public class JarStoreTransactionSuccessfulResponse extends NonInitialTransaction
 	 * @return the response
 	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static JarStoreTransactionSuccessfulResponse from(UnmarshallingContext context) throws IOException {
+	public static JarStoreTransactionSuccessfulResponseImpl from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
@@ -136,7 +135,7 @@ public class JarStoreTransactionSuccessfulResponse extends NonInitialTransaction
 		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
 		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
-		return new JarStoreTransactionSuccessfulResponse(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		return new JarStoreTransactionSuccessfulResponseImpl(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 
 	@Override

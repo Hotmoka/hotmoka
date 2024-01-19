@@ -21,7 +21,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
@@ -54,7 +55,7 @@ public class JarStoreTransactionSuccessfulResponseModel extends JarStoreTransact
     public JarStoreTransactionSuccessfulResponseModel() {}
 
     public JarStoreTransactionSuccessfulResponse toBean() {
-        return new JarStoreTransactionSuccessfulResponse(
+        return TransactionResponses.jarStoreSuccessful(
         	Base64.getDecoder().decode(instrumentedJar),
         	dependencies.stream().map(TransactionReferenceModel::toBean),
         	verificationToolVersion,
