@@ -29,10 +29,12 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -42,7 +44,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for calling a static method of a storage class in a node.
  */
 @Immutable
-public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest {
+public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest<MethodCallTransactionResponse> {
 	public final static byte SELECTOR = 6;
 
 	/**

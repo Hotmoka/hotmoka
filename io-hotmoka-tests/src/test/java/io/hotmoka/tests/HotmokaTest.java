@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
@@ -55,7 +56,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base64;
@@ -199,7 +199,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        signature = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests());
 	        initializeNodeIfNeeded(wrapped);
-	        var signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
+	        var signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest<?>::toByteArrayWithoutSignature);
 
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();

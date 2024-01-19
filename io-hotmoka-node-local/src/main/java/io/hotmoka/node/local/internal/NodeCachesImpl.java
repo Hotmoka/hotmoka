@@ -36,8 +36,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
@@ -46,9 +48,7 @@ import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -86,7 +86,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * This avoids repeated signature checking in {@link AbstractLocalNode#checkTransaction(TransactionRequest)}
 	 * and {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<SignedTransactionRequest, Boolean> checkedSignatures;
+	private final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures;
 
 	/**
 	 * The cache for the class loaders.
@@ -331,12 +331,12 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws Exception {
+	public final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws Exception {
 		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignature(signatureAlgorithm, request));
 	}
 
-	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest request) throws GeneralSecurityException, Base64ConversionException {
-		return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest::toByteArrayWithoutSignature).verify(request, request.getSignature());
+	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws GeneralSecurityException, Base64ConversionException {
+		return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
 	}
 
 	@Override

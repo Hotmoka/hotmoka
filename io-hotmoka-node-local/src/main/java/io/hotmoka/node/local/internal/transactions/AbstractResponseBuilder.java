@@ -25,6 +25,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.FieldSignature;
@@ -32,7 +33,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.ConsensusConfig;

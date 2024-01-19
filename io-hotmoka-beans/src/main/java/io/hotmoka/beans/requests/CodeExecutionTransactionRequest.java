@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -27,6 +28,7 @@ import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -90,5 +92,22 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		context.writeLengthAndArray(actuals);
+	}
+
+	/**
+	 * Marshals this object into a byte array, without taking its signature into account.
+	 * 
+	 * @return the byte array resulting from marshalling this object
+	 */
+	public byte[] toByteArrayWithoutSignature() {
+		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
+			intoWithoutSignature(context);
+			context.flush();
+			return baos.toByteArray();
+		}
+		catch (IOException e) {
+			// impossible with a byte array output stream
+			throw new RuntimeException("Unexpected exception", e);
+		}
 	}
 }

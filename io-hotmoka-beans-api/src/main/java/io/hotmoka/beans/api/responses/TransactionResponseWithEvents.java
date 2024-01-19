@@ -14,22 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.responses;
+
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.InitialTransactionResponse;
+import io.hotmoka.beans.api.values.StorageReference;
 
 /**
- * A request for a transaction that can only be executed before the initialization of a node.
- * 
- * @param <R> the type of the corresponding response
+ * A response for a transaction that might contain events.
  */
 @Immutable
-public abstract class InitialTransactionRequest<R extends InitialTransactionResponse> extends TransactionRequestImpl<R> {
-
+public interface TransactionResponseWithEvents extends TransactionResponse {
+	
 	/**
-	 * Creates the request.
+	 * Yields the events induced by the execution of this transaction.
+	 * 
+	 * @return the events
 	 */
-	protected InitialTransactionRequest() {}
+    Stream<StorageReference> getEvents();
 }

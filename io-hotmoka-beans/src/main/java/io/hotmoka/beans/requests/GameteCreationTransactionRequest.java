@@ -22,7 +22,9 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -32,7 +34,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * {@code io.takamaka.code.lang.Gamete} that holds the initial coins of the network.
  */
 @Immutable
-public class GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
+public class GameteCreationTransactionRequest extends TransactionRequestImpl<GameteCreationTransactionResponse> implements InitialTransactionRequest<GameteCreationTransactionResponse> {
 	public final static byte SELECTOR = 2;
 
 	/**

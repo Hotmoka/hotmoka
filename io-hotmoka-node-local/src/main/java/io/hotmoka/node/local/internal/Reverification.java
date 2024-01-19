@@ -28,15 +28,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
-import io.hotmoka.beans.requests.InitialTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;

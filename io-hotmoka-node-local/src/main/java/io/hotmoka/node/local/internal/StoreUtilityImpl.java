@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.ClassTag;
@@ -34,7 +35,6 @@ import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;

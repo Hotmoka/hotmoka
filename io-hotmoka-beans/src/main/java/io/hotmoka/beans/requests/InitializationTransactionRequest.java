@@ -22,8 +22,10 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -34,7 +36,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * hence the node is considered initialized. The manifest cannot be set twice.
  */
 @Immutable
-public class InitializationTransactionRequest extends InitialTransactionRequest<InitializationTransactionResponse> {
+public class InitializationTransactionRequest extends TransactionRequestImpl<InitializationTransactionResponse> implements InitialTransactionRequest<InitializationTransactionResponse> {
 	public final static byte SELECTOR = 10;
 
 	/**

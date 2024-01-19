@@ -23,7 +23,9 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -32,7 +34,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for a transaction that installs a jar in a yet not initialized node.
  */
 @Immutable
-public class JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse> implements AbstractJarStoreTransactionRequest {
+public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<JarStoreInitialTransactionResponse> implements InitialTransactionRequest<JarStoreInitialTransactionResponse>, AbstractJarStoreTransactionRequest {
 	public final static byte SELECTOR = 1;
 
 	/**

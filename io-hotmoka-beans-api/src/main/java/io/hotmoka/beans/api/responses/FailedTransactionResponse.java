@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.api.responses;
 
 import java.math.BigInteger;
 
@@ -23,7 +23,7 @@ import java.math.BigInteger;
  * could not be executed until its end. Instance gas provided to the
  * transaction has been consumed, as a form of penalty.
  */
-public interface TransactionResponseFailed {
+public interface FailedTransactionResponse extends TransactionResponse {
 
 	/**
 	 * Yields the amount of gas that the transaction consumed for penalty, since it failed.

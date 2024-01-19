@@ -31,14 +31,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.MethodSignatures;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -81,7 +80,7 @@ class Repeated extends HotmokaTest {
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")
 	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException {
 		BigInteger nonce = getNonceOf(account(0));
-		Signer<SignedTransactionRequest> signer = signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature);
+		var signer = signature().getSigner(privateKey(0), SignedTransactionRequest<?>::toByteArrayWithoutSignature);
 
 		// the following request uses the wrong nonce, hence it will be rejected now
 		// it will charge 20,000 units of coin to account(0), for penalty

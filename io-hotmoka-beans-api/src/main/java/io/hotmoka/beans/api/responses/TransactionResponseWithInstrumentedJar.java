@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.api.responses;
 
 import java.util.stream.Stream;
 
@@ -23,7 +23,7 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 /**
  * A response for a transaction that successfully installed a jar in the blockchain.
  */
-public interface TransactionResponseWithInstrumentedJar {
+public interface TransactionResponseWithInstrumentedJar extends TransactionResponse {
 
 	/**
 	 * Yields the bytes of the installed jar.

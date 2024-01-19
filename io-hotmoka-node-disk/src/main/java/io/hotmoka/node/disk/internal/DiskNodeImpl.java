@@ -24,7 +24,7 @@ import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
+import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.TransactionRejectedException;

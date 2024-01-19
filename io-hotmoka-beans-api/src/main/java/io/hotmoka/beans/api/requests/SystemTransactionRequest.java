@@ -14,19 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.api.requests;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 
 /**
- * A response for an initial transaction.
+ * A request whose transaction is started from the node itself.
+ * It cannot be started by users and is not propagated in the network.
  */
-@Immutable
-public abstract class InitialTransactionResponse extends TransactionResponseImpl {
-
-	/**
-	 * Creates the request.
-	 */
-	protected InitialTransactionResponse() {}
+public interface SystemTransactionRequest<R extends TransactionResponse> extends TransactionRequest<R> {
 }

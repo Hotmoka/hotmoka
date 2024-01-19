@@ -28,6 +28,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -42,7 +43,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for calling a constructor of a storage class in a node.
  */
 @Immutable
-public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> implements SignedTransactionRequest {
+public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> implements SignedTransactionRequest<ConstructorCallTransactionResponse> {
 	public final static byte SELECTOR = 4;
 
 	/**
@@ -118,7 +119,6 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
-		// we add the signature
 		context.writeLengthAndBytes(getSignature());
 	}
 

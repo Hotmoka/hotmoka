@@ -29,6 +29,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
@@ -36,6 +37,7 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -45,7 +47,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for calling an instance method of a storage object in a node.
  */
 @Immutable
-public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SignedTransactionRequest {
+public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SignedTransactionRequest<MethodCallTransactionResponse> {
 	public final static byte SELECTOR = 5;
 
 	// selectors used for calls to coin transfer methods, for their more compact representation
@@ -126,7 +128,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	@Override
 	public final void into(MarshallingContext context) throws IOException {
 		intoWithoutSignature(context);
-		context.writeLengthAndBytes(signature); // we add the signature
+		context.writeLengthAndBytes(signature);
 	}
 
 	@Override

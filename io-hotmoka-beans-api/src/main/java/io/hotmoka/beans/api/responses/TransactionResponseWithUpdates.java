@@ -14,11 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.responses;
+
+import java.util.stream.Stream;
+
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.updates.Update;
 
 /**
- * A request whose transaction is started from the node itself.
- * It cannot be started by users and is not propagated in the network.
+ * A response for a transaction that might contain updates.
  */
-public interface SystemTransactionRequest {
+@Immutable
+public interface TransactionResponseWithUpdates extends TransactionResponse {
+	
+	/**
+	 * Yields the updates induced by the execution of this transaction.
+	 * 
+	 * @return the updates
+	 */
+    Stream<Update> getUpdates();
 }

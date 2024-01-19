@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Optional;
 
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
 
@@ -104,7 +104,7 @@ public interface NodeCache {
 	 * @return true if and only if the signature of {@code request} is valid
 	 * @throws Exception if the signature of the request could not be checked
 	 */
-	boolean signatureIsValid(SignedTransactionRequest request, SignatureAlgorithm signatureAlgorithm) throws Exception;
+	boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws Exception;
 
 	/**
 	 * Yields the consensus parameters of the node.

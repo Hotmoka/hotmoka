@@ -41,6 +41,11 @@ public abstract class MethodCallTransactionRequest extends CodeExecutionTransact
 	public final MethodSignature method;
 
 	/**
+	 * Used as empty signature for view transaction requests.
+	 */
+	protected static byte[] NO_SIG = new byte[0];
+
+	/**
 	 * Builds the transaction request.
 	 * 
 	 * @param caller the externally owned caller contract that pays for the transaction

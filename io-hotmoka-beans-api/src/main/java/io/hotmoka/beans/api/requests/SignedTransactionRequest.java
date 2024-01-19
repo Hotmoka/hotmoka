@@ -14,28 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.requests;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A request signed with a signature of its caller.
+ * 
+ * @param <R> the type of the response expected for this request
  */
-public interface SignedTransactionRequest {
+public interface SignedTransactionRequest<R extends TransactionResponse> extends TransactionRequest<R> {
 
 	/**
-	 * Used as empty signature for view transaction requests.
-	 */
-	byte[] NO_SIG = new byte[0];
-
-	/**
-	 * The caller that signs the transaction request.
+	 * Yields the caller that signs the transaction request.
 	 * 
 	 * @return the caller
 	 */
@@ -57,9 +52,8 @@ public interface SignedTransactionRequest {
 	byte[] getSignature();
 
 	/**
-	 * Marshals this object into a given stream. This method in general
-	 * performs better than standard Java serialization, wrt the size of the marshalled data.
-	 * The difference with {@link TransactionRequest#into(MarshallingContext)} is that the signature
+	 * Marshals this object into a given stream. The difference with
+	 * {@link TransactionRequest#into(MarshallingContext)} is that the signature
 	 * is not marshalled into the stream.
 	 * 
 	 * @param context the context holding the stream
@@ -72,15 +66,5 @@ public interface SignedTransactionRequest {
 	 * 
 	 * @return the byte array resulting from marshalling this object
 	 */
-	default byte[] toByteArrayWithoutSignature() {
-		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
-			intoWithoutSignature(context);
-			context.flush();
-			return baos.toByteArray();
-		}
-		catch (IOException e) {
-			// impossible with a byte array output stream
-			throw new RuntimeException("Unexpected exception", e);
-		}
-	}
+	byte[] toByteArrayWithoutSignature();
 }

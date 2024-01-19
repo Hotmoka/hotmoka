@@ -19,6 +19,8 @@ package io.hotmoka.beans.responses;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.responses.InitialTransactionResponse;
+import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -27,7 +29,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * After that, no more initial transactions can be executed.
  */
 @Immutable
-public class InitializationTransactionResponse extends InitialTransactionResponse {
+public class InitializationTransactionResponse extends TransactionResponseImpl implements InitialTransactionResponse {
 	public final static byte SELECTOR = 14;
 
 	/**

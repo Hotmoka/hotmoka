@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.beans.requests;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -27,8 +28,10 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
@@ -39,7 +42,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
+public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest<JarStoreNonInitialTransactionResponse> {
 	public final static byte SELECTOR = 3;
 
 	/**
@@ -183,6 +186,19 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		super.intoWithoutSignature(context);
 		context.writeLengthAndBytes(jar);
 		context.writeLengthAndArray(dependencies);
+	}
+
+	@Override
+	public byte[] toByteArrayWithoutSignature() {
+		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
+			intoWithoutSignature(context);
+			context.flush();
+			return baos.toByteArray();
+		}
+		catch (IOException e) {
+			// impossible with a byte array output stream
+			throw new RuntimeException("Unexpected exception", e);
+		}
 	}
 
 	/**

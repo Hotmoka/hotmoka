@@ -24,9 +24,9 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.FailedTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.api.GasCounter;
@@ -93,8 +93,8 @@ public class GasCounterImpl implements GasCounter {
 					forCPU = forCPU.add(responseWithGas.gasConsumedForCPU);
 					forRAM = forRAM.add(responseWithGas.gasConsumedForRAM);
 					forStorage = forStorage.add(responseWithGas.gasConsumedForStorage);
-					if (responseWithGas instanceof TransactionResponseFailed)
-						forPenalty = forPenalty.add(((TransactionResponseFailed) responseWithGas).gasConsumedForPenalty());
+					if (responseWithGas instanceof FailedTransactionResponse)
+						forPenalty = forPenalty.add(((FailedTransactionResponse) responseWithGas).gasConsumedForPenalty());
 				}
 			}
 			catch (TransactionRejectedException | NoSuchElementException e) {}

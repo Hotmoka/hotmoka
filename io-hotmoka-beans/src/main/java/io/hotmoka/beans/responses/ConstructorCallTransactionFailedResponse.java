@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.responses.FailedTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -32,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * of a storage class in blockchain.
  */
 @Immutable
-public class ConstructorCallTransactionFailedResponse extends ConstructorCallTransactionResponse implements TransactionResponseFailed {
+public class ConstructorCallTransactionFailedResponse extends ConstructorCallTransactionResponse implements FailedTransactionResponse {
 	public final static byte SELECTOR = 5;
 
 	/**

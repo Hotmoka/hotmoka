@@ -48,8 +48,12 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.FailedTransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
+import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
@@ -65,14 +69,10 @@ import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.SystemTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponseFailed;
-import io.hotmoka.beans.responses.TransactionResponseWithEvents;
-import io.hotmoka.beans.responses.TransactionResponseWithUpdates;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -854,8 +854,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				gasConsumedSinceLastReward = gasConsumedSinceLastReward.add(gasConsumedButPenalty);
 
 				BigInteger gasConsumedTotal = gasConsumedButPenalty;
-				if (response instanceof TransactionResponseFailed)
-					gasConsumedTotal = gasConsumedTotal.add(((TransactionResponseFailed) response).gasConsumedForPenalty());
+				if (response instanceof FailedTransactionResponse)
+					gasConsumedTotal = gasConsumedTotal.add(((FailedTransactionResponse) response).gasConsumedForPenalty());
 
 				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).gasPrice;
 				BigInteger reward = gasConsumedTotal.multiply(gasPrice);

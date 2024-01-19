@@ -22,7 +22,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.responses.InitialTransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -30,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A response for a transaction that installs a jar in a yet not initialized node.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithInstrumentedJar, JarStoreTransactionResponse {
+public class JarStoreInitialTransactionResponse extends TransactionResponseImpl implements InitialTransactionResponse, TransactionResponseWithInstrumentedJar, JarStoreTransactionResponse {
 	public final static byte SELECTOR = 1;
 
 	/**

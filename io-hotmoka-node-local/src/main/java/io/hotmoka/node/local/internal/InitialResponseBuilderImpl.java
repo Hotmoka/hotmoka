@@ -19,9 +19,9 @@ package io.hotmoka.node.local.internal;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.responses.InitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.InitialTransactionRequest;
-import io.hotmoka.beans.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 

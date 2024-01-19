@@ -31,6 +31,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.FieldSignatures;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.ClassTag;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.requests.SignedTransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -226,7 +226,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void signatureMustBeValid() throws Exception {
 		// if the node is not initialized yet, the signature is not checked
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()
-				&& !node.getCaches().signatureIsValid((SignedTransactionRequest) request, determineSignatureAlgorithm()))
+				&& !node.getCaches().signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -240,7 +240,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// if the node is not initialized yet, the chain id is not checked
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
 			String chainIdOfNode = consensus.getChainId();
-			String chainId = ((SignedTransactionRequest) request).getChainId();
+			String chainId = ((SignedTransactionRequest<?>) request).getChainId();
 			if (!chainIdOfNode.equals(chainId))
 				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
 		}
