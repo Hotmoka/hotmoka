@@ -28,7 +28,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class InitializationTransactionResponse extends InitialTransactionResponse {
-	final static byte SELECTOR = 14;
+	public final static byte SELECTOR = 14;
 
 	/**
 	 * Builds the transaction response.

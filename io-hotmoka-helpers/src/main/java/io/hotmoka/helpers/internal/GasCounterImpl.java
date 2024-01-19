@@ -22,10 +22,10 @@ import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseFailed;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;

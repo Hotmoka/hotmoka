@@ -19,6 +19,7 @@ package io.hotmoka.beans.requests;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;

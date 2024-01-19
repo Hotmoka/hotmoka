@@ -24,8 +24,8 @@ import java.security.SignatureException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;

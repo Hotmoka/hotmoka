@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,19 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.api.responses;
 
-import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
+import io.hotmoka.marshalling.api.Marshallable;
 
 /**
- * A response for an initial transaction.
+ * The response of a transaction.
  */
-@Immutable
-public abstract class InitialTransactionResponse extends TransactionResponseImpl {
-
-	/**
-	 * Creates the request.
-	 */
-	protected InitialTransactionResponse() {}
+public interface TransactionResponse extends Marshallable {
 }

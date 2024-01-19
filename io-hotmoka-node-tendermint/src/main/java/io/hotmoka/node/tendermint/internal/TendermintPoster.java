@@ -25,7 +25,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -37,7 +36,10 @@ import java.util.stream.Stream;
 import com.google.gson.Gson;
 
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
@@ -81,7 +83,7 @@ public class TendermintPoster {
 	 */
 	void postRequest(TransactionRequest<?> request) {
 		try {
-			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.getEncoder().encodeToString(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
+			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 			String response = postToTendermint(jsonTendermintRequest);
 
 			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
@@ -113,12 +115,12 @@ public class TendermintPoster {
 			if (tx == null)
 				throw new RuntimeException("no Hotmoka request in Tendermint response");
 
-			byte[] decoded = Base64.getDecoder().decode(tx);
+			byte[] decoded = Base64.fromBase64String(tx);
 			try (var context = new BeanUnmarshallingContext(new ByteArrayInputStream(decoded))) {
-				return Optional.of(TransactionRequest.from(context));
+				return Optional.of(TransactionRequests.from(context));
 			}
 		}
-		catch (IOException | InterruptedException | TimeoutException e) {
+		catch (IOException | InterruptedException | TimeoutException | Base64ConversionException e) {
 			logger.log(Level.WARNING, "failed getting transaction at " + Hex.toHexString(hash), e);
 			throw new RuntimeException(e);
 		}
@@ -144,13 +146,13 @@ public class TendermintPoster {
 				if (tx_result == null)
 					throw new RuntimeException("no result for Tendermint transaction " + hash);
 				else if (tx_result.data != null && !tx_result.data.isEmpty())
-					return Optional.of(new String(Base64.getDecoder().decode(tx_result.data)));
+					return Optional.of(new String(Base64.fromBase64String(tx_result.data)));
 				else
 					// there is no Hotmoka error in this transaction
 					return Optional.empty();
 			}
 		}
-		catch (InterruptedException | TimeoutException | IOException e) {
+		catch (InterruptedException | TimeoutException | IOException | Base64ConversionException e) {
 			logger.log(Level.WARNING, "failed getting error message at " + Hex.toHexString(hash), e);
 			throw new RuntimeException(e);
 		}
@@ -351,7 +353,7 @@ public class TendermintPoster {
 	 */
 	private String tx(byte[] hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
-			Base64.getEncoder().encodeToString(hash) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
+			Base64.toBase64String(hash) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
 	
 		return postToTendermint(jsonTendermintRequest);
 	}

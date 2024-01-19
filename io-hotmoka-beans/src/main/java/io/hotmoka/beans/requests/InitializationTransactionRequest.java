@@ -35,7 +35,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class InitializationTransactionRequest extends InitialTransactionRequest<InitializationTransactionResponse> {
-	final static byte SELECTOR = 10;
+	public final static byte SELECTOR = 10;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must

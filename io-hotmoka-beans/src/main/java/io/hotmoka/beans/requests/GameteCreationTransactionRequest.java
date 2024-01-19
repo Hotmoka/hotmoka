@@ -33,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class GameteCreationTransactionRequest extends InitialTransactionRequest<GameteCreationTransactionResponse> {
-	final static byte SELECTOR = 2;
+	public final static byte SELECTOR = 2;
 
 	/**
 	 * The reference to the jar containing the basic Takamaka classes. This must

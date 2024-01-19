@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
@@ -24,7 +25,6 @@ import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
 
 /**
  * Class which wraps a type request model

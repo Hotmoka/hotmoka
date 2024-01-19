@@ -39,7 +39,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 @Immutable
 public class InstanceSystemMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SystemTransactionRequest {
 
-	final static byte SELECTOR = 11;
+	public final static byte SELECTOR = 11;
 
 	/**
 	 * Builds the transaction request.

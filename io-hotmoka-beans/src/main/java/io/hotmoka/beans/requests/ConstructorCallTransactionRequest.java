@@ -43,7 +43,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> implements SignedTransactionRequest {
-	final static byte SELECTOR = 4;
+	public final static byte SELECTOR = 4;
 
 	/**
 	 * The constructor to call.

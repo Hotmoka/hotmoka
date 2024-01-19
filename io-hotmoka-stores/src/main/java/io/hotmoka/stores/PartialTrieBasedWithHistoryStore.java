@@ -24,9 +24,9 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.xodus.env.Transaction;
 

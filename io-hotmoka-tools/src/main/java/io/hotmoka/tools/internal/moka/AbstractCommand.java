@@ -27,11 +27,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.helpers.GasCounters;

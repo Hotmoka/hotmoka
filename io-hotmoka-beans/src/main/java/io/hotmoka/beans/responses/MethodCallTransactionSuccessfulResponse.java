@@ -39,9 +39,9 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
-	final static byte SELECTOR = 9;
-	final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
-	final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
+	public final static byte SELECTOR = 9;
+	public final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
+	public final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
 
 	/**
 	 * The return value of the method.

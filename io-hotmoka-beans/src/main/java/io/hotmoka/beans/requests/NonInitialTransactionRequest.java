@@ -23,6 +23,7 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -32,7 +33,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * @param <R> the type of the corresponding response
  */
 @Immutable
-public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> extends TransactionRequest<R> {
+public abstract class NonInitialTransactionRequest<R extends NonInitialTransactionResponse> extends TransactionRequestImpl<R> {
 
 	/**
 	 * The externally owned caller contract that pays for the transaction.

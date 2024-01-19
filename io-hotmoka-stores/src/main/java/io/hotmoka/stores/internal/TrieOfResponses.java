@@ -23,11 +23,12 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.beans.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
@@ -75,7 +76,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			this.hasherForJars = HashingAlgorithms.sha256().getHasher(Function.identity());
 			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash), HashingAlgorithms.sha256(),
-					TransactionResponse::from, BeanUnmarshallingContext::new, numberOfCommits);
+					TransactionResponses::from, BeanUnmarshallingContext::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

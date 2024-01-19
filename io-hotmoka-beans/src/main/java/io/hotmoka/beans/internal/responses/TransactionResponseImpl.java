@@ -14,25 +14,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.responses.InitializationTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * The response of a transaction.
+ * Shared implementation of the response of a transaction.
  */
-public abstract class TransactionResponse extends AbstractMarshallable {
+public abstract class TransactionResponseImpl extends AbstractMarshallable implements TransactionResponse {
 
 	/**
 	 * Creates the request.
 	 */
-	protected TransactionResponse() {}
+	protected TransactionResponseImpl() {}
 
 	/**
 	 * Factory method that unmarshals a response from the given stream.
@@ -41,7 +54,7 @@ public abstract class TransactionResponse extends AbstractMarshallable {
 	 * @return the response
 	 * @throws IOException if the response cannot be unmarshalled
 	 */
-	public static TransactionResponse from(UnmarshallingContext context) throws IOException {
+	public static TransactionResponseImpl from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 
 		switch (selector) {

@@ -14,30 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request of a transaction.
+ * Shared implementation of a request of a transaction.
  * 
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public abstract class TransactionRequest<R extends TransactionResponse> extends AbstractMarshallable {
+public abstract class TransactionRequestImpl<R extends TransactionResponse> extends AbstractMarshallable implements TransactionRequest<R> {
 
 	/**
 	 * Creates the request.
 	 */
-	protected TransactionRequest() {}
+	protected TransactionRequestImpl() {}
 
 	/**
 	 * Factory method that unmarshals a request from the given stream.
@@ -46,7 +55,7 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 	 * @return the request
 	 * @throws IOException if the request cannot be unmarshalled
 	 */
-	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException {
+	public static TransactionRequestImpl<?> from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);

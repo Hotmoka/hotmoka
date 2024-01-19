@@ -21,7 +21,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.requests.TransactionRequest;
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.node.api.TransactionRejectedException;
 
 /**

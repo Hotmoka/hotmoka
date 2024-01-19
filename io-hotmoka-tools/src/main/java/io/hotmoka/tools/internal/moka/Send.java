@@ -20,8 +20,8 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.TransactionRequest;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountCreationHelpers;

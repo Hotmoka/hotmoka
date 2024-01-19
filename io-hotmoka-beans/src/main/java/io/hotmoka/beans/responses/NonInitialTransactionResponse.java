@@ -25,13 +25,14 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A response for a non-initial transaction.
  */
 @Immutable
-public abstract class NonInitialTransactionResponse extends TransactionResponse implements TransactionResponseWithUpdates {
+public abstract class NonInitialTransactionResponse extends TransactionResponseImpl implements TransactionResponseWithUpdates {
 
 	/**
 	 * The updates resulting from the execution of the transaction.

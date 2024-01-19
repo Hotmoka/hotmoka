@@ -34,7 +34,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class GameteCreationTransactionResponse extends InitialTransactionResponse implements TransactionResponseWithUpdates {
-	final static byte SELECTOR = 0;
+	public final static byte SELECTOR = 0;
 
 	/**
 	 * The updates resulting from the execution of the transaction.

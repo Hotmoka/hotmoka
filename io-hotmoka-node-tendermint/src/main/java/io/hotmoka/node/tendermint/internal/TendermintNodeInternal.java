@@ -18,8 +18,8 @@ package io.hotmoka.node.tendermint.internal;
 
 import java.util.Optional;
 
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;

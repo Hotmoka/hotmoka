@@ -34,12 +34,14 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
 import io.hotmoka.stores.AbstractStore;
 
 /**
@@ -109,7 +111,7 @@ class Store extends AbstractStore {
     		try {
     			Path response = getPathFor(reference, "response");
     			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
-    				return Optional.of(TransactionResponse.from(context));
+    				return Optional.of(TransactionResponses.from(context));
     			}
     		}
     		catch (IOException e) {
@@ -154,7 +156,7 @@ class Store extends AbstractStore {
 		try {
 			Path response = getPathFor(reference, "request");
 			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
-				return Optional.of(TransactionRequest.from(context));
+				return Optional.of(TransactionRequests.from(context));
 			}
 		}
 		catch (IOException e) {

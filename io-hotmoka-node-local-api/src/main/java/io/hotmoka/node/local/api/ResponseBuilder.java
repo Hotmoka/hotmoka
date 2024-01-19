@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import io.hotmoka.beans.requests.TransactionRequest;
-import io.hotmoka.beans.responses.TransactionResponse;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.node.api.TransactionRejectedException;
 
 /**

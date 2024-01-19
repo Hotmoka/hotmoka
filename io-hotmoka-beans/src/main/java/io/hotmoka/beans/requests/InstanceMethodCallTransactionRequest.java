@@ -46,12 +46,12 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SignedTransactionRequest {
-	final static byte SELECTOR = 5;
+	public final static byte SELECTOR = 5;
 
 	// selectors used for calls to coin transfer methods, for their more compact representation
-	final static byte SELECTOR_TRANSFER_INT = 7;
-	final static byte SELECTOR_TRANSFER_LONG = 8;
-	final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
+	public final static byte SELECTOR_TRANSFER_INT = 7;
+	public final static byte SELECTOR_TRANSFER_LONG = 8;
+	public final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
 
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.

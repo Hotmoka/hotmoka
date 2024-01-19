@@ -33,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class ConstructorCallTransactionFailedResponse extends ConstructorCallTransactionResponse implements TransactionResponseFailed {
-	final static byte SELECTOR = 5;
+	public final static byte SELECTOR = 5;
 
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.

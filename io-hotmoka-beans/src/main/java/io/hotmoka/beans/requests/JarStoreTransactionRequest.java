@@ -40,7 +40,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest {
-	final static byte SELECTOR = 3;
+	public final static byte SELECTOR = 3;
 
 	/**
 	 * The bytes of the jar to install.

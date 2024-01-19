@@ -43,7 +43,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  */
 @Immutable
 public class StaticMethodCallTransactionRequest extends MethodCallTransactionRequest implements SignedTransactionRequest {
-	final static byte SELECTOR = 6;
+	public final static byte SELECTOR = 6;
 
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.

@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,22 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.requests;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.InitialTransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.marshalling.api.Marshallable;
 
 /**
- * A request for a transaction that can only be executed before the initialization of a node.
+ * A request of a transaction.
  * 
- * @param <R> the type of the corresponding response
+ * @param <R> the type of the response expected for this request
  */
 @Immutable
-public abstract class InitialTransactionRequest<R extends InitialTransactionResponse> extends TransactionRequestImpl<R> {
-
-	/**
-	 * Creates the request.
-	 */
-	protected InitialTransactionRequest() {}
+public interface TransactionRequest<R extends TransactionResponse> extends Marshallable {
 }
