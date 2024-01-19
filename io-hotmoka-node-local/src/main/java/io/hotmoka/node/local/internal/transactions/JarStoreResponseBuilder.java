@@ -22,9 +22,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.instrumentation.InstrumentedJars;
@@ -39,7 +39,7 @@ import io.hotmoka.verification.VerifiedJars;
 /**
  * The creator of a response for a transaction that installs a jar in the node.
  */
-public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse> {
+public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse> {
 	private final static Logger LOGGER = Logger.getLogger(JarStoreResponseBuilder.class.getName());
 
 	/**
@@ -78,17 +78,17 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	public JarStoreNonInitialTransactionResponse getResponse() throws TransactionRejectedException {
+	public JarStoreTransactionResponse getResponse() throws TransactionRejectedException {
 		return new ResponseCreator().create();
 	}
 
-	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse>.ResponseCreator {
+	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreTransactionResponse>.ResponseCreator {
 		
 		private ResponseCreator() throws TransactionRejectedException {
 		}
 
 		@Override
-		protected JarStoreNonInitialTransactionResponse body() {
+		protected JarStoreTransactionResponse body() {
 			try {
 				init();
 				int jarLength = request.getJarLength();

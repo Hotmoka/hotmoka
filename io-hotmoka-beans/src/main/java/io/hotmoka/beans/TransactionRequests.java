@@ -22,6 +22,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -29,9 +30,8 @@ import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
 import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
+import io.hotmoka.beans.internal.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -86,7 +86,7 @@ public abstract class TransactionRequests {
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public static JarStoreTransactionRequest jarStore(Signer<? super JarStoreTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+	public static JarStoreTransactionRequest jarStore(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
 		return new JarStoreTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}
 

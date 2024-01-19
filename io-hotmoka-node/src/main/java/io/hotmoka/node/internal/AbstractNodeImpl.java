@@ -26,6 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -33,7 +34,6 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
@@ -120,7 +120,7 @@ public abstract class AbstractNodeImpl implements Node {
 	 * @return the jar supplier
 	 */
 	protected final JarSupplier jarSupplierFor(TransactionReference reference) {
-		return jarSupplierFor(reference, () -> getOutcomeAt((JarStoreNonInitialTransactionResponse) getPolledResponse(reference), reference));
+		return jarSupplierFor(reference, () -> getOutcomeAt((JarStoreTransactionResponse) getPolledResponse(reference), reference));
 	}
 
 	/**
@@ -171,7 +171,7 @@ public abstract class AbstractNodeImpl implements Node {
 	 * @return the outcome
 	 * @throws TransactionException if the outcome of the transaction is this exception
 	 */
-	private TransactionReference getOutcomeAt(JarStoreNonInitialTransactionResponse response, TransactionReference reference) throws TransactionException {
+	private TransactionReference getOutcomeAt(JarStoreTransactionResponse response, TransactionReference reference) throws TransactionException {
 		if (response instanceof JarStoreTransactionFailedResponse jstfr)
 			throw new TransactionException(jstfr.classNameOfCause, jstfr.messageOfCause, "");
 		else

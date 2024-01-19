@@ -46,9 +46,9 @@ public abstract class CodeExecutionTransactionResponseModel extends TransactionR
 
     protected CodeExecutionTransactionResponseModel(CodeExecutionTransactionResponse response) {
         this.updates = response.getUpdates().map(UpdateModel::new).collect(Collectors.toList());
-        this.gasConsumedForCPU = response.gasConsumedForCPU.toString();
-        this.gasConsumedForRAM = response.gasConsumedForRAM.toString();
-        this.gasConsumedForStorage = response.gasConsumedForStorage.toString();
+        this.gasConsumedForCPU = response.getGasConsumedForCPU().toString();
+        this.gasConsumedForRAM = response.getGasConsumedForRAM().toString();
+        this.gasConsumedForStorage = response.getGasConsumedForStorage().toString();
     }
 
     protected CodeExecutionTransactionResponseModel() {}

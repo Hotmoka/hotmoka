@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.beans.api.responses;
 
+import io.hotmoka.annotations.Immutable;
+
 /**
- * The response of a transaction that installed a jar in a node.
+ * A response for a transaction that installed a jar in an initialized node.
  */
-public interface JarStoreTransactionResponse extends TransactionResponse {
+@Immutable
+public interface JarStoreTransactionResponse extends NonInitialTransactionResponse, GenericJarStoreTransactionResponse {
 }

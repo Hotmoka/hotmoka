@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -24,16 +24,15 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A response for a non-initial transaction.
  */
 @Immutable
-public abstract class NonInitialTransactionResponse extends TransactionResponseImpl implements TransactionResponseWithUpdates {
+public abstract class NonInitialTransactionResponseImpl extends TransactionResponseImpl implements NonInitialTransactionResponse {
 
 	/**
 	 * The updates resulting from the execution of the transaction.
@@ -43,17 +42,17 @@ public abstract class NonInitialTransactionResponse extends TransactionResponseI
 	/**
 	 * The amount of gas consumed by the transaction for CPU execution.
 	 */
-	public final BigInteger gasConsumedForCPU;
+	private final BigInteger gasConsumedForCPU;
 
 	/**
 	 * The amount of gas consumed by the transaction for RAM allocation.
 	 */
-	public final BigInteger gasConsumedForRAM;
+	private final BigInteger gasConsumedForRAM;
 
 	/**
 	 * The amount of gas consumed by the transaction for storage consumption.
 	 */
-	public final BigInteger gasConsumedForStorage;
+	private final BigInteger gasConsumedForStorage;
 
 	/**
 	 * Builds the transaction response.
@@ -63,7 +62,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponseI
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	protected NonInitialTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	protected NonInitialTransactionResponseImpl(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		this.gasConsumedForCPU = Objects.requireNonNull(gasConsumedForCPU, "gasConsumedForCPU cannot be null");
 		this.gasConsumedForRAM = Objects.requireNonNull(gasConsumedForRAM, "gasConsumedForRAM cannot be null");
 		this.gasConsumedForStorage = Objects.requireNonNull(gasConsumedForStorage, "gasConsumedForStorage cannot be null");
@@ -73,7 +72,7 @@ public abstract class NonInitialTransactionResponse extends TransactionResponseI
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NonInitialTransactionResponse nitr
+		return other instanceof NonInitialTransactionResponseImpl nitr
 			&& Arrays.equals(updates, nitr.updates) && gasConsumedForCPU.equals(nitr.gasConsumedForCPU)
 			&& gasConsumedForRAM.equals(nitr.gasConsumedForRAM) && gasConsumedForStorage.equals(nitr.gasConsumedForStorage);
 	}
@@ -103,6 +102,21 @@ public abstract class NonInitialTransactionResponse extends TransactionResponseI
 	@Override
 	public final Stream<Update> getUpdates() {
 		return Stream.of(updates);
+	}
+
+	@Override
+	public final BigInteger getGasConsumedForCPU() {
+		return gasConsumedForCPU;
+	}
+
+	@Override
+	public final BigInteger getGasConsumedForRAM() {
+		return gasConsumedForRAM;
+	}
+
+	@Override
+	public final BigInteger getGasConsumedForStorage() {
+		return gasConsumedForStorage;
 	}
 
 	@Override

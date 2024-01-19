@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 

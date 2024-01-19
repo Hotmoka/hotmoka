@@ -52,6 +52,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -60,7 +61,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
@@ -387,9 +387,9 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
         	synchronized (tracingLock) {
         		if (response instanceof NonInitialTransactionResponse) {
         			NonInitialTransactionResponse nitr = (NonInitialTransactionResponse) response;
-        			gasConsumedForCPU = gasConsumedForCPU.add(nitr.gasConsumedForCPU);
-        			gasConsumedForRAM = gasConsumedForRAM.add(nitr.gasConsumedForRAM);
-        			gasConsumedForStorage = gasConsumedForStorage.add(nitr.gasConsumedForStorage);
+        			gasConsumedForCPU = gasConsumedForCPU.add(nitr.getGasConsumedForCPU());
+        			gasConsumedForRAM = gasConsumedForRAM.add(nitr.getGasConsumedForRAM());
+        			gasConsumedForStorage = gasConsumedForStorage.add(nitr.getGasConsumedForStorage());
         		}
         	}
 

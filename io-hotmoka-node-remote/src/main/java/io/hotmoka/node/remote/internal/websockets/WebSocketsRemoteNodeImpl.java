@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -34,7 +35,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -28,10 +28,11 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -41,7 +42,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequestImpl<JarStoreNonInitialTransactionResponse> implements JarStoreTransactionRequest {
+public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequestImpl<JarStoreTransactionResponse> implements JarStoreTransactionRequest {
 	public final static byte SELECTOR = 3;
 
 	/**

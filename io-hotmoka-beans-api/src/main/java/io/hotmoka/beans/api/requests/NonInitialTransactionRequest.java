@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.requests;
 
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 
 /**
  * A request for a transaction that can only be run after the node has been initialized.

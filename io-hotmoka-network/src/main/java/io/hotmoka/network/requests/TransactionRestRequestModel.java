@@ -17,13 +17,13 @@ limitations under the License.
 package io.hotmoka.network.requests;
 
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 
 /**

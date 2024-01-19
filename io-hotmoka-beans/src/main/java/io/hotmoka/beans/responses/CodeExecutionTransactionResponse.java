@@ -23,13 +23,14 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.internal.responses.NonInitialTransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
  * A response for a transaction that calls a constructor or method.
  */
 @Immutable
-public abstract class CodeExecutionTransactionResponse extends NonInitialTransactionResponse {
+public abstract class CodeExecutionTransactionResponse extends NonInitialTransactionResponseImpl {
 
 	/**
 	 * Builds the transaction response.

@@ -137,7 +137,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			var jstsr = (JarStoreTransactionSuccessfulResponse) response;
 			return new JarStoreTransactionSuccessfulResponse
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
-				jstsr.gasConsumedForCPU, jstsr.gasConsumedForRAM, jstsr.gasConsumedForStorage);
+				jstsr.getGasConsumedForCPU(), jstsr.getGasConsumedForRAM(), jstsr.getGasConsumedForStorage());
 		}
 		else if (response instanceof JarStoreInitialTransactionResponse) {
 			var jsitr = (JarStoreInitialTransactionResponse) response;

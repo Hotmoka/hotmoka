@@ -32,7 +32,7 @@ import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -123,18 +123,18 @@ public class Reverification {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	private List<JarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
 		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
-		List<JarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
+		List<GenericJarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
 
 		if (anyFailed(reverifiedDependencies))
 			return List.of(transformIntoFailed(response, transaction, "the reverification of a dependency failed"));
 
 		if (!needsReverification(response))
-			return union(reverifiedDependencies, (JarStoreTransactionResponse) response); // by type hierarchy, this cast will always succeed
+			return union(reverifiedDependencies, (GenericJarStoreTransactionResponse) response); // by type hierarchy, this cast will always succeed
 
 		// the dependencies have passed reverification successfully, but the transaction needs reverification
 		VerifiedJar vj = recomputeVerifiedJarFor(transaction, reverifiedDependencies);
@@ -144,7 +144,7 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		var jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) node.getRequest(transaction);
@@ -180,19 +180,19 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.getVerificationVersion();
 	}
 
-	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
-		var reverifiedDependencies = new ArrayList<JarStoreTransactionResponse>();
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter));
 
 		return reverifiedDependencies;
 	}
 
-	private boolean anyFailed(List<JarStoreTransactionResponse> responses) {
+	private boolean anyFailed(List<GenericJarStoreTransactionResponse> responses) {
 		return responses.stream().anyMatch(response -> response instanceof JarStoreTransactionFailedResponse);
 	}
 
-	private List<JarStoreTransactionResponse> union(List<JarStoreTransactionResponse> responses, JarStoreTransactionResponse added) {
+	private List<GenericJarStoreTransactionResponse> union(List<GenericJarStoreTransactionResponse> responses, GenericJarStoreTransactionResponse added) {
 		responses.add(added);
 		return responses;
 	}
@@ -206,8 +206,8 @@ public class Reverification {
 
 		var replacement = new JarStoreTransactionFailedResponse(
 			VerificationException.class.getName(), error,
-			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
-			currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage,
+			currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
+			currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage(),
 			BigInteger.ZERO);
 
 		reverified.put(transaction, replacement);
@@ -215,8 +215,8 @@ public class Reverification {
 		return replacement;
 	}
 
-	private JarStoreTransactionResponse updateVersion(TransactionResponseWithInstrumentedJar response, TransactionReference transaction) {
-		JarStoreTransactionResponse replacement;
+	private GenericJarStoreTransactionResponse updateVersion(TransactionResponseWithInstrumentedJar response, TransactionReference transaction) {
+		GenericJarStoreTransactionResponse replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
 			replacement = TransactionResponses.jarStoreInitial(response.getInstrumentedJar(), response.getDependencies(), consensus.getVerificationVersion());
@@ -226,8 +226,8 @@ public class Reverification {
 
 			replacement = new JarStoreTransactionSuccessfulResponse(
 				response.getInstrumentedJar(), response.getDependencies(),
-				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.gasConsumedForCPU,
-				currentResponseAsNonInitial.gasConsumedForRAM, currentResponseAsNonInitial.gasConsumedForStorage);
+				consensus.getVerificationVersion(), currentResponseAsNonInitial.getUpdates(), currentResponseAsNonInitial.getGasConsumedForCPU(),
+				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());
 		}
 
 		reverified.put(transaction, (TransactionResponse) replacement);

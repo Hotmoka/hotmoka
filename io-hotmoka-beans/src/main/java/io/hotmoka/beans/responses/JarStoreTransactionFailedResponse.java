@@ -24,7 +24,9 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.internal.responses.NonInitialTransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -32,7 +34,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A response for a failed transaction that should have installed a jar in the node.
  */
 @Immutable
-public class JarStoreTransactionFailedResponse extends JarStoreNonInitialTransactionResponse implements FailedTransactionResponse {
+public class JarStoreTransactionFailedResponse extends NonInitialTransactionResponseImpl implements JarStoreTransactionResponse, FailedTransactionResponse {
 	public final static byte SELECTOR = 3;
 	
 	/**

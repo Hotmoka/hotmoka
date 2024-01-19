@@ -49,9 +49,12 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
+import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
@@ -66,12 +69,9 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -847,9 +847,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 			if (response instanceof NonInitialTransactionResponse) {
 				var responseAsNonInitial = (NonInitialTransactionResponse) response;
-				BigInteger gasConsumedButPenalty = responseAsNonInitial.gasConsumedForCPU
-						.add(responseAsNonInitial.gasConsumedForStorage)
-						.add(responseAsNonInitial.gasConsumedForRAM);
+				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
+						.add(responseAsNonInitial.getGasConsumedForStorage())
+						.add(responseAsNonInitial.getGasConsumedForRAM());
 
 				gasConsumedSinceLastReward = gasConsumedSinceLastReward.add(gasConsumedButPenalty);
 

@@ -28,6 +28,7 @@ import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.beans.internal.requests.NonInitialTransactionRequestImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;

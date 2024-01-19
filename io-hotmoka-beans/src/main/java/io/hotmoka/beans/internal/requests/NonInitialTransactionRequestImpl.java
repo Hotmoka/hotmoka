@@ -14,17 +14,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

@@ -16,11 +16,8 @@ limitations under the License.
 
 package io.hotmoka.beans.api.responses;
 
-import io.hotmoka.annotations.Immutable;
-
 /**
- * A response for a transaction that installs a jar in a yet non-initialized node.
+ * The response of a transaction that installed a jar in a node.
  */
-@Immutable
-public interface JarStoreInitialTransactionResponse extends InitialTransactionResponse, TransactionResponseWithInstrumentedJar, GenericJarStoreTransactionResponse {
+public interface GenericJarStoreTransactionResponse extends TransactionResponse {
 }

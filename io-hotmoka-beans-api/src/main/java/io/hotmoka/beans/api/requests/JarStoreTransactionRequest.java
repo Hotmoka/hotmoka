@@ -14,16 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.api.requests;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 
 /**
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public interface JarStoreTransactionRequest extends GenericJarStoreTransactionRequest<JarStoreNonInitialTransactionResponse>, NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse>, SignedTransactionRequest<JarStoreNonInitialTransactionResponse> {
+public interface JarStoreTransactionRequest extends GenericJarStoreTransactionRequest<JarStoreTransactionResponse>, NonInitialTransactionRequest<JarStoreTransactionResponse>, SignedTransactionRequest<JarStoreTransactionResponse> {
 }
