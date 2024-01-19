@@ -176,11 +176,11 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 		context.writeStringUnshared(chainId);
 
 		if (receiveInt || receiveLong || receiveBigInteger) {
-			caller.intoWithoutSelector(context);
-			context.writeBigInteger(gasLimit);
-			context.writeBigInteger(gasPrice);
-			classpath.into(context);
-			context.writeBigInteger(nonce);
+			getCaller().intoWithoutSelector(context);
+			context.writeBigInteger(getGasLimit());
+			context.writeBigInteger(getGasPrice());
+			getClasspath().into(context);
+			context.writeBigInteger(getNonce());
 			receiver.intoWithoutSelector(context);
 
 			StorageValue howMuch = actuals().findFirst().get();

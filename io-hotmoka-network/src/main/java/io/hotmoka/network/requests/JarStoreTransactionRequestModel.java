@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 /**
@@ -40,10 +41,10 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
      * 
      * @param request the request to copy
      */
-    public JarStoreTransactionRequestModel(JarStoreTransactionRequestImpl request) {
+    public JarStoreTransactionRequestModel(JarStoreTransactionRequest request) {
     	super(request);
 
-    	this.chainId = request.chainId;
+    	this.chainId = request.getChainId();
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     	this.jar = Base64.getEncoder().encodeToString(request.getJar());
     	this.dependencies = request.getDependencies().map(TransactionReferenceModel::new).collect(Collectors.toList());
@@ -55,8 +56,8 @@ public class JarStoreTransactionRequestModel extends NonInitialTransactionReques
     	return dependencies.stream();
     }
 
-    public JarStoreTransactionRequestImpl toBean() {
-    	return new JarStoreTransactionRequestImpl(
+    public JarStoreTransactionRequest toBean() {
+    	return TransactionRequests.jarStore(
         	decodeBase64(signature),
             caller.toBean(),
             new BigInteger(nonce),

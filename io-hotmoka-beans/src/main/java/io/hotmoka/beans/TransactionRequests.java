@@ -17,15 +17,22 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.SignatureException;
 
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
 import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -44,6 +51,43 @@ public abstract class TransactionRequests {
 	 */
 	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
 		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+	}
+
+	/**
+	 * Yields a transaction request to install a jar in an initialized node.
+	 * 
+	 * @param signature the signature of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param jar the bytes of the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @return the transaction request
+	 */
+	public static JarStoreTransactionRequest jarStore(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
+	}
+
+	/**
+	 * Yields a transaction request to install a jar in an initialized node.
+	 * 
+	 * @param signer the signer of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} is interpreted
+	 * @param jar the bytes of the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
+	 */
+	public static JarStoreTransactionRequest jarStore(Signer<? super JarStoreTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+		return new JarStoreTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}
 
 	/**

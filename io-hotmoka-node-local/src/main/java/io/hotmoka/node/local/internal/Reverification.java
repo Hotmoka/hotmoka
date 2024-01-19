@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.InitialTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -147,7 +147,7 @@ public class Reverification {
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		var jarStoreRequestOfTransaction = (JarStoreTransactionRequest<?>) node.getRequest(transaction);
+		var jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) node.getRequest(transaction);
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
@@ -181,7 +181,7 @@ public class Reverification {
 	}
 
 	private List<JarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
-		List<JarStoreTransactionResponse> reverifiedDependencies = new ArrayList<>();
+		var reverifiedDependencies = new ArrayList<JarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter));
 
@@ -199,7 +199,7 @@ public class Reverification {
 
 	private JarStoreTransactionFailedResponse transformIntoFailed(TransactionResponseWithInstrumentedJar response, TransactionReference transaction, String error) {
 		if (response instanceof JarStoreInitialTransactionResponse)
-			throw new RuntimeException("the reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
+			throw new RuntimeException("The reverification of the initial jar store transaction " + transaction + " failed: its jar cannot be used");
 
 		// there remains only this possibility:
 		var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
@@ -246,11 +246,11 @@ public class Reverification {
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
 		TransactionResponse response = node.getCaches().getResponseUncommitted(reference)
-			.orElseThrow(() -> new RuntimeException("unknown transaction reference " + reference));
+			.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + reference));
 		
-		if (!(response instanceof TransactionResponseWithInstrumentedJar))
-			throw new NoSuchElementException("the transaction " + reference + " did not install a jar in store");
-	
-		return (TransactionResponseWithInstrumentedJar) response;
+		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
+			return trwij;
+		else
+			throw new NoSuchElementException("The transaction " + reference + " did not install a jar in store");
 	}
 }

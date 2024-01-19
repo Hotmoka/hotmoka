@@ -40,6 +40,7 @@ import com.google.gson.JsonObject;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
@@ -53,7 +54,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -310,7 +310,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
         TransactionReference transaction;
 
         try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeConfig)) {
-            transaction = remote.addJarStoreTransaction(new JarStoreTransactionRequestImpl
+            transaction = remote.addJarStoreTransaction(TransactionRequests.jarStore
             	(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                  ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
         }
@@ -325,7 +325,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
-            remote.addJarStoreTransaction(new JarStoreTransactionRequestImpl
+            remote.addJarStoreTransaction(TransactionRequests.jarStore
                     (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
@@ -343,7 +343,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to addJarStoreTransactionRequest for a request that fails")
     void testRemoteAddJarStoreTransactionFailed() throws Exception {
         try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeConfig)) {
-            remote.addJarStoreTransaction(new JarStoreTransactionRequestImpl
+            remote.addJarStoreTransaction(TransactionRequests.jarStore
                     (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
         }
@@ -362,7 +362,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
         TransactionReference transaction;
 
         try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeConfig)) {
-            JarSupplier future = remote.postJarStoreTransaction(new JarStoreTransactionRequestImpl
+            JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
                     (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
@@ -380,7 +380,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
-            JarSupplier future = remote.postJarStoreTransaction(new JarStoreTransactionRequestImpl
+            JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
                     (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _50_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
                             // , takamakaCode() // <-- forgot that
@@ -405,7 +405,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             // we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
             // this means that the request fails and the future refers to a failed request; since this is a post,
             // the execution does not stop, nor throws anything
-            JarSupplier future = remote.postJarStoreTransaction(new JarStoreTransactionRequestImpl
+            JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
                     (signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
                             ZERO, chainId, _100_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 

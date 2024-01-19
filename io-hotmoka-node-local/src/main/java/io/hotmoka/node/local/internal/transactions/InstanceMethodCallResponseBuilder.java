@@ -84,7 +84,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	protected StorageReference getPayerFromRequest() {
 		// calls to instance methods might be self charged, in which case the receiver is paying
-		return isSelfCharged() ? request.receiver : request.caller;
+		return isSelfCharged() ? request.receiver : request.getCaller();
 	}
 
 	@Override
@@ -93,12 +93,12 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private boolean callerIsGameteOfTheNode() {
-		return node.getCaches().getGamete().filter(request.caller::equals).isPresent();
+		return node.getCaches().getGamete().filter(request.getCaller()::equals).isPresent();
 	}
 
 	private boolean isCallToFaucet() {
 		return consensus.allowsUnsignedFaucet() && request.method.getMethodName().startsWith("faucet")
-			&& request.method.getDefiningClass().equals(StorageTypes.GAMETE) && request.caller.equals(request.receiver)
+			&& request.method.getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.receiver)
 			&& callerIsGameteOfTheNode();
 	}
 
@@ -277,7 +277,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
-			if (isSystemCall() && request.method.equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.caller.equals(manifest.get())) {
+			if (isSystemCall() && request.method.equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
 				Optional<StorageValue> firstArg = request.actuals().findFirst();
 				if (firstArg.isPresent()) {
 					StorageValue value = firstArg.get();

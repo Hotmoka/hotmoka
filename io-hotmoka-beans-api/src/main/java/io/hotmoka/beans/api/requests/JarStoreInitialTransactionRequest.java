@@ -23,5 +23,5 @@ import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
  * A request for a transaction that installs a jar in a yet non-initialized node.
  */
 @Immutable
-public interface JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse>, JarStoreTransactionRequest<JarStoreInitialTransactionResponse> {
+public interface JarStoreInitialTransactionRequest extends InitialTransactionRequest<JarStoreInitialTransactionResponse>, GenericJarStoreTransactionRequest<JarStoreInitialTransactionResponse> {
 }

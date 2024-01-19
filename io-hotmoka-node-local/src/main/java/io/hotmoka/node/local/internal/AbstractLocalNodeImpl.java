@@ -66,7 +66,7 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
@@ -444,7 +444,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException, TransactionException {
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
 		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
 	}
 
@@ -497,7 +497,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException {
+	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(post(request)));
 	}
 
@@ -786,8 +786,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, internal);
 		else if (request instanceof GameteCreationTransactionRequest)
 			return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
-    	else if (request instanceof JarStoreTransactionRequestImpl)
-    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequestImpl) request, internal);
+    	else if (request instanceof JarStoreTransactionRequest)
+    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
     	else if (request instanceof ConstructorCallTransactionRequest)
     		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, internal);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)
@@ -857,7 +857,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				if (response instanceof FailedTransactionResponse)
 					gasConsumedTotal = gasConsumedTotal.add(((FailedTransactionResponse) response).gasConsumedForPenalty());
 
-				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).gasPrice;
+				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
 				BigInteger reward = gasConsumedTotal.multiply(gasPrice);
 				coinsSinceLastRewardWithoutInflation = coinsSinceLastRewardWithoutInflation.add(reward);
 

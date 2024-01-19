@@ -62,7 +62,7 @@ class GetRequest extends HotmokaTest {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionRequest<?> request = getRequest(abstractfail.getTransaction());
 		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
-		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).caller);
+		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).getCaller());
 	}
 
 	@Test @DisplayName("getRequest works for a non-existing transaction")

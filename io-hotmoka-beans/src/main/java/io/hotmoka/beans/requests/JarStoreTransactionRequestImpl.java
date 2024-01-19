@@ -28,8 +28,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -43,7 +41,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements JarStoreTransactionRequest<JarStoreNonInitialTransactionResponse>, SignedTransactionRequest<JarStoreNonInitialTransactionResponse> {
+public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequestImpl<JarStoreNonInitialTransactionResponse> implements JarStoreTransactionRequest {
 	public final static byte SELECTOR = 3;
 
 	/**
@@ -59,7 +57,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
 	 */
-	public final String chainId;
+	private final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -88,7 +86,6 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null").clone();
 		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
-
 		this.signature = signer.sign(this);
 	}
 
@@ -140,11 +137,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 		return Stream.of(dependencies);
 	}
 
-	/**
-	 * Yields the number of dependencies.
-	 * 
-	 * @return the number of dependencies
-	 */
+	@Override
 	public int getNumberOfDependencies() {
 		return dependencies.length;
 	}

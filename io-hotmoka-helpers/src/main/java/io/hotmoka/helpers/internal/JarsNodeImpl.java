@@ -32,6 +32,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.MethodSignatures;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
@@ -48,7 +49,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -118,7 +119,7 @@ public class JarsNodeImpl implements JarsNode {
 		int pos = 0;
 		for (Path jar: jars) {
 			byte[] bytes = Files.readAllBytes(jar);
-			jarSuppliers[pos] = postJarStoreTransaction(new JarStoreTransactionRequestImpl(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
+			jarSuppliers[pos] = postJarStoreTransaction(TransactionRequests.jarStore(signerOnBehalfOfPayer, payer, nonce, chainId, BigInteger.valueOf(10000 + bytes.length * 200L), gasHelper.getSafeGasPrice(), takamakaCode, bytes, takamakaCode));
 			nonce = nonce.add(ONE);
 			pos++;
 		}
@@ -179,7 +180,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException, TransactionException {
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
 		return parent.addJarStoreTransaction(request);
 	}
 
@@ -209,7 +210,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException {
+	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
 		return parent.postJarStoreTransaction(request);
 	}
 

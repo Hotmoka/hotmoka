@@ -38,7 +38,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * @param <R> the type of the corresponding response
  */
 @Immutable
-public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequest<R> {
+public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequestImpl<R> {
 
 	/**
 	 * The actual arguments passed to the method.

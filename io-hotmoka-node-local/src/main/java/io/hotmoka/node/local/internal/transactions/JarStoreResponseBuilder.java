@@ -23,7 +23,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
@@ -39,7 +39,7 @@ import io.hotmoka.verification.VerifiedJars;
 /**
  * The creator of a response for a transaction that installs a jar in the node.
  */
-public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequestImpl, JarStoreNonInitialTransactionResponse> {
+public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse> {
 	private final static Logger LOGGER = Logger.getLogger(JarStoreResponseBuilder.class.getName());
 
 	/**
@@ -50,7 +50,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequestImpl request, NodeInternal node) throws TransactionRejectedException {
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
 		super(reference, request, node);
 	}
 
@@ -73,7 +73,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 
 	@Override
 	protected final int gasForStoringFailedResponse() {
-		BigInteger gas = request.gasLimit;
+		BigInteger gas = request.getGasLimit();
 		return new JarStoreTransactionFailedResponse("placeholder for the name of the exception", "placeholder for the message of the exception", Stream.empty(), gas, gas, gas, gas).size();
 	}
 
@@ -82,7 +82,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		return new ResponseCreator().create();
 	}
 
-	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequestImpl, JarStoreNonInitialTransactionResponse>.ResponseCreator {
+	private class ResponseCreator extends AbstractNonInitialResponseBuilder<JarStoreTransactionRequest, JarStoreNonInitialTransactionResponse>.ResponseCreator {
 		
 		private ResponseCreator() throws TransactionRejectedException {
 		}

@@ -35,7 +35,7 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 
 /**
@@ -208,7 +208,7 @@ public interface Node extends AutoCloseable {
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
 	 */
-	TransactionReference addJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException, TransactionException;
+	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a constructor of a class.
@@ -286,7 +286,7 @@ public interface Node extends AutoCloseable {
 	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	JarSupplier postJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException ;
+	JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException ;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.

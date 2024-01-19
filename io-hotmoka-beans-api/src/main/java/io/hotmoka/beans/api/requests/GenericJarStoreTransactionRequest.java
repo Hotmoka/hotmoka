@@ -28,7 +28,7 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
  * @param <R> the type of the response expected for this request
  */
 @Immutable
-public interface JarStoreTransactionRequest<R extends JarStoreTransactionResponse> extends TransactionRequest<R> {
+public interface GenericJarStoreTransactionRequest<R extends JarStoreTransactionResponse> extends TransactionRequest<R> {
 	
 	/**
 	 * Yields the bytes of the jar to install.

@@ -101,7 +101,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
-		return node.getCaches().getClassLoader(request.classpath);
+		return node.getCaches().getClassLoader(request.getClasspath());
 	}
 
 	/**
@@ -140,7 +140,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @return the payer
 	 */
 	protected StorageReference getPayerFromRequest() {
-		return request.caller;
+		return request.getCaller();
 	}
 
 	/**
@@ -168,7 +168,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws ClassNotFoundException if the class of the caller cannot be found
 	 */
 	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
-		ClassTag classTag = node.getClassTag(request.caller);
+		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
 		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
@@ -190,7 +190,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws ClassNotFoundException if the class of the caller cannot be determined
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException {
-		ClassTag classTag = node.getClassTag(request.caller);
+		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
 			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
@@ -205,7 +205,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException {
 		StorageReference payer = getPayerFromRequest();
 	
-		if (payer.equals(request.caller))
+		if (payer.equals(request.getCaller()))
 			// if the payer coincides with the caller, as it is normally the case,
 			// then there is nothing to check, since we know that the caller
 			// is an externally owned account, hence a contract
@@ -254,11 +254,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
 		if (!isView()) {
-			BigInteger expected = node.getStoreUtilities().getNonceUncommitted(request.caller);
+			BigInteger expected = node.getStoreUtilities().getNonceUncommitted(request.getCaller());
 
-			if (!expected.equals(request.nonce))
-				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.nonce
-					+ " but the account " + request.caller + " contains " + expected);
+			if (!expected.equals(request.getNonce()))
+				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.getNonce()
+					+ " but the account " + request.getCaller() + " contains " + expected);
 		}
 	}
 
@@ -269,7 +269,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void requestPromisesEnoughGas() throws TransactionRejectedException {
 		BigInteger minimum = minimalGasRequiredForTransaction();
-		if (request.gasLimit.compareTo(minimum) < 0)
+		if (request.getGasLimit().compareTo(minimum) < 0)
 			throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas");
 	}
 
@@ -279,7 +279,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws TransactionRejectedException if the gas is outside these bounds
 	 */
 	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
-		if (request.gasLimit.compareTo(ZERO) < 0)
+		if (request.getGasLimit().compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
 
 		BigInteger maxGas;
@@ -290,8 +290,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		else
 			maxGas = consensus.getMaxGasPerTransaction();
 
-		if (request.gasLimit.compareTo(maxGas) > 0)
-			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.gasLimit + " > " + maxGas + ")");
+		if (request.getGasLimit().compareTo(maxGas) > 0)
+			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGas + ")");
 	}
 
 	/**
@@ -303,8 +303,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// before initialization, the gas price is not yet available
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
 			BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
-			if (request.gasPrice.compareTo(currentGasPrice) < 0)
-				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.gasPrice + " < " + currentGasPrice + ")");
+			if (request.getGasPrice().compareTo(currentGasPrice) < 0)
+				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
 		}
 	}
 
@@ -315,11 +315,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws TransactionRejectedException if the payer is not rich enough for that
 	 */
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
-		BigInteger cost = costOf(request.gasLimit);
+		BigInteger cost = costOf(request.getGasLimit());
 		BigInteger totalBalance = node.getStoreUtilities().getTotalBalanceUncommitted(getPayerFromRequest());
 
 		if (totalBalance.subtract(cost).signum() < 0)
-			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.gasLimit + " units of gas");
+			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
 	}
 
 	/**
@@ -329,7 +329,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @return the cost, as {@code gas} times {@code gasPrice}
 	 */
 	private BigInteger costOf(BigInteger gas) {
-		return gas.multiply(request.gasPrice);
+		return gas.multiply(request.getGasPrice());
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
@@ -396,7 +396,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.gas = request.gasLimit;
+				this.gas = request.getGasLimit();
 			}
 			catch (Throwable t) {
 				LOGGER.log(Level.WARNING, "response creation rejected", t);
@@ -405,7 +405,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		}
 
 		protected final void init() {
-			this.deserializedCaller = deserializer.deserialize(request.caller);
+			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			this.deserializedPayer = deserializedPayer();
 			this.deserializedValidators = node.getCaches().getValidators().map(deserializer::deserialize);
 
@@ -483,7 +483,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 *         the gas already consumed for PCU, for RAM and for storage
 		 */
 		protected final BigInteger gasConsumedForPenalty() {
-			return request.gasLimit.subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
+			return request.getGasLimit().subtract(gasConsumedForCPU).subtract(gasConsumedForRAM).subtract(gasConsumedForStorage);
 		}
 
 		/**
@@ -562,7 +562,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return true if and only if that condition holds
 		 */
 		protected final boolean isUpdateToBalanceOrNonceOfCaller(Update update) {
-			if (update instanceof UpdateOfField uof && update.getObject().equals(request.caller)) {
+			if (update instanceof UpdateOfField uof && update.getObject().equals(request.getCaller())) {
 				FieldSignature field = uof.getField();
 				return FieldSignatures.BALANCE_FIELD.equals(field) || FieldSignatures.RED_BALANCE_FIELD.equals(field) || FieldSignatures.EOA_NONCE_FIELD.equals(field);
 			}
@@ -576,7 +576,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 * @return the amount that has been subtracted from the green balance
 		 */
 		private BigInteger chargePayerForAllGasPromised() {
-			BigInteger cost = costOf(request.gasLimit);
+			BigInteger cost = costOf(request.getGasLimit());
 			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
 			BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
 
@@ -635,7 +635,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private void increaseNonceOfCaller() {
 			if (!isView())
-				classLoader.setNonceOf(deserializedCaller, request.nonce.add(ONE));
+				classLoader.setNonceOf(deserializedCaller, request.getNonce().add(ONE));
 		}
 	}
 }

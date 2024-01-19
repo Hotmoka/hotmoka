@@ -28,11 +28,11 @@ public abstract class NonInitialTransactionRequestModel extends TransactionReque
     public String gasPrice;
 
     protected NonInitialTransactionRequestModel(NonInitialTransactionRequest<?> request) {
-    	this.caller = new StorageReferenceModel(request.caller);
-    	this.nonce = request.nonce.toString();
-    	this.classpath = new TransactionReferenceModel(request.classpath);
-    	this.gasLimit = request.gasLimit.toString();
-    	this.gasPrice = request.gasPrice.toString();
+    	this.caller = new StorageReferenceModel(request.getCaller());
+    	this.nonce = request.getNonce().toString();
+    	this.classpath = new TransactionReferenceModel(request.getClasspath());
+    	this.gasLimit = request.getGasLimit().toString();
+    	this.gasPrice = request.getGasPrice().toString();
     }
 
     protected NonInitialTransactionRequestModel() {}

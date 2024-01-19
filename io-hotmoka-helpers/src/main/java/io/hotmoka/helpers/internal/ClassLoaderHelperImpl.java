@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import io.hotmoka.beans.MethodSignatures;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -71,7 +71,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 
 		do {
 			TransactionReference current = ws.remove(ws.size() - 1);
-			var request = (JarStoreTransactionRequest<?>) node.getRequest(current);
+			var request = (GenericJarStoreTransactionRequest<?>) node.getRequest(current);
 			jars.add(request.getJar());
 			request.getDependencies().filter(seen::add).forEachOrdered(ws::add);
 		}
