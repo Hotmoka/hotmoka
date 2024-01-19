@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -134,7 +134,7 @@ public class MethodCallTransactionExceptionResponse extends MethodCallTransactio
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();
 		var selfCharged = context.readBoolean();
-		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
+		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
 		var classNameOfCause = context.readStringUnshared();
 		var messageOfCause = context.readStringUnshared();
 		var where = context.readStringUnshared();

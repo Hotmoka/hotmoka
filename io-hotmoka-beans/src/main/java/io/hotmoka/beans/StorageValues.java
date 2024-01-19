@@ -232,7 +232,7 @@ public abstract class StorageValues {
 	}
 
 	/**
-	 * Factory method that unmarshals a value from the given stream.
+	 * Unmarshals a value from the given stream.
 	 * 
 	 * @param context the unmarshalling context
 	 * @return the value
@@ -240,6 +240,19 @@ public abstract class StorageValues {
 	 */
 	public static StorageValue from(UnmarshallingContext context) throws IOException {
 		return AbstractStorageValue.from(context);
+	}
+
+	/**
+	 * Unmarshals a storage reference from the given stream. It assumes that there
+	 * is no selector at the beginning of the stream, contrary to what
+	 * {@link #from(UnmarshallingContext)} does.
+	 * 
+	 * @param context the unmarshalling context
+	 * @return the storage reference
+	 * @throws IOException if the storage reference could not be unmarshalled
+	 */
+	public static StorageReference referenceWithoutSelectorFrom(UnmarshallingContext context) throws IOException {
+		return StorageReferenceImpl.fromWithoutSelector(context);
 	}
 
 	/**

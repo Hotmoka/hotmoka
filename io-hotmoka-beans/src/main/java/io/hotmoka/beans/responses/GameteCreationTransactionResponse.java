@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -106,6 +106,6 @@ public class GameteCreationTransactionResponse extends InitialTransactionRespons
 	 */
 	public static GameteCreationTransactionResponse from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
-		return new GameteCreationTransactionResponse(updates, StorageReferenceImpl.fromWithoutSelector(context));
+		return new GameteCreationTransactionResponse(updates, StorageValues.referenceWithoutSelectorFrom(context));
 	}
 }

@@ -73,7 +73,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	}
 
 	@Override
-	public void intoWithoutSignature(MarshallingContext context) throws IOException {
+	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
 		receiver.intoWithoutSelector(context);
 	}

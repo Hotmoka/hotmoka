@@ -25,11 +25,12 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.JarStoreNonInitialTransactionResponse;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -160,7 +161,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
         	+ "  chainId: " + chainId + "\n"
 			+ "  dependencies: " + Arrays.toString(dependencies) + "\n"
 			+ "  jar: " + sb + "\n"
-			+ "  signature: " + bytesToHex(signature);
+			+ "  signature: " + Hex.toHexString(signature);
 	}
 
 	@Override
@@ -194,7 +195,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 */
 	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

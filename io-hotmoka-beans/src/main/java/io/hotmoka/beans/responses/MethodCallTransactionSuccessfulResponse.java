@@ -29,7 +29,6 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -134,7 +133,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 
 		if (selector == SELECTOR) {
 			selfCharged = context.readBoolean();
-			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
 		}
 		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
 			selfCharged = false;
@@ -142,7 +141,7 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 		}
 		else if (selector == SELECTOR_ONE_EVENT_NO_SELF_CHARGED) {
 			selfCharged = false;
-			events = Stream.of(StorageReferenceImpl.fromWithoutSelector(context));
+			events = Stream.of(StorageValues.referenceWithoutSelectorFrom(context));
 		}
 		else
 			throw new IOException("Unexpected response selector: " + selector);

@@ -144,7 +144,7 @@ public class UpdatesExtractorFromRAM {
 				this.inStorage = classLoader.getInStorageOf(object);
 
 				if (!inStorage)
-					updates.add(Updates.classTag(storageReference, StorageTypes.classForClass(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
+					updates.add(Updates.classTag(storageReference, StorageTypes.classOf(clazz), classLoader.transactionThatInstalledJarFor(clazz)));
 
 				Class<?> previous = null;
 				while (previous != classLoader.getStorage()) {

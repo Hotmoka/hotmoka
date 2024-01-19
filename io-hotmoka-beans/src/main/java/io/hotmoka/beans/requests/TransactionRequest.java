@@ -18,7 +18,6 @@ package io.hotmoka.beans.requests;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
@@ -65,29 +64,6 @@ public abstract class TransactionRequest<R extends TransactionResponse> extends 
 		default: throw new IOException("Unexpected request selector: " + selector);
 		}
 	}
-
-	/**
-	 * Translates an array of bytes into a hexadecimal string.
-	 * 
-	 * @param bytes the bytes
-	 * @return the string
-	 */
-	protected static String bytesToHex(byte[] bytes) {
-	    var hexChars = new byte[bytes.length * 2];
-	    int pos = 0;
-	    for (byte b: bytes) {
-	        int v = b & 0xFF;
-	        hexChars[pos++] = HEX_ARRAY[v >>> 4];
-	        hexChars[pos++] = HEX_ARRAY[v & 0x0F];
-	    }
-	
-	    return new String(hexChars, StandardCharsets.UTF_8);
-	}
-
-	/**
-	 * The array of hexadecimal digits.
-	 */
-	private final static byte[] HEX_ARRAY = "0123456789abcdef".getBytes();
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {

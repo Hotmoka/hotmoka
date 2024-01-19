@@ -18,11 +18,11 @@ package io.hotmoka.network.requests;
 
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.network.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.values.StorageValueModel;
 
 import java.math.BigInteger;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,7 +45,7 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     public ConstructorCallTransactionRequestModel(ConstructorCallTransactionRequest request) {
     	super(request);
 
-    	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
+    	this.signature = Base64.toBase64String(request.getSignature());
     	this.chainId = request.chainId;
     	this.constructorSignature = new ConstructorSignatureModel(request.constructor);
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());

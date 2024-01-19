@@ -32,8 +32,8 @@ import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -128,7 +128,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
         	+ "  chainId: " + chainId + "\n"
 			+ "  constructor: " + constructor + "\n"
 			+ "  actuals:\n" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "    ", "")) + "\n"
-			+ "  signature: " + bytesToHex(signature);
+			+ "  signature: " + Hex.toHexString(signature);
 	}
 
 	@Override
@@ -175,7 +175,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 */
 	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -117,13 +117,13 @@ public class ConstructorCallTransactionSuccessfulResponse extends ConstructorCal
 		var gasConsumedForStorage = context.readBigInteger();
 		Stream<StorageReference> events;
 		if (selector == SELECTOR)
-			events = Stream.of(context.readLengthAndArray(StorageReferenceImpl::fromWithoutSelector, StorageReference[]::new));
+			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
 		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
 		else
 			throw new IOException("Unexpected response selector: " + selector);
 
-		var newObject = StorageReferenceImpl.fromWithoutSelector(context);
+		var newObject = StorageValues.referenceWithoutSelectorFrom(context);
 		return new ConstructorCallTransactionSuccessfulResponse(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

@@ -101,7 +101,7 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 		case LongValueImpl.SELECTOR: return StorageValues.longOf(context.readLong());
 		case NullValueImpl.SELECTOR: return StorageValues.NULL;
 		case ShortValueImpl.SELECTOR: return StorageValues.shortOf(context.readShort());
-		case StorageReferenceImpl.SELECTOR: return StorageReferenceImpl.fromWithoutSelector(context);
+		case StorageReferenceImpl.SELECTOR: return StorageValues.referenceWithoutSelectorFrom(context);
 		case StringValueImpl.SELECTOR_EMPTY_STRING: return StorageValues.stringOf("");
 		case StringValueImpl.SELECTOR: return StorageValues.stringOf(context.readStringUnshared());
 		default:

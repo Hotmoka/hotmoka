@@ -5,6 +5,7 @@ chain/
 .metadata/
 .recommenders/
 RemoteSystemsTempFiles/
+*.lck
 *.keys
 *.pri
 *.pub

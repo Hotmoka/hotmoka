@@ -33,7 +33,7 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -139,7 +139,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 
 	@Override
 	public String toString() {
-        return super.toString() + ":\n" + "  chainId: " + chainId + "\n" + "  signature: " + bytesToHex(signature);
+        return super.toString() + ":\n" + "  chainId: " + chainId + "\n" + "  signature: " + Hex.toHexString(signature);
 	}
 
 	@Override
@@ -162,7 +162,7 @@ public class StaticMethodCallTransactionRequest extends MethodCallTransactionReq
 	 */
 	public static StaticMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var gasPrice = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);

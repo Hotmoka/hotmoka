@@ -27,7 +27,6 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.values.StorageReferenceImpl;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -94,13 +93,13 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * @throws IOException if the request could not be unmarshalled
 	 */
 	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
-		var caller = StorageReferenceImpl.fromWithoutSelector(context);
+		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
 		var nonce = context.readBigInteger();
 		StorageValue[] actuals = context.readLengthAndArray(StorageValues::from, StorageValue[]::new);
 		var method = MethodSignatures.from(context);
-		var receiver = StorageReferenceImpl.fromWithoutSelector(context);
+		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 
 		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}

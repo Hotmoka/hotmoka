@@ -308,14 +308,14 @@ public class Call extends AbstractCommand {
 		private MethodSignature signatureOfMethod() {
 			var formals = Stream.of(method.getParameters())
 				.map(Parameter::getType)
-				.map(StorageTypes::forClass)
+				.map(StorageTypes::of)
 				.toArray(StorageType[]::new);
 
 			Class<?> returnType = method.getReturnType();
 			if (returnType == void.class)
 				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
 			else
-				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.forClass(returnType), formals);
+				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException {
