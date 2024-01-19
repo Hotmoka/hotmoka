@@ -36,6 +36,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -84,7 +85,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
-		var signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);
+		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		BigInteger gas = gasForTransactionWhosePayerHasSignature(signature.getName(), node);
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);

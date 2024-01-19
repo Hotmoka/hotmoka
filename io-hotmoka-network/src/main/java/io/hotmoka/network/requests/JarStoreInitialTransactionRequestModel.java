@@ -20,8 +20,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 /**
@@ -52,7 +53,7 @@ public class JarStoreInitialTransactionRequestModel extends InitialTransactionRe
     	if (jar == null)
     		throw new RuntimeException("unexpected null jar");
 
-    	return new JarStoreInitialTransactionRequest(decodeBase64(jar),
+    	return TransactionRequests.jarStoreInitial(decodeBase64(jar),
     		dependencies.stream().map(TransactionReferenceModel::toBean).toArray(TransactionReference[]::new));
     }
 }

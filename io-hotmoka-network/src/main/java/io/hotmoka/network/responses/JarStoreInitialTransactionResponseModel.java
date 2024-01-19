@@ -20,7 +20,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 public class JarStoreInitialTransactionResponseModel extends TransactionResponseModel {
@@ -50,6 +51,6 @@ public class JarStoreInitialTransactionResponseModel extends TransactionResponse
     public JarStoreInitialTransactionResponseModel() {}
 
     public JarStoreInitialTransactionResponse toBean() {
-        return new JarStoreInitialTransactionResponse(Base64.getDecoder().decode(instrumentedJar), dependencies.stream().map(TransactionReferenceModel::toBean), verificationToolVersion);
+        return TransactionResponses.jarStoreInitial(Base64.getDecoder().decode(instrumentedJar), dependencies.stream().map(TransactionReferenceModel::toBean), verificationToolVersion);
     }
 }

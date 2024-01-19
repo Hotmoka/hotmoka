@@ -60,7 +60,7 @@ public class Faucet extends HotmokaTest {
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
-		var signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);
+		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),

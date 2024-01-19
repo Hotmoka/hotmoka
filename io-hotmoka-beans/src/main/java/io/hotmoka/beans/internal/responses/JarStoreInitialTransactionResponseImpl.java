@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -22,18 +22,16 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.responses.InitialTransactionResponse;
-import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A response for a transaction that installs a jar in a yet not initialized node.
+ * Implementation of a response for a transaction that installs a jar in a yet non-initialized node.
  */
 @Immutable
-public class JarStoreInitialTransactionResponse extends TransactionResponseImpl implements InitialTransactionResponse, TransactionResponseWithInstrumentedJar, JarStoreTransactionResponse {
+public class JarStoreInitialTransactionResponseImpl extends TransactionResponseImpl implements JarStoreInitialTransactionResponse {
 	public final static byte SELECTOR = 1;
 
 	/**
@@ -51,7 +49,7 @@ public class JarStoreInitialTransactionResponse extends TransactionResponseImpl 
 	 * the version of the verification tool involved in the verification process
 	 */
 	private final long verificationToolVersion;
-	
+
 	/**
 	 * Builds the transaction response.
 	 * 
@@ -59,7 +57,7 @@ public class JarStoreInitialTransactionResponse extends TransactionResponseImpl 
 	 * @param dependencies the dependencies of the jar, previously installed in blockchain
 	 * @param verificationToolVersion the version of the verification tool
 	 */
-	public JarStoreInitialTransactionResponse(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
+	public JarStoreInitialTransactionResponseImpl(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
 		this.instrumentedJar = instrumentedJar.clone();
 		this.dependencies = dependencies.toArray(TransactionReference[]::new);
 		this.verificationToolVersion = verificationToolVersion;
@@ -82,7 +80,7 @@ public class JarStoreInitialTransactionResponse extends TransactionResponseImpl 
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreInitialTransactionResponse jsitr &&
+		return other instanceof JarStoreInitialTransactionResponseImpl jsitr &&
 			Arrays.equals(instrumentedJar, jsitr.instrumentedJar) && Arrays.equals(dependencies, jsitr.dependencies);
 	}
 
@@ -98,18 +96,6 @@ public class JarStoreInitialTransactionResponse extends TransactionResponseImpl 
             sb.append(String.format("%02x", b));
 
         return getClass().getSimpleName() + ":\n  verified with verification version " + verificationToolVersion + "\n  instrumented jar: " + sb;
-	}
-
-	/**
-	 * Yields the outcome of the execution having this response, performed
-	 * at the given transaction reference.
-	 * 
-	 * @param transactionReference the transaction reference
-	 * @return the outcome
-	 */
-	public TransactionReference getOutcomeAt(TransactionReference transactionReference) {
-		// the result of installing a jar in a node is the reference to the transaction that installed the jar
-		return transactionReference;
 	}
 
 	@Override
@@ -128,11 +114,11 @@ public class JarStoreInitialTransactionResponse extends TransactionResponseImpl 
 	 * @return the response
 	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static JarStoreInitialTransactionResponse from(UnmarshallingContext context) throws IOException {
+	public static JarStoreInitialTransactionResponseImpl from(UnmarshallingContext context) throws IOException {
 		var verificationToolVersion = context.readLong();
 		byte[] instrumentedJar = context.readLengthAndBytes("Jar length mismatch in response");
 		Stream<TransactionReference> dependencies = Stream.of(context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new));
-		return new JarStoreInitialTransactionResponse(instrumentedJar, dependencies, verificationToolVersion);
+		return new JarStoreInitialTransactionResponseImpl(instrumentedJar, dependencies, verificationToolVersion);
 	}
 
 	@Override

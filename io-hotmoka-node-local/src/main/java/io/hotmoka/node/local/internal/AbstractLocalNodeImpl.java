@@ -48,10 +48,11 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -65,12 +66,10 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.NonInitialTransactionResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -429,7 +428,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> {
 			TransactionReference reference = post(request);
-			return ((JarStoreInitialTransactionResponse) getPolledResponse(reference)).getOutcomeAt(reference);
+			getPolledResponse(reference);
+			return reference;
 		});
 	}
 
@@ -444,7 +444,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException, TransactionException {
 		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
 	}
 
@@ -497,7 +497,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
+	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequestImpl request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(post(request)));
 	}
 
@@ -786,8 +786,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, internal);
 		else if (request instanceof GameteCreationTransactionRequest)
 			return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
-    	else if (request instanceof JarStoreTransactionRequest)
-    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
+    	else if (request instanceof JarStoreTransactionRequestImpl)
+    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequestImpl) request, internal);
     	else if (request instanceof ConstructorCallTransactionRequest)
     		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, internal);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)

@@ -17,12 +17,15 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -32,6 +35,18 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public abstract class TransactionResponses {
 
 	private TransactionResponses() {}
+
+	/**
+	 * Yields the response of a transaction that installs a jar in a yet non-initialized node.
+	 * 
+	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
+	 * @return the response
+	 */
+	public static JarStoreInitialTransactionResponse jarStoreInitial(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion) {
+		return new JarStoreInitialTransactionResponseImpl(instrumentedJar, dependencies, verificationToolVersion);
+	}
 
 	/**
 	 * Yields a transaction responses unmarshalled from the given context.

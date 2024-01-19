@@ -16,14 +16,14 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
+import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 
 /**
@@ -68,8 +68,8 @@ public class TransactionRestRequestModel<T> {
             return new TransactionRestRequestModel<>(new InstanceSystemMethodCallTransactionRequestModel((InstanceSystemMethodCallTransactionRequest) request));
         else if (request instanceof JarStoreInitialTransactionRequest)
             return new TransactionRestRequestModel<>(new JarStoreInitialTransactionRequestModel((JarStoreInitialTransactionRequest) request));
-        else if (request instanceof JarStoreTransactionRequest)
-            return new TransactionRestRequestModel<>(new JarStoreTransactionRequestModel((JarStoreTransactionRequest) request));
+        else if (request instanceof JarStoreTransactionRequestImpl)
+            return new TransactionRestRequestModel<>(new JarStoreTransactionRequestModel((JarStoreTransactionRequestImpl) request));
         else if (request instanceof GameteCreationTransactionRequest)
             return new TransactionRestRequestModel<>(new GameteCreationTransactionRequestModel((GameteCreationTransactionRequest) request));
         else if (request instanceof StaticMethodCallTransactionRequest)

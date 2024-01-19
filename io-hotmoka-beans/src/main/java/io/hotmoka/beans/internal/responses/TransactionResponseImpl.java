@@ -26,7 +26,6 @@ import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.responses.InitializationTransactionResponse;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
@@ -59,7 +58,7 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 
 		switch (selector) {
 		case GameteCreationTransactionResponse.SELECTOR: return GameteCreationTransactionResponse.from(context);
-		case JarStoreInitialTransactionResponse.SELECTOR: return JarStoreInitialTransactionResponse.from(context);
+		case JarStoreInitialTransactionResponseImpl.SELECTOR: return JarStoreInitialTransactionResponseImpl.from(context);
 		case InitializationTransactionResponse.SELECTOR: return InitializationTransactionResponse.from(context);
 		case JarStoreTransactionFailedResponse.SELECTOR: return JarStoreTransactionFailedResponse.from(context);
 		case JarStoreTransactionSuccessfulResponse.SELECTOR: return JarStoreTransactionSuccessfulResponse.from(context);

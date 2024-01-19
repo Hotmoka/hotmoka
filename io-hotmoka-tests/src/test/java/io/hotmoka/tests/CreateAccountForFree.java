@@ -53,7 +53,7 @@ class CreateAccountForFree extends HotmokaTest {
 					(takamakaCode(), _50_000, _50_000, publicKey));
 			}
 			catch (TransactionRejectedException e) {
-				assertTrue(e.getMessage().contains("Cannot run a GameteCreationTransactionRequest in an already initialized node"));
+				assertTrue(e.getMessage().contains("Cannot run an initial transaction request in an already initialized node"));
 				return;
 			}
 

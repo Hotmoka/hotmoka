@@ -42,6 +42,7 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -54,14 +55,14 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
@@ -199,7 +200,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        signature = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests());
 	        initializeNodeIfNeeded(wrapped);
-	        var signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest<?>::toByteArrayWithoutSignature);
+	        Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();
@@ -380,14 +381,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException {
-		return node.addJarStoreInitialTransaction(new JarStoreInitialTransactionRequest(jar, dependencies));
+		return node.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(jar, dependencies));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final TransactionReference addJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addJarStoreTransaction(new JarStoreTransactionRequest(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.addJarStoreTransaction(new JarStoreTransactionRequestImpl(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**
@@ -429,7 +430,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final JarSupplier postJarStoreTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.postJarStoreTransaction(new JarStoreTransactionRequest(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
+		return node.postJarStoreTransaction(new JarStoreTransactionRequestImpl(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, jar, dependencies));
 	}
 
 	/**

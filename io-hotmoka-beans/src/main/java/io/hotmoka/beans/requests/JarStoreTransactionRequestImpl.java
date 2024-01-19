@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -42,7 +43,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A request for a transaction that installs a jar in an initialized node.
  */
 @Immutable
-public class JarStoreTransactionRequest extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements AbstractJarStoreTransactionRequest, SignedTransactionRequest<JarStoreNonInitialTransactionResponse> {
+public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest<JarStoreNonInitialTransactionResponse> implements JarStoreTransactionRequest<JarStoreNonInitialTransactionResponse>, SignedTransactionRequest<JarStoreNonInitialTransactionResponse> {
 	public final static byte SELECTOR = 3;
 
 	/**
@@ -80,7 +81,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public JarStoreTransactionRequest(Signer<? super JarStoreTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
+	public JarStoreTransactionRequestImpl(Signer<? super JarStoreTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null").clone();
@@ -104,7 +105,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	public JarStoreTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
+	public JarStoreTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null").clone();
@@ -169,7 +170,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionRequest jstr && super.equals(other)
+		return other instanceof JarStoreTransactionRequestImpl jstr && super.equals(other)
 			&& Arrays.equals(jar, jstr.jar) && Arrays.equals(dependencies, jstr.dependencies)
 			&& chainId.equals(jstr.chainId) && Arrays.equals(signature, jstr.signature);
 	}
@@ -209,7 +210,7 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 	 * @return the request
 	 * @throws IOException if the request could noy be unmarshalled
 	 */
-	public static JarStoreTransactionRequest from(UnmarshallingContext context) throws IOException {
+	public static JarStoreTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
@@ -221,6 +222,6 @@ public class JarStoreTransactionRequest extends NonInitialTransactionRequest<Jar
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return new JarStoreTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
+		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
 	}
 }

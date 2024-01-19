@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 
 /**
@@ -38,10 +39,5 @@ public abstract class JarStoreNonInitialTransactionResponse extends NonInitialTr
 	 */
 	public JarStoreNonInitialTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		return other instanceof JarStoreNonInitialTransactionResponse && super.equals(other);
 	}
 }

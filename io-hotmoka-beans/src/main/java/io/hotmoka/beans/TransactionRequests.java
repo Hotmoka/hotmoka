@@ -18,11 +18,13 @@ package io.hotmoka.beans;
 
 import java.io.IOException;
 
+import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -32,6 +34,17 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 public abstract class TransactionRequests {
 
 	private TransactionRequests() {}
+
+	/**
+	 * Yields a transaction request to install a jar in a yet non-initialized node.
+	 * 
+	 * @param jar the bytes of the jar to install
+	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @return the request
+	 */
+	public static JarStoreInitialTransactionRequest jarStoreInitial(byte[] jar, TransactionReference... dependencies) {
+		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
+	}
 
 	/**
 	 * Yields a transaction request unmarshalled from the given context.

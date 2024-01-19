@@ -28,8 +28,7 @@ import io.hotmoka.beans.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.requests.JarStoreTransactionRequestImpl;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -55,7 +54,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 	 * @return the request
 	 * @throws IOException if the request cannot be unmarshalled
 	 */
-	public static TransactionRequestImpl<?> from(UnmarshallingContext context) throws IOException {
+	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
 		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
@@ -65,8 +64,8 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_LONG:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
 			return InstanceMethodCallTransactionRequest.from(context, selector);
-		case JarStoreInitialTransactionRequest.SELECTOR: return JarStoreInitialTransactionRequest.from(context);
-		case JarStoreTransactionRequest.SELECTOR: return JarStoreTransactionRequest.from(context);
+		case JarStoreInitialTransactionRequestImpl.SELECTOR: return JarStoreInitialTransactionRequestImpl.from(context);
+		case JarStoreTransactionRequestImpl.SELECTOR: return JarStoreTransactionRequestImpl.from(context);
 		case GameteCreationTransactionRequest.SELECTOR: return GameteCreationTransactionRequest.from(context);
 		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(context);
 		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(context);

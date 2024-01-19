@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -23,18 +23,17 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request for a transaction that installs a jar in a yet not initialized node.
+ * Implementation of a request for a transaction that installs a jar in a yet non-initialized node.
  */
 @Immutable
-public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<JarStoreInitialTransactionResponse> implements InitialTransactionRequest<JarStoreInitialTransactionResponse>, AbstractJarStoreTransactionRequest {
+public class JarStoreInitialTransactionRequestImpl extends TransactionRequestImpl<JarStoreInitialTransactionResponse> implements JarStoreInitialTransactionRequest {
 	public final static byte SELECTOR = 1;
 
 	/**
@@ -53,7 +52,7 @@ public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<Ja
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
 	 */
-	public JarStoreInitialTransactionRequest(byte[] jar, TransactionReference... dependencies) {
+	public JarStoreInitialTransactionRequestImpl(byte[] jar, TransactionReference... dependencies) {
 		this.jar = Objects.requireNonNull(jar, "jar cannot be null").clone();
 		this.dependencies = Objects.requireNonNull(dependencies, "dependencies cannot be null").clone();
 		Stream.of(dependencies).forEach(dependency -> Objects.requireNonNull(dependency, "dependencies cannot hold null"));
@@ -74,11 +73,7 @@ public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<Ja
 		return Stream.of(dependencies);
 	}
 
-	/**
-	 * Yields the number of dependencies.
-	 * 
-	 * @return the number of dependencies
-	 */
+	@Override
 	public final int getNumberOfDependencies() {
 		return dependencies.length;
 	}
@@ -96,7 +91,7 @@ public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<Ja
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreInitialTransactionRequest jsitr &&
+		return other instanceof JarStoreInitialTransactionRequestImpl jsitr &&
 			Arrays.equals(dependencies, jsitr.dependencies) && Arrays.equals(jar, jsitr.jar);
 	}
 
@@ -124,6 +119,6 @@ public class JarStoreInitialTransactionRequest extends TransactionRequestImpl<Ja
 		byte[] jar = context.readLengthAndBytes("jar length mismatch in request");
 		var dependencies = context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 
-		return new JarStoreInitialTransactionRequest(jar, dependencies);
+		return new JarStoreInitialTransactionRequestImpl(jar, dependencies);
 	}
 }

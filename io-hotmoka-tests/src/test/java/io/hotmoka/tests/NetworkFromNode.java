@@ -41,12 +41,12 @@ import com.google.gson.JsonObject;
 
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -135,7 +135,7 @@ class NetworkFromNode extends HotmokaTest {
 		ErrorModel errorModel = null;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = new JarStoreInitialTransactionRequest(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
+			var request = TransactionRequests.jarStoreInitial(Files.readAllBytes(Paths.get("jars/c13.jar")), node.getTakamakaCode());
 
 			try {
 				var service = new RestClientService();
@@ -150,7 +150,7 @@ class NetworkFromNode extends HotmokaTest {
 		}
 
 		assertNotNull(errorModel);
-		assertEquals("Cannot run a JarStoreInitialTransactionRequest in an already initialized node", errorModel.message);
+		assertEquals("Cannot run an initial transaction request in an already initialized node", errorModel.message);
 		assertEquals(TransactionRejectedException.class.getName(), errorModel.exceptionClassName);
 	}
 

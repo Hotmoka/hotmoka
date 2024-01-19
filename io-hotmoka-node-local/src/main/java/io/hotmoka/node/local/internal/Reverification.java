@@ -28,14 +28,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.AbstractJarStoreTransactionRequest;
-import io.hotmoka.beans.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
@@ -146,7 +147,7 @@ public class Reverification {
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<JarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		var jarStoreRequestOfTransaction = (AbstractJarStoreTransactionRequest) node.getRequest(transaction);
+		var jarStoreRequestOfTransaction = (JarStoreTransactionRequest<?>) node.getRequest(transaction);
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
@@ -156,9 +157,9 @@ public class Reverification {
 		// ... and the instrumented jars of its dependencies: since we have already considered the case
 		// when a dependency is failed, we can conclude that they must all have an instrumented jar
 		reverifiedDependencies.stream()
-		.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
-		.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
-		.forEachOrdered(jars::add);
+			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
+			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
+			.forEachOrdered(jars::add);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
@@ -218,7 +219,7 @@ public class Reverification {
 		JarStoreTransactionResponse replacement;
 
 		if (response instanceof JarStoreInitialTransactionResponse)
-			replacement = new JarStoreInitialTransactionResponse(response.getInstrumentedJar(), response.getDependencies(), consensus.getVerificationVersion());
+			replacement = TransactionResponses.jarStoreInitial(response.getInstrumentedJar(), response.getDependencies(), consensus.getVerificationVersion());
 		else {
 			// there remains only this possibility
 			var currentResponseAsNonInitial = (JarStoreTransactionSuccessfulResponse) response;
