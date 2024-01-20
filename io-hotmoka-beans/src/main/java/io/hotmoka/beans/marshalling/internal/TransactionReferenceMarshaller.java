@@ -27,11 +27,11 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 /**
  * Knowledge about how a transaction reference can be marshalled.
  */
-public class TransactionReferenceMarshaller extends AbstractObjectMarshaller<TransactionReference> {
+class TransactionReferenceMarshaller extends AbstractObjectMarshaller<TransactionReference> {
 	
 	private final Map<TransactionReference, Integer> memory = new HashMap<>();
 
-	public TransactionReferenceMarshaller() {
+	TransactionReferenceMarshaller() {
 		super(TransactionReference.class);
 	}
 

@@ -29,11 +29,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 /**
  * An unmarshaller for storage references.
  */
-public class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageReference> {
+class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageReference> {
 
 	private final Map<Integer, StorageReference> memory = new HashMap<>();
 
-	public StorageReferenceUnmarshaller() {
+	StorageReferenceUnmarshaller() {
 		super(StorageReference.class);
 	}
 

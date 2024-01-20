@@ -28,11 +28,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 /**
  * An unmarshaller for transaction references.
  */
-public class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<TransactionReference> {
+class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<TransactionReference> {
 
 	private final Map<Integer, TransactionReference> memory = new HashMap<>();
 
-	public TransactionReferenceUnmarshaller() {
+	TransactionReferenceUnmarshaller() {
 		super(TransactionReference.class);
 	}
 

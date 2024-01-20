@@ -23,13 +23,13 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.beans.BeanUnmarshallingContexts;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.patricia.PatriciaTries;
@@ -76,7 +76,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
 			this.hasherForJars = HashingAlgorithms.sha256().getHasher(Function.identity());
 			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash), HashingAlgorithms.sha256(),
-					TransactionResponses::from, BeanUnmarshallingContext::new, numberOfCommits);
+					TransactionResponses::from, BeanUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);
@@ -92,8 +92,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 * @return the response that is put in its place in the parent trie
 	 */
 	private TransactionResponse writeTransformation(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithInstrumentedJar) {
-			var trwij = (TransactionResponseWithInstrumentedJar) response;
+		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
 			byte[] reference = hasherForJars.hash(jar);
@@ -115,9 +114,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 * @return return the actual response returned by this trie
 	 */
 	private TransactionResponse readTransformation(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithInstrumentedJar) {
-			var trwij = (TransactionResponseWithInstrumentedJar) response;
-
+		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
 			// we replace the hash of the jar with the actual jar
 			try {
 				byte[] jar = keyValueStoreOfResponses.get(trwij.getInstrumentedJar());

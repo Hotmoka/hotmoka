@@ -30,11 +30,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 /**
  * An unmarshaller for field signatures.
  */
-public class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
+class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
 
 	private final Map<Integer, FieldSignature> memory = new HashMap<>();
 
-	public FieldSignatureUnmarshaller() {
+	FieldSignatureUnmarshaller() {
 		super(FieldSignature.class);
 	}
 

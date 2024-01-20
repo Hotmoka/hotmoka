@@ -18,7 +18,6 @@ limitations under the License.
  * This module implements the beans exchanged among Hotmoka nodes.
  */
 module io.hotmoka.beans {
-	exports io.hotmoka.beans.marshalling;
 	exports io.hotmoka.beans;
 
 	// beans must be accessible, encoded and decoded by reflection through Gson

@@ -34,14 +34,14 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.BeanMarshallingContexts;
+import io.hotmoka.beans.BeanUnmarshallingContexts;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.stores.AbstractStore;
 
 /**
@@ -110,7 +110,7 @@ class Store extends AbstractStore {
 		synchronized (lock) {
     		try {
     			Path response = getPathFor(reference, "response");
-    			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
+    			try (var context = BeanUnmarshallingContexts.of(Files.newInputStream(response))) {
     				return Optional.of(TransactionResponses.from(context));
     			}
     		}
@@ -155,7 +155,7 @@ class Store extends AbstractStore {
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
-			try (var context = new BeanUnmarshallingContext(Files.newInputStream(response))) {
+			try (var context = BeanUnmarshallingContexts.of(Files.newInputStream(response))) {
 				return Optional.of(TransactionRequests.from(context));
 			}
 		}
@@ -176,11 +176,11 @@ class Store extends AbstractStore {
 			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
 			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
-			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
+			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
 
-			try (var context = new BeanMarshallingContext(Files.newOutputStream(getPathFor(reference, "response")))) {
+			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(getPathFor(reference, "response")))) {
 				response.into(context);
 			}
 		}
@@ -211,13 +211,13 @@ class Store extends AbstractStore {
 
 			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
-			try (var context = new BeanMarshallingContext(Files.newOutputStream(requestPath))) {
+			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
 		}
 		catch (IOException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException("Unexpected exception", e);
 		}
 
 		errors.put(reference, errorMessage);
@@ -234,7 +234,7 @@ class Store extends AbstractStore {
 	private Path getPathFor(TransactionReference reference, String name) throws FileNotFoundException {
 		Integer progressive = this.progressive.get(reference);
 		if (progressive == null)
-			throw new FileNotFoundException("unknown transaction reference " + reference);
+			throw new FileNotFoundException("Unknown transaction reference " + reference);
 
 		return getDir().resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
 	}

@@ -27,11 +27,11 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 /**
  * Knowledge about how a field signature can be marshalled.
  */
-public class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSignature> {
+class FieldSignatureMarshaller extends AbstractObjectMarshaller<FieldSignature> {
 	
 	private final Map<FieldSignature, Integer> memory = new HashMap<>();
 
-	public FieldSignatureMarshaller() {
+	FieldSignatureMarshaller() {
 		super(FieldSignature.class);
 	}
 

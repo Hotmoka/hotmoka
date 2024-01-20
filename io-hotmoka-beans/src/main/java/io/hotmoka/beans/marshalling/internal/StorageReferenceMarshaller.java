@@ -27,11 +27,11 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 /**
  * Knowledge about how a storage reference can be marshalled.
  */
-public class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReference> {
+class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReference> {
 	
 	private final Map<StorageReference, Integer> memory = new HashMap<>();
 
-	public StorageReferenceMarshaller() {
+	StorageReferenceMarshaller() {
 		super(StorageReference.class);
 	}
 

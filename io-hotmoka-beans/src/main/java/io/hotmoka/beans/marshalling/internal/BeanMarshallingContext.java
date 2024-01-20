@@ -14,18 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.marshalling;
+package io.hotmoka.beans.marshalling.internal;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import io.hotmoka.beans.marshalling.internal.FieldSignatureMarshaller;
-import io.hotmoka.beans.marshalling.internal.StorageReferenceMarshaller;
-import io.hotmoka.beans.marshalling.internal.TransactionReferenceMarshaller;
 import io.hotmoka.marshalling.AbstractMarshallingContext;
 
 /**
- * A context used during bean marshalling into bytes.
+ * A context used during bean marshalling into bytes. It shares beans
+ * subcomponents in such a way to get a more compact representation.
  */
 public class BeanMarshallingContext extends AbstractMarshallingContext {
 

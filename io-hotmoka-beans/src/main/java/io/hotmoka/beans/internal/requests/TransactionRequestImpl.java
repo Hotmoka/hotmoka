@@ -22,7 +22,7 @@ import java.io.OutputStream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.marshalling.internal.BeanMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
