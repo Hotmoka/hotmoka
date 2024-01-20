@@ -19,7 +19,6 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -29,6 +28,8 @@ import java.util.stream.Stream;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.AbstractInstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
@@ -36,8 +37,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -70,7 +69,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException {
-		enforceExported(request.receiver);
+		enforceExported(request.getReceiver());
 	}
 
 	@Override
@@ -81,7 +80,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	protected StorageReference getPayerFromRequest() {
 		// calls to instance methods might be self charged, in which case the receiver is paying
-		return isSelfCharged() ? request.receiver : request.getCaller();
+		return isSelfCharged() ? request.getReceiver() : request.getCaller();
 	}
 
 	@Override
@@ -94,8 +93,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private boolean isCallToFaucet() {
-		return consensus.allowsUnsignedFaucet() && request.method.getMethodName().startsWith("faucet")
-			&& request.method.getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.receiver)
+		return consensus.allowsUnsignedFaucet() && request.getStaticTarget().getMethodName().startsWith("faucet")
+			&& request.getStaticTarget().getDefiningClass().equals(StorageTypes.GAMETE) && request.getCaller().equals(request.getReceiver())
 			&& callerIsGameteOfTheNode();
 	}
 
@@ -108,8 +107,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	private Method getFromContractMethod() throws NoSuchMethodException, SecurityException, ClassNotFoundException {
-		MethodSignature method = request.method;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).getReturnType()) : void.class;
+		MethodSignature method = request.getStaticTarget();
+		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? storageTypeToClass.toClass(nvms.getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClassForFromContract();
 	
 		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
@@ -159,14 +158,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		@Override
 		protected Object deserializedPayer() {
 			// self charged methods use the receiver of the call as payer
-			return isSelfCharged() ? deserializer.deserialize(request.receiver) : getDeserializedCaller();
+			return isSelfCharged() ? deserializer.deserialize(request.getReceiver()) : getDeserializedCaller();
 		}
 
 		@Override
 		protected MethodCallTransactionResponse body() {
 			try {
 				init();
-				this.deserializedReceiver = deserializer.deserialize(request.receiver);
+				this.deserializedReceiver = deserializer.deserialize(request.getReceiver());
 				this.deserializedActuals = request.actuals().map(deserializer::deserialize).toArray(Object[]::new);
 
 				Object[] deserializedActuals;
@@ -274,14 +273,13 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
-			if (isSystemCall() && request.method.equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
+			if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
 				Optional<StorageValue> firstArg = request.actuals().findFirst();
 				if (firstArg.isPresent()) {
 					StorageValue value = firstArg.get();
-					if (value instanceof BigIntegerValue) {
-						BigInteger amount = ((BigIntegerValue) value).getValue();
+					if (value instanceof BigIntegerValue biv) {
 						Object caller = getDeserializedCaller();
-						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(amount));
+						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
 					}
 				}
 			}

@@ -23,9 +23,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -55,16 +52,16 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 		switch (selector) {
 		case ConstructorCallTransactionRequestImpl.SELECTOR: return ConstructorCallTransactionRequestImpl.from(context);
 		case InitializationTransactionRequestImpl.SELECTOR: return InitializationTransactionRequestImpl.from(context);
-		case InstanceMethodCallTransactionRequest.SELECTOR:
-		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:
-		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_LONG:
-		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_BIG_INTEGER:
-			return InstanceMethodCallTransactionRequest.from(context, selector);
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR:
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_INT:
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_LONG:
+		case InstanceMethodCallTransactionRequestImpl.SELECTOR_TRANSFER_BIG_INTEGER:
+			return InstanceMethodCallTransactionRequestImpl.from(context, selector);
 		case JarStoreInitialTransactionRequestImpl.SELECTOR: return JarStoreInitialTransactionRequestImpl.from(context);
 		case JarStoreTransactionRequestImpl.SELECTOR: return JarStoreTransactionRequestImpl.from(context);
 		case GameteCreationTransactionRequestImpl.SELECTOR: return GameteCreationTransactionRequestImpl.from(context);
-		case StaticMethodCallTransactionRequest.SELECTOR: return StaticMethodCallTransactionRequest.from(context);
-		case InstanceSystemMethodCallTransactionRequest.SELECTOR: return InstanceSystemMethodCallTransactionRequest.from(context);
+		case StaticMethodCallTransactionRequestImpl.SELECTOR: return StaticMethodCallTransactionRequestImpl.from(context);
+		case InstanceSystemMethodCallTransactionRequestImpl.SELECTOR: return InstanceSystemMethodCallTransactionRequestImpl.from(context);
 		default: throw new IOException("Unexpected request selector: " + selector);
 		}
 	}

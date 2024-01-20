@@ -40,8 +40,10 @@ import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -50,8 +52,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -82,7 +82,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _200_000 = BigInteger.valueOf(200_000);
-		var getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _200_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
@@ -101,7 +101,7 @@ public class InitializedNodeImpl implements InitializedNode {
 
 	private StorageReference createGenericGasStationBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _100_000 = BigInteger.valueOf(100_000);
-		var getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _100_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
@@ -161,7 +161,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
-		var getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
@@ -224,7 +224,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		StorageReference builderOfGasStation = producerOfGasStationBuilder.apply(this, consensus, takamakaCodeReference);
 
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
-		var getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());

@@ -19,11 +19,11 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 
 import io.hotmoka.beans.MethodSignatures;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -52,7 +52,7 @@ public class GasHelperImpl implements GasHelper {
 		StorageReference manifest = node.getManifest();
 		var _100_000 = BigInteger.valueOf(100_000);
 
-		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest));
 	}
 
@@ -62,7 +62,7 @@ public class GasHelperImpl implements GasHelper {
 		StorageReference manifest = node.getManifest();
 		var _100_000 = BigInteger.valueOf(100_000);
 
-		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))).getValue();
 
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
@@ -70,7 +70,7 @@ public class GasHelperImpl implements GasHelper {
 			return BigInteger.ONE;
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
-		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))).getValue();
 	}
 

@@ -19,8 +19,9 @@ package io.hotmoka.network.requests;
 import java.math.BigInteger;
 import java.util.Base64;
 
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 
@@ -37,15 +38,15 @@ public class InstanceMethodCallTransactionRequestModel extends MethodCallTransac
     public InstanceMethodCallTransactionRequestModel(InstanceMethodCallTransactionRequest request) {
     	super(request);
 
-    	this.chainId = request.chainId;
+    	this.chainId = request.getChainId();
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
-    	this.receiver = new StorageReferenceModel(request.receiver);
+    	this.receiver = new StorageReferenceModel(request.getReceiver());
     }
 
     public InstanceMethodCallTransactionRequestModel() {}
 
     public InstanceMethodCallTransactionRequest toBean() {
-    	return new InstanceMethodCallTransactionRequest(
+    	return TransactionRequests.instanceMethodCall(
         	decodeBase64(signature),
             caller.toBean(),
             new BigInteger(nonce),

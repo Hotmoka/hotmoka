@@ -25,12 +25,12 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -110,11 +110,11 @@ public class SellValidation extends AbstractCommand {
 				var nonceHelper = NonceHelpers.of(node);
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
-				var validators = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
 				var seller = StorageValues.reference(SellValidation.this.seller);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
-				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
 				Signer<SignedTransactionRequest<?>> signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -134,7 +134,7 @@ public class SellValidation extends AbstractCommand {
 
 				StorageReference newOffer = node.addConstructorCallTransaction(request1);
 				
-				InstanceMethodCallTransactionRequest request2 = new InstanceMethodCallTransactionRequest
+				InstanceMethodCallTransactionRequest request2 = TransactionRequests.instanceMethodCall
 					(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 					MethodSignatures.ofVoid(StorageTypes.SHARED_ENTITY, "place", StorageTypes.BIG_INTEGER, StorageTypes.SHARED_ENTITY_OFFER),
 					validators, StorageValues.bigIntegerOf(BigInteger.ZERO), newOffer);

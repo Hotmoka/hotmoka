@@ -31,7 +31,11 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -39,9 +43,6 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
@@ -202,14 +203,14 @@ public class Call extends AbstractCommand {
 			if (isView) {
 				StorageReference caller = payer != null ? payer : manifest; // we use the manifest as dummy caller when the payer is not specified;
 				if (isStatic)
-					return new StaticMethodCallTransactionRequest(
+					return TransactionRequests.staticViewMethodCall(
 							caller,
 							gasLimit,
 							classpath,
 							signatureOfMethod,
 							actuals);
 				else
-					return new InstanceMethodCallTransactionRequest(
+					return TransactionRequests.instanceViewMethodCall(
 							caller,
 							gasLimit,
 							classpath,
@@ -219,14 +220,14 @@ public class Call extends AbstractCommand {
 			}
 			else {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
-				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
 				BigInteger gasPrice = getGasPrice();
 
 				if (isStatic)
-					return new StaticMethodCallTransactionRequest(
+					return TransactionRequests.staticMethodCall(
 							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 							payer,
 							nonce,
@@ -237,7 +238,7 @@ public class Call extends AbstractCommand {
 							signatureOfMethod,
 							actuals);
 				else
-					return new InstanceMethodCallTransactionRequest(
+					return TransactionRequests.instanceMethodCall(
 							signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 							payer,
 							nonce,

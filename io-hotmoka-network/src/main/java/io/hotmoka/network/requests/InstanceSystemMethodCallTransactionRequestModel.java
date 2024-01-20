@@ -18,8 +18,9 @@ package io.hotmoka.network.requests;
 
 import java.math.BigInteger;
 
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 
@@ -34,13 +35,13 @@ public class InstanceSystemMethodCallTransactionRequestModel extends MethodCallT
     public InstanceSystemMethodCallTransactionRequestModel(InstanceSystemMethodCallTransactionRequest request) {
     	super(request);
 
-    	this.receiver = new StorageReferenceModel(request.receiver);
+    	this.receiver = new StorageReferenceModel(request.getReceiver());
     }
 
     public InstanceSystemMethodCallTransactionRequestModel() {}
 
     public InstanceSystemMethodCallTransactionRequest toBean() {
-    	return new InstanceSystemMethodCallTransactionRequest(
+    	return TransactionRequests.instanceSystemMethodCall(
             caller.toBean(),
             new BigInteger(nonce),
             new BigInteger(gasLimit),

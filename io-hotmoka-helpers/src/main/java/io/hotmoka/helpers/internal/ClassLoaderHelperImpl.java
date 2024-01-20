@@ -21,11 +21,11 @@ import java.util.ArrayList;
 import java.util.HashSet;
 
 import io.hotmoka.beans.MethodSignatures;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -57,7 +57,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
-		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest));
 	}
 
@@ -77,7 +77,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		}
 		while (!ws.isEmpty());
 
-		long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))).getValue();
 
 		return TakamakaClassLoaders.of(jars.stream(), verificationVersion);

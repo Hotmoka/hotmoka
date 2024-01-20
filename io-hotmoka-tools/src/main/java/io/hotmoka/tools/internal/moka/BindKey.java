@@ -21,9 +21,9 @@ import java.util.Base64;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
@@ -73,9 +73,9 @@ public class BindKey extends AbstractCommand {
 
 			// we look in the accounts ledger
 			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest));
+				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest));
 			StorageValue result = node.runInstanceMethodCallTransaction
-				(new InstanceMethodCallTransactionRequest(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(key)));
+				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(key)));
 
 			if (result instanceof StorageReference)
 				return (StorageReference) result;

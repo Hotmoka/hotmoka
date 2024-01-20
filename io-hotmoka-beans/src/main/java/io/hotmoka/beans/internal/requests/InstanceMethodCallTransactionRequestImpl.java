@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import static java.math.BigInteger.ZERO;
 
@@ -29,8 +29,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
@@ -44,21 +43,21 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request for calling an instance method of a storage object in a node.
+ * Implementation of a request for calling an instance method of a storage object in a node.
  */
 @Immutable
-public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SignedTransactionRequest<MethodCallTransactionResponse> {
-	public final static byte SELECTOR = 5;
+public class InstanceMethodCallTransactionRequestImpl extends AbstractInstanceMethodCallTransactionRequestImpl implements InstanceMethodCallTransactionRequest {
+	final static byte SELECTOR = 5;
 
 	// selectors used for calls to coin transfer methods, for their more compact representation
-	public final static byte SELECTOR_TRANSFER_INT = 7;
-	public final static byte SELECTOR_TRANSFER_LONG = 8;
-	public final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
+	final static byte SELECTOR_TRANSFER_INT = 7;
+	final static byte SELECTOR_TRANSFER_LONG = 8;
+	final static byte SELECTOR_TRANSFER_BIG_INTEGER = 9;
 
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
 	 */
-	public final String chainId;
+	private final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -81,7 +80,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public InstanceMethodCallTransactionRequest(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+	public InstanceMethodCallTransactionRequestImpl(Signer<? super InstanceMethodCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
@@ -102,7 +101,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public InstanceMethodCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+	public InstanceMethodCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, method, receiver, actuals);
 
 		this.chainId = Objects.requireNonNull(chainId, "chainId cannot be null");
@@ -121,7 +120,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public InstanceMethodCallTransactionRequest(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+	public InstanceMethodCallTransactionRequestImpl(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		this(NO_SIG, caller, ZERO, "", gasLimit, ZERO, classpath, method, receiver, actuals);
 	}
 
@@ -138,7 +137,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof InstanceMethodCallTransactionRequest imctr &&
+		return other instanceof InstanceMethodCallTransactionRequestImpl imctr &&
 			super.equals(other) && chainId.equals(imctr.chainId) && Arrays.equals(signature, imctr.signature);
 	}
 
@@ -181,7 +180,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			context.writeBigInteger(getGasPrice());
 			getClasspath().into(context);
 			context.writeBigInteger(getNonce());
-			receiver.intoWithoutSelector(context);
+			getReceiver().intoWithoutSelector(context);
 
 			StorageValue howMuch = actuals().findFirst().get();
 
@@ -205,7 +204,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InstanceMethodCallTransactionRequest from(UnmarshallingContext context, byte selector) throws IOException {
+	public static InstanceMethodCallTransactionRequestImpl from(UnmarshallingContext context, byte selector) throws IOException {
 		if (selector == SELECTOR) {
 			var chainId = context.readStringUnshared();
 			var caller = StorageValues.referenceWithoutSelectorFrom(context);
@@ -218,7 +217,7 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 			var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 			byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-			return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+			return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
 		}
 		else if (selector == SELECTOR_TRANSFER_INT || selector == SELECTOR_TRANSFER_LONG || selector == SELECTOR_TRANSFER_BIG_INTEGER) {
 			var chainId = context.readStringUnshared();
@@ -233,19 +232,19 @@ public class InstanceMethodCallTransactionRequest extends AbstractInstanceMethod
 				int howMuch = context.readInt();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, StorageValues.intOf(howMuch));
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_INT, receiver, StorageValues.intOf(howMuch));
 			}
 			else if (selector == SELECTOR_TRANSFER_LONG) {
 				long howMuch = context.readLong();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, StorageValues.longOf(howMuch));
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_LONG, receiver, StorageValues.longOf(howMuch));
 			}
 			else {
 				BigInteger howMuch = context.readBigInteger();
 				byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-				return new InstanceMethodCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, StorageValues.bigIntegerOf(howMuch));
+				return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, MethodSignatures.RECEIVE_BIG_INTEGER, receiver, StorageValues.bigIntegerOf(howMuch));
 			}
 		}
 		else

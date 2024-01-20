@@ -59,7 +59,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
@@ -265,7 +264,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	}
 
     	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-    		var request = new InstanceMethodCallTransactionRequest(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
+    		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
     			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
@@ -340,7 +339,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		 * Transition that performs the transfer on ERC20
 		 */
 		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-			var request = new InstanceMethodCallTransactionRequest
+			var request = TransactionRequests.instanceMethodCall
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
 				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
 			node.addInstanceMethodCallTransaction(request);
@@ -349,7 +348,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		}
 
 		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
-    		var request = new InstanceMethodCallTransactionRequest
+    		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(TransactionReferences.of(hasher.hash(request)));
@@ -357,7 +356,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		}
 
     	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException {
-    		var request = new InstanceMethodCallTransactionRequest
+    		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
             trace(TransactionReferences.of(hasher.hash(request)));
@@ -365,13 +364,13 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		}
 
     	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-    		InstanceMethodCallTransactionRequest request = new InstanceMethodCallTransactionRequest(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
+    		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
         	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request);
             return bi.getValue().intValue();
         }
 
         private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
-        	var request = new InstanceMethodCallTransactionRequest
+        	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
             StorageReference result = (StorageReference) node.addInstanceMethodCallTransaction(request);
             trace(result.getTransaction());

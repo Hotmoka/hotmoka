@@ -22,9 +22,9 @@ import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;

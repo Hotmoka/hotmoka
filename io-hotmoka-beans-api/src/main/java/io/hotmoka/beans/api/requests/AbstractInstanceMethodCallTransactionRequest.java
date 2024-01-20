@@ -14,21 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+package io.hotmoka.beans.api.requests;
+
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.values.StorageReference;
+
 /**
- * This module implements the beans exchanged among Hotmoka nodes.
+ * A request for calling an instance method of a storage object in a node.
  */
-module io.hotmoka.beans {
-	exports io.hotmoka.beans.marshalling;
-	exports io.hotmoka.beans;
+@Immutable
+public interface AbstractInstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
 
-	// beans must be accessible, encoded and decoded by reflection through Gson
-	opens io.hotmoka.beans.internal.gson to com.google.gson;
-
-	requires transitive io.hotmoka.beans.api;
-	requires transitive io.hotmoka.marshalling;
-	requires io.hotmoka.constants;
-	requires io.hotmoka.crypto;
-	requires io.hotmoka.annotations;
-	requires io.hotmoka.websockets.beans;
-	requires com.google.gson;
+	/**
+	 * Yields the receiver of the call.
+	 * 
+	 * @return the receiver of the call
+	 */
+	StorageReference getReceiver();
 }

@@ -48,12 +48,17 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
@@ -68,10 +73,6 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -467,7 +468,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.getMethodName() + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 
 			StorageValue result;
 
@@ -484,7 +485,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
-			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.method.getMethodName() + ')');
+			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			StorageValue result;
 
 			synchronized (deliverTransactionLock) {
@@ -666,7 +667,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 						minted = minted.add(extra);
 				}
 
-				InstanceSystemMethodCallTransactionRequest request = new InstanceSystemMethodCallTransactionRequest
+				InstanceSystemMethodCallTransactionRequest request = TransactionRequests.instanceSystemMethodCall
 					(caller, nonce, GAS_FOR_REWARD, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 					StorageValues.bigIntegerOf(coinsSinceLastReward), StorageValues.bigIntegerOf(minted),
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
@@ -790,8 +791,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
     		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
     	else if (request instanceof ConstructorCallTransactionRequest)
     		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, internal);
-    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest)
-    		return new InstanceMethodCallResponseBuilder(reference, (AbstractInstanceMethodCallTransactionRequest) request, internal);
+    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, internal);
     	else if (request instanceof StaticMethodCallTransactionRequest)
     		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, internal);
     	else if (request instanceof InitializationTransactionRequest)

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -23,8 +23,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.SystemTransactionRequest;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -34,14 +33,13 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request for calling an instance method of a storage object in a node.
+ * Implementation of a request for calling an instance method of a storage object in a node.
  * This request is not signed, hence it is only used for calls started by the same
  * node. Users cannot run a transaction from this request.
  */
 @Immutable
-public class InstanceSystemMethodCallTransactionRequest extends AbstractInstanceMethodCallTransactionRequest implements SystemTransactionRequest<MethodCallTransactionResponse> {
-
-	public final static byte SELECTOR = 11;
+public class InstanceSystemMethodCallTransactionRequestImpl extends AbstractInstanceMethodCallTransactionRequestImpl implements InstanceSystemMethodCallTransactionRequest {
+	final static byte SELECTOR = 11;
 
 	/**
 	 * Builds the transaction request.
@@ -54,7 +52,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	public InstanceSystemMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+	public InstanceSystemMethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, BigInteger.ZERO, classpath, method, receiver, actuals);
 	}
 
@@ -65,7 +63,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	       	+ "  nonce: " + getNonce() + "\n"
 	       	+ "  gas limit: " + getGasLimit() + "\n"
 	       	+ "  class path: " + getClasspath() + "\n"
-	       	+ "  receiver: " + receiver + "\n"
+	       	+ "  receiver: " + getReceiver() + "\n"
 	       	+ toStringMethod();
 	}
 
@@ -82,8 +80,8 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		getClasspath().into(context);
 		context.writeBigInteger(getNonce());
 		context.writeLengthAndArray(actuals().toArray(Marshallable[]::new));
-		method.into(context);
-		receiver.intoWithoutSelector(context);
+		getStaticTarget().into(context);
+		getReceiver().intoWithoutSelector(context);
 	}
 
 	/**
@@ -94,7 +92,7 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
 	 */
-	public static InstanceSystemMethodCallTransactionRequest from(UnmarshallingContext context) throws IOException {
+	public static InstanceSystemMethodCallTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
 		var classpath = TransactionReferences.from(context);
@@ -103,6 +101,6 @@ public class InstanceSystemMethodCallTransactionRequest extends AbstractInstance
 		var method = MethodSignatures.from(context);
 		var receiver = StorageValues.referenceWithoutSelectorFrom(context);
 
-		return new InstanceSystemMethodCallTransactionRequest(caller, nonce, gasLimit, classpath, method, receiver, actuals);
+		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals);
 	}
 }

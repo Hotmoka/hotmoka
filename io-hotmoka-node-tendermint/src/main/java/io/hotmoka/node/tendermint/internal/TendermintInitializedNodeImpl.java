@@ -43,8 +43,10 @@ import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -53,8 +55,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -123,7 +123,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		StorageReference gamete = node.gamete();
-		var getNonceRequest = new InstanceMethodCallTransactionRequest
+		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
@@ -153,7 +153,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		for (TendermintValidator tv: tendermintValidators) {
 			String publicKeyBase64 = Base64.toBase64String(ed25519.encodingOf(publicKeyFromTendermintValidator(tv)));
 			long power = powerFromTendermintValidator(tv);
-			var addValidator = new InstanceMethodCallTransactionRequest
+			var addValidator = TransactionRequests.instanceMethodCall
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 				addValidatorMethod,
 				builder,

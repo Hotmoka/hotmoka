@@ -19,8 +19,9 @@ package io.hotmoka.network.requests;
 import java.math.BigInteger;
 import java.util.Base64;
 
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.network.values.StorageValueModel;
 
 public class StaticMethodCallTransactionRequestModel extends MethodCallTransactionRequestModel {
@@ -35,14 +36,14 @@ public class StaticMethodCallTransactionRequestModel extends MethodCallTransacti
     public StaticMethodCallTransactionRequestModel(StaticMethodCallTransactionRequest request) {
     	super(request);
 
-    	this.chainId = request.chainId;
+    	this.chainId = request.getChainId();
     	this.signature = Base64.getEncoder().encodeToString(request.getSignature());
     }
 
     public StaticMethodCallTransactionRequestModel() {}
 
     public StaticMethodCallTransactionRequest toBean() {
-		return new StaticMethodCallTransactionRequest(
+		return TransactionRequests.staticMethodCall(
         	decodeBase64(signature),
             caller.toBean(),
             new BigInteger(nonce),

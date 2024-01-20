@@ -24,10 +24,14 @@ import java.security.SignatureException;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
+import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -37,8 +41,11 @@ import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
 import io.hotmoka.beans.internal.requests.ConstructorCallTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.GameteCreationTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.InitializationTransactionRequestImpl;
+import io.hotmoka.beans.internal.requests.InstanceMethodCallTransactionRequestImpl;
+import io.hotmoka.beans.internal.requests.InstanceSystemMethodCallTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.beans.internal.requests.StaticMethodCallTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -162,6 +169,135 @@ public abstract class TransactionRequests {
 	 */
 	public static ConstructorCallTransactionRequest constructorCall(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		return new ConstructorCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call an instance method in a node.
+	 * 
+	 * @param signer the signer of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
+	 * @return the request
+	 */
+	public static InstanceMethodCallTransactionRequest instanceMethodCall(Signer<? super InstanceMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		return new InstanceMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call an instance method in a node.
+	 * 
+	 * @param signature the signature of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 */
+	public static InstanceMethodCallTransactionRequest instanceMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		return new InstanceMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, receiver, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call an instance method in a node, that is expected to be annotated as {@code @@View}.
+	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
+	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 */
+	public static InstanceMethodCallTransactionRequest instanceViewMethodCall(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		return new InstanceMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, receiver, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call an instance method. It is not signed,
+	 * hence it is only used for calls started by the same node.
+	 * Users cannot run a transaction from this request.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param receiver the receiver of the call
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 */
+	public static InstanceSystemMethodCallTransactionRequest instanceSystemMethodCall(StorageReference caller, BigInteger nonce, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
+		return new InstanceSystemMethodCallTransactionRequestImpl(caller, nonce, gasLimit, classpath, method, receiver, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call a static method in a node.
+	 * 
+	 * @param signature the signature of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 */
+	public static StaticMethodCallTransactionRequest staticMethodCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		return new StaticMethodCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call a static method in a node.
+	 * 
+	 * @param signer the signer of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
+	 */
+	public static StaticMethodCallTransactionRequest staticMethodCall(Signer<? super StaticMethodCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		return new StaticMethodCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, actuals);
+	}
+
+	/**
+	 * Yields a transaction request to call a static method in a node, that is expected to be annotated as {@code @@View}.
+	 * It fixes the signature to a missing signature, the nonce to zero, the chain identifier
+	 * to the empty string and the gas price to zero. None of them is used for a view transaction.
+	 * 
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param method the method that must be called
+	 * @param actuals the actual arguments passed to the method
+	 * @return the request
+	 */
+	public static StaticMethodCallTransactionRequest staticViewMethodCall(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		return new StaticMethodCallTransactionRequestImpl(caller, gasLimit, classpath, method, actuals);
 	}
 
 	/**

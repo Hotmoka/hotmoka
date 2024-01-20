@@ -27,11 +27,11 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.EventRequestModel;

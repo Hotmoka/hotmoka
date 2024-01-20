@@ -29,12 +29,12 @@ import java.util.function.Consumer;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -74,7 +74,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		this.takamakaCode = node.getTakamakaCode();
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
-		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 	}
 
@@ -90,7 +90,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		BigInteger totalGas = amountRed.signum() > 0 ? gas.add(gas) : gas;
 		gasHandler.accept(totalGas);
 
-		var request1 = new InstanceMethodCallTransactionRequest
+		var request1 = TransactionRequests.instanceMethodCall
 			(signer,
 			payer, nonceHelper.getNonceOf(payer),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -102,7 +102,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		requestsHandler.accept(new TransactionRequest<?>[] { request1 });
 
 		if (amountRed.signum() > 0) {
-			var request2 = new InstanceMethodCallTransactionRequest
+			var request2 = TransactionRequests.instanceMethodCall
 				(signer,
 				payer, nonceHelper.getNonceOf(payer),
 				chainId, gas, gasHelper.getGasPrice(), takamakaCode,
@@ -120,14 +120,14 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
 
-		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
 		gasHandler.accept(_100_000);
 
 		// we use the empty signature algorithm, since the faucet is unsigned
 		var signature = SignatureAlgorithms.empty();
-		var request = new InstanceMethodCallTransactionRequest
+		var request = TransactionRequests.instanceMethodCall
 			(signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 			gamete, nonceHelper.getNonceOf(gamete),
 			chainId, _100_000, gasHelper.getGasPrice(), takamakaCode,

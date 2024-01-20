@@ -54,8 +54,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -430,7 +428,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
             		_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
             var toString = (StringValue) remote.runStaticMethodCallTransaction
-            	(new StaticMethodCallTransactionRequest(account(0), _50_000, jar, MethodSignatures.of(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
+            	(TransactionRequests.staticViewMethodCall(account(0), _50_000, jar, MethodSignatures.of(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING)));
             assertEquals("[how, are, hello, you, ?]", toString.getValue());
         }
     }
@@ -439,7 +437,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to runInstanceMethodCallTransaction")
     void testRemoteRunInstanceMethodCallTransaction() throws Exception {
         try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeConfig)) {
-            var request = new InstanceMethodCallTransactionRequest
+            var request = TransactionRequests.instanceViewMethodCall
             	(account(0), _50_000, takamakaCode(), MethodSignatures.NONCE, account(0));
 
             BigIntegerValue value = (BigIntegerValue) remote.runInstanceMethodCallTransaction(request);

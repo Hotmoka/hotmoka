@@ -27,11 +27,11 @@ import java.util.Comparator;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
@@ -185,16 +185,16 @@ public class InitTendermint extends AbstractCommand {
 			if (bindValidators) {
 				TransactionReference takamakaCode = initialized.getTakamakaCode();
 				StorageReference manifest = initialized.getManifest();
-				var validators = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var validators = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
-				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators));
-				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))).getValue();
 				for (int num = 0; num < numOfValidators; num++) {
-					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)));
-					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator))).getValue();
 					String publicKeyBase58 = Base58.encode(Base64.fromBase64String(publicKeyBase64));
 					// the pem file, if it exists, is named with the public key, base58

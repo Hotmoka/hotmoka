@@ -23,11 +23,11 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -69,8 +69,8 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @throws ClassNotFoundException if the class of the method or of some parameter or return type cannot be found
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
-		MethodSignature method = request.method;
-		Class<?> returnType = method instanceof NonVoidMethodSignature ? storageTypeToClass.toClass(((NonVoidMethodSignature) method).getReturnType()) : void.class;
+		MethodSignature method = request.getStaticTarget();
+		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? storageTypeToClass.toClass(nvms.getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 	
 		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)
@@ -91,7 +91,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		 */
 		protected final void viewMustBeSatisfied(boolean isView, Object result) throws SideEffectsInViewMethodException {
 			if (isView && !onlyAffectedBalanceOrNonceOfCallerOrBalanceOfValidators(result))
-				throw new SideEffectsInViewMethodException(request.method);
+				throw new SideEffectsInViewMethodException(request.getStaticTarget());
 		}
 
 		/**
@@ -105,7 +105,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 		protected void ensureWhiteListingOf(Method executable, Object[] actuals) throws ClassNotFoundException {
 			Optional<Method> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.method.getDefiningClass() + "." + request.method.getMethodName());
+				throw new NonWhiteListedCallException("illegal call to non-white-listed method " + request.getStaticTarget().getDefiningClass() + "." + request.getStaticTarget().getMethodName());
 
 			Annotation[][] anns = model.get().getParameterAnnotations();
 			String methodName = model.get().getName();

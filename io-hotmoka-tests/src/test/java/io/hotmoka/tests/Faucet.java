@@ -30,9 +30,9 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -62,7 +62,7 @@ public class Faucet extends HotmokaTest {
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
-		var account = (StorageReference) node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
 			MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
 			gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)));
@@ -84,7 +84,7 @@ public class Faucet extends HotmokaTest {
 		StorageReference caller = account(0);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
 				MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
 				gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey))));

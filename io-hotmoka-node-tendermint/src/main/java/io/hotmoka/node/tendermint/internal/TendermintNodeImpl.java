@@ -45,6 +45,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -56,7 +57,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
@@ -267,22 +267,22 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		StorageReference validators = caches.getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
-		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _50_000, takamakaCode, GET_SHARES, validators));
 
-		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _50_000, takamakaCode, SIZE, shares))).getValue();
 
 		TendermintValidator[] result = new TendermintValidator[numOfValidators];
 
 		for (int num = 0; num < numOfValidators; num++) {
-			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)));
 
-			String id = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			String id = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))).getValue();
 
-			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _50_000, takamakaCode, GET, shares, validator))).getValue().longValue();
 
 			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);

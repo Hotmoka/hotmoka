@@ -53,8 +53,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
@@ -202,19 +200,19 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        StorageReference manifest = node.getManifest();
 	        var takamakaCode = node.getTakamakaCode();
-	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
-			chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 
-			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			BigInteger nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(gamete, _100_000, takamakaCode, MethodSignatures.NONCE, gamete))).getValue();
 
 			BigInteger aLot = Coin.level6(1000000000);
 
 			// we set the thresholds for the faucets of the gamete
-			node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
 				MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,
 				StorageValues.bigIntegerOf(aLot), StorageValues.bigIntegerOf(aLot)));
@@ -400,28 +398,28 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue addStaticMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.addStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
+		return node.addStaticMethodCallTransaction(TransactionRequests.staticMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runInstanceMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		return node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(caller, gasLimit, classpath, method, receiver, actuals));
+		return node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(caller, gasLimit, classpath, method, receiver, actuals));
 	}
 
 	/**
 	 * Takes care of computing the next nonce.
 	 */
 	protected final StorageValue runStaticMethodCallTransaction(StorageReference caller, BigInteger gasLimit, TransactionReference classpath, MethodSignature method, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException {
-		return node.runStaticMethodCallTransaction(new StaticMethodCallTransactionRequest(caller, gasLimit, classpath, method, actuals));
+		return node.runStaticMethodCallTransaction(TransactionRequests.staticViewMethodCall(caller, gasLimit, classpath, method, actuals));
 	}
 
 	/**
@@ -435,7 +433,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * Takes care of computing the next nonce.
 	 */
 	protected final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) throws TransactionRejectedException, InvalidKeyException, SignatureException {
-		return node.postInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
+		return node.postInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, method, receiver, actuals));
 	}
 
 	/**
@@ -519,7 +517,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				nonce = nonce.add(BigInteger.ONE);
 			else
 				// we ask the account: 100,000 units of gas should be enough to run the method
-				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))).getValue();
 
 			nonces.put(account, nonce);
@@ -542,7 +540,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		try {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			var classTag = node.getClassTag(account);
-			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(account, _100_000, classTag.getJar(), MethodSignatures.BALANCE, account))).getValue();
 		}
 		catch (Exception e) {

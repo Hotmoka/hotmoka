@@ -14,13 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -28,15 +31,20 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A request for calling an instance method of a storage object in a node.
+ * Implementation of a request for calling a method in a node.
  */
 @Immutable
-public abstract class AbstractInstanceMethodCallTransactionRequest extends MethodCallTransactionRequest {
+public abstract class MethodCallTransactionRequestImpl extends CodeExecutionTransactionRequestImpl<MethodCallTransactionResponse> implements MethodCallTransactionRequest {
 
 	/**
-	 * The receiver of the call.
+	 * The constructor to call.
 	 */
-	public final StorageReference receiver;
+	private final MethodSignature method;
+
+	/**
+	 * Used as empty signature for view transaction requests.
+	 */
+	protected static byte[] NO_SIG = new byte[0];
 
 	/**
 	 * Builds the transaction request.
@@ -47,34 +55,52 @@ public abstract class AbstractInstanceMethodCallTransactionRequest extends Metho
 	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param method the method that must be called
-	 * @param receiver the receiver of the call
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected AbstractInstanceMethodCallTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals) {
-		super(caller, nonce, gasLimit, gasPrice, classpath, method, actuals);
+	protected MethodCallTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageValue... actuals) {
+		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
-		this.receiver = Objects.requireNonNull(receiver, "receiver cannot be null");
+		this.method = Objects.requireNonNull(method, "method cannot be null");
+
+		if (method.getFormals().count() != actuals.length)
+			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
 	}
 
 	@Override
 	public String toString() {
-        return super.toString()
-        	+ "\n  receiver: " + receiver;
+		return super.toString() + "\n" + toStringMethod();
+	}
+
+	/**
+	 * Yields a string description of the method called by this request.
+	 * 
+	 * @return the description
+	 */
+	protected final String toStringMethod() {
+		if (actuals().count() == 0L)
+			return "  method: " + method;
+		else
+			return "  method: " + method + "\n" + "  actuals:" + actuals().map(StorageValue::toString).collect(Collectors.joining("\n    ", "\n    ", ""));
+	}
+
+	@Override
+	public final MethodSignature getStaticTarget() {
+		return method;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AbstractInstanceMethodCallTransactionRequest aimctr && super.equals(other) && receiver.equals(aimctr.receiver);
+		return other instanceof MethodCallTransactionRequestImpl && super.equals(other) && method.equals(((MethodCallTransactionRequestImpl) other).method);
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ receiver.hashCode();
+		return super.hashCode() ^ method.hashCode();
 	}
 
 	@Override
 	protected void intoWithoutSignature(MarshallingContext context) throws IOException {
 		super.intoWithoutSignature(context);
-		receiver.intoWithoutSelector(context);
+		method.into(context);
 	}
 }

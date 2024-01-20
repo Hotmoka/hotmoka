@@ -24,11 +24,12 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
@@ -118,7 +119,7 @@ public class RotateKey extends AbstractCommand {
 		private InstanceMethodCallTransactionRequest createRequest() throws Exception {
 			StorageReference manifest = node.getManifest();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
-			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
@@ -127,7 +128,7 @@ public class RotateKey extends AbstractCommand {
 			PublicKey publicKey = entropy.keys(passwordOfAccount, signatureAlgorithmOfAccount).getPublic();
 			String publicKeyEncoded = Base64.toBase64String(signatureAlgorithmOfAccount.encodingOf(publicKey));
 
-			return new InstanceMethodCallTransactionRequest(
+			return TransactionRequests.instanceMethodCall(
 					signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 					account,
 					nonce,

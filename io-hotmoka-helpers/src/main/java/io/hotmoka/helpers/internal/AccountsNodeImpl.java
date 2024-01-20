@@ -39,9 +39,11 @@ import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -51,8 +53,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -126,11 +126,11 @@ public class AccountsNodeImpl implements AccountsNode {
 		var _200_000 = BigInteger.valueOf(200_000L);
 
 		// we get the chainId of the parent
-		String chainId = ((StringValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(payer, _100_000, classpath, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 
 		// we get the nonce of the payer
-		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
@@ -170,7 +170,7 @@ public class AccountsNodeImpl implements AccountsNode {
 			nonce = nonce.add(ONE);
 
 			// we set the red balances of the accounts now
-			addInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+			addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 				MethodSignatures.ofVoid(StorageTypes.ACCOUNTS, "addRedBalances", StorageTypes.BIG_INTEGER, StorageTypes.STRING),
 				this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
@@ -179,7 +179,7 @@ public class AccountsNodeImpl implements AccountsNode {
 		var get = MethodSignatures.of(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
-			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest(payer, _100_000, classpath, get, container, StorageValues.intOf(i)));
+			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)));
 	}
 
 	@Override

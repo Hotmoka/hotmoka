@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.network.signatures.MethodSignatureModel;
 import io.hotmoka.network.values.StorageValueModel;
 
@@ -39,7 +39,7 @@ public abstract class MethodCallTransactionRequestModel extends NonInitialTransa
     public MethodCallTransactionRequestModel(MethodCallTransactionRequest request) {
     	super(request);
 
-    	this.method = new MethodSignatureModel(request.method);
+    	this.method = new MethodSignatureModel(request.getStaticTarget());
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }
 

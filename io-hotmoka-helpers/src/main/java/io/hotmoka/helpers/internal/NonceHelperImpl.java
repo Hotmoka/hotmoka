@@ -20,9 +20,9 @@ import java.math.BigInteger;
 import java.util.NoSuchElementException;
 
 import io.hotmoka.beans.MethodSignatures;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -48,7 +48,7 @@ public class NonceHelperImpl implements NonceHelper {
 	@Override
 	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException {
 		// we ask the account: 100,000 units of gas should be enough to run the method
-		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(new InstanceMethodCallTransactionRequest
+		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))).getValue();
 	}
 }
