@@ -24,6 +24,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -32,7 +33,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * A response for a failed transaction that should have called a method in blockchain.
  */
 @Immutable
-public class MethodCallTransactionFailedResponse extends MethodCallTransactionResponse implements FailedTransactionResponse {
+public class MethodCallTransactionFailedResponse extends MethodCallTransactionResponseImpl implements MethodCallTransactionResponse, FailedTransactionResponse {
 	public final static byte SELECTOR = 8;
 
 	/**
@@ -122,7 +123,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		context.writeByte(SELECTOR);
 		super.into(context);
 		context.writeBigInteger(gasConsumedForPenalty);
-		context.writeBoolean(selfCharged);
+		context.writeBoolean(getSelfCharged());
 		context.writeStringUnshared(classNameOfCause);
 		context.writeStringUnshared(messageOfCause);
 		context.writeStringUnshared(where);

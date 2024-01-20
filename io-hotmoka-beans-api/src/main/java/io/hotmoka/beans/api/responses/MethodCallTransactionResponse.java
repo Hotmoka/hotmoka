@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2021 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.network.responses;
+package io.hotmoka.beans.api.responses;
 
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.annotations.Immutable;
 
-public abstract class ConstructorCallTransactionResponseModel extends CodeExecutionTransactionResponseModel {
+/**
+ * A response for a transaction that should call a method in blockchain.
+ */
+@Immutable
+public interface MethodCallTransactionResponse extends CodeExecutionTransactionResponse {
 
-	protected ConstructorCallTransactionResponseModel(ConstructorCallTransactionResponse response) {
-        super(response);
-    }
-
-    protected ConstructorCallTransactionResponseModel() {}
+	/**
+	 * Determines if the called method was annotated as {@code @@SelfCharged}, hence the
+	 * execution was charged to its receiver.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	boolean getSelfCharged();
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.network.responses;
 
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 
 public abstract class MethodCallTransactionResponseModel extends CodeExecutionTransactionResponseModel {
 
@@ -29,7 +29,7 @@ public abstract class MethodCallTransactionResponseModel extends CodeExecutionTr
 	protected MethodCallTransactionResponseModel(MethodCallTransactionResponse response) {
         super(response);
 
-        this.selfCharged = response.selfCharged;
+        this.selfCharged = response.getSelfCharged();
 	}
 
 	protected MethodCallTransactionResponseModel() {}

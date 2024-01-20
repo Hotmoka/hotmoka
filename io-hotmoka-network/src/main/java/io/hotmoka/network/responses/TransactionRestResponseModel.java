@@ -16,15 +16,15 @@ limitations under the License.
 
 package io.hotmoka.network.responses;
 
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;

@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.constants.Constants;

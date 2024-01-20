@@ -17,23 +17,14 @@ limitations under the License.
 package io.hotmoka.beans.api.responses;
 
 import java.math.BigInteger;
-import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.updates.Update;
 
 /**
  * A response for a non-initial transaction.
  */
 @Immutable
 public interface NonInitialTransactionResponse extends TransactionResponseWithUpdates {
-
-	/**
-	 * Yields the updates resulting from the execution of the transaction.
-	 * 
-	 * @return the updates
-	 */
-	Stream<Update> getUpdates();
 
 	/**
 	 * Yields the amount of gas consumed by the transaction for CPU execution.

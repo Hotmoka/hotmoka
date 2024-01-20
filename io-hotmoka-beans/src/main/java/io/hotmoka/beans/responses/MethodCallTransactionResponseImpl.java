@@ -20,19 +20,21 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.beans.internal.responses.CodeExecutionTransactionResponseImpl;
 
 /**
  * A response for a transaction that should call a method in blockchain.
  */
 @Immutable
-public abstract class MethodCallTransactionResponse extends CodeExecutionTransactionResponse {
+public abstract class MethodCallTransactionResponseImpl extends CodeExecutionTransactionResponseImpl implements MethodCallTransactionResponse {
 
 	/**
 	 * True if and only if the called method was annotated as {@code @@SelfCharged}, hence the
 	 * execution was charged to its receiver.
 	 */
-	public final boolean selfCharged;
+	private final boolean selfCharged;
 
 	/**
 	 * Builds the transaction response.
@@ -44,9 +46,14 @@ public abstract class MethodCallTransactionResponse extends CodeExecutionTransac
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionResponse(boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	protected MethodCallTransactionResponseImpl(boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.selfCharged = selfCharged;
+	}
+
+	@Override
+	public boolean getSelfCharged() {
+		return selfCharged;
 	}
 }

@@ -20,6 +20,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
@@ -32,6 +35,9 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.responses.ConstructorCallTransactionExceptionResponseImpl;
+import io.hotmoka.beans.internal.responses.ConstructorCallTransactionFailedResponseImpl;
+import io.hotmoka.beans.internal.responses.ConstructorCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.beans.internal.responses.GameteCreationTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.InitializationTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
@@ -80,8 +86,24 @@ public abstract class TransactionResponses {
 		return new InitializationTransactionResponseImpl();
 	}
 
-		/**
-	 * Builds the response of a failed transaction that should have installed a jar in a yet non-initialized node.
+	/**
+	 * Yields the response of a successful transaction that installed a jar in a yet non-initialized node.
+	 * 
+	 * @param instrumentedJar the bytes of the jar to install, instrumented
+	 * @param dependencies the dependencies of the jar, previously installed in blockchain
+	 * @param verificationToolVersion the version of the verification tool
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static JarStoreTransactionSuccessfulResponse jarStoreSuccessful(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new JarStoreTransactionSuccessfulResponseImpl(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response of a failed transaction that should have installed a jar in a yet non-initialized node.
 	 * 
 	 * @param classNameOfCause the fully-qualified class name of the cause exception
 	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
@@ -97,19 +119,52 @@ public abstract class TransactionResponses {
 	}
 
 	/**
-	 * Builds the response of a successful transaction that installed a jar in a yet non-initialized node.
+	 * Yields the response to a transaction that successfully called a constructor, without generating exceptions.
 	 * 
-	 * @param instrumentedJar the bytes of the jar to install, instrumented
-	 * @param dependencies the dependencies of the jar, previously installed in blockchain
-	 * @param verificationToolVersion the version of the verification tool
+	 * @param newObject the object that has been successfully created
 	 * @param updates the updates resulting from the execution of the transaction
+	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @return the response
 	 */
-	public static JarStoreTransactionSuccessfulResponse jarStoreSuccessful(byte[] instrumentedJar, Stream<TransactionReference> dependencies, long verificationToolVersion, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		return new JarStoreTransactionSuccessfulResponseImpl(instrumentedJar, dependencies, verificationToolVersion, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public static ConstructorCallTransactionSuccessfulResponse constructorCallSuccessful(StorageReference newObject, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new ConstructorCallTransactionSuccessfulResponseImpl(newObject, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response to a transaction that called a constructor whose execution led to an exception.
+	 * 
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param events the events resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static ConstructorCallTransactionExceptionResponse constructorCallException(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new ConstructorCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response to a failed transaction that should have called a constructor.
+	 * 
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @return the response
+	 */
+	public static ConstructorCallTransactionFailedResponse constructorCallFailed(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		return new ConstructorCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 
 	/**

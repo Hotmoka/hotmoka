@@ -26,18 +26,18 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
@@ -156,11 +156,11 @@ public abstract class AbstractNodeImpl implements Node {
 
 	private StorageReference getOutcome(ConstructorCallTransactionResponse response) throws CodeExecutionException, TransactionException {
 		if (response instanceof ConstructorCallTransactionExceptionResponse ccter)
-			throw new CodeExecutionException(ccter.classNameOfCause, ccter.messageOfCause, ccter.where);
+			throw new CodeExecutionException(ccter.getClassNameOfCause(), ccter.getMessageOfCause(), ccter.getWhere());
 		else if (response instanceof ConstructorCallTransactionFailedResponse cctfr)
-			throw new TransactionException(cctfr.classNameOfCause, cctfr.messageOfCause, cctfr.where);
+			throw new TransactionException(cctfr.getClassNameOfCause(), cctfr.getMessageOfCause(), cctfr.getWhere());
 		else
-			return ((ConstructorCallTransactionSuccessfulResponse) response).newObject;
+			return ((ConstructorCallTransactionSuccessfulResponse) response).getNewObject();
 	}
 
 	/**

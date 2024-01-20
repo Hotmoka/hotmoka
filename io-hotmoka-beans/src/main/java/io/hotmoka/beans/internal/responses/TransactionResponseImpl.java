@@ -21,9 +21,6 @@ import java.io.OutputStream;
 
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
@@ -58,10 +55,10 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		case InitializationTransactionResponseImpl.SELECTOR: return InitializationTransactionResponseImpl.from(context);
 		case JarStoreTransactionFailedResponseImpl.SELECTOR: return JarStoreTransactionFailedResponseImpl.from(context);
 		case JarStoreTransactionSuccessfulResponseImpl.SELECTOR: return JarStoreTransactionSuccessfulResponseImpl.from(context);
-		case ConstructorCallTransactionExceptionResponse.SELECTOR: return ConstructorCallTransactionExceptionResponse.from(context);
-		case ConstructorCallTransactionFailedResponse.SELECTOR: return ConstructorCallTransactionFailedResponse.from(context);
-		case ConstructorCallTransactionSuccessfulResponse.SELECTOR:
-		case ConstructorCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponse.from(context, selector);
+		case ConstructorCallTransactionExceptionResponseImpl.SELECTOR: return ConstructorCallTransactionExceptionResponseImpl.from(context);
+		case ConstructorCallTransactionFailedResponseImpl.SELECTOR: return ConstructorCallTransactionFailedResponseImpl.from(context);
+		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR:
+		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponseImpl.from(context, selector);
 		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(context);
 		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(context);
 		case MethodCallTransactionSuccessfulResponse.SELECTOR:

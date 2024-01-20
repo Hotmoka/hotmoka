@@ -14,23 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.responses.NonInitialTransactionResponseImpl;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A response for a transaction that calls a constructor or method.
+ * Implementation of a response for a transaction that calls a constructor or method.
  */
 @Immutable
-public abstract class CodeExecutionTransactionResponse extends NonInitialTransactionResponseImpl {
+public abstract class CodeExecutionTransactionResponseImpl extends NonInitialTransactionResponseImpl implements CodeExecutionTransactionResponse {
 
 	/**
 	 * Builds the transaction response.
@@ -40,13 +40,8 @@ public abstract class CodeExecutionTransactionResponse extends NonInitialTransac
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	protected CodeExecutionTransactionResponse(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+	protected CodeExecutionTransactionResponseImpl(Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
 		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
-	}
-
-	@Override
-	public boolean equals(Object other) {
-		return other instanceof CodeExecutionTransactionResponse && super.equals(other);
 	}
 
 	/**

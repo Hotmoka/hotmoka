@@ -25,13 +25,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -58,7 +56,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	protected final int gasForStoringFailedResponse() {
 		BigInteger gas = request.getGasLimit();
 
-		return new ConstructorCallTransactionFailedResponse
+		return TransactionResponses.constructorCallFailed
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
 			Stream.empty(), gas, gas, gas, gas).size();
 	}
@@ -112,25 +110,25 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 				catch (InvocationTargetException e) {
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, constructorJVM)) {
-						chargeGasForStorageOf(new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(TransactionResponses.constructorCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						return new ConstructorCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return TransactionResponses.constructorCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
 				}
 		
-				chargeGasForStorageOf(new ConstructorCallTransactionSuccessfulResponse
+				chargeGasForStorageOf(TransactionResponses.constructorCallSuccessful
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 				refundPayerForAllRemainingGas();
-				return new ConstructorCallTransactionSuccessfulResponse
+				return TransactionResponses.constructorCallSuccessful
 					((StorageReference) serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 			}
 			catch (Throwable t) {
 				LOGGER.log(Level.INFO, "constructor call failed", t);
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
-				return new ConstructorCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return TransactionResponses.constructorCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

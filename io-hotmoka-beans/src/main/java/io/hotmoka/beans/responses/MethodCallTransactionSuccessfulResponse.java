@@ -26,6 +26,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -39,7 +40,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
  * without generating exceptions. The method does not return {@code void}.
  */
 @Immutable
-public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse implements TransactionResponseWithEvents {
+public class MethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponseImpl implements MethodCallTransactionResponse, TransactionResponseWithEvents {
 	public final static byte SELECTOR = 9;
 	public final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
 	public final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
@@ -99,14 +100,14 @@ public class MethodCallTransactionSuccessfulResponse extends MethodCallTransacti
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		boolean optimized = events.length == 0 && !selfCharged;
-		boolean optimized1 = events.length == 1 && !selfCharged;
+		boolean optimized = events.length == 0 && !getSelfCharged();
+		boolean optimized1 = events.length == 1 && !getSelfCharged();
 		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : (optimized1 ? SELECTOR_ONE_EVENT_NO_SELF_CHARGED : SELECTOR));
 		super.into(context);
 		result.into(context);
 
 		if (!optimized && !optimized1) {
-			context.writeBoolean(selfCharged);
+			context.writeBoolean(getSelfCharged());
 			intoArrayWithoutSelector(events, context);
 		}
 

@@ -22,11 +22,11 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.responses.MethodCallTransactionResponse;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**

@@ -20,7 +20,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 
@@ -40,13 +41,13 @@ public class ConstructorCallTransactionSuccessfulResponseModel extends Construct
         super(response);
 
         this.events = response.getEvents().map(StorageReferenceModel::new).collect(Collectors.toList());
-        this.newObject = new StorageReferenceModel(response.newObject);
+        this.newObject = new StorageReferenceModel(response.getNewObject());
     }
 
     public ConstructorCallTransactionSuccessfulResponseModel() {}
 
     public ConstructorCallTransactionSuccessfulResponse toBean() {
-        return new ConstructorCallTransactionSuccessfulResponse(
+        return TransactionResponses.constructorCallSuccessful(
         	newObject.toBean(),
             updates.stream().map(UpdateModel::toBean),
             events.stream().map(StorageReferenceModel::toBean).collect(Collectors.toList()).stream(),

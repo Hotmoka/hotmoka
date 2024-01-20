@@ -20,7 +20,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 
@@ -50,15 +51,15 @@ public class ConstructorCallTransactionExceptionResponseModel extends Constructo
         super(response);
 
         this.events = response.getEvents().map(StorageReferenceModel::new).collect(Collectors.toList());
-        this.classNameOfCause = response.classNameOfCause;
-        this.messageOfCause = response.messageOfCause;
-        this.where = response.where;
+        this.classNameOfCause = response.getClassNameOfCause();
+        this.messageOfCause = response.getMessageOfCause();
+        this.where = response.getWhere();
     }
 
     public ConstructorCallTransactionExceptionResponseModel() {}
 
     public ConstructorCallTransactionExceptionResponse toBean() {
-        return new ConstructorCallTransactionExceptionResponse(
+        return TransactionResponses.constructorCallException(
         	classNameOfCause,
             messageOfCause,
             where,

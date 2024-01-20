@@ -19,7 +19,7 @@ package io.hotmoka.network.responses;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.CodeExecutionTransactionResponse;
+import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.network.updates.UpdateModel;
 
 public abstract class CodeExecutionTransactionResponseModel extends TransactionResponseModel {
