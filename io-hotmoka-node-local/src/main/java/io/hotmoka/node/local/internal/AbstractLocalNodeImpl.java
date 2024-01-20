@@ -57,6 +57,7 @@ import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
@@ -71,7 +72,6 @@ import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -683,7 +683,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 				if (response instanceof MethodCallTransactionFailedResponse) {
 					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
-					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.where + ": " + responseAsFailed.classNameOfCause + ": " + responseAsFailed.messageOfCause);
+					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
 				}
 				else {
 					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumedSinceLastReward);

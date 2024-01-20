@@ -16,21 +16,13 @@ limitations under the License.
 
 package io.hotmoka.beans.api.responses;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.updates.Update;
 
 /**
- * A response for a transaction that might contain updates.
+ * A response for a successful transaction that calls a method
+ * in the store of a node. The method has been called without problems and
+ * without generating exceptions. The method returns {@code void}.
  */
 @Immutable
-public interface TransactionResponseWithUpdates extends TransactionResponse {
-	
-	/**
-	 * Yields the updates induced by the execution of this transaction.
-	 * 
-	 * @return the updates
-	 */
-    Stream<Update> getUpdates();
+public interface VoidMethodCallTransactionSuccessfulResponse extends MethodCallTransactionResponse, TransactionResponseWithEvents {
 }

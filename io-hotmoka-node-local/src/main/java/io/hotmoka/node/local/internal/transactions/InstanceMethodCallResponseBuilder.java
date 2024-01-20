@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
@@ -37,10 +38,6 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -204,9 +201,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 						viewMustBeSatisfied(isView, null);
-						chargeGasForStorageOf(new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						return new MethodCallTransactionExceptionResponse(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
@@ -215,14 +212,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				viewMustBeSatisfied(isView, result);
 
 				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorageOf(new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return new VoidMethodCallTransactionSuccessfulResponse(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return TransactionResponses.voidMethodCallSuccessful(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
-					chargeGasForStorageOf(new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(TransactionResponses.methodCallSuccessful(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return new MethodCallTransactionSuccessfulResponse(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return TransactionResponses.methodCallSuccessful(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
@@ -230,7 +227,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				return new MethodCallTransactionFailedResponse(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

@@ -20,7 +20,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
@@ -40,14 +41,14 @@ public class MethodCallTransactionSuccessfulResponseModel extends MethodCallTran
     public MethodCallTransactionSuccessfulResponseModel(MethodCallTransactionSuccessfulResponse response) {
         super(response);
 
-        this.result = new StorageValueModel(response.result);
+        this.result = new StorageValueModel(response.getResult());
         this.events = response.getEvents().map(StorageReferenceModel::new).collect(Collectors.toList());
     }
 
     public MethodCallTransactionSuccessfulResponseModel() {}
 
     public MethodCallTransactionSuccessfulResponse toBean() {
-        return new MethodCallTransactionSuccessfulResponse(
+        return TransactionResponses.methodCallSuccessful(
         	result.toBean(),
         	selfCharged,
         	updates.stream().map(UpdateModel::toBean),

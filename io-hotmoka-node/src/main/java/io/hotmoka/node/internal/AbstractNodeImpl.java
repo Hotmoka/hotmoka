@@ -32,13 +32,13 @@ import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -145,11 +145,11 @@ public abstract class AbstractNodeImpl implements Node {
 
 	protected final StorageValue getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
 		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
-			return mctsr.result;
+			return mctsr.getResult();
 		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
-			throw new CodeExecutionException(mcter.classNameOfCause, mcter.messageOfCause, mcter.where);
+			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
 		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
-			throw new TransactionException(mctfr.classNameOfCause, mctfr.messageOfCause, mctfr.where);
+			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
 		else
 			return null; // void methods return no value
 	}

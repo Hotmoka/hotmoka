@@ -24,11 +24,11 @@ import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 
 /**
  * Class which wraps a type response model

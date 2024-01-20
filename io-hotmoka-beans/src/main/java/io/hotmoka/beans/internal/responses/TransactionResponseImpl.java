@@ -21,10 +21,6 @@ import java.io.OutputStream;
 
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.beans.responses.MethodCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -59,13 +55,13 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		case ConstructorCallTransactionFailedResponseImpl.SELECTOR: return ConstructorCallTransactionFailedResponseImpl.from(context);
 		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR:
 		case ConstructorCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return ConstructorCallTransactionSuccessfulResponseImpl.from(context, selector);
-		case MethodCallTransactionExceptionResponse.SELECTOR: return MethodCallTransactionExceptionResponse.from(context);
-		case MethodCallTransactionFailedResponse.SELECTOR: return MethodCallTransactionFailedResponse.from(context);
-		case MethodCallTransactionSuccessfulResponse.SELECTOR:
-		case MethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED:
-		case MethodCallTransactionSuccessfulResponse.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponse.from(context, selector);
-		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR:
-		case VoidMethodCallTransactionSuccessfulResponse.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponse.from(context, selector);
+		case MethodCallTransactionExceptionResponseImpl.SELECTOR: return MethodCallTransactionExceptionResponseImpl.from(context);
+		case MethodCallTransactionFailedResponseImpl.SELECTOR: return MethodCallTransactionFailedResponseImpl.from(context);
+		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR:
+		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS_NO_SELF_CHARGED:
+		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR:
+		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponseImpl.from(context, selector);
 		default: throw new IOException("Unexpected response selector: " + selector);
 		}
 	}

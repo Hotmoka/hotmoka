@@ -16,13 +16,14 @@ limitations under the License.
 
 package io.hotmoka.network.responses;
 
-import io.hotmoka.beans.responses.MethodCallTransactionExceptionResponse;
-import io.hotmoka.network.updates.UpdateModel;
-import io.hotmoka.network.values.StorageReferenceModel;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.network.updates.UpdateModel;
+import io.hotmoka.network.values.StorageReferenceModel;
 
 public class MethodCallTransactionExceptionResponseModel extends MethodCallTransactionResponseModel {
 
@@ -50,15 +51,15 @@ public class MethodCallTransactionExceptionResponseModel extends MethodCallTrans
         super(response);
 
         this.events = response.getEvents().map(StorageReferenceModel::new).collect(Collectors.toList());
-        this.classNameOfCause = response.classNameOfCause;
-        this.messageOfCause = response.messageOfCause;
-        this.where = response.where;
+        this.classNameOfCause = response.getClassNameOfCause();
+        this.messageOfCause = response.getMessageOfCause();
+        this.where = response.getWhere();
     }
 
     public MethodCallTransactionExceptionResponseModel() {}
 
     public MethodCallTransactionExceptionResponse toBean() {
-        return new MethodCallTransactionExceptionResponse(
+        return TransactionResponses.methodCallException(
         	classNameOfCause,
         	messageOfCause,
         	where,

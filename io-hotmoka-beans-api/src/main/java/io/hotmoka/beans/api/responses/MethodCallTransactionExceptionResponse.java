@@ -16,21 +16,15 @@ limitations under the License.
 
 package io.hotmoka.beans.api.responses;
 
-import java.math.BigInteger;
+import io.hotmoka.annotations.Immutable;
 
 /**
- * The response of a failed transaction. This means that the transaction
- * could not be executed until its end. Instance gas provided to the
- * transaction has been consumed, as a form of penalty.
+ * A response for a successful transaction that calls a method in the store of the node.
+ * The method is annotated as {@code io.takamaka.code.lang.ThrowsExceptions}.
+ * It has been called without problems but it threw an exception.
  */
-public interface FailedTransactionResponse extends TransactionResponse {
-
-	/**
-	 * Yields the amount of gas that the transaction consumed for penalty, since it failed.
-	 * 
-	 * @return the amount of gas
-	 */
-	BigInteger gasConsumedForPenalty();
+@Immutable
+public interface MethodCallTransactionExceptionResponse extends MethodCallTransactionResponse, TransactionResponseWithEvents {
 
 	/**
 	 * Yields the fully-qualified class name of the cause exception.
@@ -45,4 +39,11 @@ public interface FailedTransactionResponse extends TransactionResponse {
 	 * @return the message of the cause exception
 	 */
 	String getMessageOfCause();
+
+	/**
+	 * Yields the program point where the cause exception occurred.
+	 * 
+	 * @return the program point
+	 */
+	String getWhere();
 }

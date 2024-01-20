@@ -20,7 +20,6 @@ limitations under the License.
 module io.hotmoka.beans {
 	exports io.hotmoka.beans.marshalling;
 	exports io.hotmoka.beans.requests;
-	exports io.hotmoka.beans.responses;
 	exports io.hotmoka.beans;
 
 	// beans must be accessible, encoded and decoded by reflection through Gson

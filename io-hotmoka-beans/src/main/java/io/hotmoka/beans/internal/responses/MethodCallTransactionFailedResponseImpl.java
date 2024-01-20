@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -23,38 +23,37 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.Updates;
-import io.hotmoka.beans.api.responses.FailedTransactionResponse;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A response for a failed transaction that should have called a method in blockchain.
+ * Implementation of a response for a failed transaction that should have called a method in blockchain.
  */
 @Immutable
-public class MethodCallTransactionFailedResponse extends MethodCallTransactionResponseImpl implements MethodCallTransactionResponse, FailedTransactionResponse {
+public class MethodCallTransactionFailedResponseImpl extends MethodCallTransactionResponseImpl implements MethodCallTransactionFailedResponse {
 	public final static byte SELECTOR = 8;
 
 	/**
 	 * The amount of gas consumed by the transaction as penalty for the failure.
 	 */
-	public final BigInteger gasConsumedForPenalty;
+	private final BigInteger gasConsumedForPenalty;
 
 	/**
 	 * The fully-qualified class name of the cause exception.
 	 */
-	public final String classNameOfCause;
+	private final String classNameOfCause;
 
 	/**
 	 * The message of the cause exception.
 	 */
-	public final String messageOfCause;
+	private final String messageOfCause;
 
 	/**
 	 * The program point where the cause exception occurred.
 	 */
-	public final String where;
+	private final String where;
 
 	/**
 	 * Builds the transaction response.
@@ -70,7 +69,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
 	 */
-	public MethodCallTransactionFailedResponse(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+	public MethodCallTransactionFailedResponseImpl(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.gasConsumedForPenalty = Objects.requireNonNull(gasConsumedForPenalty, "gasConsumedForPenalty cannot be null");
@@ -81,7 +80,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionFailedResponse mctfr && super.equals(other)
+		return other instanceof MethodCallTransactionFailedResponseImpl mctfr && super.equals(other)
 			&& gasConsumedForPenalty.equals(mctfr.gasConsumedForPenalty) && classNameOfCause.equals(mctfr.classNameOfCause)
 			&& messageOfCause.equals(mctfr.messageOfCause) && where.equals(mctfr.where);
 	}
@@ -113,6 +112,11 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	}
 
 	@Override
+	public final String getWhere() {
+		return where;
+	}
+
+	@Override
 	public String toString() {
         return super.toString()
         	+ "\n  cause: " + classNameOfCause + ":" + messageOfCause;
@@ -137,7 +141,7 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 	 * @return the response
 	 * @throws IOException if the response could not be unmarshalled
 	 */
-	public static MethodCallTransactionFailedResponse from(UnmarshallingContext context) throws IOException {
+	public static MethodCallTransactionFailedResponseImpl from(UnmarshallingContext context) throws IOException {
 		Stream<Update> updates = Stream.of(context.readLengthAndArray(Updates::from, Update[]::new));
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
@@ -148,6 +152,6 @@ public class MethodCallTransactionFailedResponse extends MethodCallTransactionRe
 		var messageOfCause = context.readStringUnshared();
 		var where = context.readStringUnshared();
 
-		return new MethodCallTransactionFailedResponse(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+		return new MethodCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 }

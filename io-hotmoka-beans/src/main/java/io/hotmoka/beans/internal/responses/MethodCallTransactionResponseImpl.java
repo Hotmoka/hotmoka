@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.responses;
+package io.hotmoka.beans.internal.responses;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
@@ -22,7 +22,6 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.internal.responses.CodeExecutionTransactionResponseImpl;
 
 /**
  * A response for a transaction that should call a method in blockchain.

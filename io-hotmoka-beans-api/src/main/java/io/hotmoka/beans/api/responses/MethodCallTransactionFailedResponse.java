@@ -16,21 +16,18 @@ limitations under the License.
 
 package io.hotmoka.beans.api.responses;
 
-import java.util.stream.Stream;
-
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.updates.Update;
 
 /**
- * A response for a transaction that might contain updates.
+ * A response for a failed transaction that should have called a method in blockchain.
  */
 @Immutable
-public interface TransactionResponseWithUpdates extends TransactionResponse {
-	
+public interface MethodCallTransactionFailedResponse extends MethodCallTransactionResponse, FailedTransactionResponse {
+
 	/**
-	 * Yields the updates induced by the execution of this transaction.
+	 * Yields the program point where the cause exception occurred.
 	 * 
-	 * @return the updates
+	 * @return the program point
 	 */
-    Stream<Update> getUpdates();
+	String getWhere();
 }

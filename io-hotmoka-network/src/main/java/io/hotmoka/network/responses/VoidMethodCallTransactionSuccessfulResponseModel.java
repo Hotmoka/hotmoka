@@ -20,7 +20,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import io.hotmoka.beans.responses.VoidMethodCallTransactionSuccessfulResponse;
+import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.network.updates.UpdateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 
@@ -40,7 +41,7 @@ public class VoidMethodCallTransactionSuccessfulResponseModel extends MethodCall
     public VoidMethodCallTransactionSuccessfulResponseModel() {}
 
     public VoidMethodCallTransactionSuccessfulResponse toBean() {
-        return new VoidMethodCallTransactionSuccessfulResponse(
+        return TransactionResponses.voidMethodCallSuccessful(
         	selfCharged,
         	updates.stream().map(UpdateModel::toBean),
         	events.stream().map(StorageReferenceModel::toBean),

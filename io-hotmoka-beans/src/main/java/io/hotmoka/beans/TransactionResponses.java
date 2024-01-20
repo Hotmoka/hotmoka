@@ -28,10 +28,15 @@ import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.beans.api.responses.VoidMethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
@@ -43,7 +48,11 @@ import io.hotmoka.beans.internal.responses.InitializationTransactionResponseImpl
 import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreTransactionFailedResponseImpl;
 import io.hotmoka.beans.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
+import io.hotmoka.beans.internal.responses.MethodCallTransactionExceptionResponseImpl;
+import io.hotmoka.beans.internal.responses.MethodCallTransactionFailedResponseImpl;
+import io.hotmoka.beans.internal.responses.MethodCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
+import io.hotmoka.beans.internal.responses.VoidMethodCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -165,6 +174,77 @@ public abstract class TransactionResponses {
 	 */
 	public static ConstructorCallTransactionFailedResponse constructorCallFailed(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
 		return new ConstructorCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+	}
+
+	/**
+	 * Yields the response to a transaction that successfully called a non-{@code void} method, without generating exceptions.
+	 * 
+	 * @param result the value returned by the method
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param events the events resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static MethodCallTransactionSuccessfulResponse methodCallSuccessful(StorageValue result, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new MethodCallTransactionSuccessfulResponseImpl(result, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response to a transaction that successfully called a {@code void} method, without generating exceptions.
+	 * 
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param events the events resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static VoidMethodCallTransactionSuccessfulResponse voidMethodCallSuccessful(boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new VoidMethodCallTransactionSuccessfulResponseImpl(selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response to a transaction that called a method whose execution led to an exception.
+	 * 
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param events the events resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @return the response
+	 */
+	public static MethodCallTransactionExceptionResponse methodCallException(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		return new MethodCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	}
+
+	/**
+	 * Yields the response to a failed transaction that should have called a method.
+	 * 
+	 * @param classNameOfCause the fully-qualified class name of the cause exception
+	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
+	 * @param where the program point where the cause exception occurred; this might be {@code null}
+	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
+	 *                    execution was charged to its receiver
+	 * @param updates the updates resulting from the execution of the transaction
+	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
+	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
+	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
+	 * @param gasConsumedForPenalty the amount of gas consumed by the transaction as penalty for the failure
+	 * @return the response
+	 */
+	public static MethodCallTransactionFailedResponse methodCallFailed(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage, BigInteger gasConsumedForPenalty) {
+		return new MethodCallTransactionFailedResponseImpl(classNameOfCause, messageOfCause, where, selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 	}
 
 	/**

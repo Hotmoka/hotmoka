@@ -22,12 +22,12 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -56,7 +56,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	protected final int gasForStoringFailedResponse() {
 		BigInteger gas = request.getGasLimit();
 
-		return new MethodCallTransactionFailedResponse
+		return TransactionResponses.methodCallFailed
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
 			false, Stream.empty(), gas, gas, gas, gas).size();
 	}
