@@ -23,12 +23,13 @@ import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -122,12 +123,12 @@ public class SellValidation extends AbstractCommand {
 
 				ConstructorCallTransactionRequest request1;
 				if (buyer == null)
-					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
 							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration));
 				else
 					// the reserved buyer is specified as well
-					request1 = new ConstructorCallTransactionRequest(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
+					request1 = TransactionRequests.constructorCall(signer, seller, nonceHelper.getNonceOf(seller), chainId, gasLimit, gasHelper.getSafeGasPrice(), takamakaCode,
 							ConstructorSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG, StorageTypes.PAYABLE_CONTRACT),
 							seller, StorageValues.bigIntegerOf(power), StorageValues.bigIntegerOf(cost), StorageValues.longOf(duration), StorageValues.reference(buyer));
 

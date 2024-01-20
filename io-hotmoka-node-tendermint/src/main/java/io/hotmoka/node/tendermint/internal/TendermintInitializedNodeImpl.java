@@ -38,7 +38,9 @@ import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
@@ -51,7 +53,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
@@ -135,7 +136,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		var _200_000 = BigInteger.valueOf(200_000);
 		String builderClassName = StorageTypes.TENDERMINT_VALIDATORS + "$Builder";
 
-		var request = new ConstructorCallTransactionRequest
+		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of(builderClassName, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
 					StorageTypes.INT, StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),

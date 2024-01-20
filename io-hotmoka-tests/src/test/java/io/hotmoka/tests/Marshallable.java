@@ -24,7 +24,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.marshalling.MarshallingContexts;
@@ -509,7 +508,7 @@ public class Marshallable {
         try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
             var constructorSignature = ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER);
 
-            var constructorCall = new ConstructorCallTransactionRequest(
+            var constructorCall = TransactionRequests.constructorCall(
                    "".getBytes(),
                    StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                    BigInteger.ONE,

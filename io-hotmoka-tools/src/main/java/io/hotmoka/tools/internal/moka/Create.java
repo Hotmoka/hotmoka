@@ -31,6 +31,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
@@ -39,7 +40,6 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
@@ -119,7 +119,7 @@ public class Create extends AbstractCommand {
 				ConstructorSignature signatureOfConstructor = signatureOfConstructor();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 
-				var request = new ConstructorCallTransactionRequest(
+				var request = TransactionRequests.constructorCall(
 						signature.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 						payer,
 						nonceHelper.getNonceOf(payer),

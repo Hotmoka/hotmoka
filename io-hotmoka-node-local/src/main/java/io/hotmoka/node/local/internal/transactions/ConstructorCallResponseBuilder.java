@@ -26,10 +26,11 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -142,9 +143,10 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Constructor<?> getConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClass();
+			ConstructorSignature constructor = request.getStaticTarget();
 
-			return classLoader.resolveConstructor(request.constructor.getDefiningClass().getName(), argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
+			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
 		}
 
 		/**
@@ -157,9 +159,10 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Constructor<?> getEntryConstructor() throws ClassNotFoundException, NoSuchMethodException {
 			Class<?>[] argTypes = formalsAsClassForFromContract();
+			ConstructorSignature constructor = request.getStaticTarget();
 
-			return classLoader.resolveConstructor(request.constructor.getDefiningClass().getName(), argTypes)
-				.orElseThrow(() -> new NoSuchMethodException(request.constructor.toString()));
+			return classLoader.resolveConstructor(constructor.getDefiningClass().getName(), argTypes)
+				.orElseThrow(() -> new NoSuchMethodException(constructor.toString()));
 		}
 
 		/**
@@ -189,7 +192,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		private void ensureWhiteListingOf(Constructor<?> executable, Object[] actuals) {
 			Optional<Constructor<?>> model = classLoader.getWhiteListingWizard().whiteListingModelOf(executable);
 			if (model.isEmpty())
-				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.constructor.getDefiningClass());
+				throw new NonWhiteListedCallException("illegal call to non-white-listed constructor of " + request.getStaticTarget().getDefiningClass());
 
 			Annotation[][] anns = model.get().getParameterAnnotations();
 			for (int pos = 0; pos < anns.length; pos++)

@@ -34,7 +34,9 @@ import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
@@ -49,7 +51,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
@@ -160,7 +161,7 @@ public class AccountsNodeImpl implements AccountsNode {
 		// we provide an amount of gas that grows linearly with the number of accounts that get created, and set the green balances of the accounts
 		BigInteger gas = _200_000.multiply(BigInteger.valueOf(funds.length / k));
 
-		this.container = addConstructorCallTransaction(new ConstructorCallTransactionRequest
+		this.container = addConstructorCallTransaction(TransactionRequests.constructorCall
 			(signerOnBehalfOfPayer, payer, nonce, chainId, gas, gasHelper.getSafeGasPrice(), classpath,
 			ConstructorSignatures.of(containerClassName, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING),
 			StorageValues.bigIntegerOf(sum), StorageValues.stringOf(balances.toString()), StorageValues.stringOf(publicKeys.toString())));

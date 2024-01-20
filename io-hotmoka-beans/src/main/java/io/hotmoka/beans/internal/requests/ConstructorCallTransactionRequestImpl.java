@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -28,7 +28,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -40,21 +40,21 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * A request for calling a constructor of a storage class in a node.
+ * Implementation of a request for calling a constructor of a storage class in a node.
  */
 @Immutable
-public class ConstructorCallTransactionRequest extends CodeExecutionTransactionRequest<ConstructorCallTransactionResponse> implements SignedTransactionRequest<ConstructorCallTransactionResponse> {
-	public final static byte SELECTOR = 4;
+public class ConstructorCallTransactionRequestImpl extends CodeExecutionTransactionRequestImpl<ConstructorCallTransactionResponse> implements ConstructorCallTransactionRequest {
+	final static byte SELECTOR = 4;
 
 	/**
 	 * The constructor to call.
 	 */
-	public final ConstructorSignature constructor;
+	private final ConstructorSignature constructor;
 
 	/**
 	 * The chain identifier where this request can be executed, to forbid transaction replay across chains.
 	 */
-	public final String chainId;
+	private final String chainId;
 
 	/**
 	 * The signature of the request.
@@ -76,7 +76,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
-	public ConstructorCallTransactionRequest(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+	public ConstructorCallTransactionRequestImpl(Signer<? super ConstructorCallTransactionRequestImpl> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
 		this.constructor = Objects.requireNonNull(constructor, "constructor cannot be null");
@@ -101,7 +101,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @param constructor the constructor that must be called
 	 * @param actuals the actual arguments passed to the constructor
 	 */
-	public ConstructorCallTransactionRequest(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
+	public ConstructorCallTransactionRequestImpl(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath, actuals);
 
 		Objects.requireNonNull(constructor, "constructor cannot be null");
@@ -148,7 +148,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorCallTransactionRequest cctr && super.equals(other)
+		return other instanceof ConstructorCallTransactionRequestImpl cctr && super.equals(other)
 			&& constructor.equals(cctr.constructor) && chainId.equals(cctr.chainId) && Arrays.equals(signature, cctr.signature);
 	}
 
@@ -173,7 +173,7 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 	 * @return the request
 	 * @throws IOException if the request cannot be unmarshalled
 	 */
-	public static ConstructorCallTransactionRequest from(UnmarshallingContext context) throws IOException {
+	public static ConstructorCallTransactionRequestImpl from(UnmarshallingContext context) throws IOException {
 		var chainId = context.readStringUnshared();
 		var caller = StorageValues.referenceWithoutSelectorFrom(context);
 		var gasLimit = context.readBigInteger();
@@ -184,6 +184,6 @@ public class ConstructorCallTransactionRequest extends CodeExecutionTransactionR
 		var constructor = ConstructorSignatures.from(context);
 		byte[] signature = context.readLengthAndBytes("Signature length mismatch in request");
 
-		return new ConstructorCallTransactionRequest(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
 	}
 }

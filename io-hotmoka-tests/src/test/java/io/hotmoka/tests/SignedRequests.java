@@ -16,7 +16,6 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.Hex;
@@ -38,7 +37,7 @@ public class SignedRequests {
     public void testConstructorCallTransactionRequest() throws Exception {
         var constructorSignature = ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.BIG_INTEGER);
 
-        var request = new ConstructorCallTransactionRequest(
+        var request = TransactionRequests.constructorCall(
         		SignatureAlgorithms.ed25519().getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
         		StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO),
                 BigInteger.ONE,

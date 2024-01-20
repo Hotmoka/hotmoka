@@ -32,7 +32,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -50,6 +49,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
@@ -59,8 +59,8 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.NonceHelpers;
@@ -257,8 +257,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	private void createCreator() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
     		KeyPair keys = signature().getKeyPair();
     	    privateKeyOfCreator = keys.getPrivate();
-    		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
-    		var request = new ConstructorCallTransactionRequest
+    		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
+    		var request = TransactionRequests.constructorCall
     			(signature().getSigner(nodeWithAccounts.privateKey(numberOfInvestors), SignedTransactionRequest::toByteArrayWithoutSignature), nodeWithAccounts.account(numberOfInvestors), ZERO, chainId, _50_000, ZERO, jar(), ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
     			StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
     		creator = node.addConstructorCallTransaction(request);
@@ -272,7 +272,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	}
 
     	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
-    		var request = new ConstructorCallTransactionRequest
+    		var request = TransactionRequests.constructorCall
     	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
     	    coin = node.addConstructorCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));

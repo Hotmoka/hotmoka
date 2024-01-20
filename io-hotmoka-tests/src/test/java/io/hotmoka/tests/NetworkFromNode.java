@@ -46,7 +46,6 @@ import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -184,7 +183,7 @@ class NetworkFromNode extends HotmokaTest {
 		StorageReferenceModel result;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = new ConstructorCallTransactionRequest(
+			var request = TransactionRequests.constructorCall(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,
 					ONE,
@@ -212,7 +211,7 @@ class NetworkFromNode extends HotmokaTest {
 		StateModel state;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = new ConstructorCallTransactionRequest(
+			var request = TransactionRequests.constructorCall(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,
 					ONE,
@@ -245,7 +244,7 @@ class NetworkFromNode extends HotmokaTest {
 		ClassTagModel classTag;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = new ConstructorCallTransactionRequest(
+			var request = TransactionRequests.constructorCall(
 					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
 					master,
 					ONE,

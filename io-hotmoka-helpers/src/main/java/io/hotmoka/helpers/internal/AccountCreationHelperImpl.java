@@ -28,13 +28,14 @@ import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -176,7 +177,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			account = (StorageReference) node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1);
 		}
 		else {
-			request1 = new ConstructorCallTransactionRequest
+			request1 = TransactionRequests.constructorCall
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 				ConstructorSignatures.of(eoaType, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
@@ -241,7 +242,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		Signer<SignedTransactionRequest<?>> signer = signatureForPayer.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.toBase64String(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
-		var request1 = new ConstructorCallTransactionRequest
+		var request1 = TransactionRequests.constructorCall
 			(signer, payer, nonceHelper.getNonceOf(payer),
 			chainId, gas1.add(gas2), gasHelper.getGasPrice(), takamakaCode,
 			ConstructorSignatures.of(StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING),

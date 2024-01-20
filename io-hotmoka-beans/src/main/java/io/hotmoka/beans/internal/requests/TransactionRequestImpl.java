@@ -23,7 +23,6 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
@@ -54,7 +53,7 @@ public abstract class TransactionRequestImpl<R extends TransactionResponse> exte
 	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException {
 		byte selector = context.readByte();
 		switch (selector) {
-		case ConstructorCallTransactionRequest.SELECTOR: return ConstructorCallTransactionRequest.from(context);
+		case ConstructorCallTransactionRequestImpl.SELECTOR: return ConstructorCallTransactionRequestImpl.from(context);
 		case InitializationTransactionRequestImpl.SELECTOR: return InitializationTransactionRequestImpl.from(context);
 		case InstanceMethodCallTransactionRequest.SELECTOR:
 		case InstanceMethodCallTransactionRequest.SELECTOR_TRANSFER_INT:

@@ -16,8 +16,9 @@ limitations under the License.
 
 package io.hotmoka.network.requests;
 
+import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.network.signatures.ConstructorSignatureModel;
 import io.hotmoka.network.values.StorageValueModel;
@@ -46,13 +47,13 @@ public class ConstructorCallTransactionRequestModel extends NonInitialTransactio
     	super(request);
 
     	this.signature = Base64.toBase64String(request.getSignature());
-    	this.chainId = request.chainId;
-    	this.constructorSignature = new ConstructorSignatureModel(request.constructor);
+    	this.chainId = request.getChainId();
+    	this.constructorSignature = new ConstructorSignatureModel(request.getStaticTarget());
     	this.actuals = request.actuals().map(StorageValueModel::new).collect(Collectors.toList());
     }
 
     public ConstructorCallTransactionRequest toBean() {
-    	return new ConstructorCallTransactionRequest(
+    	return TransactionRequests.constructorCall(
         	decodeBase64(signature),
             caller.toBean(),
             new BigInteger(nonce),

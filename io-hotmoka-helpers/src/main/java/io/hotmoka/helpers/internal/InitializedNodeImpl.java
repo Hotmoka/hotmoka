@@ -37,6 +37,7 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
@@ -49,7 +50,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
@@ -87,7 +87,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of zero validators
-		var request = new ConstructorCallTransactionRequest
+		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of("io.takamaka.code.governance.GenericValidators$Builder", StorageTypes.STRING,
 					StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.LONG,
@@ -106,7 +106,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
 
 		// we create the builder of a generic gas station
-		var request = new ConstructorCallTransactionRequest
+		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _100_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of("io.takamaka.code.governance.GenericGasStation$Builder",
 					StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.BOOLEAN, StorageTypes.BIG_INTEGER, StorageTypes.LONG),
@@ -167,7 +167,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
-		var request = new ConstructorCallTransactionRequest
+		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.LONG,
 					StorageTypes.LONG, StorageTypes.LONG,
@@ -230,7 +230,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
-		var request = new ConstructorCallTransactionRequest
+		var request = TransactionRequests.constructorCall
 			(new byte[0], gamete, nonceOfGamete, "", _1_000_000, ZERO, takamakaCodeReference,
 					ConstructorSignatures.of(StorageTypes.MANIFEST, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.LONG,
 					StorageTypes.LONG, StorageTypes.LONG,

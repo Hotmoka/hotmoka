@@ -21,16 +21,20 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
 import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.requests.ConstructorCallTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.GameteCreationTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.InitializationTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
@@ -96,7 +100,7 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
-	 * @return the transaction request
+	 * @return the request
 	 */
 	public static JarStoreTransactionRequest jarStore(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, byte[] jar, TransactionReference... dependencies) {
 		return new JarStoreTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, jar, dependencies);
@@ -114,6 +118,7 @@ public abstract class TransactionRequests {
 	 * @param classpath the class path where the {@code caller} is interpreted
 	 * @param jar the bytes of the jar to install
 	 * @param dependencies the dependencies of the jar, already installed in blockchain
+	 * @return the request
 	 * @throws SignatureException if the signer cannot sign the request
 	 * @throws InvalidKeyException if the signer uses an invalid private key
 	 */
@@ -122,10 +127,48 @@ public abstract class TransactionRequests {
 	}
 
 	/**
+	 * yields a transaction request to call a constructor in a node.
+	 * 
+	 * @param signature the signature of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier where this request can be executed, to forbid transaction replay across chains; this can be {@code null}
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param constructor the constructor that must be called
+	 * @param actuals the actual arguments passed to the constructor
+	 * @return the request
+	 */
+	public static ConstructorCallTransactionRequest constructorCall(byte[] signature, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) {
+		return new ConstructorCallTransactionRequestImpl(signature, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+	}
+
+	/**
+	 * yields a transaction request to call a constructor in a node.
+	 * 
+	 * @param signer the signer of the request
+	 * @param caller the externally owned caller contract that pays for the transaction
+	 * @param nonce the nonce used for transaction ordering and to forbid transaction replay; it is relative to the {@code caller}
+	 * @param chainId the chain identifier of the network where the request will be sent
+	 * @param gasLimit the maximal amount of gas that can be consumed by the transaction
+	 * @param gasPrice the coins payed for each unit of gas consumed by the transaction
+	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
+	 * @param constructor the constructor that must be called
+	 * @param actuals the actual arguments passed to the constructor
+	 * @return the request
+	 * @throws SignatureException if the signer cannot sign the request
+	 * @throws InvalidKeyException if the signer uses an invalid private key
+	 */
+	public static ConstructorCallTransactionRequest constructorCall(Signer<? super ConstructorCallTransactionRequest> signer, StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws InvalidKeyException, SignatureException {
+		return new ConstructorCallTransactionRequestImpl(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, constructor, actuals);
+	}
+
+	/**
 	 * Yields a transaction request unmarshalled from the given context.
 	 * 
 	 * @param context the unmarshalling context
-	 * @return the transaction request
+	 * @return the request
 	 * @throws IOException if the request could not be unmarshalled
      */
 	public static TransactionRequest<?> from(UnmarshallingContext context) throws IOException {

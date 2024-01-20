@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.requests;
+package io.hotmoka.beans.internal.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,12 +24,11 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
-import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.requests.NonInitialTransactionRequestImpl;
 import io.hotmoka.beans.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -39,7 +38,7 @@ import io.hotmoka.marshalling.api.MarshallingContext;
  * @param <R> the type of the corresponding response
  */
 @Immutable
-public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequestImpl<R> {
+public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutionTransactionResponse> extends NonInitialTransactionRequestImpl<R> implements CodeExecutionTransactionRequest<R> {
 
 	/**
 	 * The actual arguments passed to the method.
@@ -56,32 +55,21 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 	 * @param classpath the class path where the {@code caller} can be interpreted and the code must be executed
 	 * @param actuals the actual arguments passed to the method
 	 */
-	protected CodeExecutionTransactionRequest(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
+	protected CodeExecutionTransactionRequestImpl(StorageReference caller, BigInteger nonce, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, StorageValue... actuals) {
 		super(caller, nonce, gasLimit, gasPrice, classpath);
 
 		this.actuals = Objects.requireNonNull(actuals, "actuals cannot be null");
 		Stream.of(actuals).forEach(actual -> Objects.requireNonNull(actual, "actuals cannot hold null"));
 	}
 
-	/**
-	 * Yields the actual arguments passed to the method.
-	 * 
-	 * @return the actual arguments
-	 */
+	@Override
 	public final Stream<StorageValue> actuals() {
 		return Stream.of(actuals);
 	}
 
-	/**
-	 * Yields the method or constructor referenced in this request.
-	 * 
-	 * @return the method or constructor
-	 */
-	public abstract CodeSignature getStaticTarget();
-
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeExecutionTransactionRequest<?> cetr && super.equals(other) && Arrays.equals(actuals, cetr.actuals);
+		return other instanceof CodeExecutionTransactionRequestImpl<?> cetr && super.equals(other) && Arrays.equals(actuals, cetr.actuals);
 	}
 
 	@Override
@@ -95,12 +83,8 @@ public abstract class CodeExecutionTransactionRequest<R extends CodeExecutionTra
 		context.writeLengthAndArray(actuals);
 	}
 
-	/**
-	 * Marshals this object into a byte array, without taking its signature into account.
-	 * 
-	 * @return the byte array resulting from marshalling this object
-	 */
-	public byte[] toByteArrayWithoutSignature() {
+	@Override
+	public byte[] toByteArrayWithoutSignature() { // TODO: maybe protected?
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
