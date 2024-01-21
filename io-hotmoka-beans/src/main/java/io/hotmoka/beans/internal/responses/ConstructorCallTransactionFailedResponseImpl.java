@@ -79,9 +79,10 @@ public class ConstructorCallTransactionFailedResponseImpl extends CodeExecutionT
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorCallTransactionFailedResponseImpl cctfr && super.equals(other)
-			&& gasConsumedForPenalty.equals(cctfr.gasConsumedForPenalty) && classNameOfCause.equals(cctfr.classNameOfCause)
-			&& messageOfCause.equals(cctfr.messageOfCause) && where.equals(cctfr.where);
+		return other instanceof ConstructorCallTransactionFailedResponse cctfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(cctfr.getGasConsumedForPenalty())
+			&& classNameOfCause.equals(cctfr.getClassNameOfCause())
+			&& messageOfCause.equals(cctfr.getMessageOfCause()) && where.equals(cctfr.getWhere());
 	}
 
 	@Override
@@ -95,7 +96,7 @@ public class ConstructorCallTransactionFailedResponseImpl extends CodeExecutionT
 	}
 
 	@Override
-	public final BigInteger gasConsumedForPenalty() {
+	public final BigInteger getGasConsumedForPenalty() {
 		return gasConsumedForPenalty;
 	}
 

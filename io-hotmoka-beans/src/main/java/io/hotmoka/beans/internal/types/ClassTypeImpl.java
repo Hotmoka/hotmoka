@@ -206,7 +206,7 @@ public final class ClassTypeImpl extends AbstractStorageType implements ClassTyp
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ClassTypeImpl ct && ct.name.equals(name);
+		return other instanceof ClassType ct && ct.getName().equals(name);
 	}
 
 	@Override

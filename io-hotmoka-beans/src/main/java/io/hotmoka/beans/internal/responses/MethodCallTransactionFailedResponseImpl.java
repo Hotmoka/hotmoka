@@ -80,9 +80,11 @@ public class MethodCallTransactionFailedResponseImpl extends MethodCallTransacti
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionFailedResponseImpl mctfr && super.equals(other)
-			&& gasConsumedForPenalty.equals(mctfr.gasConsumedForPenalty) && classNameOfCause.equals(mctfr.classNameOfCause)
-			&& messageOfCause.equals(mctfr.messageOfCause) && where.equals(mctfr.where);
+		return other instanceof MethodCallTransactionFailedResponse mctfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(mctfr.getGasConsumedForPenalty())
+			&& classNameOfCause.equals(mctfr.getClassNameOfCause())
+			&& messageOfCause.equals(mctfr.getMessageOfCause())
+			&& where.equals(mctfr.getWhere());
 	}
 
 	@Override
@@ -97,7 +99,7 @@ public class MethodCallTransactionFailedResponseImpl extends MethodCallTransacti
 	}
 
 	@Override
-	public BigInteger gasConsumedForPenalty() {
+	public BigInteger getGasConsumedForPenalty() {
 		return gasConsumedForPenalty;
 	}
 

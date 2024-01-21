@@ -42,7 +42,7 @@ public class JarStoreTransactionFailedResponseModel extends JarStoreTransactionR
     public JarStoreTransactionFailedResponseModel(JarStoreTransactionFailedResponse response) {
         super(response);
 
-        this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
+        this.gasConsumedForPenalty = response.getGasConsumedForPenalty().toString();
         this.classNameOfCause = response.getClassNameOfCause();
         this.messageOfCause = response.getMessageOfCause();
     }

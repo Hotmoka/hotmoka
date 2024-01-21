@@ -92,8 +92,14 @@ public class JarStoreTransactionSuccessfulResponseImpl extends NonInitialTransac
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionSuccessfulResponseImpl jstsr && super.equals(other)
-			&& Arrays.equals(instrumentedJar, jstsr.instrumentedJar) && Arrays.equals(dependencies, jstsr.dependencies);
+		if (other instanceof JarStoreTransactionSuccessfulResponseImpl jstsri) // optimization
+			return super.equals(other)
+				&& Arrays.equals(instrumentedJar, jstsri.instrumentedJar)
+				&& Arrays.equals(dependencies, jstsri.dependencies);
+		else
+			return other instanceof JarStoreTransactionSuccessfulResponse jstsr && super.equals(other)
+				&& Arrays.equals(instrumentedJar, jstsr.getInstrumentedJar())
+				&& Arrays.equals(dependencies, jstsr.getDependencies().toArray(TransactionReference[]::new));
 	}
 
 	@Override

@@ -164,9 +164,14 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionRequestImpl jstr && super.equals(other)
-			&& Arrays.equals(jar, jstr.jar) && Arrays.equals(dependencies, jstr.dependencies)
-			&& chainId.equals(jstr.chainId) && Arrays.equals(signature, jstr.signature);
+		if (other instanceof JarStoreTransactionRequestImpl jstri) // optimization
+			return super.equals(other)
+				&& Arrays.equals(jar, jstri.jar) && Arrays.equals(dependencies, jstri.dependencies)
+				&& chainId.equals(jstri.chainId) && Arrays.equals(signature, jstri.signature);
+		else
+			return other instanceof JarStoreTransactionRequest jstr && super.equals(other)
+				&& Arrays.equals(jar, jstr.getJar()) && Arrays.equals(dependencies, jstr.getDependencies().toArray(TransactionReference[]::new))
+				&& chainId.equals(jstr.getChainId()) && Arrays.equals(signature, jstr.getSignature());
 	}
 
 	@Override

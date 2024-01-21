@@ -124,9 +124,9 @@ public abstract class NonInitialTransactionRequestImpl<R extends NonInitialTrans
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NonInitialTransactionRequestImpl<?> nitr && caller.equals(nitr.caller)
-			&& gasLimit.equals(nitr.gasLimit) && gasPrice.equals(nitr.gasPrice)
-			&& classpath.equals(nitr.classpath) && nonce.equals(nitr.nonce);
+		return other instanceof NonInitialTransactionRequest<?> nitr && caller.equals(nitr.getCaller())
+			&& gasLimit.equals(nitr.getGasLimit()) && gasPrice.equals(nitr.getGasPrice())
+			&& classpath.equals(nitr.getClasspath()) && nonce.equals(nitr.getNonce());
 	}
 
 	@Override

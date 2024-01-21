@@ -27,4 +27,13 @@ import io.hotmoka.marshalling.api.Marshallable;
  */
 @Immutable
 public interface TransactionRequest<R extends TransactionResponse> extends Marshallable {
+
+	@Override
+	boolean equals(Object other);
+
+	@Override
+	int hashCode();
+
+	@Override
+	String toString();
 }

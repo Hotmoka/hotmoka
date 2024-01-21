@@ -856,7 +856,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 				BigInteger gasConsumedTotal = gasConsumedButPenalty;
 				if (response instanceof FailedTransactionResponse)
-					gasConsumedTotal = gasConsumedTotal.add(((FailedTransactionResponse) response).gasConsumedForPenalty());
+					gasConsumedTotal = gasConsumedTotal.add(((FailedTransactionResponse) response).getGasConsumedForPenalty());
 
 				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
 				BigInteger reward = gasConsumedTotal.multiply(gasPrice);

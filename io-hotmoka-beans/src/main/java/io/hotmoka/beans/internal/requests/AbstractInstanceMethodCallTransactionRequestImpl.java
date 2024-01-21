@@ -74,7 +74,7 @@ public abstract class AbstractInstanceMethodCallTransactionRequestImpl extends M
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AbstractInstanceMethodCallTransactionRequestImpl aimctr && super.equals(other) && receiver.equals(aimctr.receiver);
+		return other instanceof AbstractInstanceMethodCallTransactionRequest aimctr && super.equals(other) && receiver.equals(aimctr.getReceiver());
 	}
 
 	@Override

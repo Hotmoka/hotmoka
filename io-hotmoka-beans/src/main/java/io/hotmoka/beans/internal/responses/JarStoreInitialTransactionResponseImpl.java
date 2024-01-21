@@ -80,8 +80,11 @@ public class JarStoreInitialTransactionResponseImpl extends TransactionResponseI
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreInitialTransactionResponseImpl jsitr &&
-			Arrays.equals(instrumentedJar, jsitr.instrumentedJar) && Arrays.equals(dependencies, jsitr.dependencies);
+		if (other instanceof JarStoreInitialTransactionResponseImpl jsitri) // optimization
+			return Arrays.equals(instrumentedJar, jsitri.instrumentedJar) && Arrays.equals(dependencies, jsitri.dependencies);
+		return other instanceof JarStoreInitialTransactionResponse jsitr &&
+			Arrays.equals(instrumentedJar, jsitr.getInstrumentedJar()) &&
+			Arrays.equals(dependencies, jsitr.getDependencies().toArray(TransactionReference[]::new));
 	}
 
 	@Override

@@ -72,7 +72,7 @@ public class VoidMethodCallTransactionSuccessfulResponseImpl extends MethodCallT
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof VoidMethodCallTransactionSuccessfulResponseImpl vmctsr && super.equals(other) && Arrays.equals(events, vmctsr.events);
+		return other instanceof VoidMethodCallTransactionSuccessfulResponse vmctsr && super.equals(other) && Arrays.equals(events, vmctsr.getEvents().toArray(StorageReference[]::new));
 	}
 
 	@Override

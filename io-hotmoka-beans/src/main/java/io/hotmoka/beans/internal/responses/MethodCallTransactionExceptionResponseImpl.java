@@ -107,9 +107,11 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionExceptionResponseImpl mcter && super.equals(other)
-			&& Arrays.equals(events, mcter.events) && classNameOfCause.equals(mcter.classNameOfCause)
-			&& messageOfCause.equals(mcter.messageOfCause) && where.equals(mcter.where);
+		return other instanceof MethodCallTransactionExceptionResponse mcter && super.equals(other)
+			&& Arrays.equals(events, mcter.getEvents().toArray(StorageReference[]::new))
+			&& classNameOfCause.equals(mcter.getClassNameOfCause())
+			&& messageOfCause.equals(mcter.getMessageOfCause())
+			&& where.equals(mcter.getWhere());
 	}
 
 	@Override

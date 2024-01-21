@@ -115,8 +115,8 @@ public class StaticMethodCallTransactionRequestImpl extends MethodCallTransactio
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof StaticMethodCallTransactionRequestImpl smctr && super.equals(other)
-			&& chainId.equals(smctr.chainId) && Arrays.equals(signature, smctr.signature);
+		return other instanceof StaticMethodCallTransactionRequest smctr && super.equals(other)
+			&& chainId.equals(smctr.getChainId()) && Arrays.equals(signature, smctr.getSignature());
 	}
 
 	@Override

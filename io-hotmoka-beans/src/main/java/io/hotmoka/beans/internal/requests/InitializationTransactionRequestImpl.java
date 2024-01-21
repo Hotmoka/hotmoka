@@ -78,7 +78,7 @@ public class InitializationTransactionRequestImpl extends TransactionRequestImpl
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof InitializationTransactionRequestImpl itr && classpath.equals(itr.classpath) && manifest.equals(itr.manifest);
+		return other instanceof InitializationTransactionRequest itr && classpath.equals(itr.getClasspath()) && manifest.equals(itr.getManifest());
 	}
 
 	@Override

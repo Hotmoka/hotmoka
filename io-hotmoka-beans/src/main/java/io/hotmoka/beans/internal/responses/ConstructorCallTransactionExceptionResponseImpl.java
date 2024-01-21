@@ -105,9 +105,10 @@ public class ConstructorCallTransactionExceptionResponseImpl extends CodeExecuti
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorCallTransactionExceptionResponseImpl ccter && super.equals(other)
-			&& Arrays.equals(events, ccter.events) && classNameOfCause.equals(ccter.classNameOfCause)
-			&& messageOfCause.equals(ccter.messageOfCause) && where.equals(ccter.where);
+		return other instanceof ConstructorCallTransactionExceptionResponse ccter && super.equals(other)
+			&& Arrays.equals(events, ccter.getEvents().toArray(StorageReference[]::new))
+			&& classNameOfCause.equals(ccter.getClassNameOfCause())
+			&& messageOfCause.equals(ccter.getMessageOfCause()) && where.equals(ccter.getWhere());
 	}
 
 	@Override

@@ -81,8 +81,8 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionSuccessfulResponseImpl mctsr && super.equals(other)
-			&& result.equals(mctsr.result) && Arrays.equals(events, mctsr.events);
+		return other instanceof MethodCallTransactionSuccessfulResponse mctsr && super.equals(other)
+			&& result.equals(mctsr.getResult()) && Arrays.equals(events, mctsr.getEvents().toArray(StorageReference[]::new));
 	}
 
 	@Override

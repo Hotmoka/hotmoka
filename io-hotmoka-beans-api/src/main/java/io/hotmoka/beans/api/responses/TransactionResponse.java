@@ -22,4 +22,13 @@ import io.hotmoka.marshalling.api.Marshallable;
  * The response of a transaction.
  */
 public interface TransactionResponse extends Marshallable {
+
+	@Override
+	boolean equals(Object other);
+
+	@Override
+	int hashCode();
+
+	@Override
+	String toString();
 }

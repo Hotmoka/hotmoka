@@ -135,7 +135,7 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.gasConsumedForCPU = jstfr.getGasConsumedForCPU();
 			this.gasConsumedForRAM = jstfr.getGasConsumedForRAM();
 			this.gasConsumedForStorage = jstfr.getGasConsumedForStorage();
-			this.gasConsumedForPenalty = jstfr.gasConsumedForPenalty();
+			this.gasConsumedForPenalty = jstfr.getGasConsumedForPenalty();
 			this.classNameOfCause = jstfr.getClassNameOfCause();
 			this.messageOfCause = jstfr.getMessageOfCause();
 			this.events = null;
@@ -192,7 +192,7 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.gasConsumedForCPU = cctfr.getGasConsumedForCPU();
 			this.gasConsumedForRAM = cctfr.getGasConsumedForRAM();
 			this.gasConsumedForStorage = cctfr.getGasConsumedForStorage();
-			this.gasConsumedForPenalty = cctfr.gasConsumedForPenalty();
+			this.gasConsumedForPenalty = cctfr.getGasConsumedForPenalty();
 			this.classNameOfCause = cctfr.getClassNameOfCause();
 			this.messageOfCause = cctfr.getMessageOfCause();
 			this.events = null;
@@ -249,7 +249,7 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.gasConsumedForCPU = mctfr.getGasConsumedForCPU();
 			this.gasConsumedForRAM = mctfr.getGasConsumedForRAM();
 			this.gasConsumedForStorage = mctfr.getGasConsumedForStorage();
-			this.gasConsumedForPenalty = mctfr.gasConsumedForPenalty();
+			this.gasConsumedForPenalty = mctfr.getGasConsumedForPenalty();
 			this.classNameOfCause = mctfr.getClassNameOfCause();
 			this.messageOfCause = mctfr.getMessageOfCause();
 			this.events = null;

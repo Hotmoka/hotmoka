@@ -75,7 +75,7 @@ public class JarStoreTransactionFailedResponseImpl extends NonInitialTransaction
 	}
 
 	@Override
-	public BigInteger gasConsumedForPenalty() {
+	public BigInteger getGasConsumedForPenalty() {
 		return gasConsumedForPenalty;
 	}
 
@@ -91,9 +91,9 @@ public class JarStoreTransactionFailedResponseImpl extends NonInitialTransaction
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof JarStoreTransactionFailedResponseImpl jstfr && super.equals(other)
-			&& gasConsumedForPenalty.equals(jstfr.gasConsumedForPenalty)
-			&& classNameOfCause.equals(jstfr.classNameOfCause) && messageOfCause.equals(jstfr.messageOfCause);
+		return other instanceof JarStoreTransactionFailedResponse jstfr && super.equals(other)
+			&& gasConsumedForPenalty.equals(jstfr.getGasConsumedForPenalty())
+			&& classNameOfCause.equals(jstfr.getClassNameOfCause()) && messageOfCause.equals(jstfr.getMessageOfCause());
 	}
 
 	@Override

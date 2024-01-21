@@ -90,7 +90,7 @@ public abstract class MethodCallTransactionRequestImpl extends CodeExecutionTran
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof MethodCallTransactionRequestImpl && super.equals(other) && method.equals(((MethodCallTransactionRequestImpl) other).method);
+		return other instanceof MethodCallTransactionRequest mctr && super.equals(other) && method.equals(mctr.getStaticTarget());
 	}
 
 	@Override

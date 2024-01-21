@@ -92,8 +92,8 @@ public class ConstructorCallTransactionSuccessfulResponseImpl extends CodeExecut
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof ConstructorCallTransactionSuccessfulResponseImpl cctsr && super.equals(other)
-			&& Arrays.equals(events, cctsr.events) && newObject.equals(cctsr.newObject);
+		return other instanceof ConstructorCallTransactionSuccessfulResponse cctsr && super.equals(other)
+			&& Arrays.equals(events, cctsr.getEvents().toArray(StorageReference[]::new)) && newObject.equals(cctsr.getNewObject());
 	}
 
 	@Override

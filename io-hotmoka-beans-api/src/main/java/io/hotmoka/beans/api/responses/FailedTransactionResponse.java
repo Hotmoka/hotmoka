@@ -30,7 +30,7 @@ public interface FailedTransactionResponse extends TransactionResponse {
 	 * 
 	 * @return the amount of gas
 	 */
-	BigInteger gasConsumedForPenalty();
+	BigInteger getGasConsumedForPenalty();
 
 	/**
 	 * Yields the fully-qualified class name of the cause exception.

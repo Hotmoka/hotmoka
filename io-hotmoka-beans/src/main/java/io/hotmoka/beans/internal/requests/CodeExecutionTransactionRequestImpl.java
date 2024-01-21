@@ -69,7 +69,10 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof CodeExecutionTransactionRequestImpl<?> cetr && super.equals(other) && Arrays.equals(actuals, cetr.actuals);
+		if (other instanceof CodeExecutionTransactionRequestImpl<?> cetri)
+			return super.equals(other) && Arrays.equals(actuals, cetri.actuals); // optimization
+		else
+			return other instanceof CodeExecutionTransactionRequest<?> cetr && super.equals(other) && Arrays.equals(actuals, cetr.actuals().toArray(StorageValue[]::new));
 	}
 
 	@Override

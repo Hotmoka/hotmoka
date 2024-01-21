@@ -60,8 +60,9 @@ public class GameteCreationTransactionResponseImpl extends TransactionResponseIm
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GameteCreationTransactionResponseImpl gctr &&
-			Arrays.equals(updates, gctr.updates) && gamete.equals(gctr.gamete);
+		return other instanceof GameteCreationTransactionResponse gctr &&
+			Arrays.equals(updates, gctr.getUpdates().toArray(Update[]::new)) &&
+			gamete.equals(gctr.getGamete());
 	}
 
 	@Override

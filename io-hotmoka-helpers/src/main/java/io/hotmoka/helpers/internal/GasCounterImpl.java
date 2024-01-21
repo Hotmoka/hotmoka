@@ -93,7 +93,7 @@ public class GasCounterImpl implements GasCounter {
 					forRAM = forRAM.add(responseWithGas.getGasConsumedForRAM());
 					forStorage = forStorage.add(responseWithGas.getGasConsumedForStorage());
 					if (responseWithGas instanceof FailedTransactionResponse ftr)
-						forPenalty = forPenalty.add(ftr.gasConsumedForPenalty());
+						forPenalty = forPenalty.add(ftr.getGasConsumedForPenalty());
 				}
 			}
 			catch (TransactionRejectedException | NoSuchElementException e) {}

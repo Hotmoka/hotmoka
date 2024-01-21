@@ -47,7 +47,7 @@ public class ConstructorCallTransactionFailedResponseModel extends ConstructorCa
     public ConstructorCallTransactionFailedResponseModel(ConstructorCallTransactionFailedResponse response) {
         super(response);
 
-        this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
+        this.gasConsumedForPenalty = response.getGasConsumedForPenalty().toString();
         this.classNameOfCause = response.getClassNameOfCause();
         this.messageOfCause = response.getMessageOfCause();
         this.where = response.getWhere();

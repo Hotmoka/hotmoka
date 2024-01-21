@@ -72,9 +72,11 @@ public abstract class NonInitialTransactionResponseImpl extends TransactionRespo
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof NonInitialTransactionResponseImpl nitr
-			&& Arrays.equals(updates, nitr.updates) && gasConsumedForCPU.equals(nitr.gasConsumedForCPU)
-			&& gasConsumedForRAM.equals(nitr.gasConsumedForRAM) && gasConsumedForStorage.equals(nitr.gasConsumedForStorage);
+		return other instanceof NonInitialTransactionResponse nitr
+			&& Arrays.equals(updates, nitr.getUpdates().toArray(Update[]::new))
+			&& gasConsumedForCPU.equals(nitr.getGasConsumedForCPU())
+			&& gasConsumedForRAM.equals(nitr.getGasConsumedForRAM())
+			&& gasConsumedForStorage.equals(nitr.getGasConsumedForStorage());
 	}
 
 	@Override

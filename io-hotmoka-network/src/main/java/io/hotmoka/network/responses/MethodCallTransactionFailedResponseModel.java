@@ -47,7 +47,7 @@ public class MethodCallTransactionFailedResponseModel extends MethodCallTransact
     public MethodCallTransactionFailedResponseModel(MethodCallTransactionFailedResponse response) {
         super(response);
 
-        this.gasConsumedForPenalty = response.gasConsumedForPenalty().toString();
+        this.gasConsumedForPenalty = response.getGasConsumedForPenalty().toString();
         this.classNameOfCause = response.getClassNameOfCause();
         this.messageOfCause = response.getMessageOfCause();
         this.where = response.getWhere();

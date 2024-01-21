@@ -110,9 +110,9 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GameteCreationTransactionRequestImpl gctr &&
-			classpath.equals(gctr.classpath) && initialAmount.equals(gctr.initialAmount) &&
-			redInitialAmount.equals(gctr.redInitialAmount) && publicKey.equals(gctr.publicKey);
+		return other instanceof GameteCreationTransactionRequest gctr &&
+			classpath.equals(gctr.getClasspath()) && initialAmount.equals(gctr.getInitialAmount()) &&
+			redInitialAmount.equals(gctr.getRedInitialAmount()) && publicKey.equals(gctr.getPublicKey());
 	}
 
 	@Override

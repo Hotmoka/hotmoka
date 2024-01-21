@@ -38,4 +38,13 @@ public interface TransactionReference extends Marshallable, Serializable, Compar
 	 * @return the hash
 	 */
 	byte[] getHash();
+
+	@Override
+	boolean equals(Object other);
+
+	@Override
+	int hashCode();
+
+	@Override
+	String toString();
 }
