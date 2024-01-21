@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import io.hotmoka.beans.marshalling.internal.BeanUnmarshallingContext;
+import io.hotmoka.beans.internal.marshalling.BeanUnmarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
@@ -37,6 +37,7 @@ public abstract class BeanUnmarshallingContexts {
 	 * 
 	 * @param is the stream from which bytes get unmarshalled
 	 * @throws IOException if the context cannot be created
+	 * @return the context
 	 */
 	public static UnmarshallingContext of(InputStream is) throws IOException {
 		return new BeanUnmarshallingContext(is);

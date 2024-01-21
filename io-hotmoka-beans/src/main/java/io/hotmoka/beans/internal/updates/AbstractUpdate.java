@@ -30,7 +30,7 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.marshalling.internal.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;

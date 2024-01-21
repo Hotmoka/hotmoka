@@ -35,9 +35,9 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
-import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
-import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.gson.TransactionRequestDecoder;
+import io.hotmoka.beans.internal.gson.TransactionRequestEncoder;
+import io.hotmoka.beans.internal.gson.TransactionRequestJson;
 import io.hotmoka.beans.internal.requests.ConstructorCallTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.GameteCreationTransactionRequestImpl;
 import io.hotmoka.beans.internal.requests.InitializationTransactionRequestImpl;
@@ -314,7 +314,7 @@ public abstract class TransactionRequests {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends TransactionReferenceEncoder {
+	public static class Encoder extends TransactionRequestEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -325,7 +325,7 @@ public abstract class TransactionRequests {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends TransactionReferenceDecoder {
+	public static class Decoder extends TransactionRequestDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -336,15 +336,15 @@ public abstract class TransactionRequests {
     /**
      * Json representation.
      */
-    public static class Json extends TransactionReferenceJson {
+    public static class Json extends TransactionRequestJson {
 
     	/**
-    	 * Creates the Json representation for the given transaction reference.
+    	 * Creates the Json representation for the given transaction request.
     	 * 
-    	 * @param reference the transaction reference
+    	 * @param request the transaction request
     	 */
-    	public Json(TransactionReference reference) {
-    		super(reference);
+    	public Json(TransactionRequest<?> request) {
+    		super(request);
     	}
     }
 }

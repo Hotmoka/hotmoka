@@ -14,45 +14,39 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.marshalling.internal;
+package io.hotmoka.beans.internal.marshalling;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.FieldSignatures;
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * An unmarshaller for field signatures.
+ * An unmarshaller for storage references.
  */
-class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
+class StorageReferenceUnmarshaller extends AbstractObjectUnmarshaller<StorageReference> {
 
-	private final Map<Integer, FieldSignature> memory = new HashMap<>();
+	private final Map<Integer, StorageReference> memory = new HashMap<>();
 
-	FieldSignatureUnmarshaller() {
-		super(FieldSignature.class);
+	StorageReferenceUnmarshaller() {
+		super(StorageReference.class);
 	}
 
 	@Override
-	public FieldSignature read(UnmarshallingContext context) throws IOException {
+	public StorageReference read(UnmarshallingContext context) throws IOException {
 		int selector = context.readByte();
 		if (selector < 0)
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			try {
-				var field = FieldSignatures.of((ClassType) StorageTypes.from(context), context.readStringUnshared(), StorageTypes.from(context));
-				memory.put(memory.size(), field);
-				return field;
-			}
-			catch (ClassCastException e) {
-				throw new IOException("Failed field unmarshalling", e);
-			}
+			var reference = StorageValues.reference(TransactionReferences.from(context), context.readBigInteger());
+			memory.put(memory.size(), reference);
+			return reference;
 		}
 		else if (selector == 254)
 			return memory.get(context.readInt());

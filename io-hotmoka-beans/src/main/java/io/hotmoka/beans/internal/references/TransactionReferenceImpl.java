@@ -21,7 +21,7 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.marshalling.internal.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.marshalling.AbstractMarshallable;

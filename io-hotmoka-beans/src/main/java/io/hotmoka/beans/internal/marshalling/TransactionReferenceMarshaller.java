@@ -14,30 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.marshalling.internal;
+package io.hotmoka.beans.internal.marshalling;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * Knowledge about how a storage reference can be marshalled.
+ * Knowledge about how a transaction reference can be marshalled.
  */
-class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReference> {
+class TransactionReferenceMarshaller extends AbstractObjectMarshaller<TransactionReference> {
 	
-	private final Map<StorageReference, Integer> memory = new HashMap<>();
+	private final Map<TransactionReference, Integer> memory = new HashMap<>();
 
-	StorageReferenceMarshaller() {
-		super(StorageReference.class);
+	TransactionReferenceMarshaller() {
+		super(TransactionReference.class);
 	}
 
 	@Override
-	public void write(StorageReference reference, MarshallingContext context) throws IOException {
-		Integer index = memory.get(reference);
+	public void write(TransactionReference transaction, MarshallingContext context) throws IOException {
+		Integer index = memory.get(transaction);
 		if (index != null) {
 			if (index < 254)
 				context.writeByte(index);
@@ -49,13 +49,12 @@ class StorageReferenceMarshaller extends AbstractObjectMarshaller<StorageReferen
 		else {
 			int next = memory.size();
 			if (next == Integer.MAX_VALUE) // irrealistic
-				throw new IllegalStateException("too many storage references in the same context");
+				throw new IllegalStateException("Too many transaction references in the same context");
 
-			memory.put(reference, next);
+			memory.put(transaction, next);
 
 			context.writeByte(255);
-			reference.getTransaction().into(context);
-			context.writeBigInteger(reference.getProgressive());
+			context.writeBytes(transaction.getHash());
 		}
 	}
 }

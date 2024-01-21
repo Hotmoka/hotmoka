@@ -63,7 +63,7 @@ public abstract class MethodCallTransactionRequestImpl extends CodeExecutionTran
 		this.method = Objects.requireNonNull(method, "method cannot be null");
 
 		if (method.getFormals().count() != actuals.length)
-			throw new IllegalArgumentException("Argument count mismatch between formals and actuals");
+			throw new IllegalArgumentException("Argument count mismatch: " + method.getFormals().count() + " formals and " + actuals.length + " actuals");
 	}
 
 	@Override

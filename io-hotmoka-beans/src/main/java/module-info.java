@@ -28,6 +28,7 @@ module io.hotmoka.beans {
 	requires io.hotmoka.constants;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
+	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
 	requires com.google.gson;
 }

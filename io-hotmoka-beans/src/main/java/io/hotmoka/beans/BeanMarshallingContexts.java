@@ -19,7 +19,7 @@ package io.hotmoka.beans;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import io.hotmoka.beans.marshalling.internal.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -35,6 +35,7 @@ public abstract class BeanMarshallingContexts {
 	 * 
 	 * @param oos the stream where bytes are marshalled.
 	 * @throws IOException if the context cannot be created
+	 * @return the context
 	 */
 	public static MarshallingContext of(OutputStream oos) throws IOException {
 		return new BeanMarshallingContext(oos);

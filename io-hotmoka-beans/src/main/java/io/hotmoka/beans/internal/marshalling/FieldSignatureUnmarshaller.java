@@ -14,39 +14,45 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.marshalling.internal;
+package io.hotmoka.beans.internal.marshalling;
 
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.FieldSignatures;
+import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.api.signatures.FieldSignature;
+import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * An unmarshaller for transaction references.
+ * An unmarshaller for field signatures.
  */
-class TransactionReferenceUnmarshaller extends AbstractObjectUnmarshaller<TransactionReference> {
+class FieldSignatureUnmarshaller extends AbstractObjectUnmarshaller<FieldSignature> {
 
-	private final Map<Integer, TransactionReference> memory = new HashMap<>();
+	private final Map<Integer, FieldSignature> memory = new HashMap<>();
 
-	TransactionReferenceUnmarshaller() {
-		super(TransactionReference.class);
+	FieldSignatureUnmarshaller() {
+		super(FieldSignature.class);
 	}
 
 	@Override
-	public TransactionReference read(UnmarshallingContext context) throws IOException {
+	public FieldSignature read(UnmarshallingContext context) throws IOException {
 		int selector = context.readByte();
 		if (selector < 0)
 			selector = 256 + selector;
 
 		if (selector == 255) {
-			byte[] bytes = context.readBytes(TransactionReference.REQUEST_HASH_LENGTH, "Cannot read a transaction reference");
-			var reference = TransactionReferences.of(bytes);
-			memory.put(memory.size(), reference);
-			return reference;
+			try {
+				var field = FieldSignatures.of((ClassType) StorageTypes.from(context), context.readStringUnshared(), StorageTypes.from(context));
+				memory.put(memory.size(), field);
+				return field;
+			}
+			catch (ClassCastException e) {
+				throw new IOException("Failed field unmarshalling", e);
+			}
 		}
 		else if (selector == 254)
 			return memory.get(context.readInt());
