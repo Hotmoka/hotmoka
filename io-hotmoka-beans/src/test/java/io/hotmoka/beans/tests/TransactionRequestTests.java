@@ -43,7 +43,6 @@ import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
 public class TransactionRequestTests extends AbstractLoggedTests {
-
 	private final static TransactionReference classpath = TransactionReferences.of("cafebabe01234567cafebabe01234567cafebabe01234567cafebabe01234567");
 	private final static TransactionReference reference = TransactionReferences.of("01234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe");
 	private final static TransactionReference reference2 = TransactionReferences.of("a1234567cafebabe01234567cafebabe01234567cafebabe01234567cafebabe");

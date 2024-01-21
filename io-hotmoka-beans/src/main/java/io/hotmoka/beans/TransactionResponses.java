@@ -37,9 +37,9 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.gson.TransactionReferenceDecoder;
-import io.hotmoka.beans.internal.gson.TransactionReferenceEncoder;
-import io.hotmoka.beans.internal.gson.TransactionReferenceJson;
+import io.hotmoka.beans.internal.gson.TransactionResponseDecoder;
+import io.hotmoka.beans.internal.gson.TransactionResponseEncoder;
+import io.hotmoka.beans.internal.gson.TransactionResponseJson;
 import io.hotmoka.beans.internal.responses.ConstructorCallTransactionExceptionResponseImpl;
 import io.hotmoka.beans.internal.responses.ConstructorCallTransactionFailedResponseImpl;
 import io.hotmoka.beans.internal.responses.ConstructorCallTransactionSuccessfulResponseImpl;
@@ -261,7 +261,7 @@ public abstract class TransactionResponses {
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends TransactionReferenceEncoder {
+	public static class Encoder extends TransactionResponseEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -272,7 +272,7 @@ public abstract class TransactionResponses {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends TransactionReferenceDecoder {
+	public static class Decoder extends TransactionResponseDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -283,15 +283,15 @@ public abstract class TransactionResponses {
     /**
      * Json representation.
      */
-    public static class Json extends TransactionReferenceJson {
+    public static class Json extends TransactionResponseJson {
 
     	/**
-    	 * Creates the Json representation for the given transaction reference.
+    	 * Creates the Json representation for the given transaction response.
     	 * 
-    	 * @param reference the transaction reference
+    	 * @param response the transaction response
     	 */
-    	public Json(TransactionReference reference) {
-    		super(reference);
+    	public Json(TransactionResponse response) {
+    		super(response);
     	}
     }
 }
