@@ -66,11 +66,10 @@ public final class DoubleValueImpl extends AbstractStorageValue implements Doubl
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof DoubleValue dv)
+			return Double.compare(value, dv.getValue());
 		else
-			return Double.compare(value, ((DoubleValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

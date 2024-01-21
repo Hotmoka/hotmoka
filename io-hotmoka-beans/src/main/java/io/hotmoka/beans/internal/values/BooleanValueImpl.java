@@ -77,11 +77,10 @@ public final class BooleanValueImpl extends AbstractStorageValue implements Bool
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof BooleanValue bv)
+			return Boolean.compare(value, bv.getValue());
 		else
-			return Boolean.compare(value, ((BooleanValue) other).getValue());
+			return super.compareTo(other);
 	}
 
 	@Override

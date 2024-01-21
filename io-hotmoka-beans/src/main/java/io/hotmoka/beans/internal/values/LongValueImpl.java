@@ -66,11 +66,10 @@ public final class LongValueImpl extends AbstractStorageValue implements LongVal
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof LongValue lv)
+			return Long.compare(value, lv.getValue());
 		else
-			return Long.compare(value, ((LongValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

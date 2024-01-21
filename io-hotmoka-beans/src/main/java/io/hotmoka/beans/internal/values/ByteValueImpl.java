@@ -66,11 +66,10 @@ public final class ByteValueImpl extends AbstractStorageValue implements ByteVal
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof ByteValue bv)
+			return Byte.compare(value, bv.getValue());
 		else
-			return Byte.compare(value, ((ByteValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

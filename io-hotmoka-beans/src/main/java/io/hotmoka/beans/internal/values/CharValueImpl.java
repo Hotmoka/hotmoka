@@ -66,11 +66,10 @@ public final class CharValueImpl extends AbstractStorageValue implements CharVal
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof CharValue cv)
+			return Character.compare(value, cv.getValue());
 		else
-			return Character.compare(value, ((CharValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

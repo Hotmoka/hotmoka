@@ -68,11 +68,10 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof BigIntegerValue biv)
+			return value.compareTo(biv.getValue());
 		else
-			return value.compareTo(((BigIntegerValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

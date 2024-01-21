@@ -79,15 +79,15 @@ public final class EnumValueImpl extends AbstractStorageValue implements EnumVal
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
-
-		diff = enumClassName.compareTo(((EnumValueImpl) other).enumClassName);
-		if (diff != 0)
-			return diff;
-
-		return name.compareTo(((EnumValueImpl) other).name);
+		if (other instanceof EnumValue ev) {
+			int diff = enumClassName.compareTo(ev.getEnumClassName());
+			if (diff != 0)
+				return diff;
+			else
+				return name.compareTo(ev.getName());			
+		}
+		else
+			return super.compareTo(other);
 	}
 
 	@Override

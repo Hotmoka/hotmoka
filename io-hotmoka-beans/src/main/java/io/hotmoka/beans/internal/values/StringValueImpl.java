@@ -68,11 +68,10 @@ public final class StringValueImpl extends AbstractStorageValue implements Strin
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof StringValue sv)
+			return value.compareTo(sv.getValue());
 		else
-			return value.compareTo(((StringValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

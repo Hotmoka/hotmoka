@@ -98,15 +98,15 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
-
-		diff = transaction.compareTo(((StorageReferenceImpl) other).transaction);
-		if (diff != 0)
-			return diff;
-
-		return progressive.compareTo(((StorageReferenceImpl) other).progressive);
+		if (other instanceof StorageReference sr) {
+			int diff = transaction.compareTo(sr.getTransaction());
+			if (diff != 0)
+				return diff;
+			else
+				return progressive.compareTo(sr.getProgressive());
+		}
+		else
+			return super.compareTo(other);
 	}
 
 	@Override

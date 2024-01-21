@@ -66,11 +66,10 @@ public final class IntValueImpl extends AbstractStorageValue implements IntValue
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof IntValue iv)
+			return Integer.compare(value, iv.getValue());
 		else
-			return Integer.compare(value, ((IntValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

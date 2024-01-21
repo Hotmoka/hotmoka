@@ -66,11 +66,10 @@ public final class ShortValueImpl extends AbstractStorageValue implements ShortV
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof ShortValue sv)
+			return Short.compare(value, sv.getValue());
 		else
-			return Short.compare(value, ((ShortValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override

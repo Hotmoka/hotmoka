@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.values.NullValue;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -57,5 +58,10 @@ public final class NullValueImpl extends AbstractStorageValue implements NullVal
 	@Override
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
+	}
+
+	@Override
+	public int compareTo(StorageValue other) {
+		return other instanceof NullValue ? 0 : super.compareTo(other);
 	}
 }

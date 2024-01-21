@@ -66,11 +66,10 @@ public final class FloatValueImpl extends AbstractStorageValue implements FloatV
 
 	@Override
 	public int compareTo(StorageValue other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
+		if (other instanceof FloatValue fv)
+			return Float.compare(value, fv.getValue());
 		else
-			return Float.compare(value, ((FloatValueImpl) other).value);
+			return super.compareTo(other);
 	}
 
 	@Override
