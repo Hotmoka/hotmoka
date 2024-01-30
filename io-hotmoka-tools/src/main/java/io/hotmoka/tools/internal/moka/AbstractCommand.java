@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -34,6 +33,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.OutOfGasError;
@@ -106,7 +106,7 @@ public abstract class AbstractCommand implements Runnable {
 			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(reference, _100_000, classpath, MethodSignatures.PUBLIC_KEY, reference))).getValue();
 			// we compare it with what we reconstruct from entropy and password
-			String publicKeyAsGiven = Base64.getEncoder().encodeToString(algorithm.encodingOf(keys.getPublic())); // TODO
+			String publicKeyAsGiven = Base64.toBase64String(algorithm.encodingOf(keys.getPublic()));
 			if (!publicKeyAsGiven.equals(publicKeyAsFound))
 				throw new IllegalArgumentException("Incorrect password");
 		}

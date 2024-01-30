@@ -44,11 +44,4 @@ public interface CodeExecutionTransactionRequest<R extends CodeExecutionTransact
 	 * @return the method or constructor
 	 */
 	CodeSignature getStaticTarget();
-
-	/**
-	 * Marshals this object into a byte array, without taking its signature into account.
-	 * 
-	 * @return the byte array resulting from marshalling this object
-	 */
-	byte[] toByteArrayWithoutSignature();
 }

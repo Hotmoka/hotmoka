@@ -86,8 +86,7 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 		context.writeLengthAndArray(actuals);
 	}
 
-	@Override
-	public byte[] toByteArrayWithoutSignature() { // TODO: maybe protected?
+	public final byte[] toByteArrayWithoutSignature() {
 		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
