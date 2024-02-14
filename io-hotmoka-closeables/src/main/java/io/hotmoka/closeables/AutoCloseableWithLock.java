@@ -21,6 +21,8 @@ import java.util.function.Supplier;
 /**
  * An autocloseable with support for blocking calls to its methods after
  * it has been closed. Any attempt to call a method after closure will throw an exception.
+ * 
+ * @param <E> the type of exception thrown if {@link #mkScope()} is called after {@link #stopNewCalls()}
  */
 public abstract class AutoCloseableWithLock<E extends Exception> implements AutoCloseable {
 

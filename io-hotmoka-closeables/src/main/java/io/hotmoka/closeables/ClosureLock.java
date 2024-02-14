@@ -30,6 +30,11 @@ public class ClosureLock {
 	private final Object lock = new Object();
 
 	/**
+	 * Creates the lock.
+	 */
+	public ClosureLock() {}
+
+	/**
 	 * True if and only if the object has been closed already.
 	 */
 	@GuardedBy("lock")
@@ -38,6 +43,11 @@ public class ClosureLock {
 	@GuardedBy("lock")
 	private int currentCallsCount;
 
+	/**
+	 * A scope during which this lock is used, that is, calls to
+	 * {@link ClosureLock#stopNewCalls()} are blocked until all scopes
+	 * have been closed.
+	 */
 	public interface Scope extends AutoCloseable {
 		void close(); // no exception
 	}
