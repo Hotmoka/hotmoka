@@ -25,6 +25,7 @@ import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -173,7 +174,7 @@ public class InitializedNodeImpl implements InitializedNode {
 					StorageTypes.LONG, StorageTypes.LONG,
 					StorageTypes.BOOLEAN, StorageTypes.BOOLEAN, StorageTypes.BOOLEAN,
 					StorageTypes.STRING, StorageTypes.GAMETE, StorageTypes.LONG, function, function),
-			StorageValues.stringOf(consensus.getGenesisTime().toString()),
+			StorageValues.stringOf(consensus.getGenesisTime().toInstant(ZoneOffset.UTC).toString()),
 			StorageValues.stringOf(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
 			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()), StorageValues.booleanOf(consensus.allowsSelfCharged()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
