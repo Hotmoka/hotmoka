@@ -14,55 +14,52 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.closeables;
+package io.hotmoka.closeables.internal;
 
 import java.util.function.Supplier;
 
 import io.hotmoka.annotations.GuardedBy;
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.closeables.api.ClosureLock;
 
 /**
- * An object used in closeables whose methods must be disabled by throwing
+ * Implementation of an object used in closeables whose methods must be disabled by throwing
  * an exception after they have been closed. Moreover, the close
  * operation must wait for all methods to complete before closing the object.
  */
-public class ClosureLock {
+@ThreadSafe
+public class ClosureLockImpl implements ClosureLock {
 
 	private final Object lock = new Object();
 
 	/**
-	 * Creates the lock.
-	 */
-	public ClosureLock() {}
-
-	/**
-	 * True if and only if the object has been closed already.
+	 * True if and only if {@link #stopNewCalls()} has been called already.
 	 */
 	@GuardedBy("lock")
-	private boolean isClosed;
+	private boolean callsHaveBeenRequiredToStop;
 
 	@GuardedBy("lock")
 	private int currentCallsCount;
 
-	/**
-	 * A scope during which this lock is used, that is, calls to
-	 * {@link ClosureLock#stopNewCalls()} are blocked until all scopes
-	 * have been closed.
-	 */
-	public interface Scope extends AutoCloseable {
-		void close(); // no exception
-	}
-
-	/**
-	 * Yields a scope during which the object cannot be closed.
-	 * 
-	 * @param <E> the type of the supplied exception
-	 * @param exception the supplier of the exception thrown if the object is already closed
-	 * @return the scope
-	 * @throws E if the object is already closed
-	 */
+	@Override
 	public <E extends Exception> Scope scope(Supplier<E> exception) throws E {
 		beforeCall(exception);
 		return this::afterCall;
+	}
+
+	@Override
+	public boolean stopNewCalls() throws InterruptedException {
+		synchronized (lock) {
+			if (callsHaveBeenRequiredToStop)
+				return false;
+	
+			callsHaveBeenRequiredToStop = true;
+	
+			if (currentCallsCount > 0)
+				lock.wait();
+	
+			return true;
+		}
 	}
 
 	/**
@@ -74,7 +71,7 @@ public class ClosureLock {
 	 */
 	private <E extends Exception> void beforeCall(Supplier<E> exception) throws E {
 		synchronized (lock) {
-			if (isClosed)
+			if (callsHaveBeenRequiredToStop)
 				throw exception.get();
 
 			currentCallsCount++;
@@ -88,28 +85,6 @@ public class ClosureLock {
 		synchronized (lock) {
 			if (--currentCallsCount == 0)
 				lock.notifyAll();
-		}
-	}
-
-	/**
-	 * Stops future new calls and waits for all unfinished calls to complete.
-	 * 
-	 * @return true if and only if it actually stopped new calls, false if
-	 *         this situation already held, because it was already requested
-	 * @throws InterruptedException if the execution gets interrupted while
-	 *                              waiting for unfinished calls to complete
-	 */
-	public boolean stopNewCalls() throws InterruptedException {
-		synchronized (lock) {
-			if (isClosed)
-				return false;
-
-			isClosed = true;
-	
-			if (currentCallsCount > 0)
-				lock.wait();
-	
-			return true;
 		}
 	}
 }

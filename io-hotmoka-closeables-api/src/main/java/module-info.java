@@ -15,11 +15,10 @@ limitations under the License.
 */
 
 /**
- * This module defines utility methods for closeable objects.
+ * This module defines the API of utility methods for closeable objects.
  */
-module io.hotmoka.closeables {
-	exports io.hotmoka.closeables;
+module io.hotmoka.closeables.api {
+	exports io.hotmoka.closeables.api;
 
-	requires transitive io.hotmoka.closeables.api;
 	requires io.hotmoka.annotations;
 }

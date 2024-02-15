@@ -14,22 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.closeables;
+package io.hotmoka.closeables.internal;
 
 import java.util.function.Supplier;
 
+import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.closeables.ClosureLocks;
+import io.hotmoka.closeables.api.ClosureLock;
+
 /**
- * An autocloseable with support for blocking calls to its methods after
+ * Partial implementation of an autocloseable with support for blocking calls to its methods after
  * it has been closed. Any attempt to call a method after closure will throw an exception.
  * 
  * @param <E> the type of exception thrown if {@link #mkScope()} is called after {@link #stopNewCalls()}
  */
-public abstract class AutoCloseableWithLock<E extends Exception> implements AutoCloseable {
+@ThreadSafe
+public abstract class AutoCloseableWithLockImpl<E extends Exception> implements AutoCloseable {
 
 	/**
 	 * The lock used to block new calls after closure.
 	 */
-	private final ClosureLock closureLock = new ClosureLock();
+	private final ClosureLock closureLock = ClosureLocks.create();
 
 	/**
 	 * The supplier of the exception that must be thrown when attempting
@@ -43,7 +48,7 @@ public abstract class AutoCloseableWithLock<E extends Exception> implements Auto
 	 * @param exceptionSupplier the supplier of the exception that must be thrown when attempting
 	 *                          to create a call scope after closure
 	 */
-	protected AutoCloseableWithLock(Supplier<E> exceptionSupplier) {
+	protected AutoCloseableWithLockImpl(Supplier<E> exceptionSupplier) {
 		this.exceptionSupplier = exceptionSupplier;
 	}
 

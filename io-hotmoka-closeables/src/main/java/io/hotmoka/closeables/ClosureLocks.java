@@ -14,12 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines utility methods for closeable objects.
- */
-module io.hotmoka.closeables {
-	exports io.hotmoka.closeables;
+package io.hotmoka.closeables;
 
-	requires transitive io.hotmoka.closeables.api;
-	requires io.hotmoka.annotations;
+import io.hotmoka.closeables.api.ClosureLock;
+import io.hotmoka.closeables.internal.ClosureLockImpl;
+
+/**
+ * Provider of closure locks.
+ */
+public final class ClosureLocks {
+
+	private ClosureLocks() {}
+
+	/**
+	 * Yields a new closure lock.
+	 * 
+	 * @return the new closure lock
+	 */
+	public static ClosureLock create() {
+		return new ClosureLockImpl();
+	}
 }

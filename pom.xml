@@ -125,6 +125,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-marshalling</module>
     <module>io-hotmoka-exceptions</module>
     <module>io-hotmoka-closeables</module>
+    <module>io-hotmoka-closeables-api</module>
   </modules>
 
   <dependencies>
@@ -321,6 +322,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 io-hotmoka-marshalling-api,
                 io-hotmoka-exceptions,
                 io-hotmoka-closeables,
+                io-hotmoka-closeables-api,
 
                 <!-- we exclude all modules that go into the explicit folder -->
                 it-univr-bcel,

@@ -14,12 +14,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines utility methods for closeable objects.
- */
-module io.hotmoka.closeables {
-	exports io.hotmoka.closeables;
+package io.hotmoka.closeables.api;
 
-	requires transitive io.hotmoka.closeables.api;
-	requires io.hotmoka.annotations;
+import io.hotmoka.annotations.ThreadSafe;
+
+/**
+ * A container of close handlers.
+ */
+@ThreadSafe
+public interface CloseHandlersContainer {
+
+	/**
+	 * Takes note that the given code must be executed when this object gets closed.
+	 * 
+	 * @param handler the code
+	 */
+	void addCloseHandler(CloseHandler handler);
+
+	/**
+	 * Removes the given code from that executed when this object gets closed.
+	 * 
+	 * @param handler the code
+	 */
+	void removeCloseHandler(CloseHandler handler);
 }
