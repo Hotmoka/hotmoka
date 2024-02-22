@@ -18,21 +18,21 @@ package io.hotmoka.closeables.internal;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.CloseHandlersManagers;
-import io.hotmoka.closeables.api.CloseHandler;
-import io.hotmoka.closeables.api.CloseHandlersContainer;
-import io.hotmoka.closeables.api.CloseHandlersManager;
+import io.hotmoka.closeables.api.OnCloseHandler;
+import io.hotmoka.closeables.api.OnCloseHandlersContainer;
+import io.hotmoka.closeables.api.OnCloseHandlersManager;
 
 /**
  * Partial implementation of an autocloseable with support close handlers, that must be called when the
  * object gets closed.
  */
 @ThreadSafe
-public abstract class AutoCloseableWithCloseHandlersImpl implements CloseHandlersContainer, AutoCloseable {
+public abstract class AutoCloseableWithCloseHandlersImpl implements OnCloseHandlersContainer, AutoCloseable {
 
 	/**
 	 * The close handlers manager.
 	 */
-	private final CloseHandlersManager manager = CloseHandlersManagers.create();
+	private final OnCloseHandlersManager manager = CloseHandlersManagers.create();
 
 	/**
 	 * Creates the autocloseable.
@@ -40,13 +40,13 @@ public abstract class AutoCloseableWithCloseHandlersImpl implements CloseHandler
 	protected AutoCloseableWithCloseHandlersImpl() {}
 
 	@Override
-	public void addCloseHandler(CloseHandler handler) {
-		manager.addCloseHandler(handler);
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		manager.addOnCloseHandler(handler);
 	}
 
 	@Override
-	public void removeCloseHandler(CloseHandler handler) {
-		manager.removeCloseHandler(handler);
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		manager.removeOnCloseHandler(handler);
 	}
 
 	/**

@@ -19,36 +19,36 @@ package io.hotmoka.closeables.internal;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.closeables.api.CloseHandler;
-import io.hotmoka.closeables.api.CloseHandlersManager;
+import io.hotmoka.closeables.api.OnCloseHandler;
+import io.hotmoka.closeables.api.OnCloseHandlersManager;
 
 /**
  * An implementation of a container of close handlers that, when closed, calls all the registered handlers.
  */
 @ThreadSafe
-public class CloseHandlersManagerImpl implements CloseHandlersManager {
+public class CloseHandlersManagerImpl implements OnCloseHandlersManager {
 
 	/**
 	 * The handlers to run when this object gets closed.
 	 */
-	private final CopyOnWriteArrayList<CloseHandler> onCloseHandlers = new CopyOnWriteArrayList<>();
+	private final CopyOnWriteArrayList<OnCloseHandler> onCloseHandlers = new CopyOnWriteArrayList<>();
 
 	@Override
-	public void addCloseHandler(CloseHandler handler) {
+	public void addOnCloseHandler(OnCloseHandler handler) {
 		onCloseHandlers.add(handler);
 	}
 
 	@Override
-	public void removeCloseHandler(CloseHandler handler) {
+	public void removeOnCloseHandler(OnCloseHandler handler) {
 		onCloseHandlers.add(handler);
 	}
 
 	@Override
 	public void close() throws InterruptedException, Exception {
-		callCloseHandlers(onCloseHandlers.toArray(CloseHandler[]::new), 0);
+		callCloseHandlers(onCloseHandlers.toArray(OnCloseHandler[]::new), 0);
 	}
 
-	private void callCloseHandlers(CloseHandler[] handlers, int pos) throws InterruptedException, Exception {
+	private void callCloseHandlers(OnCloseHandler[] handlers, int pos) throws InterruptedException, Exception {
 		if (pos < handlers.length) {
 			try {
 				handlers[pos].close();

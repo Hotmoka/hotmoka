@@ -16,16 +16,25 @@ limitations under the License.
 
 package io.hotmoka.closeables.api;
 
+import io.hotmoka.annotations.ThreadSafe;
+
 /**
- * Code executed when the object gets closed.
+ * A container of close handlers.
  */
-public interface CloseHandler {
+@ThreadSafe
+public interface OnCloseHandlersContainer {
 
 	/**
-	 * The code to execute when the object gets closed.
+	 * Takes note that the given code must be executed when this object gets closed.
 	 * 
-	 * @throws Exception if the closure failed for some reason
-	 * @throws InterruptedException if the closure has been interrupted
+	 * @param handler the code
 	 */
-	void close() throws Exception, InterruptedException;
+	void addOnCloseHandler(OnCloseHandler handler);
+
+	/**
+	 * Removes the given code from that executed when this object gets closed.
+	 * 
+	 * @param handler the code
+	 */
+	void removeOnCloseHandler(OnCloseHandler handler);
 }

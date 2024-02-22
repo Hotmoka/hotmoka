@@ -20,9 +20,9 @@ import java.util.function.Supplier;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.CloseHandlersManagers;
-import io.hotmoka.closeables.api.CloseHandler;
-import io.hotmoka.closeables.api.CloseHandlersContainer;
-import io.hotmoka.closeables.api.CloseHandlersManager;
+import io.hotmoka.closeables.api.OnCloseHandler;
+import io.hotmoka.closeables.api.OnCloseHandlersContainer;
+import io.hotmoka.closeables.api.OnCloseHandlersManager;
 
 /**
  * Partial implementation of an autocloseable with support for blocking calls to its methods after
@@ -33,12 +33,12 @@ import io.hotmoka.closeables.api.CloseHandlersManager;
  * @param <E> the type of exception thrown if {@link #mkScope()} is called after {@link #stopNewCalls()}
  */
 @ThreadSafe
-public abstract class AutoCloseableWithLockAndHandlersImpl<E extends Exception> extends AutoCloseableWithLockImpl<E> implements CloseHandlersContainer, AutoCloseable {
+public abstract class AutoCloseableWithLockAndHandlersImpl<E extends Exception> extends AutoCloseableWithLockImpl<E> implements OnCloseHandlersContainer, AutoCloseable {
 
 	/**
 	 * The close handlers manager.
 	 */
-	private final CloseHandlersManager manager = CloseHandlersManagers.create();
+	private final OnCloseHandlersManager manager = CloseHandlersManagers.create();
 
 	/**
 	 * Creates the autocloseable.
@@ -51,13 +51,13 @@ public abstract class AutoCloseableWithLockAndHandlersImpl<E extends Exception> 
 	}
 
 	@Override
-	public void addCloseHandler(CloseHandler handler) {
-		manager.addCloseHandler(handler);
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		manager.addOnCloseHandler(handler);
 	}
 
 	@Override
-	public void removeCloseHandler(CloseHandler handler) {
-		manager.removeCloseHandler(handler);
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		manager.removeOnCloseHandler(handler);
 	}
 
 	/**

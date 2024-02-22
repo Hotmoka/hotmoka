@@ -22,7 +22,7 @@ import io.hotmoka.annotations.ThreadSafe;
  * A container of close handlers that, when closed, calls all the registered handlers.
  */
 @ThreadSafe
-public interface CloseHandlersManager extends CloseHandlersContainer, AutoCloseable {
+public interface OnCloseHandlersManager extends OnCloseHandlersContainer, AutoCloseable {
 
 	/**
 	 * Calls all close handlers added to this object. If any of them fails with an exception,
