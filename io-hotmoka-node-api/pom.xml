@@ -15,10 +15,10 @@
   </parent>
 
   <dependencies>
-	<dependency>
-      <groupId>io.hotmoka</groupId>
+    <dependency>
+      <groupId>io.hotmoka.annotations</groupId>
       <artifactId>io-hotmoka-annotations</artifactId>
-      <version>${hotmoka.version}</version>
+      <version>${io.hotmoka.annotations.version}</version>
     </dependency>
    	<dependency>
       <groupId>io.hotmoka</groupId>
