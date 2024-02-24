@@ -1,5 +1,5 @@
 # In order to create the image:
-#   docker buildx build -t hotmoka/tendermint-node:latest -f dockerfiles/tendermint-node/tendermint-node .
+#   docker buildx build --platform linux/amd64 -t hotmoka/tendermint-node:latest -f dockerfiles/tendermint-node/tendermint-node .
 
 # In order to publish a node at port 80:
 #   moka create-key

@@ -1,5 +1,5 @@
 # In order to create the image:
-#   docker build -t veroforchain/tendermint-node:latest -f dockerfiles/tendermint-node/blueknot-tendermint-node .
+#   docker buildx build --platform linux/amd64 -t veroforchain/tendermint-node:latest -f dockerfiles/tendermint-node/blueknot-tendermint-node .
 
 # In order to publish a node at port 80:
 #   moka create-key
