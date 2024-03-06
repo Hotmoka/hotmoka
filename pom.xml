@@ -33,6 +33,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
     <io.hotmoka.websockets.version>1.3.0</io.hotmoka.websockets.version>
     <io.hotmoka.exceptions.version>1.4.1</io.hotmoka.exceptions.version>
+    <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>
@@ -89,7 +90,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
   <modules>
     <module>io-takamaka-code</module>
     <module>io-hotmoka-constants</module>
-    <module>io-hotmoka-testing</module>
     <module>io-hotmoka-whitelisting-api</module>
     <module>io-hotmoka-whitelisting</module>
     <module>io-hotmoka-verification-api</module>
@@ -144,6 +144,12 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
       <version>5.3.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.testing</groupId>
+      <artifactId>io-hotmoka-testing</artifactId>
+      <version>${io.hotmoka.testing.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -282,7 +288,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
                 <!-- we exclude all modules built by Maven: their build will put them at the right place -->
                 io-takamaka-code,
                 io-hotmoka-constants,
-                io-hotmoka-testing,
                 io-hotmoka-instrumentation-api,
                 io-hotmoka-instrumentation,
                 io-hotmoka-verification-api,

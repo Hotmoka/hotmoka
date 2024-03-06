@@ -40,12 +40,6 @@
       <artifactId>bcel</artifactId>
       <version>6.7.0</version>
 	</dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-testing</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>test</scope>
-    </dependency>
 	<dependency>
 	  <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code</artifactId>

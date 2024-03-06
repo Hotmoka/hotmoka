@@ -50,12 +50,6 @@
       <artifactId>io-hotmoka-websockets-beans</artifactId>
       <version>${io.hotmoka.websockets.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-testing</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <profiles>
