@@ -15,14 +15,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up JDK 19
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '19'
       - name: Cache Maven packages
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
@@ -34,13 +34,13 @@ jobs:
       - name: Tar blue
         run: tar --transform='s/moka$/blue/' --transform='s/moka.bat$/blue.bat/' -cvf blue.tar modules/* moka moka.bat; gzip blue.tar
       - name: Upload moka
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: moka
           path: moka.tar.gz
         if: always()
       - name: Upload blue
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: blue
           path: blue.tar.gz
