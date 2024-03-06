@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.verification.internal;
 
 import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.lang.reflect.Executable;
@@ -52,6 +51,7 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.ReferenceType;
 import org.apache.bcel.generic.Type;
 
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.verification.api.Bootstraps;
 
 /**
@@ -362,7 +362,7 @@ public class BootstrapsImpl implements Bootstraps {
 		if (lambda.isPresent()) {
 			InstructionList instructions = lambda.get().getInstructionList();
 			if (instructions != null)
-				return check(ClassNotFoundException.class, () ->
+				return CheckSupplier.check(ClassNotFoundException.class, () ->
 					StreamSupport.stream(instructions.spliterator(), false).anyMatch(uncheck(this::leadsToEntry))
 				);
 		}

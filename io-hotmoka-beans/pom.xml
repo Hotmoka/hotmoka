@@ -26,9 +26,9 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
+      <groupId>io.hotmoka.exceptions</groupId>
       <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${hotmoka.version}</version>
+      <version>${io.hotmoka.exceptions.version}</version>
     </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>

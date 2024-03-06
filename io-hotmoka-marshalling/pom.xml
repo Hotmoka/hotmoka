@@ -20,11 +20,11 @@
 	  <artifactId>io-hotmoka-marshalling-api</artifactId>
 	  <version>${hotmoka.version}</version>
 	</dependency>
-	<dependency>
-	  <groupId>io.hotmoka</groupId>
-	  <artifactId>io-hotmoka-exceptions</artifactId>
-	  <version>${hotmoka.version}</version>
-	</dependency>
+    <dependency>
+      <groupId>io.hotmoka.exceptions</groupId>
+      <artifactId>io-hotmoka-exceptions</artifactId>
+      <version>${io.hotmoka.exceptions.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

@@ -116,10 +116,10 @@ public class ED25519 extends AbstractSignatureAlgorithmImpl {
     @Override
     public PublicKey publicKeyFromEncoding(byte[] encoded) throws InvalidKeySpecException {
     	try {
-    		Ed25519PublicKeyParameters publicKeyParams = new Ed25519PublicKeyParameters(encoded, 0);
+    		var publicKeyParams = new Ed25519PublicKeyParameters(encoded, 0);
 			return keyFactory.generatePublic(new X509EncodedKeySpec(SubjectPublicKeyInfoFactory.createSubjectPublicKeyInfo(publicKeyParams).getEncoded()));
 		}
-		catch (IOException e) {
+		catch (IOException | ArrayIndexOutOfBoundsException e) {
 			throw new InvalidKeySpecException(e);
 		}
     }
@@ -130,7 +130,7 @@ public class ED25519 extends AbstractSignatureAlgorithmImpl {
     		Ed25519PrivateKeyParameters privateKeyParams = new Ed25519PrivateKeyParameters(encoded, 0);
 			return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(PrivateKeyInfoFactory.createPrivateKeyInfo(privateKeyParams).getEncoded()));
 		}
-		catch (IOException e) {
+		catch (IOException | ArrayIndexOutOfBoundsException e) {
 			throw new InvalidKeySpecException(e);
 		}
    	}
