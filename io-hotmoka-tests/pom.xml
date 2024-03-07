@@ -44,10 +44,10 @@
       <version>${hotmoka.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
+   	<dependency>
+      <groupId>io.hotmoka.crypto</groupId>
       <artifactId>io-hotmoka-crypto</artifactId>
-      <version>${hotmoka.version}</version>
+      <version>${io.hotmoka.crypto.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
