@@ -154,7 +154,6 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
 		var response1 = TransactionResponses.methodCallSuccessful(result, false, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
-		System.out.println(encoded);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
 	}
@@ -164,7 +163,6 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	public void encodeDecodeWorksForVoidMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
 		var response1 = TransactionResponses.voidMethodCallSuccessful(false, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
-		System.out.println(encoded);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
 	}
