@@ -1,11 +1,16 @@
 package io.hotmoka.tests;
 
+import static io.hotmoka.crypto.Base64.toBase64String;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyPair;
-import java.util.Base64;
+import java.security.NoSuchAlgorithmException;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -17,17 +22,15 @@ import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 
 public class SignedRequests {
-    private static final KeyPair keys;
+    private static KeyPair keys;
 
-    static {
-        try {
-            keys = SignatureAlgorithms.ed25519().getKeyPair(Hex.fromHexString("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
-        } catch (Exception e) {
-            throw new ExceptionInInitializerError(e);
-        }
+    @BeforeAll
+    public void beforeAll() throws NoSuchAlgorithmException, HexConversionException {
+    	keys = SignatureAlgorithms.ed25519().getKeyPair(Hex.fromHexString("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
     }
 
     @Test
@@ -47,7 +50,7 @@ public class SignedRequests {
                 StorageValues.bigIntegerOf(999)
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("6QJdhtgsC/YSdy7wSjKUKaQ9CqsY0QgSGt7HXTvyeiTD56vughXdSmx1DNGSmqxwBpLkqrPX6jzDzpAJwsSSAw==", signature);
     }
 
@@ -66,7 +69,7 @@ public class SignedRequests {
                 StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("6h/4ZNDDOv93EOBxswheealsDLtVo9GYgkNEeeKNMny57vphpcenJUJepgRe9ecD6WKROT3LtJAOAKte0P5uDA==", signature);
     }
 
@@ -90,7 +93,7 @@ public class SignedRequests {
                 StorageValues.intOf(300)
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("FLCa/ygo2zc6gPcVt/px+uU//fK2d/4hosJhzA9B+ZxGlyXdIfV4hP1vqDTzpndKANOqGyZwfglCqv5fCr1ZBw==", signature);
     }
 
@@ -108,7 +111,7 @@ public class SignedRequests {
                 MethodSignatures.NONCE
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("8VRzrSRA4H+H79YeKTbXw76ESnjOV4DSDkJraqIssmD4XmHcu+q/yu/MyHEtgF9Hw6yyg3lNTc/U6xq39PtqDA==", signature);
     }
 
@@ -127,7 +130,7 @@ public class SignedRequests {
                 StorageValues.intOf(300)
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("BRV/S7Ra4m8I7FoDn1DU/aAOCjCOD0ScewTIhFtSEODo7mSEFxrE2+DSJQ10ipK/k6QLQEVGvnE79p0v7ijiBw==", signature);
     }
 
@@ -153,7 +156,7 @@ public class SignedRequests {
                 StorageValues.reference(TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"), BigInteger.ZERO)
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("wYcJfA/sT8qLBvctYu0jm0xst5XFTKr7/KbLhPLyuyzwaDFIjTwgC3VW+viGpexOZmZutTjYbLqB3dywulU+Dg==", signature);
     }
 
@@ -168,14 +171,14 @@ public class SignedRequests {
                 BigInteger.valueOf(5000),
                 BigInteger.valueOf(4000),
                 TransactionReferences.of("d0e496468c25fca59179885fa7c5ff4f440efbd0e0c96c2426b7997336619882"),
-                Marshallable.bytesOf("lambdas.jar")
+                bytesOf("lambdas.jar")
         );
 
-        String signature = toBase64(request.getSignature());
+        String signature = toBase64String(request.getSignature());
         assertEquals("ykpExl8XDss5Jy2h24g67vkdZJS4eEjbQy4OspyWnNCUVcCjvP9p/1WZu6l8dCmwq4BIh/HPN2dXWO5doE7VAA==", signature);
     }
 
-    private static String toBase64(byte[] bytes) {
-        return new String(Base64.getEncoder().encode(bytes));
+    private static byte[] bytesOf(String fileName) throws IOException {
+        return Files.readAllBytes(Paths.get("./jars/" + fileName));
     }
 }

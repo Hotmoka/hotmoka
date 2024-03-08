@@ -19,5 +19,5 @@ limitations under the License.
  */
 module io.hotmoka.patricia.api {
 	exports io.hotmoka.patricia.api;
-	requires io.hotmoka.marshalling.api;
+	requires expected;
 }

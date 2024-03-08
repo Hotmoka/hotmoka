@@ -27,6 +27,6 @@ module io.hotmoka.beans.api {
 	exports io.hotmoka.beans.api.updates;
 	exports io.hotmoka.beans.api.values;
 
-	requires transitive io.hotmoka.marshalling.api;
+	requires transitive expected;
 	requires io.hotmoka.annotations;
 }

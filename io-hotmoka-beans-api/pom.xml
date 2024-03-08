@@ -21,9 +21,9 @@
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
+      <groupId>io.hotmoka.marshalling</groupId>
       <artifactId>io-hotmoka-marshalling-api</artifactId>
-      <version>${hotmoka.version}</version>
+      <version>${io.hotmoka.marshalling.version}</version>
     </dependency>
   </dependencies>
 
