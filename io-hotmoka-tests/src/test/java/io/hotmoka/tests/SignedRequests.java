@@ -29,7 +29,7 @@ public class SignedRequests {
     private static KeyPair keys;
 
     @BeforeAll
-    public void beforeAll() throws NoSuchAlgorithmException, HexConversionException {
+    public static void beforeAll() throws NoSuchAlgorithmException, HexConversionException {
     	keys = SignatureAlgorithms.ed25519().getKeyPair(Hex.fromHexString("64ea6e847fd7c3c5403871f9e57d9f48"), "mysecret");
     }
 
