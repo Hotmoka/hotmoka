@@ -25,5 +25,4 @@ module io.hotmoka.instrumentation {
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.constants;
 	requires it.univr.bcel;
-	// TODO: dependency on takamaka in pom.xml ?
 }

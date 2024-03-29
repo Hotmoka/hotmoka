@@ -41,11 +41,17 @@
       <version>6.7.0</version>
 	</dependency>
 	<dependency>
-	  <groupId>io.hotmoka</groupId>
-      <artifactId>io-takamaka-code</artifactId>
-      <version>${takamaka.version}</version>
+      <groupId>org.jboss.shrinkwrap.resolver</groupId>
+      <artifactId>shrinkwrap-resolver-api-maven</artifactId>
+      <version>3.3.0</version>
       <scope>test</scope>
-	</dependency>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.shrinkwrap.resolver</groupId>
+      <artifactId>shrinkwrap-resolver-impl-maven</artifactId>
+      <version>3.3.0</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <profiles>

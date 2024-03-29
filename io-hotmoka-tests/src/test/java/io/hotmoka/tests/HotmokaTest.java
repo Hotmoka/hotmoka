@@ -39,6 +39,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
+
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -234,7 +236,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 		catch (NoSuchElementException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
-			var takamakaCode = Paths.get("../io-takamaka-code/target/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+			// with the Takamaka runtime, that we can find in the Maven repository
+			var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 			if (node instanceof TendermintNode tn)
 				TendermintInitializedNodes.of(tn, (ValidatorsConsensusConfig<?,?>) consensus, takamakaCode);
 			else

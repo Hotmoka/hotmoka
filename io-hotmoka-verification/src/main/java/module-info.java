@@ -26,5 +26,4 @@ module io.hotmoka.verification {
 	requires io.hotmoka.exceptions;
 	requires transitive org.apache.bcel;
 	requires static java.logging;
-	// TODO: dependency on takamaka in pom.xml ?
 }

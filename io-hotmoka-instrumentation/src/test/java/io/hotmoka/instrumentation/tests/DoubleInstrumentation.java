@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.stream.Stream;
 
+import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.constants.Constants;
@@ -42,7 +43,8 @@ class DoubleInstrumentation extends AbstractLoggedTests {
 	@Test
 	void translateTwice() throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
 		var origin = Paths.get("src","test","resources", "io-hotmoka-examples-lambdas.jar");
-		var classpath = Paths.get("../io-takamaka-code/target/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+		// the classpath consists of the Takamaka runtime, that we can find in the Maven repository
+		var classpath = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
 		var bytesOfClasspath = Files.readAllBytes(classpath);
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
