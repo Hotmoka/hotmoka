@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# this script runs the Moka command-line tool to Hotmoka
+# this script runs the Moka CLI to Hotmoka
 
-# let us determine the directory where this script is defined
+# let us determine the directory where this script is run
 # see https://stackoverflow.com/questions/59895/how-can-i-get-the-source-directory-of-a-bash-script-from-within-the-script-itsel
 
 SOURCE="${BASH_SOURCE[0]}"

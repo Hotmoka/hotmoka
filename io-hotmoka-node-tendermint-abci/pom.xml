@@ -52,13 +52,11 @@
       </plugin>
       <plugin>
         <artifactId>maven-jar-plugin</artifactId>
+        <version>3.3.0</version>
         <configuration>
 		  <excludes>
             <exclude>github.com/**</exclude> <!-- proto files are not used at run time -->
           </excludes>
-          <outputDirectory>
-            ../modules/automatic
-          </outputDirectory>
 	 	  <archive>
             <manifestEntries>
               <Automatic-Module-Name>io.hotmoka.node.tendermint.abci</Automatic-Module-Name>
