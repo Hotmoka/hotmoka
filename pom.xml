@@ -114,7 +114,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-remote</module>
     <module>io-hotmoka-patricia-api</module>
     <module>io-hotmoka-patricia</module>
-    <module>io-hotmoka-tools</module>
+    <module>io-hotmoka-moka</module>
     <module>io-hotmoka-stores</module>
     <module>io-hotmoka-node-disk-api</module>
     <module>io-hotmoka-node-disk</module>
