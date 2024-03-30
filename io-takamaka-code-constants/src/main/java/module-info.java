@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 /**
- * This module defines constants about Takamaka code classes.
+ * This module defines constants about the Takamaka support library.
  */
 module io.takamaka.code.constants {
 	exports io.takamaka.code.constants;

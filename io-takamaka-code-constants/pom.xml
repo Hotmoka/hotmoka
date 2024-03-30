@@ -2,11 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>io-hotmoka-constants</artifactId>
+  <artifactId>io-takamaka-code-constants</artifactId>
   <packaging>jar</packaging>
-  <name>io-hotmoka-constants</name>
-  <version>${hotmoka.version}</version>
-  <description>This module defines constants about Takamaka and Hotmoka.</description>
+  <name>io-takamaka-code-constants</name>
+  <version>${io.takamaka.code.version}</version>
+  <description>This module defines constants about the Takamaka support library.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

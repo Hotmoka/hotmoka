@@ -32,7 +32,7 @@ public final class Constants {
 		try (InputStream is = Constants.class.getClassLoader().getResourceAsStream("maven.properties")) {
 			var mavenProperties = new Properties();
 			mavenProperties.load(is);
-			TAKAMAKA_VERSION = mavenProperties.getProperty("takamaka.version");
+			TAKAMAKA_VERSION = mavenProperties.getProperty("io.takamaka.code.version");
 		}
 		catch (IOException e) {
 			throw new ExceptionInInitializerError(e);

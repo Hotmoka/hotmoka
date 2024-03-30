@@ -16,9 +16,8 @@
   <dependencies>
 	<dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-constants</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>test</scope>
+      <artifactId>io-takamaka-code-constants</artifactId>
+      <version>${io.takamaka.code.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>

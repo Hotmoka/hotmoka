@@ -5,8 +5,8 @@
   <artifactId>io-takamaka-code</artifactId>
   <packaging>jar</packaging>
   <name>io-takamaka-code</name>
-  <version>${takamaka.version}</version>
-  <description>This module defines the run-time library of the Takamaka language</description>
+  <version>${io.takamaka.code.version}</version>
+  <description>This module defines the support library of the Takamaka language.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>

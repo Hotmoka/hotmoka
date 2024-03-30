@@ -18,7 +18,7 @@ By using the maven-flatten-plugin, this pom.xml allows us to use properties to d
 the versions of the artifacts: the properties will be replaced by their value in the deployed artifacts.
 Moreover, this makes the parent pom useless, hence it is not deployed.
 Note: submodules whose artifact must be deployed on Maven Central must activate the Nexus staging plugin
-(see for instance the pom-xml of the io-hotmoka-constants submodule).
+(see for instance the pom-xml of the io-hotmoka-beans submodule).
 
 -->
 
@@ -29,7 +29,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.release>17</maven.compiler.release>
     <hotmoka.version>1.4.2</hotmoka.version>
-    <takamaka.version>1.0.14</takamaka.version>
+    <io.takamaka.code.version>1.0.14</io.takamaka.code.version>
     <io.hotmoka.annotations.version>1.4.1</io.hotmoka.annotations.version>
     <io.hotmoka.crypto.version>1.4.1</io.hotmoka.crypto.version>
     <io.hotmoka.websockets.version>1.3.0</io.hotmoka.websockets.version>
@@ -91,7 +91,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
   <!-- specific profiles might add more modules to these -->
   <modules>
     <module>io-takamaka-code</module>
-    <module>io-hotmoka-constants</module>
+    <module>io-takamaka-code-constants</module>
     <module>io-hotmoka-whitelisting-api</module>
     <module>io-hotmoka-whitelisting</module>
     <module>io-hotmoka-verification-api</module>

@@ -15,9 +15,9 @@
 
   <dependencies>
 	<dependency>
-        <groupId>io.hotmoka</groupId>
-        <artifactId>io-takamaka-code</artifactId>
-        <version>${takamaka.version}</version>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>${io.takamaka.code.version}</version>
     </dependency>
   </dependencies>
 

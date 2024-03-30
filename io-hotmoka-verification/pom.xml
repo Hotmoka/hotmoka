@@ -20,10 +20,10 @@
       <artifactId>io-hotmoka-verification-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
-	<dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-constants</artifactId>
-      <version>${hotmoka.version}</version>
+      <artifactId>io-takamaka-code-constants</artifactId>
+      <version>${io.takamaka.code.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
