@@ -55,7 +55,7 @@
               <goal>write-project-properties</goal>
             </goals>
             <configuration>
-              <outputFile>${project.build.outputDirectory}/maven.properties</outputFile>
+              <outputFile>${project.build.outputDirectory}/io.hotmoka.node.maven.properties</outputFile>
             </configuration>
           </execution>
         </executions>

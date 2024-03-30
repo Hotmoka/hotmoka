@@ -51,8 +51,8 @@ public abstract class AbstractNode extends AbstractNodeImpl {
 	}
 
 	static {
-		// we access the maven properties from the pom.xml file of the parent project
-		try (InputStream is = AbstractNode.class.getClassLoader().getResourceAsStream("maven.properties")) {
+		// we access the Maven properties from the pom.xml file of the project
+		try (InputStream is = AbstractNode.class.getModule().getResourceAsStream("io.hotmoka.node.maven.properties")) {
 			var mavenProperties = new Properties();
 			mavenProperties.load(is);
 			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
