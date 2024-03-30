@@ -24,7 +24,7 @@ import java.security.SignatureException;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.constants.Constants;
+import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -37,6 +37,6 @@ class GetNodeInfo extends HotmokaTest {
 	@Test @DisplayName("getNodeInfoworks")
 	void getNodeInfo() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		var nodeInfo = node.getNodeInfo();
-		assertEquals(Constants.HOTMOKA_VERSION, nodeInfo.getVersion());
+		assertEquals(AbstractNode.HOTMOKA_VERSION, nodeInfo.getVersion());
 	}
 }

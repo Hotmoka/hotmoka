@@ -66,6 +66,7 @@ import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -451,7 +452,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + Constants.HOTMOKA_VERSION + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractNode.HOTMOKA_VERSION + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

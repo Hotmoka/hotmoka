@@ -57,7 +57,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.TransactionException;
@@ -193,7 +192,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return NodeInfos.of(TendermintNode.class.getName(), Constants.HOTMOKA_VERSION, poster.getNodeID());
+		return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
 	}
 
 	@Override

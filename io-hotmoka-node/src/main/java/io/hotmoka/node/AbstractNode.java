@@ -16,6 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.internal.AbstractNodeImpl;
 
@@ -25,6 +29,11 @@ import io.hotmoka.node.internal.AbstractNodeImpl;
  */
 @ThreadSafe
 public abstract class AbstractNode extends AbstractNodeImpl {
+
+	/**
+	 * The version of Hotmoka used by the nodes.
+	 */
+	public final static String HOTMOKA_VERSION;
 
 	/**
 	 * Builds an abstract node.
@@ -39,5 +48,17 @@ public abstract class AbstractNode extends AbstractNodeImpl {
 	 */
 	protected AbstractNode(AbstractNode parent) {
 		super(parent);
+	}
+
+	static {
+		// we access the maven properties from the pom.xml file of the parent project
+		try (InputStream is = AbstractNode.class.getClassLoader().getResourceAsStream("maven.properties")) {
+			var mavenProperties = new Properties();
+			mavenProperties.load(is);
+			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
+		}
+		catch (IOException e) {
+			throw new ExceptionInInitializerError(e);
+		}
 	}
 }

@@ -28,22 +28,16 @@ public final class Constants {
 	private Constants() {}
 
 	static {
-		// we access the maven properties from the pom.xml file of the parent project
+		// we access the Maven properties from the pom.xml file of the parent project
 		try (InputStream is = Constants.class.getClassLoader().getResourceAsStream("maven.properties")) {
 			var mavenProperties = new Properties();
 			mavenProperties.load(is);
 			TAKAMAKA_VERSION = mavenProperties.getProperty("takamaka.version");
-			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
 		}
 		catch (IOException e) {
 			throw new ExceptionInInitializerError(e);
 		}
 	}
-
-	/**
-	 * The version of the Hotmoka code.
-	 */
-	public final static String HOTMOKA_VERSION;
 
 	/**
 	 * The version of the Takamaka code.

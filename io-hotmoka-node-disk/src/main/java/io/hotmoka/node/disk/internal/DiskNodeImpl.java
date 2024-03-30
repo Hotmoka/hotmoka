@@ -25,7 +25,6 @@ import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.api.DiskNode;
@@ -98,7 +97,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 
 	@Override
 	public NodeInfo getNodeInfo() {
-		return NodeInfos.of(DiskNode.class.getName(), Constants.HOTMOKA_VERSION, "");
+		return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
 	}
 
 	@Override
