@@ -24,11 +24,11 @@ import java.util.stream.Stream;
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerifiedJars;
+import io.takamaka.code.constants.Constants;
 
 /**
  * This test tries to verify the same jar twice. This checks

@@ -25,9 +25,9 @@ import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.takamaka.code.constants.Constants;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code.

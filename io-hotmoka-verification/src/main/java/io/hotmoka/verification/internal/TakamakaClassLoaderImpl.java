@@ -23,11 +23,11 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.ResolvingClassLoaders;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A class loader used to access the definition of the classes of a Takamaka program.

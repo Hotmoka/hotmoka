@@ -55,7 +55,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -90,6 +89,7 @@ import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
+import io.takamaka.code.constants.Constants;
 
 public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);

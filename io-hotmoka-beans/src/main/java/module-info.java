@@ -19,16 +19,15 @@ limitations under the License.
  */
 module io.hotmoka.beans {
 	exports io.hotmoka.beans;
-
 	// beans must be accessible, encoded and decoded by reflection through Gson
 	opens io.hotmoka.beans.internal.gson to com.google.gson;
 
 	requires transitive io.hotmoka.beans.api;
 	requires transitive io.hotmoka.marshalling;
-	requires io.hotmoka.constants;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
+	requires io.takamaka.code.constants;
 	requires com.google.gson;
 }

@@ -26,11 +26,11 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.NOP;
 import org.apache.bcel.generic.ObjectType;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.errors.CallerNotOnThisError;
 import io.hotmoka.verification.errors.CallerOutsideFromContractError;
 import io.hotmoka.verification.internal.CheckOnMethods;
 import io.hotmoka.verification.internal.VerifiedClassImpl;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A check that {@code caller()} is only used with {@code this} as receiver

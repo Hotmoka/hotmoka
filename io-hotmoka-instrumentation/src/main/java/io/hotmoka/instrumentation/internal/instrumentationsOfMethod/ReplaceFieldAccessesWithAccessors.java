@@ -37,10 +37,10 @@ import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.PUTFIELD;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
+import io.takamaka.code.constants.Constants;
 
 /**
  * Replaces accesses to fields of storage classes with calls to accessor methods.

@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.updates.ClassTag;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -34,6 +33,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
+import io.takamaka.code.constants.Constants;
 
 class PrintAPI {
 	private final Class<?> clazz;

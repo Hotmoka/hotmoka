@@ -33,11 +33,11 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.takamaka.code.constants.Constants;
 
 public class Faucet extends HotmokaTest {
 

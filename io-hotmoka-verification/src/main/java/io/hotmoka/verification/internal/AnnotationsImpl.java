@@ -32,9 +32,9 @@ import org.apache.bcel.Const;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.verification.api.Annotations;
 import io.hotmoka.whitelisting.WhitelistingConstants;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A utility to check the annotations of the methods in a given jar.

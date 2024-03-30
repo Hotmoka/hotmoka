@@ -22,7 +22,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
@@ -37,6 +36,7 @@ import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.service.api.NodeServiceConfig;
+import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;

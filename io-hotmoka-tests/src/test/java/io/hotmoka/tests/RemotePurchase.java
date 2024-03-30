@@ -46,11 +46,11 @@ import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the remote purchase contract.

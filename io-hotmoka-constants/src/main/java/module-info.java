@@ -15,8 +15,8 @@ limitations under the License.
 */
 
 /**
- * This module defines constants about Takamaka and Hotmoka.
+ * This module defines constants about Takamaka code classes.
  */
-module io.hotmoka.constants {
-	exports io.hotmoka.constants;
+module io.takamaka.code.constants {
+	exports io.takamaka.code.constants;
 }

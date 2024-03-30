@@ -57,7 +57,7 @@ import io.hotmoka.whitelisting.WhitelistingConstants;
  * at the beginning of payable {@code @@FromContract}.
  */
 public class SetCallerAndBalanceAtTheBeginningOfFromContracts extends MethodLevelInstrumentation {
-	private final static ObjectType CONTRACT_OT = new ObjectType(io.hotmoka.constants.Constants.CONTRACT_NAME);
+	private final static ObjectType CONTRACT_OT = new ObjectType(io.takamaka.code.constants.Constants.CONTRACT_NAME);
 	private final static ObjectType OBJECT_OT = new ObjectType(Object.class.getName());
 	private final static ObjectType DUMMY_OT = new ObjectType(WhitelistingConstants.DUMMY_NAME);
 	private final static Type[] FROM_CONTRACT_ARGS = { OBJECT_OT, OBJECT_OT };

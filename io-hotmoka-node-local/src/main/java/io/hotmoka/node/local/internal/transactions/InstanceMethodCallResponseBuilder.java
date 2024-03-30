@@ -37,9 +37,9 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.takamaka.code.constants.Constants;
 
 /**
  * The builder of the response of a transaction that executes an instance method of Takamaka code.

@@ -32,9 +32,9 @@ module io.hotmoka.node.local {
 	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.verification;
-	requires io.hotmoka.constants;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
+	requires io.takamaka.code.constants;
 	requires toml4j;
 	requires java.logging;
 }

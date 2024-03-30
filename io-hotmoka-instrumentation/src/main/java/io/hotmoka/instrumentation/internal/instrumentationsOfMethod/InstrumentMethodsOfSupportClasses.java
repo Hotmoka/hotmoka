@@ -27,11 +27,11 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.WhitelistingConstants;
+import io.takamaka.code.constants.Constants;
 
 /**
  * Edits the code of the methods in some support classes of Takamaka.

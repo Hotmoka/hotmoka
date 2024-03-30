@@ -39,11 +39,11 @@ import org.apache.bcel.generic.MethodGen;
 import org.apache.bcel.generic.ObjectType;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.MethodLevelInstrumentation;
 import io.hotmoka.whitelisting.WhitelistingConstants;
+import io.takamaka.code.constants.Constants;
 
 /**
  * Passes the trailing implicit parameters to calls to methods annotated as {@code @@FromContract}.

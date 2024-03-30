@@ -33,11 +33,11 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
+import io.takamaka.code.constants.Constants;
 
 class Encapsulation extends HotmokaTest {
 

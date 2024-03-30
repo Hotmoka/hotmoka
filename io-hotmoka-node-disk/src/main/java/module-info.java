@@ -23,7 +23,6 @@ module io.hotmoka.node.disk {
 
 	requires transitive io.hotmoka.node.disk.api;
 	requires transitive io.hotmoka.node.local.api;
-	requires io.hotmoka.constants;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.stores;

@@ -20,8 +20,8 @@ import java.math.BigInteger;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.takamaka.code.constants.Constants;
 
 /**
  * An object that translates RAM values into storage values.

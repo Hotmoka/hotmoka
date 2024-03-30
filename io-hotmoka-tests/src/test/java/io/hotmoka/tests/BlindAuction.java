@@ -46,12 +46,12 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A test for the blind auction contract.

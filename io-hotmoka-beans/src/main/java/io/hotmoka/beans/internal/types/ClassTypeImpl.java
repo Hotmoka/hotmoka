@@ -22,9 +22,9 @@ import java.util.Objects;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.takamaka.code.constants.Constants;
 
 /**
  * A class type that can be used for stored objects in blockchain.

@@ -27,10 +27,10 @@ import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
-import io.hotmoka.constants.Constants;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.takamaka.code.constants.Constants;
 
 /**
  * The signature of a field of a class.
