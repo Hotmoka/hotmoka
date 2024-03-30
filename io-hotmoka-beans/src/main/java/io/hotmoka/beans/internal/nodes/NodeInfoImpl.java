@@ -76,4 +76,9 @@ public class NodeInfoImpl implements NodeInfo {
 	public String getID() {
 		return ID;
 	}
+
+	@Override
+	public String toString() {
+		return "type: " + type + ", version: " + version + ", ID: " + ID;
+	}
 }

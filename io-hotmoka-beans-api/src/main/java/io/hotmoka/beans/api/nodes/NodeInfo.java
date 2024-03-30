@@ -41,4 +41,7 @@ public interface NodeInfo {
 
 	@Override
 	int hashCode();
+
+	@Override
+	String toString();
 }

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -42,7 +42,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
- * A test for {@link io.hotmoka.node.Node#getResponse(io.hotmoka.beans.references.TransactionReference)}.
+ * A test for {@link io.hotmoka.node.api.Node#getResponse(io.hotmoka.beans.api.transactions.TransactionReference)}.
  */
 class GetResponse extends HotmokaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);
@@ -66,15 +66,10 @@ class GetResponse extends HotmokaTest {
 
 	@Test @DisplayName("getResponse works for a non-existing transaction")
 	void getResponseNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
-			byte[] hash = abstractfail.getTransaction().getHash();
-			// we modify the first byte: the resulting transaction reference does not exist
-			hash[0]++;
-			getResponse(TransactionReferences.of(hash));
-			fail("missing exception");
-		}
-		catch (NoSuchElementException e) {
-		}
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		byte[] hash = abstractfail.getTransaction().getHash();
+		// we modify the first byte: the resulting transaction reference does not exist
+		hash[0]++;
+		assertThrows(NoSuchElementException.class, () -> getResponse(TransactionReferences.of(hash)));
 	}
 }

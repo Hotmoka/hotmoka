@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
@@ -23,7 +25,6 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +43,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
- * A test for {@link io.hotmoka.node.Node#getRequest(io.hotmoka.beans.references.TransactionReference)}.
+ * A test for {@link io.hotmoka.node.api.Node#getRequest(io.hotmoka.beans.api.transactions.TransactionReference)}.
  */
 class GetRequest extends HotmokaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);
@@ -61,21 +62,18 @@ class GetRequest extends HotmokaTest {
 	void getRequest() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionRequest<?> request = getRequest(abstractfail.getTransaction());
-		Assertions.assertTrue(request instanceof ConstructorCallTransactionRequest);
-		Assertions.assertEquals(account(0), ((ConstructorCallTransactionRequest) request).getCaller());
+		if (request instanceof ConstructorCallTransactionRequest cctr)
+			assertEquals(account(0), cctr.getCaller());
+		else
+			fail();
 	}
 
 	@Test @DisplayName("getRequest works for a non-existing transaction")
 	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		try {
-			StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
-			byte[] hash = abstractfail.getTransaction().getHash();
-			// we modify the first byte: the resulting transaction reference does not exist
-			hash[0]++;
-			getRequest(TransactionReferences.of(hash));
-			fail("missing exception");
-		}
-		catch (NoSuchElementException e) {
-		}
+		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
+		byte[] hash = abstractfail.getTransaction().getHash();
+		// we modify the first byte: the resulting transaction reference does not exist
+		hash[0]++;
+		assertThrows(NoSuchElementException.class, () -> getRequest(TransactionReferences.of(hash)));
 	}
 }
