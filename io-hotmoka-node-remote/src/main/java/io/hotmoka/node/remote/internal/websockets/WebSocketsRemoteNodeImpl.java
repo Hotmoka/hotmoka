@@ -182,13 +182,13 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull
-                (() -> dealWithReturnVoid(request, send("/run/staticMethodCallTransaction", StorageValueModel.class, new StaticMethodCallTransactionRequestModel(request))));
+        	(() -> dealWithReturnVoid(request, send("/run/staticMethodCallTransaction", StorageValueModel.class, new StaticMethodCallTransactionRequestModel(request))));
     }
 
     @Override
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple
-                (() -> send("/post/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
+        	(() -> send("/post/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(reference));
     }
@@ -196,7 +196,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple
-                (() -> send("/post/constructorCallTransaction", TransactionReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
+        	(() -> send("/post/constructorCallTransaction", TransactionReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(reference));
     }
@@ -204,7 +204,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple
-                (() -> send("/post/instanceMethodCallTransaction", TransactionReferenceModel.class, new InstanceMethodCallTransactionRequestModel(request)).toBean());
+        	(() -> send("/post/instanceMethodCallTransaction", TransactionReferenceModel.class, new InstanceMethodCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
     }
@@ -212,7 +212,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple
-                (() -> send("/post/staticMethodCallTransaction", TransactionReferenceModel.class, new StaticMethodCallTransactionRequestModel(request)).toBean());
+        	(() -> send("/post/staticMethodCallTransaction", TransactionReferenceModel.class, new StaticMethodCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
     }

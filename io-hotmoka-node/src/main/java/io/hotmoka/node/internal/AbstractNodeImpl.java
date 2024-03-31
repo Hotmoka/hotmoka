@@ -16,10 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.internal;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
@@ -57,6 +60,23 @@ public abstract class AbstractNodeImpl implements Node {
 	protected final static Logger logger = Logger.getLogger(Node.class.getName());
 
 	/**
+	 * The version of Hotmoka used by the nodes.
+	 */
+	public final static String HOTMOKA_VERSION;
+
+	static {
+		// we access the Maven properties from the pom.xml file of the project
+		try (InputStream is = AbstractNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.maven.properties")) {
+			var mavenProperties = new Properties();
+			mavenProperties.load(is);
+			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
+		}
+		catch (IOException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	/**
 	 * A map from each key of events to the subscription with this node for that key.
 	 * The {@code null} key is allowed, meaning that the subscriptions are for all keys.
 	 */
@@ -67,15 +87,6 @@ public abstract class AbstractNodeImpl implements Node {
 	 */
 	protected AbstractNodeImpl() {
 		this.subscriptions = new HashMap<>();
-	}
-
-	/**
-	 * Builds a shallow clone of the given node.
-	 * 
-	 * @param parent the node to clone
-	 */
-	protected AbstractNodeImpl(AbstractNodeImpl parent) {
-		this.subscriptions = parent.subscriptions;
 	}
 
 	@Override
