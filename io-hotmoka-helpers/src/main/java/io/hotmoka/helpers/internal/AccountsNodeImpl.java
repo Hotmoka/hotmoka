@@ -62,6 +62,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -113,8 +114,9 @@ public class AccountsNodeImpl implements AccountsNode {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException {
 		this.parent = parent;
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
@@ -230,12 +232,12 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() {
+	public NodeInfo getNodeInfo() throws NodeException {
 		return parent.getNodeInfo();
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
 		return parent.getClassTag(reference);
 	}
 

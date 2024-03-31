@@ -53,6 +53,7 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -133,7 +134,7 @@ class WTSC2021bis extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException e) {
+				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException | NodeException e) {
 			throw new RuntimeException(e);
 		}
 	}

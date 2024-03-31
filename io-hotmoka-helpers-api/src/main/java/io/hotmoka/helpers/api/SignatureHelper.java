@@ -22,6 +22,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -41,6 +42,7 @@ public interface SignatureHelper {
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException;
+	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException;
 }

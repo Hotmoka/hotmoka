@@ -59,6 +59,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -97,8 +98,9 @@ public class JarsNodeImpl implements JarsNode {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException 
 	 * @throws ClassNotFoundException 
+	 * @throws NodeException if the node is not able to perform the operation
      */
-	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
@@ -155,12 +157,12 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() {
+	public NodeInfo getNodeInfo() throws NodeException {
 		return parent.getNodeInfo();
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
 		return parent.getClassTag(reference);
 	}
 

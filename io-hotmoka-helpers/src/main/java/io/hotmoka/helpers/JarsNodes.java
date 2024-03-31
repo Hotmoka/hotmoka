@@ -29,6 +29,7 @@ import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.helpers.internal.JarsNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -60,8 +61,9 @@ public class JarsNodes {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException if the node is not able to perform the operation
      */
-	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+	public static JarsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException {
 		return new JarsNodeImpl(parent, payer, privateKeyOfPayer, jars);
 	}
 }

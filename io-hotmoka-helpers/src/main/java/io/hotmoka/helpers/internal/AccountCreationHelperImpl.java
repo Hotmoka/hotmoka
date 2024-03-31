@@ -22,6 +22,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.ConstructorSignatures;
@@ -49,6 +50,7 @@ import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -85,7 +87,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	@Override
 	public StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
@@ -128,7 +130,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
 
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
@@ -202,7 +204,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	@Override
 	public StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, NodeException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
@@ -229,7 +231,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	public StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
 
 		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 

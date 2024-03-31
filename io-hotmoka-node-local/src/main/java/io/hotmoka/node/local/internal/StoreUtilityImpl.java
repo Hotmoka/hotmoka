@@ -18,6 +18,7 @@ package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Level;
@@ -159,16 +160,15 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	@Override
-	public ClassTag getClassTagUncommitted(StorageReference reference) {
+	public ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
 		// we go straight to the transaction that created the object
-		Optional<TransactionResponse> response = node.getCaches().getResponseUncommitted(reference.getTransaction());
-		if (response.get() instanceof TransactionResponseWithUpdates trwu)
-			return trwu.getUpdates()
-					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
-					.map(update -> (ClassTag) update)
-					.findFirst().get();
-		else
-			throw new RuntimeException("Transaction reference " + reference.getTransaction() + " does not contain updates");
+		return node.getCaches().getResponseUncommitted(reference.getTransaction())
+			.filter(response -> response instanceof TransactionResponseWithUpdates)
+			.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
+				.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+				.map(update -> (ClassTag) update)
+				.findFirst())
+			.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
 	}
 
 	@Override

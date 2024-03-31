@@ -22,6 +22,7 @@ import java.util.NoSuchElementException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -39,7 +40,8 @@ public interface NonceHelper {
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
-	 * @throws NoSuchElementException if the class of the account cannot be determined
+	 * @throws NoSuchElementException if the {@code account} cannot be found
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException;
+	BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException, NodeException;
 }

@@ -49,6 +49,7 @@ import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -172,7 +173,7 @@ public class Call extends AbstractCommand {
 			}
 		}
 
-		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException {
+		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException, NodeException {
 			try {
 				return classloader.loadClass(Call.this.receiver);
 			}

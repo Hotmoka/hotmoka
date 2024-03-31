@@ -27,6 +27,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -53,11 +54,12 @@ public interface SendCoinsHelper {
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
 
 	/**
 	 * Sends coins to an account, by letting the faucet of the node pay.
@@ -74,8 +76,9 @@ public interface SendCoinsHelper {
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
 }

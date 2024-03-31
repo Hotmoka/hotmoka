@@ -27,6 +27,7 @@ import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -47,6 +48,7 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -135,7 +137,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
-	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException {
+	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException, NoSuchElementException, NodeException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var received = new CompletableFuture<StorageReference>();
@@ -152,7 +154,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated, subscription without key")
-	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException {
+	void buyerHonestConfirmationEventNoKey() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, NodeException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		List<StorageReference> received = new ArrayList<>();
@@ -166,7 +168,16 @@ class RemotePurchase extends HotmokaTest {
 			Thread.sleep(10_000);
 		}
 
-		assertTrue(received.stream().anyMatch(event -> PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName())));
+		assertTrue(received.stream().anyMatch(this::isPurchaseConfirmedName));
+	}
+
+	private boolean isPurchaseConfirmedName(StorageReference event) {
+		try {
+			return PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName());
+		}
+		catch (NodeException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); subscription is closed and no purchase event is handled")

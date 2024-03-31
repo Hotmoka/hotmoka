@@ -76,11 +76,12 @@ public interface Node extends AutoCloseable {
 
 	/**
 	 * Yields node-specific information about the node. This is likely different for each node
-	 * of the network, hence are out of consensus.
+	 * of the network, hence this is not consensus information.
 	 * 
 	 * @return the node-specific information about the node
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	NodeInfo getNodeInfo();
+	NodeInfo getNodeInfo() throws NodeException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.
@@ -92,10 +93,10 @@ public interface Node extends AutoCloseable {
 	 * 
 	 * @param object the storage reference of the object
 	 * @return the class tag, if any
-	 * @throws NoSuchElementException if there is no object with that reference or
-	 *                                if the class tag could not be found
+	 * @throws NoSuchElementException if there is no object with that reference
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException;
+	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.

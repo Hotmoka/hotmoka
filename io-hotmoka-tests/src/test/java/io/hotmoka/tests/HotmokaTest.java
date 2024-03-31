@@ -74,6 +74,7 @@ import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.ConsensusConfigBuilder;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
@@ -190,9 +191,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        // Change this to test with different node implementations
 	        Node wrapped;
-	        node = wrapped = mkMemoryBlockchain();
+	        node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        //node = mkRemoteNode(wrapped = mkMemoryBlockchain());
+	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
@@ -271,7 +272,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkMemoryBlockchain() throws NoSuchAlgorithmException {
+	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException {
 		var consensus = fillConsensusConfig(SimpleConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 
@@ -308,31 +309,31 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return RemoteNodes.of(remoteNodeConfig);
 	}
 
-	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
+	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
-	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException {
+	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException {
 		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException {
+	protected final void setAccounts(String containerClassName, TransactionReference classpath, Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException {
 		setAccounts(containerClassName, classpath, coins.toArray(BigInteger[]::new));
 	}
 
-	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
+	protected final void setGreenRedAccounts(BigInteger... coins) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException, NodeException {
 		nodeWithAccountsView = AccountsNodes.ofGreenRed(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
-	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException {
+	protected static void setJar(String jar) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NoSuchElementException, ClassNotFoundException, NodeException {
 		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 

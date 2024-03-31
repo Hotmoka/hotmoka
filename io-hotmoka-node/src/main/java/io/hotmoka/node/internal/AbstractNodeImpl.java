@@ -19,6 +19,7 @@ package io.hotmoka.node.internal;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.BiConsumer;
@@ -79,8 +80,7 @@ public abstract class AbstractNodeImpl implements Node {
 
 	@Override
 	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
-		if (handler == null)
-			throw new NullPointerException("the handler cannot be null");
+		Objects.requireNonNull(handler, "the handler cannot be null");
 
 		var subscription = new SubscriptionImpl(creator, handler);
 

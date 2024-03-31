@@ -29,6 +29,7 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -58,10 +59,11 @@ public interface AccountCreationHelper {
 	 * @throws CodeExecutionException if some transaction generated an exception
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException;
 
 	/**
 	 * Creates a new account by letting another account pay.
@@ -84,13 +86,14 @@ public interface AccountCreationHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer is unknown
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
 
 	/**
 	 * Creates a new Tendermint validator by letting the faucet pay.
@@ -106,10 +109,11 @@ public interface AccountCreationHelper {
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException;
 
 	/**
 	 * Creates a new Tendermint validator by letting another account pay.
@@ -129,9 +133,10 @@ public interface AccountCreationHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer is unknown
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
 	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
 }

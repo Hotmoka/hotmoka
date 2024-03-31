@@ -26,6 +26,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -46,7 +47,7 @@ public class NonceHelperImpl implements NonceHelper {
 	}
 
 	@Override
-	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException {
+	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, NoSuchElementException, TransactionException, CodeExecutionException, NodeException {
 		// we ask the account: 100,000 units of gas should be enough to run the method
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))).getValue();

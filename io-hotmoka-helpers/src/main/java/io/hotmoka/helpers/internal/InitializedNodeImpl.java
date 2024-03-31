@@ -60,6 +60,7 @@ import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -271,12 +272,12 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() {
+	public NodeInfo getNodeInfo() throws NodeException {
 		return parent.getNodeInfo();
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
 		return parent.getClassTag(reference);
 	}
 

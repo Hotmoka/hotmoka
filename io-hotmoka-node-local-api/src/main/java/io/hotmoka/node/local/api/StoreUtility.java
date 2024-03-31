@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -156,8 +157,9 @@ public interface StoreUtility {
 	 * 
 	 * @param object the object
 	 * @return the class tag
+	 * @throws NoSuchElementException if {@code object} does not exist
 	 */
-	ClassTag getClassTagUncommitted(StorageReference object);
+	ClassTag getClassTagUncommitted(StorageReference object) throws NoSuchElementException;
 
 	/**
 	 * Yields the uncommitted eager fields of the given object, that is, their last updates, possibly still uncommitted.

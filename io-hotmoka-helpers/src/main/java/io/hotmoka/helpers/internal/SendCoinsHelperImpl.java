@@ -25,6 +25,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.MethodSignatures;
@@ -45,6 +46,7 @@ import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -82,7 +84,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	public void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
 
 		var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(keysOfPayer.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -118,7 +120,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	@Override
 	public void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));

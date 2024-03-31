@@ -30,6 +30,7 @@ import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.takamaka.code.constants.Constants;
@@ -60,8 +61,9 @@ public class AccountsNodes {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException if the node is not able to perform the operation
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException, NodeException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), false, funds);
 	}
 
@@ -86,8 +88,9 @@ public class AccountsNodes {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException if the node is not able to perform the operation
      */
-	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException {
+	public static AccountsNode of(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, containerClassName, classpath, false, funds);
 	}
 
@@ -109,8 +112,9 @@ public class AccountsNodes {
 	 * @throws InvalidKeyException if some key used for signing transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signature algorithm of {@code parent} is not available
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException if the node is not able to perform the operation
      */
-	public static AccountsNode ofGreenRed(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException {
+	public static AccountsNode ofGreenRed(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, ClassNotFoundException, NodeException {
 		return new AccountsNodeImpl(parent, payer, privateKeyOfPayer, Constants.EXTERNALLY_OWNED_ACCOUNTS_NAME, parent.getTakamakaCode(), true, funds);
 	}
 }
