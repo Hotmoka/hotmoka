@@ -52,6 +52,8 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.CodeSuppliers;
+import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -190,7 +192,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         TransactionReference reference = wrapNetworkExceptionSimple
         	(() -> send("/post/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
 
-        return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(reference, this));
     }
 
     @Override
@@ -198,7 +200,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         TransactionReference reference = wrapNetworkExceptionSimple
         	(() -> send("/post/constructorCallTransaction", TransactionReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
 
-        return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(reference, this));
     }
 
     @Override
@@ -206,7 +208,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         TransactionReference reference = wrapNetworkExceptionSimple
         	(() -> send("/post/instanceMethodCallTransaction", TransactionReferenceModel.class, new InstanceMethodCallTransactionRequestModel(request)).toBean());
 
-        return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
     }
 
     @Override
@@ -214,7 +216,7 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         TransactionReference reference = wrapNetworkExceptionSimple
         	(() -> send("/post/staticMethodCallTransaction", TransactionReferenceModel.class, new StaticMethodCallTransactionRequestModel(request)).toBean());
 
-        return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
     }
 
     /**

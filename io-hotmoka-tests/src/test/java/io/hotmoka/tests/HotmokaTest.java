@@ -65,7 +65,6 @@ import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
-import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -80,6 +79,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
@@ -191,9 +191,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        // Change this to test with different node implementations
 	        Node wrapped;
-	        node = wrapped = mkDiskBlockchain();
+	        //node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
+	        node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
@@ -453,7 +453,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	protected static Path pathOfExample(String fileName) {
-		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractNode.HOTMOKA_VERSION + '-' + fileName);
+		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + '-' + fileName);
 	}
 
 	protected static void throwsTransactionExceptionWithCause(Class<? extends Throwable> expected, TestBody what) {

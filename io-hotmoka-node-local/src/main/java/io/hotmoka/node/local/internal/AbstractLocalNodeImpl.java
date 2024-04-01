@@ -21,6 +21,7 @@ import static java.math.BigInteger.ZERO;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,6 +30,7 @@ import java.util.Comparator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -40,6 +42,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -63,7 +66,10 @@ import io.hotmoka.beans.api.requests.SystemTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.beans.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.beans.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
@@ -77,11 +83,16 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.api.GasCostModel;
-import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.CodeSuppliers;
+import io.hotmoka.node.JarSuppliers;
+import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -108,8 +119,46 @@ import io.hotmoka.stores.Store;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractNode {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> implements Node {
+	/**
+	 * The version of Hotmoka used by the nodes.
+	 */
+	public final static String HOTMOKA_VERSION;
+
+	static {
+		// we access the Maven properties from the pom.xml file of the project
+		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.maven.properties")) {
+			var mavenProperties = new Properties();
+			mavenProperties.load(is);
+			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
+		}
+		catch (IOException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
 	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
+
+	/**
+	 * The manager of the subscriptions to the events occurring in this node.
+	 */
+	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
+
+	@Override
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
+		return subscriptions.subscribeToEvents(creator, handler);
+	}
+
+	/**
+	 * Notifies the given event to all event handlers for the given creator.
+	 * 
+	 * @param creator the creator of the event
+	 * @param event the event to notify
+	 */
+	protected final void notifyEvent(StorageReference creator, StorageReference event) {
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(event + ": notified as event with creator " + creator);
+	}
 
 	/**
 	 * The configuration of the node.
@@ -499,22 +548,22 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 	@Override
 	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(post(request)));
+		return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(post(request), this));
 	}
 
 	@Override
 	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(post(request)));
+		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(post(request), this));
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(post(request)));
+		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
 	}
 
 	@Override
 	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> methodSupplierFor(post(request)));
+		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
 	}
 
 	/**
@@ -818,6 +867,85 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param response the response that contains events
 	 */
 	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
+
+	/**
+	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
+	 * if it is not a {@link TransactionException} nor a {@link CodeExecutionException}.
+	 * 
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws TransactionException if the callable throws this
+	 * @throws CodeExecutionException if the callable throws this
+	 */
+	private static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			LOGGER.log(Level.WARNING, "unexpected exception", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
+	 * if it is not a {@link TransactionException}.
+	 * 
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 * @throws TransactionException if the callable throws this
+	 */
+	private static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException | TransactionException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			LOGGER.log(Level.WARNING, "unexpected exception", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	/**
+	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
+	 * 
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 */
+	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			LOGGER.log(Level.WARNING, "Unexpected exception", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	private StorageValue getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
+		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
+			return mctsr.getResult();
+		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
+		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
+			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
+		else
+			return null; // void methods return no value
+	}
 
 	/**
 	 * Determines if the given transaction has not been committed yet.

@@ -1,6 +1,6 @@
 package io.hotmoka.moka.internal;
 
-import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.local.AbstractLocalNode;
 import picocli.CommandLine.Command;
 
 @Command(name = "version",
@@ -10,6 +10,6 @@ public class Version extends AbstractCommand {
 
 	@Override
 	protected void execute() {
-		System.out.println(AbstractNode.HOTMOKA_VERSION);
+		System.out.println(AbstractLocalNode.HOTMOKA_VERSION);
 	}
 }

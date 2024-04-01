@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,13 +16,22 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.internal.AbstractNodeImpl;
+import io.hotmoka.node.api.SubscriptionsManager;
+import io.hotmoka.node.internal.SubscriptionsManagerImpl;
 
 /**
- * A generic implementation of a node. The goal of this class is to provide
- * some shared machinery that can be useful in subclasses.
+ * Provider of manager of subscriptions to the events occurring in a Hotmoka node.
  */
-@ThreadSafe
-public abstract class AbstractNode extends AbstractNodeImpl {
+public abstract class SubscriptionsManagers {
+
+	private SubscriptionsManagers() {}
+
+	/**
+	 * Yields a new manager of subscriptions to the events occurring in a Hotmoka node.
+	 * 
+	 * @return the manager of subscriptions
+	 */
+	public static SubscriptionsManager mk() {
+		return new SubscriptionsManagerImpl();
+	}
 }

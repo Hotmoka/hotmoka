@@ -21,8 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.node.AbstractNode;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.local.AbstractLocalNode;
 
 /**
  * A test for {@link io.hotmoka.node.api.Node#getNodeInfo()}.
@@ -32,6 +32,6 @@ class GetNodeInfo extends HotmokaTest {
 	@Test @DisplayName("getNodeInfoworks")
 	void getNodeInfo() throws NodeException {
 		var nodeInfo = node.getNodeInfo();
-		assertEquals(AbstractNode.HOTMOKA_VERSION, nodeInfo.getVersion());
+		assertEquals(AbstractLocalNode.HOTMOKA_VERSION, nodeInfo.getVersion());
 	}
 }

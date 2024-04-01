@@ -21,7 +21,9 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
+import java.util.function.BiConsumer;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -31,6 +33,7 @@ import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
+import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -56,8 +59,10 @@ import io.hotmoka.network.responses.MethodCallTransactionSuccessfulResponseModel
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
-import io.hotmoka.node.AbstractNode;
+import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
@@ -69,7 +74,7 @@ import io.hotmoka.ws.client.WebSocketException;
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public abstract class AbstractRemoteNode extends AbstractNode implements RemoteNode {
+public abstract class AbstractRemoteNode implements RemoteNode {
 
     /**
      * The configuration of the node.
@@ -81,7 +86,14 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
      */
     protected final WebSocketClient webSocketClient;
 
-    /**
+	/**
+	 * The manager of the subscriptions to the events occurring in this node.
+	 */
+	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
+
+	private final static Logger LOGGER = Logger.getLogger(AbstractRemoteNode.class.getName());
+
+	/**
      * Builds the remote node.
      *
      * @param config the configuration of the node
@@ -101,7 +113,23 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
         subscribeToEventsTopic();
     }
 
-    /**
+	@Override
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
+		return subscriptions.subscribeToEvents(creator, handler);
+	}
+
+	/**
+	 * Notifies the given event to all event handlers for the given creator.
+	 * 
+	 * @param creator the creator of the event
+	 * @param event the event to notify
+	 */
+	protected final void notifyEvent(StorageReference creator, StorageReference event) {
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(event + ": notified as event with creator " + creator);
+	}
+
+	/**
      * Subscribes to the events topic of the remote node to get notified about the node events.
      */
     private void subscribeToEventsTopic() {
@@ -109,7 +137,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             if (eventRequestModel != null)
                 notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
             else
-                logger.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
+                LOGGER.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
         });
     }
 
@@ -233,7 +261,7 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
     	return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
     }
 
-    /**
+	/**
      * Runs a callable and wraps the exception by its type.
      * If the type doesn't match any of the methods signature type then
      * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
@@ -260,11 +288,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(e.getMessage());
         }
         catch (RuntimeException e) {
-            logger.log(Level.WARNING, "unexpected exception", e);
+            LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-            logger.log(Level.WARNING, "unexpected exception", e);
+            LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -293,11 +321,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(e.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -322,11 +350,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(e.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -351,11 +379,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(e.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -375,11 +403,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
             throw new RuntimeException(exceptionResponse.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -411,11 +439,11 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(exceptionResponse.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
@@ -444,16 +472,37 @@ public abstract class AbstractRemoteNode extends AbstractNode implements RemoteN
                 throw new RuntimeException(exceptionResponse.getMessage());
         }
         catch (RuntimeException e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw e;
         }
         catch (Exception e) {
-        	logger.log(Level.WARNING, "unexpected exception", e);
+        	LOGGER.log(Level.WARNING, "unexpected exception", e);
             throw new RuntimeException(e);
         }
     }
 
-    @Override
+    /**
+	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
+	 * 
+	 * @param <T> the return type of the callable
+	 * @param what the callable
+	 * @return the return value of the callable
+	 * @throws TransactionRejectedException the wrapped exception
+	 */
+	protected static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
+		try {
+			return what.call();
+		}
+		catch (TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Throwable t) {
+			LOGGER.log(Level.WARNING, "Unexpected exception", t);
+			throw new TransactionRejectedException(t);
+		}
+	}
+
+	@Override
     public void close() {
         webSocketClient.close();
     }

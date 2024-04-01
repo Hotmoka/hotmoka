@@ -53,6 +53,8 @@ import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.CodeSuppliers;
+import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -77,7 +79,7 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     /**
      * The service used for the connection to the server.
      */
-    private RestClientService service = new RestClientService();
+    private final RestClientService service = new RestClientService();
 
     /**
      * Builds the remote node.
@@ -185,24 +187,24 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> service.post(url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-        return wrapInCaseOfExceptionSimple(() -> jarSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(reference, this));
     }
 
     @Override
     public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> service.post(url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-        return wrapInCaseOfExceptionSimple(() -> constructorSupplierFor(reference));
+        return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(reference, this));
     }
 
     @Override
     public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = service.post(url + "/post/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
-        return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
+        return wrapNetworkExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
     }
 
     @Override
     public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = service.post(url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
-        return wrapNetworkExceptionSimple(() -> methodSupplierFor(reference));
+        return wrapNetworkExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
     }
 }
