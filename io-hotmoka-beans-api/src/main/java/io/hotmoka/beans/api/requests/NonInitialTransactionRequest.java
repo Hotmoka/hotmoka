@@ -62,6 +62,8 @@ public interface NonInitialTransactionRequest<R extends NonInitialTransactionRes
 	/**
 	 * Yields the nonce used for transaction ordering and to forbid transaction replay on the same chain.
 	 * It is relative to the caller.
+	 * 
+	 * @return the nonce
 	 */
 	BigInteger getNonce();
 }

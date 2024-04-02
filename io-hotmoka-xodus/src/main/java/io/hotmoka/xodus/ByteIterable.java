@@ -18,33 +18,75 @@ package io.hotmoka.xodus;
 
 import jetbrains.exodus.ArrayByteIterable;
 
+/**
+ * This is an adapter for the Xodus {@code ByteIterable} class.
+ * It is a mix of iterable and array of bytes. It allows to lazily enumerate bytes without boxing.
+ * On the other hand, you can get its length using method {@link #getLength()}.
+ */
 public class ByteIterable {
+
+	/**
+	 * The adapted parent.
+	 */
 	private final jetbrains.exodus.ByteIterable parent;
 
 	private ByteIterable(jetbrains.exodus.ByteIterable parent) {
 		this.parent = parent;
 	}
 
+	/**
+	 * Adapts a Xodus byte iterable.
+	 * 
+	 * @param parent the Xodus byte iterable to adapt
+	 * @return the adapted byte iterable
+	 */
 	public static ByteIterable fromNative(jetbrains.exodus.ByteIterable parent) {
 		return parent == null ? null : new ByteIterable(parent);
 	}
 
+	/**
+	 * Yields a byte iterable containing only the given byte.
+	 * 
+	 * @param b the byte
+	 * @return the resulting byte iterable
+	 */
 	public static ByteIterable fromByte(byte b) {
 		return new ByteIterable(ArrayByteIterable.fromByte(b));
 	}
 
+	/**
+	 * Yields a byte iterable containing only the bytes in the given array.
+	 * 
+	 * @param bs the array of bytes
+	 * @return the resulting byte iterable
+	 */
 	public static ByteIterable fromBytes(byte[] bs) {
 		return new ByteIterable(new ArrayByteIterable(bs));
 	}
 
+	/**
+	 * Yields the Xodus byte iterable corresponding to this object.
+	 * 
+	 * @return the Xodus byte iterable corresponding to this object
+	 */
 	public jetbrains.exodus.ByteIterable toNative() {
 		return parent;
 	}
 
+	/**
+	 * Yields the bytes inside this byte iterable.
+	 * 
+	 * @return the bytes inside this byte iterable
+	 */
 	public byte[] getBytes() {
 		return parent.getBytesUnsafe();
 	}
 
+	/**
+	 * Yields the length (number of bytes) of this byte iterable.
+	 * 
+	 * @return the length of this byte iterable
+	 */
 	public int getLength() {
 		return parent.getLength();
 	}

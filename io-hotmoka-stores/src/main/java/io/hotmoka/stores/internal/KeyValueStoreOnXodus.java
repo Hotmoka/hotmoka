@@ -54,7 +54,7 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 
 	@Override
 	public void remove(byte[] key) {
-		store.remove(txn, ByteIterable.fromBytes(key));
+		store.delete(txn, ByteIterable.fromBytes(key));
 	}
 
 	@Override

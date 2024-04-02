@@ -30,6 +30,8 @@ public interface Update extends Marshallable, Comparable<Update> {
 
 	/**
 	 * Yields the storage reference of the object whose field is modified.
+	 * 
+	 * @return the storage reference of the object whose field is modified
 	 */
 	StorageReference getObject();
 

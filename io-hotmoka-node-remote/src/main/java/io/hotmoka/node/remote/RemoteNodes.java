@@ -35,7 +35,7 @@ public abstract class RemoteNodes {
      *
      * @param config the configuration
      * @return the remote node
-     * @throws IOException 
+     * @throws IOException if the remote node cannot be created
      */
 	public static RemoteNode of(RemoteNodeConfig config) throws IOException {
         // there are two implementations: for websockets or for http connections

@@ -16,25 +16,53 @@ limitations under the License.
 
 package io.hotmoka.xodus.env;
 
+/**
+ * A transaction is an access scope to data in database. Any transaction holds a database snapshot,
+ * thus providing <a href="https://en.wikipedia.org/wiki/Snapshot_isolation">snapshot isolation</a>.
+ * All changes made in a transaction are atomic and consistent if they are successfully flushed or committed.
+ */
 public class Transaction {
 	private final jetbrains.exodus.env.Transaction parent;
 
+	/**
+	 * Creates a new transaction that adapts the given Xodus transaction.
+	 * 
+	 * @param parent the transaction to adapt
+	 */
 	Transaction(jetbrains.exodus.env.Transaction parent) {
 		this.parent = parent;
 	}
 
+	/**
+	 * Yields the Xodus transaction adapted by this object.
+	 * 
+	 * @return the Xodus transaction adapted by this object
+	 */
 	public jetbrains.exodus.env.Transaction toNative() {
 		return parent;
 	}
 
+	/**
+	 * Determines if this transaction is finished.
+	 * 
+	 * @return true if and only this transaction is finished
+	 */
 	public boolean isFinished() {
 		return parent.isFinished();
 	}
 
-	public void abort() {
+	/**
+	 * Aborts this transaction.
+	 */
+	public void abort(){
 		parent.abort();
 	}
 
+	/**
+	 * Commits this transaction.
+	 * 
+	 * @return true if and only if the transaction has been actually committed
+	 */
 	public boolean commit() {
 		return parent.commit();
 	}

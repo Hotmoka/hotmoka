@@ -20,30 +20,36 @@ import jetbrains.exodus.ExodusException;
 import jetbrains.exodus.env.Environment;
 
 /**
- * The configuration of a Xodus environment.
+ * An adaptor of a configuration of a Xodus environment.
  */
 public class EnvironmentConfig {
 
 	private final jetbrains.exodus.env.EnvironmentConfig parent;
 
 	/**
-	 * Creates a default environment config.
+	 * Creates a default environment configuration.
 	 */
 	public EnvironmentConfig() {
 		this.parent = new jetbrains.exodus.env.EnvironmentConfig();
 	}
 
+	/**
+	 * Yields the Xodus configuration adapted by this object.
+	 * 
+	 * @return the Xodus configuration adapted by this object
+	 */
 	public jetbrains.exodus.env.EnvironmentConfig toNative() {
 		return parent;
 	}
 
 	/**
-     * Returns {@code true} if {@linkplain io.hotmoka.xodus.env.Environment#close()} shouldn't check if there are unfinished
-     * transactions. Otherwise it should check and throw {@linkplain io.hotmoka.xodus.ExodusException} if there are.
+     * Returns {@code true} if {@link io.hotmoka.xodus.env.Environment#close()} shouldn't check if there are unfinished
+     * transactions. Otherwise it should check and throw {@link io.hotmoka.xodus.ExodusException} if there are.
      * Default value is {@code false}.
      * <p>Mutable at runtime: yes
      *
-     * @return {@code true} if {@linkplain io.hotmoka.xodus.env.Environment#close()} shouldn't check unfinished transactions
+     * @return {@code true} if {@link io.hotmoka.xodus.env.Environment#close()} shouldn't check
+     *         unfinished transactions
      * @see Environment#close()
      */
     public boolean getEnvCloseForcedly() {
@@ -51,12 +57,12 @@ public class EnvironmentConfig {
     }
 
     /**
-     * Set {@code true} if {@linkplain io.hotmoka.xodus.env.Environment#close()} shouldn't check if there are unfinished
-     * transactions. Set {@code false} if it should check and throw {@linkplain ExodusException} if there are unfinished
+     * Set {@code true} if {@link io.hotmoka.xodus.env.Environment#close()} shouldn't check if there are unfinished
+     * transactions. Set {@code false} if it should check and throw {@link ExodusException} if there are unfinished
      * transactions. Default value is {@code false}.
      * <p>Mutable at runtime: yes
      *
-     * @param closeForcedly {@code true} if {@linkplain io.hotmoka.xodus.env.Environment#close()} should ignore unfinished transactions
+     * @param closeForcedly {@code true} if {@link io.hotmoka.xodus.env.Environment#close()} should ignore unfinished transactions
      * @return this instance
      * @see Environment#close()
      */

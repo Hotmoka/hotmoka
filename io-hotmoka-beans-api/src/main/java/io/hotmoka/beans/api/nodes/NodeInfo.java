@@ -23,16 +23,22 @@ public interface NodeInfo {
 
 	/**
 	 * Yields the type of the node.
+	 * 
+	 * @return the type of the node
 	 */
 	String getType();
 
 	/**
 	 * Yields the version of the node.
+	 * 
+	 * @return the version of the node
 	 */
 	String getVersion();
 
 	/**
 	 * Yields the identifier of the node inside its network, if any.
+	 * 
+	 * @return the identifier, if any
 	 */
 	String getID();
 

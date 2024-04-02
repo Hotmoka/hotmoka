@@ -16,11 +16,19 @@ limitations under the License.
 
 package io.hotmoka.xodus;
 
+/**
+ * An exception exception adapted from the native exception
+ * raised during the execution of a Xodus transaction.
+ */
 public class ExodusException extends RuntimeException {
-
 	private static final long serialVersionUID = 1L;
 
-	public ExodusException(jetbrains.exodus.ExodusException e) {
-		super(e);
+	/**
+	 * Creates the exception by adapting a corresponding Xodus exception.
+	 * 
+	 * @param parent the adapted exception
+	 */
+	public ExodusException(jetbrains.exodus.ExodusException parent) {
+		super(parent);
 	}
 }
