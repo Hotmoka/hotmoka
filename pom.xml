@@ -33,6 +33,7 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <io.hotmoka.marshalling.version>1.4.2</io.hotmoka.marshalling.version>
     <io.hotmoka.exceptions.version>1.4.1</io.hotmoka.exceptions.version>
     <io.hotmoka.testing.version>1.4.1</io.hotmoka.testing.version>
+    <io.hotmoka.xodus.version>1.4.4</io.hotmoka.xodus.version>
   </properties>
 
   <groupId>io.hotmoka</groupId>
@@ -116,7 +117,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-tendermint-api</module>
     <module>io-hotmoka-node-tendermint-abci</module>
     <module>io-hotmoka-node-tendermint</module>
-    <module>io-hotmoka-xodus</module>
   </modules>
 
   <dependencies>
