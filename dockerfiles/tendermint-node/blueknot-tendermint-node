@@ -34,11 +34,11 @@ RUN mkdir /home/blueknot/chain \
   && chmod -R a+w /home/blueknot/chain
 
 # install moka and its alias moka-no-logs that does not report logs
-COPY modules/ /modules/
+COPY io-hotmoka-moka/modules/ /modules/
 # we add /home/blueknot to the classpath in order to find the logging properties file
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka \
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
   && chmod a+x moka \
-  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.tools/io.hotmoka.tools.Moka \"\$@\" > moka-no-logs \
+  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
   && chmod a+x moka-no-logs
 
 # install the control scripts

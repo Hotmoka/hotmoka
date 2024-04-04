@@ -29,6 +29,13 @@
       <artifactId>io-takamaka-code-constants</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
+    <!-- the next dependency is not used but it is jandy to have it in the modules directory -->
+    <!-- since it is useful to the users of moka -->
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-takamaka-code</artifactId>
+      <version>${io.takamaka.code.version}</version>
+    </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-tendermint</artifactId>

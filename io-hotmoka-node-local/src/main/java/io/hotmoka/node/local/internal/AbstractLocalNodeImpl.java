@@ -127,7 +127,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 	static {
 		// we access the Maven properties from the pom.xml file of the project
-		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.maven.properties")) {
+		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.local.maven.properties")) {
 			var mavenProperties = new Properties();
 			mavenProperties.load(is);
 			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
