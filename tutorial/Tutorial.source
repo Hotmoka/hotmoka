@@ -1,8 +1,7 @@
 [Markdownonly]:<p align="center"><img width="320" src="pics/@type_logo.png" alt="@Type logo"></p>
 
 [Markdownonly]:[![Java-Build Action Status](https://github.com/Hotmoka/hotmoka/actions/workflows/java_build.yml/badge.svg)](https://github.com/Hotmoka/hotmoka/actions)
-[Markdownonly]:[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-constants.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=g:io.hotmoka)
-[Markdownonly]:[![Takamaka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-takamaka-code.svg?label=Takamaka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=io-takamaka-code)
+[Markdownonly]:[![Hotmoka@Maven Central](https://img.shields.io/maven-central/v/io.hotmoka/io-hotmoka-node.svg?label=Hotmoka@Maven%20Central)](https://central.sonatype.com/search?smo=true&q=g:io.hotmoka)
 [Markdownonly]:[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](http://www.apache.org/licenses/LICENSE-2.0.html)
 
 [Markdownonly]:@Type is a framework for programming a network of communicating nodes, in a subset of Java called Takamaka. Nodes can belong to a blockchain or can be Internet of Things devices.
@@ -1032,8 +1031,6 @@ All tests should pass and all projects should be successfully installed:
 
 ```
 [INFO] Hotmoka parent ..................................... SUCCESS [  3.234 s]
-[INFO] io-takamaka-code ................................... SUCCESS [  5.422 s]
-[INFO] io-hotmoka-constants ............................... SUCCESS [  1.230 s]
 [INFO] io-hotmoka-whitelisting-api ........................ SUCCESS [  1.154 s]
 [INFO] io-hotmoka-whitelisting ............................ SUCCESS [  1.459 s]
 [INFO] io-hotmoka-verification-api ........................ SUCCESS [  1.437 s]
@@ -1439,7 +1436,7 @@ module runs {
   requires io.hotmoka.node.disk;
   requires io.hotmoka.node.tendermint;
   requires io.hotmoka.node.service;
-  requires io.hotmoka.constants;
+  requires io.takamaka.code.constants;
 }
 ```
 
@@ -5356,14 +5353,12 @@ handler. In our case, this is the `auction` contract. Thus, clone the `Auction.j
 
 ```java
 ...
+import io.hotmoka.node.api.NodeException;
+...
 auction = createAuction();
 start = System.currentTimeMillis();
 
-try (var subscription = node.subscribeToEvents(auction,
-  (creator, event) -> System.out.println
-    ("Seen event of class " + node.getClassTag(event).getClazz().getName()
-     + " created by contract " + creator))) {
-
+try (var subscription = node.subscribeToEvents(auction, this::eventHandler)) {
   StorageReference expectedWinner = placeBids();
   waitUntilEndOfBiddingTime();
   revealBids();
@@ -5372,6 +5367,17 @@ try (var subscription = node.subscribeToEvents(auction,
 
   System.out.println("expected winner: " + expectedWinner);
   System.out.println("actual winner: " + winner);
+}
+
+private void eventHandler(StorageReference creator, StorageReference event) {
+  try {
+    System.out.println
+      ("Seen event of class " + node.getClassTag(event).getClazz().getName()
+       + " created by contract " + creator);
+  }
+  catch (NodeException e) {
+    System.out.println("The node is misbehaving: " + e.getMessage());
+  }
 }
 ...
 ```
@@ -6537,7 +6543,6 @@ import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.util.Base64;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountsNodes;
@@ -6546,6 +6551,7 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
+import io.takamaka.code.constants.Constants;
 
 public class Decorators {
   public final static BigInteger SUPPLY = BigInteger.valueOf(1_000_000_000);
@@ -6648,7 +6654,6 @@ import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
-import io.hotmoka.constants.Constants;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -6658,6 +6663,7 @@ import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
+import io.takamaka.code.constants.Constants;
 
 public class Publisher {
   public final static BigInteger SUPPLY = BigInteger.valueOf(100_000_000);
