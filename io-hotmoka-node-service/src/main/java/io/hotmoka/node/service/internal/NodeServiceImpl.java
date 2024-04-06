@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal;
 
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
@@ -31,11 +32,13 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
+import io.hotmoka.websockets.server.AbstractWebSocketServer;
+import jakarta.websocket.DeploymentException;
 
 /**
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.node.api.Node}.
  */
-public class NodeServiceImpl implements NodeService {
+public class NodeServiceImpl extends AbstractWebSocketServer implements NodeService {
 	private final static Logger LOGGER = Logger.getLogger(NodeServiceImpl.class.getName());
 
 	/**
@@ -71,30 +74,37 @@ public class NodeServiceImpl implements NodeService {
 	 * 
 	 * @param config the configuration of the network
 	 * @param node the Hotmoka node
+	 * @throws DeploymentException if the service cannot be deployed
+	 * @throws IOException if an I/O error occurs
 	 */
-    public NodeServiceImpl(NodeServiceConfig config, Node node) {
+    public NodeServiceImpl(NodeServiceConfig config, Node node) throws DeploymentException, IOException {
     	this.node = node;
 
     	// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
 		System.setProperty("org.springframework.boot.logging.LoggingSystem", "none");
 
-		this.logPrefix = "node service(??): "; // TODO
+		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): "; // TODO
 		this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	this.context.getBean(Application.class).setNode(node);
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
+    	// TODO: remove the +2 at the end
+    	startContainer("", config.getPort() + 2
+   		);
+
     	// if the node gets closed, then this service will be closed as well
     	node.addOnCloseHandler(this_close);
 
-    	LOGGER.info(logPrefix + "started");
+    	LOGGER.info(logPrefix + "published");
     }
 
     @Override
     public void close() {
     	if (!isClosed.getAndSet(true)) {
+    		node.removeOnCloseHandler(this_close);
+    		stopContainer();
     		SpringApplication.exit(context);
         	eventSubscription.close();
-        	node.removeOnCloseHandler(this_close);
 			LOGGER.info(logPrefix + "closed");
 		}
     }

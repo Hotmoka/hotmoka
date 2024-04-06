@@ -91,6 +91,7 @@ import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.testing.AbstractLoggedTests;
 import io.hotmoka.verification.VerificationException;
 import io.takamaka.code.constants.Constants;
+import jakarta.websocket.DeploymentException;
 
 public abstract class HotmokaTest extends AbstractLoggedTests {
 	protected static final BigInteger _50_000 = BigInteger.valueOf(50_000);
@@ -284,7 +285,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(Node exposed) throws IOException {
+	private static Node mkRemoteNode(Node exposed) throws IOException, DeploymentException {
 		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
 		var serviceConfig = NodeServiceConfigBuilders.defaults()
 			.setPort(8080)
@@ -294,7 +295,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
 			// comment for using http
-			.usesWebSockets(true)
+			//.usesWebSockets(true)
 			.setURL("localhost:8080")
 			.build();
 

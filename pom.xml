@@ -146,6 +146,13 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
       <version>${io.hotmoka.testing.version}</version>
       <scope>test</scope>
     </dependency>
+
+    <!-- this forces version 2.1.0, it should be removed after Spring gets removed -->
+	<dependency>
+      <groupId>jakarta.websocket</groupId>
+      <artifactId>jakarta.websocket-api</artifactId>
+      <version>2.1.0</version>
+    </dependency>
   </dependencies>
 
   <build>

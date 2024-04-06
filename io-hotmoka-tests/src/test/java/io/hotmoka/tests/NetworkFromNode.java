@@ -60,6 +60,7 @@ import io.hotmoka.node.remote.internal.http.client.RestClientService;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.service.api.NodeServiceConfig;
+import jakarta.websocket.DeploymentException;
 
 /**
  * A test for creating a network server from a Hotmoka node.
@@ -98,14 +99,14 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
-	void startNetworkFromNode() {
+	void startNetworkFromNode() throws DeploymentException, IOException {
 		var config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 		try (var service = NodeServices.of(config, node)) {
 		}
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
-	void startNetworkFromNodeAndTestSignatureAlgorithm() {
+	void startNetworkFromNodeAndTestSignatureAlgorithm() throws DeploymentException, IOException {
 		SignatureAlgorithmResponseModel answer;
 		RestClientService service = new RestClientService();
 
@@ -118,7 +119,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
-	void testGetTakamakaCode() {
+	void testGetTakamakaCode() throws DeploymentException, IOException {
 		TransactionReferenceModel result;
 		RestClientService service = new RestClientService();
 
@@ -130,7 +131,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
-	void addJarStoreInitialTransaction() throws IOException {
+	void addJarStoreInitialTransaction() throws IOException, DeploymentException {
 		ErrorModel errorModel = null;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
@@ -154,7 +155,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction() without a jar")
-	void addJarStoreInitialTransactionWithoutJar() {
+	void addJarStoreInitialTransactionWithoutJar() throws DeploymentException, IOException {
 		ErrorModel errorModel = null;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
@@ -179,7 +180,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
-	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException {
+	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException, DeploymentException, IOException {
 		StorageReferenceModel result;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
@@ -207,7 +208,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetState() throws InvalidKeyException, SignatureException {
+	void testGetState() throws InvalidKeyException, SignatureException, DeploymentException, IOException {
 		StateModel state;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {
@@ -240,7 +241,7 @@ class NetworkFromNode extends HotmokaTest {
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetClassTag() throws InvalidKeyException, SignatureException {
+	void testGetClassTag() throws InvalidKeyException, SignatureException, DeploymentException, IOException {
 		ClassTagModel classTag;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {

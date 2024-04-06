@@ -95,6 +95,11 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	 */
 	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
 
+	/**
+	 * The prefix used in the log messages;
+	 */
+	private final String logPrefix;
+
 	private final static Logger LOGGER = Logger.getLogger(AbstractRemoteNode.class.getName());
 
 	/**
@@ -106,7 +111,9 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	super(10_000L); // TODO: this should be contained in the config
 
     	this.config = config;
-        try {
+    	this.logPrefix = "node remote(ws://" + config.getURL() + "): ";
+
+    	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
         }
         catch (WebSocketException e) {
@@ -133,7 +140,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	protected void closeResources(CloseReason reason) throws NodeException, InterruptedException {
 		super.closeResources(reason);
 		webSocketClient.close();
-		LOGGER.info("closed with reason: " + reason);
+		LOGGER.info(logPrefix + "closed with reason: " + reason);
 	}
 
 	@Override
@@ -149,7 +156,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	 */
 	protected final void notifyEvent(StorageReference creator, StorageReference event) {
 		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(event + ": notified as event with creator " + creator);
+		LOGGER.info(logPrefix + event + ": notified as event with creator " + creator);
 	}
 
 	/**
@@ -160,7 +167,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
             if (eventRequestModel != null)
                 notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
             else
-                LOGGER.info("Got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
+                LOGGER.info(logPrefix + "got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
         });
     }
 
