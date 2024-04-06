@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines the API of a network service that publishes a Hotmoka node.
- */
-module io.hotmoka.node.service.api {
-	exports io.hotmoka.node.service.api;
+package io.hotmoka.node.messages.api;
 
-	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
+import java.util.function.Supplier;
+
+import io.hotmoka.websockets.beans.api.RpcMessage;
+
+/**
+ * A network message corresponding to the result of method of a node.
+ * 
+ * @param <T> the type of the result value of the method
+ */
+public interface ResultMessage<T> extends Supplier<T>, RpcMessage {
 }

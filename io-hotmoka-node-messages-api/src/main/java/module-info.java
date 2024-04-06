@@ -15,11 +15,12 @@ limitations under the License.
 */
 
 /**
- * This module defines the API of a network service that publishes a Hotmoka node.
+ * This module defines the API of the network messages exchanged between a node service and remote.
  */
-module io.hotmoka.node.service.api {
-	exports io.hotmoka.node.service.api;
+module io.hotmoka.node.messages.api {
+	exports io.hotmoka.node.messages.api;
 
+	requires transitive io.hotmoka.node.api;
+	requires transitive io.hotmoka.websockets.beans.api;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
 }

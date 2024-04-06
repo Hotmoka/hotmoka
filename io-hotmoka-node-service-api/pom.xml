@@ -22,6 +22,11 @@
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

@@ -19,7 +19,6 @@ limitations under the License.
  */
 module io.hotmoka.node.service {
 	exports io.hotmoka.node.service;
-
 	// needed to allow the endpoints to be created by reflection although they are not exported
 	opens io.hotmoka.node.service.internal to org.glassfish.tyrus.core, spring.core;
 
@@ -37,9 +36,11 @@ module io.hotmoka.node.service {
     requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.beans;
 	requires transitive io.hotmoka.network;
-	requires io.hotmoka.annotations;
+	requires io.hotmoka.node.messages;
+	requires io.hotmoka.annotations;	
 	requires io.hotmoka.websockets.server;
 	requires io.hotmoka.websockets.beans;
+	requires transitive jakarta.websocket.client;
 	requires org.glassfish.tyrus.core;
     requires spring.boot;
     requires spring.boot.autoconfigure;

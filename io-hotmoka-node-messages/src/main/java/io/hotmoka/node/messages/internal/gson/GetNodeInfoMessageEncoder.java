@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines the API of a network service that publishes a Hotmoka node.
- */
-module io.hotmoka.node.service.api {
-	exports io.hotmoka.node.service.api;
+package io.hotmoka.node.messages.internal.gson;
 
-	requires io.hotmoka.annotations;
-	requires io.hotmoka.node.api;
+import io.hotmoka.node.messages.GetNodeInfoMessages;
+import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.websockets.beans.MappedEncoder;
+
+/**
+ * An encoder of a {@code GetNodeInfoMessage}.
+ */
+public class GetNodeInfoMessageEncoder extends MappedEncoder<GetNodeInfoMessage, GetNodeInfoMessages.Json> {
+
+	public GetNodeInfoMessageEncoder() {
+		super(GetNodeInfoMessages.Json::new);
+	}
 }

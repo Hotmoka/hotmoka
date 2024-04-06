@@ -118,6 +118,8 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-node-tendermint-api</module>
     <module>io-hotmoka-node-tendermint-abci</module>
     <module>io-hotmoka-node-tendermint</module>
+    <module>io-hotmoka-node-messages-api</module>
+    <module>io-hotmoka-node-messages</module>
   </modules>
 
   <dependencies>

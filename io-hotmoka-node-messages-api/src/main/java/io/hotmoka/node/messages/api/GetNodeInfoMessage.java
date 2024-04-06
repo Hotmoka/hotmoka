@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,25 +14,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.service.api;
+package io.hotmoka.node.messages.api;
 
-import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.websockets.beans.api.RpcMessage;
 
 /**
- * A network service that exposes a REST API to a Hotmoka node.
+ * The network message corresponding to {@link Node#getNodeInfo()}.
  */
-@ThreadSafe
-public interface NodeService extends AutoCloseable {
-
-	/**
-	 * The network endpoint path where {@link Node#getNodeInfo()} is published.
-	 */
-	String GET_NODE_INFO_ENDPOINT = "/get_node_info";
-
-	/**
-	 * Stops the service and releases its resources.
-	 */
-	@Override
-	void close(); // no checked exceptions // TODO: really?
+@Immutable
+public interface GetNodeInfoMessage extends RpcMessage {
 }

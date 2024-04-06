@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -15,11 +15,17 @@ limitations under the License.
 */
 
 /**
- * This module defines the API of a network service that publishes a Hotmoka node.
+ * This module implements the network messages exchanged between a node service and remote.
  */
-module io.hotmoka.node.service.api {
-	exports io.hotmoka.node.service.api;
+module io.hotmoka.node.messages {
+	exports io.hotmoka.node.messages;
+	// beans must be accessible, encoded and decoded by reflection through Gson
+	opens io.hotmoka.node.messages.internal to com.google.gson;
+	opens io.hotmoka.node.messages.internal.gson to com.google.gson;
 
-	requires io.hotmoka.annotations;
+	requires transitive io.hotmoka.node.messages.api;
 	requires io.hotmoka.node.api;
+	requires io.hotmoka.node;
+	requires io.hotmoka.websockets.beans;
+	requires com.google.gson;
 }

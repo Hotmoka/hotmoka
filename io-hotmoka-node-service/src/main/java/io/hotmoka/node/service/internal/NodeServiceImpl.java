@@ -17,7 +17,9 @@ limitations under the License.
 package io.hotmoka.node.service.internal;
 
 import java.io.IOException;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.springframework.boot.Banner;
@@ -28,12 +30,21 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.messages.GetNodeInfoMessages;
+import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
+import io.hotmoka.websockets.beans.ExceptionMessages;
+import io.hotmoka.websockets.server.AbstractServerEndpoint;
 import io.hotmoka.websockets.server.AbstractWebSocketServer;
 import jakarta.websocket.DeploymentException;
+import jakarta.websocket.EndpointConfig;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpointConfig;
 
 /**
  * A simple web service that exposes some REST APIs to access an instance of a {@link io.hotmoka.node.api.Node}.
@@ -110,6 +121,48 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     }
 
     /**
+	 * Sends an exception message to the given session.
+	 * 
+	 * @param session the session
+	 * @param e the exception used to build the message
+	 * @param id the identifier of the message to send
+	 * @throws IOException if there was an I/O problem
+	 */
+	private void sendExceptionAsync(Session session, Exception e, String id) throws IOException {
+		sendObjectAsync(session, ExceptionMessages.of(e, id));
+	}
+
+	protected void onGetNodeInfo(GetNodeInfoMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_NODE_INFO_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetNodeInfoResultMessages.of(node.getNodeInfo(), message.getId()));
+			}
+			catch (//TimeoutException | InterruptedException | // TODO
+					NodeException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetNodeInfoEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetNodeInfoMessage message) -> getServer().onGetNodeInfo(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetNodeInfoEndpoint.class, GET_NODE_INFO_ENDPOINT,
+				GetNodeInfoMessages.Decoder.class, GetNodeInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	/**
      * Builds, from the configuration, the array of arguments required by Spring in order to start the application.
      * 
      * @param config the configuration
