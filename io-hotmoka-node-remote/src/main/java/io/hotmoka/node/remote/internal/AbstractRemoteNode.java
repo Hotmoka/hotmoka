@@ -59,8 +59,10 @@ import io.hotmoka.network.responses.MethodCallTransactionSuccessfulResponseModel
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
 import io.hotmoka.network.values.StorageValueModel;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
@@ -68,13 +70,15 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
+import io.hotmoka.websockets.client.AbstractRemote;
 import io.hotmoka.ws.client.WebSocketException;
+import jakarta.websocket.CloseReason;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public abstract class AbstractRemoteNode implements RemoteNode {
+public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> implements RemoteNode {
 
     /**
      * The configuration of the node.
@@ -99,7 +103,9 @@ public abstract class AbstractRemoteNode implements RemoteNode {
      * @param config the configuration of the node
      */
     protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException {
-        this.config = config;
+    	super(10_000L); // TODO: this should be contained in the config
+
+    	this.config = config;
         try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
         }
@@ -112,6 +118,23 @@ public abstract class AbstractRemoteNode implements RemoteNode {
 
         subscribeToEventsTopic();
     }
+
+    @Override
+	protected ClosedNodeException mkExceptionIfClosed() {
+		return new ClosedNodeException();
+	}
+
+	@Override
+	protected NodeException mkException(Exception cause) {
+		return cause instanceof NodeException ne ? ne : new NodeException(cause);
+	}
+
+	@Override
+	protected void closeResources(CloseReason reason) throws NodeException, InterruptedException {
+		super.closeResources(reason);
+		webSocketClient.close();
+		LOGGER.info("closed with reason: " + reason);
+	}
 
 	@Override
 	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
@@ -497,13 +520,8 @@ public abstract class AbstractRemoteNode implements RemoteNode {
 			throw e;
 		}
 		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "Unexpected exception", t);
+			LOGGER.log(Level.WARNING, "unexpected exception", t);
 			throw new TransactionRejectedException(t);
 		}
 	}
-
-	@Override
-    public void close() {
-        webSocketClient.close();
-    }
 }

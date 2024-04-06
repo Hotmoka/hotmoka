@@ -28,6 +28,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -51,6 +52,7 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -78,6 +80,17 @@ public class JarsNodeImpl implements JarsNode {
 	 * The references to the jars installed in the node.
 	 */
 	private final TransactionReference[] jars;
+
+	/**
+	 * True if and only if this node has been closed already.
+	 */
+	private final AtomicBoolean isClosed = new AtomicBoolean();
+
+	/**
+	 * We need this intermediate definition since two instances of a method reference
+	 * are not the same, nor equals.
+	 */
+	private final OnCloseHandler this_close = this::close;
 
 	/**
 	 * Installs the given set of jars in the parent node and
@@ -131,10 +144,13 @@ public class JarsNodeImpl implements JarsNode {
 		this.jars = new TransactionReference[jarSuppliers.length];
 		for (var jarSupplier: jarSuppliers)
 			this.jars[pos++] = jarSupplier.get();
+
+		// when the parent is closed, this decorator will be closed as well
+		parent.addOnCloseHandler(this_close);
 	}
 
 	@Override
-	public TransactionReference jar(int i) {
+	public TransactionReference jar(int i) { // TODO: throw exception if closed
 		if (i < 0 || i >= jars.length)
 			throw new NoSuchElementException();
 
@@ -143,7 +159,8 @@ public class JarsNodeImpl implements JarsNode {
 
 	@Override
 	public void close() throws Exception {
-		parent.close();
+		if (!isClosed.getAndSet(true))
+			parent.close();
 	}
 
 	@Override
@@ -259,5 +276,15 @@ public class JarsNodeImpl implements JarsNode {
 	@Override
 	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		return parent.subscribeToEvents(key, handler);
+	}
+
+	@Override
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		parent.addOnCloseHandler(handler);
+	}
+
+	@Override
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		parent.removeOnCloseHandler(handler);
 	}
 }

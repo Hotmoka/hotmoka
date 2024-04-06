@@ -37,6 +37,7 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.closeables.api.OnCloseHandlersContainer;
 
 /**
  * A node of the Hotmoka network, that provides the storage
@@ -49,7 +50,7 @@ import io.hotmoka.beans.api.values.StorageValue;
  * They execute immediately and never modify the store of the node.
  */
 @ThreadSafe
-public interface Node extends AutoCloseable {
+public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 
 	/**
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.

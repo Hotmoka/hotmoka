@@ -34,6 +34,7 @@ module io.hotmoka.node.local {
 	requires io.hotmoka.verification;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
+	requires io.hotmoka.closeables;
 	requires io.takamaka.code.constants;
 	requires toml4j;
 	requires java.logging;

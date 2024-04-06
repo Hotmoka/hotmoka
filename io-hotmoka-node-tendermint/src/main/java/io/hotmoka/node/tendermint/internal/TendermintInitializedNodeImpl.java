@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -55,6 +56,7 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -86,6 +88,17 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	 * The view that gets extended.
 	 */
 	private final InitializedNode parent;
+
+	/**
+	 * True if and only if this node has been closed already.
+	 */
+	private final AtomicBoolean isClosed = new AtomicBoolean();
+
+	/**
+	 * We need this intermediate definition since two instances of a method reference
+	 * are not the same, nor equals.
+	 */
+	private final OnCloseHandler this_close = this::close;
 
 	/**
 	 * Creates a decorated node with basic Takamaka classes, gamete and manifest.
@@ -120,6 +133,9 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		this.parent = InitializedNodes.of(parent, consensus, takamakaCode,
 			(node, _consensus, takamakaCodeReference) -> createTendermintValidatorsBuilder(poster, node, _consensus, takamakaCodeReference),
 			producerOfGasStationBuilder);
+
+		// when the parent is closed, this decorator will be closed as well
+		parent.addOnCloseHandler(this_close);
 	}
 
 	private static StorageReference createTendermintValidatorsBuilder(TendermintPoster poster, InitializedNode node, ValidatorsConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
@@ -193,13 +209,14 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference gamete() {
+	public StorageReference gamete() { // TODO: throw exception if closed
 		return parent.gamete();
 	}
 
 	@Override
 	public void close() throws Exception {
-		parent.close();
+		if (!isClosed.getAndSet(true))
+			parent.close();
 	}
 
 	@Override
@@ -315,5 +332,15 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	@Override
 	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		return parent.subscribeToEvents(key, handler);
+	}
+
+	@Override
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		parent.addOnCloseHandler(handler);
+	}
+
+	@Override
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		parent.removeOnCloseHandler(handler);
 	}
 }

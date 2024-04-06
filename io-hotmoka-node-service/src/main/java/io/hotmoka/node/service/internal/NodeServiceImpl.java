@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal;
 
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import org.springframework.boot.Banner;
@@ -23,6 +24,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.Subscription;
@@ -35,6 +37,12 @@ import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
  */
 public class NodeServiceImpl implements NodeService {
 	private final static Logger LOGGER = Logger.getLogger(NodeServiceImpl.class.getName());
+
+	/**
+	 * The node for which the service is created.
+	 */
+	private final Node node;
+
 	private final ConfigurableApplicationContext context;
 
 	/**
@@ -43,25 +51,52 @@ public class NodeServiceImpl implements NodeService {
 	private final Subscription eventSubscription;
 
 	/**
+	 * True if and only if this service has been closed already.
+	 */
+	private final AtomicBoolean isClosed = new AtomicBoolean();
+
+	/**
+	 * The prefix used in the log messages;
+	 */
+	private final String logPrefix;
+
+	/**
+	 * We need this intermediate definition since two instances of a method reference
+	 * are not the same, nor equals.
+	 */
+	private final OnCloseHandler this_close = this::close;
+
+	/**
 	 * Yields an implementation of a network service that exposes an API to a given Hotmoka node.
 	 * 
 	 * @param config the configuration of the network
 	 * @param node the Hotmoka node
 	 */
     public NodeServiceImpl(NodeServiceConfig config, Node node) {
-		// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
+    	this.node = node;
+
+    	// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
 		System.setProperty("org.springframework.boot.logging.LoggingSystem", "none");
-    	this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
+
+		this.logPrefix = "node service(??): "; // TODO
+		this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	this.context.getBean(Application.class).setNode(node);
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
-        LOGGER.info("Network server for Hotmoka node started");
+
+    	// if the node gets closed, then this service will be closed as well
+    	node.addOnCloseHandler(this_close);
+
+    	LOGGER.info(logPrefix + "started");
     }
 
     @Override
     public void close() {
-    	SpringApplication.exit(context);
-    	eventSubscription.close();
-    	LOGGER.info("Network server for Hotmoka node closed");
+    	if (!isClosed.getAndSet(true)) {
+    		SpringApplication.exit(context);
+        	eventSubscription.close();
+        	node.removeOnCloseHandler(this_close);
+			LOGGER.info(logPrefix + "closed");
+		}
     }
 
     /**

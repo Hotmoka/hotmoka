@@ -79,6 +79,7 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
@@ -111,6 +112,7 @@ import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuild
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
+import io.hotmoka.node.ClosedNodeException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -119,7 +121,7 @@ import io.hotmoka.stores.Store;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> implements Node {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
 	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
@@ -278,6 +280,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	private AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus, boolean deleteDir) {
+		super(ClosedNodeException::new);
+
 		this.config = config;
 
 		try {

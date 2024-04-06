@@ -28,6 +28,7 @@ import java.security.SignatureException;
 import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -53,6 +54,7 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -81,6 +83,17 @@ public class InitializedNodeImpl implements InitializedNode {
 	 * The storage reference of the gamete that has been generated.
 	 */
 	private final StorageReference gamete;
+
+	/**
+	 * True if and only if this node has been closed already.
+	 */
+	private final AtomicBoolean isClosed = new AtomicBoolean();
+
+	/**
+	 * We need this intermediate definition since two instances of a method reference
+	 * are not the same, nor equals.
+	 */
+	private final OnCloseHandler this_close = this::close;
 
 	private StorageReference createEmptyValidatorsBuilder(InitializedNode node, ConsensusConfig<?,?> consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException {
 		var _200_000 = BigInteger.valueOf(200_000);
@@ -186,6 +199,9 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
+
+		// when the parent is closed, this decorator will be closed as well
+		parent.addOnCloseHandler(this_close);
 	}
 
 	/**
@@ -249,16 +265,20 @@ public class InitializedNodeImpl implements InitializedNode {
 
 		// we install the manifest and initialize the node
 		parent.addInitializationTransaction(TransactionRequests.initialization(takamakaCodeReference, manifest));
+
+		// when the parent is closed, this decorator will be closed as well
+		parent.addOnCloseHandler(this_close);
 	}
 
 	@Override
-	public StorageReference gamete() {
+	public StorageReference gamete() { // TODO: throw exception if closed
 		return gamete;
 	}
 
 	@Override
 	public void close() throws Exception {
-		parent.close();
+		if (!isClosed.getAndSet(true))
+			parent.close();
 	}
 
 	@Override
@@ -374,5 +394,15 @@ public class InitializedNodeImpl implements InitializedNode {
 	@Override
 	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		return parent.subscribeToEvents(key, handler);
+	}
+
+	@Override
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		parent.addOnCloseHandler(handler);
+	}
+
+	@Override
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		parent.removeOnCloseHandler(handler);
 	}
 }

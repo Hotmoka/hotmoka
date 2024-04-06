@@ -30,6 +30,11 @@
       <artifactId>io-hotmoka-crypto-api</artifactId>
       <version>${io.hotmoka.crypto.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka.closeables</groupId>
+      <artifactId>io-hotmoka-closeables</artifactId>
+      <version>${io.hotmoka.closeables.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

@@ -48,6 +48,11 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka.websockets</groupId>
+      <artifactId>io-hotmoka-websockets-client</artifactId>
+      <version>${io.hotmoka.websockets.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>toml4j</artifactId>
       <version>0.7.3</version>

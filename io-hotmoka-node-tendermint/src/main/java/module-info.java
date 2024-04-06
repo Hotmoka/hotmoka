@@ -29,6 +29,7 @@ module io.hotmoka.node.tendermint {
 	requires io.hotmoka.exceptions;
 	requires transitive io.hotmoka.helpers;
 	requires io.hotmoka.node.local;
+	requires io.hotmoka.closeables;
 	requires com.google.gson;
 	requires com.google.protobuf;
 	requires toml4j;

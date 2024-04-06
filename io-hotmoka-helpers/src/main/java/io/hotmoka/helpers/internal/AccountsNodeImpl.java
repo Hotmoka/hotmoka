@@ -27,6 +27,7 @@ import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -53,6 +54,7 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
@@ -91,6 +93,17 @@ public class AccountsNodeImpl implements AccountsNode {
 	 * The container of the accounts. This is an instance of {@code io.takamaka.code.lang.Accounts}.
 	 */
 	private final StorageReference container;
+
+	/**
+	 * True if and only if this node has been closed already.
+	 */
+	private final AtomicBoolean isClosed = new AtomicBoolean();
+
+	/**
+	 * We need this intermediate definition since two instances of a method reference
+	 * are not the same, nor equals.
+	 */
+	private final OnCloseHandler this_close = this::close;
 
 	/**
 	 * Creates a decorated node by creating initial accounts.
@@ -182,20 +195,23 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		for (int i = 0; i < funds.length / k; i++)
 			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)));
+
+		// when the parent is closed, this decorator will be closed as well
+		parent.addOnCloseHandler(this_close);
 	}
 
 	@Override
-	public Stream<StorageReference> accounts() {
+	public Stream<StorageReference> accounts() { // TODO: throw exception if closed
 		return Stream.of(accounts);
 	}
 
 	@Override
-	public StorageReference container() {
+	public StorageReference container() { // TODO: throw exception if closed
 		return container;
 	}
 
 	@Override
-	public StorageReference account(int i) {
+	public StorageReference account(int i) { // TODO: throw exception if closed
 		if (i < 0 || i >= accounts.length)
 			throw new NoSuchElementException();
 
@@ -204,12 +220,12 @@ public class AccountsNodeImpl implements AccountsNode {
 
 
 	@Override
-	public Stream<PrivateKey> privateKeys() {
+	public Stream<PrivateKey> privateKeys() { // TODO: throw exception if closed
 		return Stream.of(privateKeys);
 	}
 
 	@Override
-	public PrivateKey privateKey(int i) {
+	public PrivateKey privateKey(int i) { // TODO: throw exception if closed
 		if (i < 0 || i >= privateKeys.length)
 			throw new NoSuchElementException();
 
@@ -218,7 +234,8 @@ public class AccountsNodeImpl implements AccountsNode {
 
 	@Override
 	public void close() throws Exception {
-		parent.close();
+		if (!isClosed.getAndSet(true))
+			parent.close();
 	}
 
 	@Override
@@ -334,5 +351,15 @@ public class AccountsNodeImpl implements AccountsNode {
 	@Override
 	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
 		return parent.subscribeToEvents(key, handler);
+	}
+
+	@Override
+	public void addOnCloseHandler(OnCloseHandler handler) {
+		parent.addOnCloseHandler(handler);
+	}
+
+	@Override
+	public void removeOnCloseHandler(OnCloseHandler handler) {
+		parent.removeOnCloseHandler(handler);
 	}
 }
