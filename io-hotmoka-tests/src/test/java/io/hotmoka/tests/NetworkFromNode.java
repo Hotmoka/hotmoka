@@ -52,7 +52,6 @@ import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -228,38 +227,5 @@ class NetworkFromNode extends HotmokaTest {
 
 		// the state contains two updates
 		assertSame(2, state.updates.size());
-	}
-
-	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetClassTag() throws InvalidKeyException, SignatureException, DeploymentException, IOException {
-		ClassTagModel classTag;
-
-		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = TransactionRequests.constructorCall(
-					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-					master,
-					ONE,
-					chainId,
-					_50_000,
-					ONE,
-					classpath,
-					CONSTRUCTOR_INTERNATIONAL_TIME,
-					StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40)
-			);
-
-			// we execute the creation of the object
-			var service = new RestClientService();
-			StorageReferenceModel object = service.post(
-					"http://localhost:8081/add/constructorCallTransaction",
-					new ConstructorCallTransactionRequestModel(request),
-					StorageReferenceModel.class
-			);
-
-			// we query the class tag of the object
-			classTag = service.post("http://localhost:8081/get/classTag", object, ClassTagModel.class);
-		}
-
-		// the state that the class tag holds the name of the class that has been created
-		assertEquals(CONSTRUCTOR_INTERNATIONAL_TIME.getDefiningClass().getName(), classTag.className);
 	}
 }

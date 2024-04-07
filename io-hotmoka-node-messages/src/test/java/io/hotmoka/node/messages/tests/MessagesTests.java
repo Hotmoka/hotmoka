@@ -24,8 +24,13 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.messages.GetClassTagMessages;
+import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
@@ -37,6 +42,8 @@ import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
 public class MessagesTests extends AbstractLoggedTests {
+
+	private final static StorageReference OBJECT = StorageValues.reference(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), BigInteger.ONE);
 
 	@Test
 	@DisplayName("getNodeInfo messages are correctly encoded into Json and decoded from Json")
@@ -86,9 +93,27 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("getManifestResult messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetManifestResult() throws EncodeException, DecodeException {
-		var expected = GetManifestResultMessages.of(StorageValues.reference(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), BigInteger.ONE), "id");
+		var expected = GetManifestResultMessages.of(OBJECT, "id");
 		String encoded = new GetManifestResultMessages.Encoder().encode(expected);
 		var actual = new GetManifestResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getClassTag messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetClassTag() throws EncodeException, DecodeException {
+		var expected = GetClassTagMessages.of(OBJECT, "id");
+		String encoded = new GetClassTagMessages.Encoder().encode(expected);
+		var actual = new GetClassTagMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getClassTagResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetClassTagResult() throws EncodeException, DecodeException {
+		var expected = GetClassTagResultMessages.of(Updates.classTag(OBJECT, StorageTypes.classNamed("my.class"), OBJECT.getTransaction()), "id");
+		String encoded = new GetClassTagResultMessages.Encoder().encode(expected);
+		var actual = new GetClassTagResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

@@ -21,6 +21,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.internal.NodeInternal;
@@ -79,8 +81,10 @@ public abstract class CodeCallResponseBuilder
 	 * 
 	 * @throws TransactionRejectedException if that condition does not hold
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	private void argumentsAreExported() throws TransactionRejectedException, ClassNotFoundException {
+	private void argumentsAreExported() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
 		List<StorageReference> args = request.actuals()
 			.filter(actual -> actual instanceof StorageReference)
 			.map(actual -> (StorageReference) actual)
@@ -96,8 +100,10 @@ public abstract class CodeCallResponseBuilder
 	 * @param reference the transaction reference
 	 * @throws TransactionRejectedException of the type of the object in store is not exported
 	 * @throws ClassNotFoundException if the class tag of {@code reference} cannot be found in the Takamaka program
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException {
+	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
 		var clazz = node.getClassTag(reference).getClazz();
 		if (!classLoader.isExported(clazz.getName()))
 			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);

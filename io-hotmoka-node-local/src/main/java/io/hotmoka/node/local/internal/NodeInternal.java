@@ -29,6 +29,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -128,7 +129,7 @@ public interface NodeInternal {
 	 * @throws NoSuchElementException if there is no object with that reference or
 	 *                                if the class tag could not be found
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException;
+	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.

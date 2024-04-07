@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.helpers.api;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -43,6 +44,8 @@ public interface SignatureHelper {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
-	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException;
+	SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, InterruptedException, TimeoutException;
 }

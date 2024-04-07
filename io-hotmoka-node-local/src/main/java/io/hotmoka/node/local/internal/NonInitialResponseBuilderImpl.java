@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -168,8 +169,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @return the signature algorithm
 	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
 	 * @throws ClassNotFoundException if the class of the caller cannot be found
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException {
+	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
 		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
@@ -190,8 +193,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 *
 	 * @throws TransactionRejectedException if the caller is not an externally owned account
 	 * @throws ClassNotFoundException if the class of the caller cannot be determined
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException {
+	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
 		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -203,8 +208,10 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 *
 	 * @throws TransactionRejectedException if the payer is not a contract
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException {
+	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
 		StorageReference payer = getPayerFromRequest();
 	
 		if (payer.equals(request.getCaller()))

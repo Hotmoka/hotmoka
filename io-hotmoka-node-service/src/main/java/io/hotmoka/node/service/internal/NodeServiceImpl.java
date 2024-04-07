@@ -33,12 +33,15 @@ import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.messages.GetClassTagMessages;
+import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
@@ -108,7 +111,8 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
     	// TODO: remove the +2 at the end
     	startContainer("", config.getPort() + 2,
-   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this)
+   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this),
+   			GetClassTagEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -224,6 +228,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetManifestEndpoint.class, GET_MANIFEST_ENDPOINT,
 				GetManifestMessages.Decoder.class, GetManifestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetClassTag(GetClassTagMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_CLASS_TAG_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetClassTagResultMessages.of(node.getClassTag(message.getReference()), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | NoSuchElementException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetClassTagEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetClassTagMessage message) -> getServer().onGetClassTag(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetClassTagEndpoint.class, GET_CLASS_TAG_ENDPOINT,
+				GetClassTagMessages.Decoder.class, GetClassTagResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

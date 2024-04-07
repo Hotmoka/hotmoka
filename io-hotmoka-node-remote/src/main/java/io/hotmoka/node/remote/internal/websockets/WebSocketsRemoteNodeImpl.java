@@ -31,7 +31,6 @@ import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -45,7 +44,6 @@ import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
@@ -76,12 +74,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      */
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
-    }
-
-    @Override
-    public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException
-                (() -> send("/get/classTag", ClassTagModel.class, new StorageReferenceModel(reference)).toBean(reference));
     }
 
     @Override

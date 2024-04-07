@@ -47,7 +47,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 	}
 
 	@Override
-	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NoSuchElementException, NodeException {
+	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var tag = node.getClassTag(account);
 
 		// first we try without the class loader, that does not work under Android...

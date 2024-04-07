@@ -183,7 +183,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getClassTag(reference);
 	}
 

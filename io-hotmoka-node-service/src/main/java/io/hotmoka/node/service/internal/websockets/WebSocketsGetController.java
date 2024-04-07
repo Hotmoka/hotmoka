@@ -49,11 +49,6 @@ public class WebSocketsGetController {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/state", nodeGetService.getState(request));
     }
 
-    @MessageMapping("/classTag")
-    public void getClassTag(Principal principal, StorageReferenceModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/classTag", nodeGetService.getClassTag(request));
-    }
-
     @MessageMapping("/request")
     public void getRequestAt(Principal principal, TransactionReferenceModel reference) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/request", nodeGetService.getRequest(reference));

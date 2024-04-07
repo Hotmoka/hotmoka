@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.remote.internal;
 
+import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
@@ -40,6 +41,7 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
@@ -74,12 +76,16 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.GetClassTagMessages;
+import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
@@ -145,6 +151,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
     	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
     	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
+    	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -184,6 +191,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetTakamakaCodeResult(gtcrm);
 		else if (message instanceof GetManifestResultMessage gmrm)
 			onGetManifestResult(gmrm);
+		else if (message instanceof GetClassTagResultMessage gctrm)
+			onGetClassTagResult(gctrm);		
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -372,6 +381,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetManifestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetManifestMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendGetClassTag(reference, id);
+		try {
+			return waitForResult(id, this::processGetClassTagSuccess, this::processGetClassTagExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetClassTagMessage} to the node service.
+	 * 
+	 * @param reference the reference to the object whose class tag is required
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetClassTag(StorageReference reference, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_CLASS_TAG_ENDPOINT), GetClassTagMessages.of(reference, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private ClassTag processGetClassTagSuccess(RpcMessage message) {
+		return message instanceof GetClassTagResultMessage gctrm ? gctrm.get() : null;
+	}
+
+	private boolean processGetClassTagExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetClassTagResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetClassTagResult(GetClassTagResultMessage message) {}
+
+	private class GetClassTagEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetClassTagResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetClassTagMessages.Encoder.class);		
 		}
 	}
 

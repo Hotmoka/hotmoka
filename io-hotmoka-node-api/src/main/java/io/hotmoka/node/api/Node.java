@@ -104,8 +104,10 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the class tag, if any
 	 * @throws NoSuchElementException if there is no object with that reference
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException;
+	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.

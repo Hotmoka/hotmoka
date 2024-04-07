@@ -464,20 +464,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
-		Objects.requireNonNull(reference);
-		try {
+	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
+		try (var scope = mkScope()) {
+			Objects.requireNonNull(reference);
+
 			if (isNotCommitted(reference.getTransaction()))
 				throw new NoSuchElementException("Unknown transaction reference " + reference.getTransaction());
 
 			return storeUtilities.getClassTagUncommitted(reference);
-		}
-		catch (NoSuchElementException e) {
-			throw e;
-		}
-		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "unexpected exception", e);
-			throw e;
 		}
 	}
 
@@ -1134,7 +1128,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public ClassTag getClassTag(StorageReference object) throws NoSuchElementException {
+		public ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException {
 			return AbstractLocalNodeImpl.this.getClassTag(object);
 		}
 

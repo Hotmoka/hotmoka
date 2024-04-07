@@ -279,7 +279,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
-    	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException {
+    	private void letDaysPass() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException {
     		for (int day = 1; day <= NUMBER_OF_DAYS; day++)
     			if (PERFORM_SNAPSHOTS)
     				assertSame(nextDay(), day); // the snapshot identifier starts from 1
@@ -291,10 +291,8 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	 * Performs the transactions for a day.
     	 * 
     	 * @return the id of the snapshot performed at the end of the day
-    	 * @throws NodeException 
-    	 * @throws NoSuchElementException 
     	 */
-    	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException {
+    	private int nextDay() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException {
     		IntStream.range(0, investors.length).forEach(this::actionsOfAccount);
     		return PERFORM_SNAPSHOTS ? convertUBItoInt(createSnapshot()) : 0;
     	}
@@ -334,7 +332,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     				break;
     			}
     		}
-    		catch (InvalidKeyException | SignatureException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException e) {
+    		catch (InvalidKeyException | SignatureException | TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | NoSuchElementException | InterruptedException | TimeoutException e) {
     			throw new RuntimeException(e);
     		}
     	}
@@ -343,8 +341,10 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 		 * Transition that performs the transfer on ERC20
     	 * @throws NodeException 
     	 * @throws NoSuchElementException 
+    	 * @throws TimeoutException 
+    	 * @throws InterruptedException 
 		 */
-		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException {
+		private void transfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException {
 			var request = TransactionRequests.instanceMethodCall
 				(signature().getSigner(privateKeyOfSender, SignedTransactionRequest::toByteArrayWithoutSignature), sender, nonceHelper.getNonceOf(sender), chainId, _10_000_000, ZERO, jar(),
 				TRANSFER, coin, receiver, StorageValues.intOf(howMuch));
@@ -353,7 +353,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 			numberOfTransfers.getAndIncrement();
 		}
 
-		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+		private void burn(StorageReference victim, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), BURN, coin, victim, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
@@ -361,7 +361,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
             numberOfBurns.getAndIncrement();
 		}
 
-    	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+    	private void mint(StorageReference beneficiary, int howMuch) throws InvalidKeyException, SignatureException, NoSuchElementException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
     		var request = TransactionRequests.instanceMethodCall
     			(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _10_000_000, ZERO, jar(), MINT, coin, beneficiary, StorageValues.intOf(howMuch));
             node.addInstanceMethodCallTransaction(request);
@@ -375,7 +375,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
             return bi.getValue().intValue();
         }
 
-        private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException {
+        private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException {
         	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
             StorageReference result = (StorageReference) node.addInstanceMethodCallTransaction(request);

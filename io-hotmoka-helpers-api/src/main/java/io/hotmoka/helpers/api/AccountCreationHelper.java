@@ -62,10 +62,12 @@ public interface AccountCreationHelper {
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new account by letting another account pay.
@@ -116,10 +118,12 @@ public interface AccountCreationHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Creates a new Tendermint validator by letting another account pay.

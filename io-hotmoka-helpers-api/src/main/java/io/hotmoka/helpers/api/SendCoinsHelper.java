@@ -83,8 +83,11 @@ public interface SendCoinsHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the faucet uses an unknown signature algorithm
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread gets interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 */
 	void sendFromFaucet(StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException,
+				InterruptedException, TimeoutException;
 }

@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -70,7 +71,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 	}
 
-	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException {
+	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
 		enforceExported(request.getReceiver());
 	}
 

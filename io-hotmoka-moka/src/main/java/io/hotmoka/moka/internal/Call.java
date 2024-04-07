@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -173,7 +174,7 @@ public class Call extends AbstractCommand {
 			}
 		}
 
-		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException, NodeException {
+		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 			try {
 				return classloader.loadClass(Call.this.receiver);
 			}

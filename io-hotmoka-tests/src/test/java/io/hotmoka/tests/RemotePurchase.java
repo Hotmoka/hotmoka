@@ -175,7 +175,7 @@ class RemotePurchase extends HotmokaTest {
 		try {
 			return PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName());
 		}
-		catch (NodeException e) {
+		catch (NodeException | NoSuchElementException | TimeoutException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}
