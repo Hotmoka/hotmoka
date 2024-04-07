@@ -44,19 +44,9 @@ public class WebSocketsGetController {
         this.nodeGetService = nodeGetService;
     }
 
-    @MessageMapping("/takamakaCode")
-    public void getTakamakaCode(Principal principal) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/takamakaCode", nodeGetService.getTakamakaCode());
-    }
-
     @MessageMapping("/manifest")
     public void getManifest(Principal principal) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/manifest", nodeGetService.getManifest());
-    }
-
-    @MessageMapping("/nodeID")
-    public void getNodeID(Principal principal) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/nodeID", nodeGetService.getNodeID());
     }
 
     @MessageMapping("/state")

@@ -33,7 +33,7 @@ public abstract class TransactionReferenceJson implements JsonRepresentation<Tra
 	}
 
 	@Override
-	public TransactionReference unmap() throws IllegalArgumentException, HexConversionException {
+	public TransactionReference unmap() throws HexConversionException {
 		return TransactionReferences.of(Hex.fromHexString(hash));
 	}
 }

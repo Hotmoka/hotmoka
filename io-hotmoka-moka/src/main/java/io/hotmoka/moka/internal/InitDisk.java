@@ -21,6 +21,8 @@ import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.helpers.InitializedNodes;
@@ -28,6 +30,7 @@ import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
@@ -158,7 +161,7 @@ public class InitDisk extends AbstractCommand {
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
 		}
 
-		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(node));
 		}
 

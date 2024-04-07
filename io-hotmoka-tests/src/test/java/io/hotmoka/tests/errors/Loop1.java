@@ -20,6 +20,8 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -40,12 +43,12 @@ class Loop1 extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void installJar() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
 	}
 
 	@Test @DisplayName("install jar then call to Loop.loop() fails")
-	void callLoop() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callLoop() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop1.jar"), takamakaCode());
 
 		HotmokaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 

@@ -17,6 +17,8 @@ limitations under the License.
 package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionRequests;
@@ -27,6 +29,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -36,6 +39,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 public class GasHelperImpl implements GasHelper {
 	private final Node node;
 	private final StorageReference gasStation;
+	private final TransactionReference takamakaCode;
+	private final StorageReference manifest;
 
 	/**
 	 * Creates an object that helps with gas operations.
@@ -44,12 +49,16 @@ public class GasHelperImpl implements GasHelper {
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public GasHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public GasHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 
-		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
+		this.takamakaCode = node.getTakamakaCode();
+		this.manifest = node.getManifest();
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -58,8 +67,6 @@ public class GasHelperImpl implements GasHelper {
 
 	@Override
 	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		TransactionReference takamakaCode = node.getTakamakaCode();
-		StorageReference manifest = node.getManifest();
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

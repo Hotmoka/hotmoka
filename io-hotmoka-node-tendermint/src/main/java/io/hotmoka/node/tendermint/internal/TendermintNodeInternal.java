@@ -16,11 +16,13 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
@@ -83,7 +85,7 @@ public interface TendermintNodeInternal {
 	 * 
 	 * @return the validators, if the node has been initialized already
 	 */
-	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, NoSuchElementException;
 
 	/**
 	 * Commits the current transaction in the database of the state.

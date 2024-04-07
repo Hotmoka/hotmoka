@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,6 +35,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -45,7 +48,7 @@ class IllegalCallToNonWhiteListedMethod12 extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new ExternallyOwnedAccount().hashCode()")
-	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testNonWhiteListedCall() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.STRING), StorageValues.stringOf(publicKey));

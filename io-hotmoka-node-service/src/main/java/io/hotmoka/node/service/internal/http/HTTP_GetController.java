@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
@@ -41,19 +40,9 @@ public class HTTP_GetController {
     @Autowired
     private GetService nodeGetService;
 
-    @GetMapping("/takamakaCode")
-    public @ResponseBody TransactionReferenceModel getTakamakaCode() {
-        return nodeGetService.getTakamakaCode();
-    }
-
     @GetMapping("/manifest")
     public @ResponseBody StorageReferenceModel getManifest() {
         return nodeGetService.getManifest();
-    }
-
-    @GetMapping("/nodeID")
-    public @ResponseBody NodeInfoModel getNodeID() {
-        return nodeGetService.getNodeID();
     }
 
     @PostMapping("/state")

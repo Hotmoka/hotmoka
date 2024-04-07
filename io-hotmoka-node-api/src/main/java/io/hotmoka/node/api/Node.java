@@ -60,8 +60,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @throws NoSuchElementException if the node has not been initialized yet
 	 * @return the reference to the installed Takamaka base classes
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference getTakamakaCode() throws NoSuchElementException;
+	TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the manifest installed in the store of the node. The manifest is an object of type

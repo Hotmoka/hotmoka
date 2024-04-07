@@ -273,7 +273,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 
-	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException {
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
@@ -377,7 +377,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException {
 			return TendermintNodeImpl.this.getTendermintValidatorsInStore();
 		}
 

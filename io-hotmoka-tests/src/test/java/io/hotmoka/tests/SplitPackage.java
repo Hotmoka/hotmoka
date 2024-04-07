@@ -22,12 +22,15 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -47,7 +50,7 @@ class SplitPackage extends HotmokaTest {
 	}
 
 	@Test @DisplayName("jars with distinct packages coexist")
-	void testDisjointJars() throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, IOException {
+	void testDisjointJars() throws TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		addJarStoreTransaction(privateKey(0), account(0), _1_000_000, ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 	

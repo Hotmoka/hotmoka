@@ -22,12 +22,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.util.Base64;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNode;
 
@@ -42,7 +45,7 @@ class CreateAccountForFree extends HotmokaTest {
 	}
 
 	@Test @DisplayName("create account")
-	void createAccount() throws TransactionRejectedException, InvalidKeyException {
+	void createAccount() throws TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 

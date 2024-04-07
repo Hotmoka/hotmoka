@@ -20,11 +20,14 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -37,7 +40,7 @@ class CallerOutsideFromContract3 extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException {
+	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("calleroutsidefromcontract3.jar"), takamakaCode());
 	}
 }

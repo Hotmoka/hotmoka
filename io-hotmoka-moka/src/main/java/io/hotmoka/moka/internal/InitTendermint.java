@@ -23,6 +23,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Comparator;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
@@ -40,6 +42,7 @@ import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
@@ -237,7 +240,7 @@ public class InitTendermint extends AbstractCommand {
 			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
 		}
 
-		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(initialized));
 		}
 

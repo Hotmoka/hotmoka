@@ -16,10 +16,14 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.internal.GasHelperImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -38,8 +42,12 @@ public class GasHelpers {
 	 * @throws TransactionRejectedException if some transaction was rejected
 	 * @throws TransactionException if some transaction failed
 	 * @throws CodeExecutionException if some transaction generated an exception
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public static GasHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static GasHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return new GasHelperImpl(node);
 	}
 }

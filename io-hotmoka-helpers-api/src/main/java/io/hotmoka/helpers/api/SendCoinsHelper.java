@@ -21,6 +21,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -54,12 +56,16 @@ public interface SendCoinsHelper {
 	 * @throws InvalidKeyException if the key is invalid
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the sender uses an unknown signature algorithm
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
 	void sendFromPayer(StorageReference payer, KeyPair keysOfPayer,
 			StorageReference destination, BigInteger amount, BigInteger amountRed,
 			Consumer<BigInteger> gasHandler, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
+				NodeException, NoSuchElementException, TimeoutException, InterruptedException;
 
 	/**
 	 * Sends coins to an account, by letting the faucet of the node pay.

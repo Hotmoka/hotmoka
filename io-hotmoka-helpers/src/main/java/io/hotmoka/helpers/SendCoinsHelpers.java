@@ -16,10 +16,14 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.helpers.internal.SendCoinsHelperImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -38,8 +42,12 @@ public class SendCoinsHelpers {
 	 * @throws CodeExecutionException if some transaction fails
 	 * @throws TransactionException if some transaction fails
 	 * @throws TransactionRejectedException if some transaction fails
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public static SendCoinsHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static SendCoinsHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return new SendCoinsHelperImpl(node);
 	}
 }

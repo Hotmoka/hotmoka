@@ -22,8 +22,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
@@ -45,6 +48,24 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetNodeInfoResultMessages.of(NodeInfos.of("special node", "1.2.3", "id314"), "id");
 		String encoded = new GetNodeInfoResultMessages.Encoder().encode(expected);
 		var actual = new GetNodeInfoResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getTakamakaCode messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetTakamakaCode() throws EncodeException, DecodeException {
+		var expected = GetTakamakaCodeMessages.of("id");
+		String encoded = new GetTakamakaCodeMessages.Encoder().encode(expected);
+		var actual = new GetTakamakaCodeMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getTakamakaCodeResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetTakamakaCodeResult() throws EncodeException, DecodeException {
+		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), "id");
+		String encoded = new GetTakamakaCodeResultMessages.Encoder().encode(expected);
+		var actual = new GetTakamakaCodeResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

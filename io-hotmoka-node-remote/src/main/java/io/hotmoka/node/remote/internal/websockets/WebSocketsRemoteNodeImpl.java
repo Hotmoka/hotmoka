@@ -79,12 +79,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public TransactionReference getTakamakaCode() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException
-                (() -> send("/get/takamakaCode", TransactionReferenceModel.class).toBean());
-    }
-
-    @Override
     public StorageReference getManifest() throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException
                 (() -> send("/get/manifest", StorageReferenceModel.class).toBean());

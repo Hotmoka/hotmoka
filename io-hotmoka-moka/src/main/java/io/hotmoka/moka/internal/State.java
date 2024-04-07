@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
@@ -27,6 +29,7 @@ import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.RemoteNodes;
@@ -73,7 +76,7 @@ public class State extends AbstractCommand {
 			}
 		}
 
-		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 			System.out.println();
 			if (api)
 				new PrintAPI(node, tag);

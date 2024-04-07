@@ -22,6 +22,8 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -86,14 +88,18 @@ public interface AccountCreationHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer is unknown
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized	
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
+					NodeException, NoSuchElementException, TimeoutException, InterruptedException;
 
 	/**
 	 * Creates a new Tendermint validator by letting the faucet pay.
@@ -133,10 +139,14 @@ public interface AccountCreationHelper {
 	 * @throws SignatureException if some signature failed
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer is unknown
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
 	StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
+				NodeException, TimeoutException, InterruptedException, NoSuchElementException;
 }

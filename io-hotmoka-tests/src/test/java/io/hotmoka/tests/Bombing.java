@@ -23,9 +23,11 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -40,6 +42,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -78,7 +81,7 @@ class Bombing extends HotmokaTest {
 			try {
 				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
-			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
+			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
@@ -86,7 +89,7 @@ class Bombing extends HotmokaTest {
 
 	@Test
 	@DisplayName(NUMBER_OF_TRANSFERS + " random transfers between accounts")
-	void randomTransfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException {
+	void randomTransfers() throws InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, ExecutionException, NoSuchElementException, NodeException, TimeoutException {
 		long start = System.currentTimeMillis();
 		var customThreadPool = new ForkJoinPool(NUMBER_OF_ACCOUNTS);
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();

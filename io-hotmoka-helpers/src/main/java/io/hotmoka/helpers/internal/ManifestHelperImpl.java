@@ -20,8 +20,10 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 import java.util.TreeSet;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
@@ -38,6 +40,7 @@ import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -61,8 +64,12 @@ public class ManifestHelperImpl implements ManifestHelper {
 	 * Creates an object that helps with the access to the manifest of a node.
 	 * 
 	 * @param node the node whose manifest is considered
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public ManifestHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public ManifestHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
 		this.manifest = node.getManifest();

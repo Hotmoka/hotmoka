@@ -19,6 +19,7 @@ package io.hotmoka.node.tendermint.internal;
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -29,6 +30,7 @@ import com.google.protobuf.ByteString;
 import io.hotmoka.beans.BeanUnmarshallingContexts;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tendermint.abci.ABCI;
@@ -289,7 +291,7 @@ class TendermintApplication extends ABCI {
     				}
     			}
     		}
-    		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+    		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchElementException | NodeException e) {
     			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}

@@ -128,8 +128,11 @@ public class AccountsNodeImpl implements AccountsNode {
 	 * @throws NoSuchAlgorithmException if the payer uses an unknown signature algorithm
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
 	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException {
+	public AccountsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, String containerClassName, TransactionReference classpath, boolean greenRed, BigInteger... funds) throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException {
 		this.parent = parent;
 		this.accounts = new StorageReference[greenRed ? funds.length / 2 : funds.length];
 		this.privateKeys = new PrivateKey[accounts.length];
@@ -244,7 +247,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() {
+	public TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getTakamakaCode();
 	}
 

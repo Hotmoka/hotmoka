@@ -94,11 +94,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public TransactionReference getTakamakaCode() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> service.get(url + "/get/takamakaCode", TransactionReferenceModel.class).toBean());
-    }
-
-    @Override
     public StorageReference getManifest() throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> service.get(url + "/get/manifest", StorageReferenceModel.class).toBean());
     }

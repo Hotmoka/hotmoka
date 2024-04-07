@@ -16,11 +16,15 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.helpers.internal.ManifestHelperImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -40,8 +44,12 @@ public class ManifestHelpers {
 	 * @throws TransactionRejectedException if some transaction that installs the jars is rejected
 	 * @throws TransactionException if some transaction that installs the jars fails
 	 * @throws CodeExecutionException if some transaction that installs the jars throws an exception
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public static ManifestHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public static ManifestHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return new ManifestHelperImpl(node);
 	}
 }

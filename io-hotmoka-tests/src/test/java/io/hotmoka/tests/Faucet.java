@@ -23,6 +23,8 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
 import java.util.Base64;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,7 @@ import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.takamaka.code.constants.Constants;
@@ -47,7 +50,7 @@ public class Faucet extends HotmokaTest {
 	}
 
 	@Test
-	void fundNewAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void fundNewAccount() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
@@ -71,7 +74,7 @@ public class Faucet extends HotmokaTest {
 	}
 
 	@Test
-	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException {
+	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		StorageReference manifest = node.getManifest();
 		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest);
 

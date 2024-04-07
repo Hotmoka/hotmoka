@@ -30,8 +30,9 @@ import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
-import org.bouncycastle.util.encoders.Hex;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,6 +56,7 @@ import io.hotmoka.network.updates.ClassTagModel;
 import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
@@ -118,20 +120,8 @@ class NetworkFromNode extends HotmokaTest {
 			|| "qtesla1".equals(answer.algorithm) || "qtesla3".equals(answer.algorithm) || "empty".equals(answer.algorithm));
 	}
 
-	@Test @DisplayName("starts a network server from a Hotmoka node and runs getTakamakaCode()")
-	void testGetTakamakaCode() throws DeploymentException, IOException {
-		TransactionReferenceModel result;
-		RestClientService service = new RestClientService();
-
-		try (var nodeRestService = NodeServices.of(config, node)) {
-			result = service.get("http://localhost:8081/get/takamakaCode", TransactionReferenceModel.class);
-		}
-
-		assertEquals(Hex.toHexString(node.getTakamakaCode().getHash()), result.hash);
-	}
-
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")
-	void addJarStoreInitialTransaction() throws IOException, DeploymentException {
+	void addJarStoreInitialTransaction() throws IOException, DeploymentException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		ErrorModel errorModel = null;
 
 		try (var nodeRestService = NodeServices.of(config, node)) {

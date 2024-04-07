@@ -23,6 +23,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.beans.ConstructorSignatures;
@@ -73,8 +74,12 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	 * @throws CodeExecutionException if some transaction fails
 	 * @throws TransactionException if some transaction fails
 	 * @throws TransactionRejectedException if some transaction fails
+	 * @throws InterruptedException if the current thread is interrupted while performing the operation
+	 * @throws TimeoutException if the operation does not complete within the expected time window
+	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public AccountCreationHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public AccountCreationHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
@@ -130,7 +135,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			boolean addToLedger,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 
 		ClassType eoaType;
 		String signature = signatureAlgorithm.getName();
@@ -231,7 +236,7 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 	public StorageReference tendermintValidatorPaidBy(StorageReference payer, KeyPair keysOfPayer, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 
 		var signatureForPayer = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 

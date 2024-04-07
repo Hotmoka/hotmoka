@@ -35,6 +35,7 @@ import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -134,7 +135,7 @@ class WTSC2021bis extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException | NodeException e) {
+				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException | NodeException | TimeoutException e) {
 			throw new RuntimeException(e);
 		}
 	}

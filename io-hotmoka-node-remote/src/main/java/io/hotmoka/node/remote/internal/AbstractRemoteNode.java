@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.remote.internal;
 
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
 
 import java.io.IOException;
 import java.net.URI;
@@ -37,6 +38,7 @@ import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
@@ -73,8 +75,11 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
@@ -132,6 +137,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	this.logPrefix = "node remote(ws://" + config.getURL() + "): "; // TODO: just uri at the end
 
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
+    	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -167,6 +173,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	protected void notifyResult(RpcMessage message) {
 		if (message instanceof GetNodeInfoResultMessage gnirm)
 			onGetNodeInfoResult(gnirm);
+		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
+			onGetTakamakaCodeResult(gtcrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -243,6 +251,62 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetNodeInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetNodeInfoMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, InterruptedException, TimeoutException { // TODO: remove NoSuchElement at the end
+		ensureIsOpen();
+		var id = nextId();
+		sendGetTakamakaCode(id);
+		try {
+			return waitForResult(id, this::processGetTakamakaCodeSuccess, this::processGetTakamakaCodeExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetTakamakaCodeMessage} to the node service.
+	 * 
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetTakamakaCode(String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_TAKAMAKA_CODE_ENDPOINT), GetTakamakaCodeMessages.of(id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private TransactionReference processGetTakamakaCodeSuccess(RpcMessage message) {
+		return message instanceof GetTakamakaCodeResultMessage gtcrm ? gtcrm.get() : null;
+	}
+
+	private boolean processGetTakamakaCodeExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetNodeInfoResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetTakamakaCodeResult(GetTakamakaCodeResultMessage message) {}
+
+	private class GetTakamakaCodeEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetTakamakaCodeResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetTakamakaCodeMessages.Encoder.class);		
 		}
 	}
 

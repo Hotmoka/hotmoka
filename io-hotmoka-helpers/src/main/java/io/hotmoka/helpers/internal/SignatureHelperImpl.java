@@ -18,6 +18,7 @@ package io.hotmoka.helpers.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -40,7 +41,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 	private final Node node;
 	private final ClassLoaderHelper classLoaderHelper;
 
-	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.classLoaderHelper = ClassLoaderHelpers.of(node);
 	}

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.service.internal;
 
 import java.io.IOException;
+import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -34,7 +35,10 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeMessages;
+import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
@@ -101,7 +105,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
     	// TODO: remove the +2 at the end
     	startContainer("", config.getPort() + 2,
-   			GetNodeInfoEndpoint.config(this)
+   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -159,6 +163,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetNodeInfoEndpoint.class, GET_NODE_INFO_ENDPOINT,
 				GetNodeInfoMessages.Decoder.class, GetNodeInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetTakamakaCode(GetTakamakaCodeMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_TAKAMAKA_CODE_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetTakamakaCodeResultMessages.of(node.getTakamakaCode(), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | NoSuchElementException e) { // TODO: remove NoSuchElement at the end
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetTakamakaCodeEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetTakamakaCodeMessage message) -> getServer().onGetTakamakaCode(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetTakamakaCodeEndpoint.class, GET_TAKAMAKA_CODE_ENDPOINT,
+				GetTakamakaCodeMessages.Decoder.class, GetTakamakaCodeResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

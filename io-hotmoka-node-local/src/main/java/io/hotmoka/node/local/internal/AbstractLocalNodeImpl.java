@@ -373,8 +373,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionReference getTakamakaCode() throws NoSuchElementException {
-		return getClassTag(getManifest()).getJar();
+	public final TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException {
+		try (var scope = mkScope()) {
+			return getClassTag(getManifest()).getJar();
+		}
 	}
 
 	@Override

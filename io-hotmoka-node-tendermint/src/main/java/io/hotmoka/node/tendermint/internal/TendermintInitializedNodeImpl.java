@@ -225,7 +225,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() {
+	public TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getTakamakaCode();
 	}
 

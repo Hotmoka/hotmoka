@@ -23,6 +23,7 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import io.hotmoka.beans.MethodSignatures;
@@ -97,8 +98,10 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws CodeExecutionException
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws NoSuchElementException 
+	 * @throws InterruptedException 
+	 * @throws TimeoutException 
 	 */
-	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException {
+	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		StorageReference reference = account.getReference();
 		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(reference);
 		var keys = account.keys(password, algorithm);

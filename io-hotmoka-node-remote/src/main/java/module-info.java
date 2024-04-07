@@ -32,4 +32,5 @@ module io.hotmoka.node.remote {
     requires com.google.gson;
     requires transitive toml4j;
     requires java.logging;
+	requires io.hotmoka.node.messages.api;
 }
