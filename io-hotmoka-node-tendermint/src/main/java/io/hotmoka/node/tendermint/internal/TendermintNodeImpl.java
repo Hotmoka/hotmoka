@@ -68,6 +68,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.tendermint.abci.Server;
 
 /**
@@ -326,15 +327,20 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 */
 	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference validators = caches.getValidators().get();
+		try {
+			if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+				StorageReference validators = caches.getValidators().get();
 
-			return check(ClassNotFoundException.class, () ->
-				events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
+				return check(ClassNotFoundException.class, () ->
+					events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
 					.map(storeUtilities::getCreatorUncommitted)
 					.anyMatch(validators::equals)
-			);
+				);
+			}
+		}
+		catch (StoreException | NodeException e) {
+			LOGGER.log(Level.SEVERE, "", e);
 		}
 
 		return false;

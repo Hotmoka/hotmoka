@@ -242,7 +242,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
+	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

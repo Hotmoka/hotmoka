@@ -18,11 +18,16 @@ package io.hotmoka.node.messages.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.math.BigInteger;
+
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
@@ -66,6 +71,24 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetTakamakaCodeResultMessages.of(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), "id");
 		String encoded = new GetTakamakaCodeResultMessages.Encoder().encode(expected);
 		var actual = new GetTakamakaCodeResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getManifest messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetManifest() throws EncodeException, DecodeException {
+		var expected = GetManifestMessages.of("id");
+		String encoded = new GetManifestMessages.Encoder().encode(expected);
+		var actual = new GetManifestMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getManifestResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetManifestResult() throws EncodeException, DecodeException {
+		var expected = GetManifestResultMessages.of(StorageValues.reference(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), BigInteger.ONE), "id");
+		String encoded = new GetManifestResultMessages.Encoder().encode(expected);
+		var actual = new GetManifestResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

@@ -27,6 +27,7 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.stores.StoreException;
 
 /**
  * An object that provides methods for reconstructing data from the store of a node.
@@ -42,51 +43,58 @@ public interface StoreUtility {
 	 * although possibly not yet committed.
 	 * 
 	 * @return true if and only if that condition holds
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	boolean nodeIsInitializedUncommitted();
+	boolean nodeIsInitializedUncommitted() throws StoreException;
 
 	/**
 	 * Yields the reference to the transaction, possibly not yet committed,
 	 * that has installed the Takamaka base classes in the store of the node.
 	 * 
 	 * @return the reference, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<TransactionReference> getTakamakaCodeUncommitted();
+	Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException;
 
 	/**
 	 * Yields the manifest of the node, if the latter is already initialized.
 	 * 
 	 * @return the manifest, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<StorageReference> getManifestUncommitted();
+	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
 	/**
 	 * Yields the gas station inside the manifest of the node, if the latter is already initialized.
 	 * 
 	 * @return the gas station, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<StorageReference> getGasStationUncommitted();
+	Optional<StorageReference> getGasStationUncommitted() throws StoreException;
 
 	/**
 	 * Yields the validators contract inside the manifest of the node, if the latter is already initialized.
 	 * 
 	 * @return the validators contract, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<StorageReference> getValidatorsUncommitted();
+	Optional<StorageReference> getValidatorsUncommitted() throws StoreException;
 
 	/**
 	 * Yields the versions contract inside the manifest of the node, if the latter is already initialized.
 	 * 
 	 * @return the versions contract, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<StorageReference> getVersionsUncommitted();
+	Optional<StorageReference> getVersionsUncommitted() throws StoreException;
 
 	/**
 	 * Yields the gamete account of the node, if the latter is already initialized.
 	 * 
 	 * @return the gamete account, if any
+	 * @throws StoreException if the store is not able to complete the operation
 	 */
-	Optional<StorageReference> getGameteUncommitted();
+	Optional<StorageReference> getGameteUncommitted() throws StoreException;
 
 	/**
 	 * Yields the (green) balance of the given (normal or red/green) contract.

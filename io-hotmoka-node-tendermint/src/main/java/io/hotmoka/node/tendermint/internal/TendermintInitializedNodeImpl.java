@@ -220,7 +220,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
+	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

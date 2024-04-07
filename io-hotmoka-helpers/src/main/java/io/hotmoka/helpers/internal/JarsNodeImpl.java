@@ -168,7 +168,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException {
+	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

@@ -56,12 +56,14 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.stores.StoreException;
 
 /**
  * An implementation of the caches of a local node.
@@ -295,7 +297,7 @@ public class NodeCachesImpl implements NodeCache {
 				.setSlashingForNotBehaving(slashingForNotBehaving)
 				.build();
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | StoreException | NodeException e) {
 			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", e);
 			throw new RuntimeException("could not reconstruct the consensus parameters from the manifest", e);
 		}
@@ -303,16 +305,12 @@ public class NodeCachesImpl implements NodeCache {
 
 	@Override
 	public final Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		Objects.requireNonNull(reference);
-
-		return requests.computeIfAbsentOptional(reference, _reference -> node.getStore().getRequest(_reference));
+		return requests.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getRequest(_reference));
 	}
 
 	@Override
 	public final Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		Objects.requireNonNull(reference);
-
-		return responses.computeIfAbsentOptional(reference, _reference -> node.getStore().getResponse(_reference));
+		return responses.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getResponse(_reference));
 	}
 
 	@Override
@@ -345,35 +343,55 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<StorageReference> getGamete() {
-		if (gamete.isEmpty())
-			gamete = node.getStoreUtilities().getGameteUncommitted();
+	public final Optional<StorageReference> getGamete() throws NodeException {
+		try {
+			if (gamete.isEmpty())
+				gamete = node.getStoreUtilities().getGameteUncommitted();
 
-		return gamete;
+			return gamete;
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public final Optional<StorageReference> getValidators() {
-		if (validators.isEmpty())
-			validators = node.getStoreUtilities().getValidatorsUncommitted();
+	public final Optional<StorageReference> getValidators() throws NodeException {
+		try {
+			if (validators.isEmpty())
+				validators = node.getStoreUtilities().getValidatorsUncommitted();
 
-		return validators;
+			return validators;
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public final Optional<StorageReference> getVersions() {
-		if (versions.isEmpty())
-			versions = node.getStoreUtilities().getVersionsUncommitted();
+	public final Optional<StorageReference> getVersions() throws NodeException {
+		try {
+			if (versions.isEmpty())
+				versions = node.getStoreUtilities().getVersionsUncommitted();
 
-		return versions;
+			return versions;
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public final Optional<StorageReference> getGasStation() {
-		if (gasStation.isEmpty())
-			gasStation = node.getStoreUtilities().getGasStationUncommitted();
-	
-		return gasStation;
+	public final Optional<StorageReference> getGasStation() throws NodeException {
+		try {
+			if (gasStation.isEmpty())
+				gasStation = node.getStoreUtilities().getGasStationUncommitted();
+
+			return gasStation;
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
@@ -411,29 +429,29 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	private void recomputeGasPrice() {
-		Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
-		if (manifest.isPresent())
-			try {
+		try {
+			Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
+			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
-							MethodSignatures.GET_GAS_PRICE, getGasStation().get()))).getValue();
-			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new RuntimeException("could not determine the gas price", e);
-			}
+					MethodSignatures.GET_GAS_PRICE, getGasStation().get()))).getValue();
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
+			throw new RuntimeException("could not determine the gas price", e);
+		}
 	}
 
 	private void recomputeInflation() {
-		Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
-		if (manifest.isPresent())
-			try {
+		try {
+			Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
+			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
-							MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))).getValue();
-			}
-			catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
-				throw new RuntimeException("could not determine the current inflation", e);
-			}
+					MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))).getValue();
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
+			throw new RuntimeException("could not determine the current inflation", e);
+		}
 	}
 
 	/**
@@ -451,18 +469,23 @@ public class NodeCachesImpl implements NodeCache {
 			return true;
 
 		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference manifest = node.getStore().getManifestUncommitted().get();
-			StorageReference gasStation = getGasStation().get();
-			StorageReference versions = getVersions().get();
-			StorageReference validators = getValidators().get();
+		try {
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+				StorageReference manifest = node.getStore().getManifestUncommitted().get();
+				StorageReference gasStation = getGasStation().get();
+				StorageReference versions = getVersions().get();
+				StorageReference validators = getValidators().get();
 
-			return check(ClassNotFoundException.class, () ->
+				return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
-			);
+				);
+			}
+		}
+		catch (StoreException | NodeException e) {
+			logger.log(Level.SEVERE, "cannot check the consensus parameters", e);
 		}
 
 		return false;
@@ -473,8 +496,9 @@ public class NodeCachesImpl implements NodeCache {
 	 * although possibly not yet committed.
 	 * 
 	 * @return true if and only if that condition holds
+	 * @throws StoreException 
 	 */
-	private boolean isInitializedUncommitted() {
+	private boolean isInitializedUncommitted() throws StoreException {
 		return node.getStore().getManifestUncommitted().isPresent();
 	}
 
@@ -494,16 +518,21 @@ public class NodeCachesImpl implements NodeCache {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
-		// we check if there are events of type GasPriceUpdate triggered by the gas station
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference gasStation = getGasStation().get();
+		try {
+			// we check if there are events of type GasPriceUpdate triggered by the gas station
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+				StorageReference gasStation = getGasStation().get();
 
-			return check(ClassNotFoundException.class, () ->
-				events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
+				return check(ClassNotFoundException.class, () ->
+					events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(gasStation::equals)
-			);
+				);
+			}
+		}
+		catch (StoreException | NodeException e) {
+			logger.log(Level.SEVERE, "cannot check the gas price", e);
 		}
 
 		return false;
@@ -521,16 +550,21 @@ public class NodeCachesImpl implements NodeCache {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 
-		// we check if there are events of type InflationUpdate triggered by the validators object
-		if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-			Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-			StorageReference validators = getValidators().get();
+		try {
+			// we check if there are events of type InflationUpdate triggered by the validators object
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
+				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+				StorageReference validators = getValidators().get();
 
-			return check(ClassNotFoundException.class, () ->
-				events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
+				return check(ClassNotFoundException.class, () ->
+					events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
 					.map(node.getStoreUtilities()::getCreatorUncommitted)
 					.anyMatch(validators::equals)
-			);
+				);
+			}
+		}
+		catch (StoreException | NodeException e) {
+			logger.log(Level.SEVERE, "cannot check the inflation", e);
 		}
 
 		return false;

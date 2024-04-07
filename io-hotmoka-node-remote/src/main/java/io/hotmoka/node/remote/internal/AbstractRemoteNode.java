@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.remote.internal;
 
+import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
 
@@ -73,12 +74,17 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.api.GetManifestMessage;
+import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
@@ -138,6 +144,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
     	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
+    	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -175,6 +182,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetNodeInfoResult(gnirm);
 		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
 			onGetTakamakaCodeResult(gtcrm);
+		else if (message instanceof GetManifestResultMessage gmrm)
+			onGetManifestResult(gmrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -296,7 +305,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	/**
-	 * Hook called when a {@link GetNodeInfoResultMessage} has been received.
+	 * Hook called when a {@link GetTakamakaCodeResultMessage} has been received.
 	 * 
 	 * @param message the message
 	 */
@@ -307,6 +316,62 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetTakamakaCodeResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetTakamakaCodeMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public StorageReference getManifest() throws NoSuchElementException, NodeException, InterruptedException, TimeoutException { // TODO: remove NoSuchElement at the end
+		ensureIsOpen();
+		var id = nextId();
+		sendGetManifest(id);
+		try {
+			return waitForResult(id, this::processGetManifestSuccess, this::processGetManifestExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetManifestMessage} to the node service.
+	 * 
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetManifest(String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_MANIFEST_ENDPOINT), GetManifestMessages.of(id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private StorageReference processGetManifestSuccess(RpcMessage message) {
+		return message instanceof GetManifestResultMessage gmrm ? gmrm.get() : null;
+	}
+
+	private boolean processGetManifestExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetManifestResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetManifestResult(GetManifestResultMessage message) {}
+
+	private class GetManifestEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetManifestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetManifestMessages.Encoder.class);		
 		}
 	}
 

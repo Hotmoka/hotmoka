@@ -33,10 +33,13 @@ import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.service.api.NodeService;
@@ -105,7 +108,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
     	// TODO: remove the +2 at the end
     	startContainer("", config.getPort() + 2,
-   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this)
+   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -192,6 +195,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetTakamakaCodeEndpoint.class, GET_TAKAMAKA_CODE_ENDPOINT,
 				GetTakamakaCodeMessages.Decoder.class, GetTakamakaCodeResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetManifest(GetManifestMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_MANIFEST_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | NoSuchElementException e) { // TODO: remove NoSuchElement at the end
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetManifestEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetManifestMessage message) -> getServer().onGetManifest(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetManifestEndpoint.class, GET_MANIFEST_ENDPOINT,
+				GetManifestMessages.Decoder.class, GetManifestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

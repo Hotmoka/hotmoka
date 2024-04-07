@@ -37,8 +37,10 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.stores.StoreException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -89,7 +91,13 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	private boolean callerIsGameteOfTheNode() {
-		return node.getCaches().getGamete().filter(request.getCaller()::equals).isPresent();
+		try {
+			return node.getCaches().getGamete().filter(request.getCaller()::equals).isPresent();
+		}
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "", e);
+			return false;
+		}
 	}
 
 	private boolean isCallToFaucet() {
@@ -272,16 +280,21 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 * For system calls to the rewarding method of the validators.
 		 */
 		private void mintCoinsForRewardToValidators() {
-			Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
-			if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
-				Optional<StorageValue> firstArg = request.actuals().findFirst();
-				if (firstArg.isPresent()) {
-					StorageValue value = firstArg.get();
-					if (value instanceof BigIntegerValue biv) {
-						Object caller = getDeserializedCaller();
-						classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
+			try {
+				Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
+				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
+					Optional<StorageValue> firstArg = request.actuals().findFirst();
+					if (firstArg.isPresent()) {
+						StorageValue value = firstArg.get();
+						if (value instanceof BigIntegerValue biv) {
+							Object caller = getDeserializedCaller();
+							classLoader.setBalanceOf(caller, classLoader.getBalanceOf(caller).add(biv.getValue()));
+						}
 					}
 				}
+			}
+			catch (StoreException e) {
+				LOGGER.log(Level.SEVERE, "cannot access the manifest", e);
 			}
 		}
 

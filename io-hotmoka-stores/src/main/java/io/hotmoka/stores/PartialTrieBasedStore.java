@@ -198,17 +198,27 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() {
-		synchronized (lock) {
-			return env.computeInReadonlyTransaction
-				(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest());
+	public Optional<StorageReference> getManifest() throws StoreException {
+		try {
+			synchronized (lock) {
+				return env.computeInReadonlyTransaction
+						(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest());
+			}
+		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
 		}
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() {
-		synchronized (lock) {
-			return duringTransaction() ? trieOfInfo.getManifest() : getManifest();
+	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
+		try {
+			synchronized (lock) {
+				return duringTransaction() ? trieOfInfo.getManifest() : getManifest();
+			}
+		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
 		}
 	}
 

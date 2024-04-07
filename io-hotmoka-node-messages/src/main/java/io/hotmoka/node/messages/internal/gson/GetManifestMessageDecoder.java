@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,17 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-/**
- * This module defines the API of a local Hotmoka node.
- */
-module io.hotmoka.node.local.api {
-	exports io.hotmoka.node.local.api;
+package io.hotmoka.node.messages.internal.gson;
 
-	requires transitive io.hotmoka.beans; // TODO: api?
-	requires transitive io.hotmoka.crypto.api;
-	requires io.hotmoka.annotations;
-	requires transitive io.hotmoka.node.api;
-	requires io.hotmoka.stores;
-	requires io.hotmoka.verification.api;
-	requires io.hotmoka.whitelisting.api;
+import io.hotmoka.node.messages.GetManifestMessages;
+import io.hotmoka.node.messages.api.GetManifestMessage;
+import io.hotmoka.websockets.beans.MappedDecoder;
+
+/**
+ * A decoder for a {@link GetManifestMessage}.
+ */
+public class GetManifestMessageDecoder extends MappedDecoder<GetManifestMessage, GetManifestMessages.Json> {
+
+	public GetManifestMessageDecoder() {
+		super(GetManifestMessages.Json.class);
+	}
 }

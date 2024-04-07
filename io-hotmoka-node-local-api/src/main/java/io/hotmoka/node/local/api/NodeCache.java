@@ -27,6 +27,7 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * The cache of a local node.
@@ -118,8 +119,9 @@ public interface NodeCache {
 	 * This method uses a cache to avoid repeated computations.
 	 * 
 	 * @return the reference to the gamete account, if the node is already initialized
+	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getGamete();
+	Optional<StorageReference> getGamete() throws NodeException;
 
 	/**
 	 * Yields the reference to the contract that collects the validators of the node.
@@ -128,23 +130,26 @@ public interface NodeCache {
 	 * This method uses a cache to avoid repeated computations.
 	 * 
 	 * @return the reference to the contract, if the node is already initialized
+	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getValidators();
+	Optional<StorageReference> getValidators() throws NodeException;
 
 	/**
 	 * Yields the reference to the objects that keeps track of the
 	 * versions of the modules of the node.
 	 * 
 	 * @return the reference to the object, if the node is already initialized
+	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getVersions();
+	Optional<StorageReference> getVersions() throws NodeException;
 
 	/**
 	 * Yields the reference to the contract that keeps track of the gas cost.
 	 * 
 	 * @return the reference to the contract, if the node is already initialized
+	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getGasStation();
+	Optional<StorageReference> getGasStation() throws NodeException;
 
 	/**
 	 * Yields the current gas price of the node.

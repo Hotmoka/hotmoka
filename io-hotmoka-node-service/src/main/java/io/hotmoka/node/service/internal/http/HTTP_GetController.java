@@ -40,11 +40,6 @@ public class HTTP_GetController {
     @Autowired
     private GetService nodeGetService;
 
-    @GetMapping("/manifest")
-    public @ResponseBody StorageReferenceModel getManifest() {
-        return nodeGetService.getManifest();
-    }
-
     @PostMapping("/state")
     public @ResponseBody StateModel getState(@RequestBody StorageReferenceModel request) {
         return nodeGetService.getState(request);

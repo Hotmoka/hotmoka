@@ -79,12 +79,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public StorageReference getManifest() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException
-                (() -> send("/get/manifest", StorageReferenceModel.class).toBean());
-    }
-
-    @Override
     public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException
                 (() -> send("/get/classTag", ClassTagModel.class, new StorageReferenceModel(reference)).toBean(reference));

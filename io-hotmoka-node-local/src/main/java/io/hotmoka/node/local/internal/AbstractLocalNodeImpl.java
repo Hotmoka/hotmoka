@@ -114,6 +114,7 @@ import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuild
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
+import io.hotmoka.stores.StoreException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -380,8 +381,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final StorageReference getManifest() throws NoSuchElementException {
-		return store.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+	public final StorageReference getManifest() throws NoSuchElementException, NodeException {
+		try (var scope = mkScope()) {
+			return store.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

@@ -36,6 +36,11 @@ public interface NodeService extends AutoCloseable {
 	String GET_TAKAMAKA_CODE_ENDPOINT = "/get_takamaka_code";
 
 	/**
+	 * The network endpoint path where {@link Node#getManifest()} is published.
+	 */
+	String GET_MANIFEST_ENDPOINT = "/get_manifest";
+
+	/**
 	 * Stops the service and releases its resources.
 	 */
 	@Override

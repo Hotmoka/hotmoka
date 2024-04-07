@@ -40,6 +40,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
+import io.hotmoka.stores.StoreException;
 
 /**
  * The implementation of an object that provides methods for reconstructing data from the store of a node.
@@ -83,39 +84,39 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	@Override
-	public Optional<TransactionReference> getTakamakaCodeUncommitted() {
+	public Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
 		return getStore().getManifestUncommitted()
 			.map(this::getClassTagUncommitted)
 			.map(ClassTag::getJar);
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() {
+	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
 		return getStore().getManifestUncommitted();
 	}
 
 	@Override
-	public boolean nodeIsInitializedUncommitted() {
+	public boolean nodeIsInitializedUncommitted() throws StoreException {
 		return getManifestUncommitted().isPresent();
 	}
 
 	@Override
-	public Optional<StorageReference> getGasStationUncommitted() {
+	public Optional<StorageReference> getGasStationUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
 	}
 
 	@Override
-	public Optional<StorageReference> getValidatorsUncommitted() {
+	public Optional<StorageReference> getValidatorsUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
 	}
 
 	@Override
-	public Optional<StorageReference> getGameteUncommitted() {
+	public Optional<StorageReference> getGameteUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
 	}
 
 	@Override
-	public Optional<StorageReference> getVersionsUncommitted() {
+	public Optional<StorageReference> getVersionsUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 

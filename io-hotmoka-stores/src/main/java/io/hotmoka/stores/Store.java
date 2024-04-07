@@ -83,16 +83,18 @@ public interface Store extends AutoCloseable {
 	 * Yields the manifest installed when the node is initialized.
 	 * 
 	 * @return the manifest
+	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Optional<StorageReference> getManifest();
+	Optional<StorageReference> getManifest() throws StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized, also when the
 	 * transaction that installed it is not committed yet.
 	 * 
 	 * @return the manifest
+	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Optional<StorageReference> getManifestUncommitted();
+	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

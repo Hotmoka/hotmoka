@@ -235,7 +235,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
-			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 
 		try {
 			node.getManifest();

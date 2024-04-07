@@ -73,10 +73,13 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * If this node has some form of commit, then this method returns a reference
 	 * only if the installation of the manifest has been already committed.
 	 * 
-	 * @return the reference to the node
-	 * @throws NoSuchElementException if no manifest has been set for this node
+	 * @return the reference to the manifest
+	 * @throws NoSuchElementException if the node has not been initialized yet
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference getManifest() throws NoSuchElementException;
+	StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException; // TODO: remove NoSuchElement
 
 	/**
 	 * Yields node-specific information about the node. This is likely different for each node

@@ -44,10 +44,12 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.stores.StoreException;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -238,11 +240,16 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is not checked
-		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
-			String chainIdOfNode = consensus.getChainId();
-			String chainId = ((SignedTransactionRequest<?>) request).getChainId();
-			if (!chainIdOfNode.equals(chainId))
-				throw new TransactionRejectedException("incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
+		try {
+			if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
+				String chainIdOfNode = consensus.getChainId();
+				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
+				if (!chainIdOfNode.equals(chainId))
+					throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
+			}
+		}
+		catch (StoreException e) {
+			LOGGER.log(Level.SEVERE, "", e);
 		}
 	}
 
@@ -257,7 +264,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			BigInteger expected = node.getStoreUtilities().getNonceUncommitted(request.getCaller());
 
 			if (!expected.equals(request.getNonce()))
-				throw new TransactionRejectedException("incorrect nonce: the request reports " + request.getNonce()
+				throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 					+ " but the account " + request.getCaller() + " contains " + expected);
 		}
 	}
@@ -301,10 +308,15 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
-		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
-			BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
-			if (request.getGasPrice().compareTo(currentGasPrice) < 0)
-				throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
+		try {
+			if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
+				BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
+				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
+					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
+			}
+		}
+		catch (StoreException e) {
+			LOGGER.log(Level.SEVERE, "", e);
 		}
 	}
 
@@ -404,7 +416,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			}
 		}
 
-		protected final void init() {
+		protected final void init() throws NodeException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			this.deserializedPayer = deserializedPayer();
 			this.deserializedValidators = node.getCaches().getValidators().map(deserializer::deserialize);

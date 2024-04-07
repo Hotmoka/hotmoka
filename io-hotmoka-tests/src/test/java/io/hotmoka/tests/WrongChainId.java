@@ -47,7 +47,7 @@ class WrongChainId extends HotmokaTest {
 		PrivateKey key = privateKey(0);
 		StorageReference caller = account(0);
 
-		throwsTransactionRejectedWithCause("incorrect chain id", () ->
+		throwsTransactionRejectedWithCause("Incorrect chain id", () ->
 			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, BigInteger.ZERO, chainId + "noise",
 				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
 		);

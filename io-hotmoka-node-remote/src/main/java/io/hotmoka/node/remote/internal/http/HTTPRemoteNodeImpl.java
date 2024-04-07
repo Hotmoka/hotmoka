@@ -94,11 +94,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public StorageReference getManifest() throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> service.get(url + "/get/manifest", StorageReferenceModel.class).toBean());
-    }
-
-    @Override
     public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException {
         return wrapNetworkExceptionForNoSuchElementException(() -> service.post(url + "/get/classTag", new StorageReferenceModel(reference), ClassTagModel.class).toBean(reference));
     }
