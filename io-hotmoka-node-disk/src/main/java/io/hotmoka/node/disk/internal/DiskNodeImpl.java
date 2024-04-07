@@ -25,6 +25,8 @@ import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
+import io.hotmoka.node.ClosedNodeException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.api.DiskNode;
@@ -88,16 +90,20 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	}
 
 	@Override
-	public void close() throws Exception {
-		if (isNotYetClosed()) {
+	protected void closeResources() throws NodeException, InterruptedException {
+		try {
 			mempool.stop();
-			super.close();
+		}
+		finally {
+			super.closeResources();
 		}
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() {
-		return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
+	public NodeInfo getNodeInfo() throws ClosedNodeException {
+		try (var scope = mkScope()) {
+			return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
+		}
 	}
 
 	@Override

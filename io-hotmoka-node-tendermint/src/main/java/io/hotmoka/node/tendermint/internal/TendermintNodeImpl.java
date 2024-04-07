@@ -40,6 +40,8 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.google.gson.JsonSyntaxException;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.NodeInfos;
@@ -58,6 +60,7 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -176,23 +179,43 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	public void close() throws Exception {
-		if (isNotYetClosed()) {
-			super.close();
-
-			if (tendermint != null)
-				tendermint.close();
-
-			if (abci != null && !abci.isShutdown()) {
-				abci.shutdown();
-				abci.awaitTermination();
-			}
+	protected void closeResources() throws NodeException, InterruptedException {
+		try {
+			closeTendermintAndABCI();
+		}
+		finally {
+			super.closeResources();
 		}
 	}
 
+	private void closeTendermintAndABCI() throws NodeException, InterruptedException {
+		try {
+			if (tendermint != null)
+				tendermint.close();
+		}
+		catch (IOException e) {
+			throw new NodeException("Could not close Tendermint", e);
+		}
+		finally {
+			closeABCI();
+		}
+	}
+
+	private void closeABCI() throws InterruptedException {
+		if (abci != null && !abci.isShutdown()) {
+			abci.shutdown();
+			abci.awaitTermination();
+		}		
+	}
+
 	@Override
-	public NodeInfo getNodeInfo() {
-		return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
+	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+		try (var scope = mkScope()) {
+			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
+		}
+		catch (JsonSyntaxException | IOException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

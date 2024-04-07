@@ -292,7 +292,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException {
+	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getNodeInfo();
 	}
 

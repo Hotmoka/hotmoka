@@ -84,6 +84,7 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.SubscriptionsManagers;
@@ -92,6 +93,7 @@ import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
@@ -112,7 +114,6 @@ import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuild
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
-import io.hotmoka.node.ClosedNodeException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -201,7 +202,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	/**
 	 * An executor for short background tasks.
 	 */
-	private final ExecutorService executor;
+	private final ExecutorService executors;
 
 	/**
 	 * The time spent for checking requests.
@@ -298,7 +299,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		this.coinsSinceLastReward = ZERO;
 		this.coinsSinceLastRewardWithoutInflation = ZERO;
 		this.numberOfTransactionsSinceLastReward = ZERO;
-		this.executor = Executors.newCachedThreadPool();
+		this.executors = Executors.newCachedThreadPool();
 		this.semaphores = new ConcurrentHashMap<>();
 		this.checkTime = new AtomicLong();
 		this.deliverTime = new AtomicLong();
@@ -342,16 +343,28 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public void close() throws Exception {
-		S store = this.store;
-		if (store != null)
-			store.close();
+	public final void close() throws InterruptedException, NodeException {
+		if (stopNewCalls())
+			closeResources();
+	}
 
-		executor.shutdown();
-		executor.awaitTermination(10, TimeUnit.SECONDS);
-
-		LOGGER.info("time spent checking requests: " + checkTime + "ms");
-		LOGGER.info("time spent delivering requests: " + deliverTime + "ms");
+	protected void closeResources() throws NodeException, InterruptedException {
+		try {
+			executors.shutdownNow();
+		}
+		finally {
+			try {
+				S store = this.store;
+				if (store != null)
+					store.close();
+			}
+			finally {
+				// we give five seconds
+				executors.awaitTermination(5, TimeUnit.SECONDS);
+				LOGGER.info("time spent checking requests: " + checkTime + "ms");
+				LOGGER.info("time spent delivering requests: " + deliverTime + "ms");
+			}
+		}
 	}
 
 	@Override
@@ -1124,12 +1137,12 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 		@Override
 		public <T> Future<T> submit(Callable<T> task) {
-			return executor.submit(task);
+			return executors.submit(task);
 		}
 
 		@Override
 		public void submit(Runnable task) {
-			executor.submit(task);
+			executors.submit(task);
 		}
 
 		@Override

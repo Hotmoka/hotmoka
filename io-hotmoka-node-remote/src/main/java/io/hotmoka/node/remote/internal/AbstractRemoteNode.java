@@ -16,7 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.remote.internal;
 
+import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
+
 import java.io.IOException;
+import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -29,6 +32,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -67,12 +71,21 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.GetNodeInfoMessages;
+import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
+import io.hotmoka.websockets.beans.ExceptionMessages;
+import io.hotmoka.websockets.beans.api.ExceptionMessage;
+import io.hotmoka.websockets.beans.api.RpcMessage;
 import io.hotmoka.websockets.client.AbstractRemote;
 import io.hotmoka.ws.client.WebSocketException;
 import jakarta.websocket.CloseReason;
+import jakarta.websocket.DeploymentException;
+import jakarta.websocket.Session;
 
 /**
  * Shared implementation of a node that forwards all its calls to a remote service.
@@ -106,12 +119,19 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
      * Builds the remote node.
      *
      * @param config the configuration of the node
+	 * @throws DeploymentException if the remote node could not be deployed
+	 * @throws IOException if the remote node could not be created
      */
-    protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException {
+    protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException, DeploymentException {
     	super(10_000L); // TODO: this should be contained in the config
 
+    	String modifiedURL = config.getURL().substring(0, config.getURL().length() - 1); // TODO: remove this +2 at the end
+    	modifiedURL += (char) (config.getURL().charAt(config.getURL().length() - 1) + 2);
+    	URI uri = URI.create("ws://" + modifiedURL); // TODO: the URI should already be in the config
     	this.config = config;
-    	this.logPrefix = "node remote(ws://" + config.getURL() + "): ";
+    	this.logPrefix = "node remote(ws://" + config.getURL() + "): "; // TODO: just uri at the end
+
+    	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -141,6 +161,89 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		super.closeResources(reason);
 		webSocketClient.close();
 		LOGGER.info(logPrefix + "closed with reason: " + reason);
+	}
+
+	@Override
+	protected void notifyResult(RpcMessage message) {
+		if (message instanceof GetNodeInfoResultMessage gnirm)
+			onGetNodeInfoResult(gnirm);
+		else if (message != null && !(message instanceof ExceptionMessage)) {
+			LOGGER.warning("unexpected message of class " + message.getClass().getName());
+			return;
+		}
+
+		super.notifyResult(message);
+	}
+
+	/**
+	 * Determines if the given exception message deals with an exception that all
+	 * methods of a node are expected to throw. These are
+	 * {@code java.lang.TimeoutException}, {@code java.lang.InterruptedException}
+	 * and {@link NodeException}.
+	 * 
+	 * @param message the message
+	 * @return true if and only if that condition holds
+	 */
+	private boolean processStandardExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TimeoutException.class.isAssignableFrom(clazz) ||
+			InterruptedException.class.isAssignableFrom(clazz) ||
+			NodeException.class.isAssignableFrom(clazz);
+	}
+
+	private RuntimeException unexpectedException(Exception e) {
+		LOGGER.log(Level.SEVERE, logPrefix + "unexpected exception", e);
+		return new RuntimeException("Unexpected exception", e);
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+		ensureIsOpen();
+		var id = nextId();
+		sendGetNodeInfo(id);
+		try {
+			return waitForResult(id, this::processGetNodeInfoSuccess, this::processStandardExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetNodeInfoMessage} to the node service.
+	 * 
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetNodeInfo(String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_NODE_INFO_ENDPOINT), GetNodeInfoMessages.of(id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private NodeInfo processGetNodeInfoSuccess(RpcMessage message) {
+		return message instanceof GetNodeInfoResultMessage gnirm ? gnirm.get() : null;
+	}
+
+	/**
+	 * Hook called when a {@link GetNodeInfoResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetNodeInfoResult(GetNodeInfoResultMessage message) {}
+
+	private class GetNodeInfoEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetNodeInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetNodeInfoMessages.Encoder.class);		
+		}
 	}
 
 	@Override

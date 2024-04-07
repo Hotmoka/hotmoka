@@ -22,7 +22,6 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
@@ -37,7 +36,6 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.network.nodes.NodeInfoModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
@@ -63,6 +61,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
+import jakarta.websocket.DeploymentException;
 
 /**
  * The implementation of a node that forwards all its calls to a remote service,
@@ -86,16 +85,12 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
      *
      * @param config the configuration of the node
      * @throws IOException 
+     * @throws DeploymentException 
      */
-    public HTTPRemoteNodeImpl(RemoteNodeConfig config) throws IOException {
+    public HTTPRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
 
         this.url = "http://" + config.getURL();
-    }
-
-    @Override
-    public NodeInfo getNodeInfo() {
-    	return wrapNetworkExceptionBasic(() -> service.get(url + "/get/nodeID", NodeInfoModel.class).toBean());
     }
 
     @Override

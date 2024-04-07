@@ -174,7 +174,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public NodeInfo getNodeInfo() throws NodeException {
+	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getNodeInfo();
 	}
 

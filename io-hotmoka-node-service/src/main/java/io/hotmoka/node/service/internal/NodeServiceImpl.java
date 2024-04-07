@@ -94,13 +94,14 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
 		System.setProperty("org.springframework.boot.logging.LoggingSystem", "none");
 
-		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): "; // TODO
+		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): ";
 		this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	this.context.getBean(Application.class).setNode(node);
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
     	// TODO: remove the +2 at the end
-    	startContainer("", config.getPort() + 2
+    	startContainer("", config.getPort() + 2,
+   			GetNodeInfoEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -139,8 +140,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 			try {
 				sendObjectAsync(session, GetNodeInfoResultMessages.of(node.getNodeInfo(), message.getId()));
 			}
-			catch (//TimeoutException | InterruptedException | // TODO
-					NodeException e) {
+			catch (TimeoutException | InterruptedException | NodeException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
 		}

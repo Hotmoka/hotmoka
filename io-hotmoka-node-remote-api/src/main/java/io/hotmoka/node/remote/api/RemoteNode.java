@@ -16,12 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.remote.api;
 
+import io.hotmoka.websockets.client.api.Remote;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * A node that forwards its calls to a remote network service.
  */
 @ThreadSafe
-public interface RemoteNode extends Node {
+public interface RemoteNode extends Node, Remote<NodeException> {
 }

@@ -227,6 +227,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
 			throw new ExceptionInInitializerError(e);
 		}
 	}
@@ -303,7 +305,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String url) throws IOException {
+	private static Node mkRemoteNode(String url) throws IOException, DeploymentException {
 		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
 			//.setWebSockets(true)
 			.setURL(url).build();

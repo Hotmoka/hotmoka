@@ -22,6 +22,7 @@ import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.http.HTTPRemoteNodeImpl;
 import io.hotmoka.node.remote.internal.websockets.WebSocketsRemoteNodeImpl;
+import jakarta.websocket.DeploymentException;
 
 /**
  * Providers of nodes that forward their calls to a remote network service.
@@ -35,9 +36,10 @@ public abstract class RemoteNodes {
      *
      * @param config the configuration
      * @return the remote node
-     * @throws IOException if the remote node cannot be created
+	 * @throws DeploymentException if the remote node could not be deployed
+	 * @throws IOException if the remote node could not be created
      */
-	public static RemoteNode of(RemoteNodeConfig config) throws IOException {
+	public static RemoteNode of(RemoteNodeConfig config) throws IOException, DeploymentException {
         // there are two implementations: for websockets or for http connections
         return config.usesWebSockets() ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
     }

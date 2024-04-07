@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.beans.BeanUnmarshallingContexts;
 import io.hotmoka.beans.TransactionRequests;
@@ -228,24 +229,29 @@ public class TendermintPoster {
 	 * hash of the public key of the node and is used to identify the node as a peer in the network.
 	 * 
 	 * @return the hexadecimal ID of the node
+	 * @throws IOException 
+	 * @throws InterruptedException 
+	 * @throws TimeoutException 
+	 * @throws JsonSyntaxException 
 	 */
-	String getNodeID() {
-		TendermintStatusResponse response;
+	String getNodeID() throws IOException, JsonSyntaxException, TimeoutException, InterruptedException {
+		TendermintStatusResponse response = gson.fromJson(status(), TendermintStatusResponse.class);
 
-		try {
-			response = gson.fromJson(status(), TendermintStatusResponse.class);
-		}
-		catch (IOException | TimeoutException | InterruptedException e) {
-			logger.log(Level.WARNING, "failed determining the Tendermint ID of this node", e);
-			throw new RuntimeException("unexpected exception", e);
-		}
+		if (response == null)
+			throw new IOException("null Tendermint status response");
 
 		if (response.error != null)
-			throw new RuntimeException(response.error);
+			throw new IOException(response.error);
+
+		if (response.result == null)
+			throw new IOException("null Tendermint status result");
+
+		if (response.result.node_info == null)
+			throw new IOException("null Tendermint status node info");
 
 		String id = response.result.node_info.id;
 		if (id == null)
-			throw new RuntimeException("no node ID in Tendermint response");
+			throw new IOException("no node ID in Tendermint response");
 
 		return id;
 	}
