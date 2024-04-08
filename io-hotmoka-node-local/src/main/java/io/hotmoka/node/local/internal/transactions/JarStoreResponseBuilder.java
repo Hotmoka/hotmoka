@@ -18,6 +18,7 @@ package io.hotmoka.node.local.internal.transactions;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -27,6 +28,7 @@ import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.instrumentation.InstrumentedJars;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -54,7 +56,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, true, consensus);

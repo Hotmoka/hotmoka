@@ -36,6 +36,7 @@ import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
@@ -232,7 +233,7 @@ public class StoreUtilityImpl implements StoreUtility {
 			else
 				throw new RuntimeException("Storage reference " + transaction + " does not contain updates");
 		}
-		catch (TransactionRejectedException e) {
+		catch (TransactionRejectedException | NodeException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
 			throw new RuntimeException(e);
 		}

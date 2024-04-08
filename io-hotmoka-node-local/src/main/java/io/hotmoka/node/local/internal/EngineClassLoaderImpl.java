@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -44,6 +45,7 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -162,8 +164,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -655,8 +659,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	/**
 	 * Replaces all reverified responses into the store of the node for which
 	 * the class loader has been built.
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	public void replaceReverifiedResponses() {
+	public void replaceReverifiedResponses() throws NoSuchElementException, NodeException {
 		reverification.replace();
 	}
 

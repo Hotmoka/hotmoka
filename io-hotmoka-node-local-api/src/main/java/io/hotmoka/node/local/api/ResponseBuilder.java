@@ -16,8 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
+import java.util.NoSuchElementException;
+
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
 /**
@@ -47,7 +50,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	/**
 	 * Replaces all reverified responses into the store of the node for which the response is built.
 	 */
-	void replaceReverifiedResponses();
+	void replaceReverifiedResponses() throws NoSuchElementException, NodeException;
 
 	/**
 	 * Yields the class loader used to build the response.

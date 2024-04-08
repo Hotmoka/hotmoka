@@ -18,12 +18,14 @@ package io.hotmoka.node.local.internal.transactions;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -48,7 +50,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		return node.getCaches().getClassLoader(request.getClasspath());
 	}
 

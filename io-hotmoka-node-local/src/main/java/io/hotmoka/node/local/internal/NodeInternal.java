@@ -99,7 +99,7 @@ public interface NodeInternal {
 	 * @return the request
 	 * @throws NoSuchElementException if there is no request with that reference
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -114,7 +114,7 @@ public interface NodeInternal {
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
 	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

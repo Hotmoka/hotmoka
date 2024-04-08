@@ -18,6 +18,7 @@ package io.hotmoka.node.local.api;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
@@ -94,7 +95,7 @@ public interface NodeCache {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException;
+	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException;
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.

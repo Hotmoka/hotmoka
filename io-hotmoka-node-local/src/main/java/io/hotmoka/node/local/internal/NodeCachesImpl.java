@@ -28,6 +28,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -319,7 +320,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		var classLoader = classLoaders.get(classpath);
 		if (classLoader != null)
 			return classLoader;

@@ -20,6 +20,7 @@ import static io.hotmoka.node.local.internal.runtime.Runtime.responseCreators;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
@@ -36,6 +37,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -118,7 +120,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	}
 
 	@Override
-	public final void replaceReverifiedResponses() {
+	public final void replaceReverifiedResponses() throws NoSuchElementException, NodeException {
 		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
 	}
 
@@ -130,7 +132,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException;
+	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException ;
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.node.api.TransactionException}, if it not

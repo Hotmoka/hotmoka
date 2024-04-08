@@ -39,6 +39,7 @@ import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
@@ -78,8 +79,10 @@ public class Reverification {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		this.node = node;
 		this.consensus = consensus;
 
@@ -100,12 +103,15 @@ public class Reverification {
 
 	/**
 	 * Replaces all reverified responses into the store of the node whose jars have been reverified.
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	public void replace() {
-		reverified.forEach((reference, response) -> {
-			node.getStore().replace(reference, node.getRequest(reference), response);
+	public void replace() throws NoSuchElementException, NodeException {
+		for (var entry: reverified.entrySet()) {
+			var reference = entry.getKey();
+			node.getStore().replace(reference, node.getRequest(reference), entry.getValue());
 			logger.info(reference + ": updated after reverification");
-		});
+		}
 
 		// we clean the set of reverified responses, to avoid repeated pushing in the future, if
 		// the class loader is recycled for other transactions
@@ -122,8 +128,10 @@ public class Reverification {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
+	 * @throws NodeException 
+	 * @throws NoSuchElementException 
 	 */
-	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
@@ -144,7 +152,7 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		var jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) node.getRequest(transaction);
@@ -180,7 +188,7 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.getVerificationVersion();
 	}
 
-	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter));

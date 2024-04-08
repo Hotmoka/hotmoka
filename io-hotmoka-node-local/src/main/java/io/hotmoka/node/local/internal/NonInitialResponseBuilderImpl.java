@@ -103,7 +103,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException {
+	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
 		return node.getCaches().getClassLoader(request.getClasspath());
 	}
 
