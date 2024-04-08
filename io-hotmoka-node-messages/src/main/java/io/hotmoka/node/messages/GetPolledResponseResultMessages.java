@@ -17,34 +17,34 @@ limitations under the License.
 package io.hotmoka.node.messages;
 
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.node.messages.api.GetResponseResultMessage;
-import io.hotmoka.node.messages.internal.GetResponseResultMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetResponseResultMessageJson;
+import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
+import io.hotmoka.node.messages.internal.GetPolledResponseResultMessageImpl;
+import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageDecoder;
+import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageEncoder;
+import io.hotmoka.node.messages.internal.gson.GetPolledResponseResultMessageJson;
 
 /**
- * A provider of {@link GetResponseResultMessage}.
+ * A provider of {@link GetPolledResponseResultMessage}.
  */
-public final class GetResponseResultMessages {
+public final class GetPolledResponseResultMessages {
 
-	private GetResponseResultMessages() {}
+	private GetPolledResponseResultMessages() {}
 
 	/**
-	 * Yields a {@link GetResponseResultMessage}.
+	 * Yields a {@link GetPolledResponseResultMessage}.
 	 * 
 	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetResponseResultMessage of(TransactionResponse result, String id) {
-		return new GetResponseResultMessageImpl(result, id);
+	public static GetPolledResponseResultMessage of(TransactionResponse result, String id) {
+		return new GetPolledResponseResultMessageImpl(result, id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetResponseResultMessageEncoder {
+	public static class Encoder extends GetPolledResponseResultMessageEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -55,7 +55,7 @@ public final class GetResponseResultMessages {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetResponseResultMessageDecoder {
+	public static class Decoder extends GetPolledResponseResultMessageDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -66,14 +66,14 @@ public final class GetResponseResultMessages {
 	/**
      * Json representation.
      */
-    public static class Json extends GetResponseResultMessageJson {
+    public static class Json extends GetPolledResponseResultMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetResponseResultMessage message) {
+    	public Json(GetPolledResponseResultMessage message) {
     		super(message);
     	}
     }

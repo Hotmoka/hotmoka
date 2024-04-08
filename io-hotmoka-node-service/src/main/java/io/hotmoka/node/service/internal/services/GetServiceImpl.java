@@ -19,8 +19,6 @@ package io.hotmoka.node.service.internal.services;
 import org.springframework.stereotype.Service;
 
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
 
 @Service
 public class GetServiceImpl extends AbstractService implements GetService {
@@ -29,9 +27,4 @@ public class GetServiceImpl extends AbstractService implements GetService {
 	public SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests() {
 		return wrapExceptions(() -> new SignatureAlgorithmResponseModel(getNode().getNameOfSignatureAlgorithmForRequests().toLowerCase()));
 	}
-
-    @Override
-    public TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference) {
-        return wrapExceptions(() -> TransactionRestResponseModel.from(getNode().getPolledResponse(reference.toBean())));
-    }
 }

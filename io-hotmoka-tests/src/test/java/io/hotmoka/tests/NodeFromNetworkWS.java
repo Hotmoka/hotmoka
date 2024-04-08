@@ -62,6 +62,7 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.RemoteNodes;
+import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
@@ -73,7 +74,8 @@ public class NodeFromNetworkWS extends HotmokaTest {
     private final NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().setPort(8081).build();
     private final RemoteNodeConfig remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
     	.usesWebSockets(true)
-    	.setURL("localhost:8081").build();
+    	.setURL("localhost:8081")
+    	.build();
 
     @BeforeEach
     void beforeEach() throws Exception {
@@ -200,7 +202,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
         }
         catch (Exception e) {
             assertTrue(e instanceof NoSuchElementException);
-            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
+            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
             return;
         }
 
@@ -264,7 +266,11 @@ public class NodeFromNetworkWS extends HotmokaTest {
         }
         catch (Exception e) {
             assertTrue(e instanceof TimeoutException);
-            assertTrue(e.getMessage().contains("cannot find the response of transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+
+            // for remote nodes, the communication might time-out before polling time-outs
+            if (!(node instanceof RemoteNode))
+            	assertTrue(e.getMessage().contains("Cannot find the response of transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
+
             return;
         }
 

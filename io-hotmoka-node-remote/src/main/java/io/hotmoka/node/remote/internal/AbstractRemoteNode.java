@@ -19,6 +19,7 @@ package io.hotmoka.node.remote.internal;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
@@ -87,6 +88,8 @@ import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetPolledResponseMessages;
+import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
 import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.GetResponseMessages;
@@ -101,6 +104,8 @@ import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.api.GetPolledResponseMessage;
+import io.hotmoka.node.messages.api.GetPolledResponseResultMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetRequestResultMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
@@ -172,6 +177,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
+    	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -219,6 +225,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetRequestResult(grrm);
 		else if (message instanceof GetResponseResultMessage grrm)
 			onGetResponseResult(grrm);
+		else if (message instanceof GetPolledResponseResultMessage gprrm)
+			onGetPolledResponseResult(gprrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -582,7 +590,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetResponse(reference, id);
@@ -636,6 +644,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetResponseMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendGetPolledResponse(reference, id);
+		try {
+			return waitForResult(id, this::processGetPolledResponseSuccess, this::processGetPolledResponseExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetPolledResponseMessage} to the node service.
+	 * 
+	 * @param reference the reference to the transaction whose response is required
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetPolledResponse(TransactionReference reference, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_POLLED_RESPONSE_ENDPOINT), GetPolledResponseMessages.of(reference, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private TransactionResponse processGetPolledResponseSuccess(RpcMessage message) {
+		return message instanceof GetPolledResponseResultMessage gprrm ? gprrm.get() : null;
+	}
+
+	private boolean processGetPolledResponseExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetPolledResponseResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetPolledResponseResult(GetPolledResponseResultMessage message) {}
+
+	private class GetPolledResponseEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetPolledResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetPolledResponseMessages.Encoder.class);		
 		}
 	}
 

@@ -153,7 +153,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	/**
 	 * Yields the response generated for the request for the given transaction.
 	 * If this node has some form of commit, then this method can only succeed
-	 * or yield a {@linkplain TransactionRejectedException} only
+	 * or yield a {@link TransactionRejectedException} only
 	 * when the transaction has been definitely committed in this node.
 	 * Nodes are allowed to keep in store all, some or none of the responses
 	 * that they computed during their lifetime.
@@ -180,10 +180,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the response computed for {@code request}
 	 * @throws TransactionRejectedException if the request failed to be committed, because of this exception
+	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
 	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException;
+	TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that

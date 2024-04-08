@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,10 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.service.internal.services;
+package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
+import io.hotmoka.node.messages.GetPolledResponseMessages;
+import io.hotmoka.node.messages.api.GetPolledResponseMessage;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
-public interface GetService {
-	SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests();
+/**
+ * A decoder for a {@link GetPolledResponseMessage}.
+ */
+public class GetPolledResponseMessageDecoder extends MappedDecoder<GetPolledResponseMessage, GetPolledResponseMessages.Json> {
+
+	public GetPolledResponseMessageDecoder() {
+		super(GetPolledResponseMessages.Json.class);
+	}
 }

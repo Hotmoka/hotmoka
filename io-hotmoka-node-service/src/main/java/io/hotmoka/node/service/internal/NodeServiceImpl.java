@@ -40,6 +40,8 @@ import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetPolledResponseMessages;
+import io.hotmoka.node.messages.GetPolledResponseResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
 import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.GetResponseMessages;
@@ -51,6 +53,7 @@ import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
+import io.hotmoka.node.messages.api.GetPolledResponseMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
@@ -123,7 +126,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	startContainer("", config.getPort() + 2,
    			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this),
    			GetClassTagEndpoint.config(this), GetStateEndpoint.config(this), GetRequestEndpoint.config(this),
-   			GetResponseEndpoint.config(this)
+   			GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -355,6 +358,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetResponseEndpoint.class, GET_RESPONSE_ENDPOINT,
 				GetResponseMessages.Decoder.class, GetResponseResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetPolledResponse(GetPolledResponseMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_POLLED_RESPONSE_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetPolledResponseResultMessages.of(node.getPolledResponse(message.getReference()), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetPolledResponseEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetPolledResponseMessage message) -> getServer().onGetPolledResponse(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetPolledResponseEndpoint.class, GET_POLLED_RESPONSE_ENDPOINT,
+				GetPolledResponseMessages.Decoder.class, GetPolledResponseResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

@@ -347,7 +347,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
 		return parent.getPolledResponse(reference);
 	}
 

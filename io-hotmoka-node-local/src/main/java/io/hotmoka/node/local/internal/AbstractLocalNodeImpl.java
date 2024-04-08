@@ -391,8 +391,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-		try {
+	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
@@ -409,16 +409,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					Thread.sleep(delay);
 				}
 
-			throw new TimeoutException("cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
+			throw new TimeoutException("Cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
 		}
 		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
 			throw e;
 		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
 		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "unexpected exception", e);
+			LOGGER.log(Level.WARNING, "Unexpected exception", e);
 			throw e;
 		}
 	}
@@ -466,7 +463,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			if (error != null)
 				throw new TransactionRejectedException(error);
 			else
-				throw new NoSuchElementException("unknown transaction reference " + reference);
+				throw new NoSuchElementException("Unknown transaction reference " + reference);
 		}
 	}
 

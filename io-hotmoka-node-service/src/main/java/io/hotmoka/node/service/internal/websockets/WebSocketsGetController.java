@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal.websockets;
 
-
 import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +27,6 @@ import org.springframework.stereotype.Controller;
 
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.service.internal.services.GetService;
 
 @Controller
@@ -41,11 +39,6 @@ public class WebSocketsGetController {
     public WebSocketsGetController(SimpMessagingTemplate simpMessagingTemplate, GetService nodeGetService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeGetService = nodeGetService;
-    }
-
-    @MessageMapping("/polledResponse")
-    public void getPolledResponseAt(Principal principal, TransactionReferenceModel reference) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/polledResponse", nodeGetService.getPolledResponse(reference));
     }
 
     @MessageMapping("/nameOfSignatureAlgorithmForRequests")

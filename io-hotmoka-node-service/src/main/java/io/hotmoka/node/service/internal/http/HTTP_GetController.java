@@ -18,15 +18,11 @@ package io.hotmoka.node.service.internal.http;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.service.internal.services.GetService;
 
 @RestController
@@ -35,11 +31,6 @@ public class HTTP_GetController {
 
     @Autowired
     private GetService nodeGetService;
-
-    @PostMapping("/polledResponse")
-    public @ResponseBody TransactionRestResponseModel<?> getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getPolledResponse(reference);
-    }
 
     @GetMapping("/nameOfSignatureAlgorithmForRequests")
     public @ResponseBody

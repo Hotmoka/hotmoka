@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.remote.internal.http;
 
 import java.io.IOException;
-import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
@@ -27,7 +26,6 @@ import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
@@ -39,7 +37,6 @@ import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -89,11 +86,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     public String getNameOfSignatureAlgorithmForRequests() {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionBasic(() -> service.get(url + "/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
         return algoModel.algorithm;
-    }
-
-    @Override
-    public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
-        return wrapNetworkExceptionForPolledResponseException(() -> responseFromModel(service.post(url + "/get/polledResponse", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
     }
 
     @Override

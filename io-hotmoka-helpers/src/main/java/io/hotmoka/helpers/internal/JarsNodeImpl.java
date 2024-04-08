@@ -273,7 +273,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException {
+	public TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
 		return parent.getPolledResponse(reference);
 	}
 
