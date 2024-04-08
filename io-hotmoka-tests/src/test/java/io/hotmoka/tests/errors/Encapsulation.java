@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +36,7 @@ import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -52,7 +55,7 @@ class Encapsulation extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar then finds out the reference of list1, calls clear() on it and then size1() == 0")
-	void modifiesList1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void modifiesList1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 
@@ -78,7 +81,7 @@ class Encapsulation extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar then finds out the reference of list2, calls clear() on it and it fails")
-	void modifiesList2Fails() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void modifiesList2Fails() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		StorageReference encapsulated = addConstructorCallTransaction(privateKey(0), account(0), _500_000, ONE, jar(),
 				ConstructorSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated"));
 

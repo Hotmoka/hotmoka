@@ -26,6 +26,7 @@ module io.hotmoka.node.messages {
 	requires transitive io.hotmoka.node.messages.api;
 	requires io.hotmoka.node.api;
 	requires io.hotmoka.node;
+	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
 	requires com.google.gson;
 }

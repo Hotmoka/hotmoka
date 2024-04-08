@@ -17,11 +17,7 @@ limitations under the License.
 package io.hotmoka.node.service.internal.websockets;
 
 
-import io.hotmoka.network.NetworkExceptionResponse;
-import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
-import io.hotmoka.node.service.internal.services.GetService;
+import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
@@ -30,7 +26,10 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
+import io.hotmoka.node.service.internal.services.GetService;
 
 @Controller
 @MessageMapping("/get")
@@ -42,11 +41,6 @@ public class WebSocketsGetController {
     public WebSocketsGetController(SimpMessagingTemplate simpMessagingTemplate, GetService nodeGetService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeGetService = nodeGetService;
-    }
-
-    @MessageMapping("/state")
-    public void getState(Principal principal, StorageReferenceModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/state", nodeGetService.getState(request));
     }
 
     @MessageMapping("/request")

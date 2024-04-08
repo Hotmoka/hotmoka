@@ -27,8 +27,6 @@ import org.springframework.web.bind.annotation.RestController;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.updates.StateModel;
-import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.service.internal.services.GetService;
 
@@ -38,11 +36,6 @@ public class HTTP_GetController {
 
     @Autowired
     private GetService nodeGetService;
-
-    @PostMapping("/state")
-    public @ResponseBody StateModel getState(@RequestBody StorageReferenceModel request) {
-        return nodeGetService.getState(request);
-    }
 
     @PostMapping("/request")
     public @ResponseBody

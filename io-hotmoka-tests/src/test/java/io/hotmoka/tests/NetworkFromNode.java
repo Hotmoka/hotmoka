@@ -20,7 +20,6 @@ import static io.hotmoka.beans.StorageTypes.INT;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -44,7 +43,6 @@ import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.network.NetworkExceptionResponse;
@@ -52,7 +50,6 @@ import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.NodeException;
@@ -67,7 +64,6 @@ import jakarta.websocket.DeploymentException;
  * A test for creating a network server from a Hotmoka node.
  */
 class NetworkFromNode extends HotmokaTest {
-	private static final ConstructorSignature CONSTRUCTOR_INTERNATIONAL_TIME = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.InternationalTime", INT, INT, INT);
 
 	private final NodeServiceConfig config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 
@@ -194,38 +190,5 @@ class NetworkFromNode extends HotmokaTest {
 		}
 
 		assertNotNull(result.transaction);
-	}
-
-	@Test @DisplayName("starts a network server from a Hotmoka node, creates an object and calls getState() on it")
-	void testGetState() throws InvalidKeyException, SignatureException, DeploymentException, IOException {
-		StateModel state;
-
-		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = TransactionRequests.constructorCall(
-					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-					master,
-					ONE,
-					chainId,
-					_50_000,
-					ONE,
-					classpath,
-					CONSTRUCTOR_INTERNATIONAL_TIME,
-					StorageValues.intOf(13), StorageValues.intOf(25), StorageValues.intOf(40)
-			);
-
-			// we execute the creation of the object
-			var service = new RestClientService();
-			StorageReferenceModel object = service.post(
-					"http://localhost:8081/add/constructorCallTransaction",
-					new ConstructorCallTransactionRequestModel(request),
-					StorageReferenceModel.class
-			);
-
-			// we query the state of the object
-			state = service.post("http://localhost:8081/get/state", object, StateModel.class);
-		}
-
-		// the state contains two updates
-		assertSame(2, state.updates.size());
 	}
 }

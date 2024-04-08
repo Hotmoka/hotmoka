@@ -302,7 +302,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
+	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getState(reference);
 	}
 

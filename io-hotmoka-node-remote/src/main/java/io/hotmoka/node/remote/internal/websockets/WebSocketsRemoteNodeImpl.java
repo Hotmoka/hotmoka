@@ -19,7 +19,6 @@ package io.hotmoka.node.remote.internal.websockets;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
@@ -31,7 +30,6 @@ import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -44,7 +42,6 @@ import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -74,12 +71,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      */
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
-    }
-
-    @Override
-    public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException
-                (() -> send("/get/state", StateModel.class, new StorageReferenceModel(reference)).toBean());
     }
 
     @Override

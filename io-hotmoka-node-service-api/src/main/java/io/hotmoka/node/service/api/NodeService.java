@@ -47,6 +47,11 @@ public interface NodeService extends AutoCloseable {
 	String GET_CLASS_TAG_ENDPOINT = "/get_class_tag";
 
 	/**
+	 * The network endpoint path where {@link Node#getState(StorageReference)} is published.
+	 */
+	String GET_STATE_ENDPOINT = "/get_state";
+
+	/**
 	 * Stops the service and releases its resources.
 	 */
 	@Override

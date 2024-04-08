@@ -16,35 +16,37 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.node.messages.api.GetClassTagMessage;
-import io.hotmoka.node.messages.internal.GetClassTagMessageImpl;
-import io.hotmoka.node.messages.internal.gson.GetClassTagMessageDecoder;
-import io.hotmoka.node.messages.internal.gson.GetClassTagMessageEncoder;
-import io.hotmoka.node.messages.internal.gson.GetClassTagMessageJson;
+import java.util.stream.Stream;
+
+import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.node.messages.api.GetStateResultMessage;
+import io.hotmoka.node.messages.internal.GetStateResultMessageImpl;
+import io.hotmoka.node.messages.internal.gson.GetStateResultMessageDecoder;
+import io.hotmoka.node.messages.internal.gson.GetStateResultMessageEncoder;
+import io.hotmoka.node.messages.internal.gson.GetStateResultMessageJson;
 
 /**
- * A provider of {@link GetClassTagMessage}.
+ * A provider of {@link GetStateResultMessage}.
  */
-public final class GetClassTagMessages {
+public final class GetStateResultMessages {
 
-	private GetClassTagMessages() {}
+	private GetStateResultMessages() {}
 
 	/**
-	 * Yields a {@link GetClassTagMessage}.
+	 * Yields a {@link GetStateResultMessage}.
 	 * 
+	 * @param result the result of the call
 	 * @param id the identifier of the message
-	 * @param reference the reference to the object whose class tag is required
 	 * @return the message
 	 */
-	public static GetClassTagMessage of(StorageReference reference, String id) {
-		return new GetClassTagMessageImpl(reference, id);
+	public static GetStateResultMessage of(Stream<Update> result, String id) {
+		return new GetStateResultMessageImpl(result, id);
 	}
 
 	/**
 	 * Gson encoder.
 	 */
-	public static class Encoder extends GetClassTagMessageEncoder {
+	public static class Encoder extends GetStateResultMessageEncoder {
 
 		/**
 		 * Creates a new encoder.
@@ -55,7 +57,7 @@ public final class GetClassTagMessages {
 	/**
 	 * Gson decoder.
 	 */
-	public static class Decoder extends GetClassTagMessageDecoder {
+	public static class Decoder extends GetStateResultMessageDecoder {
 
 		/**
 		 * Creates a new decoder.
@@ -66,14 +68,14 @@ public final class GetClassTagMessages {
 	/**
      * Json representation.
      */
-    public static class Json extends GetClassTagMessageJson {
+    public static class Json extends GetStateResultMessageJson {
 
     	/**
     	 * Creates the Json representation for the given message.
     	 * 
     	 * @param message the message
     	 */
-    	public Json(GetClassTagMessage message) {
+    	public Json(GetStateResultMessage message) {
     		super(message);
     	}
     }

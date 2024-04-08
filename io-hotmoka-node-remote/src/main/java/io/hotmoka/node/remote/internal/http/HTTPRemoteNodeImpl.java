@@ -19,7 +19,6 @@ package io.hotmoka.node.remote.internal.http;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
@@ -32,7 +31,6 @@ import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
@@ -45,7 +43,6 @@ import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.updates.StateModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -89,11 +86,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
         super(config);
 
         this.url = "http://" + config.getURL();
-    }
-
-    @Override
-    public Stream<Update> getState(StorageReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException(() -> service.post(url + "/get/state", new StorageReferenceModel(reference), StateModel.class).toBean());
     }
 
     @Override

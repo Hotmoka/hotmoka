@@ -20,23 +20,23 @@ import java.util.Objects;
 
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getClassTag(StorageReference)}.
+ * Implementation of the network message corresponding to {@link Node#getState(StorageReference)}.
  */
-public class GetClassTagMessageImpl extends AbstractRpcMessage implements GetClassTagMessage {
+public class GetStateMessageImpl extends AbstractRpcMessage implements GetStateMessage {
 
 	private final StorageReference reference;
 
 	/**
 	 * Creates the message.
 	 * 
-	 * @param reference the reference to the object whose class tag is required
+	 * @param reference the reference to the object whose state is required
 	 * @param id the identifier of the message
 	 */
-	public GetClassTagMessageImpl(StorageReference reference, String id) {
+	public GetStateMessageImpl(StorageReference reference, String id) {
 		super(id);
 
 		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
@@ -44,12 +44,12 @@ public class GetClassTagMessageImpl extends AbstractRpcMessage implements GetCla
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetClassTagMessage && super.equals(other);
+		return other instanceof GetStateMessage && super.equals(other);
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetClassTagMessage.class.getName();
+		return GetStateMessage.class.getName();
 	}
 
 	@Override

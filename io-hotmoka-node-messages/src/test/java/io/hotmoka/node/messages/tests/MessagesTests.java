@@ -19,15 +19,19 @@ package io.hotmoka.node.messages.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.types.ClassType;
+import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
@@ -35,6 +39,8 @@ import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetStateMessages;
+import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.testing.AbstractLoggedTests;
@@ -114,6 +120,30 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetClassTagResultMessages.of(Updates.classTag(OBJECT, StorageTypes.classNamed("my.class"), OBJECT.getTransaction()), "id");
 		String encoded = new GetClassTagResultMessages.Encoder().encode(expected);
 		var actual = new GetClassTagResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getState messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetState() throws EncodeException, DecodeException {
+		var expected = GetStateMessages.of(OBJECT, "id");
+		String encoded = new GetStateMessages.Encoder().encode(expected);
+		var actual = new GetStateMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getStateResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetStateResult() throws EncodeException, DecodeException {
+		ClassType clazz = StorageTypes.classNamed("io.my.Class");
+		Update classTag = Updates.classTag(OBJECT, StorageTypes.classNamed("my.class"), OBJECT.getTransaction());
+		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
+		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
+		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
+
+		var expected = GetStateResultMessages.of(Stream.of(classTag, update1, update2, update3), "id");
+		String encoded = new GetStateResultMessages.Encoder().encode(expected);
+		var actual = new GetStateResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }
