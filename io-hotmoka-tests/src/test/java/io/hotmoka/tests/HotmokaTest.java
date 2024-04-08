@@ -377,7 +377,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return isUsingTendermint;
 	}
 
-	protected final TransactionRequest<?> getRequest(TransactionReference reference) {
+	protected final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return node.getRequest(reference);
 	}
 

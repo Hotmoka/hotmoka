@@ -18,25 +18,25 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getClassTag(StorageReference)}.
+ * Implementation of the network message corresponding to {@link Node#getRequest(TransactionReference)}.
  */
-public class GetClassTagMessageImpl extends AbstractRpcMessage implements GetClassTagMessage {
+public class GetRequestMessageImpl extends AbstractRpcMessage implements GetRequestMessage {
 
-	private final StorageReference reference;
+	private final TransactionReference reference;
 
 	/**
 	 * Creates the message.
 	 * 
-	 * @param reference the reference to the object whose class tag is required
+	 * @param reference the reference to the required request
 	 * @param id the identifier of the message
 	 */
-	public GetClassTagMessageImpl(StorageReference reference, String id) {
+	public GetRequestMessageImpl(TransactionReference reference, String id) {
 		super(id);
 
 		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
@@ -44,16 +44,16 @@ public class GetClassTagMessageImpl extends AbstractRpcMessage implements GetCla
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetClassTagMessage gctm && super.equals(other) && reference.equals(gctm.getReference());
+		return other instanceof GetRequestMessage grm && super.equals(other) && reference.equals(grm.getReference());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetClassTagMessage.class.getName();
+		return GetRequestMessage.class.getName();
 	}
 
 	@Override
-	public StorageReference getReference() {
+	public TransactionReference getReference() {
 		return reference;
 	}
 }

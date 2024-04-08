@@ -27,7 +27,6 @@ import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -39,7 +38,6 @@ import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.values.StorageReferenceModel;
@@ -79,12 +77,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         	(() -> send("/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 
         return algoModel.algorithm;
-    }
-
-    @Override
-    public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
-        return wrapNetworkExceptionForNoSuchElementException
-                (() -> requestFromModel(send("/get/request", TransactionRestRequestModel.class, new TransactionReferenceModel(reference))));
     }
 
     @Override

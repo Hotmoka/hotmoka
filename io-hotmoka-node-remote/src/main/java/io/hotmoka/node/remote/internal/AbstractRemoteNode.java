@@ -19,6 +19,7 @@ package io.hotmoka.node.remote.internal;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
 
@@ -85,6 +86,8 @@ import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetRequestMessages;
+import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
@@ -95,6 +98,8 @@ import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
+import io.hotmoka.node.messages.api.GetRequestMessage;
+import io.hotmoka.node.messages.api.GetRequestResultMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
@@ -160,6 +165,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
     	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
     	addSession(GET_STATE_ENDPOINT, uri, GetStateEndpoint::new);
+    	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -203,6 +209,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetClassTagResult(gctrm);
 		else if (message instanceof GetStateResultMessage gsrm)
 			onGetStateResult(gsrm);
+		else if (message instanceof GetRequestResultMessage grrm)
+			onGetRequestResult(grrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -452,7 +460,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
-	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetState(reference, id);
@@ -505,6 +513,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetStateResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetStateMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendGetRequest(reference, id);
+		try {
+			return waitForResult(id, this::processGetRequestSuccess, this::processGetRequestExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetRequestMessage} to the node service.
+	 * 
+	 * @param reference the reference to the transaction whose request is required
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetRequest(TransactionReference reference, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_REQUEST_ENDPOINT), GetRequestMessages.of(reference, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private TransactionRequest<?> processGetRequestSuccess(RpcMessage message) {
+		return message instanceof GetRequestResultMessage grrm ? grrm.get() : null;
+	}
+
+	private boolean processGetRequestExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetRequestResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetRequestResult(GetRequestResultMessage message) {}
+
+	private class GetRequestEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetRequestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetRequestMessages.Encoder.class);		
 		}
 	}
 

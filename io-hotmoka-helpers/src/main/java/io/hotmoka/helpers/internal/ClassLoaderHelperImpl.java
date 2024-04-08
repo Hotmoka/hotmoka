@@ -69,7 +69,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	}
 
 	@Override
-	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException {
+	public TakamakaClassLoader classloaderFor(TransactionReference jar) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var ws = new ArrayList<TransactionReference>();
 		var seen = new HashSet<TransactionReference>();
 		var jars = new ArrayList<byte[]>();

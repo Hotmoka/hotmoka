@@ -19,6 +19,7 @@ package io.hotmoka.node.messages.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
@@ -29,16 +30,22 @@ import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
+import io.hotmoka.node.messages.GetRequestMessages;
+import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
@@ -48,8 +55,8 @@ import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
 public class MessagesTests extends AbstractLoggedTests {
-
-	private final static StorageReference OBJECT = StorageValues.reference(TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff"), BigInteger.ONE);
+	private final static TransactionReference TRANSACTION_REFERENCE = TransactionReferences.of("12345678901234567890abcdeabcdeff12345678901234567890abcdeabcdeff");
+	private final static StorageReference OBJECT = StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.ONE);
 
 	@Test
 	@DisplayName("getNodeInfo messages are correctly encoded into Json and decoded from Json")
@@ -144,6 +151,25 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetStateResultMessages.of(Stream.of(classTag, update1, update2, update3), "id");
 		String encoded = new GetStateResultMessages.Encoder().encode(expected);
 		var actual = new GetStateResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getRequest messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetRequest() throws EncodeException, DecodeException {
+		var expected = GetRequestMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new GetRequestMessages.Encoder().encode(expected);
+		var actual = new GetRequestMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getRequestResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(10_000_000L), BigInteger.ZERO, Base64.toBase64String(SignatureAlgorithms.ed25519().getKeyPair().getPublic().getEncoded()));
+		var expected = GetRequestResultMessages.of(request, "id");
+		String encoded = new GetRequestResultMessages.Encoder().encode(expected);
+		var actual = new GetRequestResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

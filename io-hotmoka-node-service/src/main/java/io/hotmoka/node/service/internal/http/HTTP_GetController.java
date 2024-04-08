@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -36,12 +35,6 @@ public class HTTP_GetController {
 
     @Autowired
     private GetService nodeGetService;
-
-    @PostMapping("/request")
-    public @ResponseBody
-    TransactionRestRequestModel<?> getRequestAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getRequest(reference);
-    }
 
     @PostMapping("/response")
     public @ResponseBody TransactionRestResponseModel<?> getResponseAt(@RequestBody TransactionReferenceModel reference) {

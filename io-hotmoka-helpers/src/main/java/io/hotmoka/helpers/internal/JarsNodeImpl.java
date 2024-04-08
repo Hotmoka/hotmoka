@@ -263,7 +263,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getRequest(reference);
 	}
 

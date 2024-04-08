@@ -44,7 +44,7 @@ public class GetStateMessageImpl extends AbstractRpcMessage implements GetStateM
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetStateMessage && super.equals(other);
+		return other instanceof GetStateMessage gsm && super.equals(other) && reference.equals(gsm.getReference());
 	}
 
 	@Override

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.service.api;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
 
@@ -50,6 +51,11 @@ public interface NodeService extends AutoCloseable {
 	 * The network endpoint path where {@link Node#getState(StorageReference)} is published.
 	 */
 	String GET_STATE_ENDPOINT = "/get_state";
+
+	/**
+	 * The network endpoint path where {@link Node#getRequest(TransactionReference)} is published.
+	 */
+	String GET_REQUEST_ENDPOINT = "/get_request";
 
 	/**
 	 * Stops the service and releases its resources.

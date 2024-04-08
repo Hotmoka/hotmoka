@@ -144,8 +144,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the request
 	 * @throws NoSuchElementException if there is no request with that reference
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.

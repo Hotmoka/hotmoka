@@ -16,13 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal.services;
 
-import io.hotmoka.network.requests.TransactionRestRequestModel;
 import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.responses.TransactionRestResponseModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 public interface GetService {
-    TransactionRestRequestModel<?> getRequest(TransactionReferenceModel reference);
 	SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests();
     TransactionRestResponseModel<?> getResponse(TransactionReferenceModel reference);
     TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference);

@@ -18,42 +18,46 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.api.GetRequestResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getClassTag(StorageReference)}.
+ * Implementation of the network message corresponding to the result of the {@link Node#getRequest(TransactionReference)} method.
  */
-public class GetClassTagMessageImpl extends AbstractRpcMessage implements GetClassTagMessage {
+public class GetRequestResultMessageImpl extends AbstractRpcMessage implements GetRequestResultMessage {
 
-	private final StorageReference reference;
+	/**
+	 * The result of the call.
+	 */
+	private final TransactionRequest<?> result;
 
 	/**
 	 * Creates the message.
 	 * 
-	 * @param reference the reference to the object whose class tag is required
+	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 */
-	public GetClassTagMessageImpl(StorageReference reference, String id) {
+	public GetRequestResultMessageImpl(TransactionRequest<?> result, String id) {
 		super(id);
 
-		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
+		this.result = Objects.requireNonNull(result, "result cannot be null");
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetClassTagMessage gctm && super.equals(other) && reference.equals(gctm.getReference());
+		return other instanceof GetRequestResultMessage grrm && super.equals(other) && result.equals(grrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetClassTagMessage.class.getName();
+		return GetRequestResultMessage.class.getName();
 	}
 
 	@Override
-	public StorageReference getReference() {
-		return reference;
+	public TransactionRequest<?> get() {
+		return result;
 	}
 }
