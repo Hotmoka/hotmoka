@@ -20,7 +20,6 @@ import static io.hotmoka.beans.StorageTypes.INT;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -49,7 +48,6 @@ import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.NodeException;
@@ -100,19 +98,6 @@ class NetworkFromNode extends HotmokaTest {
 		var config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 		try (var service = NodeServices.of(config, node)) {
 		}
-	}
-
-	@Test @DisplayName("starts a network server from a Hotmoka node and checks its signature algorithm")
-	void startNetworkFromNodeAndTestSignatureAlgorithm() throws DeploymentException, IOException {
-		SignatureAlgorithmResponseModel answer;
-		RestClientService service = new RestClientService();
-
-		try (var nodeRestService = NodeServices.of(config, node)) {
-			answer = service.get("http://localhost:8081/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class);
-		}
-
-		assertTrue("ed25519".equals(answer.algorithm) || "ed25519det".equals(answer.algorithm) || "sha256dsa".equals(answer.algorithm)
-			|| "qtesla1".equals(answer.algorithm) || "qtesla3".equals(answer.algorithm) || "empty".equals(answer.algorithm));
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node and runs addJarStoreInitialTransaction()")

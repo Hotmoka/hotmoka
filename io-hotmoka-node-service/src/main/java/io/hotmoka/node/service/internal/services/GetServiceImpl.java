@@ -18,13 +18,6 @@ package io.hotmoka.node.service.internal.services;
 
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-
 @Service
 public class GetServiceImpl extends AbstractService implements GetService {
-
-	@Override
-	public SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests() {
-		return wrapExceptions(() -> new SignatureAlgorithmResponseModel(getNode().getNameOfSignatureAlgorithmForRequests().toLowerCase()));
-	}
 }

@@ -128,11 +128,14 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	Stream<Update> getState(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Yields the name of the algorithm used to sign requests with this node.
+	 * Yields the consensus configuration of this node.
 	 * 
-	 * @return the name of the algorithm
+	 * @return the consensus configuration of this node
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	String getNameOfSignatureAlgorithmForRequests();
+	String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yileds the name of the signature used for requests: change it!
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

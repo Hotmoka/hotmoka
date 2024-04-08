@@ -36,7 +36,6 @@ import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -80,12 +79,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
         super(config);
 
         this.url = "http://" + config.getURL();
-    }
-
-    @Override
-    public String getNameOfSignatureAlgorithmForRequests() {
-        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionBasic(() -> service.get(url + "/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
-        return algoModel.algorithm;
     }
 
     @Override

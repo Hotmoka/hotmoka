@@ -41,6 +41,8 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
+import io.hotmoka.node.messages.GetConsensusConfigMessages;
+import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
@@ -69,6 +71,24 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetNodeInfoMessages.of("id");
 		String encoded = new GetNodeInfoMessages.Encoder().encode(expected);
 		var actual = new GetNodeInfoMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getConsensusConfig messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetConsensusConfig() throws EncodeException, DecodeException {
+		var expected = GetConsensusConfigMessages.of("id");
+		String encoded = new GetConsensusConfigMessages.Encoder().encode(expected);
+		var actual = new GetConsensusConfigMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getConsensusConfigResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetConsensusConfigResult() throws EncodeException, DecodeException {
+		var expected = GetConsensusConfigResultMessages.of("config", "id");
+		String encoded = new GetConsensusConfigResultMessages.Encoder().encode(expected);
+		var actual = new GetConsensusConfigResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.remote.internal;
 
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_NODE_INFO_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_POLLED_RESPONSE_ENDPOINT;
@@ -84,6 +85,8 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
+import io.hotmoka.node.messages.GetConsensusConfigMessages;
+import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
@@ -100,6 +103,8 @@ import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
+import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
+import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
@@ -162,7 +167,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	 * @throws IOException if the remote node could not be created
      */
     protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException, DeploymentException {
-    	super(10_000L); // TODO: this should be contained in the config
+    	super(100_000L); // TODO: this should be contained in the config
 
     	String modifiedURL = config.getURL().substring(0, config.getURL().length() - 1); // TODO: remove this +2 at the end
     	modifiedURL += (char) (config.getURL().charAt(config.getURL().length() - 1) + 2);
@@ -171,6 +176,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	this.logPrefix = "node remote(ws://" + config.getURL() + "): "; // TODO: just uri at the end
 
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
+    	addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
     	addSession(GET_TAKAMAKA_CODE_ENDPOINT, uri, GetTakamakaCodeEndpoint::new);
     	addSession(GET_MANIFEST_ENDPOINT, uri, GetManifestEndpoint::new);
     	addSession(GET_CLASS_TAG_ENDPOINT, uri, GetClassTagEndpoint::new);
@@ -213,6 +219,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	protected void notifyResult(RpcMessage message) {
 		if (message instanceof GetNodeInfoResultMessage gnirm)
 			onGetNodeInfoResult(gnirm);
+		else if (message instanceof GetConsensusConfigResultMessage gccrm)
+			onGetConsensusConfigResult(gccrm);
 		else if (message instanceof GetTakamakaCodeResultMessage gtcrm)
 			onGetTakamakaCodeResult(gtcrm);
 		else if (message instanceof GetManifestResultMessage gmrm)
@@ -303,6 +311,56 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetNodeInfoResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetNodeInfoMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
+		ensureIsOpen();
+		var id = nextId();
+		sendGetConsensusConfig(id);
+		try {
+			return waitForResult(id, this::processGetConsensusConfigSuccess, this::processStandardExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link GetConsensusConfigMessage} to the node service.
+	 * 
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendGetConsensusConfig(String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(GET_CONSENSUS_CONFIG_ENDPOINT), GetConsensusConfigMessages.of(id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private String processGetConsensusConfigSuccess(RpcMessage message) {
+		return message instanceof GetConsensusConfigResultMessage gccrm ? gccrm.get() : null;
+	}
+
+	/**
+	 * Hook called when a {@link GetConsensusConfigResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onGetConsensusConfigResult(GetConsensusConfigResultMessage message) {}
+
+	private class GetConsensusConfigEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, GetConsensusConfigResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetConsensusConfigMessages.Encoder.class);		
 		}
 	}
 

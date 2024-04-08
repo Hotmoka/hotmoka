@@ -35,7 +35,6 @@ import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
@@ -65,14 +64,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      */
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
-    }
-
-    @Override
-    public String getNameOfSignatureAlgorithmForRequests() {
-        SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionBasic
-        	(() -> send("/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
-
-        return algoModel.algorithm;
     }
 
     @Override
@@ -159,19 +150,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         	(() -> send("/post/staticMethodCallTransaction", TransactionReferenceModel.class, new StaticMethodCallTransactionRequestModel(request)).toBean());
 
         return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
-    }
-
-    /**
-     * Sends a request for the given topic and yields the result.
-     *
-     * @param <T> the type of the expected result
-     * @param topic the topic
-     * @param model the class of the expected result
-     * @return the result
-     * @throws InterruptedException if the websockets subscription throws that
-     */
-    private <T> T send(String topic, Class<T> model) throws InterruptedException {
-        return webSocketClient.subscribeAndSend(topic, model);
     }
 
     /**

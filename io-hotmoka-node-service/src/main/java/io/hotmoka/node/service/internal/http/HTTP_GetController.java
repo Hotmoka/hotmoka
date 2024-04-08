@@ -16,25 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal.http;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import io.hotmoka.network.responses.SignatureAlgorithmResponseModel;
-import io.hotmoka.node.service.internal.services.GetService;
 
 @RestController
 @RequestMapping("get")
 public class HTTP_GetController {
-
-    @Autowired
-    private GetService nodeGetService;
-
-    @GetMapping("/nameOfSignatureAlgorithmForRequests")
-    public @ResponseBody
-    SignatureAlgorithmResponseModel getNameOfSignatureAlgorithmForRequests() {
-        return nodeGetService.getNameOfSignatureAlgorithmForRequests();
-    }
 }

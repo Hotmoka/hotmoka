@@ -33,17 +33,10 @@ import io.hotmoka.node.service.internal.services.GetService;
 @MessageMapping("/get")
 public class WebSocketsGetController {
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final GetService nodeGetService;
 
     @Autowired
     public WebSocketsGetController(SimpMessagingTemplate simpMessagingTemplate, GetService nodeGetService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
-        this.nodeGetService = nodeGetService;
-    }
-
-    @MessageMapping("/nameOfSignatureAlgorithmForRequests")
-    public void getNameOfSignatureAlgorithmForRequests(Principal principal) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/nameOfSignatureAlgorithmForRequests", nodeGetService.getNameOfSignatureAlgorithmForRequests());
     }
 
     @MessageExceptionHandler

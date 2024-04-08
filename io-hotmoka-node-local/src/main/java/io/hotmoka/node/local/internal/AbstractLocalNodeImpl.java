@@ -369,8 +369,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final String getNameOfSignatureAlgorithmForRequests() {
-		return caches.getConsensusParams().getSignature().getName();
+	public final String getConsensusConfig() throws NodeException {
+		try (var scope = mkScope()) {
+			return caches.getConsensusParams().getSignature().getName();
+		}
 	}
 
 	@Override

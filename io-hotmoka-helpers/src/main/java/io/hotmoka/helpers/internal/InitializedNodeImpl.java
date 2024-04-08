@@ -372,8 +372,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public String getNameOfSignatureAlgorithmForRequests() {
-		return parent.getNameOfSignatureAlgorithmForRequests();
+	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
+		return parent.getConsensusConfig();
 	}
 
 	@Override

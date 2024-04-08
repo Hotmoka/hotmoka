@@ -98,7 +98,7 @@ public class CreateAccount extends AbstractCommand {
 				signature = "ed25519";
 
 			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
-				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getNameOfSignatureAlgorithmForRequests() : signature;
+				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getConsensusConfig() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
 
 				Entropy entropy;

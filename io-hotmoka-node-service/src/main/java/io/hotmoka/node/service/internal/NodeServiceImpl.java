@@ -36,6 +36,8 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
+import io.hotmoka.node.messages.GetConsensusConfigMessages;
+import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.GetNodeInfoMessages;
@@ -51,6 +53,7 @@ import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
+import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetPolledResponseMessage;
@@ -124,9 +127,9 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
     	// TODO: remove the +2 at the end
     	startContainer("", config.getPort() + 2,
-   			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this),
-   			GetClassTagEndpoint.config(this), GetStateEndpoint.config(this), GetRequestEndpoint.config(this),
-   			GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this)
+   			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
+   			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
+   			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -184,6 +187,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetNodeInfoEndpoint.class, GET_NODE_INFO_ENDPOINT,
 				GetNodeInfoMessages.Decoder.class, GetNodeInfoResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetConsensusConfig(GetConsensusConfigMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_CONSENSUS_CONFIG_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConsensusConfig(), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetConsensusConfigEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetConsensusConfigMessage message) -> getServer().onGetConsensusConfig(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetConsensusConfigEndpoint.class, GET_CONSENSUS_CONFIG_ENDPOINT,
+				GetConsensusConfigMessages.Decoder.class, GetConsensusConfigResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 
