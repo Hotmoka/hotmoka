@@ -22,6 +22,7 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -38,6 +39,7 @@ import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -58,7 +60,7 @@ class GetResponse extends HotmokaTest {
 	}
 
 	@Test @DisplayName("getResponse works for an existing transaction")
-	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionResponse response = getResponse(abstractfail.getTransaction());
 		Assertions.assertTrue(response instanceof ConstructorCallTransactionResponse);

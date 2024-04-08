@@ -162,8 +162,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the response
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
 	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException;
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.

@@ -342,7 +342,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
+	public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return parent.getResponse(reference);
 	}
 

@@ -33,6 +33,7 @@ import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetManifestMessages;
@@ -41,6 +42,8 @@ import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
 import io.hotmoka.node.messages.GetRequestResultMessages;
+import io.hotmoka.node.messages.GetResponseMessages;
+import io.hotmoka.node.messages.GetResponseResultMessages;
 import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
@@ -49,6 +52,7 @@ import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
 import io.hotmoka.node.messages.api.GetNodeInfoMessage;
 import io.hotmoka.node.messages.api.GetRequestMessage;
+import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.service.api.NodeService;
@@ -118,7 +122,8 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	// TODO: remove the +2 at the end
     	startContainer("", config.getPort() + 2,
    			GetNodeInfoEndpoint.config(this), GetTakamakaCodeEndpoint.config(this), GetManifestEndpoint.config(this),
-   			GetClassTagEndpoint.config(this), GetStateEndpoint.config(this), GetRequestEndpoint.config(this)
+   			GetClassTagEndpoint.config(this), GetStateEndpoint.config(this), GetRequestEndpoint.config(this),
+   			GetResponseEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -321,6 +326,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetRequestEndpoint.class, GET_REQUEST_ENDPOINT,
 				GetRequestMessages.Decoder.class, GetRequestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onGetResponse(GetResponseMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + GET_RESPONSE_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(message.getReference()), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | NoSuchElementException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class GetResponseEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (GetResponseMessage message) -> getServer().onGetResponse(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, GetResponseEndpoint.class, GET_RESPONSE_ENDPOINT,
+				GetResponseMessages.Decoder.class, GetResponseResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

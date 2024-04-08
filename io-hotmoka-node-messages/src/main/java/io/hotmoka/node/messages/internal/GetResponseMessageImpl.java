@@ -20,23 +20,23 @@ import java.util.Objects;
 
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetRequestMessage;
+import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getRequest(TransactionReference)}.
+ * Implementation of the network message corresponding to {@link Node#getResponse(TransactionReference)}.
  */
-public class GetRequestMessageImpl extends AbstractRpcMessage implements GetRequestMessage {
+public class GetResponseMessageImpl extends AbstractRpcMessage implements GetResponseMessage {
 
 	private final TransactionReference reference;
 
 	/**
 	 * Creates the message.
 	 * 
-	 * @param reference the reference to the transaction whose request is required
+	 * @param reference the reference to the transaction whose response is required
 	 * @param id the identifier of the message
 	 */
-	public GetRequestMessageImpl(TransactionReference reference, String id) {
+	public GetResponseMessageImpl(TransactionReference reference, String id) {
 		super(id);
 
 		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
@@ -44,12 +44,12 @@ public class GetRequestMessageImpl extends AbstractRpcMessage implements GetRequ
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetRequestMessage grm && super.equals(other) && reference.equals(grm.getReference());
+		return other instanceof GetResponseMessage grm && super.equals(other) && reference.equals(grm.getReference());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetRequestMessage.class.getName();
+		return GetResponseMessage.class.getName();
 	}
 
 	@Override

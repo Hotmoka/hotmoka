@@ -265,14 +265,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     		creator = node.addConstructorCallTransaction(request);
     	}
 
-    	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
+    	private void distributeInitialTokens() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
     		var request = TransactionRequests.instanceMethodCall(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ONE, chainId, _100_000.multiply(BigInteger.valueOf(numberOfInvestors)), ZERO, jar(),
     			MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT), creator, nodeWithAccounts.container(), coin, StorageValues.intOf(50_000));
     	    node.addInstanceMethodCallTransaction(request);
     	    trace(TransactionReferences.of(hasher.hash(request)));
     	}
 
-    	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException {
+    	private void createCoin() throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
     		var request = TransactionRequests.constructorCall
     	    	(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, ZERO, chainId, _500_000, panarea(1), jar(), ConstructorSignatures.of(COIN));
     	    coin = node.addConstructorCallTransaction(request);
@@ -386,7 +386,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
         private final Object tracingLock = new Object();
 
-        private void trace(TransactionReference reference) throws TransactionRejectedException {
+        private void trace(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
         	TransactionResponse response = node.getResponse(reference);
 
         	synchronized (tracingLock) {

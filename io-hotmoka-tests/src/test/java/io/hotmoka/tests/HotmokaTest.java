@@ -381,7 +381,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node.getRequest(reference);
 	}
 
-	protected final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException {
+	protected final TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return node.getResponse(reference);
 	}
 

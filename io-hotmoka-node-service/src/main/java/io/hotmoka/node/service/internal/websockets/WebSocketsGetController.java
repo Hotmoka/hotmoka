@@ -43,11 +43,6 @@ public class WebSocketsGetController {
         this.nodeGetService = nodeGetService;
     }
 
-    @MessageMapping("/response")
-    public void getResponseAt(Principal principal, TransactionReferenceModel reference) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/response", nodeGetService.getResponse(reference));
-    }
-
     @MessageMapping("/polledResponse")
     public void getPolledResponseAt(Principal principal, TransactionReferenceModel reference) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/get/polledResponse", nodeGetService.getPolledResponse(reference));

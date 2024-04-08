@@ -18,42 +18,46 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
+import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.GetRequestMessage;
+import io.hotmoka.node.messages.api.GetResponseResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getRequest(TransactionReference)}.
+ * Implementation of the network message corresponding to the result of the {@link Node#getResponse(TransactionReference)} method.
  */
-public class GetRequestMessageImpl extends AbstractRpcMessage implements GetRequestMessage {
+public class GetResponseResultMessageImpl extends AbstractRpcMessage implements GetResponseResultMessage {
 
-	private final TransactionReference reference;
+	/**
+	 * The result of the call.
+	 */
+	private final TransactionResponse result;
 
 	/**
 	 * Creates the message.
 	 * 
-	 * @param reference the reference to the transaction whose request is required
+	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 */
-	public GetRequestMessageImpl(TransactionReference reference, String id) {
+	public GetResponseResultMessageImpl(TransactionResponse result, String id) {
 		super(id);
 
-		this.reference = Objects.requireNonNull(reference, "reference cannot be null");
+		this.result = Objects.requireNonNull(result, "result cannot be null");
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof GetRequestMessage grm && super.equals(other) && reference.equals(grm.getReference());
+		return other instanceof GetResponseResultMessage grrm && super.equals(other) && result.equals(grrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return GetRequestMessage.class.getName();
+		return GetResponseResultMessage.class.getName();
 	}
 
 	@Override
-	public TransactionReference getReference() {
-		return reference;
+	public TransactionResponse get() {
+		return result;
 	}
 }

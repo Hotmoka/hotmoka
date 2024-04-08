@@ -31,6 +31,7 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
@@ -46,6 +47,8 @@ import io.hotmoka.node.messages.GetNodeInfoMessages;
 import io.hotmoka.node.messages.GetNodeInfoResultMessages;
 import io.hotmoka.node.messages.GetRequestMessages;
 import io.hotmoka.node.messages.GetRequestResultMessages;
+import io.hotmoka.node.messages.GetResponseMessages;
+import io.hotmoka.node.messages.GetResponseResultMessages;
 import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
@@ -170,6 +173,31 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetRequestResultMessages.of(request, "id");
 		String encoded = new GetRequestResultMessages.Encoder().encode(expected);
 		var actual = new GetRequestResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getResponse messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetResponse() throws EncodeException, DecodeException {
+		var expected = GetResponseMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new GetResponseMessages.Encoder().encode(expected);
+		var actual = new GetResponseMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("getResponseResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetResponseResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		ClassType clazz = StorageTypes.classNamed("io.my.Class");
+		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
+		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
+		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
+		var response = TransactionResponses.constructorCallException("io.my.Exception", "code exploded", null, Stream.of(update1, update2, update3), Stream.of(OBJECT),
+			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L));
+
+		var expected = GetResponseResultMessages.of(response, "id");
+		String encoded = new GetResponseResultMessages.Encoder().encode(expected);
+		var actual = new GetResponseResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

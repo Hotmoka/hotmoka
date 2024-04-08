@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.remote.internal.websockets;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
@@ -77,12 +76,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
         	(() -> send("/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
 
         return algoModel.algorithm;
-    }
-
-    @Override
-    public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-        return wrapNetworkExceptionForResponseAtException
-                (() -> responseFromModel(send("/get/response", TransactionRestResponseModel.class, new TransactionReferenceModel(reference))));
     }
 
     @Override

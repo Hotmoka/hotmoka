@@ -36,11 +36,6 @@ public class HTTP_GetController {
     @Autowired
     private GetService nodeGetService;
 
-    @PostMapping("/response")
-    public @ResponseBody TransactionRestResponseModel<?> getResponseAt(@RequestBody TransactionReferenceModel reference) {
-        return nodeGetService.getResponse(reference);
-    }
-
     @PostMapping("/polledResponse")
     public @ResponseBody TransactionRestResponseModel<?> getPolledResponseAt(@RequestBody TransactionReferenceModel reference) {
         return nodeGetService.getPolledResponse(reference);

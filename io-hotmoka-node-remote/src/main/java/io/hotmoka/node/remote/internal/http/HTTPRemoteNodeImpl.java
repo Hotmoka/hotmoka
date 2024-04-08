@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.remote.internal.http;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -90,11 +89,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     public String getNameOfSignatureAlgorithmForRequests() {
         SignatureAlgorithmResponseModel algoModel = wrapNetworkExceptionBasic(() -> service.get(url + "/get/nameOfSignatureAlgorithmForRequests", SignatureAlgorithmResponseModel.class));
         return algoModel.algorithm;
-    }
-
-    @Override
-    public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException {
-        return wrapNetworkExceptionForResponseAtException(() -> responseFromModel(service.post(url + "/get/response", new TransactionReferenceModel(reference), TransactionRestResponseModel.class)));
     }
 
     @Override

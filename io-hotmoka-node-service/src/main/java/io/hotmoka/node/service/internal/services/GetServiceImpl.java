@@ -31,11 +31,6 @@ public class GetServiceImpl extends AbstractService implements GetService {
 	}
 
     @Override
-    public TransactionRestResponseModel<?> getResponse(TransactionReferenceModel reference) {
-        return wrapExceptions(() -> TransactionRestResponseModel.from(getNode().getResponse(reference.toBean())));
-    }
-
-    @Override
     public TransactionRestResponseModel<?> getPolledResponse(TransactionReferenceModel reference) {
         return wrapExceptions(() -> TransactionRestResponseModel.from(getNode().getPolledResponse(reference.toBean())));
     }

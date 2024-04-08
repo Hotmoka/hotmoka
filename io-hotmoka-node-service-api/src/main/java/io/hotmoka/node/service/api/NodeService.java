@@ -58,6 +58,11 @@ public interface NodeService extends AutoCloseable {
 	String GET_REQUEST_ENDPOINT = "/get_request";
 
 	/**
+	 * The network endpoint path where {@link Node#getResponse(TransactionReference)} is published.
+	 */
+	String GET_RESPONSE_ENDPOINT = "/get_response";
+
+	/**
 	 * Stops the service and releases its resources.
 	 */
 	@Override
