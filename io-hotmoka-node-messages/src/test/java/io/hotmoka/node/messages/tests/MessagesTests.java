@@ -45,6 +45,10 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
+import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
@@ -259,8 +263,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runInstanceMethodCallTransactionRequest messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunInstanceMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	@DisplayName("runInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
@@ -273,8 +277,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	@DisplayName("runInstanceMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -282,8 +286,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	@DisplayName("runInstanceMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -291,8 +295,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runStaticMethodCallTransactionRequest messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunStaticMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	@DisplayName("runStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
@@ -305,8 +309,8 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runStaticMethodCallTransactionRequestResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunStaticMethodCallNonVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	@DisplayName("runStaticMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -314,11 +318,75 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("runStaticMethodCallTransactionRequestResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunStaticMethodCallVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	@DisplayName("runStaticMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var expected = AddInstanceMethodCallTransactionMessages.of(request, "id");
+		String encoded = new AddInstanceMethodCallTransactionMessages.Encoder().encode(expected);
+		var actual = new AddInstanceMethodCallTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addInstanceMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddInstanceMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
+		String encoded = new AddInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addInstanceMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddInstanceMethodCallTransactionResultMessages.of(Optional.empty(), "id");
+		String encoded = new AddInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var expected = AddStaticMethodCallTransactionMessages.of(request, "id");
+		String encoded = new AddStaticMethodCallTransactionMessages.Encoder().encode(expected);
+		var actual = new AddStaticMethodCallTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addStaticMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddStaticMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
+		String encoded = new AddStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addStaticMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
+		String encoded = new AddStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }
