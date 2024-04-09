@@ -17,36 +17,36 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.beans.TransactionRequests;
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
-import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
+import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of an {@link AddConstructorCallTransactionMessage}.
+ * The JSON representation of an {@link AddJarStoreTransactionMessage}.
  */
-public abstract class AddConstructorCallTransactionMessageJson extends AbstractRpcMessageJsonRepresentation<AddConstructorCallTransactionMessage> {
+public abstract class AddJarStoreTransactionMessageJson extends AbstractRpcMessageJsonRepresentation<AddJarStoreTransactionMessage> {
 	private final TransactionRequests.Json request;
 
-	protected AddConstructorCallTransactionMessageJson(AddConstructorCallTransactionMessage message) {
+	protected AddJarStoreTransactionMessageJson(AddJarStoreTransactionMessage message) {
 		super(message);
 
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
 	@Override
-	public AddConstructorCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
+	public AddJarStoreTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
 		var unmappedRequest = request.unmap();
-		if (unmappedRequest instanceof ConstructorCallTransactionRequest cctr)
-			return AddConstructorCallTransactionMessages.of(cctr, getId());
+		if (unmappedRequest instanceof JarStoreTransactionRequest jstr)
+			return AddJarStoreTransactionMessages.of(jstr, getId());
 		else
-			throw new IllegalArgumentException("The argument of the addConstructorCallTransactionRequest() method must be a ConstructorCallTransactionRequest");
+			throw new IllegalArgumentException("The argument of the addJarStoreTransactionRequest() method must be a JarStoreTransactionRequest");
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return AddConstructorCallTransactionMessage.class.getName();
+		return AddJarStoreTransactionMessage.class.getName();
 	}
 }

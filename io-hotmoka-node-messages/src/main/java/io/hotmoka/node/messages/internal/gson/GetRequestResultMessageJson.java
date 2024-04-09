@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.messages.GetRequestResultMessages;
 import io.hotmoka.node.messages.api.GetRequestResultMessage;
@@ -35,7 +36,7 @@ public abstract class GetRequestResultMessageJson extends AbstractRpcMessageJson
 	}
 
 	@Override
-	public GetRequestResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public GetRequestResultMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
 		return GetRequestResultMessages.of(result.unmap(), getId());
 	}
 

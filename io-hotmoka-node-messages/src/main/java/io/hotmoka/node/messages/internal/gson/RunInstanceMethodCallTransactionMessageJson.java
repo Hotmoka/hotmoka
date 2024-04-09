@@ -18,6 +18,7 @@ package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
@@ -36,7 +37,7 @@ public abstract class RunInstanceMethodCallTransactionMessageJson extends Abstra
 	}
 
 	@Override
-	public RunInstanceMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public RunInstanceMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof InstanceMethodCallTransactionRequest imctr)
 			return RunInstanceMethodCallTransactionMessages.of(imctr, getId());

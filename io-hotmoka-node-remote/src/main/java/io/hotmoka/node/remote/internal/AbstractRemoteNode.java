@@ -18,6 +18,7 @@ package io.hotmoka.node.remote.internal;
 
 import static io.hotmoka.node.service.api.NodeService.ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
@@ -43,47 +44,21 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
-import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.EventRequestModel;
-import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
-import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.TransactionRestRequestModel;
-import io.hotmoka.network.responses.ConstructorCallTransactionExceptionResponseModel;
-import io.hotmoka.network.responses.ConstructorCallTransactionFailedResponseModel;
-import io.hotmoka.network.responses.ConstructorCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.responses.GameteCreationTransactionResponseModel;
-import io.hotmoka.network.responses.InitializationTransactionResponseModel;
-import io.hotmoka.network.responses.JarStoreInitialTransactionResponseModel;
-import io.hotmoka.network.responses.JarStoreTransactionFailedResponseModel;
-import io.hotmoka.network.responses.JarStoreTransactionSuccessfulResponseModel;
-import io.hotmoka.network.responses.MethodCallTransactionExceptionResponseModel;
-import io.hotmoka.network.responses.MethodCallTransactionFailedResponseModel;
-import io.hotmoka.network.responses.MethodCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.responses.TransactionRestResponseModel;
-import io.hotmoka.network.responses.VoidMethodCallTransactionSuccessfulResponseModel;
-import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -96,6 +71,8 @@ import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
+import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
@@ -124,6 +101,8 @@ import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
+import io.hotmoka.node.messages.api.AddJarStoreTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
@@ -213,6 +192,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    	addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
     	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
     	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
     	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
@@ -269,6 +249,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetResponseResult(grrm);
 		else if (message instanceof GetPolledResponseResultMessage gprrm)
 			onGetPolledResponseResult(gprrm);
+		else if (message instanceof AddJarStoreTransactionResultMessage ajstrm)
+			onAddJarStoreTransactionResult(ajstrm);
 		else if (message instanceof AddConstructorCallTransactionResultMessage acctrm)
 			onAddConstructorCallTransactionResult(acctrm);
 		else if (message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm)
@@ -1043,7 +1025,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendAddConstructorCallTransaction(request, id);
@@ -1102,6 +1084,64 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendAddJarStoreTransaction(request, id);
+		try {
+			return waitForResult(id, this::processAddJarStoreTransactionSuccess, this::processAddJarStoreTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends an {@link AddJarStoreTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendAddJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT), AddJarStoreTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private TransactionReference processAddJarStoreTransactionSuccess(RpcMessage message) {
+		return message instanceof AddJarStoreTransactionResultMessage ajstrm ? ajstrm.get() : null;
+	}
+
+	private boolean processAddJarStoreTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			TransactionException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when an {@link AddJarStoreTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onAddJarStoreTransactionResult(AddJarStoreTransactionResultMessage message) {}
+
+	private class AddJarStoreTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, AddJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
 	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
 		return subscriptions.subscribeToEvents(creator, handler);
 	}
@@ -1130,195 +1170,6 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     }
 
     /**
-     * Deals with methods that return void: the API of the node
-     * requires to return null, always, when such methods are called.
-     *
-     * @param request the request that calls the method
-     * @param model the model of the return value of the method
-     * @return the resulting value, using {@code null} if the method returned void
-     */
-    protected static StorageValue dealWithReturnVoid(MethodCallTransactionRequest request, StorageValueModel model) {
-        return request.getStaticTarget() instanceof VoidMethodSignature ? null : model.toBean();
-    }
-
-    /**
-     * Build the transaction request from the given model.
-     *
-     * @param restRequestModel the request model
-     * @return the corresponding transaction request
-     */
-    protected static TransactionRequest<?> requestFromModel(TransactionRestRequestModel<?> restRequestModel) {
-        if (restRequestModel == null)
-            throw new RuntimeException("unexpected null rest request model");
-
-        if (restRequestModel.type == null)
-            throw new RuntimeException("unexpected null rest request type model");
-
-        if (restRequestModel.transactionRequestModel == null)
-            throw new RuntimeException("unexpected null rest request object model");
-
-        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-        final String serialized = serialize(gson, restRequestModel);
-
-        if (serialized == null)
-            throw new RuntimeException("unexpected null serialized object");
-        if (restRequestModel.type.equals(ConstructorCallTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, ConstructorCallTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(InitializationTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, InitializationTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(InstanceMethodCallTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, InstanceMethodCallTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(JarStoreInitialTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreInitialTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(JarStoreTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(GameteCreationTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, GameteCreationTransactionRequestModel.class).toBean();
-        else if (restRequestModel.type.equals(StaticMethodCallTransactionRequestModel.class.getName()))
-            return gson.fromJson(serialized, StaticMethodCallTransactionRequestModel.class).toBean();
-        else
-            throw new RuntimeException("unexpected transaction request model of class " + restRequestModel.type);
-    }
-
-    /**
-     * Serializes the transaction request model of the rest model
-     * @param gson the gson instance
-     * @param restRequestModel the rest model
-     * @return the string
-     */
-    private static String serialize(Gson gson, TransactionRestRequestModel<?> restRequestModel) {
-    	return gson.toJsonTree(restRequestModel.transactionRequestModel).toString();
-    }
-
-    /**
-     * Builds the transaction response for the given rest response model.
-     *
-     * @param restResponseModel the rest response model
-     * @return the corresponding transaction response
-     */
-    protected static TransactionResponse responseFromModel(TransactionRestResponseModel<?> restResponseModel) {
-        if (restResponseModel == null)
-            throw new RuntimeException("unexpected null rest response model");
-
-        if (restResponseModel.type == null)
-            throw new RuntimeException("unexpected null rest response type model");
-
-        if (restResponseModel.transactionResponseModel == null)
-            throw new RuntimeException("unexpected null rest response object model");
-
-        final Gson gson = new GsonBuilder().disableHtmlEscaping().create();
-        final String serialized = serialize(gson, restResponseModel);
-
-        if (serialized == null)
-            throw new RuntimeException("unexpected null serialized object");
-        else if (restResponseModel.type.equals(JarStoreInitialTransactionResponseModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreInitialTransactionResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(GameteCreationTransactionResponseModel.class.getName()))
-            return gson.fromJson(serialized, GameteCreationTransactionResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(InitializationTransactionResponseModel.class.getName()))
-            return gson.fromJson(serialized, InitializationTransactionResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(JarStoreTransactionFailedResponseModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(JarStoreTransactionSuccessfulResponseModel.class.getName()))
-            return gson.fromJson(serialized, JarStoreTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(ConstructorCallTransactionFailedResponseModel.class.getName()))
-            return gson.fromJson(serialized, ConstructorCallTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(ConstructorCallTransactionSuccessfulResponseModel.class.getName()))
-            return gson.fromJson(serialized, ConstructorCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(ConstructorCallTransactionExceptionResponseModel.class.getName()))
-            return gson.fromJson(serialized, ConstructorCallTransactionExceptionResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(MethodCallTransactionFailedResponseModel.class.getName()))
-            return gson.fromJson(serialized, MethodCallTransactionFailedResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(MethodCallTransactionSuccessfulResponseModel.class.getName()))
-            return gson.fromJson(serialized, MethodCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(VoidMethodCallTransactionSuccessfulResponseModel.class.getName()))
-            return gson.fromJson(serialized, VoidMethodCallTransactionSuccessfulResponseModel.class).toBean();
-        else if (restResponseModel.type.equals(MethodCallTransactionExceptionResponseModel.class.getName()))
-            return gson.fromJson(serialized, MethodCallTransactionExceptionResponseModel.class).toBean();
-        else
-            throw new RuntimeException("unexpected transaction rest response model of class " + restResponseModel.type);
-    }
-
-    /**
-     * Serializes the transaction response model of the rest model
-     * @param gson the gson instance
-     * @param restResponseModel the rest model
-     * @return the string
-     */
-    private static String serialize(Gson gson, TransactionRestResponseModel<?> restResponseModel) {
-    	return gson.toJsonTree(restResponseModel.transactionResponseModel).toString();
-    }
-
-	/**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match any of the methods signature type then
-     * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws TransactionRejectedException the wrapped exception
-     * @throws TransactionException the wrapped exception
-     * @throws CodeExecutionException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse e) {
-            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(e.getMessage());
-            else if (e.getExceptionClassName().equals(TransactionException.class.getName()))
-                throw new TransactionException(e.getMessage());
-            else if (e.getExceptionClassName().equals(CodeExecutionException.class.getName()))
-                throw new CodeExecutionException(e.getMessage());
-            else
-                throw new RuntimeException(e.getMessage());
-        }
-        catch (RuntimeException e) {
-            LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-            LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match any of the methods signature type then
-     * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws TransactionRejectedException the wrapped exception
-     * @throws TransactionException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse e) {
-            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(e.getMessage());
-            else if (e.getExceptionClassName().equals(TransactionException.class.getName()))
-                throw new TransactionException(e.getMessage());
-            else
-                throw new RuntimeException(e.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
      * Runs a callable and wraps the exception by its type.
      * If the type doesn't match {@link io.hotmoka.node.api.TransactionRejectedException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
      *
@@ -1336,128 +1187,6 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
                 throw new TransactionRejectedException(e.getMessage());
             else
                 throw new RuntimeException(e.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match {@link java.util.NoSuchElementException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws NoSuchElementException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionForNoSuchElementException(Callable<T> what) throws NoSuchElementException {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse e) {
-            if (e.getExceptionClassName().equals(NoSuchElementException.class.getName()))
-                throw new NoSuchElementException(e.getMessage());
-            else
-                throw new RuntimeException(e.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     */
-    protected static <T> T wrapNetworkExceptionBasic(Callable<T> what) {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            throw new RuntimeException(exceptionResponse.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match any of the methods signature type then
-     * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws TransactionRejectedException the wrapped exception
-     * @throws TimeoutException the wrapped exception
-     * @throws InterruptedException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionForPolledResponseException(Callable<T> what) throws TransactionRejectedException, TimeoutException, InterruptedException  {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(TimeoutException.class.getName()))
-                throw new TimeoutException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(InterruptedException.class.getName()))
-                throw new InterruptedException(exceptionResponse.getMessage());
-            else
-                throw new RuntimeException(exceptionResponse.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match any of the methods signature type then
-     * it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws TransactionRejectedException the wrapped exception
-     * @throws NoSuchElementException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionForResponseAtException(Callable<T> what) throws TransactionRejectedException, NoSuchElementException {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse exceptionResponse) {
-            if (exceptionResponse.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(exceptionResponse.getMessage());
-            else if (exceptionResponse.getExceptionClassName().equals(NoSuchElementException.class.getName()))
-                throw new NoSuchElementException(exceptionResponse.getMessage());
-            else
-                throw new RuntimeException(exceptionResponse.getMessage());
         }
         catch (RuntimeException e) {
         	LOGGER.log(Level.WARNING, "unexpected exception", e);

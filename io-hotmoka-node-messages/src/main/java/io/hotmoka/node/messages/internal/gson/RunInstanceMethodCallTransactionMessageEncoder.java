@@ -21,7 +21,7 @@ import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * An encoder of a {@code RunInstanceMethodCallTransactionRequestMessage}.
+ * An encoder of a {@code RunInstanceMethodCallTransactionMessage}.
  */
 public class RunInstanceMethodCallTransactionMessageEncoder extends MappedEncoder<RunInstanceMethodCallTransactionMessage, RunInstanceMethodCallTransactionMessages.Json> {
 

@@ -232,8 +232,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException;
+	TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a constructor of a class.

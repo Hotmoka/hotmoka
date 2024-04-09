@@ -36,6 +36,8 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.exceptions.CheckSupplier;
@@ -52,7 +54,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	private final BigInteger redInitialAmount;
 	private final String publicKey;
 	private final StorageValues.Json manifest;
-	private final String jar; // hex bytes
+	private final String jar; // Base64-encoded bytes
 	private final TransactionReferences.Json[] dependencies;
 	private final StorageValues.Json caller;
 	private final BigInteger gasLimit;
@@ -113,7 +115,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
-			this.jar = Hex.toHexString(jitr.getJar());
+			this.jar = Base64.toBase64String(jitr.getJar());
 			this.dependencies = jitr.getDependencies().map(TransactionReferences.Json::new).toArray(TransactionReferences.Json[]::new);
 			this.caller = null;
 			this.gasLimit = null;
@@ -133,7 +135,7 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 			this.redInitialAmount = null;
 			this.publicKey = null;
 			this.manifest = null;
-			this.jar = Hex.toHexString(jtr.getJar());
+			this.jar = Base64.toBase64String(jtr.getJar());
 			this.dependencies = jtr.getDependencies().map(TransactionReferences.Json::new).toArray(TransactionReferences.Json[]::new);
 			this.caller = new StorageValues.Json(jtr.getCaller());
 			this.gasLimit = jtr.getGasLimit();
@@ -231,15 +233,15 @@ public abstract class TransactionRequestJson implements JsonRepresentation<Trans
 	}
 
 	@Override
-	public TransactionRequest<?> unmap() throws IllegalArgumentException, HexConversionException {
+	public TransactionRequest<?> unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
 		if (GameteCreationTransactionRequest.class.getSimpleName().equals(type))
 			return TransactionRequests.gameteCreation(classpath.unmap(), initialAmount, redInitialAmount, publicKey);
 		else if (InitializationTransactionRequest.class.getSimpleName().equals(type))
 			return TransactionRequests.initialization(classpath.unmap(), (StorageReference) manifest.unmap());
 		else if (JarStoreInitialTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.jarStoreInitial(Hex.fromHexString(jar), convertedDependencies());
+			return TransactionRequests.jarStoreInitial(Base64.fromBase64String(jar), convertedDependencies());
 		else if (JarStoreTransactionRequest.class.getSimpleName().equals(type))
-			return TransactionRequests.jarStore(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), Hex.fromHexString(jar), convertedDependencies());
+			return TransactionRequests.jarStore(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), Base64.fromBase64String(jar), convertedDependencies());
 		else if (ConstructorCallTransactionRequest.class.getSimpleName().equals(type))
 			return TransactionRequests.constructorCall(Hex.fromHexString(signature), (StorageReference) caller.unmap(), nonce, chainId, gasLimit, gasPrice, classpath.unmap(), constructor.unmap(), convertedActuals());
 		else if (StaticMethodCallTransactionRequest.class.getSimpleName().equals(type))

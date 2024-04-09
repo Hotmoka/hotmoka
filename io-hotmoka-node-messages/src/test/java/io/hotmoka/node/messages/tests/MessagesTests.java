@@ -40,6 +40,7 @@ import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
@@ -51,6 +52,8 @@ import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
+import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
@@ -410,10 +413,34 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addConstructorCallTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddConstructorCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddConstructorCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
 		var expected = AddConstructorCallTransactionResultMessages.of(OBJECT, "id");
 		String encoded = new AddConstructorCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddConstructorCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addJarStoreTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddJarStoreTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), JarStoreTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.jarStore(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE,
+			"These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes());
+		var expected = AddJarStoreTransactionMessages.of(request, "id");
+		String encoded = new AddJarStoreTransactionMessages.Encoder().encode(expected);
+		System.out.println(encoded);
+		var actual = new AddJarStoreTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addJarStoreTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddJarStoreTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddJarStoreTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new AddJarStoreTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddJarStoreTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

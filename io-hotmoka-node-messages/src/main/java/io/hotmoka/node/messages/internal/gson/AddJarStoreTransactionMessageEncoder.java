@@ -16,16 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
-import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
+import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * An encoder of a {@code AddConstructorCallTransactionMessage}.
+ * An encoder of a {@code AddJarStoreTransactionMessage}.
  */
-public class AddConstructorCallTransactionMessageEncoder extends MappedEncoder<AddConstructorCallTransactionMessage, AddConstructorCallTransactionMessages.Json> {
+public class AddJarStoreTransactionMessageEncoder extends MappedEncoder<AddJarStoreTransactionMessage, AddJarStoreTransactionMessages.Json> {
 
-	public AddConstructorCallTransactionMessageEncoder() {
-		super(AddConstructorCallTransactionMessages.Json::new);
+	public AddJarStoreTransactionMessageEncoder() {
+		super(AddJarStoreTransactionMessages.Json::new);
 	}
 }

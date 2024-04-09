@@ -259,7 +259,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
+	public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addJarStoreTransaction(request);
 	}
 

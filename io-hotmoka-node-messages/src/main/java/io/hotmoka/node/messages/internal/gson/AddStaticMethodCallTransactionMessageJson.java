@@ -18,6 +18,7 @@ package io.hotmoka.node.messages.internal.gson;
 
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
@@ -36,7 +37,7 @@ public abstract class AddStaticMethodCallTransactionMessageJson extends Abstract
 	}
 
 	@Override
-	public AddStaticMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public AddStaticMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException, Base64ConversionException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof StaticMethodCallTransactionRequest smctr)
 			return AddStaticMethodCallTransactionMessages.of(smctr, getId());
