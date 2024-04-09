@@ -20,13 +20,13 @@ import java.util.Objects;
 
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
  * Implementation of the network message corresponding to {@link Node#runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)}.
  */
-public class RunInstanceMethodCallTransactionRequestMessageImpl extends AbstractRpcMessage implements RunInstanceMethodCallTransactionRequestMessage {
+public class RunInstanceMethodCallTransactionMessageImpl extends AbstractRpcMessage implements RunInstanceMethodCallTransactionMessage {
 
 	private final InstanceMethodCallTransactionRequest request;
 
@@ -36,7 +36,7 @@ public class RunInstanceMethodCallTransactionRequestMessageImpl extends Abstract
 	 * @param request the request of the transaction required to run
 	 * @param id the identifier of the message
 	 */
-	public RunInstanceMethodCallTransactionRequestMessageImpl(InstanceMethodCallTransactionRequest request, String id) {
+	public RunInstanceMethodCallTransactionMessageImpl(InstanceMethodCallTransactionRequest request, String id) {
 		super(id);
 
 		this.request = Objects.requireNonNull(request, "request cannot be null");
@@ -44,12 +44,12 @@ public class RunInstanceMethodCallTransactionRequestMessageImpl extends Abstract
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof RunInstanceMethodCallTransactionRequestMessage rimctrm && super.equals(other) && request.equals(rimctrm.getRequest());
+		return other instanceof RunInstanceMethodCallTransactionMessage rimctm && super.equals(other) && request.equals(rimctm.getRequest());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunInstanceMethodCallTransactionRequestMessage.class.getName();
+		return RunInstanceMethodCallTransactionMessage.class.getName();
 	}
 
 	@Override

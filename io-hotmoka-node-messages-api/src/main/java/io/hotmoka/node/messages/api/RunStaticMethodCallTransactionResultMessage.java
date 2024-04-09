@@ -19,13 +19,13 @@ package io.hotmoka.node.messages.api;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
 
 /**
- * The network message corresponding to the result of the {@link Node#runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} method.
+ * The network message corresponding to the result of the {@link Node#runStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} method.
  */
 @Immutable
-public interface RunInstanceMethodCallTransactionRequestResultMessage extends ResultMessage<Optional<StorageValue>> {
+public interface RunStaticMethodCallTransactionResultMessage extends ResultMessage<Optional<StorageValue>> {
 }

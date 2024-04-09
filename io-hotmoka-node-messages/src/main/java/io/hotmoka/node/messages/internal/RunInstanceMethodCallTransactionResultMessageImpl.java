@@ -21,13 +21,13 @@ import java.util.Optional;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestResultMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} method.
  */
-public class RunInstanceMethodCallTransactionRequestResultMessageImpl extends AbstractRpcMessage implements RunInstanceMethodCallTransactionRequestResultMessage {
+public class RunInstanceMethodCallTransactionResultMessageImpl extends AbstractRpcMessage implements RunInstanceMethodCallTransactionResultMessage {
 
 	/**
 	 * The result of the call.
@@ -40,7 +40,7 @@ public class RunInstanceMethodCallTransactionRequestResultMessageImpl extends Ab
 	 * @param result the result of the call; this might be empty for void methods
 	 * @param id the identifier of the message
 	 */
-	public RunInstanceMethodCallTransactionRequestResultMessageImpl(Optional<StorageValue> result, String id) {
+	public RunInstanceMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id) {
 		super(id);
 
 		this.result = result;
@@ -48,12 +48,12 @@ public class RunInstanceMethodCallTransactionRequestResultMessageImpl extends Ab
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof RunInstanceMethodCallTransactionRequestResultMessage rimctrrm && super.equals(other) && result.equals(rimctrrm.get());
+		return other instanceof RunInstanceMethodCallTransactionResultMessage rimctrm && super.equals(other) && result.equals(rimctrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunInstanceMethodCallTransactionRequestResultMessage.class.getName();
+		return RunInstanceMethodCallTransactionResultMessage.class.getName();
 	}
 
 	@Override

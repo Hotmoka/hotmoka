@@ -63,10 +63,10 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestResultMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
@@ -266,27 +266,27 @@ public class MessagesTests extends AbstractLoggedTests {
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
 		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
-		var expected = RunInstanceMethodCallTransactionRequestMessages.of(request, "id");
-		String encoded = new RunInstanceMethodCallTransactionRequestMessages.Encoder().encode(expected);
-		var actual = new RunInstanceMethodCallTransactionRequestMessages.Decoder().decode(encoded);
+		var expected = RunInstanceMethodCallTransactionMessages.of(request, "id");
+		String encoded = new RunInstanceMethodCallTransactionMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for non-void methods are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var expected = RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
-		String encoded = new RunInstanceMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
-		var actual = new RunInstanceMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
+		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
+		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for void methods are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var expected = RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.empty(), "id");
-		String encoded = new RunInstanceMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
-		var actual = new RunInstanceMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
+		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.empty(), "id");
+		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
@@ -298,27 +298,27 @@ public class MessagesTests extends AbstractLoggedTests {
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
 		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
-		var expected = RunStaticMethodCallTransactionRequestMessages.of(request, "id");
-		String encoded = new RunStaticMethodCallTransactionRequestMessages.Encoder().encode(expected);
-		var actual = new RunStaticMethodCallTransactionRequestMessages.Decoder().decode(encoded);
+		var expected = RunStaticMethodCallTransactionMessages.of(request, "id");
+		String encoded = new RunStaticMethodCallTransactionMessages.Encoder().encode(expected);
+		var actual = new RunStaticMethodCallTransactionMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	@DisplayName("runStaticMethodCallTransactionRequestResult messages for non-void methods are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunStaticMethodCallNonVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var expected = RunStaticMethodCallTransactionRequestResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
-		String encoded = new RunStaticMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
-		var actual = new RunStaticMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
+		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
+		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 
 	@Test
 	@DisplayName("runStaticMethodCallTransactionRequestResult messages for void methods are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunStaticMethodCallVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
-		var expected = RunStaticMethodCallTransactionRequestResultMessages.of(Optional.empty(), "id");
-		String encoded = new RunStaticMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
-		var actual = new RunStaticMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
+		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
+		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

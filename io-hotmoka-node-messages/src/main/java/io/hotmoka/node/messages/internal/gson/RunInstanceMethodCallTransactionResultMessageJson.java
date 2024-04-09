@@ -20,29 +20,29 @@ import java.util.Optional;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestResultMessage;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of a {@link RunInstanceMethodCallTransactionRequestResultMessage}.
+ * The JSON representation of a {@link RunInstanceMethodCallTransactionResultMessage}.
  */
-public abstract class RunInstanceMethodCallTransactionRequestResultMessageJson extends AbstractRpcMessageJsonRepresentation<RunInstanceMethodCallTransactionRequestResultMessage> {
+public abstract class RunInstanceMethodCallTransactionResultMessageJson extends AbstractRpcMessageJsonRepresentation<RunInstanceMethodCallTransactionResultMessage> {
 	private final StorageValues.Json result;
 
-	protected RunInstanceMethodCallTransactionRequestResultMessageJson(RunInstanceMethodCallTransactionRequestResultMessage message) {
+	protected RunInstanceMethodCallTransactionResultMessageJson(RunInstanceMethodCallTransactionResultMessage message) {
 		super(message);
 
 		this.result = message.get().map(StorageValues.Json::new).orElse(null);
 	}
 
 	@Override
-	public RunInstanceMethodCallTransactionRequestResultMessage unmap() throws IllegalArgumentException, HexConversionException {
-		return RunInstanceMethodCallTransactionRequestResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
+	public RunInstanceMethodCallTransactionResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+		return RunInstanceMethodCallTransactionResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunInstanceMethodCallTransactionRequestResultMessage.class.getName();
+		return RunInstanceMethodCallTransactionResultMessage.class.getName();
 	}
 }

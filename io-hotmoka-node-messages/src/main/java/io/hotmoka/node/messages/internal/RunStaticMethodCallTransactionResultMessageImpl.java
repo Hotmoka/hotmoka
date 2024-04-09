@@ -21,13 +21,13 @@ import java.util.Optional;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionRequestResultMessage;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
  * Implementation of the network message corresponding to the result of the {@link Node#runStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} method.
  */
-public class RunStaticMethodCallTransactionRequestResultMessageImpl extends AbstractRpcMessage implements RunStaticMethodCallTransactionRequestResultMessage {
+public class RunStaticMethodCallTransactionResultMessageImpl extends AbstractRpcMessage implements RunStaticMethodCallTransactionResultMessage {
 
 	/**
 	 * The result of the call.
@@ -40,7 +40,7 @@ public class RunStaticMethodCallTransactionRequestResultMessageImpl extends Abst
 	 * @param result the result of the call; this might be empty for void methods
 	 * @param id the identifier of the message
 	 */
-	public RunStaticMethodCallTransactionRequestResultMessageImpl(Optional<StorageValue> result, String id) {
+	public RunStaticMethodCallTransactionResultMessageImpl(Optional<StorageValue> result, String id) {
 		super(id);
 
 		this.result = result;
@@ -48,12 +48,12 @@ public class RunStaticMethodCallTransactionRequestResultMessageImpl extends Abst
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof RunStaticMethodCallTransactionRequestResultMessage rsmctrrm && super.equals(other) && result.equals(rsmctrrm.get());
+		return other instanceof RunStaticMethodCallTransactionResultMessage rsmctrm && super.equals(other) && result.equals(rsmctrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunStaticMethodCallTransactionRequestResultMessage.class.getName();
+		return RunStaticMethodCallTransactionResultMessage.class.getName();
 	}
 
 	@Override

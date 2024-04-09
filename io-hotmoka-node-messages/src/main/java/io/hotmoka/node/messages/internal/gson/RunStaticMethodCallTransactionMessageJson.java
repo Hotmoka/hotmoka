@@ -19,33 +19,33 @@ package io.hotmoka.node.messages.internal.gson;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of an {@link RunStaticMethodCallTransactionRequestMessage}.
+ * The JSON representation of an {@link RunStaticMethodCallTransactionMessage}.
  */
-public abstract class RunStaticMethodCallTransactionRequestMessageJson extends AbstractRpcMessageJsonRepresentation<RunStaticMethodCallTransactionRequestMessage> {
+public abstract class RunStaticMethodCallTransactionMessageJson extends AbstractRpcMessageJsonRepresentation<RunStaticMethodCallTransactionMessage> {
 	private final TransactionRequests.Json request;
 
-	protected RunStaticMethodCallTransactionRequestMessageJson(RunStaticMethodCallTransactionRequestMessage message) {
+	protected RunStaticMethodCallTransactionMessageJson(RunStaticMethodCallTransactionMessage message) {
 		super(message);
 
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
 	@Override
-	public RunStaticMethodCallTransactionRequestMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public RunStaticMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof StaticMethodCallTransactionRequest smctr)
-			return RunStaticMethodCallTransactionRequestMessages.of(smctr, getId());
+			return RunStaticMethodCallTransactionMessages.of(smctr, getId());
 		else
 			throw new IllegalArgumentException("The argument of the runStaticMethodCallTransactionRequest() method must be a StaticMethodCallTransactionRequest");
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunStaticMethodCallTransactionRequestMessage.class.getName();
+		return RunStaticMethodCallTransactionMessage.class.getName();
 	}
 }

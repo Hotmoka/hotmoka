@@ -16,16 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
-import io.hotmoka.websockets.beans.MappedEncoder;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * An encoder of a {@code RunInstanceMethodCallTransactionRequestMessage}.
+ * A decoder for {@link RunStaticMethodCallTransactionResultMessage}.
  */
-public class RunInstanceMethodCallTransactionRequestMessageEncoder extends MappedEncoder<RunInstanceMethodCallTransactionRequestMessage, RunInstanceMethodCallTransactionRequestMessages.Json> {
+public class RunStaticMethodCallTransactionResultMessageDecoder extends MappedDecoder<RunStaticMethodCallTransactionResultMessage, RunStaticMethodCallTransactionResultMessages.Json> {
 
-	public RunInstanceMethodCallTransactionRequestMessageEncoder() {
-		super(RunInstanceMethodCallTransactionRequestMessages.Json::new);
+	public RunStaticMethodCallTransactionResultMessageDecoder() {
+		super(RunStaticMethodCallTransactionResultMessages.Json.class);
 	}
 }

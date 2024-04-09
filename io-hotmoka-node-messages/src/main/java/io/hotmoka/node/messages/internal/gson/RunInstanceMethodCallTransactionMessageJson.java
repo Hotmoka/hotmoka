@@ -19,33 +19,33 @@ package io.hotmoka.node.messages.internal.gson;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of an {@link RunInstanceMethodCallTransactionRequestMessage}.
+ * The JSON representation of an {@link RunInstanceMethodCallTransactionMessage}.
  */
-public abstract class RunInstanceMethodCallTransactionRequestMessageJson extends AbstractRpcMessageJsonRepresentation<RunInstanceMethodCallTransactionRequestMessage> {
+public abstract class RunInstanceMethodCallTransactionMessageJson extends AbstractRpcMessageJsonRepresentation<RunInstanceMethodCallTransactionMessage> {
 	private final TransactionRequests.Json request;
 
-	protected RunInstanceMethodCallTransactionRequestMessageJson(RunInstanceMethodCallTransactionRequestMessage message) {
+	protected RunInstanceMethodCallTransactionMessageJson(RunInstanceMethodCallTransactionMessage message) {
 		super(message);
 
 		this.request = new TransactionRequests.Json(message.getRequest());
 	}
 
 	@Override
-	public RunInstanceMethodCallTransactionRequestMessage unmap() throws IllegalArgumentException, HexConversionException {
+	public RunInstanceMethodCallTransactionMessage unmap() throws IllegalArgumentException, HexConversionException {
 		var unmappedRequest = request.unmap();
 		if (unmappedRequest instanceof InstanceMethodCallTransactionRequest imctr)
-			return RunInstanceMethodCallTransactionRequestMessages.of(imctr, getId());
+			return RunInstanceMethodCallTransactionMessages.of(imctr, getId());
 		else
 			throw new IllegalArgumentException("The argument of the runInstanceMethodCallTransactionRequest() method must be an InstanceMethodCallTransactionRequest");
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunInstanceMethodCallTransactionRequestMessage.class.getName();
+		return RunInstanceMethodCallTransactionMessage.class.getName();
 	}
 }

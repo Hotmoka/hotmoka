@@ -20,29 +20,29 @@ import java.util.Optional;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.crypto.HexConversionException;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestResultMessages;
-import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionRequestResultMessage;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of a {@link RunStaticMethodCallTransactionRequestResultMessage}.
+ * The JSON representation of a {@link RunStaticMethodCallTransactionResultMessage}.
  */
-public abstract class RunStaticMethodCallTransactionRequestResultMessageJson extends AbstractRpcMessageJsonRepresentation<RunStaticMethodCallTransactionRequestResultMessage> {
+public abstract class RunStaticMethodCallTransactionResultMessageJson extends AbstractRpcMessageJsonRepresentation<RunStaticMethodCallTransactionResultMessage> {
 	private final StorageValues.Json result;
 
-	protected RunStaticMethodCallTransactionRequestResultMessageJson(RunStaticMethodCallTransactionRequestResultMessage message) {
+	protected RunStaticMethodCallTransactionResultMessageJson(RunStaticMethodCallTransactionResultMessage message) {
 		super(message);
 
 		this.result = message.get().map(StorageValues.Json::new).orElse(null);
 	}
 
 	@Override
-	public RunStaticMethodCallTransactionRequestResultMessage unmap() throws IllegalArgumentException, HexConversionException {
-		return RunStaticMethodCallTransactionRequestResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
+	public RunStaticMethodCallTransactionResultMessage unmap() throws IllegalArgumentException, HexConversionException {
+		return RunStaticMethodCallTransactionResultMessages.of(result == null ? Optional.empty() : Optional.of(result.unmap()), getId());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunStaticMethodCallTransactionRequestResultMessage.class.getName();
+		return RunStaticMethodCallTransactionResultMessage.class.getName();
 	}
 }

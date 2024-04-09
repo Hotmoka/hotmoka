@@ -55,10 +55,10 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestMessages;
-import io.hotmoka.node.messages.RunStaticMethodCallTransactionRequestResultMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
@@ -68,8 +68,8 @@ import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
-import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
-import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
@@ -139,7 +139,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
-   			RunInstanceMethodCallTransactionRequestEndpoint.config(this), RunStaticMethodCallTransactionRequestEndpoint.config(this)
+   			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -432,12 +432,12 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		}
 	}
 
-	protected void onRunInstanceMethodCallTransactionRequest(RunInstanceMethodCallTransactionRequestMessage message, Session session) {
-		LOGGER.info(logPrefix + "received a " + RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT + " request");
+	protected void onRunInstanceMethodCallTransaction(RunInstanceMethodCallTransactionMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT + " request");
 
 		try {
 			try {
-				sendObjectAsync(session, RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.ofNullable(node.runInstanceMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(Optional.ofNullable(node.runInstanceMethodCallTransaction(message.getRequest())), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -448,25 +448,25 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		}
 	};
 
-	public static class RunInstanceMethodCallTransactionRequestEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+	public static class RunInstanceMethodCallTransactionEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (RunInstanceMethodCallTransactionRequestMessage message) -> getServer().onRunInstanceMethodCallTransactionRequest(message, session));
+			addMessageHandler(session, (RunInstanceMethodCallTransactionMessage message) -> getServer().onRunInstanceMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
-			return simpleConfig(server, RunInstanceMethodCallTransactionRequestEndpoint.class, RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT,
-				RunInstanceMethodCallTransactionRequestMessages.Decoder.class, RunInstanceMethodCallTransactionRequestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+			return simpleConfig(server, RunInstanceMethodCallTransactionEndpoint.class, RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT,
+				RunInstanceMethodCallTransactionMessages.Decoder.class, RunInstanceMethodCallTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 
-	protected void onRunStaticMethodCallTransactionRequest(RunStaticMethodCallTransactionRequestMessage message, Session session) {
-		LOGGER.info(logPrefix + "received a " + RUN_STATIC_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT + " request");
+	protected void onRunStaticMethodCallTransaction(RunStaticMethodCallTransactionMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT + " request");
 
 		try {
 			try {
-				sendObjectAsync(session, RunStaticMethodCallTransactionRequestResultMessages.of(Optional.ofNullable(node.runStaticMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(Optional.ofNullable(node.runStaticMethodCallTransaction(message.getRequest())), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -477,16 +477,16 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		}
 	};
 
-	public static class RunStaticMethodCallTransactionRequestEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+	public static class RunStaticMethodCallTransactionEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
 
 		@Override
 	    public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (RunStaticMethodCallTransactionRequestMessage message) -> getServer().onRunStaticMethodCallTransactionRequest(message, session));
+			addMessageHandler(session, (RunStaticMethodCallTransactionMessage message) -> getServer().onRunStaticMethodCallTransaction(message, session));
 	    }
 
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
-			return simpleConfig(server, RunStaticMethodCallTransactionRequestEndpoint.class, RUN_STATIC_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT,
-				RunStaticMethodCallTransactionRequestMessages.Decoder.class, RunStaticMethodCallTransactionRequestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+			return simpleConfig(server, RunStaticMethodCallTransactionEndpoint.class, RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT,
+				RunStaticMethodCallTransactionMessages.Decoder.class, RunStaticMethodCallTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

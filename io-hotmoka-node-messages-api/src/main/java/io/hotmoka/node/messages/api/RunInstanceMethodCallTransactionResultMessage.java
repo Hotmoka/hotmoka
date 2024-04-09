@@ -16,21 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.messages.api;
 
+import java.util.Optional;
+
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.websockets.beans.api.RpcMessage;
 
 /**
- * The network message corresponding to {@link Node#runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)}.
+ * The network message corresponding to the result of the {@link Node#runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} method.
  */
 @Immutable
-public interface RunInstanceMethodCallTransactionRequestMessage extends RpcMessage {
-
-	/**
-	 * Yields the request of the required transaction.
-	 * 
-	 * @return the request of the required transaction
-	 */
-	InstanceMethodCallTransactionRequest getRequest();
+public interface RunInstanceMethodCallTransactionResultMessage extends ResultMessage<Optional<StorageValue>> {
 }

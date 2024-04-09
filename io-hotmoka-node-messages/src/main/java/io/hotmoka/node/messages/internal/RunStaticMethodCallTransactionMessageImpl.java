@@ -20,13 +20,13 @@ import java.util.Objects;
 
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
  * Implementation of the network message corresponding to {@link Node#runStaticMethodCallTransaction(StaticMethodCallTransactionRequest)}.
  */
-public class RunStaticMethodCallTransactionRequestMessageImpl extends AbstractRpcMessage implements RunStaticMethodCallTransactionRequestMessage {
+public class RunStaticMethodCallTransactionMessageImpl extends AbstractRpcMessage implements RunStaticMethodCallTransactionMessage {
 
 	private final StaticMethodCallTransactionRequest request;
 
@@ -36,7 +36,7 @@ public class RunStaticMethodCallTransactionRequestMessageImpl extends AbstractRp
 	 * @param request the request of the transaction required to run
 	 * @param id the identifier of the message
 	 */
-	public RunStaticMethodCallTransactionRequestMessageImpl(StaticMethodCallTransactionRequest request, String id) {
+	public RunStaticMethodCallTransactionMessageImpl(StaticMethodCallTransactionRequest request, String id) {
 		super(id);
 
 		this.request = Objects.requireNonNull(request, "request cannot be null");
@@ -44,12 +44,12 @@ public class RunStaticMethodCallTransactionRequestMessageImpl extends AbstractRp
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof RunStaticMethodCallTransactionRequestMessage rsmctrm && super.equals(other) && request.equals(rsmctrm.getRequest());
+		return other instanceof RunStaticMethodCallTransactionMessage rsmctm && super.equals(other) && request.equals(rsmctm.getRequest());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return RunStaticMethodCallTransactionRequestMessage.class.getName();
+		return RunStaticMethodCallTransactionMessage.class.getName();
 	}
 
 	@Override
