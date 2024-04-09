@@ -101,10 +101,25 @@ public class Moka {
 		}
 	}
 
+	/**
+	 * Builds the command-line tool.
+	 */
+	public Moka() {}
+
+	/**
+	 * Runs the command-line tool with the options provided in the given arguments.
+	 * 
+	 * @param args the arguments
+	 */
 	public static void main(String[] args) {
 		System.exit(new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(args));
 	}
 
+	/**
+	 * Runs the command-line tool with the options provided in the given arguments' line.
+	 * 
+	 * @param command the arguments' line
+	 */
 	public static void run(String command) {
 		new CommandLine(new Moka()).setExecutionExceptionHandler(new PrintExceptionMessageHandler()).execute(command.split(" "));
 	}

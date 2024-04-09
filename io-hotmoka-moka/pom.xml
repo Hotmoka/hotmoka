@@ -6,6 +6,7 @@
   <packaging>jar</packaging>
   <name>io-hotmoka-moka</name>
   <version>${hotmoka.version}</version>
+  <description>This module implements a command-line tool for running basic commands against a Hotmoka node.</description>
 
   <parent>
     <groupId>io.hotmoka</groupId>
@@ -14,11 +15,6 @@
   </parent>
 
   <dependencies>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-verification</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-instrumentation</artifactId>
@@ -55,11 +51,6 @@
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-remote</artifactId>
       <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka.crypto</groupId>
-      <artifactId>io-hotmoka-crypto</artifactId>
-      <version>${io.hotmoka.crypto.version}</version>
     </dependency>
 	<dependency>
       <groupId>info.picocli</groupId>

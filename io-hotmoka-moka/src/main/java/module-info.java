@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements a command-line tool for running basic commands against a Hotmoka node.
+ */
 module io.hotmoka.moka {
 	exports io.hotmoka.moka;
 	opens io.hotmoka.moka to info.picocli; // for injecting CLI options
@@ -24,11 +27,8 @@ module io.hotmoka.moka {
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.node.service;
 	requires io.hotmoka.node.remote;
-	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting;
-	requires io.hotmoka.helpers;
-	requires io.hotmoka.crypto;
 	requires io.takamaka.code.constants;
 	requires info.picocli;
 	requires java.logging;
