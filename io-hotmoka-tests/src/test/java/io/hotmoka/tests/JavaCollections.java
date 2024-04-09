@@ -18,6 +18,8 @@ package io.hotmoka.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.concurrent.TimeoutException;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -29,6 +31,7 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -50,14 +53,14 @@ class JavaCollections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("HashMapTests.testToString1() == [how, are, hello, you, ?]")
-	void toString1OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString1OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StringValue toString = (StringValue) runStaticMethodCallTransaction
 			(account(0), _1_000_000, jar(), MethodSignatures.of(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.getValue());
 	}
 
 	@Test @DisplayName("HashMapTests.testToString2() == [how, are, hello, you, ?]")
-	void toString2OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString2OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StringValue toString = (StringValue) runStaticMethodCallTransaction
 			(account(0), _1_000_000, jar(), MethodSignatures.of(HASH_MAP_TESTS, "testToString2", StorageTypes.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.getValue());
@@ -71,14 +74,14 @@ class JavaCollections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("HashMapTests.testToString4() == [how, are, hello, you, ?]")
-	void toString4OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString4OnHashMap() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StringValue toString = (StringValue) runStaticMethodCallTransaction
 			(account(0), _1_000_000, jar(), MethodSignatures.of(HASH_MAP_TESTS, "testToString4", StorageTypes.STRING));
 		assertEquals("[are, io.hotmoka.examples.javacollections.C@2a, hello, you, ?]", toString.getValue());
 	}
 
 	@Test @DisplayName("HashSetTests.testToString1() == [how, are, hello, you, ?]")
-	void toString1OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString1OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StringValue toString = (StringValue) runStaticMethodCallTransaction
 			(account(0), _1_000_000, jar(), MethodSignatures.of(HASH_SET_TESTS, "testToString1", StorageTypes.STRING));
 		assertEquals("[how, are, hello, you, ?]", toString.getValue());
@@ -92,7 +95,7 @@ class JavaCollections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("HashSetTests.testToString3() == [how, are, hello, you, ?]")
-	void toString3OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException {
+	void toString3OnHashSet() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StringValue toString = (StringValue) runStaticMethodCallTransaction
 			(account(0), _1_000_000, jar(), MethodSignatures.of(HASH_SET_TESTS, "testToString3", StorageTypes.STRING));
 		assertEquals("[how, are, io.hotmoka.examples.javacollections.C@2a, hello, you, ?]", toString.getValue());

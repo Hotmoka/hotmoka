@@ -66,7 +66,7 @@ public class GasHelperImpl implements GasHelper {
 	}
 
 	@Override
-	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public BigInteger getGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -82,7 +82,7 @@ public class GasHelperImpl implements GasHelper {
 	}
 
 	@Override
-	public BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public BigInteger getSafeGasPrice() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return BigInteger.TWO.multiply(getGasPrice());
 	}
 }

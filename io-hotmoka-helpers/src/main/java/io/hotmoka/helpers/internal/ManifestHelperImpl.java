@@ -128,7 +128,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 	}
 
 	@Override
-	public String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public String getChainId() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(gamete, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 	}

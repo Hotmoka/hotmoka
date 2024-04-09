@@ -16,11 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal.websockets;
 
-import io.hotmoka.network.NetworkExceptionResponse;
-import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
-import io.hotmoka.node.service.internal.services.RunService;
+import java.security.Principal;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
@@ -29,7 +25,10 @@ import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
-import java.security.Principal;
+import io.hotmoka.network.NetworkExceptionResponse;
+import io.hotmoka.network.errors.ErrorModel;
+import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
+import io.hotmoka.node.service.internal.services.RunService;
 
 @Controller
 @MessageMapping("/run")
@@ -41,11 +40,6 @@ public class WebSocketsRunController {
     public WebSocketsRunController(SimpMessagingTemplate simpMessagingTemplate, RunService nodeRunService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeRunService = nodeRunService;
-    }
-
-    @MessageMapping("/instanceMethodCallTransaction")
-    public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/run/instanceMethodCallTransaction", nodeRunService.runInstanceMethodCallTransaction(request));
     }
 
     @MessageMapping("/staticMethodCallTransaction")

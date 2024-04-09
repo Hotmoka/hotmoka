@@ -369,7 +369,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
             numberOfMints.getAndIncrement();
 		}
 
-    	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException {
+    	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
     		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
         	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request);
             return bi.getValue().intValue();

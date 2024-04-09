@@ -25,10 +25,12 @@ import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
@@ -42,6 +44,7 @@ import com.google.gson.GsonBuilder;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -101,6 +104,8 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
@@ -119,6 +124,8 @@ import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
@@ -184,6 +191,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT, uri, RunInstanceMethodCallTransactionRequestEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -235,6 +243,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetResponseResult(grrm);
 		else if (message instanceof GetPolledResponseResultMessage gprrm)
 			onGetPolledResponseResult(gprrm);
+		else if (message instanceof RunInstanceMethodCallTransactionRequestResultMessage rimctrrm)
+			onRunInstanceMethodCallTransactionRequestResult(rimctrrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -759,6 +769,65 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, GetPolledResponseResultMessages.Decoder.class, ExceptionMessages.Decoder.class, GetPolledResponseMessages.Encoder.class);		
+		}
+	}
+
+	@Override
+	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendRunInstanceMethodCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processRunInstanceMethodCallTransactionRequestSuccess, this::processRunInstanceMethodCallTransactionRequestExceptions).orElse(null);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link RunInstanceMethodCallTransactionRequestMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to run
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendRunInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT), RunInstanceMethodCallTransactionRequestMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private Optional<StorageValue> processRunInstanceMethodCallTransactionRequestSuccess(RpcMessage message) {
+		return message instanceof RunInstanceMethodCallTransactionRequestResultMessage rimctrm ? rimctrm.get() : null;
+	}
+
+	private boolean processRunInstanceMethodCallTransactionRequestExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			TransactionException.class.isAssignableFrom(clazz) ||
+			CodeExecutionException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link GetPolledResponseResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onRunInstanceMethodCallTransactionRequestResult(RunInstanceMethodCallTransactionRequestResultMessage message) {}
+
+	private class RunInstanceMethodCallTransactionRequestEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, RunInstanceMethodCallTransactionRequestResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunInstanceMethodCallTransactionRequestMessages.Encoder.class);
 		}
 	}
 

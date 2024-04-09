@@ -21,6 +21,7 @@ import java.nio.file.Path;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -30,6 +31,7 @@ import io.hotmoka.helpers.internal.InitializedNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
@@ -58,8 +60,11 @@ public class InitializedNodes {
 	 * @throws SignatureException if some initialization request could not be signed
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+	public static InitializedNode of(Node parent, ConsensusConfig<?,?> consensus, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, null);
 	}
 
@@ -83,9 +88,12 @@ public class InitializedNodes {
 	 * @throws SignatureException if some initialization request could not be signed
 	 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 	 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	public static InitializedNode of(Node parent, ValidatorsConsensusConfig<?,?> consensus,
-			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException {
+			Path takamakaCode, ProducerOfStorageObject<ValidatorsConsensusConfig<?,?>> producerOfValidatorsBuilder, ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 		return new InitializedNodeImpl(parent, consensus, takamakaCode, producerOfValidatorsBuilder, producerOfGasStation);
 	}
 
@@ -110,7 +118,12 @@ public class InitializedNodes {
 		 * @throws SignatureException if some initialization request could not be signed
 		 * @throws InvalidKeyException if some key used for signing initialization transactions is invalid
 		 * @throws NoSuchAlgorithmException if the signing algorithm for the node is not available in the Java installation
+		 * @throws NodeException if the node is not able to perform the operation
+		 * @throws TimeoutException if no answer arrives before a time window
+		 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 		 */
-		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCodeReference) throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException;
+		StorageReference apply(InitializedNode node, C consensus, TransactionReference takamakaCodeReference)
+			throws InvalidKeyException, SignatureException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchAlgorithmException,
+					NodeException, TimeoutException, InterruptedException;
 	}
 }

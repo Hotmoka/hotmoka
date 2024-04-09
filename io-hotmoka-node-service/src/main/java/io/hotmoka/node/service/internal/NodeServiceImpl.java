@@ -18,6 +18,7 @@ package io.hotmoka.node.service.internal;
 
 import java.io.IOException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -30,9 +31,11 @@ import org.springframework.context.ConfigurableApplicationContext;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.network.requests.EventRequestModel;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
+import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
@@ -52,6 +55,8 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.node.messages.api.GetManifestMessage;
@@ -61,6 +66,7 @@ import io.hotmoka.node.messages.api.GetRequestMessage;
 import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
+import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionRequestMessage;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
@@ -129,7 +135,8 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	startContainer("", config.getPort() + 2,
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
-   			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this)
+   			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
+   			RunInstanceMethodCallTransactionRequestEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -419,6 +426,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, GetPolledResponseEndpoint.class, GET_POLLED_RESPONSE_ENDPOINT,
 				GetPolledResponseMessages.Decoder.class, GetPolledResponseResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onRunInstanceMethodCallTransactionRequest(RunInstanceMethodCallTransactionRequestMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.ofNullable(node.runInstanceMethodCallTransaction(message.getRequest())), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class RunInstanceMethodCallTransactionRequestEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (RunInstanceMethodCallTransactionRequestMessage message) -> getServer().onRunInstanceMethodCallTransactionRequest(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, RunInstanceMethodCallTransactionRequestEndpoint.class, RUN_INSTANCE_METHOD_CALL_TRANSACTION_REQUEST_ENDPOINT,
+				RunInstanceMethodCallTransactionRequestMessages.Decoder.class, RunInstanceMethodCallTransactionRequestResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

@@ -19,13 +19,17 @@ package io.hotmoka.node.messages.tests;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.SignatureException;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.FieldSignatures;
+import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -33,6 +37,7 @@ import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
@@ -57,6 +62,8 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestMessages;
+import io.hotmoka.node.messages.RunInstanceMethodCallTransactionRequestResultMessages;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
@@ -245,6 +252,39 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetPolledResponseResultMessages.of(response, "id");
 		String encoded = new GetPolledResponseResultMessages.Encoder().encode(expected);
 		var actual = new GetPolledResponseResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("runInstanceMethodCallTransactionRequest messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		// StorageReference caller, BigInteger nonce, String chainId, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, MethodSignature method, StorageReference receiver, StorageValue... actuals
+		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);
+		var request = TransactionRequests.instanceMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, OBJECT, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var expected = RunInstanceMethodCallTransactionRequestMessages.of(request, "id");
+		String encoded = new RunInstanceMethodCallTransactionRequestMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionRequestMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for non-void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
+		String encoded = new RunInstanceMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("runInstanceMethodCallTransactionRequestResult messages for void methods are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionRequestResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = RunInstanceMethodCallTransactionRequestResultMessages.of(Optional.empty(), "id");
+		String encoded = new RunInstanceMethodCallTransactionRequestResultMessages.Encoder().encode(expected);
+		var actual = new RunInstanceMethodCallTransactionRequestResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

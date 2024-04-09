@@ -19,6 +19,7 @@ package io.hotmoka.tests.errors;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +33,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -69,7 +71,7 @@ class View extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar then call to View.yes() succeeds")
-	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callYes() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
 
 		runInstanceMethodCallTransaction(account(0), _100_000, jar(),

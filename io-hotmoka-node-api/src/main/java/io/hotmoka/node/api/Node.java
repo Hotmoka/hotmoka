@@ -260,6 +260,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
 	 */
+	// TODO: return Optional
 	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
@@ -274,6 +275,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
 	 */
+	// TODO: return Optional
 	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
@@ -287,8 +289,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
 	 *                              or that is not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	// TODO: return Optional
+	StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs a static {@code @@View} method of a class in this node.
@@ -301,8 +307,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
 	 *                              or that is not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	// TODO: return Optional
+	StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
