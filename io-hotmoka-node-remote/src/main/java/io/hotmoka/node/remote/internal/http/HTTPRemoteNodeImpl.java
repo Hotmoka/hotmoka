@@ -117,11 +117,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     }
 
     @Override
-    public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, service.post(url + "/run/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
-    }
-
-    @Override
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> service.post(url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
         return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(reference, this));
