@@ -16,12 +16,15 @@ limitations under the License.
 
 package io.hotmoka.node.service.internal.services;
 
-import io.hotmoka.network.requests.*;
-import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.StorageValueModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
-
 import org.springframework.http.ResponseEntity;
+
+import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
+import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
+import io.hotmoka.network.requests.InitializationTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
+import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
+import io.hotmoka.network.values.StorageReferenceModel;
+import io.hotmoka.network.values.TransactionReferenceModel;
 
 public interface AddService {
     TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request);
@@ -29,6 +32,4 @@ public interface AddService {
     ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request);
     TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request);
     StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);
-    StorageValueModel addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request);
-    StorageValueModel addStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request);
 }

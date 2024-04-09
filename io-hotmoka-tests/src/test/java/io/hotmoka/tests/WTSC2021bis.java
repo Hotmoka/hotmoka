@@ -158,7 +158,7 @@ class WTSC2021bis extends HotmokaTest {
 		try {
 			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
 		}
-		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException e) {
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | TimeoutException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 

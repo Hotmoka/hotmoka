@@ -171,7 +171,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas but without enough coins to pay the @Entry")
-	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callerHasNotEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 
 		throwsTransactionExceptionWithCause(Constants.INSUFFICIENT_FUNDS_ERROR_NAME, () ->
@@ -180,13 +180,13 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973) with gas and enough coins to pay the @Entry")
-	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callerHasEnoughFundsForPayableEntry() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 	}
 
 	@Test @DisplayName("new Sub(1973).print(new InternationalTime(13,25,40))")
-	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callInstanceMethod() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference internationalTime = addConstructorCallTransaction
 			(key, master, _200_000, ONE, classpath, CONSTRUCTOR_INTERNATIONAL_TIME,
@@ -198,7 +198,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4(13).equals(\"Sub.m4 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callPayableEntryWithInt() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
@@ -207,7 +207,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_1(13L).equals(\"Sub.m4_1 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callPayableEntryWithLong() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(2000000));
 		StorageReference sub = addConstructorCallTransaction
 			(privateKey(1), account(1), _200_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
@@ -217,7 +217,7 @@ class Basic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Sub(1973).m4_2(BigInteger.valueOf(13)).equals(\"Sub.m4_2 receives 13 coins from an externally owned account with public balance\")")
-	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callPayableEntryWithBigInteger() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceMethodCallTransaction(key, master, _200_000, ONE, classpath, RECEIVE_INT, account(1), StorageValues.intOf(200000));
 		StorageReference sub = addConstructorCallTransaction(privateKey(1), account(1), _100_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT), StorageValues.intOf(1973));
 		assertEquals(StorageValues.stringOf("Sub.m4_2 receives 13 coins from an externally owned account"),

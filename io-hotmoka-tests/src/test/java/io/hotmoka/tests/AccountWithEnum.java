@@ -23,6 +23,7 @@ import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
 import java.util.Base64;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -55,7 +57,7 @@ class AccountWithEnum extends HotmokaTest {
 	}
 
 	@Test @DisplayName("creates account, funds it and checks that its ordinal() == 0")
-	void callOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callOrdinal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		KeyPair keys = signature().getKeyPair();
 		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
 

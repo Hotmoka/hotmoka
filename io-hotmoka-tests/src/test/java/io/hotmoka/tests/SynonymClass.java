@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,6 +36,7 @@ import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -58,7 +60,7 @@ class SynonymClass extends HotmokaTest {
 	}
 
 	@Test @DisplayName("SignatureAlgorithm.empty() yields null")
-	void createAbstractFail() throws TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, TransactionRejectedException {
+	void createAbstractFail() throws TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		StorageValue result = addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), EMPTY);
 		// we verify that the result is null; this means that the implementation of SignatureAlgorithm
 		// from the store of the node has been run, not that used by the node

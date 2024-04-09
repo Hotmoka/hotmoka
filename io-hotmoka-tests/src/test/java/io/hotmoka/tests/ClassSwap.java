@@ -24,6 +24,7 @@ import java.nio.file.Paths;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +40,7 @@ import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -83,7 +85,7 @@ class ClassSwap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("c13 new/get works in its classpath")
-	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
 
@@ -91,7 +93,7 @@ class ClassSwap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("c17 new/get works in its classpath")
-	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
 		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
 

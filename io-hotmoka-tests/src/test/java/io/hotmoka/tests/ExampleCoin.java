@@ -540,7 +540,7 @@ class ExampleCoin extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20 decreaseAllowance method with the generation of an Exception: example_token.decreaseAllowance(spender, 999) --> Exception!! allowances[caller:[spender]] < 999")
-    void decreaseAllowanceException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void decreaseAllowanceException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_998 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("998"));
         StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("999"));

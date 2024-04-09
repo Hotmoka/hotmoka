@@ -22,12 +22,9 @@ import org.springframework.stereotype.Service;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 @Service
@@ -59,15 +56,5 @@ public class AddServiceImpl extends AbstractService implements AddService {
     @Override
     public StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request) {
         return wrapExceptions(() -> new StorageReferenceModel(getNode().addConstructorCallTransaction(request.toBean())));
-    }
-
-    @Override
-    public StorageValueModel addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().addInstanceMethodCallTransaction(request.toBean())));
-    }
-
-    @Override
-    public StorageValueModel addStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> StorageValueModel.modelOfValueReturned(request, getNode().addStaticMethodCallTransaction(request.toBean())));
     }
 }

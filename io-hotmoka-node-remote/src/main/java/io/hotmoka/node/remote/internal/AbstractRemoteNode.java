@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.remote.internal;
 
+import static io.hotmoka.node.service.api.NodeService.ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
@@ -88,6 +90,10 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
+import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
@@ -110,6 +116,10 @@ import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
+import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
+import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
@@ -197,6 +207,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
+    	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
 
@@ -250,10 +262,14 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetResponseResult(grrm);
 		else if (message instanceof GetPolledResponseResultMessage gprrm)
 			onGetPolledResponseResult(gprrm);
-		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrrm)
-			onRunInstanceMethodCallTransactionResult(rimctrrm);
-		else if (message instanceof RunStaticMethodCallTransactionResultMessage rsmctrrm)
-			onRunStaticMethodCallTransactionResult(rsmctrrm);
+		else if (message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm)
+			onAddInstanceMethodCallTransactionResult(aimctrm);
+		else if (message instanceof AddStaticMethodCallTransactionResultMessage asmctrm)
+			onAddStaticMethodCallTransactionResult(asmctrm);
+		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm)
+			onRunInstanceMethodCallTransactionResult(rimctrm);
+		else if (message instanceof RunStaticMethodCallTransactionResultMessage rsmctrm)
+			onRunStaticMethodCallTransactionResult(rsmctrm);
 		else if (message != null && !(message instanceof ExceptionMessage)) {
 			LOGGER.warning("unexpected message of class " + message.getClass().getName());
 			return;
@@ -896,6 +912,124 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, RunStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, RunStaticMethodCallTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendAddInstanceMethodCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processAddInstanceMethodCallTransactionSuccess, this::processAddInstanceMethodCallTransactionExceptions).orElse(null);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends an {@link AddInstanceMethodCallTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendAddInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT), AddInstanceMethodCallTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private Optional<StorageValue> processAddInstanceMethodCallTransactionSuccess(RpcMessage message) {
+		return message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm ? aimctrm.get() : null;
+	}
+
+	private boolean processAddInstanceMethodCallTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			TransactionException.class.isAssignableFrom(clazz) ||
+			CodeExecutionException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when an {@link AddInstanceMethodCallTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onAddInstanceMethodCallTransactionResult(AddInstanceMethodCallTransactionResultMessage message) {}
+
+	private class AddInstanceMethodCallTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, AddInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInstanceMethodCallTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendAddStaticMethodCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processAddStaticMethodCallTransactionSuccess, this::processAddStaticMethodCallTransactionExceptions).orElse(null);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends an {@link AddStaticMethodCallTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendAddStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), AddStaticMethodCallTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private Optional<StorageValue> processAddStaticMethodCallTransactionSuccess(RpcMessage message) {
+		return message instanceof AddStaticMethodCallTransactionResultMessage aimctrm ? aimctrm.get() : null;
+	}
+
+	private boolean processAddStaticMethodCallTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			TransactionException.class.isAssignableFrom(clazz) ||
+			CodeExecutionException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when an {@link AddStaticMethodCallTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onAddStaticMethodCallTransactionResult(AddStaticMethodCallTransactionResultMessage message) {}
+
+	private class AddStaticMethodCallTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, AddStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddStaticMethodCallTransactionMessages.Encoder.class);
 		}
 	}
 

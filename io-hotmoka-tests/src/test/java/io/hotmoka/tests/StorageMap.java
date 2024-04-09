@@ -259,10 +259,10 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("mkEmptyExportedStorageMap() put 10 storage keys and checks contains after each put")
-	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
-		StorageReference map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
+	void put100RandomEachTimeCheckContains() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+		var map = (StorageReference) addStaticMethodCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, MK_EMPTY_EXPORTED_STORAGE_MAP);
 
-		StorageReference[] accounts = new StorageReference[10];
+		var accounts = new StorageReference[10];
 		for (int i = 0; i < 10; i++) {
 			KeyPair keys = signature().getKeyPair();
 			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));

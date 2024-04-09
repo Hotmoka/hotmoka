@@ -36,7 +36,6 @@ import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
@@ -94,18 +93,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull
                 (() -> send("/add/constructorCallTransaction", StorageReferenceModel.class, new ConstructorCallTransactionRequestModel(request)).toBean());
-    }
-
-    @Override
-    public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull
-                (() -> dealWithReturnVoid(request, send("/add/instanceMethodCallTransaction", StorageValueModel.class, new InstanceMethodCallTransactionRequestModel(request))));
-    }
-
-    @Override
-    public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull
-                (() -> dealWithReturnVoid(request, send("/add/staticMethodCallTransaction", StorageValueModel.class, new StaticMethodCallTransactionRequestModel(request))));
     }
 
     @Override

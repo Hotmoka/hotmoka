@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -36,6 +37,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -58,7 +60,7 @@ class SelfCharged extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new C(100_000).foo() fails when called by an account with zero balance")
-	void failsForNonSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void failsForNonSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		if (consensus != null && consensus.allowsSelfCharged()) {
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), ConstructorSignatures.of(SELF_CHARGEABLE, StorageTypes.INT), StorageValues.intOf(100_000));
 			try {
@@ -74,7 +76,7 @@ class SelfCharged extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new C(100_000).goo() succeeds when called by an account with zero balance")
-	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void succeedsForSelfCharged() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		if (consensus != null && consensus.allowsSelfCharged()) {
 			StorageReference sc = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), ConstructorSignatures.of(SELF_CHARGEABLE, StorageTypes.INT), StorageValues.intOf(100_000));
 			addInstanceMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), MethodSignatures.ofVoid(SELF_CHARGEABLE, "goo"), sc);

@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +40,7 @@ import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -91,7 +93,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new CrowdFundingSimplified().newCampaign(beneficiary, 50) != null")
-	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
@@ -101,7 +103,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 	}
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
-	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
@@ -126,7 +128,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 	}
 
 	@Test @DisplayName("contributions are enough then checkGoalReached yields false")
-	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),

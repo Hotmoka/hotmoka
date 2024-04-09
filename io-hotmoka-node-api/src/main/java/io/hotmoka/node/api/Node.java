@@ -259,9 +259,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	// TODO: return Optional
-	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a static method of a class in this node.
@@ -274,9 +277,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	// TODO: return Optional
-	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.

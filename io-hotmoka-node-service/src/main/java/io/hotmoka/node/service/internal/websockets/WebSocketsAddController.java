@@ -30,10 +30,8 @@ import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
-import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.node.service.internal.services.AddService;
 
 @Controller
@@ -71,16 +69,6 @@ public class WebSocketsAddController {
     @MessageMapping("/constructorCallTransaction")
     public void constructorCallTransaction(Principal principal, ConstructorCallTransactionRequestModel request) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/constructorCallTransaction", nodeAddService.addConstructorCallTransaction(request));
-    }
-
-    @MessageMapping("/instanceMethodCallTransaction")
-    public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/instanceMethodCallTransaction", nodeAddService.addInstanceMethodCallTransaction(request));
-    }
-
-    @MessageMapping("/staticMethodCallTransaction")
-    public void staticMethodCallTransaction(Principal principal, StaticMethodCallTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/staticMethodCallTransaction", nodeAddService.addStaticMethodCallTransaction(request));
     }
 
     @MessageExceptionHandler

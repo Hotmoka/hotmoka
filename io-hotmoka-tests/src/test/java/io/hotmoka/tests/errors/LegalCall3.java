@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.tests.HotmokaTest;
@@ -48,7 +50,7 @@ class LegalCall3 extends HotmokaTest {
 	}
 
 	@Test @DisplayName("C.test() == false")
-	void callTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of("io.hotmoka.examples.errors.legalcall3.C", "test", StorageTypes.BOOLEAN));
 

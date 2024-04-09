@@ -123,7 +123,7 @@ class WTSC2020 extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three investors then check most frequent investor and fails")
-	void mostFrequentInvestor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void mostFrequentInvestor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		// account(0) creates a SimplePyramid object in blockchain and becomes the first investor
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 

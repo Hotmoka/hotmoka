@@ -85,6 +85,16 @@ public interface NodeService extends AutoCloseable {
 	String RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT = "/run_static_method_call_transaction_request";
 
 	/**
+	 * The network endpoint path where {@link Node#addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} is published.
+	 */
+	String ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT = "/add_instance_method_call_transaction_request";
+
+	/**
+	 * The network endpoint path where {@link Node#addStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} is published.
+	 */
+	String ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT = "/add_static_method_call_transaction_request";
+
+	/**
 	 * Stops the service and releases its resources.
 	 */
 	@Override

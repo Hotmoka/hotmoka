@@ -37,7 +37,6 @@ import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.StorageValueModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
@@ -104,16 +103,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
         return wrapNetworkExceptionFull(() -> service.post(url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
-    }
-
-    @Override
-    public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, service.post(url + "/add/instanceMethodCallTransaction", new InstanceMethodCallTransactionRequestModel(request), StorageValueModel.class)));
-    }
-
-    @Override
-    public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> dealWithReturnVoid(request, service.post(url + "/add/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), StorageValueModel.class)));
     }
 
     @Override

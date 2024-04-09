@@ -177,7 +177,7 @@ class RedGreenDistributor extends HotmokaTest {
 	}
 
 	@Test @DisplayName("distributeRed() cannot be called from an externally owned account that is not red/green")
-	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void distributeRedCannotBeCalledFromNonRedGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		KeyPair keys = signature().getKeyPair();
@@ -238,7 +238,7 @@ class RedGreenDistributor extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then adds a payee paying with both red and green")
-	void createDistributorThenAddsPayeePayingWithRedAndGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createDistributorThenAddsPayeePayingWithRedAndGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		addInstanceMethodCallTransaction(

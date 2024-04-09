@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,6 +32,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -50,7 +52,7 @@ class StaticFromStatic extends HotmokaTest {
 	}
 
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
-	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.of("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
 
