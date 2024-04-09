@@ -37,6 +37,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
+import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
@@ -63,6 +65,7 @@ import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
@@ -145,6 +148,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
+   			AddConstructorCallTransactionEndpoint.config(this),
    			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
    			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this)
    		);
@@ -552,6 +556,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, AddStaticMethodCallTransactionEndpoint.class, ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT,
 				AddStaticMethodCallTransactionMessages.Decoder.class, AddStaticMethodCallTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onAddConstructorCallTransaction(AddConstructorCallTransactionMessage message, Session session) {
+		LOGGER.info(logPrefix + "received an " + ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, AddConstructorCallTransactionResultMessages.of(node.addConstructorCallTransaction(message.getRequest()), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class AddConstructorCallTransactionEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (AddConstructorCallTransactionMessage message) -> getServer().onAddConstructorCallTransaction(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, AddConstructorCallTransactionEndpoint.class, ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT,
+				AddConstructorCallTransactionMessages.Decoder.class, AddConstructorCallTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

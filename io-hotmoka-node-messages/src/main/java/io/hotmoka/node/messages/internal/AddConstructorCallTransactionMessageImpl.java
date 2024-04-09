@@ -18,17 +18,17 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
+import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)}.
+ * Implementation of the network message corresponding to {@link Node#addConstructorCallTransaction(ConstructorCallTransactionRequest)}.
  */
-public class AddInstanceMethodCallTransactionMessageImpl extends AbstractRpcMessage implements AddInstanceMethodCallTransactionMessage {
+public class AddConstructorCallTransactionMessageImpl extends AbstractRpcMessage implements AddConstructorCallTransactionMessage {
 
-	private final InstanceMethodCallTransactionRequest request;
+	private final ConstructorCallTransactionRequest request;
 
 	/**
 	 * Creates the message.
@@ -36,7 +36,7 @@ public class AddInstanceMethodCallTransactionMessageImpl extends AbstractRpcMess
 	 * @param request the request of the transaction required to add
 	 * @param id the identifier of the message
 	 */
-	public AddInstanceMethodCallTransactionMessageImpl(InstanceMethodCallTransactionRequest request, String id) {
+	public AddConstructorCallTransactionMessageImpl(ConstructorCallTransactionRequest request, String id) {
 		super(id);
 
 		this.request = Objects.requireNonNull(request, "request cannot be null");
@@ -44,16 +44,16 @@ public class AddInstanceMethodCallTransactionMessageImpl extends AbstractRpcMess
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AddInstanceMethodCallTransactionMessage aimctm && super.equals(other) && request.equals(aimctm.getRequest());
+		return other instanceof AddConstructorCallTransactionMessage acctm && super.equals(other) && request.equals(acctm.getRequest());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return AddInstanceMethodCallTransactionMessage.class.getName();
+		return AddConstructorCallTransactionMessage.class.getName();
 	}
 
 	@Override
-	public InstanceMethodCallTransactionRequest getRequest() {
+	public ConstructorCallTransactionRequest getRequest() {
 		return request;
 	}
 }

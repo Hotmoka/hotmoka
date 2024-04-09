@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.service.api;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -83,6 +84,11 @@ public interface NodeService extends AutoCloseable {
 	 * The network endpoint path where {@link Node#runStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} is published.
 	 */
 	String RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT = "/run_static_method_call_transaction_request";
+
+	/**
+	 * The network endpoint path where {@link Node#addConstructorCallTransaction(ConstructorCallTransactionRequest)} is published.
+	 */
+	String ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT = "/add_constructor_call_transaction_request";
 
 	/**
 	 * The network endpoint path where {@link Node#addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} is published.

@@ -282,7 +282,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addConstructorCallTransaction(request);
 	}
 

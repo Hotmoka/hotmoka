@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.StorageTypes.INT;
-import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -25,9 +23,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.security.InvalidKeyException;
-import java.security.PrivateKey;
-import java.security.SignatureException;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
@@ -38,17 +33,10 @@ import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonObject;
 
-import io.hotmoka.beans.ConstructorSignatures;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -65,21 +53,6 @@ class NetworkFromNode extends HotmokaTest {
 
 	private final NodeServiceConfig config = NodeServiceConfigBuilders.defaults().setPort(8081).build();
 
-	/**
-	 * The account that holds all funds.
-	 */
-	private StorageReference master;
-
-	/**
-	 * The classpath of the classes being tested.
-	 */
-	private TransactionReference classpath;
-
-	/**
-	 * The private key of {@linkplain #master}.
-	 */
-	private PrivateKey key;
-
 	@BeforeAll
 	static void beforeAll() throws Exception {
 		setJar("basicdependency.jar");
@@ -88,9 +61,6 @@ class NetworkFromNode extends HotmokaTest {
 	@BeforeEach
 	void beforeEach() throws Exception {
 		setAccounts(_1_000_000_000, BigInteger.ZERO);
-		master = account(0);
-		key = privateKey(0);
-		classpath = addJarStoreTransaction(key, master, BigInteger.valueOf(5000000), BigInteger.ONE, takamakaCode(), bytesOf("basic.jar"), jar());
 	}
 
 	@Test @DisplayName("starts a network server from a Hotmoka node")
@@ -147,33 +117,5 @@ class NetworkFromNode extends HotmokaTest {
 		assertNotNull(errorModel);
 		assertEquals("unexpected null jar", errorModel.message);
 		assertEquals(RuntimeException.class.getName(), errorModel.exceptionClassName);
-	}
-
-	@Test @DisplayName("starts a network server from a Hotmoka node and calls addConstructorCallTransaction - new Sub(1973)")
-	void addConstructorCallTransaction() throws SignatureException, InvalidKeyException, DeploymentException, IOException {
-		StorageReferenceModel result;
-
-		try (var nodeRestService = NodeServices.of(config, node)) {
-			var request = TransactionRequests.constructorCall(
-					signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature),
-					master,
-					ONE,
-					chainId,
-					_50_000,
-					ONE,
-					classpath,
-					ConstructorSignatures.of("io.hotmoka.examples.basic.Sub", INT),
-					StorageValues.intOf(1973)
-			);
-
-			var service = new RestClientService();
-			result = service.post(
-					"http://localhost:8081/add/constructorCallTransaction",
-					new ConstructorCallTransactionRequestModel(request),
-					StorageReferenceModel.class
-			);
-		}
-
-		assertNotNull(result.transaction);
 	}
 }

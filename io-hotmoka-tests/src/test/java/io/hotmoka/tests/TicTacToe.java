@@ -87,7 +87,7 @@ class TicTacToe extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new TicTacToe()")
-	void createTicTacToe() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createTicTacToe() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
 	}
 

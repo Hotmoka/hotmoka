@@ -18,7 +18,6 @@ package io.hotmoka.node.service.internal.services;
 
 import org.springframework.http.ResponseEntity;
 
-import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
@@ -31,5 +30,4 @@ public interface AddService {
     StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request);
     ResponseEntity<Void> addInitializationTransaction(InitializationTransactionRequestModel request);
     TransactionReferenceModel addJarStoreTransaction(JarStoreTransactionRequestModel request);
-    StorageReferenceModel addConstructorCallTransaction(ConstructorCallTransactionRequestModel request);
 }

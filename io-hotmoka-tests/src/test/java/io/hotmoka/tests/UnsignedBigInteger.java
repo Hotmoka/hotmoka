@@ -84,7 +84,7 @@ class UnsignedBigInteger extends HotmokaTest {
     }
 
     @Test @DisplayName("new UnsignedBigInteger(...) with three types of constructor")
-    void createUBI() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException {
+    void createUBI() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
         // UnsignedBigInteger( BigInteger=0 )
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
@@ -154,7 +154,7 @@ class UnsignedBigInteger extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of subtract method with the generation of an Exception: 100.subtract(101, 'Test Exception')")
-    void subtractException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void subtractException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference ubi_100 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("100"));
         StorageReference ubi_101 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("101"));
 
@@ -238,7 +238,7 @@ class UnsignedBigInteger extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of divide method with the generation of an Exception: 900.divide(0, 'Test Exception /0')")
-    void divideException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void divideException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
@@ -276,7 +276,7 @@ class UnsignedBigInteger extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of mod method with the generation of an Exception: 800.mod(0, 'Test Exception /0')")
-    void modException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void modException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference ubi_800 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("800"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 

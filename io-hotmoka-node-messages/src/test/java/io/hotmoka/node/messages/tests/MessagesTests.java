@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.NodeInfos;
@@ -37,6 +38,7 @@ import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.Updates;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -45,6 +47,8 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
+import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
@@ -387,6 +391,29 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = AddStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new AddStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addConstructorCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddConstructorCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var constructor = ConstructorSignatures.of("my.class", StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), ConstructorCallTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.constructorCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, constructor, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var expected = AddConstructorCallTransactionMessages.of(request, "id");
+		String encoded = new AddConstructorCallTransactionMessages.Encoder().encode(expected);
+		var actual = new AddConstructorCallTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addConstructorCallTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddConstructorCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddConstructorCallTransactionResultMessages.of(OBJECT, "id");
+		String encoded = new AddConstructorCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddConstructorCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

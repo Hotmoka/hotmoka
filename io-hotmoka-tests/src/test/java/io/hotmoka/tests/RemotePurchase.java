@@ -94,12 +94,12 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Purchase(20)")
-	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void evenDeposit() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18)")
-	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void buyerCheats() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -108,7 +108,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(18); no event is generated")
-	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException {
+	void buyerCheatsNoEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, NodeException, TimeoutException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var ok = new CompletableFuture<Boolean>();
@@ -197,7 +197,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmReceived()")
-	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void confirmReceptionBeforePaying() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->

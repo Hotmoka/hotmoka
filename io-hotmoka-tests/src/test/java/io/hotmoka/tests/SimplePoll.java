@@ -89,17 +89,17 @@ class SimplePoll extends HotmokaTest {
 	}
 
 	StorageReference addSimpleSharedEntity(BigInteger share0, BigInteger share1, BigInteger share2, BigInteger share3) 
-			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+			throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(),
 				SIMPLE_SHARED_ENTITY_CONSTRUCTOR, stakeholder0, stakeholder1, stakeholder2, stakeholder3,
 				StorageValues.bigIntegerOf(share0), StorageValues.bigIntegerOf(share1), StorageValues.bigIntegerOf(share2), StorageValues.bigIntegerOf(share3));
 	}
 
-	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
+	StorageReference addSimplePoll(StorageReference sharedEntity, StorageReference action) throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), SIMPLE_POLL_ENTITY_CONSTRUCTOR, sharedEntity, action);
 	}
 
-	StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException {
+	StorageReference addAction() throws InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return addConstructorCallTransaction(privateKey(0), stakeholder0, _10_000_000, ONE, jar(), ACTION_CONSTRUCTOR);
 	}
 
@@ -178,7 +178,7 @@ class SimplePoll extends HotmokaTest {
 
 	@Test
 	@DisplayName("new SimplePoll where someone attempts to vote with more voting power than the maximum")
-	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void SimplePollWithVoteAttemptWithMorePowerThanAllowed() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		StorageReference simplePoll = addSimplePoll(simpleSharedEntity, action);

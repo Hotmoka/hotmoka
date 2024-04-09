@@ -71,7 +71,7 @@ class GetRequest extends HotmokaTest {
 	}
 
 	@Test @DisplayName("getRequest works for a non-existing transaction")
-	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void getRequestNonExisting() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		byte[] hash = abstractfail.getTransaction().getHash();
 		// we modify the first byte: the resulting transaction reference does not exist

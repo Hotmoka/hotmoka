@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.remote.internal;
 
+import static io.hotmoka.node.service.api.NodeService.ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
@@ -47,6 +48,7 @@ import com.google.gson.GsonBuilder;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
@@ -90,6 +92,8 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
+import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
@@ -116,6 +120,8 @@ import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
@@ -207,6 +213,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_REQUEST_ENDPOINT, uri, GetRequestEndpoint::new);
     	addSession(GET_RESPONSE_ENDPOINT, uri, GetResponseEndpoint::new);
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
+    	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
     	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
     	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
@@ -262,6 +269,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onGetResponseResult(grrm);
 		else if (message instanceof GetPolledResponseResultMessage gprrm)
 			onGetPolledResponseResult(gprrm);
+		else if (message instanceof AddConstructorCallTransactionResultMessage acctrm)
+			onAddConstructorCallTransactionResult(acctrm);
 		else if (message instanceof AddInstanceMethodCallTransactionResultMessage aimctrm)
 			onAddInstanceMethodCallTransactionResult(aimctrm);
 		else if (message instanceof AddStaticMethodCallTransactionResultMessage asmctrm)
@@ -1030,6 +1039,65 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, AddStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddStaticMethodCallTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendAddConstructorCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processAddConstructorCallTransactionSuccess, this::processAddConstructorCallTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends an {@link AddConstructorCallTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendAddConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), AddConstructorCallTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private StorageReference processAddConstructorCallTransactionSuccess(RpcMessage message) {
+		return message instanceof AddConstructorCallTransactionResultMessage acctrm ? acctrm.get() : null;
+	}
+
+	private boolean processAddConstructorCallTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			TransactionException.class.isAssignableFrom(clazz) ||
+			CodeExecutionException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when an {@link AddConstructorCallTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onAddConstructorCallTransactionResult(AddConstructorCallTransactionResultMessage message) {}
+
+	private class AddConstructorCallTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, AddConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddConstructorCallTransactionMessages.Encoder.class);
 		}
 	}
 

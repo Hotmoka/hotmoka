@@ -98,7 +98,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinWithSnapshots()")
-    void createExampleCoinWithSnapshots() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoinWithSnapshots() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
@@ -145,7 +145,7 @@ class ExampleCoinWithSnapshots extends HotmokaTest {
      * According to the ERC20WithSnapshots specification, snapshot 0 does not exist.
      */
     @Test @DisplayName("Full test of ExampleCoinWithSnapshots #1, Exception: snapshot 0 does not exist")
-    void fullTest1_Exception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void fullTest1_Exception() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCAS);
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1"));
 

@@ -97,7 +97,7 @@ class ExampleCoinBurnable extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinBurnable()")
-    void createExampleCoinBurnable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoinBurnable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction

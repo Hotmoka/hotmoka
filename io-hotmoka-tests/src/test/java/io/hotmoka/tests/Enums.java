@@ -60,7 +60,7 @@ class Enums extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new TestEnums(MyEnum.PRESENT)")
-	void testEnumAsActual() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testEnumAsActual() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, BigInteger.ONE, jar(),
 				ConstructorSignatures.of("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
 	}

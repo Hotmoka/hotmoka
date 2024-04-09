@@ -399,7 +399,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * Takes care of computing the next nonce.
 	 */
-	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	protected final StorageReference addConstructorCallTransaction(PrivateKey key, StorageReference caller, BigInteger gasLimit, BigInteger gasPrice, TransactionReference classpath, ConstructorSignature constructor, StorageValue... actuals) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature.getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, getNonceOf(caller), chainId, gasLimit, gasPrice, classpath, constructor, actuals));
 	}
 

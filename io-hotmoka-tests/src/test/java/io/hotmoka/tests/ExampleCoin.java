@@ -101,7 +101,7 @@ class ExampleCoin extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoin()")
-    void createExampleCoin() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoin() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
@@ -225,7 +225,7 @@ class ExampleCoin extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20 transfer method with the generation of an Exception: example_token.transfer(recipient, 5000) when the caller has no funds ")
-    void transferException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void transferException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 

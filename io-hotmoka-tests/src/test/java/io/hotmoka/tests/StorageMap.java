@@ -99,7 +99,7 @@ class StorageMap extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new StorageTreeMap()")
-	void constructionSucceeds() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void constructionSucceeds() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(key, account0, _50_000, BigInteger.ONE, classpath, STORAGE_TREE_MAP_INIT);
 	}
 

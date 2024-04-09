@@ -255,7 +255,7 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
     	    privateKeysOfInvestors = nodeWithAccounts.privateKeys().limit(numberOfInvestors).toArray(PrivateKey[]::new);
     	}
 
-    	private void createCreator() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    	private void createCreator() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
     		KeyPair keys = signature().getKeyPair();
     	    privateKeyOfCreator = keys.getPrivate();
     		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));

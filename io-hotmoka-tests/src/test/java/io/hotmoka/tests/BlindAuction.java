@@ -175,12 +175,12 @@ class BlindAuction extends HotmokaTest {
 			this.salt = salt;
 		}
 
-		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 			return addConstructorCallTransaction
         		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
 		}
 
-		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException {
+		private void createBytes32() throws TransactionRejectedException, InvalidKeyException, SignatureException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 			this.bytes32 = addConstructorCallTransaction
 				(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 					byteOf(salt[0]), byteOf(salt[1]), byteOf(salt[2]), byteOf(salt[3]),
@@ -263,7 +263,7 @@ class BlindAuction extends HotmokaTest {
 		}
 	}
 
-	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	private StorageReference codeAsBytes32(int player, BigInteger value, boolean fake, byte[] salt) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		digest.reset();
 		digest.update(value.toByteArray());
 		digest.update(fake ? (byte) 0 : (byte) 1);
@@ -272,7 +272,7 @@ class BlindAuction extends HotmokaTest {
 		return createBytes32(player, hash);
 	}
 
-	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	private StorageReference createBytes32(int player, byte[] hash) throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		return addConstructorCallTransaction
 			(privateKey(player), account(player), _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_BYTES32_SNAPSHOT,
 				byteOf(hash[0]), byteOf(hash[1]), byteOf(hash[2]), byteOf(hash[3]),

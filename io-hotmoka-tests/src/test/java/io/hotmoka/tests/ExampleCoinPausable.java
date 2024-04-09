@@ -94,7 +94,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinPausable()")
-    void createExampleCoinCapped() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoinCapped() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction
@@ -197,7 +197,7 @@ class ExampleCoinPausable extends HotmokaTest {
     }
 
     @Test @DisplayName("Test of ERC20Pausable _unpause method with the generation of an Exception")
-    void _unpauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void _unpauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->

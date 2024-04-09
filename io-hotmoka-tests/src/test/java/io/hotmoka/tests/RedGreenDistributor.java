@@ -70,7 +70,7 @@ class RedGreenDistributor extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new RedGreenDistributor()")
-	void createDistributor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createDistributor() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 	}
 
@@ -222,7 +222,7 @@ class RedGreenDistributor extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new RedGreenDistributor() then fails while adding a payee without enough coins")
-	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createDistributorThenFailsByAddingPayeeWithoutGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		throwsTransactionRejectedException(() ->

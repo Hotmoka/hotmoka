@@ -81,7 +81,7 @@ class ExampleCoinCapped extends HotmokaTest {
     }
 
     @Test @DisplayName("new ExampleCoinCapped()")
-    void createExampleCoinCapped() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+    void createExampleCoinCapped() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         addConstructorCallTransaction(
                 creator_prv_key, // an object that signs with the payer's private key
                 creator, // payer of the transaction

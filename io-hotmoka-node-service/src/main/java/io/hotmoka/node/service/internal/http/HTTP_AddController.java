@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
@@ -58,10 +57,5 @@ public class HTTP_AddController {
     @PostMapping("/jarStoreTransaction")
     public @ResponseBody TransactionReferenceModel jarStoreTransaction(@RequestBody JarStoreTransactionRequestModel request) {
         return nodeAddService.addJarStoreTransaction(request);
-    }
-
-    @PostMapping("/constructorCallTransaction")
-    public @ResponseBody StorageReferenceModel constructorCallTransaction(@RequestBody ConstructorCallTransactionRequestModel request) {
-        return nodeAddService.addConstructorCallTransaction(request);
     }
 }

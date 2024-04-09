@@ -208,7 +208,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addConstructorCallTransaction(request);
 	}
 

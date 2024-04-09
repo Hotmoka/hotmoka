@@ -172,7 +172,7 @@ class Collections extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new MapHolder()")
-	void mapHolder() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void mapHolder() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
 	}
 

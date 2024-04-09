@@ -87,7 +87,7 @@ class ClassSwap extends HotmokaTest {
 	@Test @DisplayName("c13 new/get works in its classpath")
 	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
-		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
+		var get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
 
 		assertSame(13, get.getValue());
 	}
@@ -95,13 +95,13 @@ class ClassSwap extends HotmokaTest {
 	@Test @DisplayName("c17 new/get works in its classpath")
 	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
-		IntValue get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
+		var get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
 
 		assertSame(17, get.getValue());
 	}
 
 	@Test @DisplayName("c13 new/get fails if classpath changed")
-	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void testC13SwapC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, TimeoutException, InterruptedException, TransactionException, CodeExecutionException, TransactionRejectedException, NodeException {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
 
 		// the following call should fail since c13 was created from another jar

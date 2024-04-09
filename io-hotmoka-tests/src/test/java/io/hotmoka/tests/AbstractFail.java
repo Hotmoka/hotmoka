@@ -68,7 +68,7 @@ class AbstractFail extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new AbstractFailImpl()")
-	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createAbstractFailImpl() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 	}
 

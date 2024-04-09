@@ -68,7 +68,7 @@ class Inner extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new TestInner()")
-	void newTestInner() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void newTestInner() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 	}
 

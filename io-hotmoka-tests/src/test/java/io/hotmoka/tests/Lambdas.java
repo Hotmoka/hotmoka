@@ -84,7 +84,7 @@ class Lambdas extends HotmokaTest {
 	}
 
 	@Test @DisplayName("new Lambdas()")
-	void createLambdas() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException {
+	void createLambdas() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addConstructorCallTransaction(key, eoa, _500_000, panarea(1), jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 	}
 

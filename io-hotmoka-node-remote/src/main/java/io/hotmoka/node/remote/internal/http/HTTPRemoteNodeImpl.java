@@ -40,7 +40,6 @@ import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.TransactionException;
@@ -98,11 +97,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
         return wrapNetworkExceptionMedium(() -> service.post(url + "/add/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-    }
-
-    @Override
-    public StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-        return wrapNetworkExceptionFull(() -> service.post(url + "/add/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), StorageReferenceModel.class).toBean());
     }
 
     @Override
