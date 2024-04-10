@@ -333,7 +333,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException ;
+	JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a transaction that runs a constructor of a class in this node.
@@ -341,8 +341,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the request of the transaction
 	 * @return the future holding the result of the computation
 	 * @throws TransactionRejectedException if the transaction could not be posted
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
@@ -351,7 +354,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
@@ -360,7 +363,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
 	 */
-	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException;
+	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Subscribes the given handler for events with the given creator.

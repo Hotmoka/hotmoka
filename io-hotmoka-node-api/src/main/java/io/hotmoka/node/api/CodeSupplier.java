@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageValue;
 
@@ -41,6 +43,9 @@ public interface CodeSupplier<V extends StorageValue> {
      * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
      *                                that is allowed to be thrown by the constructor
      * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
      */
-    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException;
+    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 }

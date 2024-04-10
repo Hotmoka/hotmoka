@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal;
 
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
@@ -25,6 +27,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -59,11 +62,11 @@ public class CodeSupplierConstructor implements CodeSupplier<StorageReference> {
 	}
 
 	@Override
-	public StorageReference get() throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public StorageReference get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		try {
 			return cachedGet != null ? cachedGet : (cachedGet = getOutcome((ConstructorCallTransactionResponse) node.getPolledResponse(reference)));
 		}
-		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
+		catch (TransactionRejectedException | CodeExecutionException | TransactionException | NodeException | TimeoutException | InterruptedException e) {
 			throw e;
 		}
 		catch (Throwable t) {

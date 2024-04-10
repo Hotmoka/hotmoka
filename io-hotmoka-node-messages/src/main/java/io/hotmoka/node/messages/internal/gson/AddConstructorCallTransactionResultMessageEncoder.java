@@ -21,7 +21,7 @@ import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * An encoder of {@code AddConstructorCallTransactionResultMessage}.
+ * An encoder of an {@code AddConstructorCallTransactionResultMessage}.
  */
 public class AddConstructorCallTransactionResultMessageEncoder extends MappedEncoder<AddConstructorCallTransactionResultMessage, AddConstructorCallTransactionResultMessages.Json> {
 

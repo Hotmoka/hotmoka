@@ -31,7 +31,7 @@ public final class AddConstructorCallTransactionMessages {
 	private AddConstructorCallTransactionMessages() {}
 
 	/**
-	 * Yields a {@link AddConstructorCallTransactionMessage}.
+	 * Yields an {@link AddConstructorCallTransactionMessage}.
 	 * 
 	 * @param id the identifier of the message
 	 * @param request the request of the transaction required to add

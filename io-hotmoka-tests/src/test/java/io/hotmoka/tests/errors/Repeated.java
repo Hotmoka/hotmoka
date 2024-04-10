@@ -105,7 +105,6 @@ class Repeated extends HotmokaTest {
 		TransactionReference reference = node.addJarStoreTransaction(request);
 
 		// getResponse() agrees
-		TransactionResponse response = node.getResponse(reference);
-		assertTrue(response instanceof JarStoreTransactionSuccessfulResponse);
+		assertTrue(node.getResponse(reference) instanceof JarStoreTransactionSuccessfulResponse);
 	}
 }

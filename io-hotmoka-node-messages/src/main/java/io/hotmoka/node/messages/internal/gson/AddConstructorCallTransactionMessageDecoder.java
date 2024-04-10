@@ -21,7 +21,7 @@ import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * A decoder for a {@link AddConstructorCallTransactionMessage}.
+ * A decoder for an {@link AddConstructorCallTransactionMessage}.
  */
 public class AddConstructorCallTransactionMessageDecoder extends MappedDecoder<AddConstructorCallTransactionMessage, AddConstructorCallTransactionMessages.Json> {
 

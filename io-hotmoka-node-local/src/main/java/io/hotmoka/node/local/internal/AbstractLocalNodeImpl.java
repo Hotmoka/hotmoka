@@ -413,9 +413,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 			throw new TimeoutException("Cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
 		}
-		catch (TransactionRejectedException | TimeoutException | InterruptedException e) {
-			throw e;
-		}
 		catch (RuntimeException e) {
 			LOGGER.log(Level.WARNING, "Unexpected exception", e);
 			throw e;

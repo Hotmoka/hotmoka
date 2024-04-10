@@ -16,11 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.internal;
 
+import java.util.concurrent.TimeoutException;
+
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 
@@ -55,11 +58,11 @@ public class JarSupplierImpl implements JarSupplier {
 	}
 
 	@Override
-	public TransactionReference get() throws TransactionRejectedException, TransactionException {
+	public TransactionReference get() throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
 		try {
 			return cachedGet != null ? cachedGet : (cachedGet = getOutcome((JarStoreTransactionResponse) node.getPolledResponse(reference)));
 		}
-		catch (TransactionRejectedException | TransactionException e) {
+		catch (TransactionRejectedException | TransactionException | NodeException | TimeoutException | InterruptedException e) {
 			throw e;
 		}
 		catch (Throwable t) {

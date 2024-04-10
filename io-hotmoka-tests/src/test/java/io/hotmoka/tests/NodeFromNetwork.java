@@ -232,7 +232,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	}
 
         	// if we ask for the outcome of the request, we will get the TransactionRejectedException as answer
-        	remote.getResponse(future.getReferenceOfRequest());
+        	remote.getPolledResponse(future.getReferenceOfRequest());
         }
         catch (TransactionRejectedException e) {
         	assertTrue(e.getMessage().contains(ClassNotFoundException.class.getName()));
@@ -249,8 +249,7 @@ public class NodeFromNetwork extends HotmokaTest {
 
         try (var service = NodeServices.of(serviceConfig, node); var remote = RemoteNodes.of(remoteNodeconfig)) {
         	// we install a jar in blockchain
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE,
-        		takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
+        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
 
         	// we poll for its result
         	response = remote.getPolledResponse(future.getReferenceOfRequest());

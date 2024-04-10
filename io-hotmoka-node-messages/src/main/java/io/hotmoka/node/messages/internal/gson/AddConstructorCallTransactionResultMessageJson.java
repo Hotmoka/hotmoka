@@ -24,7 +24,7 @@ import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
 
 /**
- * The JSON representation of a {@link AddConstructorCallTransactionResultMessage}.
+ * The JSON representation of an {@link AddConstructorCallTransactionResultMessage}.
  */
 public abstract class AddConstructorCallTransactionResultMessageJson extends AbstractRpcMessageJsonRepresentation<AddConstructorCallTransactionResultMessage> {
 	private final StorageValues.Json result;

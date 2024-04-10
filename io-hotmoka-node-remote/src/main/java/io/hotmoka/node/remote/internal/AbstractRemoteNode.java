@@ -29,6 +29,7 @@ import static io.hotmoka.node.service.api.NodeService.GET_REQUEST_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 
@@ -60,8 +61,10 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.ClosedNodeException;
+import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
@@ -93,6 +96,8 @@ import io.hotmoka.node.messages.GetStateMessages;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
+import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
+import io.hotmoka.node.messages.PostConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -123,6 +128,8 @@ import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
+import io.hotmoka.node.messages.api.PostConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.api.PostConstructorCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
@@ -196,6 +203,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
     	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
     	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
+    	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
 
@@ -257,6 +265,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onAddInstanceMethodCallTransactionResult(aimctrm);
 		else if (message instanceof AddStaticMethodCallTransactionResultMessage asmctrm)
 			onAddStaticMethodCallTransactionResult(asmctrm);
+		else if (message instanceof PostConstructorCallTransactionResultMessage pcctrm)
+			onPostConstructorCallTransactionResult(pcctrm);
 		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm)
 			onRunInstanceMethodCallTransactionResult(rimctrm);
 		else if (message instanceof RunStaticMethodCallTransactionResultMessage rsmctrm)
@@ -1138,6 +1148,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, AddJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendPostConstructorCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processPostConstructorCallTransactionSuccess, this::processPostConstructorCallTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link PostConstructorCallTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to post
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendPostConstructorCallTransaction(ConstructorCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT), PostConstructorCallTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private CodeSupplier<StorageReference> processPostConstructorCallTransactionSuccess(RpcMessage message) {
+		return message instanceof PostConstructorCallTransactionResultMessage pcctrm ? CodeSuppliers.ofConstructor(pcctrm.get(), this) : null;
+	}
+
+	private boolean processPostConstructorCallTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link PostConstructorCallTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onPostConstructorCallTransactionResult(PostConstructorCallTransactionResultMessage message) {}
+
+	private class PostConstructorCallTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, PostConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostConstructorCallTransactionMessages.Encoder.class);
 		}
 	}
 

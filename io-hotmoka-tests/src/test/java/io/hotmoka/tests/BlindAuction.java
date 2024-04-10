@@ -122,7 +122,7 @@ class BlindAuction extends HotmokaTest {
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
-		Random random = new Random();
+		var random = new Random();
 		for (int i = 1; i <= NUM_BIDS; i++) {
 			int player = 1 + random.nextInt(3);
 			BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
@@ -136,13 +136,13 @@ class BlindAuction extends HotmokaTest {
 	}
 
 	@Test @DisplayName("three players put bids but bidding time expires")
-	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException {
+	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
 		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 		{
-			Random random = new Random();
+			var random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {
 				int player = 1 + random.nextInt(3);
 				BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));

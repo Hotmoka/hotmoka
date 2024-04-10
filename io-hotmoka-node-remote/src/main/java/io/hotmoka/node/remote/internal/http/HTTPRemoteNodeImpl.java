@@ -19,7 +19,6 @@ package io.hotmoka.node.remote.internal.http;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
@@ -29,7 +28,6 @@ import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.network.requests.ConstructorCallTransactionRequestModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
@@ -97,12 +95,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
         TransactionReference reference = wrapNetworkExceptionSimple(() -> service.post(url + "/post/jarStoreTransaction", new JarStoreTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
         return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(reference, this));
-    }
-
-    @Override
-    public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple(() -> service.post(url + "/post/constructorCallTransaction", new ConstructorCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
-        return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(reference, this));
     }
 
     @Override
