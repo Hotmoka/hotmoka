@@ -76,6 +76,8 @@ import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionResultMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -465,6 +467,29 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = PostConstructorCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostConstructorCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostConstructorCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("postJarStoreTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForPostJarStoreTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), JarStoreTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.jarStore(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE,
+			"These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes());
+		var expected = PostJarStoreTransactionMessages.of(request, "id");
+		String encoded = new PostJarStoreTransactionMessages.Encoder().encode(expected);
+		var actual = new PostJarStoreTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("postJarStoreTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForPostJarStoreTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = PostJarStoreTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new PostJarStoreTransactionResultMessages.Encoder().encode(expected);
+		var actual = new PostJarStoreTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 }

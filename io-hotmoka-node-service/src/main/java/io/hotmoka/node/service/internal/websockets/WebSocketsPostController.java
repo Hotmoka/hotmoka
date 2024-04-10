@@ -28,7 +28,6 @@ import org.springframework.stereotype.Controller;
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.node.service.internal.services.PostService;
 
@@ -44,11 +43,6 @@ public class WebSocketsPostController {
         this.nodePostService = postService;
     }
 
-    @MessageMapping("/jarStoreTransaction")
-    public void jarStoreTransaction(Principal principal, JarStoreTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/jarStoreTransaction", nodePostService.postJarStoreTransaction(request));
-    }
-
     @MessageMapping("/instanceMethodCallTransaction")
     public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
         simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/instanceMethodCallTransaction", nodePostService.postInstanceMethodCallTransaction(request));
@@ -62,8 +56,8 @@ public class WebSocketsPostController {
     @MessageExceptionHandler
     public void handleException(Exception e, Principal principal, SimpMessageHeaderAccessor headerAccessor) {
         String destinationTopic = (String) headerAccessor.getHeader("simpDestination");
-        if (e instanceof NetworkExceptionResponse)
-            simpMessagingTemplate.convertAndSendToUser(principal.getName(), destinationTopic + "/error", ((NetworkExceptionResponse) e).errorModel);
+        if (e instanceof NetworkExceptionResponse ner)
+            simpMessagingTemplate.convertAndSendToUser(principal.getName(), destinationTopic + "/error", ner.errorModel);
         else
             simpMessagingTemplate.convertAndSendToUser(principal.getName(), destinationTopic + "/error", new ErrorModel(e));
     }

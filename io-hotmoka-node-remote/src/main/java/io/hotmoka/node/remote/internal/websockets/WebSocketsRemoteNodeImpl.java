@@ -22,7 +22,6 @@ import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -31,14 +30,11 @@ import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.CodeSuppliers;
-import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.api.CodeSupplier;
-import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
@@ -77,14 +73,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
         wrapNetworkExceptionSimple
                 (() -> send("/add/initializationTransaction", Void.class, new InitializationTransactionRequestModel(request)));
-    }
-
-    @Override
-    public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = wrapNetworkExceptionSimple
-        	(() -> send("/post/jarStoreTransaction", TransactionReferenceModel.class, new JarStoreTransactionRequestModel(request)).toBean());
-
-        return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(reference, this));
     }
 
     @Override

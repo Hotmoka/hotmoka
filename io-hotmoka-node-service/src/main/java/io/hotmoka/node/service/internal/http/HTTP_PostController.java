@@ -24,7 +24,6 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.service.internal.services.PostService;
@@ -35,12 +34,6 @@ public class HTTP_PostController {
 
     @Autowired
     private PostService nodePostService;
-
-    @PostMapping("/jarStoreTransaction")
-    public @ResponseBody
-    TransactionReferenceModel jarStoreTransaction(@RequestBody JarStoreTransactionRequestModel request) {
-        return nodePostService.postJarStoreTransaction(request);
-    }
 
     @PostMapping("/instanceMethodCallTransaction")
     public @ResponseBody TransactionReferenceModel instanceMethodCallTransaction(@RequestBody InstanceMethodCallTransactionRequestModel request) {

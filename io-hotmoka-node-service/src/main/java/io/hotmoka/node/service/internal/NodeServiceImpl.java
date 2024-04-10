@@ -65,6 +65,8 @@ import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionResultMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -83,6 +85,7 @@ import io.hotmoka.node.messages.api.GetResponseMessage;
 import io.hotmoka.node.messages.api.GetStateMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.api.PostJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.service.api.NodeService;
@@ -156,7 +159,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
    			AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
    			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
-   			PostConstructorCallTransactionEndpoint.config(this),
+   			PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
    			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this)
    		);
 
@@ -650,6 +653,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, PostConstructorCallTransactionEndpoint.class, POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT,
 				PostConstructorCallTransactionMessages.Decoder.class, PostConstructorCallTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onPostJarStoreTransaction(PostJarStoreTransactionMessage message, Session session) {
+		LOGGER.info(logPrefix + "received a " + POST_JAR_STORE_TRANSACTION_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, PostJarStoreTransactionResultMessages.of(node.postJarStoreTransaction(message.getRequest()).getReferenceOfRequest(), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class PostJarStoreTransactionEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (PostJarStoreTransactionMessage message) -> getServer().onPostJarStoreTransaction(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, PostJarStoreTransactionEndpoint.class, POST_JAR_STORE_TRANSACTION_ENDPOINT,
+				PostJarStoreTransactionMessages.Decoder.class, PostJarStoreTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

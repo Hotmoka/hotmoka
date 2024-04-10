@@ -30,6 +30,7 @@ import static io.hotmoka.node.service.api.NodeService.GET_RESPONSE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.POST_JAR_STORE_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 
@@ -62,9 +63,11 @@ import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
+import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
@@ -98,6 +101,8 @@ import io.hotmoka.node.messages.GetTakamakaCodeMessages;
 import io.hotmoka.node.messages.GetTakamakaCodeResultMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.PostConstructorCallTransactionResultMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
+import io.hotmoka.node.messages.PostJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -130,6 +135,8 @@ import io.hotmoka.node.messages.api.GetTakamakaCodeMessage;
 import io.hotmoka.node.messages.api.GetTakamakaCodeResultMessage;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.api.PostConstructorCallTransactionResultMessage;
+import io.hotmoka.node.messages.api.PostJarStoreTransactionMessage;
+import io.hotmoka.node.messages.api.PostJarStoreTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
@@ -203,6 +210,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
     	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
     	addSession(ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddStaticMethodCallTransactionEndpoint::new);
+    	addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
     	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
@@ -265,6 +273,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onAddInstanceMethodCallTransactionResult(aimctrm);
 		else if (message instanceof AddStaticMethodCallTransactionResultMessage asmctrm)
 			onAddStaticMethodCallTransactionResult(asmctrm);
+		else if (message instanceof PostJarStoreTransactionResultMessage pjstrm)
+			onPostJarStoreTransactionResult(pjstrm);
 		else if (message instanceof PostConstructorCallTransactionResultMessage pcctrm)
 			onPostConstructorCallTransactionResult(pcctrm);
 		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm)
@@ -1152,7 +1162,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
-	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
@@ -1205,6 +1215,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, PostConstructorCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostConstructorCallTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendPostJarStoreTransaction(request, id);
+		try {
+			return waitForResult(id, this::processPostJarStoreTransactionSuccess, this::processPostJarStoreTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link PostJarStoreTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to post
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendPostJarStoreTransaction(JarStoreTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(POST_JAR_STORE_TRANSACTION_ENDPOINT), PostJarStoreTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private JarSupplier processPostJarStoreTransactionSuccess(RpcMessage message) {
+		return message instanceof PostJarStoreTransactionResultMessage pjstrm ? JarSuppliers.of(pjstrm.get(), this) : null;
+	}
+
+	private boolean processPostJarStoreTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link PostJarStoreTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onPostJarStoreTransactionResult(PostJarStoreTransactionResultMessage message) {}
+
+	private class PostJarStoreTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, PostJarStoreTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostJarStoreTransactionMessages.Encoder.class);
 		}
 	}
 

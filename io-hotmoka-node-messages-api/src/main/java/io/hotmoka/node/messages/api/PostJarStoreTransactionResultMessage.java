@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,12 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.service.internal.http;
+package io.hotmoka.node.messages.api;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.api.Node;
 
-@RestController
-@RequestMapping("run")
-public class HTTP_RunController {
+/**
+ * The network message corresponding to the result of the {@link Node#postJarStoreTransaction(JarStoreTransactionRequest)} method.
+ */
+@Immutable
+public interface PostJarStoreTransactionResultMessage extends ResultMessage<TransactionReference> {
 }
