@@ -80,6 +80,8 @@ import io.hotmoka.node.messages.PostInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.PostInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
 import io.hotmoka.node.messages.PostJarStoreTransactionResultMessages;
+import io.hotmoka.node.messages.PostStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.PostStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -492,6 +494,29 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = PostInstanceMethodCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("postStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForPostStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
+		var request = TransactionRequests.staticMethodCall(signer, OBJECT, BigInteger.valueOf(13L), "my_chain", BigInteger.valueOf(1000L), BigInteger.valueOf(17L), TRANSACTION_REFERENCE, method, StorageValues.FALSE, StorageValues.floatOf(3.14f), StorageValues.intOf(2024));
+		var expected = PostStaticMethodCallTransactionMessages.of(request, "id");
+		String encoded = new PostStaticMethodCallTransactionMessages.Encoder().encode(expected);
+		var actual = new PostStaticMethodCallTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("postStaticMethodCallTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForPostStaticMethodCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = PostStaticMethodCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new PostStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
+		var actual = new PostStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

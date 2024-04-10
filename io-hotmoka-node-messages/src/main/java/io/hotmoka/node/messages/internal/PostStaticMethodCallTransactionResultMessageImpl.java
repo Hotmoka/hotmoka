@@ -18,16 +18,16 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.messages.api.PostInstanceMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to the result of the {@link Node#postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} method.
+ * Implementation of the network message corresponding to the result of the {@link Node#postStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} method.
  */
-public class PostInstanceMethodCallTransactionResultMessageImpl extends AbstractRpcMessage implements PostInstanceMethodCallTransactionResultMessage {
+public class PostStaticMethodCallTransactionResultMessageImpl extends AbstractRpcMessage implements PostStaticMethodCallTransactionResultMessage {
 
 	/**
 	 * The result of the call; this is the reference to the transaction that has been posted.
@@ -40,7 +40,7 @@ public class PostInstanceMethodCallTransactionResultMessageImpl extends Abstract
 	 * @param result the result of the call; this is the reference to the transaction that has been posted
 	 * @param id the identifier of the message
 	 */
-	public PostInstanceMethodCallTransactionResultMessageImpl(TransactionReference result, String id) {
+	public PostStaticMethodCallTransactionResultMessageImpl(TransactionReference result, String id) {
 		super(id);
 
 		this.result = Objects.requireNonNull(result, "result cannot be null");
@@ -48,12 +48,12 @@ public class PostInstanceMethodCallTransactionResultMessageImpl extends Abstract
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof PostInstanceMethodCallTransactionResultMessage pimctrm && super.equals(other) && result.equals(pimctrm.get());
+		return other instanceof PostStaticMethodCallTransactionResultMessage psmctrm && super.equals(other) && result.equals(psmctrm.get());
 	}
 
 	@Override
 	protected String getExpectedType() {
-		return PostInstanceMethodCallTransactionResultMessage.class.getName();
+		return PostStaticMethodCallTransactionResultMessage.class.getName();
 	}
 
 	@Override

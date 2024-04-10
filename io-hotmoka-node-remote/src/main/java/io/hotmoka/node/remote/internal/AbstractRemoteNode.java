@@ -31,6 +31,7 @@ import static io.hotmoka.node.service.api.NodeService.GET_STATE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_TAKAMAKA_CODE_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.POST_JAR_STORE_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
@@ -106,6 +107,8 @@ import io.hotmoka.node.messages.PostInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.PostInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.PostJarStoreTransactionMessages;
 import io.hotmoka.node.messages.PostJarStoreTransactionResultMessages;
+import io.hotmoka.node.messages.PostStaticMethodCallTransactionMessages;
+import io.hotmoka.node.messages.PostStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
@@ -142,6 +145,8 @@ import io.hotmoka.node.messages.api.PostInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.PostInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.PostJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.PostJarStoreTransactionResultMessage;
+import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionMessage;
+import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
@@ -218,6 +223,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(POST_JAR_STORE_TRANSACTION_ENDPOINT, uri, PostJarStoreTransactionEndpoint::new);
     	addSession(POST_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, PostConstructorCallTransactionEndpoint::new);
     	addSession(POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostInstanceMethodCallTransactionEndpoint::new);
+    	addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
 
@@ -285,6 +291,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onPostConstructorCallTransactionResult(pcctrm);
 		else if (message instanceof PostInstanceMethodCallTransactionResultMessage pimctrm)
 			onPostInstanceMethodCallTransactionResult(pimctrm);
+		else if (message instanceof PostStaticMethodCallTransactionResultMessage psmctrm)
+			onPostStaticMethodCallTransactionResult(psmctrm);
 		else if (message instanceof RunInstanceMethodCallTransactionResultMessage rimctrm)
 			onRunInstanceMethodCallTransactionResult(rimctrm);
 		else if (message instanceof RunStaticMethodCallTransactionResultMessage rsmctrm)
@@ -1280,6 +1288,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, PostInstanceMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostInstanceMethodCallTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendPostStaticMethodCallTransaction(request, id);
+		try {
+			return waitForResult(id, this::processPostStaticMethodCallTransactionSuccess, this::processPostStaticMethodCallTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends a {@link PostStaticMethodCallTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to post
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendPostStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT), PostStaticMethodCallTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private CodeSupplier<StorageValue> processPostStaticMethodCallTransactionSuccess(RpcMessage message) {
+		return message instanceof PostStaticMethodCallTransactionResultMessage psmctrm ? CodeSuppliers.ofMethod(psmctrm.get(), this) : null;
+	}
+
+	private boolean processPostStaticMethodCallTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when a {@link PostStaticMethodCallTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onPostStaticMethodCallTransactionResult(PostStaticMethodCallTransactionResultMessage message) {}
+
+	private class PostStaticMethodCallTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, PostStaticMethodCallTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, PostStaticMethodCallTransactionMessages.Encoder.class);
 		}
 	}
 

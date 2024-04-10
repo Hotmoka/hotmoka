@@ -22,18 +22,13 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
-import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
-import io.hotmoka.node.CodeSuppliers;
-import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
@@ -83,11 +78,5 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
     @Override
     public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
         wrapNetworkExceptionSimple(() -> service.post(url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class));
-    }
-
-    @Override
-    public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-        TransactionReference reference = service.post(url + "/post/staticMethodCallTransaction", new StaticMethodCallTransactionRequestModel(request), TransactionReferenceModel.class).toBean();
-        return wrapNetworkExceptionSimple(() -> CodeSuppliers.ofMethod(reference, this));
     }
 }

@@ -117,6 +117,11 @@ public interface NodeService extends AutoCloseable {
 	String POST_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT = "/post_instance_method_call_transaction_request";
 
 	/**
+	 * The network endpoint path where {@link Node#postStaticMethodCallTransaction(StaticMethodCallTransactionRequest)} is published.
+	 */
+	String POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT = "/post_static_method_call_transaction_request";
+
+	/**
 	 * The network endpoint path where {@link Node#postJarStoreTransaction(JarStoreTransactionRequest)} is published.
 	 */
 	String POST_JAR_STORE_TRANSACTION_ENDPOINT = "/post_jar_store_transaction_request";
