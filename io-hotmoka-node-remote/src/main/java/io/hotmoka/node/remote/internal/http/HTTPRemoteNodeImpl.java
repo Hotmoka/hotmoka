@@ -21,14 +21,10 @@ import java.io.IOException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
@@ -63,11 +59,6 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
         super(config);
 
         this.url = "http://" + config.getURL();
-    }
-
-    @Override
-    public TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-        return wrapNetworkExceptionSimple(() -> service.post(url + "/add/jarStoreInitialTransaction", new JarStoreInitialTransactionRequestModel(request), TransactionReferenceModel.class).toBean());
     }
 
     @Override

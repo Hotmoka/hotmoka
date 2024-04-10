@@ -385,7 +385,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node.getResponse(reference);
 	}
 
-	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException {
+	protected final TransactionReference addJarStoreInitialTransaction(byte[] jar, TransactionReference... dependencies) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return node.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(jar, dependencies));
 	}
 

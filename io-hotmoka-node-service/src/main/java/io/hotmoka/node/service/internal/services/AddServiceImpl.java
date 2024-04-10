@@ -21,17 +21,10 @@ import org.springframework.stereotype.Service;
 
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.network.values.StorageReferenceModel;
-import io.hotmoka.network.values.TransactionReferenceModel;
 
 @Service
 public class AddServiceImpl extends AbstractService implements AddService {
-
-	@Override
-	public TransactionReferenceModel addJarStoreInitialTransaction(JarStoreInitialTransactionRequestModel request) {
-		return wrapExceptions(() -> new TransactionReferenceModel(getNode().addJarStoreInitialTransaction(request.toBean())));
-	}
 
     @Override
     public StorageReferenceModel addGameteCreationTransaction(GameteCreationTransactionRequestModel request) {

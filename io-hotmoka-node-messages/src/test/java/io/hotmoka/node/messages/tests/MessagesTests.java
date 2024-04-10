@@ -52,6 +52,8 @@ import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
+import io.hotmoka.node.messages.AddJarStoreInitialTransactionResultMessages;
 import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
 import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
@@ -448,6 +450,25 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = AddJarStoreTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new AddJarStoreTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addJarStoreInitialTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddJarStoreInitialTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+		var request = TransactionRequests.jarStoreInitial("These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes());
+		var expected = AddJarStoreInitialTransactionMessages.of(request, "id");
+		String encoded = new AddJarStoreInitialTransactionMessages.Encoder().encode(expected);
+		var actual = new AddJarStoreInitialTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addJarStoreInitialTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddJarStoreInitialTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = AddJarStoreInitialTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
+		String encoded = new AddJarStoreInitialTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddJarStoreInitialTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

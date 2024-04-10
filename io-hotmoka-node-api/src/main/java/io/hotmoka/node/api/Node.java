@@ -200,8 +200,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the reference to the transaction, that can be used to refer to the jar in a class path or as future dependency of other jars
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException;
+	TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that creates a gamete, that is,

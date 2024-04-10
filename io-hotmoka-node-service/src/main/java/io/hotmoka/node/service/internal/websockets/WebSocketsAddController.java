@@ -29,7 +29,6 @@ import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
 import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.network.requests.JarStoreInitialTransactionRequestModel;
 import io.hotmoka.node.service.internal.services.AddService;
 
 @Controller
@@ -42,11 +41,6 @@ public class WebSocketsAddController {
     public WebSocketsAddController(SimpMessagingTemplate simpMessagingTemplate, AddService nodeAddService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeAddService = nodeAddService;
-    }
-
-    @MessageMapping("/jarStoreInitialTransaction")
-    public void jarStoreInitialTransaction(Principal principal, JarStoreInitialTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/jarStoreInitialTransaction", nodeAddService.addJarStoreInitialTransaction(request));
     }
 
     @MessageMapping("/gameteCreationTransaction")
