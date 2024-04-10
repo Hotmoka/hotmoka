@@ -27,7 +27,6 @@ import org.springframework.stereotype.Controller;
 
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.node.service.internal.services.PostService;
 
@@ -41,11 +40,6 @@ public class WebSocketsPostController {
     public WebSocketsPostController(SimpMessagingTemplate simpMessagingTemplate, PostService postService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodePostService = postService;
-    }
-
-    @MessageMapping("/instanceMethodCallTransaction")
-    public void instanceMethodCallTransaction(Principal principal, InstanceMethodCallTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/post/instanceMethodCallTransaction", nodePostService.postInstanceMethodCallTransaction(request));
     }
 
     @MessageMapping("/staticMethodCallTransaction")

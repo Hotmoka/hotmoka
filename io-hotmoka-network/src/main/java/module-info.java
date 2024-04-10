@@ -21,7 +21,6 @@ module io.hotmoka.network {
 	exports io.hotmoka.network.signatures;
 	exports io.hotmoka.network.responses;
 	exports io.hotmoka.network.errors;
-	exports io.hotmoka.network.nodes;
 	exports io.hotmoka.network;
 
     // Gson needs superpowers
@@ -31,7 +30,6 @@ module io.hotmoka.network {
     opens io.hotmoka.network.signatures to com.google.gson;
     opens io.hotmoka.network.updates to com.google.gson;
     opens io.hotmoka.network.values to com.google.gson;
-    opens io.hotmoka.network.nodes to com.google.gson;
 
 	requires transitive io.hotmoka.beans;
 	requires io.hotmoka.node.api;

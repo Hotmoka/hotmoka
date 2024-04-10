@@ -18,17 +18,11 @@ package io.hotmoka.node.service.internal.services;
 
 import org.springframework.stereotype.Service;
 
-import io.hotmoka.network.requests.InstanceMethodCallTransactionRequestModel;
 import io.hotmoka.network.requests.StaticMethodCallTransactionRequestModel;
 import io.hotmoka.network.values.TransactionReferenceModel;
 
 @Service
 public class PostServiceImpl extends AbstractService implements PostService {
-
-    @Override
-    public TransactionReferenceModel postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequestModel request) {
-        return wrapExceptions(() -> new TransactionReferenceModel(getNode().postInstanceMethodCallTransaction(request.toBean()).getReferenceOfRequest()));
-    }
 
     @Override
     public TransactionReferenceModel postStaticMethodCallTransaction(StaticMethodCallTransactionRequestModel request) {
