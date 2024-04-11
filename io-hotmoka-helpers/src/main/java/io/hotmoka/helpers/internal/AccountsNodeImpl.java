@@ -272,7 +272,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return parent.addGameteCreationTransaction(request);
 	}
 

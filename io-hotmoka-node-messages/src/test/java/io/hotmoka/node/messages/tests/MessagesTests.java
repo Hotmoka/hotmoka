@@ -50,6 +50,8 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
+import io.hotmoka.node.messages.AddGameteCreationTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
@@ -240,11 +242,11 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("getResponseResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetResponseResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForGetResponseResult() throws EncodeException, DecodeException {
 		ClassType clazz = StorageTypes.classNamed("io.my.Class");
-		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
-		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
-		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
+		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
+		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
+		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
 		var response = TransactionResponses.constructorCallException("io.my.Exception", "code exploded", null, Stream.of(update1, update2, update3), Stream.of(OBJECT),
 			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L));
 
@@ -265,11 +267,11 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("getPolledResponseResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetPolledResponseResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForGetPolledResponseResult() throws EncodeException, DecodeException {
 		ClassType clazz = StorageTypes.classNamed("io.my.Class");
-		Update update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
-		Update update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
-		Update update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
+		var update1 = Updates.ofInt(OBJECT, FieldSignatures.of(clazz, "field1", StorageTypes.INT), 42);
+		var update2 = Updates.ofBigInteger(OBJECT, FieldSignatures.of(clazz, "field2", StorageTypes.BIG_INTEGER), BigInteger.valueOf(13L));
+		var update3 = Updates.ofString(OBJECT, FieldSignatures.of(clazz, "field3", StorageTypes.STRING), "hello");
 		var response = TransactionResponses.constructorCallException("io.my.Exception", "code exploded", null, Stream.of(update1, update2, update3), Stream.of(OBJECT),
 			BigInteger.valueOf(42L), BigInteger.valueOf(13L), BigInteger.valueOf(17L));
 
@@ -295,7 +297,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("runInstanceMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForRunInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -304,7 +306,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("runInstanceMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForRunInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = RunInstanceMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new RunInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -327,7 +329,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("runStaticMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForRunStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -336,7 +338,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("runStaticMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForRunStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForRunStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = RunStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new RunStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new RunStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -359,7 +361,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addInstanceMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddInstanceMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddInstanceMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new AddInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -368,7 +370,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addInstanceMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddInstanceMethodCallVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddInstanceMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new AddInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -391,7 +393,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addStaticMethodCallTransactionResult messages for non-void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddStaticMethodCallNonVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddStaticMethodCallTransactionResultMessages.of(Optional.of(StorageValues.stringOf("hello")), "id");
 		String encoded = new AddStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -400,7 +402,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addStaticMethodCallTransactionResult messages for void methods are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddStaticMethodCallVoidTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddStaticMethodCallTransactionResultMessages.of(Optional.empty(), "id");
 		String encoded = new AddStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -423,7 +425,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addConstructorCallTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddConstructorCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddConstructorCallTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddConstructorCallTransactionResultMessages.of(OBJECT, "id");
 		String encoded = new AddConstructorCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddConstructorCallTransactionResultMessages.Decoder().decode(encoded);
@@ -446,7 +448,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addJarStoreTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddJarStoreTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddJarStoreTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddJarStoreTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new AddJarStoreTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreTransactionResultMessages.Decoder().decode(encoded);
@@ -454,8 +456,29 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
+	@DisplayName("addGameteCreationTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddGameteCreationTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var ed25519 = SignatureAlgorithms.ed25519();
+		var keys = ed25519.getKeyPair();
+		var request = TransactionRequests.gameteCreation(TRANSACTION_REFERENCE, BigInteger.valueOf(42424242L), BigInteger.valueOf(13131313L), Base64.toBase64String(keys.getPublic().getEncoded()));
+		var expected = AddGameteCreationTransactionMessages.of(request, "id");
+		String encoded = new AddGameteCreationTransactionMessages.Encoder().encode(expected);
+		var actual = new AddGameteCreationTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addGameteCreationTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddGameteCreationTransactionResult() throws EncodeException, DecodeException {
+		var expected = AddGameteCreationTransactionResultMessages.of(OBJECT, "id");
+		String encoded = new AddGameteCreationTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddGameteCreationTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
 	@DisplayName("addJarStoreInitialTransaction messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddJarStoreInitialTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+	public void encodeDecodeWorksForAddJarStoreInitialTransaction() throws EncodeException, DecodeException {
 		var request = TransactionRequests.jarStoreInitial("These are the bytes of a very large jar that must be installed in the Hotmoka node".getBytes());
 		var expected = AddJarStoreInitialTransactionMessages.of(request, "id");
 		String encoded = new AddJarStoreInitialTransactionMessages.Encoder().encode(expected);
@@ -465,7 +488,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("addJarStoreInitialTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForAddJarStoreInitialTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForAddJarStoreInitialTransactionResult() throws EncodeException, DecodeException {
 		var expected = AddJarStoreInitialTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new AddJarStoreInitialTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreInitialTransactionResultMessages.Decoder().decode(encoded);
@@ -488,7 +511,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("postConstructorCallTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForPostConstructorCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForPostConstructorCallTransactionResult() throws EncodeException, DecodeException {
 		var expected = PostConstructorCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostConstructorCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostConstructorCallTransactionResultMessages.Decoder().decode(encoded);
@@ -511,7 +534,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("postInstanceMethodCallTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForPostInstanceMethodCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForPostInstanceMethodCallTransactionResult() throws EncodeException, DecodeException {
 		var expected = PostInstanceMethodCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostInstanceMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostInstanceMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -534,7 +557,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("postStaticMethodCallTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForPostStaticMethodCallTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForPostStaticMethodCallTransactionResult() throws EncodeException, DecodeException {
 		var expected = PostStaticMethodCallTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostStaticMethodCallTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostStaticMethodCallTransactionResultMessages.Decoder().decode(encoded);
@@ -557,7 +580,7 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("postJarStoreTransactionResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForPostJarStoreTransactionResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+	public void encodeDecodeWorksForPostJarStoreTransactionResult() throws EncodeException, DecodeException {
 		var expected = PostJarStoreTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new PostJarStoreTransactionResultMessages.Encoder().encode(expected);
 		var actual = new PostJarStoreTransactionResultMessages.Decoder().decode(encoded);

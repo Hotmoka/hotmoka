@@ -27,7 +27,6 @@ import org.springframework.stereotype.Controller;
 
 import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.network.errors.ErrorModel;
-import io.hotmoka.network.requests.GameteCreationTransactionRequestModel;
 import io.hotmoka.network.requests.InitializationTransactionRequestModel;
 import io.hotmoka.node.service.internal.services.AddService;
 
@@ -41,11 +40,6 @@ public class WebSocketsAddController {
     public WebSocketsAddController(SimpMessagingTemplate simpMessagingTemplate, AddService nodeAddService) {
         this.simpMessagingTemplate = simpMessagingTemplate;
         this.nodeAddService = nodeAddService;
-    }
-
-    @MessageMapping("/gameteCreationTransaction")
-    public void redGreenGameteCreationTransaction(Principal principal, GameteCreationTransactionRequestModel request) {
-        simpMessagingTemplate.convertAndSendToUser(principal.getName(), "/add/gameteCreationTransaction", nodeAddService.addGameteCreationTransaction(request));
     }
 
     @MessageMapping("/initializationTransaction")

@@ -215,8 +215,11 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the reference to the freshly created gamete
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if the polling delay has expired but the request did not get committed
+	 * @throws InterruptedException if the current thread has been interrupted while waiting for the response
 	 */
-	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException;
+	StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands the store of this node with a transaction that marks the node as

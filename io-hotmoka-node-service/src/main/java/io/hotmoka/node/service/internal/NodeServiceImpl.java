@@ -39,6 +39,8 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
+import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
+import io.hotmoka.node.messages.AddGameteCreationTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
@@ -78,6 +80,7 @@ import io.hotmoka.node.messages.RunInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.RunStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
+import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
 import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
@@ -166,7 +169,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),
-   			AddJarStoreInitialTransactionEndpoint.config(this),
+   			AddGameteCreationTransactionEndpoint.config(this), AddJarStoreInitialTransactionEndpoint.config(this),
    			AddJarStoreTransactionEndpoint.config(this), AddConstructorCallTransactionEndpoint.config(this),
    			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
    			PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
@@ -635,6 +638,35 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		private static ServerEndpointConfig config(NodeServiceImpl server) {
 			return simpleConfig(server, AddJarStoreTransactionEndpoint.class, ADD_JAR_STORE_TRANSACTION_ENDPOINT,
 				AddJarStoreTransactionMessages.Decoder.class, AddJarStoreTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
+		}
+	}
+
+	protected void onAddGameteCreationTransaction(AddGameteCreationTransactionMessage message, Session session) {
+		LOGGER.info(logPrefix + "received an " + ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT + " request");
+
+		try {
+			try {
+				sendObjectAsync(session, AddGameteCreationTransactionResultMessages.of(node.addGameteCreationTransaction(message.getRequest()), message.getId()));
+			}
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+				sendExceptionAsync(session, e, message.getId());
+			}
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	public static class AddGameteCreationTransactionEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (AddGameteCreationTransactionMessage message) -> getServer().onAddGameteCreationTransaction(message, session));
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, AddGameteCreationTransactionEndpoint.class, ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT,
+				AddGameteCreationTransactionMessages.Decoder.class, AddGameteCreationTransactionResultMessages.Encoder.class, ExceptionMessages.Encoder.class);
 		}
 	}
 

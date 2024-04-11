@@ -198,7 +198,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		return parent.addGameteCreationTransaction(request);
 	}
 
