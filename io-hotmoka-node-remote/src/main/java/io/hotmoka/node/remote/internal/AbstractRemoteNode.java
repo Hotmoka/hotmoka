@@ -18,6 +18,7 @@ package io.hotmoka.node.remote.internal;
 
 import static io.hotmoka.node.service.api.NodeService.ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.ADD_INITIALIZATION_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_TRANSACTION_ENDPOINT;
@@ -54,6 +55,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
@@ -83,6 +85,8 @@ import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionResultMessages;
+import io.hotmoka.node.messages.AddInitializationTransactionMessages;
+import io.hotmoka.node.messages.AddInitializationTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
@@ -125,6 +129,8 @@ import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionResultMessage;
+import io.hotmoka.node.messages.api.AddInitializationTransactionMessage;
+import io.hotmoka.node.messages.api.AddInitializationTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
@@ -230,6 +236,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(GET_POLLED_RESPONSE_ENDPOINT, uri, GetPolledResponseEndpoint::new);
     	addSession(ADD_GAMETE_CREATION_TRANSACTION_ENDPOINT, uri, AddGameteCreationTransactionEndpoint::new);
     	addSession(ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT, uri, AddJarStoreInitialTransactionEndpoint::new);
+    	addSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT, uri, AddInitializationTransactionEndpoint::new);
     	addSession(ADD_JAR_STORE_TRANSACTION_ENDPOINT, uri, AddJarStoreTransactionEndpoint::new);
     	addSession(ADD_CONSTRUCTOR_CALL_TRANSACTION_ENDPOINT, uri, AddConstructorCallTransactionEndpoint::new);
     	addSession(ADD_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, AddInstanceMethodCallTransactionEndpoint::new);
@@ -303,6 +310,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 			onAddGameteCreationTransactionResult(agctrm);
 		else if (message instanceof AddJarStoreInitialTransactionResultMessage ajsitrm)
 			onAddJarStoreInitialTransactionResult(ajsitrm);
+		else if (message instanceof AddInitializationTransactionResultMessage aitrm)
+			onAddInitializationTransactionResult(aitrm);
 		else if (message instanceof PostJarStoreTransactionResultMessage pjstrm)
 			onPostJarStoreTransactionResult(pjstrm);
 		else if (message instanceof PostConstructorCallTransactionResultMessage pcctrm)
@@ -1196,7 +1205,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	}
 
 	@Override
-	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendAddGameteCreationTransaction(request, id);
@@ -1306,6 +1315,63 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		@Override
 		protected Session deployAt(URI uri) throws DeploymentException, IOException {
 			return deployAt(uri, AddJarStoreInitialTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddJarStoreInitialTransactionMessages.Encoder.class);
+		}
+	}
+
+	@Override
+	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+		ensureIsOpen();
+		var id = nextId();
+		sendAddInitializationTransaction(request, id);
+		try {
+			waitForResult(id, this::processAddInitializationTransactionSuccess, this::processAddInitializationTransactionExceptions);
+		}
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+			throw e;
+		}
+		catch (Exception e) {
+			throw unexpectedException(e);
+		}
+	}
+
+	/**
+	 * Sends an {@link AddInitializationTransactionMessage} to the node service.
+	 * 
+	 * @param request the request of the transaction required to add
+	 * @param id the identifier of the message
+	 * @throws NodeException if the message could not be sent
+	 */
+	protected void sendAddInitializationTransaction(InitializationTransactionRequest request, String id) throws NodeException {
+		try {
+			sendObjectAsync(getSession(ADD_INITIALIZATION_TRANSACTION_ENDPOINT), AddInitializationTransactionMessages.of(request, id));
+		}
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	private Boolean processAddInitializationTransactionSuccess(RpcMessage message) {
+		return message instanceof AddInitializationTransactionResultMessage aitrm ? Boolean.TRUE : null;
+	}
+
+	private boolean processAddInitializationTransactionExceptions(ExceptionMessage message) {
+		var clazz = message.getExceptionClass();
+		return TransactionRejectedException.class.isAssignableFrom(clazz) ||
+			processStandardExceptions(message);
+	}
+
+	/**
+	 * Hook called when an {@link AddInitializationTransactionResultMessage} has been received.
+	 * 
+	 * @param message the message
+	 */
+	protected void onAddInitializationTransactionResult(AddInitializationTransactionResultMessage message) {}
+
+	private class AddInitializationTransactionEndpoint extends Endpoint {
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, AddInitializationTransactionResultMessages.Decoder.class, ExceptionMessages.Decoder.class, AddInitializationTransactionMessages.Encoder.class);
 		}
 	}
 

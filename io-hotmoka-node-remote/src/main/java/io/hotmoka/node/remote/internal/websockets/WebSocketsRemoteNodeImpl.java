@@ -18,9 +18,6 @@ package io.hotmoka.node.remote.internal.websockets;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
 import jakarta.websocket.DeploymentException;
@@ -40,12 +37,6 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
      */
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
-    }
-
-    @Override
-    public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-        wrapNetworkExceptionSimple
-                (() -> send("/add/initializationTransaction", Void.class, new InitializationTransactionRequestModel(request)));
     }
 
     /**

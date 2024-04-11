@@ -373,7 +373,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
+	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		parent.addInitializationTransaction(request);
 	}
 

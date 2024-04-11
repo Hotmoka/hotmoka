@@ -52,6 +52,8 @@ import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionResultMessages;
+import io.hotmoka.node.messages.AddInitializationTransactionMessages;
+import io.hotmoka.node.messages.AddInitializationTransactionResultMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddInstanceMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
@@ -492,6 +494,25 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = AddJarStoreInitialTransactionResultMessages.of(TRANSACTION_REFERENCE, "id");
 		String encoded = new AddJarStoreInitialTransactionResultMessages.Encoder().encode(expected);
 		var actual = new AddJarStoreInitialTransactionResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addInitializationTransaction messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddInitializationTransaction() throws EncodeException, DecodeException {
+		var request = TransactionRequests.initialization(TRANSACTION_REFERENCE, OBJECT);
+		var expected = AddInitializationTransactionMessages.of(request, "id");
+		String encoded = new AddInitializationTransactionMessages.Encoder().encode(expected);
+		var actual = new AddInitializationTransactionMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
+	@DisplayName("addInitializationTransactionResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForAddInitializationTransactionResult() throws EncodeException, DecodeException {
+		var expected = AddInitializationTransactionResultMessages.of("id");
+		String encoded = new AddInitializationTransactionResultMessages.Encoder().encode(expected);
+		var actual = new AddInitializationTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

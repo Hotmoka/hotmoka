@@ -19,9 +19,6 @@ package io.hotmoka.node.remote.internal.http;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.network.requests.InitializationTransactionRequestModel;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
 import io.hotmoka.node.remote.internal.http.client.RestClientService;
@@ -55,10 +52,5 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
         super(config);
 
         this.url = "http://" + config.getURL();
-    }
-
-    @Override
-    public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-        wrapNetworkExceptionSimple(() -> service.post(url + "/add/initializationTransaction", new InitializationTransactionRequestModel(request), Void.class));
     }
 }

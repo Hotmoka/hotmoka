@@ -18,11 +18,12 @@ package io.hotmoka.node.service.api;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
@@ -102,6 +103,11 @@ public interface NodeService extends AutoCloseable {
 	 * The network endpoint path where {@link Node#addJarStoreInitialTransaction(JarStoreInitialTransactionRequest)} is published.
 	 */
 	String ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT = "/add_jar_store_initial_transaction_request";
+
+	/**
+	 * The network endpoint path where {@link Node#addInitializationTransaction(InitializationTransactionRequest)} is published.
+	 */
+	String ADD_INITIALIZATION_TRANSACTION_ENDPOINT = "/add_initialization_transaction_request";
 
 	/**
 	 * The network endpoint path where {@link Node#addConstructorCallTransaction(ConstructorCallTransactionRequest)} is published.
