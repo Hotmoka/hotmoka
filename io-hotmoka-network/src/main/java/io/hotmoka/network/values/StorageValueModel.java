@@ -32,7 +32,6 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.network.requests.MethodCallTransactionRequestModel;
 
 /**
  * The model of a storage value.
@@ -191,24 +190,5 @@ public class StorageValueModel {
             return StorageValues.doubleOf(Double.parseDouble(value));
     	else
         	throw new RuntimeException("unexpected value type " + type);
-    }
-
-    /**
-     * Yields the storage value model of the returned value of a method.
-     * If the method returns void, its returned value is irrelevant and we fix it to {@code null}.
-     * 
-     * @param request the request that calls the method
-     * @param returnedValue the value returned by the method
-     * @return the
-     */
-    public static StorageValueModel modelOfValueReturned(MethodCallTransactionRequestModel request, StorageValue returnedValue) {
-    	if (request.method.returnType == null && returnedValue == null)
-    		return null;
-    	else if (request.method.returnType == null)
-    		throw new RuntimeException("unexpected non-null return value for void method");
-    	else if (returnedValue == null)
-    		throw new RuntimeException("unexpected null return value for non-void method");
-    	else
-    		return new StorageValueModel(returnedValue);
     }
 }
