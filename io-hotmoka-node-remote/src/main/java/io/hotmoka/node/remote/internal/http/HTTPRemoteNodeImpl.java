@@ -21,7 +21,6 @@ import java.io.IOException;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.node.remote.internal.AbstractRemoteNode;
-import io.hotmoka.node.remote.internal.http.client.RestClientService;
 import jakarta.websocket.DeploymentException;
 
 /**
@@ -32,16 +31,6 @@ import jakarta.websocket.DeploymentException;
 public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
 
     /**
-     * The URL of the remote service, including the HTTP protocol.
-     */
-    private final String url;
-
-    /**
-     * The service used for the connection to the server.
-     */
-    private final RestClientService service = new RestClientService();
-
-    /**
      * Builds the remote node.
      *
      * @param config the configuration of the node
@@ -50,7 +39,5 @@ public class HTTPRemoteNodeImpl extends AbstractRemoteNode {
      */
     public HTTPRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
-
-        this.url = "http://" + config.getURL();
     }
 }

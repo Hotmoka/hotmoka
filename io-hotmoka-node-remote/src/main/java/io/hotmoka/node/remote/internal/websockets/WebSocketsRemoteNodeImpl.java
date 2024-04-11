@@ -38,19 +38,4 @@ public class WebSocketsRemoteNodeImpl extends AbstractRemoteNode {
     public WebSocketsRemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
         super(config);
     }
-
-    /**
-     * Sends a request for the given topic and yields the result.
-     *
-     * @param <T> the type of the expected result
-     * @param <P> the type of the payload
-     * @param topic the topic
-     * @param model the class of the expected result
-     * @param payload the payload of the request
-     * @return the result
-     * @throws InterruptedException if the websockets subscription throws that
-     */
-    private <T, P> T send(String topic, Class<T> model, P payload) throws InterruptedException {
-        return webSocketClient.subscribeAndSend(topic, model, payload);
-    }
 }
