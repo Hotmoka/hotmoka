@@ -193,9 +193,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	        // Change this to test with different node implementations
 	        Node wrapped;
-	        //node = wrapped = mkDiskBlockchain();
+	        node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        node = mkRemoteNode(wrapped = mkDiskBlockchain());
+	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
@@ -228,8 +228,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
-			e.printStackTrace();
-			System.exit(0);
 			throw new ExceptionInInitializerError(e);
 		}
 	}
