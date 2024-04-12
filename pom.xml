@@ -105,7 +105,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-helpers</module>
     <module>io-hotmoka-node-service-api</module>
     <module>io-hotmoka-node-service</module>
-    <module>io-hotmoka-ws-client</module>
     <module>io-hotmoka-node-remote-api</module>
     <module>io-hotmoka-node-remote</module>
     <module>io-hotmoka-patricia-api</module>
