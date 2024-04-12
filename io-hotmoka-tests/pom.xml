@@ -127,20 +127,6 @@
           <skip>true</skip>
         </configuration>
 	  </plugin>
-	  <!-- do not store the jar in the modules directory, as inherited from parent -->
-      <plugin>
-        <artifactId>maven-jar-plugin</artifactId>
-        <configuration>
-          <outputDirectory>target</outputDirectory>
-        </configuration>
-      </plugin>
-      <!-- do not copy the modules only used for testing -->
-      <plugin>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <configuration>
-		  <skip>false</skip>
-		</configuration>
-      </plugin>
       <!-- no reason to javadoc the tests -->
       <plugin>
         <artifactId>maven-javadoc-plugin</artifactId>

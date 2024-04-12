@@ -25,7 +25,6 @@ module io.hotmoka.node.remote {
     requires io.hotmoka.node;
     requires io.hotmoka.beans;
     requires io.hotmoka.annotations;
-    requires io.hotmoka.network;
 	requires io.hotmoka.websockets.client;
 	requires io.hotmoka.websockets.beans;
     requires com.google.gson;

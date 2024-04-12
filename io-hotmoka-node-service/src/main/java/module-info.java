@@ -20,36 +20,19 @@ limitations under the License.
 module io.hotmoka.node.service {
 	exports io.hotmoka.node.service;
 	// needed to allow the endpoints to be created by reflection although they are not exported
-	opens io.hotmoka.node.service.internal to org.glassfish.tyrus.core, spring.core;
-
-	// Spring needs superpowers
-	exports io.hotmoka.node.service.internal to spring.beans, spring.context;
+	opens io.hotmoka.node.service.internal to org.glassfish.tyrus.core;
 
     requires transitive io.hotmoka.node.service.api;
     requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.beans;
-	requires transitive io.hotmoka.network;
 	requires io.hotmoka.node.messages;
 	requires io.hotmoka.annotations;	
 	requires io.hotmoka.websockets.server;
 	requires io.hotmoka.websockets.beans;
 	requires transitive jakarta.websocket.client;
 	requires org.glassfish.tyrus.core;
-    requires spring.boot;
-    requires spring.boot.autoconfigure;
-    requires spring.beans;
-    requires spring.web;
-    requires spring.context;
-    requires spring.boot.starter.websocket;
-    requires spring.websocket;
-    requires transitive spring.messaging;
     requires com.google.gson;
     requires java.instrument;
     requires java.logging;
     requires transitive toml4j;
-    requires org.apache.tomcat.embed.websocket;
-
-    // these make it possible to compile under Eclipse...
-    requires static spring.core;
-    requires static org.apache.tomcat.embed.core;
 }

@@ -49,11 +49,6 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-network</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-ws-client</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
