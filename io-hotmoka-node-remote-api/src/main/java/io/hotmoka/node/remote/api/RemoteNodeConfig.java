@@ -33,13 +33,6 @@ public interface RemoteNodeConfig {
     String getURL();
 
     /**
-     * Determines if web sockets should be used for the connection. This defaults to false.
-     * 
-     * @return true if and only if web sockets should be used for the connection
-     */
-    boolean usesWebSockets();
-
-    /**
 	 * Yields a TOML representation of this configuration.
 	 * 
 	 * @return the TOML representation, as a string

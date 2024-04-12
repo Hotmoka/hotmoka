@@ -73,7 +73,6 @@ public class NodeFromNetworkWS extends HotmokaTest {
     private final ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
     private final NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().setPort(8081).build();
     private final RemoteNodeConfig remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
-    	.usesWebSockets(true)
     	.setURL("localhost:8081")
     	.build();
 

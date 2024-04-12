@@ -20,8 +20,7 @@ import java.io.IOException;
 
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
-import io.hotmoka.node.remote.internal.http.HTTPRemoteNodeImpl;
-import io.hotmoka.node.remote.internal.websockets.WebSocketsRemoteNodeImpl;
+import io.hotmoka.node.remote.internal.AbstractRemoteNode;
 import jakarta.websocket.DeploymentException;
 
 /**
@@ -41,6 +40,6 @@ public abstract class RemoteNodes {
      */
 	public static RemoteNode of(RemoteNodeConfig config) throws IOException, DeploymentException {
         // there are two implementations: for websockets or for http connections
-        return config.usesWebSockets() ? new WebSocketsRemoteNodeImpl(config) : new HTTPRemoteNodeImpl(config);
+        return new AbstractRemoteNode(config);
     }
 }

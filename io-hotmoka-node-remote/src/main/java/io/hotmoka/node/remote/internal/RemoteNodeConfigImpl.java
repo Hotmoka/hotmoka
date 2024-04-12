@@ -37,29 +37,17 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
     public final String url;
 
     /**
-     * True if and only if web sockets should be used for the connection.
-     * This defaults to false.
-     */
-    public final boolean usesWebSockets;
-
-    /**
      * Builds the configuration from a builder.
      *
      * @param builder the builder
      */
     private RemoteNodeConfigImpl(RemoteNodeConfigBuilderImpl builder) {
         this.url = builder.url;
-        this.usesWebSockets = builder.usesWebSockets;
     }
 
     @Override
 	public String getURL() {
 		return url;
-	}
-
-	@Override
-	public boolean usesWebSockets() {
-		return usesWebSockets;
 	}
 
 	@Override
@@ -72,9 +60,6 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 		sb.append("\n");
 		sb.append("# the URL of the remote service, without the protocol\n");
 		sb.append("url = \"" + url + "\"\n");
-		sb.append("\n");
-		sb.append("# true if and only if web sockets should be used for the connection\n");
-		sb.append("uses_websockets = " + usesWebSockets + "\n");
 
 		return sb.toString();
 	}
@@ -86,7 +71,7 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof RemoteNodeConfig rnc && url.equals(rnc.getURL()) && usesWebSockets == rnc.usesWebSockets();
+		return other instanceof RemoteNodeConfig rnc && url.equals(rnc.getURL());
 	}
 
 	@Override
@@ -105,8 +90,6 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 	public static class RemoteNodeConfigBuilderImpl implements RemoteNodeConfigBuilder {
 	    private String url = "localhost:8080";
 	
-	    private boolean usesWebSockets;
-
 	    /**
 		 * Creates a builder with default values for the properties.
 		 */
@@ -119,7 +102,6 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 		 */
 	    private RemoteNodeConfigBuilderImpl(RemoteNodeConfigImpl config) {
 			setURL(config.url);
-			usesWebSockets(config.usesWebSockets);
 		}
 
 	    /**
@@ -132,9 +114,6 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 			var url = toml.getString("url");
 			if (url != null)
 				setURL(url);
-
-			var usesWebSockets = toml.getBoolean("uses_websockets");
-			usesWebSockets(usesWebSockets);
 		}
 
 		/**
@@ -155,12 +134,6 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 	        return this;
 	    }
 
-	    @Override
-	    public RemoteNodeConfigBuilder usesWebSockets(boolean usesWebSockets) {
-	        this.usesWebSockets = usesWebSockets;
-	        return this;
-	    }
-	
 	    /**
 	     * Builds the configuration from this builder.
 	     *
@@ -184,8 +157,8 @@ public class RemoteNodeConfigImpl implements RemoteNodeConfig {
 			catch (RuntimeException e) {
 				// the toml4j library wraps the FileNotFoundException inside a RuntimeException...
 				Throwable cause = e.getCause();
-				if (cause instanceof FileNotFoundException)
-					throw (FileNotFoundException) cause;
+				if (cause instanceof FileNotFoundException fne)
+					throw fne;
 				else
 					throw e;
 			}

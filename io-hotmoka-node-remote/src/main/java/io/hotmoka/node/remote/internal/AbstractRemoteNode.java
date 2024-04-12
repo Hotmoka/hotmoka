@@ -186,7 +186,7 @@ import jakarta.websocket.Session;
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> implements RemoteNode {
+public class AbstractRemoteNode extends AbstractRemote<NodeException> implements RemoteNode {
 
     /**
      * The configuration of the node.
@@ -212,7 +212,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	 * @throws DeploymentException if the remote node could not be deployed
 	 * @throws IOException if the remote node could not be created
      */
-    protected AbstractRemoteNode(RemoteNodeConfig config) throws IOException, DeploymentException {
+    public AbstractRemoteNode(RemoteNodeConfig config) throws IOException, DeploymentException {
     	super(100_000L); // TODO: this should be contained in the config
 
     	String modifiedURL = config.getURL().substring(0, config.getURL().length() - 1); // TODO: remove this +2 at the end

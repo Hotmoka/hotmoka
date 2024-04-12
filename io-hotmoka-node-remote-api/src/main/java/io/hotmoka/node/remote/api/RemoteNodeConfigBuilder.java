@@ -31,15 +31,6 @@ public interface RemoteNodeConfigBuilder {
 	RemoteNodeConfigBuilder setURL(String url);
 
 	/**
-	 * Sets the use of websockets.
-	 *
-	 * @param usesWebSockets true if and only if websockets should be used
-	 *                       instead of http connections. This defaults to false
-	 * @return this same builder
-	 */
-	RemoteNodeConfigBuilder usesWebSockets(boolean usesWebSockets);
-
-	/**
      * Builds the configuration from this builder.
      *
      * @return the configuration
