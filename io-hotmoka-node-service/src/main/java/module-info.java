@@ -24,11 +24,6 @@ module io.hotmoka.node.service {
 
 	// Spring needs superpowers
 	exports io.hotmoka.node.service.internal to spring.beans, spring.context;
-	exports io.hotmoka.node.service.internal.services to spring.beans, spring.web;
-	exports io.hotmoka.node.service.internal.websockets to spring.beans, spring.messaging;
-	exports io.hotmoka.node.service.internal.websockets.config to spring.beans;
-    opens io.hotmoka.node.service.internal.services to spring.core;
-    opens io.hotmoka.node.service.internal.websockets.config to spring.core, spring.context;
 
     requires transitive io.hotmoka.node.service.api;
     requires transitive io.hotmoka.node;
