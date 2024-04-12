@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -68,7 +67,6 @@ import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.network.NetworkExceptionResponse;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
@@ -1615,55 +1613,5 @@ public class AbstractRemoteNode extends AbstractRemote<NodeException> implements
 		StorageReference creator = message.getCreator();
 		LOGGER.info(logPrefix + "received event " + event + " with creator " + creator);
 		subscriptions.notifyEvent(creator, event);
-	}
-
-    /**
-     * Runs a callable and wraps the exception by its type.
-     * If the type doesn't match {@link io.hotmoka.node.api.TransactionRejectedException} then it will be wrapped into a {@link io.hotmoka.beans.InternalFailureException}.
-     *
-     * @param <T> the return type of the callable
-     * @param what the callable
-     * @return the return value of the callable
-     * @throws TransactionRejectedException the wrapped exception
-     */
-    protected static <T> T wrapNetworkExceptionSimple(Callable<T> what) throws TransactionRejectedException {
-        try {
-            return what.call();
-        }
-        catch (NetworkExceptionResponse e) {
-            if (e.getExceptionClassName().equals(TransactionRejectedException.class.getName()))
-                throw new TransactionRejectedException(e.getMessage());
-            else
-                throw new RuntimeException(e.getMessage());
-        }
-        catch (RuntimeException e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw e;
-        }
-        catch (Exception e) {
-        	LOGGER.log(Level.WARNING, "unexpected exception", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 */
-	protected static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "unexpected exception", t);
-			throw new TransactionRejectedException(t);
-		}
 	}
 }

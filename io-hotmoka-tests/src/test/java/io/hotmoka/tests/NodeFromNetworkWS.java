@@ -34,12 +34,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
@@ -56,7 +54,6 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.network.values.TransactionReferenceModel;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -451,12 +448,7 @@ public class NodeFromNetworkWS extends HotmokaTest {
     }
 
     private static TransactionReference getInexistentTransactionReference() {
-        var reference = new JsonObject();
-        // we use a non-existent hash
-        reference.addProperty("hash", "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-        reference.addProperty("type", "local");
-
-        return new GsonBuilder().disableHtmlEscaping().create().fromJson(reference, TransactionReferenceModel.class).toBean();
+    	return TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
     }
 
     private static StorageReference getInexistentStorageReference() {
