@@ -45,7 +45,6 @@ import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -70,7 +69,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.network.NetworkExceptionResponse;
-import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
@@ -175,12 +173,10 @@ import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.remote.api.RemoteNodeConfig;
-import io.hotmoka.node.remote.internal.websockets.client.WebSocketClient;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.beans.api.ExceptionMessage;
 import io.hotmoka.websockets.beans.api.RpcMessage;
 import io.hotmoka.websockets.client.AbstractRemote;
-import io.hotmoka.ws.client.WebSocketException;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
 import jakarta.websocket.EndpointConfig;
@@ -196,11 +192,6 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
      * The configuration of the node.
      */
     protected final RemoteNodeConfig config;
-
-    /**
-     * The websocket client for the remote node, one per thread.
-     */
-    protected final WebSocketClient webSocketClient;
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -253,18 +244,6 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
     	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
-
-    	try {
-        	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
-        }
-        catch (WebSocketException e) {
-        	throw new IOException(e);
-        }
-        catch (InterruptedException | ExecutionException e) {
-        	throw new RuntimeException("unexpected exception", e);
-        }
-
-        subscribeToEventsTopic();
     }
 
     @Override
@@ -280,7 +259,6 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	@Override
 	protected void closeResources(CloseReason reason) throws NodeException, InterruptedException {
 		super.closeResources(reason);
-		webSocketClient.close();
 		LOGGER.info(logPrefix + "closed with reason: " + reason);
 	}
 
@@ -1635,32 +1613,9 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	private void notifyEvent(EventMessage message) {
 		StorageReference event = message.getEvent();
 		StorageReference creator = message.getCreator();
-		subscriptions.notifyEvent(creator, event);
 		LOGGER.info(logPrefix + "received event " + event + " with creator " + creator);
+		subscriptions.notifyEvent(creator, event);
 	}
-
-	/**
-	 * Notifies the given event to all event handlers for the given creator.
-	 * 
-	 * @param creator the creator of the event
-	 * @param event the event to notify
-	 */
-	protected final void notifyEvent(StorageReference creator, StorageReference event) {
-		//subscriptions.notifyEvent(creator, event);
-		//LOGGER.info(logPrefix + event + ": notified as event with creator " + creator);
-	}
-
-	/**
-     * Subscribes to the events topic of the remote node to get notified about the node events.
-     */
-    private void subscribeToEventsTopic() {
-        webSocketClient.subscribeToTopic("/topic/events", EventRequestModel.class, (eventRequestModel, errorModel) -> {
-            if (eventRequestModel != null)
-                notifyEvent(eventRequestModel.creator.toBean(), eventRequestModel.event.toBean());
-            else
-                LOGGER.info(logPrefix + "got error from event subscription: " + errorModel.exceptionClassName + ": " + errorModel.message);
-        });
-    }
 
     /**
      * Runs a callable and wraps the exception by its type.
