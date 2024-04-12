@@ -19,6 +19,7 @@ limitations under the License.
  */
 module io.hotmoka.node.remote {
     exports io.hotmoka.node.remote;
+
     requires transitive io.hotmoka.node.remote.api;
     requires io.hotmoka.node.messages;
     requires io.hotmoka.node.service.api;
@@ -27,8 +28,6 @@ module io.hotmoka.node.remote {
     requires io.hotmoka.annotations;
 	requires io.hotmoka.websockets.client;
 	requires io.hotmoka.websockets.beans;
-    requires com.google.gson;
     requires transitive toml4j;
     requires java.logging;
-	requires io.hotmoka.node.messages.api;
 }
