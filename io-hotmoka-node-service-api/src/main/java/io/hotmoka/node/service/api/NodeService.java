@@ -145,6 +145,11 @@ public interface NodeService extends AutoCloseable {
 	String POST_JAR_STORE_TRANSACTION_ENDPOINT = "/post_jar_store_transaction_request";
 
 	/**
+	 * The network endpoint path where the events are published.
+	 */
+	String EVENTS_ENDPOINT = "/events";
+
+	/**
 	 * Stops the service and releases its resources.
 	 */
 	@Override

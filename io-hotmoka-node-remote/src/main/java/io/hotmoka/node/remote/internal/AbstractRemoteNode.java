@@ -23,6 +23,7 @@ import static io.hotmoka.node.service.api.NodeService.ADD_INSTANCE_METHOD_CALL_T
 import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_INITIAL_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_JAR_STORE_TRANSACTION_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.ADD_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT;
+import static io.hotmoka.node.service.api.NodeService.EVENTS_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CLASS_TAG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_CONSENSUS_CONFIG_ENDPOINT;
 import static io.hotmoka.node.service.api.NodeService.GET_MANIFEST_ENDPOINT;
@@ -47,6 +48,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -95,6 +97,7 @@ import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
 import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
@@ -139,6 +142,7 @@ import io.hotmoka.node.messages.api.AddJarStoreTransactionMessage;
 import io.hotmoka.node.messages.api.AddJarStoreTransactionResultMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
+import io.hotmoka.node.messages.api.EventMessage;
 import io.hotmoka.node.messages.api.GetClassTagMessage;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
@@ -179,6 +183,7 @@ import io.hotmoka.websockets.client.AbstractRemote;
 import io.hotmoka.ws.client.WebSocketException;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
+import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.Session;
 
 /**
@@ -247,6 +252,7 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
     	addSession(POST_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, PostStaticMethodCallTransactionEndpoint::new);
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
+    	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
 
     	try {
         	this.webSocketClient = new WebSocketClient("ws://" + config.getURL() + "/node");
@@ -1603,9 +1609,34 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 		}
 	}
 
+	private class EventsEndpoint extends Endpoint {
+
+		@Override
+		public void onOpen(Session session, EndpointConfig config) {
+			addMessageHandler(session, (Consumer<EventMessage>) AbstractRemoteNode.this::notifyEvent);
+		}
+
+		@Override
+		protected Session deployAt(URI uri) throws DeploymentException, IOException {
+			return deployAt(uri, EventMessages.Decoder.class);
+		}
+	}
+
 	@Override
 	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
 		return subscriptions.subscribeToEvents(creator, handler);
+	}
+
+	/**
+	 * Notifies the given event message to all event handlers for the creator of the event.
+	 * 
+	 * @param message the event message
+	 */
+	private void notifyEvent(EventMessage message) {
+		StorageReference event = message.getEvent();
+		StorageReference creator = message.getCreator();
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(logPrefix + "received event " + event + " with creator " + creator);
 	}
 
 	/**
@@ -1615,8 +1646,8 @@ public abstract class AbstractRemoteNode extends AbstractRemote<NodeException> i
 	 * @param event the event to notify
 	 */
 	protected final void notifyEvent(StorageReference creator, StorageReference event) {
-		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(logPrefix + event + ": notified as event with creator " + creator);
+		//subscriptions.notifyEvent(creator, event);
+		//LOGGER.info(logPrefix + event + ": notified as event with creator " + creator);
 	}
 
 	/**

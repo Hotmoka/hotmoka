@@ -62,6 +62,7 @@ import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
 import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
@@ -607,4 +608,14 @@ public class MessagesTests extends AbstractLoggedTests {
 		var actual = new PostJarStoreTransactionResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
+
+	@Test
+	@DisplayName("event messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForEvent() throws EncodeException, DecodeException {
+		var expected = EventMessages.of(OBJECT, StorageValues.reference(TRANSACTION_REFERENCE, BigInteger.TWO));
+		String encoded = new EventMessages.Encoder().encode(expected);
+		var actual = new EventMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
 }

@@ -19,6 +19,8 @@ package io.hotmoka.node.service.internal;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -30,7 +32,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.closeables.api.OnCloseHandler;
-import io.hotmoka.network.requests.EventRequestModel;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -51,6 +52,7 @@ import io.hotmoka.node.messages.AddJarStoreTransactionMessages;
 import io.hotmoka.node.messages.AddJarStoreTransactionResultMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionMessages;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
+import io.hotmoka.node.messages.EventMessages;
 import io.hotmoka.node.messages.GetClassTagMessages;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.GetConsensusConfigMessages;
@@ -105,10 +107,10 @@ import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.service.api.NodeService;
 import io.hotmoka.node.service.api.NodeServiceConfig;
-import io.hotmoka.node.service.internal.websockets.WebSocketsEventController;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.server.AbstractServerEndpoint;
 import io.hotmoka.websockets.server.AbstractWebSocketServer;
+import jakarta.websocket.CloseReason;
 import jakarta.websocket.DeploymentException;
 import jakarta.websocket.EndpointConfig;
 import jakarta.websocket.Session;
@@ -124,6 +126,12 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 	 * The node for which the service is created.
 	 */
 	private final Node node;
+
+	/**
+	 * The sessions connected to this server. We take note of them so that
+	 * we know whom to inform when the {@link #node} fires an event.
+	 */
+	private final Set<Session> eventSessions = ConcurrentHashMap.newKeySet();
 
 	private final ConfigurableApplicationContext context;
 
@@ -165,6 +173,8 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): ";
 		this.context = SpringApplication.run(Application.class, springArgumentsFor(config));
     	this.context.getBean(Application.class).setNode(node);
+
+    	// all events (regardless of their creator) get forwarded to the bound remotes
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
     	// TODO: remove the +2 at the end
@@ -178,7 +188,8 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
    			AddInstanceMethodCallTransactionEndpoint.config(this), AddStaticMethodCallTransactionEndpoint.config(this),
    			PostConstructorCallTransactionEndpoint.config(this), PostJarStoreTransactionEndpoint.config(this),
    			PostInstanceMethodCallTransactionEndpoint.config(this), PostStaticMethodCallTransactionEndpoint.config(this),
-   			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this)
+   			RunInstanceMethodCallTransactionEndpoint.config(this), RunStaticMethodCallTransactionEndpoint.config(this),
+   			EventEndpoint.config(this)
    		);
 
     	// if the node gets closed, then this service will be closed as well
@@ -198,7 +209,49 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 		}
     }
 
-    /**
+    private void addSession(Session session) {
+		eventSessions.add(session);
+		LOGGER.info(logPrefix + "bound a new remote through session " + session.getId());
+		LOGGER.info("DONE DONE DONE DONE DONE DONE DONE");
+	}
+
+	private void removeSession(Session session) {
+		eventSessions.remove(session);
+		LOGGER.info(logPrefix + "unbound the remote at session " + session.getId());
+	}
+
+	protected void onEvent(StorageReference creator, StorageReference event, Session session) {
+		LOGGER.info(logPrefix + "publishing event " + event + " with creator " + creator);
+
+		try {
+			sendObjectAsync(session, EventMessages.of(creator, event));
+		}
+		catch (IOException e) {
+			LOGGER.log(Level.SEVERE, logPrefix + "cannot send to session: it might be closed: " + e.getMessage());
+		}
+	};
+
+	/**
+	 * The endpoint used to propagate the events to the bound remotes.
+	 */
+	public static class EventEndpoint extends AbstractServerEndpoint<NodeServiceImpl> {
+
+		@Override
+	    public void onOpen(Session session, EndpointConfig config) {
+			getServer().addSession(session);
+	    }
+
+	    @Override
+		public void onClose(Session session, CloseReason closeReason) {
+	    	getServer().removeSession(session);
+	    }
+
+		private static ServerEndpointConfig config(NodeServiceImpl server) {
+			return simpleConfig(server, EventEndpoint.class, EVENTS_ENDPOINT, EventMessages.Encoder.class);
+		}
+	}
+
+	/**
 	 * Sends an exception message to the given session.
 	 * 
 	 * @param session the session
@@ -863,7 +916,9 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     }
 
     private void publishEvent(StorageReference creator, StorageReference event) {
-		WebSocketsEventController controller = this.context.getBean(WebSocketsEventController.class);
-		controller.addEvent(new EventRequestModel(creator, event));
+    	//WebSocketsEventController controller = this.context.getBean(WebSocketsEventController.class);
+		//controller.addEvent(new EventRequestModel(creator, event));
+		eventSessions.forEach(session -> onEvent(creator, event, session));
+		//LOGGER.info(logPrefix + "published event " + event);
     }
 }
