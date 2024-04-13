@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -169,8 +169,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	// all events (regardless of their creator) get forwarded to the bound remotes
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
-    	// TODO: remove the +2 at the end
-    	startContainer("", config.getPort() + 2,
+    	startContainer("", config.getPort(),
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),

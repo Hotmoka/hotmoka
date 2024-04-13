@@ -29,5 +29,5 @@ module io.hotmoka.beans {
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
 	requires io.takamaka.code.constants;
-	requires com.google.gson;
+	requires static com.google.gson;
 }

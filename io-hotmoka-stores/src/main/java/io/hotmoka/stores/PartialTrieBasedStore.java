@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
@@ -28,8 +25,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.BeanUnmarshallingContexts;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -239,7 +234,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Commits to the database all data written from the last call to {@link #beginTransaction(long)}.
+	 * Commits to the database all data written from the last call to {@link #beginTransaction()}.
 	 * This does not change the view of the store, since its roots are not updated,
 	 * unless the hash returned by this method gets later checked out to update the roots.
 	 * 
@@ -307,7 +302,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Yields the Xodus transaction active between {@link #beginTransaction(long)} and
+	 * Yields the Xodus transaction active between {@link #beginTransaction()} and
 	 * {@link #commitTransaction()}. This is where store updates must be written.
 	 * 
 	 * @return the transaction
@@ -317,7 +312,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Determines if the store is between a {@link #beginTransaction(long)} and a
+	 * Determines if the store is between a {@link #beginTransaction()} and a
 	 * {@link #commitTransaction()}.
 	 * 
 	 * @return true if and only if that condition holds
@@ -407,18 +402,5 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 				return false;
 
 		return true;
-	}
-
-	protected static ByteIterable intoByteArray(StorageReference reference) throws UncheckedIOException {
-		return ByteIterable.fromBytes(reference.toByteArrayWithoutSelector()); // more optimized than a normal marshallable
-	}
-
-	protected static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {
-		try (var context = BeanUnmarshallingContexts.of(new ByteArrayInputStream(bytes.getBytes()))) {
-			return context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
-		}
-		catch (IOException e) {
-			throw new UncheckedIOException(e);
-		}
 	}
 }

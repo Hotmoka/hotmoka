@@ -165,7 +165,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	/**
 	 * The private key of the gamete.
 	 */
-	protected static final PrivateKey privateKeyOfGamete;
+	private static final PrivateKey privateKeyOfGamete;
 
 	private final static Logger LOGGER = Logger.getLogger(HotmokaTest.class.getName());
 
@@ -343,7 +343,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return node.getTakamakaCode();
 	}
 
-	protected static TransactionReference jar() {
+	protected final static TransactionReference jar() {
 		return jar;
 	}
 
@@ -460,7 +460,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return Files.readAllBytes(pathOfExample(fileName));
 	}
 
-	protected static Path pathOfExample(String fileName) {
+	private static Path pathOfExample(String fileName) {
 		return Paths.get("../io-hotmoka-examples/target/io-hotmoka-examples-" + AbstractLocalNode.HOTMOKA_VERSION + '-' + fileName);
 	}
 
@@ -549,7 +549,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * @return the balance
 	 * @throws TransactionRejectedException if the balance cannot be found
 	 */
-	protected static BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
+	protected final BigInteger getBalanceOf(StorageReference account) throws TransactionRejectedException {
 		try {
 			// we ask the account: 10,000 units of gas should be enough to run the method
 			var classTag = node.getClassTag(account);

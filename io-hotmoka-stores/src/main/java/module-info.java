@@ -14,6 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+/**
+ * This module implements the store where Hotmoka nodes can persist data.
+ */
 module io.hotmoka.stores {
 	exports io.hotmoka.stores;
 	requires transitive io.hotmoka.beans;

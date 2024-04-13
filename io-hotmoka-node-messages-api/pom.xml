@@ -19,11 +19,22 @@
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-api</artifactId>
       <version>${hotmoka.version}</version>
+      <scope>provided</scope> <!-- since it's only used for the compilation of some comments -->
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans-api</artifactId>
+      <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka.websockets</groupId>
       <artifactId>io-hotmoka-websockets-beans-api</artifactId>
       <version>${io.hotmoka.websockets.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.annotations</groupId>
+      <artifactId>io-hotmoka-annotations</artifactId>
+      <version>${io.hotmoka.annotations.version}</version>
     </dependency>
   </dependencies>
 

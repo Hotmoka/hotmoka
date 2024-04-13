@@ -25,7 +25,7 @@
       <artifactId>io-takamaka-code-constants</artifactId>
       <version>${io.takamaka.code.version}</version>
     </dependency>
-    <!-- the next dependency is not used but it is jandy to have it in the modules directory -->
+    <!-- the next dependency is not used but it is handy to have it in the modules directory -->
     <!-- since it is useful to the users of moka -->
     <dependency>
       <groupId>io.hotmoka</groupId>
@@ -50,6 +50,26 @@
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node-remote</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-whitelisting-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-beans</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-local</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
 	<dependency>
@@ -121,7 +141,6 @@
                 grpc-protobuf-lite,
                 guava,
                 j2objc-annotations,
-                jakarta.annotation-api,
                 jsr305,
                 kotlin-logging,
                 kotlin-stdlib,
@@ -130,8 +149,6 @@
                 perfmark-api,
                 proto-google-common-protos,
                 slf4j-api,
-                snakeyaml,
-                tomcat-embed-el,
                 xodus-compress,
                 xodus-environment,
                 xodus-openAPI,
@@ -149,11 +166,11 @@
               <outputDirectory>./modules/automatic</outputDirectory>
               <includeArtifactIds>
                 bcel,
+                grpc-stub,
                 io-hotmoka-node-tendermint-abci,
                 io-hotmoka-xodus,
-                grpc-stub,
-                protobuf-java,
-                javax.annotation-api
+                javax.annotation-api,
+                protobuf-java
               </includeArtifactIds>
             </configuration>
           </execution>
@@ -182,7 +199,6 @@
                 grpc-protobuf-lite,
                 guava,
                 j2objc-annotations,
-                jakarta.annotation-api,
                 jsr305,
                 kotlin-logging,
                 kotlin-stdlib,
@@ -191,8 +207,6 @@
                 perfmark-api,
                 proto-google-common-protos,
                 slf4j-api,
-                snakeyaml,
-                tomcat-embed-el,
                 xodus-compress,
                 xodus-environment,
                 xodus-openAPI,
@@ -200,11 +214,11 @@
 
                 <!-- we exclude all automatic modules -->
                 bcel,
+                grpc-stub,
                 io-hotmoka-node-tendermint-abci,
                 io-hotmoka-xodus,
-                grpc-stub,
-                protobuf-java,
-                javax.annotation-api
+                javax.annotation-api,
+                protobuf-java
               </excludeArtifactIds>
             </configuration>
           </execution>

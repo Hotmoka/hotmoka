@@ -15,7 +15,7 @@ By using the maven-flatten-plugin, this pom.xml allows us to use properties to d
 the versions of the artifacts: the properties will be replaced by their value in the deployed artifacts.
 Moreover, this makes the parent pom useless, hence it is not deployed.
 Note: submodules whose artifact must be deployed on Maven Central must activate the Nexus staging plugin
-(see for instance the pom-xml of the io-hotmoka-beans submodule).
+(see for instance the pom-xml of the io-hotmoka-node submodule).
 
 -->
 
@@ -145,13 +145,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
       <artifactId>io-hotmoka-testing</artifactId>
       <version>${io.hotmoka.testing.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <!-- this forces version 2.1.0, it should be removed after Spring gets removed -->
-	<dependency>
-      <groupId>jakarta.websocket</groupId>
-      <artifactId>jakarta.websocket-api</artifactId>
-      <version>2.1.0</version>
     </dependency>
   </dependencies>
 

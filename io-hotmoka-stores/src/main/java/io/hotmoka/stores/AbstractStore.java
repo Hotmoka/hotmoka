@@ -136,7 +136,6 @@ public abstract class AbstractStore implements Store {
 	 *                replacing its previous history; this is in chronological order,
 	 *                from newest transactions to oldest; hence the last transaction is
 	 *                that when the object has been created
-	 * @throws IOException if there was an I/O error
 	 */
 	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 

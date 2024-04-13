@@ -46,10 +46,25 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-helpers-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.exceptions</groupId>
       <artifactId>io-hotmoka-exceptions</artifactId>
       <version>${io.hotmoka.exceptions.version}</version>
     </dependency>
+    <dependency>
+      <groupId>com.google.protobuf</groupId>
+      <artifactId>protobuf-java</artifactId>
+      <version>3.21.7</version>
+	</dependency>
 	<dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>

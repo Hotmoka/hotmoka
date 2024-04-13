@@ -27,11 +27,11 @@ module io.hotmoka.node.local {
 
 	requires transitive io.hotmoka.node.local.api;
 	requires transitive io.hotmoka.node;
+	requires transitive io.hotmoka.closeables.api;
+	requires io.hotmoka.crypto;
 	requires io.hotmoka.stores;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.beans;
 	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.verification;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.closeables;

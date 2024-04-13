@@ -22,15 +22,17 @@ module io.hotmoka.moka {
 	opens io.hotmoka.moka to info.picocli; // for injecting CLI options
     opens io.hotmoka.moka.internal to info.picocli; // for injecting CLI options
 
+    requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
 	requires io.hotmoka.node.disk;
 	requires io.hotmoka.node.local;
 	requires io.hotmoka.node.service;
 	requires io.hotmoka.node.remote;
 	requires io.hotmoka.instrumentation;
-	requires io.hotmoka.whitelisting;
+	requires io.hotmoka.whitelisting.api;
+	requires io.hotmoka.beans;
 	requires io.takamaka.code.constants;
 	requires info.picocli;
 	requires java.logging;
-    requires jdk.unsupported;
+    //requires jdk.unsupported;
 }

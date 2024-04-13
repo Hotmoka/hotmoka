@@ -20,11 +20,8 @@ limitations under the License.
 module io.hotmoka.node.local.api {
 	exports io.hotmoka.node.local.api;
 
-	requires transitive io.hotmoka.beans; // TODO: api?
-	requires transitive io.hotmoka.crypto.api;
-	requires io.hotmoka.annotations;
 	requires transitive io.hotmoka.node.api;
-	requires io.hotmoka.stores;
+	requires io.hotmoka.annotations;
+	requires io.hotmoka.stores; // TODO: this should be io.hotmoka.stores.api
 	requires io.hotmoka.verification.api;
-	requires io.hotmoka.whitelisting.api;
 }

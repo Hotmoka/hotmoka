@@ -22,8 +22,24 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-node</artifactId>
+      <artifactId>io-hotmoka-beans</artifactId>
       <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-node-api</artifactId>
+      <version>${hotmoka.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka.exceptions</groupId>
+      <artifactId>io-hotmoka-exceptions</artifactId>
+      <version>${io.hotmoka.exceptions.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka.websockets</groupId>

@@ -36,11 +36,6 @@
       <version>${io.hotmoka.exceptions.version}</version>
     </dependency>
 	<dependency>
-      <groupId>org.apache.bcel</groupId>
-      <artifactId>bcel</artifactId>
-      <version>6.7.0</version>
-	</dependency>
-	<dependency>
       <groupId>org.jboss.shrinkwrap.resolver</groupId>
       <artifactId>shrinkwrap-resolver-api-maven</artifactId>
       <version>3.3.0</version>

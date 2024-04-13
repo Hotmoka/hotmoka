@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ module io.hotmoka.node.remote {
     requires io.hotmoka.node.messages;
     requires io.hotmoka.node.service.api;
     requires io.hotmoka.node;
-    requires io.hotmoka.beans;
     requires io.hotmoka.annotations;
 	requires io.hotmoka.websockets.client;
 	requires io.hotmoka.websockets.beans;

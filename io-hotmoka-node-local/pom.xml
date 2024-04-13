@@ -36,6 +36,11 @@
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-stores</artifactId>
       <version>${hotmoka.version}</version>
@@ -43,11 +48,6 @@
     <dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-whitelisting</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-verification</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
@@ -61,9 +61,9 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka.closeables</groupId>
+      <artifactId>io-hotmoka-closeables</artifactId>
+      <version>${io.hotmoka.closeables.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>

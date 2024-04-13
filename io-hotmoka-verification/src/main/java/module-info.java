@@ -20,10 +20,9 @@ limitations under the License.
 module io.hotmoka.verification {
 	exports io.hotmoka.verification;
 	exports io.hotmoka.verification.errors;
+
 	requires transitive io.hotmoka.verification.api;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.whitelisting;
 	requires io.hotmoka.exceptions;
-	requires transitive org.apache.bcel;
-	requires static java.logging;
 }

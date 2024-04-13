@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,16 +23,13 @@ module io.hotmoka.node.service {
 	opens io.hotmoka.node.service.internal to org.glassfish.tyrus.core;
 
     requires transitive io.hotmoka.node.service.api;
-    requires transitive io.hotmoka.node;
-	requires transitive io.hotmoka.beans;
+    requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.closeables.api;
 	requires io.hotmoka.node.messages;
-	requires io.hotmoka.annotations;	
+	requires io.hotmoka.annotations;
 	requires io.hotmoka.websockets.server;
 	requires io.hotmoka.websockets.beans;
-	requires transitive jakarta.websocket.client;
-	requires org.glassfish.tyrus.core;
-    requires com.google.gson;
-    requires java.instrument;
+	requires static org.glassfish.tyrus.core;
     requires java.logging;
     requires transitive toml4j;
 }

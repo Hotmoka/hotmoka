@@ -24,9 +24,10 @@ module io.hotmoka.node.messages {
 	opens io.hotmoka.node.messages.internal.gson to com.google.gson;
 
 	requires transitive io.hotmoka.node.messages.api;
-	requires io.hotmoka.node.api;
-	requires io.hotmoka.node;
+	requires io.hotmoka.crypto;
+	requires io.hotmoka.beans;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
-	requires com.google.gson;
+	requires static io.hotmoka.node.api;
+	requires static com.google.gson;
 }

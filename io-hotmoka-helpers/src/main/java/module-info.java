@@ -26,5 +26,5 @@ module io.hotmoka.helpers {
 	requires transitive io.hotmoka.crypto;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.closeables;
+	requires io.hotmoka.closeables.api;
 }

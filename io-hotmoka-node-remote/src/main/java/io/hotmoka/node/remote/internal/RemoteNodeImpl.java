@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Dinu Berinde and Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -184,7 +184,7 @@ import jakarta.websocket.Session;
  * Shared implementation of a node that forwards all its calls to a remote service.
  */
 @ThreadSafe
-public class AbstractRemoteNode extends AbstractRemote<NodeException> implements RemoteNode {
+public class RemoteNodeImpl extends AbstractRemote<NodeException> implements RemoteNode {
 
     /**
      * The configuration of the node.
@@ -201,7 +201,7 @@ public class AbstractRemoteNode extends AbstractRemote<NodeException> implements
 	 */
 	private final String logPrefix;
 
-	private final static Logger LOGGER = Logger.getLogger(AbstractRemoteNode.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(RemoteNodeImpl.class.getName());
 
 	/**
      * Builds the remote node.
@@ -210,14 +210,12 @@ public class AbstractRemoteNode extends AbstractRemote<NodeException> implements
 	 * @throws DeploymentException if the remote node could not be deployed
 	 * @throws IOException if the remote node could not be created
      */
-    public AbstractRemoteNode(RemoteNodeConfig config) throws IOException, DeploymentException {
+    public RemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
     	super(100_000L); // TODO: this should be contained in the config
 
-    	String modifiedURL = config.getURL().substring(0, config.getURL().length() - 1); // TODO: remove this +2 at the end
-    	modifiedURL += (char) (config.getURL().charAt(config.getURL().length() - 1) + 2);
-    	URI uri = URI.create("ws://" + modifiedURL); // TODO: the URI should already be in the config
+    	URI uri = URI.create("ws://" + config.getURL()); // TODO: the URI should already be in the config
     	this.config = config;
-    	this.logPrefix = "node remote(ws://" + config.getURL() + "): "; // TODO: just uri at the end
+    	this.logPrefix = "node remote(" + uri + "): ";
 
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);
     	addSession(GET_CONSENSUS_CONFIG_ENDPOINT, uri, GetConsensusConfigEndpoint::new);
@@ -1589,7 +1587,7 @@ public class AbstractRemoteNode extends AbstractRemote<NodeException> implements
 
 		@Override
 		public void onOpen(Session session, EndpointConfig config) {
-			addMessageHandler(session, (Consumer<EventMessage>) AbstractRemoteNode.this::notifyEvent);
+			addMessageHandler(session, (Consumer<EventMessage>) RemoteNodeImpl.this::notifyEvent);
 		}
 
 		@Override
