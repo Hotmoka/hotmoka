@@ -158,7 +158,6 @@ public class InitDisk extends AbstractCommand {
 
 		private void printBanner() {
 			System.out.println("The node has been published at localhost:" + networkConfig.getPort());
-			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {

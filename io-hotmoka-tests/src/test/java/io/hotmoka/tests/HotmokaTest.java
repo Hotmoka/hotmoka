@@ -295,8 +295,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		NodeServices.of(serviceConfig, exposed);
 
 		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
-			// comment for using http
-			//.usesWebSockets(true)
 			.setURL("localhost:8080")
 			.build();
 

@@ -240,6 +240,8 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
     	addSession(RUN_INSTANCE_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunInstanceMethodCallTransactionEndpoint::new);
     	addSession(RUN_STATIC_METHOD_CALL_TRANSACTION_ENDPOINT, uri, RunStaticMethodCallTransactionEndpoint::new);
     	addSession(EVENTS_ENDPOINT, uri, EventsEndpoint::new);
+
+    	LOGGER.info(logPrefix + "connected");
     }
 
     @Override

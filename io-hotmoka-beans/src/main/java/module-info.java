@@ -30,4 +30,8 @@ module io.hotmoka.beans {
 	requires io.hotmoka.websockets.beans;
 	requires io.takamaka.code.constants;
 	requires static com.google.gson;
+
+	// this makes sun.misc.Unsafe accessible, so that Gson can instantiate
+	// classes without the no-args constructor
+	requires jdk.unsupported;
 }

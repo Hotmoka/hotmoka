@@ -160,10 +160,6 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 	 */
     public NodeServiceImpl(NodeServiceConfig config, Node node) throws DeploymentException, IOException {
     	this.node = node;
-
-    	// we disable Spring's logging otherwise it will interfere with Hotmoka's logging
-		System.setProperty("org.springframework.boot.logging.LoggingSystem", "none");
-
 		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): ";
 
     	// all events (regardless of their creator) get forwarded to the bound remotes
