@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.StorageValues;
@@ -54,8 +55,8 @@ public class Send extends AbstractCommand {
 	@Option(names = { "--amount-red" }, description = "the amount of red coins sent to the contract", defaultValue = "0")
     private BigInteger amountRed;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--anonymous" }, description = "send coins anonymously to a key")
 	private boolean anonymous;
@@ -89,7 +90,7 @@ public class Send extends AbstractCommand {
 
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
 
-			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				if ("faucet".equals(payer))
 					sendCoinsFromFaucet();
 				else if (looksLikePublicKey(destination)) {

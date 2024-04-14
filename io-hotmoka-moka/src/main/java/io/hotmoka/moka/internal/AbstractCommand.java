@@ -45,8 +45,6 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
-import io.hotmoka.node.remote.api.RemoteNodeConfig;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -75,10 +73,6 @@ public abstract class AbstractCommand implements Runnable {
 	}
 
 	protected abstract void execute() throws Exception;
-
-	protected final static RemoteNodeConfig remoteNodeConfig(String url) {
-		return RemoteNodeConfigBuilders.defaults().setURL(url).build();
-	}
 
 	/**
 	 * Reconstructs the key pair of the given account, from the entropy contained in the PEM file with the name of the account.

@@ -45,9 +45,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -107,7 +105,7 @@ public class InitTendermint extends AbstractCommand {
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
 	private boolean interactive;
 
-	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8001")
 	private int port;
 
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
@@ -132,7 +130,6 @@ public class InitTendermint extends AbstractCommand {
 	}
 
 	private class Run {
-		private final NodeServiceConfig networkConfig;
 		private final InitializedNode initialized;
 
 		private Run() throws Exception {
@@ -143,10 +140,6 @@ public class InitTendermint extends AbstractCommand {
 				.setTendermintConfigurationToClone(tendermintConfig)
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
-				.build();
-
-			networkConfig = NodeServiceConfigBuilders.defaults()
-				.setPort(port)
 				.build();
 
 			BigInteger deltaSupply;
@@ -173,7 +166,7 @@ public class InitTendermint extends AbstractCommand {
 
 			try (var node = TendermintNodes.init(nodeConfig, consensus);
 				 var initialized = this.initialized = TendermintInitializedNodes.of(node, consensus, Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				 var service = NodeServices.of(networkConfig, initialized)) {
+				 var service = NodeServices.of(initialized, port)) {
 
 				bindValidators();
 				cleanUp();
@@ -236,8 +229,7 @@ public class InitTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + networkConfig.getPort());
-			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
+			System.out.println("The node has been published at ws://localhost:" + port);
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {

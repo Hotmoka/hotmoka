@@ -3,7 +3,7 @@
 
 # In order to publish a node at port 80:
 #   moka create-key
-#   docker run -dit -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8080 -p 26656:26656 -v chain:/home/blueknot/chain veroforchain/tendermint-node-arm64:latest init
+#   docker run -dit -e KEY_OF_GAMETE=key -e CHAIN_ID=id -p 80:8001 -p 26656:26656 -v chain:/home/blueknot/chain veroforchain/tendermint-node-arm64:latest init
 
 FROM arm64v8/openjdk:19-jdk-slim
 LABEL "maintainer"="fausto.spoto@vero4chain.it"

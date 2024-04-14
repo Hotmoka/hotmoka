@@ -170,7 +170,6 @@ import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionResultMessag
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.node.remote.api.RemoteNode;
-import io.hotmoka.node.remote.api.RemoteNodeConfig;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.beans.api.ExceptionMessage;
 import io.hotmoka.websockets.beans.api.RpcMessage;
@@ -185,11 +184,6 @@ import jakarta.websocket.Session;
  */
 @ThreadSafe
 public class RemoteNodeImpl extends AbstractRemote<NodeException> implements RemoteNode {
-
-    /**
-     * The configuration of the node.
-     */
-    protected final RemoteNodeConfig config;
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -206,15 +200,15 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	/**
      * Builds the remote node.
      *
-     * @param config the configuration of the node
+	 * @param uri the URI of the network service that gets bound to the remote node
+	 * @param timeout the time (in milliseconds) allowed for a call to the network service;
+	 *                beyond that threshold, a timeout exception is thrown
 	 * @throws DeploymentException if the remote node could not be deployed
 	 * @throws IOException if the remote node could not be created
      */
-    public RemoteNodeImpl(RemoteNodeConfig config) throws IOException, DeploymentException {
-    	super(100_000L); // TODO: this should be contained in the config
+    public RemoteNodeImpl(URI uri, long timeout) throws IOException, DeploymentException {
+    	super(timeout);
 
-    	URI uri = URI.create("ws://" + config.getURL()); // TODO: the URI should already be in the config
-    	this.config = config;
     	this.logPrefix = "node remote(" + uri + "): ";
 
     	addSession(GET_NODE_INFO_ENDPOINT, uri, GetNodeInfoEndpoint::new);

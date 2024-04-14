@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PublicKey;
@@ -46,8 +47,8 @@ public class CreateAccount extends AbstractCommand {
 	@Parameters(description = "the initial balance of the account", defaultValue = "0")
 	private BigInteger balance;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for the creation, or the string \"faucet\"", defaultValue = "faucet")
     private String payer;
@@ -97,7 +98,7 @@ public class CreateAccount extends AbstractCommand {
 			if (createTendermintValidator)
 				signature = "ed25519";
 
-			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getConsensusConfig() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
 

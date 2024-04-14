@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.net.URI;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
@@ -45,8 +46,8 @@ public class State extends AbstractCommand {
 	@Parameters(index = "0", description = "the reference to the object")
     private String object;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--api" }, description = "print the public API of the object")
     private boolean api;
@@ -65,7 +66,7 @@ public class State extends AbstractCommand {
 			checkStorageReference(object);
 			var reference = StorageValues.reference(object);
 
-			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 
@@ -100,7 +101,7 @@ public class State extends AbstractCommand {
 
 		private void printHeader() {
 			ClassType clazz = tag.getClazz();
-			System.out.println(ANSI_RED + "\nThis is the state of object " + object + "@" + url + "\n");
+			System.out.println(ANSI_RED + "\nThis is the state of object " + object + "@" + uri + "\n");
 			System.out.println(ANSI_RESET + "class " + clazz + " (from jar installed at " + tag.getJar() + ")");
 		}
 

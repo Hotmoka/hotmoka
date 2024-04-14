@@ -21,6 +21,7 @@ import static io.hotmoka.beans.StorageTypes.GAMETE;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.MethodSignatures;
@@ -47,8 +48,8 @@ public class Faucet extends AbstractCommand {
 	@Parameters(description = "the maximal amount of coins sent at each call to the faucet of the node", defaultValue = "0")
     private BigInteger max;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-	private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--password-of-gamete" }, description = "the password of the gamete account; if not specified, it will be asked interactively")
     private String passwordOfGamete;
@@ -70,7 +71,7 @@ public class Faucet extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
-			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				openFaucet();
 			}
 		}

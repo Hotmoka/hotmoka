@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.KeyPair;
@@ -50,8 +51,8 @@ public class Install extends AbstractCommand {
 	@Option(names = { "--payer" }, description = "the reference to the account that pays for installing the jar")
 	private String payer;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-	private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
     private String passwordOfPayer;
@@ -78,7 +79,7 @@ public class Install extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = RemoteNodes.of(uri, 10_000L)) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				checkStorageReference(payer);

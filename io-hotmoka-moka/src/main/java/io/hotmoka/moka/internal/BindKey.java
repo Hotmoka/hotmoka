@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.net.URI;
 import java.nio.file.Paths;
 import java.util.Base64;
 
@@ -43,8 +44,8 @@ public class BindKey extends AbstractCommand {
 	@Option(names = { "--reference" }, description = "the reference to bind to the key, or \"anonymous\" if the key has been charged anonymously", defaultValue = "anonymous")
     private String reference;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Override
 	protected void execute() throws Exception {
@@ -64,7 +65,7 @@ public class BindKey extends AbstractCommand {
 	}
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
-		try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
+		try (var node = RemoteNodes.of(uri, 10_000L)) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
 

@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.tests;
 
 /*
- * MODIFY AT LINE 187 TO SELECT THE NODE IMPLEMENTATION TO TEST.
+ * MODIFY AT LINE 194 TO SELECT THE NODE IMPLEMENTATION TO TEST.
  */
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -81,9 +82,7 @@ import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.remote.RemoteNodeConfigBuilders;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintInitializedNodes;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
@@ -280,6 +279,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		var config = DiskNodeConfigBuilders.defaults()
 			.setMaxGasPerViewTransaction(_10_000_000)
+			.setMaxPollingAttempts(10) // we fix these two so that we know the timeout in case of problems
+			.setPollingDelay(10)
 			.build();
 
 		return DiskNodes.init(config, consensus);
@@ -287,26 +288,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws IOException, DeploymentException {
-		// we use port 8080, so that it does not interfere with the other service opened at port 8081 by the network tests
-		var serviceConfig = NodeServiceConfigBuilders.defaults()
-			.setPort(8080)
-			.build();
-
-		NodeServices.of(serviceConfig, exposed);
-
-		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
-			.setURL("localhost:8080")
-			.build();
-
-		return RemoteNodes.of(remoteNodeConfig);
+		NodeServices.of(exposed, 8001);
+		return RemoteNodes.of(URI.create("ws://localhost:8001"), 100_000L);
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkRemoteNode(String url) throws IOException, DeploymentException {
-		var remoteNodeConfig = RemoteNodeConfigBuilders.defaults()
-			//.setWebSockets(true)
-			.setURL(url).build();
-		return RemoteNodes.of(remoteNodeConfig);
+	private static Node mkRemoteNode(String uri) throws IOException, DeploymentException {
+		return RemoteNodes.of(URI.create(uri), 100_000L);
 	}
 
 	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {

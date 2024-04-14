@@ -56,7 +56,7 @@ echo "  start:  creates a node that connects to an already existing node of a bl
 echo "    MAX_GAS_PER_VIEW: the maximal gas limit allowed when running @View methods"
 echo "      [default: 10000000]"
 echo "    NETWORK_URL: the URL of the already existing node"
-echo "      [default: panarea.hotmoka.io]"
+echo "      [default: ws://panarea.hotmoka.io]"
 echo "    TIMEOUT_COMMIT: commit timeout in seconds, which determines the block creation time"
 echo "      [default: 5]"
 echo "    PUBLIC_KEY_BASE58: the base58-encoded public key of the node if it becomes a validator"

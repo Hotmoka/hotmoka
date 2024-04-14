@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.moka.internal;
 
+import java.net.URI;
+
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
@@ -26,12 +28,12 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class Info extends AbstractCommand {
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Override
 	protected void execute() throws Exception {
-		try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
+		try (var node = RemoteNodes.of(uri, 10_000L)) {
 			System.out.println("\nInfo about the node:\n" + ManifestHelpers.of(node));
 		}
 	}

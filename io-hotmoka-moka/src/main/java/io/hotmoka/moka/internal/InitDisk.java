@@ -36,9 +36,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.disk.api.DiskNode;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.takamaka.code.constants.Constants;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -83,7 +81,7 @@ public class InitDisk extends AbstractCommand {
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
 	private boolean interactive;
 
-	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8001")
 	private int port;
 
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
@@ -99,7 +97,6 @@ public class InitDisk extends AbstractCommand {
 	}
 
 	private class Run {
-		private final NodeServiceConfig networkConfig;
 		private final DiskNode node;
 		private final InitializedNode initialized;
 
@@ -110,10 +107,6 @@ public class InitDisk extends AbstractCommand {
 			var nodeConfig = DiskNodeConfigBuilders.defaults()
 				.setMaxGasPerViewTransaction(maxGasPerView)
 				.setDir(dir)
-				.build();
-
-			networkConfig = NodeServiceConfigBuilders.defaults()
-				.setPort(port)
 				.build();
 
 			BigInteger deltaSupply;
@@ -137,7 +130,7 @@ public class InitDisk extends AbstractCommand {
 			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);
 				var initialized = this.initialized = InitializedNodes.of(node, consensus,
 						Paths.get(takamakaCode.replace("TAKAMAKA-VERSION", Constants.TAKAMAKA_VERSION)));
-				var service = NodeServices.of(networkConfig, node)) {
+				var service = NodeServices.of(node, port)) {
 
 				printManifest();
 				printBanner();
@@ -157,7 +150,7 @@ public class InitDisk extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + networkConfig.getPort());
+			System.out.println("The node has been published at ws://localhost:" + port);
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {

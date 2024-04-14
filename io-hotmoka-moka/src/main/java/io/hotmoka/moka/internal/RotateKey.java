@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 import java.security.PublicKey;
 
@@ -54,8 +55,8 @@ public class RotateKey extends AbstractCommand {
 	@Option(names = { "--password-of-account" }, description = "the password of the account; if not specified, it will be asked interactively")
 	private String passwordOfAccount;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = "--classpath", description = "the classpath used to interpret the account", defaultValue = "the classpath of the account")
     private String classpath;
@@ -88,7 +89,7 @@ public class RotateKey extends AbstractCommand {
 		private final Entropy entropy;
 
 		private Run() throws Exception {
-			try (var node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
 					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).getJar();
 				else

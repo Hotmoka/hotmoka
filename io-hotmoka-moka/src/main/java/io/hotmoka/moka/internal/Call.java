@@ -21,6 +21,7 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -82,8 +83,8 @@ public class Call extends AbstractCommand {
 	@Option(names = { "--class-of-receiver" }, description = "the class of the receiver of the call; this is normally inferred from the run-time type of the receiver but can be specified in case of visibility problems. This is used only for calling instance methods")
     private String classOfReceiver;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and receiver", defaultValue = "the classpath of the receiver")
     private String classpath;
@@ -122,7 +123,7 @@ public class Call extends AbstractCommand {
 		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
-			try (Node node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (Node node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
 					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).getJar();
 				else

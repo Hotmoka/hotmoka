@@ -102,7 +102,6 @@ import io.hotmoka.node.messages.api.PostStaticMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionMessage;
 import io.hotmoka.node.service.api.NodeService;
-import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.websockets.beans.ExceptionMessages;
 import io.hotmoka.websockets.server.AbstractServerEndpoint;
 import io.hotmoka.websockets.server.AbstractWebSocketServer;
@@ -153,19 +152,19 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 	/**
 	 * Yields an implementation of a network service that exposes an API to a given Hotmoka node.
 	 * 
-	 * @param config the configuration of the network
 	 * @param node the Hotmoka node
+	 * @param port the port where the service should be opened
 	 * @throws DeploymentException if the service cannot be deployed
 	 * @throws IOException if an I/O error occurs
 	 */
-    public NodeServiceImpl(NodeServiceConfig config, Node node) throws DeploymentException, IOException {
+    public NodeServiceImpl(Node node, int port) throws DeploymentException, IOException {
     	this.node = node;
-		this.logPrefix = "node service(ws://localhost:" + config.getPort() + "): ";
+		this.logPrefix = "node service(ws://localhost:" + port + "): ";
 
     	// all events (regardless of their creator) get forwarded to the bound remotes
     	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
 
-    	startContainer("", config.getPort(),
+    	startContainer("", port,
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
    			GetManifestEndpoint.config(this), GetClassTagEndpoint.config(this), GetStateEndpoint.config(this),
    			GetRequestEndpoint.config(this), GetResponseEndpoint.config(this), GetPolledResponseEndpoint.config(this),

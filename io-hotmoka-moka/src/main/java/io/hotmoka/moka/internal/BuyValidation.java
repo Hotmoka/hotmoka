@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 
 import io.hotmoka.beans.MethodSignatures;
@@ -55,8 +56,8 @@ public class BuyValidation extends AbstractCommand {
 	@Option(names = { "--password-of-buyer" }, description = "the password of the buyer validator; if not specified, it will be asked interactively")
     private String passwordOfBuyer;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true") 
 	private boolean interactive;
@@ -81,7 +82,7 @@ public class BuyValidation extends AbstractCommand {
 
 			passwordOfBuyer = ensurePassword(passwordOfBuyer, "the buyer validator", interactive, false);
 
-			try (Node node = this.node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (Node node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				TransactionReference takamakaCode = node.getTakamakaCode();

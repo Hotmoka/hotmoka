@@ -21,6 +21,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Executable;
 import java.lang.reflect.Parameter;
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,8 +72,8 @@ public class Create extends AbstractCommand {
 	@Option(names = { "--password-of-payer" }, description = "the password of the payer account; if not specified, it will be asked interactively")
 	private String passwordOfPayer;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = "--classpath", description = "the classpath used to interpret arguments, payer and className", defaultValue = "takamakaCode")
     private String classpath;
@@ -99,7 +100,7 @@ public class Create extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (Node node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (Node node = RemoteNodes.of(uri, 10_000L)) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
 				StorageReference manifest = node.getManifest();
 				var payer = StorageValues.reference(Create.this.payer);

@@ -26,9 +26,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
-import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -49,7 +47,7 @@ public class ResumeTendermint extends AbstractCommand {
 	@Option(names = { "--max-gas-per-view" }, description = "the maximal gas limit accepted for calls to @View methods", defaultValue = "1000000") 
 	private BigInteger maxGasPerView;
 
-	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8001")
 	private int port;
 
 	@Override
@@ -58,7 +56,6 @@ public class ResumeTendermint extends AbstractCommand {
 	}
 
 	private class Run {
-		private final NodeServiceConfig networkConfig;
 		private final TendermintNode node;
 
 		private Run() throws Exception {
@@ -68,11 +65,7 @@ public class ResumeTendermint extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			networkConfig = NodeServiceConfigBuilders.defaults()
-				.setPort(port)
-				.build();
-
-			try (var node = this.node = TendermintNodes.resume(nodeConfig); var service = NodeServices.of(networkConfig, node)) {
+			try (var node = this.node = TendermintNodes.resume(nodeConfig); var service = NodeServices.of(node, port)) {
 				printManifest();
 				printBanner();
 				waitForEnterKey();
@@ -85,8 +78,7 @@ public class ResumeTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + networkConfig.getPort());
-			System.out.println("Try for instance in a browser: http://localhost:" + networkConfig.getPort() + "/get/manifest");
+			System.out.println("The node has been published at ws://localhost:" + port);
 		}
 
 		private void printManifest() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {

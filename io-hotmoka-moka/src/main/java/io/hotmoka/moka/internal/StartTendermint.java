@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.util.Comparator;
 
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -42,7 +41,7 @@ public class StartTendermint extends AbstractCommand {
 	@Option(names = { "--interactive" }, description = "run in interactive mode", defaultValue = "true")
 	private boolean interactive;
 
-	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8080")
+	@Option(names = { "--port" }, description = "the network port for the publication of the service", defaultValue="8001")
 	private int port;
 
 	@Option(names = { "--dir" }, description = "the directory that will contain blocks and state of the node", defaultValue = "chain")
@@ -70,14 +69,10 @@ public class StartTendermint extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			var networkConfig = NodeServiceConfigBuilders.defaults()
-				.setPort(port)
-				.build();
-
 			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.build();
 
-			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeServices.of(networkConfig, node)) {
+			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeServices.of(node, port)) {
 				cleanUp();
 				printBanner();
 				waitForEnterKey();
@@ -103,8 +98,7 @@ public class StartTendermint extends AbstractCommand {
 		}
 
 		private void printBanner() {
-			System.out.println("The node has been published at localhost:" + port);
-			System.out.println("Try for instance in a browser: http://localhost:" + port + "/get/manifest");
+			System.out.println("The node has been published at ws://localhost:" + port);
 		}
 	}
 }

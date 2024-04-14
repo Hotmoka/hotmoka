@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.service.api.NodeService;
-import io.hotmoka.node.service.api.NodeServiceConfig;
 import io.hotmoka.node.service.internal.NodeServiceImpl;
 import jakarta.websocket.DeploymentException;
 
@@ -34,13 +33,13 @@ public abstract class NodeServices {
 	/**
 	 * Yields and starts a network service that exposes a REST API to a given Hotmoka node.
 	 * 
-	 * @param config the configuration of the service
 	 * @param node the Hotmoka node
+	 * @param port the port where the service should be opened
 	 * @return the network service
 	 * @throws DeploymentException if the service cannot be deployed
 	 * @throws IOException if an I/O error occurs
 	 */
-	public static NodeService of(NodeServiceConfig config, Node node) throws DeploymentException, IOException {
-		return new NodeServiceImpl(config, node);
+	public static NodeService of(Node node, int port) throws DeploymentException, IOException {
+		return new NodeServiceImpl(node, port);
 	}
 }

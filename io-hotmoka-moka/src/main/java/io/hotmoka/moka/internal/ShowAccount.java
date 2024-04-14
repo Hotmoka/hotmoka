@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.math.BigInteger;
+import java.net.URI;
 import java.security.KeyPair;
 import java.util.function.Function;
 
@@ -46,8 +47,8 @@ public class ShowAccount extends AbstractCommand {
 	@Parameters(index = "0", description = "the reference of the account to show")
     private String reference;
 
-	@Option(names = { "--url" }, description = "the url of the node (without the protocol)", defaultValue = "localhost:8080")
-    private String url;
+	@Option(names = { "--uri" }, description = "the URI of the node", defaultValue = "ws://localhost:8001")
+    private URI uri;
 
 	@Option(names = { "--balances" }, description = "show the balances of the account")
 	private boolean balances;
@@ -71,7 +72,7 @@ public class ShowAccount extends AbstractCommand {
 		System.out.println("entropy: " + Base64.toBase64String(account.getEntropyAsBytes()));
 
 		if (balances || keys) {
-			try (var node = RemoteNodes.of(remoteNodeConfig(url))) {
+			try (var node = RemoteNodes.of(uri, 10_000L)) {
 				if (balances)
 					showBalances(account, node);
 
