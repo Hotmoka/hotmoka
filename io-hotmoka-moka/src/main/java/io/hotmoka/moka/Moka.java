@@ -33,6 +33,7 @@ import io.hotmoka.moka.internal.InitDisk;
 import io.hotmoka.moka.internal.InitTendermint;
 import io.hotmoka.moka.internal.Install;
 import io.hotmoka.moka.internal.Instrument;
+import io.hotmoka.moka.internal.Node;
 import io.hotmoka.moka.internal.PrintExceptionMessageHandler;
 import io.hotmoka.moka.internal.ResumeTendermint;
 import io.hotmoka.moka.internal.RotateKey;
@@ -69,6 +70,7 @@ import picocli.CommandLine.Command;
 					InitTendermint.class,
 					Install.class,
 					Instrument.class,
+					Node.class,
 			        ResumeTendermint.class,
 			        RotateKey.class,
 			        SellValidation.class,

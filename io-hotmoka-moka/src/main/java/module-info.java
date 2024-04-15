@@ -19,8 +19,12 @@ limitations under the License.
  */
 module io.hotmoka.moka {
 	exports io.hotmoka.moka;
-	opens io.hotmoka.moka to info.picocli; // for injecting CLI options
-    opens io.hotmoka.moka.internal to info.picocli; // for injecting CLI options
+
+	// for injecting CLI options
+	opens io.hotmoka.moka to info.picocli;
+    opens io.hotmoka.moka.internal to info.picocli;
+    opens io.hotmoka.moka.internal.node to info.picocli;
+    opens io.hotmoka.moka.internal.node.manifest to info.picocli;
 
     requires io.hotmoka.helpers;
     requires io.hotmoka.node.tendermint;
@@ -31,8 +35,8 @@ module io.hotmoka.moka {
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting.api;
 	requires io.hotmoka.beans;
+	requires io.hotmoka.cli;
 	requires io.takamaka.code.constants;
 	requires info.picocli;
 	requires java.logging;
-    //requires jdk.unsupported;
 }

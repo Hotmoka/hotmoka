@@ -8,7 +8,7 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka panarea.hotmoka.io
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka ws://panarea.hotmoka.io
 
 TYPE=${1:-hotmoka}
 
@@ -16,18 +16,18 @@ TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
 then
-    NETWORK_URL=${2:-panarea.hotmoka.io}
+    NETWORK_URI=${2:-ws://panarea.hotmoka.io}
     GITHUB_ID=Hotmoka
     CLI=moka
 else
-    NETWORK_URL=${2:-blueknot.vero4chain.it}
+    NETWORK_URI=${2:-ws://blueknot.vero4chain.it}
     GITHUB_ID=Vero4Chain
     CLI=blue
 fi;
 
-VERSION=$(curl --silent http://${NETWORK_URL}/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
+VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
-echo "Buying some crypto and becoming a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URL, version $VERSION:"
+echo "Buying some crypto and becoming a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION:"
 rm -r $DIR 2>/dev/null
 mkdir -m700 $DIR
 
@@ -59,7 +59,7 @@ while true; do
     echo "       waiting..."
     sleep 10
 
-    BINDING=$(./${CLI}/${CLI} bind-key ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --url ${NETWORK_URL} 2>/dev/null)
+    BINDING=$(./${CLI}/${CLI} bind-key ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --uri ${NETWORK_URI} 2>/dev/null)
     LINE1=$(echo "$BINDING"| sed '1!d')
 
     if [[ "$LINE1" == *"has been created"* ]];
@@ -77,7 +77,7 @@ cd ..
 echo " * creating the validator account"
 cd $DIR
 # this account will subsequently accept the validation power sale offer: 1000000 should be enough for that
-RUN=$(./${CLI}/${CLI} create-account 1000000 --key-of-new-account ${VALIDATOR_KEY_BASE58} --payer ${MONEY_ACCOUNT_ADDRESS} --password-of-payer=${PASSWORD} --create-tendermint-validator --interactive=false --print-costs=false --url ${NETWORK_URL})
+RUN=$(./${CLI}/${CLI} create-account 1000000 --key-of-new-account ${VALIDATOR_KEY_BASE58} --payer ${MONEY_ACCOUNT_ADDRESS} --password-of-payer=${PASSWORD} --create-tendermint-validator --interactive=false --print-costs=false --uri ${NETWORK_URI})
 LINE1=$(echo "$RUN"| sed '1!d')
 VALIDATOR_ACCOUNT_ADDRESS=${LINE1:14:66}
 rm ${VALIDATOR_KEY_BASE58}.pem
@@ -89,7 +89,7 @@ cd ..
 echo " * accepting a sale offer of validation power"
 cd $DIR
 echo "     tell the seller to sell validation power to $VALIDATOR_ACCOUNT_ADDRESS"
-MANIFEST=$(./${CLI}/${CLI} info --url ${NETWORK_URL})
+MANIFEST=$(./${CLI}/${CLI} info --uri ${NETWORK_URI})
 LINE=$(echo "$MANIFEST" | grep "validators" | sed '1!d')
 VALIDATORS_ADDRESS=${LINE: -66}
 
@@ -98,23 +98,23 @@ do
     echo "       waiting..."
     sleep 10
 
-    RUN=$(./${CLI}/${CLI} call ${VALIDATORS_ADDRESS} getOffers --use-colors=false --url ${NETWORK_URL})
+    RUN=$(./${CLI}/${CLI} call ${VALIDATORS_ADDRESS} getOffers --use-colors=false --uri ${NETWORK_URI})
     OFFERS_ADDRESS=$(echo "$RUN"| sed '1!d')
-    RUN=$(./${CLI}/${CLI} call ${OFFERS_ADDRESS} size --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --url ${NETWORK_URL})
+    RUN=$(./${CLI}/${CLI} call ${OFFERS_ADDRESS} size --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --uri ${NETWORK_URI})
     NUM_OFFERS=$(echo "$RUN"| sed '1!d')
     for (( INDEX=0; INDEX<${NUM_OFFERS}; INDEX++ ))
     do
-	RUN=$(./${CLI}/${CLI} call ${OFFERS_ADDRESS} select ${INDEX} --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --url ${NETWORK_URL})
+	RUN=$(./${CLI}/${CLI} call ${OFFERS_ADDRESS} select ${INDEX} --class-of-receiver=io.takamaka.code.util.StorageSetView --use-colors=false --uri ${NETWORK_URI})
 	OFFER_ADDRESS=$(echo "$RUN"| sed '1!d')
-	RUN=$(./${CLI}/${CLI} call ${OFFER_ADDRESS} getBuyer --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --url ${NETWORK_URL})
+	RUN=$(./${CLI}/${CLI} call ${OFFER_ADDRESS} getBuyer --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --uri ${NETWORK_URI})
 	BUYER_ADDRESS=$(echo "$RUN"| sed '1!d')
 	if [[ "$BUYER_ADDRESS" == "$VALIDATOR_ACCOUNT_ADDRESS" ]];
 	then
-	    RUN=$(./${CLI}/${CLI} call ${OFFER_ADDRESS} getCost --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --url ${NETWORK_URL})
+	    RUN=$(./${CLI}/${CLI} call ${OFFER_ADDRESS} getCost --class-of-receiver=io.takamaka.code.dao.SharedEntity\$Offer --use-colors=false --uri ${NETWORK_URI})
 	    COST=$(echo "$RUN"| sed '1!d')
 	    if [[ "$COST" == "0" ]];
 	    then
-		./${CLI}/${CLI} buy-validation ${VALIDATOR_ACCOUNT_ADDRESS} ${OFFER_ADDRESS} --password-of-buyer= --interactive=false --print-costs=false --url ${NETWORK_URL} >/dev/null
+		./${CLI}/${CLI} buy-validation ${VALIDATOR_ACCOUNT_ADDRESS} ${OFFER_ADDRESS} --password-of-buyer= --interactive=false --print-costs=false --uri ${NETWORK_URI} >/dev/null
 		break 2
 	    fi;
 	fi;

@@ -11,7 +11,7 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka panarea.hotmoka.io
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka ws://panarea.hotmoka.io
 # where seller is the address of the account that sells the money (for instance, the gamete)
 # and validator is the address of the validator that sends part of its power.
 
@@ -22,18 +22,18 @@ TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
 then
-    NETWORK_URL=${4:-panarea.hotmoka.io}
+    NETWORK_URI=${4:-ws://panarea.hotmoka.io}
     GITHUB_ID=Hotmoka
     CLI=moka
 else
-    NETWORK_URL=${4:-blueknot.vero4chain.it}
+    NETWORK_URI=${4:-ws://blueknot.vero4chain.it}
     GITHUB_ID=Vero4Chain
     CLI=blue
 fi;
 
-VERSION=$(curl --silent http://${NETWORK_URL}/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
+VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
-echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URL, version $VERSION."
+echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION."
 echo "The seller of the crypto is $SELLER_ADDRESS."
 echo "The seller of the validation power is $VALIDATOR_ADDRESS."
 echo "Assuming the pem's of both accounts to be in the $DIR directory."
@@ -48,10 +48,10 @@ cd ../..
 
 echo " * determining the amount of crypto to sell"
 cd $DIR
-MANIFEST=$(./${CLI}/${CLI} info --url ${NETWORK_URL})
+MANIFEST=$(./${CLI}/${CLI} info --uri ${NETWORK_URI})
 LINE=$(echo "$MANIFEST" | grep "validators" | sed '1!d')
 VALIDATORS_ADDRESS=${LINE: -66}
-RUN=$(./${CLI}/${CLI} call ${VALIDATORS_ADDRESS} getInitialSupply --class-of-receiver=io.takamaka.code.governance.Validators --use-colors=false --url ${NETWORK_URL})
+RUN=$(./${CLI}/${CLI} call ${VALIDATORS_ADDRESS} getInitialSupply --class-of-receiver=io.takamaka.code.governance.Validators --use-colors=false --uri ${NETWORK_URI})
 INITIAL_SUPPLY=$(echo "$RUN" | sed '1!d')
 FUND_AMOUNT=$(echo "$INITIAL_SUPPLY/100" | bc)
 echo "   -> $FUND_AMOUNT"
@@ -61,7 +61,7 @@ echo " * determining the amount of validation power to sell"
 cd $DIR
 LINE=$(echo "$MANIFEST" | grep "initial validators" | sed '1!d')
 INITIAL_VALIDATORS_ADDRESS=${LINE:26}
-RUN=$(./${CLI}/${CLI} call ${INITIAL_VALIDATORS_ADDRESS} getTotalShares --class-of-receiver=io.takamaka.code.dao.SharedEntityView --use-colors=false --url ${NETWORK_URL})
+RUN=$(./${CLI}/${CLI} call ${INITIAL_VALIDATORS_ADDRESS} getTotalShares --class-of-receiver=io.takamaka.code.dao.SharedEntityView --use-colors=false --uri ${NETWORK_URI})
 TOTAL_SHARES=$(echo "$RUN" | sed '1!d')
 VALIDATION_AMOUNT=$(echo "$TOTAL_SHARES/100" | bc)
 echo "   -> $VALIDATION_AMOUNT"
@@ -72,13 +72,13 @@ read -p "     key to pay into: " MONEY_ACCOUNT_PUBLIC_KEY_BASE58
 read -s -p "     password of the seller account: " PASSWORD_OF_SELLER
 echo
 cd $DIR
-./${CLI}/${CLI} send ${FUND_AMOUNT} ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --anonymous --payer ${SELLER_ADDRESS} --url ${NETWORK_URL} --interactive=false --password-of-payer=${PASSWORD_OF_SELLER} >/dev/null
+./${CLI}/${CLI} send ${FUND_AMOUNT} ${MONEY_ACCOUNT_PUBLIC_KEY_BASE58} --anonymous --payer ${SELLER_ADDRESS} --uri ${NETWORK_URI} --interactive=false --password-of-payer=${PASSWORD_OF_SELLER} >/dev/null
 cd ..
 
 echo " * creating a sale offer of validation power"
 read -p "     address of the validator account: " VALIDATOR_BUYER_ACCOUNT
 cd $DIR
-./${CLI}/${CLI} sell-validation ${VALIDATOR_ADDRESS} ${VALIDATION_AMOUNT} 0 100000 --buyer ${VALIDATOR_BUYER_ACCOUNT} --interactive=false --password-of-seller= --print-costs=false --url ${NETWORK_URL} >/dev/null
+./${CLI}/${CLI} sell-validation ${VALIDATOR_ADDRESS} ${VALIDATION_AMOUNT} 0 100000 --buyer ${VALIDATOR_BUYER_ACCOUNT} --interactive=false --password-of-seller= --print-costs=false --uri ${NETWORK_URI} >/dev/null
 cd ..
 
 echo " * cleaning up"

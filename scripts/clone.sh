@@ -4,13 +4,13 @@
 # that clones and synchronizes with a remote node
 
 # Source it as follows (to clone the node at panarea.hotmoka.io)
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka panarea.hotmoka.io
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io
 # The validation keys of the node will be randomly generated. If you want to specify
 # such keys (because, for instance, you were a validator already and want to start the
 # same node again) then you can provided the address of the validator account:
 # this script will assume that you possess the corresponding pem file in the
 # hotmoka_node_info directory:
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka panarea.hotmoka.io validator
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io validator
 
 TYPE=${1:-hotmoka}
 
@@ -19,17 +19,17 @@ DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
 then
     DOCKER_ID=hotmoka
-    NETWORK_URL=${2:-panarea.hotmoka.io}
+    NETWORK_URI=${2:-ws://panarea.hotmoka.io}
     GITHUB_ID=Hotmoka
     CLI=moka
 else
     DOCKER_ID=veroforchain
-    NETWORK_URL=${2:-blueknot.vero4chain.it}
+    NETWORK_URI=${2:-ws://blueknot.vero4chain.it}
     GITHUB_ID=Vero4Chain
     CLI=blue
 fi;
 
-VERSION=$(curl --silent http://${NETWORK_URL}/get/nodeID| python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
+VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
 case $(uname -m) in
     arm64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node-arm64:${VERSION};;
@@ -37,7 +37,7 @@ case $(uname -m) in
     x86_64) DOCKER_IMAGE=${DOCKER_ID}/tendermint-node:${VERSION};;
 esac
 
-echo "Starting a node of the $TYPE_CAPITALIZED blockchain at $NETWORK_URL, version $VERSION:"
+echo "Starting a node of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION:"
 docker rm $TYPE 2>/dev/null >/dev/null
 
 if [ ! -z "$3" ]
@@ -54,7 +54,7 @@ then
 
     echo " * extracting keys of the previous validator"
     cd $DIR
-    KEYS=$(./${CLI}/${CLI} show-account ${3} --keys --interactive=false --password= --url ${NETWORK_URL})
+    KEYS=$(./${CLI}/${CLI} show-account ${3} --keys --interactive=false --password= --uri ${NETWORK_URI})
     cd ..
     LINE6=$(echo "$KEYS"| sed '6!d')
     PUBLIC_KEY_BASE58=${LINE6:19}
@@ -75,11 +75,11 @@ fi;
 echo " * starting the docker container"
 if [ ! -z "$3" ]
 then
-    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
+    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 else
 	rm -r $DIR 2>/dev/null
 	mkdir -m700 $DIR
-    docker run -dit --name ${TYPE} -p 80:8080 -p 26656:26656 -e NETWORK_URL=${NETWORK_URL} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
+    docker run -dit --name ${TYPE} -p 80:8080 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 fi;
 
 CONCATENATED_KEYS_BASE64=

@@ -14,7 +14,6 @@ WORKDIR /usr/local/bin
 # install missing packages
 RUN apt-get update \
   && apt-get install -y wget \
-  && apt-get install -y curl \
   && apt-get install -y python3 \
   && rm -rf /var/lib/apt/lists/*
 

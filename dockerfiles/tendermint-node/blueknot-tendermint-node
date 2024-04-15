@@ -14,7 +14,6 @@ WORKDIR /usr/local/bin
 # install missing packages
 RUN apt-get update \
   && apt-get install -y wget \
-  && apt-get install -y curl \
   && apt-get install -y python3 \
   && rm -rf /var/lib/apt/lists/*
 
@@ -36,9 +35,9 @@ RUN mkdir /home/blueknot/chain \
 # install moka and its alias moka-no-logs that does not report logs
 COPY io-hotmoka-moka/modules/ /modules/
 # we add /home/blueknot to the classpath in order to find the logging properties file
-RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
+RUN echo java -Djava.util.logging.config.file=logging.properties --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka \
   && chmod a+x moka \
-  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
+  && echo java --module-path /modules/explicit:/modules/automatic --class-path \"/home/blueknot/:/modules/unnamed/*\" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module io.hotmoka.moka/io.hotmoka.moka.Moka \"\$@\" > moka-no-logs \
   && chmod a+x moka-no-logs
 
 # install the control scripts

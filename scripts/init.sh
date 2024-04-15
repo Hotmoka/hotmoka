@@ -3,13 +3,13 @@
 # an example of a script that starts a brand new blockchain
 # initially consisting of a single node
 
-# source it as follows (to install version 1.0.11):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.11
+# source it as follows (to install version 1.5.0):
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.5.0
 # or (for a test network):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.0.11 test
+# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/init.sh) hotmoka 1.5.0 test
 
 TYPE=${1:-hotmoka}
-VERSION=${2:-1.0.11}
+VERSION=${2:-1.5.0}
 TEST=${3:-false}
 
 TYPE_CAPITALIZED=${TYPE^}
@@ -54,8 +54,10 @@ mkdir -m700 $DIR
 echo " * downloading the blockchain CLI"
 mkdir $DIR/$CLI
 cd $DIR/$CLI
-wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
-tar zxf ${CLI}_${VERSION}.tar.gz
+#wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
+#tar zxf ${CLI}_${VERSION}.tar.gz
+cp -r ~/Gits/hotmoka/io-hotmoka-moka/modules .
+cp -r ~/Gits/hotmoka/io-hotmoka-moka/moka .
 cd ../..
 
 echo " * creating the key of the gamete"
@@ -70,9 +72,9 @@ GAMETE_PUBLIC_KEY_BASE58=${LINE2:19}
 echo " * starting the docker container"
 if [ $TEST = false ];
 then
-    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
+    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -p 80:8001 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
 else
-    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -e OPEN_UNSIGNED_FAUCET=true -p 80:8080 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
+    docker run -dit --name ${TYPE} -e KEY_OF_GAMETE=${GAMETE_PUBLIC_KEY_BASE58} -e CHAIN_ID=${CHAIN_ID} -e INITIAL_SUPPLY=${INITIAL_SUPPLY} -e OPEN_UNSIGNED_FAUCET=true -p 80:8001 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} init >/dev/null
 fi;
 echo " * waiting for the node to complete its initialization"
 sleep 10
@@ -85,7 +87,7 @@ done
 
 echo " * extracting the pem of the validator account"
 cd $DIR
-docker cp ${TYPE}:/home/${TYPE}/extract/. .
+docker cp ${TYPE}:/home/${TYPE}/extract/. . >/dev/null
 VALIDATOR_ACCOUNT=$(ls *#?.pem)
 VALIDATOR_ADDRESS=${VALIDATOR_ACCOUNT:0:66}
 ln -s ${VALIDATOR_ACCOUNT} validator.pem
@@ -94,7 +96,7 @@ cd ..
 
 echo " * extracting the pem of the gamete account"
 cd $DIR
-GAMETE_BINDING=$(./${CLI}/${CLI} bind-key ${GAMETE_PUBLIC_KEY_BASE58} --url localhost:80)
+GAMETE_BINDING=$(./${CLI}/${CLI} bind-key ${GAMETE_PUBLIC_KEY_BASE58} --uri ws://localhost:80)
 LINE1=$(echo "$GAMETE_BINDING"| sed '1!d')
 GAMETE_ADDRESS=${LINE1:14:66}
 ln -s ${GAMETE_ADDRESS}.pem gamete.pem
@@ -102,16 +104,16 @@ ln -s ${GAMETE_ADDRESS}.pem gamete.pem
 cd ..
 
 # useful to fund it, so that it can later sell power
-echo " * providing some funding to the validator account"
+echo " * funding the validator account"
 cd $DIR
-./${CLI}/${CLI} send 500000 ${VALIDATOR_ADDRESS} --interactive=false --password-of-payer=${PASSWORD} --payer=${GAMETE_ADDRESS} --url localhost:80 >/dev/null
+./${CLI}/${CLI} send 500000 ${VALIDATOR_ADDRESS} --interactive=false --password-of-payer=${PASSWORD} --payer=${GAMETE_ADDRESS} --uri ws://localhost:80 >/dev/null
 cd ..
 
 if [ $TEST != false ];
 then
     echo " * opening an unsigned faucet"
     cd $DIR
-    ./${CLI}/${CLI} faucet 10000000000000 --interactive=false --password-of-gamete=${PASSWORD} --url localhost:80
+    ./${CLI}/${CLI} faucet 10000000000000 --interactive=false --password-of-gamete=${PASSWORD} --uri ws://localhost:80
     cd ..
 fi;
 

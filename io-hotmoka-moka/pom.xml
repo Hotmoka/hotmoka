@@ -72,6 +72,11 @@
       <artifactId>io-hotmoka-helpers</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
+    <dependency>
+      <groupId>io.hotmoka.cli</groupId>
+      <artifactId>io-hotmoka-cli</artifactId>
+      <version>${io.hotmoka.cli.version}</version>
+    </dependency>
 	<dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli</artifactId>
