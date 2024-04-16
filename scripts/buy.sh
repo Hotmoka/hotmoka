@@ -87,7 +87,7 @@ cd ..
 
 echo " * accepting a sale offer of validation power"
 cd $DIR
-echo "     tell the seller to sell validation power to $VALIDATOR_ACCOUNT_ADDRESS"
+echo "     tell the seller to sell validation power to the validator $VALIDATOR_ACCOUNT_ADDRESS"
 MANIFEST=$(./${CLI}/${CLI} info --uri ${NETWORK_URI})
 LINE=$(echo "$MANIFEST" | grep "validators" | sed '1!d')
 VALIDATORS_ADDRESS=${LINE: -66}
