@@ -4,13 +4,13 @@
 # that clones and synchronizes with a remote node
 
 # Source it as follows (to clone the node at panarea.hotmoka.io)
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io
 # The validation keys of the node will be randomly generated. If you want to specify
 # such keys (because, for instance, you were a validator already and want to start the
 # same node again) then you can provided the address of the validator account:
 # this script will assume that you possess the corresponding pem file in the
 # hotmoka_node_info directory:
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io validator
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/clone.sh) hotmoka ws://panarea.hotmoka.io validator
 
 TYPE=${1:-hotmoka}
 
@@ -75,11 +75,11 @@ fi;
 echo " * starting the docker container"
 if [ ! -z "$3" ]
 then
-    docker run -dit --name $TYPE -p 80:8080 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
+    docker run -dit --name $TYPE -p 80:8001 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -e PUBLIC_KEY_BASE58=${PUBLIC_KEY_BASE58} -e PUBLIC_KEY_BASE64=${PUBLIC_KEY_BASE64} -e CONCATENATED_KEYS_BASE64=${CONCATENATED_KEYS_BASE64} -e TENDERMINT_ADDRESS=${TENDERMINT_ADDRESS} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 else
 	rm -r $DIR 2>/dev/null
 	mkdir -m700 $DIR
-    docker run -dit --name ${TYPE} -p 80:8080 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
+    docker run -dit --name ${TYPE} -p 80:8001 -p 26656:26656 -e NETWORK_URI=${NETWORK_URI} -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} start >/dev/null
 fi;
 
 CONCATENATED_KEYS_BASE64=

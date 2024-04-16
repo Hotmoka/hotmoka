@@ -4,7 +4,7 @@
 # that resumes an already existing node
 
 # Source it as follows:
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/resume.sh) hotmoka 1.5.0
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/resume.sh) hotmoka 1.5.0
 # No keys will be generated. The node will be resumed as it was when it got stopped.
 
 TYPE=${1:-hotmoka}

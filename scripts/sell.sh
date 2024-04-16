@@ -11,7 +11,7 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka ws://panarea.hotmoka.io
 # where seller is the address of the account that sells the money (for instance, the gamete)
 # and validator is the address of the validator that sends part of its power.
 
