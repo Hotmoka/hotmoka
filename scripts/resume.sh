@@ -45,7 +45,7 @@ docker run -dit --name $TYPE -p 80:8001 -p 26656:26656 -v chain:/home/${TYPE}/ch
 echo " * waiting for the node to complete its initialization"
 sleep 10
 echo "     waiting..."
-while !(moka info --uri ws://localhost:80 2>/dev/null >/dev/null)
+while !(./${CLI}/${CLI} info --uri ws://localhost:80 2>/dev/null >/dev/null)
 do
     echo "     waiting..."
 done
