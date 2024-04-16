@@ -2,14 +2,14 @@
 
 MAX_GAS_PER_VIEW=${MAX_GAS_PER_VIEW:-10000000}
 TIMEOUT_COMMIT=${TIMEOUT_COMMIT:-5}
-NETWORK_URL=${NETWORK_URL:=ws://panarea.hotmoka.io}
-BASE_NETWORK_URL=$(echo $NETWORK_URL | sed s/":.*"/""/g) # remove trailing port, if any
+NETWORK_URI=${NETWORK_URI:=ws://panarea.hotmoka.io}
+BASE_NETWORK_URI=$(echo $NETWORK_URI | sed s/":[0-9][0-9]*"/""/g) # remove trailing port, if any
 
 echo
-echo "Starting a Tendermint node connected to the node at $NETWORK_URL:"
+echo "Starting a Tendermint node connected to the node at $NETWORK_URI:"
 echo "  MAX_GAS_PER_VIEW=$MAX_GAS_PER_VIEW"
-echo "  NETWORK_URL=$NETWORK_URL"
-echo "  BASE_NETWORK_URL=$BASE_NETWORK_URL"
+echo "  NETWORK_URI=$NETWORK_URI"
+echo "  BASE_NETWORK_URI=$BASE_NETWORK_URI"
 echo "  TIMEOUT_COMMIT=$TIMEOUT_COMMIT"
 echo "  PUBLIC_KEY_BASE58=$PUBLIC_KEY_BASE58"
 echo "  PUBLIC_KEY_BASE64=$PUBLIC_KEY_BASE64"
@@ -17,33 +17,33 @@ echo "  CONCATENATED_KEYS_BASE64=$CONCATENATED_KEYS_BASE64"
 echo "  TENDERMINT_ADDRESS=$TENDERMINT_ADDRESS"
 
 # extract information about the remote node, that are needed in order to prepare the Tendermint configuration of the local node
-REMOTE_NODE_ID=$(moka node info --json --uri $NETWORK_URL | python3 -c "import sys, json; print(json.load(sys.stdin)['ID'])")
+REMOTE_NODE_ID=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['ID'])")
 echo "  REMOTE_NODE_ID=$REMOTE_NODE_ID"
-MANIFEST_TRANSACTION=$(moka node manifest address --json --uri $NETWORK_URL | python3 -c "import sys, json; print(json.load(sys.stdin)['transaction']['hash'])")
-MANIFEST_PROGRESSIVE=$(moka node manifest address --json --uri $NETWORK_URL | python3 -c "import sys, json; print(json.load(sys.stdin)['progressive'])")
+MANIFEST_TRANSACTION=$(moka node manifest address --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['transaction']['hash'])")
+MANIFEST_PROGRESSIVE=$(moka node manifest address --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['progressive'])")
 MANIFEST=$MANIFEST_TRANSACTION#$MANIFEST_PROGRESSIVE
 echo "  MANIFEST=$MANIFEST"
-CHAIN_ID=$(moka-no-logs call $MANIFEST getChainId --uri=$NETWORK_URL --print-costs=false --use-colors=false)
+CHAIN_ID=$(moka-no-logs call $MANIFEST getChainId --uri=$NETWORK_URI --print-costs=false --use-colors=false)
 echo "  CHAIN_ID=$CHAIN_ID"
-GENESIS_TIME=$(moka-no-logs call $MANIFEST getGenesisTime --uri=$NETWORK_URL --print-costs=false --use-colors=false)
+GENESIS_TIME=$(moka-no-logs call $MANIFEST getGenesisTime --uri=$NETWORK_URI --print-costs=false --use-colors=false)
 echo "  GENESIS_TIME=$GENESIS_TIME"
-INITIAL_VALIDATORS=$(moka-no-logs call $MANIFEST getInitialValidators --uri=$NETWORK_URL --print-costs=false --use-colors=false)
+INITIAL_VALIDATORS=$(moka-no-logs call $MANIFEST getInitialValidators --uri=$NETWORK_URI --print-costs=false --use-colors=false)
 echo "  INITIAL_VALIDATORS=$INITIAL_VALIDATORS"
-SHARES=$(moka-no-logs call $INITIAL_VALIDATORS getShares --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.dao.SharedEntityView)
+SHARES=$(moka-no-logs call $INITIAL_VALIDATORS getShares --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.dao.SharedEntityView)
 echo "  SHARES=$SHARES"
-NUM_INITIAL_VALIDATORS=$(moka-no-logs call $SHARES size --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+NUM_INITIAL_VALIDATORS=$(moka-no-logs call $SHARES size --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
 echo "  NUM_INITIAL_VALIDATORS=$NUM_INITIAL_VALIDATORS"
 
 # extract information about each single initial validator, that goes into the Tendermint genesis file of the local node
 for (( i=0; i<$NUM_INITIAL_VALIDATORS; i++ ))
 do
-	INITIAL_VALIDATOR=$(moka-no-logs call $SHARES select $i --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+	INITIAL_VALIDATOR=$(moka-no-logs call $SHARES select $i --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
 	echo "    INITIAL_VALIDATOR #$i=$INITIAL_VALIDATOR"
-	ID=$(moka-no-logs call $INITIAL_VALIDATOR id --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.governance.Validator)
+	ID=$(moka-no-logs call $INITIAL_VALIDATOR id --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.governance.Validator)
 	echo "    ID OF INITIAL_VALIDATOR #$i=$ID"
-	PUBLIC_KEY=$(moka-no-logs call $INITIAL_VALIDATOR publicKey --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.lang.ExternallyOwnedAccount)
+	PUBLIC_KEY=$(moka-no-logs call $INITIAL_VALIDATOR publicKey --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.lang.ExternallyOwnedAccount)
 	echo "    PUBLIC KEY OF INITIAL_VALIDATOR #$i=$PUBLIC_KEY"
-	POWER=$(moka-no-logs call $SHARES get $INITIAL_VALIDATOR --uri=$NETWORK_URL --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
+	POWER=$(moka-no-logs call $SHARES get $INITIAL_VALIDATOR --uri=$NETWORK_URI --print-costs=false --use-colors=false --class-of-receiver io.takamaka.code.util.StorageMapView)
 	echo "    POWER OF INITIAL_VALIDATOR #$i=$POWER"
 	
 	# the JSON that goes into the Tendermint genesis file of the local node
@@ -123,7 +123,7 @@ sed -i "s/create_empty_blocks = true/create_empty_blocks = false/g" node0/config
 sed -i '/timeout_commit = /s/".*"/"'${TIMEOUT_COMMIT}s'"/' node0/config/config.toml
 
 # set the remote node as persistent seed
-sed -i '/persistent_peers =/s/".*"/"'$REMOTE_NODE_ID@$BASE_NETWORK_URL:26656'"/' node0/config/config.toml
+sed -i '/persistent_peers =/s/".*"/"'$REMOTE_NODE_ID@$BASE_NETWORK_URI:26656'"/' node0/config/config.toml
 
 # invoke moka in a way that deletes the tendermint configuration that was initially
 # created into node0, so that we do not leave garbage around;

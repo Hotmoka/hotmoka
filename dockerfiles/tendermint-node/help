@@ -55,7 +55,7 @@ echo
 echo "  start:  creates a node that connects to an already existing node of a blockchain"
 echo "    MAX_GAS_PER_VIEW: the maximal gas limit allowed when running @View methods"
 echo "      [default: 10000000]"
-echo "    NETWORK_URL: the URL of the already existing node"
+echo "    NETWORK_URI: the URI of the already existing node"
 echo "      [default: ws://panarea.hotmoka.io]"
 echo "    TIMEOUT_COMMIT: commit timeout in seconds, which determines the block creation time"
 echo "      [default: 5]"
