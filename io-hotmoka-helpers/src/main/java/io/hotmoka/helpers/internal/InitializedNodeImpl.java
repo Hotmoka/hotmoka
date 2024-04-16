@@ -282,7 +282,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws InterruptedException, NodeException {
 		if (!isClosed.getAndSet(true))
 			parent.close();
 	}

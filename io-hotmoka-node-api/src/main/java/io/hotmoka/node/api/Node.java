@@ -53,6 +53,15 @@ import io.hotmoka.closeables.api.OnCloseHandlersContainer;
 public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 
 	/**
+	 * Closes the node.
+	 * 
+	 * @throws InterruptedException if the current thread has been interrupted while closing the node
+	 * @throws NodeException if the node is not able to close correctly
+	 */
+	@Override
+	void close() throws InterruptedException, NodeException;
+
+	/**
 	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
 	 * If this node has some form of commit, then this method returns a reference
 	 * only if the installation of the jar with the Takamaka base classes has been

@@ -60,6 +60,7 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -204,17 +205,26 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public Stream<StorageReference> accounts() { // TODO: throw exception if closed
+	public Stream<StorageReference> accounts() throws ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		return Stream.of(accounts);
 	}
 
 	@Override
-	public StorageReference container() { // TODO: throw exception if closed
+	public StorageReference container() throws ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		return container;
 	}
 
 	@Override
-	public StorageReference account(int i) { // TODO: throw exception if closed
+	public StorageReference account(int i) throws NoSuchElementException, ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		if (i < 0 || i >= accounts.length)
 			throw new NoSuchElementException();
 
@@ -223,12 +233,18 @@ public class AccountsNodeImpl implements AccountsNode {
 
 
 	@Override
-	public Stream<PrivateKey> privateKeys() { // TODO: throw exception if closed
+	public Stream<PrivateKey> privateKeys() throws ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		return Stream.of(privateKeys);
 	}
 
 	@Override
-	public PrivateKey privateKey(int i) { // TODO: throw exception if closed
+	public PrivateKey privateKey(int i) throws NoSuchElementException, ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		if (i < 0 || i >= privateKeys.length)
 			throw new NoSuchElementException();
 
@@ -236,7 +252,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws InterruptedException, NodeException {
 		if (!isClosed.getAndSet(true))
 			parent.close();
 	}

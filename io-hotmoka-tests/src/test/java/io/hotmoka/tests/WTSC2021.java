@@ -89,13 +89,14 @@ class WTSC2021 extends HotmokaTest {
 	private static long totalTime;
 
 	private void run(int num) {
-		StorageReference from = account(num);
-		PrivateKey key = privateKey(num);
-		var random = new Random();
-
 		try {
+			StorageReference from = account(num);
+			PrivateKey key = privateKey(num);
+			var random = new Random();
+			var accounts = accounts().toArray(StorageReference[]::new);
+
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
-				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
+				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> accounts[i]).findAny().get();
 				int amount = 1 + random.nextInt(10);
 				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 				transfers.getAndIncrement();

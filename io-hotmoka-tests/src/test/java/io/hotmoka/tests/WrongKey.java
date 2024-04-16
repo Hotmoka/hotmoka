@@ -19,8 +19,9 @@ package io.hotmoka.tests;
 import static io.hotmoka.helpers.Coin.panarea;
 
 import java.math.BigInteger;
-import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -31,6 +32,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * A test for wrong use of keys for signing a transaction.
@@ -43,7 +45,7 @@ class WrongKey extends HotmokaTest {
 	}
 
 	@Test @DisplayName("constructor call with wrong key fails")
-	void createAbstractFailImpl() throws NoSuchAlgorithmException {
+	void createAbstractFailImpl() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		// the empty signature algorithm cannot fail
 		if (consensus != null && "empty".equals(consensus.getSignature().getName()))
 			return;

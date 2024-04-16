@@ -57,6 +57,7 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.JarsNode;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -154,7 +155,10 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public TransactionReference jar(int i) { // TODO: throw exception if closed
+	public TransactionReference jar(int i) throws ClosedNodeException, NoSuchElementException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+			
 		if (i < 0 || i >= jars.length)
 			throw new NoSuchElementException();
 
@@ -162,7 +166,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws InterruptedException, NodeException {
 		if (!isClosed.getAndSet(true))
 			parent.close();
 	}

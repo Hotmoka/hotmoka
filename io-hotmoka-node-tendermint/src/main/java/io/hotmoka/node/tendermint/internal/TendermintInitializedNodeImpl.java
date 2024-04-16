@@ -213,12 +213,12 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference gamete() { // TODO: throw exception if closed
+	public StorageReference gamete() {
 		return parent.gamete();
 	}
 
 	@Override
-	public void close() throws Exception {
+	public void close() throws InterruptedException, NodeException {
 		if (!isClosed.getAndSet(true))
 			parent.close();
 	}

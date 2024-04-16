@@ -70,20 +70,20 @@ class Bombing extends HotmokaTest {
 	private final AtomicInteger ticket = new AtomicInteger();
 
 	private void run(int num) {
-		StorageReference from = account(num);
-		PrivateKey key = privateKey(num);
-		Random random = new Random();
+		try {
+			StorageReference from = account(num);
+			PrivateKey key = privateKey(num);
+			Random random = new Random();
+			var accounts = accounts().toArray(StorageReference[]::new);
 
-		while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
-			StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(this::account).findAny().get();
-			int amount = 1 + random.nextInt(10);
-
-			try {
+			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
+				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> accounts[i]).findAny().get();
+				int amount = 1 + random.nextInt(10);
 				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
-			catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {
-				e.printStackTrace();
-			}
+		}
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 

@@ -333,23 +333,23 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return jar;
 	}
 
-	protected final StorageReference account(int i) {
+	protected final StorageReference account(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.account(i);
 	}
 
-	protected final Stream<StorageReference> accounts() {
+	protected final Stream<StorageReference> accounts() throws NodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.accounts();
 	}
 
-	protected final StorageReference containerOfAccounts() {
+	protected final StorageReference containerOfAccounts() throws NodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.container();
 	}
 
-	protected final Stream<PrivateKey> privateKeys() {
+	protected final Stream<PrivateKey> privateKeys() throws NodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.privateKeys();
 	}
 
-	protected final PrivateKey privateKey(int i) {
+	protected final PrivateKey privateKey(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		return nodeWithAccountsView.privateKey(i);
 	}
 

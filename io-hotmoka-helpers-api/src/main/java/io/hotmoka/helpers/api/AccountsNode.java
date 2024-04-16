@@ -18,11 +18,13 @@ package io.hotmoka.helpers.api;
 
 import java.security.PrivateKey;
 import java.util.NoSuchElementException;
+import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * A node that provides access to a previously installed set of accounts.
@@ -34,22 +36,31 @@ public interface AccountsNode extends Node {
 	 * Yields the accounts.
 	 * 
 	 * @return the references to the accounts. This is an instance of {@code io.takamaka.code.lang.Accounts}
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Stream<StorageReference> accounts();
+	Stream<StorageReference> accounts() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the private keys for controlling the accounts.
 	 * 
 	 * @return the private keys, in the same order as {@link #accounts()}
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Stream<PrivateKey> privateKeys();
+	Stream<PrivateKey> privateKeys() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the container of the accounts that have been created.
 	 * 
 	 * @return the container. This is an instance of {@code io.takamaka.code.lang.Accounts}
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference container();
+	StorageReference container() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the {@code i}th account.
@@ -57,8 +68,11 @@ public interface AccountsNode extends Node {
 	 * @param i the account number
 	 * @return the reference to the account, in the store of the node. This is an {@code io.takamaka.code.lang.ExternallyOwnedAccount}
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference account(int i) throws NoSuchElementException;
+	StorageReference account(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the private key for controlling the {@code i}th account.
@@ -66,6 +80,9 @@ public interface AccountsNode extends Node {
 	 * @param i the account number
 	 * @return its private key
 	 * @throws NoSuchElementException if the {@code i}th account does not exist
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	PrivateKey privateKey(int i) throws NoSuchElementException;
+	PrivateKey privateKey(int i) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 }
