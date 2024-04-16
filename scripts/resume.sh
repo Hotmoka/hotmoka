@@ -43,9 +43,7 @@ echo " * starting the docker container"
 docker run -dit --name $TYPE -p 80:8001 -p 26656:26656 -v chain:/home/${TYPE}/chain ${DOCKER_IMAGE} resume >/dev/null
 
 echo " * waiting for the node to complete its initialization"
-sleep 10
-echo "     waiting..."
-while !(./${CLI}/${CLI} info --uri ws://localhost:80 2>/dev/null >/dev/null)
-do
-    echo "     waiting..."
-done
+./${CLI}/${CLI} node info --uri ws://localhost:80 --timeout 200000 2>/dev/null >/dev/null
+echo " * done"
+
+rm -r ${DIR}/${CLI}
