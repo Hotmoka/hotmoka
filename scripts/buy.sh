@@ -33,7 +33,7 @@ mkdir -m700 $DIR
 
 echo " * extracting the pem of the validator key"
 cd $DIR
-docker cp ${TYPE}:/home/${TYPE}/extract/. .
+docker cp ${TYPE}:/home/${TYPE}/extract/. . >/dev/null
 VALIDATOR_KEY=$(ls *.pem)
 VALIDATOR_KEY_BASE58=${VALIDATOR_KEY::-4}
 cd ..

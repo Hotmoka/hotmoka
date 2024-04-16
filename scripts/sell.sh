@@ -31,13 +31,6 @@ else
     CLI=blue
 fi;
 
-VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
-
-echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION."
-echo "The seller of the crypto is $SELLER_ADDRESS."
-echo "The seller of the validation power is $VALIDATOR_ADDRESS."
-echo "Assuming the pem's of both accounts to be in the $DIR directory."
-
 echo " * downloading the blockchain CLI"
 rm -r $DIR/${CLI} 2>/dev/null
 mkdir $DIR/${CLI}
@@ -45,6 +38,13 @@ cd $DIR/${CLI}
 wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
 tar zxf ${CLI}_${VERSION}.tar.gz
 cd ../..
+
+VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
+
+echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION."
+echo "The seller of the crypto is $SELLER_ADDRESS."
+echo "The seller of the validation power is $VALIDATOR_ADDRESS."
+echo "Assuming the pem's of both accounts to be in the $DIR directory."
 
 echo " * determining the amount of crypto to sell"
 cd $DIR
