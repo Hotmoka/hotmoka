@@ -111,6 +111,15 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
+	@DisplayName("getNodeInfoResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetNodeInfoResult() throws EncodeException, DecodeException {
+		var expected = GetNodeInfoResultMessages.of(NodeInfos.of("special node", "1.2.3", "id314"), "id");
+		String encoded = new GetNodeInfoResultMessages.Encoder().encode(expected);
+		var actual = new GetNodeInfoResultMessages.Decoder().decode(encoded);
+		assertEquals(expected, actual);
+	}
+
+	@Test
 	@DisplayName("getConsensusConfig messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForGetConsensusConfig() throws EncodeException, DecodeException {
 		var expected = GetConsensusConfigMessages.of("id");
@@ -125,15 +134,6 @@ public class MessagesTests extends AbstractLoggedTests {
 		var expected = GetConsensusConfigResultMessages.of("config", "id");
 		String encoded = new GetConsensusConfigResultMessages.Encoder().encode(expected);
 		var actual = new GetConsensusConfigResultMessages.Decoder().decode(encoded);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	@DisplayName("getNodeInfoResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetNodeInfoResult() throws EncodeException, DecodeException {
-		var expected = GetNodeInfoResultMessages.of(NodeInfos.of("special node", "1.2.3", "id314"), "id");
-		String encoded = new GetNodeInfoResultMessages.Encoder().encode(expected);
-		var actual = new GetNodeInfoResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);
 	}
 

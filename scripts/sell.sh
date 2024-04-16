@@ -11,25 +11,31 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/sell.sh) seller validator hotmoka 1.5.0 ws://panarea.hotmoka.io
 # where seller is the address of the account that sells the money (for instance, the gamete)
 # and validator is the address of the validator that sends part of its power.
 
 TYPE=${3:-hotmoka}
 SELLER_ADDRESS=$1
 VALIDATOR_ADDRESS=$2
+VERSION=${4:-1.5.0}
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
 then
-    NETWORK_URI=${4:-ws://panarea.hotmoka.io}
+    NETWORK_URI=${5:-ws://panarea.hotmoka.io}
     GITHUB_ID=Hotmoka
     CLI=moka
 else
-    NETWORK_URI=${4:-ws://blueknot.vero4chain.it}
+    NETWORK_URI=${5:-ws://blueknot.vero4chain.it}
     GITHUB_ID=Vero4Chain
     CLI=blue
 fi;
+
+echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION."
+echo "The seller of the crypto is $SELLER_ADDRESS."
+echo "The seller of the validation power is $VALIDATOR_ADDRESS."
+echo "Assuming the pem's of both accounts to be in the $DIR directory."
 
 echo " * downloading the blockchain CLI"
 rm -r $DIR/${CLI} 2>/dev/null
@@ -38,13 +44,6 @@ cd $DIR/${CLI}
 wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
 tar zxf ${CLI}_${VERSION}.tar.gz
 cd ../..
-
-VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
-
-echo "Selling some crypto and making an account into a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION."
-echo "The seller of the crypto is $SELLER_ADDRESS."
-echo "The seller of the validation power is $VALIDATOR_ADDRESS."
-echo "Assuming the pem's of both accounts to be in the $DIR directory."
 
 echo " * determining the amount of crypto to sell"
 cd $DIR

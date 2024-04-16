@@ -8,24 +8,23 @@
 
 # Source it as follows (if you want to interact with panarea.hotmoka.io,
 # but any node of the same blockchain will do):
-# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka ws://panarea.hotmoka.io
+# bash <(curl -H 'Cache-Control: no-cache, no-store' -s https://raw.githubusercontent.com/Hotmoka/hotmoka/master/scripts/buy.sh) hotmoka 1.5.0 ws://panarea.hotmoka.io
 
 TYPE=${1:-hotmoka}
+VERSION=${2:-1.5.0}
 
 TYPE_CAPITALIZED=${TYPE^}
 DIR=${TYPE}_node_info
 if [ $TYPE = hotmoka ];
 then
-    NETWORK_URI=${2:-ws://panarea.hotmoka.io}
+    NETWORK_URI=${3:-ws://panarea.hotmoka.io}
     GITHUB_ID=Hotmoka
     CLI=moka
 else
-    NETWORK_URI=${2:-ws://blueknot.vero4chain.it}
+    NETWORK_URI=${3:-ws://blueknot.vero4chain.it}
     GITHUB_ID=Vero4Chain
     CLI=blue
 fi;
-
-VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 
 echo "Buying some crypto and becoming a validator of the $TYPE_CAPITALIZED blockchain at $NETWORK_URI, version $VERSION:"
 rm -r $DIR 2>/dev/null
