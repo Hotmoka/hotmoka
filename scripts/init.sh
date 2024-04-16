@@ -54,10 +54,10 @@ mkdir -m700 $DIR
 echo " * downloading the blockchain CLI"
 mkdir $DIR/$CLI
 cd $DIR/$CLI
-#wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
-#tar zxf ${CLI}_${VERSION}.tar.gz
-cp -r ~/Gits/hotmoka/io-hotmoka-moka/modules .
-cp -r ~/Gits/hotmoka/io-hotmoka-moka/moka .
+wget --quiet https://github.com/${GITHUB_ID}/${TYPE}/releases/download/v${VERSION}/${CLI}_${VERSION}.tar.gz
+tar zxf ${CLI}_${VERSION}.tar.gz
+#cp -r ~/Gits/hotmoka/io-hotmoka-moka/modules .
+#cp -r ~/Gits/hotmoka/io-hotmoka-moka/moka .
 cd ../..
 
 echo " * creating the key of the gamete"

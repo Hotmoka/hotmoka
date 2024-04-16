@@ -244,7 +244,7 @@ message "Running the \"Family.java\" run example from the tutorial"
 # we provide the private key of account1 so that the run works
 cp $ACCOUNT1.pem ../../hotmoka_tutorial/
 cd ../../hotmoka_tutorial/runs
-RUN=$(java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --module runs/runs.Family)
+RUN=$(java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family)
 cd ../../hotmoka/tutorial
 CODE_FAMILY_ADDRESS=${RUN: -64}
 echo "  family-0.0.1.jar address = $CODE_FAMILY_ADDRESS"
@@ -279,7 +279,7 @@ mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
 
 message "Running the \"Family2.java\" run example from the tutorial"
 cd ../../hotmoka_tutorial/runs
-RUN=$(java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --module runs/runs.Family2)
+RUN=$(java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family2)
 cd ../../hotmoka/tutorial
 PERSON2_OBJECT=${RUN: -66}
 echo "  Person2 instance address = $PERSON2_OBJECT"
@@ -317,7 +317,7 @@ mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
 
 message "Running the \"Family3.java\" run example from the tutorial"
 cd ../../hotmoka_tutorial/runs
-java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --module runs/runs.Family3
+java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Family3
 cd ../../hotmoka/tutorial
 
 message "Packaging the \"ponzi_gradual\" example from the tutorial"
@@ -512,11 +512,11 @@ message "Running the \"Auction.java\" run example from the tutorial"
 cp $ACCOUNT2.pem ../../hotmoka_tutorial/
 cp $ACCOUNT3.pem ../../hotmoka_tutorial/
 cd ../../hotmoka_tutorial/runs
-java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --module runs/runs.Auction
+java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Auction
 cd ../../hotmoka/tutorial
 
 message "Running the \"Events.java\" run example from the tutorial"
 cd ../../hotmoka_tutorial/runs
-java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --module runs/runs.Events
+java --module-path ../../hotmoka/io-hotmoka-moka/modules/explicit/:../../hotmoka/io-hotmoka-moka/modules/automatic:target/runs-0.0.1.jar -classpath ../../hotmoka/io-hotmoka-moka/modules/unnamed"/*" --add-modules org.glassfish.tyrus.container.grizzly.server,org.glassfish.tyrus.container.grizzly.client --module runs/runs.Events
 cd ../../hotmoka/tutorial
 
