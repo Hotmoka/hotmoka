@@ -11,6 +11,8 @@
 
 # by default, it reflects the panarea.hotmoka.io node
 NETWORK_URI=${NETWORK_URI:=ws://panarea.hotmoka.io}
+NETWORK_URI_WITHOUT_PROTOCOL=$(echo $NETWORK_URI | sed s/".*:\/\/"/""/g) # remove protocol, if any
+
 # by default, it modifies the shell script for Hotmoka
 TYPE=${TYPE:=hotmoka}
 TYPE_CAPITALIZED=${TYPE^}
@@ -34,7 +36,7 @@ echo "  Server = $NETWORK_URI"
 echo "  Script = $SCRIPT"
 echo "  Docker Hub's user = $DOCKER_HUB_USER"
 
-sed -i '/@server/s/\/.*\//\/@server\/'$NETWORK_URI'\//' $SCRIPT
+sed -i "/@server/s/\/.*\//\/@server\/ws:\\\\\/\\\\\/$NETWORK_URI_WITHOUT_PROTOCOL\//" $SCRIPT
 VERSION=$(moka node info --json --uri $NETWORK_URI | python3 -c "import sys, json; print(json.load(sys.stdin)['version'])")
 echo "  $TYPE_CAPITALIZED version = $VERSION"
 sed -i '/@hotmoka_version/s/\/.*\//\/@hotmoka_version\/'$VERSION'\//' $SCRIPT
@@ -46,7 +48,7 @@ LINE2=$(echo "$RUN"| sed '2!d')
 NEW_DOCKER_KEY=${LINE2:19}
 echo "  new docker key = $NEW_DOCKER_KEY"
 sed -i "/@new_docker_key/s/\/.*\//\/@new_docker_key\/$NEW_DOCKER_KEY\//" $SCRIPT
-CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION init)
+CONTAINER_ID1=$(docker run --rm -dit -e INITIAL_SUPPLY=$DOCKER_TOTAL_SUPPLY -e KEY_OF_GAMETE=$NEW_DOCKER_KEY -e CHAIN_ID=caterpillar -e OPEN_UNSIGNED_FAUCET=true -e TIMEOUT_COMMIT=1 -p 8001:8001 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION init)
 echo "  container id = $CONTAINER_ID1"
 sed -i "/@container_id1/s/\/.*\//\/@container_id1\/$CONTAINER_ID1\//" $SCRIPT
 
@@ -91,7 +93,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID1 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID2=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
+CONTAINER_ID2=$(docker run --rm -dit -p 8001:8001 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID2"
 sed -i "/@container_id2/s/\/.*\//\/@container_id2\/$CONTAINER_ID2\//" $SCRIPT
 
@@ -102,7 +104,7 @@ message "Stopping the Docker container"
 docker stop $CONTAINER_ID2 >/dev/null
 
 message "Resuming the Docker container"
-CONTAINER_ID3=$(docker run --rm -dit -p 8080:8080 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
+CONTAINER_ID3=$(docker run --rm -dit -p 8001:8001 -p 26656:26656 -v chain:/home/$TYPE/chain $DOCKER_HUB_USER/tendermint-node:$VERSION resume)
 echo "  container id = $CONTAINER_ID3"
 sed -i "/@container_id3/s/\/.*\//\/@container_id3\/$CONTAINER_ID3\//" $SCRIPT
 
@@ -235,7 +237,7 @@ sed -i "/@short_family_address/s/\/.*\//\/@short_family_address\/$SHORT_FAMILY_A
 
 message "Editing the \"Family.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
-sed -i '/URI.create(/s/".*"/"'$NETWORK_URI'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
+sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family.java
 
 message "Packaging the \"runs\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
@@ -272,7 +274,7 @@ sed -i "/@person_object/s/\/.*\//\/@person_object\/$PERSON_OBJECT\//" $SCRIPT
 
 message "Editing the \"Family2.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family2.java
-sed -i '/URI.create(/s/".*"/"'$NETWORK_URI'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family2.java
+sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family2.java
 
 message "Packaging the \"runs\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
@@ -310,7 +312,7 @@ moka call $PERSON3_OBJECT toString --payer=$ACCOUNT1 --uri=$NETWORK_URI --passwo
 
 message "Editing the \"Family3.java\" run example from the tutorial"
 sed -i '/ADDRESS = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
-sed -i '/URI.create(/s/".*"/"'$NETWORK_URI'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
+sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Family3.java
 
 message "Packaging the \"runs\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/runs/pom.xml package 2>/dev/null
@@ -490,13 +492,13 @@ message "Editing the \"Auction.java\" run example from the tutorial"
 sed -i '/ADDRESSES\[0\] = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Auction.java
 sed -i '/ADDRESSES\[1\] = /s/".*"/"'$ACCOUNT2'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Auction.java
 sed -i '/ADDRESSES\[2\] = /s/".*"/"'$ACCOUNT3'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Auction.java
-sed -i '/URI.create(/s/".*"/"'$NETWORK_URI'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Auction.java
+sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Auction.java
 
 message "Editing the \"Events.java\" run example from the tutorial"
 sed -i '/ADDRESSES\[0\] = /s/".*"/"'$ACCOUNT1'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Events.java
 sed -i '/ADDRESSES\[1\] = /s/".*"/"'$ACCOUNT2'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Events.java
 sed -i '/ADDRESSES\[2\] = /s/".*"/"'$ACCOUNT3'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Events.java
-sed -i '/URI.create(/s/".*"/"'$NETWORK_URI'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Events.java
+sed -i '/URI.create(/s/".*"/"ws:\/\/'$NETWORK_URI_WITHOUT_PROTOCOL'"/' ../../hotmoka_tutorial/runs/src/main/java/runs/Events.java
 
 message "Packaging the \"auction\" example from the tutorial"
 mvn -q -f ../../hotmoka_tutorial/auction/pom.xml clean package 2>/dev/null
