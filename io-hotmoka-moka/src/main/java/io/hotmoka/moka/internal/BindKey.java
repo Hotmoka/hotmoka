@@ -18,14 +18,15 @@ package io.hotmoka.moka.internal;
 
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.Base64;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.remote.RemoteNodes;
@@ -66,11 +67,15 @@ public class BindKey extends AbstractCommand {
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
 		try (var node = RemoteNodes.of(uri, 10_000L)) {
-			var manifest = node.getManifest();
+			var maybeManifest = node.getManifest();
+			if (maybeManifest.isEmpty())
+				throw new CommandException("The node at \"" + uri + "\" has no manifest.");
+
+			var manifest = maybeManifest.get();
 			var takamakaCode = node.getTakamakaCode();
 
 			// we must translate the key from Base58 to Base64
-			String key = Base64.getEncoder().encodeToString(Base58.decode(this.key));
+			String key = Base64.toBase64String(Base58.decode(this.key));
 
 			// we look in the accounts ledger
 			var ledger = (StorageReference) node.runInstanceMethodCallTransaction
@@ -78,8 +83,8 @@ public class BindKey extends AbstractCommand {
 			StorageValue result = node.runInstanceMethodCallTransaction
 				(TransactionRequests.instanceViewMethodCall(manifest, _100_000, takamakaCode, MethodSignatures.GET_FROM_ACCOUNTS_LEDGER, ledger, StorageValues.stringOf(key)));
 
-			if (result instanceof StorageReference)
-				return (StorageReference) result;
+			if (result instanceof StorageReference sr)
+				return sr;
 			else
 				throw new CommandException("Cannot bind: nobody has paid anonymously to the key " + this.key + " up to now.");
 		}

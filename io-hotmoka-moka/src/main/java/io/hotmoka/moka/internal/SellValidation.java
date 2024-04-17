@@ -32,6 +32,7 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -110,7 +111,7 @@ public class SellValidation extends AbstractCommand {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				TransactionReference takamakaCode = node.getTakamakaCode();
-				StorageReference manifest = node.getManifest();
+				var manifest = node.getManifest().orElseThrow(() -> new CommandException("The node at \"" + uri + "\" has no manifest."));
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
 				var seller = StorageValues.reference(SellValidation.this.seller);

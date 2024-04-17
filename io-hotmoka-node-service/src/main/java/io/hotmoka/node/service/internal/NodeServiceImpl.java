@@ -341,7 +341,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 			try {
 				sendObjectAsync(session, GetManifestResultMessages.of(node.getManifest(), message.getId()));
 			}
-			catch (TimeoutException | InterruptedException | NodeException | NoSuchElementException e) { // TODO: remove NoSuchElement at the end
+			catch (TimeoutException | InterruptedException | NodeException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
 		}

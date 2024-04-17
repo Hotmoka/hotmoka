@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.node.manifest;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.StorageValues;
@@ -32,14 +31,15 @@ public class Address extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		try {
-			var manifest = remote.getManifest();
+			var maybeManifest = remote.getManifest();
+			if (maybeManifest.isEmpty())
+				throw new CommandException("The node at \"" + uri() + "\" has no manifest.");
+
+			var manifest = maybeManifest.get();
 			System.out.println(json() ? new StorageValues.Encoder().encode(manifest) : manifest);
 		}
 		catch (EncodeException e) {
 			throw new CommandException("Cannot encode in JSON format the address of the manifest of the node at \"" + uri() + "\".", e);
-		}
-		catch (NoSuchElementException e) {
-			throw new CommandException("The node at \"" + uri() + "\" has no manifest.", e);
 		}
 	}
 

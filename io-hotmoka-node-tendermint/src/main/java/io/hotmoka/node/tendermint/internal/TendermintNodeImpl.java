@@ -278,15 +278,11 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
-		StorageReference manifest;
-
-		try {
-			manifest = getManifest();
-		}
-		catch (NoSuchElementException e) {
+		Optional<StorageReference> maybeManifest = getManifest();
+		if (maybeManifest.isEmpty())
 			return Optional.empty();
-		}
 
+		StorageReference manifest = maybeManifest.get();
 		StorageReference validators = caches.getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 

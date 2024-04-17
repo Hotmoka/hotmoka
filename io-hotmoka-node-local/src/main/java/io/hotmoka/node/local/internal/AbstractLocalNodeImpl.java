@@ -379,14 +379,18 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException {
 		try (var scope = mkScope()) {
-			return getClassTag(getManifest()).getJar();
+			var maybeManifest = getManifest();
+			if (maybeManifest.isEmpty())
+				throw new NoSuchElementException("The node has no takamaka code installed");
+
+			return getClassTag(maybeManifest.get()).getJar();
 		}
 	}
 
 	@Override
-	public final StorageReference getManifest() throws NoSuchElementException, NodeException {
+	public final Optional<StorageReference> getManifest() throws NodeException {
 		try (var scope = mkScope()) {
-			return store.getManifest().orElseThrow(() -> new NoSuchElementException("no manifest set for this node"));
+			return store.getManifest();
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

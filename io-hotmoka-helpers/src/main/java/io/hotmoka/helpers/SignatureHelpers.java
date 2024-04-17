@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.helpers;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.helpers.api.SignatureHelper;
@@ -44,9 +43,8 @@ public class SignatureHelpers {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws NoSuchElementException if the node is not properly initialized
 	 */
-	public static SignatureHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public static SignatureHelper of(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return new SignatureHelperImpl(node);
 	}
 }

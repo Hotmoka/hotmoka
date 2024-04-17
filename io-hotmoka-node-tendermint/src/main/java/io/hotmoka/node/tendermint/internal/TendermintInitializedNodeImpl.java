@@ -29,6 +29,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -224,7 +225,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

@@ -31,6 +31,7 @@ import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.api.Entropy;
@@ -118,7 +119,7 @@ public class RotateKey extends AbstractCommand {
 		}
 
 		private InstanceMethodCallTransactionRequest createRequest() throws Exception {
-			StorageReference manifest = node.getManifest();
+			var manifest = node.getManifest().orElseThrow(() -> new CommandException("The node at \"" + uri + "\" has no manifest."));
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_CHAIN_ID, manifest))).getValue();

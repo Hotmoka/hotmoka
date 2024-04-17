@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.api;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -76,19 +77,18 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Yields the manifest installed in the store of the node. The manifest is an object of type
-	 * {@code io.takamaka.code.system.Manifest} that contains some information about the node,
-	 * useful for the users of the node.
+	 * Yields the manifest installed in the store of the node, when the node gets initialized.
+	 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
+	 * information about the node, useful for the users of the node.
 	 * If this node has some form of commit, then this method returns a reference
 	 * only if the installation of the manifest has been already committed.
 	 * 
-	 * @return the reference to the manifest
-	 * @throws NoSuchElementException if the node has not been initialized yet
+	 * @return the reference to the manifest; this is empty if the node has not been initialized yet
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException; // TODO: remove NoSuchElement
+	Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields node-specific information about the node. This is likely different for each node
@@ -116,7 +116,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException; // improve NoSuchElementException
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
@@ -134,7 +134,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Stream<Update> getState(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	Stream<Update> getState(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;  // improve NoSuchElementException
 
 	/**
 	 * Yields the consensus configuration of this node.
@@ -144,7 +144,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yileds the name of the signature used for requests: change it!
+	String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yields the name of the signature used for requests: change it!
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

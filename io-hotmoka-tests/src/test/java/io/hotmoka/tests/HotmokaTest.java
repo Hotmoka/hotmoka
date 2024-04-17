@@ -135,6 +135,16 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private final static SignatureAlgorithm signature;
 
 	/**
+	 * The reference to the manifest in the test node.
+	 */
+	private final static StorageReference manifest;
+
+	/**
+	 * The transaction that installed the Takamaka runtime in the test node.
+	 */
+	private final static TransactionReference takamakaCode;
+
+	/**
 	 * The jar under test.
 	 */
 	private static TransactionReference jar;
@@ -203,8 +213,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        initializeNodeIfNeeded(wrapped);
 	        Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 
-	        StorageReference manifest = node.getManifest();
-	        var takamakaCode = node.getTakamakaCode();
+	        manifest = node.getManifest().get();
+	        takamakaCode = node.getTakamakaCode();
+
 	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 	    		(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
 
@@ -234,10 +245,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 
-		try {
-			node.getManifest();
-		}
-		catch (NoSuchElementException e) {
+		if (node.getManifest().isEmpty()) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			// with the Takamaka runtime, that we can find in the Maven repository
 			var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();
@@ -297,7 +305,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return RemoteNodes.of(URI.create(uri), 100_000L);
 	}
 
-	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
+	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins);
 	}
 
@@ -305,11 +313,11 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		nodeWithAccountsView = AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, containerClassName, classpath, coins);
 	}
 
-	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
+	protected final void setAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
 		setAccounts(coins.toArray(BigInteger[]::new));
 	}
 
-	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
+	protected final static AccountsNode mkAccounts(Stream<BigInteger> coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
 		return AccountsNodes.of(node, localGamete, privateKeyOfLocalGamete, coins.toArray(BigInteger[]::new));
 	}
 
@@ -325,8 +333,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		HotmokaTest.jar = JarsNodes.of(node, localGamete, privateKeyOfLocalGamete, pathOfExample(jar)).jar(0);
 	}
 
-	protected final TransactionReference takamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		return node.getTakamakaCode();
+	protected final TransactionReference takamakaCode() {
+		return takamakaCode;
+	}
+
+	protected final StorageReference manifest() {
+		return manifest;
 	}
 
 	protected final static TransactionReference jar() {

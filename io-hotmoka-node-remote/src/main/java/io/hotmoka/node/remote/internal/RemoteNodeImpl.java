@@ -486,7 +486,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException, NodeException, InterruptedException, TimeoutException { // TODO: remove NoSuchElement at the end
+	public Optional<StorageReference> getManifest() throws NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetManifest(id);
@@ -516,7 +516,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private StorageReference processGetManifestSuccess(RpcMessage message) {
+	private Optional<StorageReference> processGetManifestSuccess(RpcMessage message) {
 		return message instanceof GetManifestResultMessage gmrm ? gmrm.get() : null;
 	}
 

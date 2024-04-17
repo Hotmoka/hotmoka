@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -58,6 +59,7 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.node.ClosedNodeException;
+import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -116,12 +118,12 @@ public class JarsNodeImpl implements JarsNode {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws NoSuchElementException if the node is not properly initialized
      */
-	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, NoSuchElementException, TimeoutException, InterruptedException {
+	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
+		StorageReference manifest = getManifest().orElseThrow(UninitializedNodeException::new);
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _50_000 = BigInteger.valueOf(50_000);
@@ -132,7 +134,7 @@ public class JarsNodeImpl implements JarsNode {
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _50_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, parent.getManifest()))).getValue();
+			(payer, _50_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		var jarSuppliers = new JarSupplier[jars.length];
@@ -172,7 +174,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

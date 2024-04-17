@@ -27,6 +27,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.ZoneOffset;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -288,7 +289,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference getManifest() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 

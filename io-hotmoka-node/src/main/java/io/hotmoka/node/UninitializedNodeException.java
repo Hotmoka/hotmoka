@@ -19,17 +19,17 @@ package io.hotmoka.node;
 import io.hotmoka.node.api.NodeException;
 
 /**
- * An exception stating that a Hotmoka node is closed and cannot
- * perform some operation.
+ * An exception stating that a Hotmoka node is not yet initialized and consequently
+ * cannot perform some operation.
  */
 @SuppressWarnings("serial")
-public class ClosedNodeException extends NodeException {
+public class UninitializedNodeException extends NodeException {
 
 	/**
 	 * Creates a new exception.
 	 */
-	public ClosedNodeException() {
-		super("The node is closed");
+	public UninitializedNodeException() {
+		super("The node is not initialized yet");
 	}
 
 	/**
@@ -37,7 +37,7 @@ public class ClosedNodeException extends NodeException {
 	 * 
 	 * @param message the message
 	 */
-	public ClosedNodeException(String message) {
+	public UninitializedNodeException(String message) {
 		super(message);
 	}
 
@@ -46,7 +46,7 @@ public class ClosedNodeException extends NodeException {
 	 * 
 	 * @param cause the cause
 	 */
-	public ClosedNodeException(Throwable cause) {
+	public UninitializedNodeException(Throwable cause) {
 		super(cause);
 	}
 
@@ -56,7 +56,7 @@ public class ClosedNodeException extends NodeException {
 	 * @param message the message
 	 * @param cause the cause
 	 */
-	public ClosedNodeException(String message, Throwable cause) {
+	public UninitializedNodeException(String message, Throwable cause) {
 		super(message, cause);
 	}
 }

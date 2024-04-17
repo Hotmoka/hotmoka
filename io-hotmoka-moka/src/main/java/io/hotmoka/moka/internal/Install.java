@@ -29,8 +29,8 @@ import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -81,7 +81,7 @@ public class Install extends AbstractCommand {
 
 			try (var node = RemoteNodes.of(uri, 10_000L)) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
-				StorageReference manifest = node.getManifest();
+				var manifest = node.getManifest().orElseThrow(() -> new CommandException("The node at \"" + uri + "\" has no manifest."));
 				checkStorageReference(payer);
 				var payer = StorageValues.reference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

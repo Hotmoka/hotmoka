@@ -45,6 +45,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -199,7 +200,7 @@ public class Call extends AbstractCommand {
 		}
 
 		private MethodCallTransactionRequest createRequest() throws Exception {
-			StorageReference manifest = node.getManifest();
+			var manifest = node.getManifest().orElseThrow(() -> new CommandException("The node at \"" + uri + "\" has no manifest."));
 			MethodSignature signatureOfMethod = signatureOfMethod();
 			StorageValue[] actuals = actualsAsStorageValues(signatureOfMethod);
 
@@ -322,7 +323,7 @@ public class Call extends AbstractCommand {
 				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
 		}
 
-		private Method askForMethod() throws ClassNotFoundException {
+		private Method askForMethod() throws ClassNotFoundException, CommandException {
 			int argCount = args == null ? 0 : args.size();
 			Method[] alternatives = Stream.of(clazz.getMethods())
 				.filter(method -> method.getName().equals(methodName) && method.getParameterCount() == argCount)

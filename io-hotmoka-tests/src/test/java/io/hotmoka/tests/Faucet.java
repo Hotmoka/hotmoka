@@ -22,7 +22,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
@@ -35,6 +34,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -54,13 +54,12 @@ public class Faucet extends HotmokaTest {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		StorageReference manifest = node.getManifest();
-		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest);
+		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
 		KeyPair keys = signature.getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
@@ -75,12 +74,11 @@ public class Faucet extends HotmokaTest {
 
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		StorageReference manifest = node.getManifest();
-		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest, _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest);
+		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();
-		String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+		String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer<SignedTransactionRequest<?>> signer = signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature);

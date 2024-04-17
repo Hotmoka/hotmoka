@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +42,7 @@ import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.ClassLoaderHelpers;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -102,7 +104,11 @@ public class Create extends AbstractCommand {
 
 			try (Node node = RemoteNodes.of(uri, 10_000L)) {
 				TransactionReference takamakaCode = node.getTakamakaCode();
-				StorageReference manifest = node.getManifest();
+				Optional<StorageReference> maybeManifest = node.getManifest();
+				if (maybeManifest.isEmpty())
+					throw new CommandException("The node at \"" + uri + "\" has no manifest.");
+
+				StorageReference manifest = maybeManifest.get();
 				var payer = StorageValues.reference(Create.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
@@ -163,7 +169,7 @@ public class Create extends AbstractCommand {
 			return ConstructorSignatures.of(className, formals);
 		}
 
-		private Constructor<?> askForConstructor() throws ClassNotFoundException {
+		private Constructor<?> askForConstructor() throws ClassNotFoundException, CommandException {
 			int argCount = args == null ? 0 : args.size();
 			Constructor<?>[] alternatives = Stream.of(clazz.getConstructors())
 				.filter(constructor -> constructor.getParameterCount() == argCount)

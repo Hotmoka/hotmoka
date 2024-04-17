@@ -41,7 +41,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 	private final Node node;
 	private final ClassLoaderHelper classLoaderHelper;
 
-	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public SignatureHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.classLoaderHelper = ClassLoaderHelpers.of(node);
 	}
