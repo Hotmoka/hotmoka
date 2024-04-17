@@ -129,12 +129,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param object the storage reference of the object
 	 * @return the last updates of all its instance fields; these updates include
 	 *         the class tag update for the object
-	 * @throws NoSuchElementException if there is no object with that reference
+	 * @throws UnknownReferenceException if there is no object with that reference
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Stream<Update> getState(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;  // improve NoSuchElementException
+	Stream<Update> getState(StorageReference object) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the consensus configuration of this node.

@@ -20,6 +20,7 @@ import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -54,10 +55,10 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.crypto.internal.ED25519;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.service.NodeServices;
@@ -65,6 +66,8 @@ import io.hotmoka.verification.VerificationException;
 
 public class NodeFromNetwork extends HotmokaTest {
     private final static ClassType HASH_MAP_TESTS = StorageTypes.classNamed("io.hotmoka.examples.javacollections.HashMapTests");
+    private final static TransactionReference INEXISTENT_TRANSACTION_REFERENCE = TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
+    private final static StorageReference INEXISTENT_STORAGE_REFERENCE = StorageValues.reference(INEXISTENT_TRANSACTION_REFERENCE, BigInteger.valueOf(42));
     private final static int PORT = 8002;
     private final static URI URI = java.net.URI.create("ws://localhost:" + PORT);
 
@@ -96,7 +99,9 @@ public class NodeFromNetwork extends HotmokaTest {
         }
 
         assertNotNull(algo);
-        assertTrue(algo.getClass().getName().startsWith(ED25519.class.getPackageName()));
+        String algoName = algo.getClass().getName();
+        assertTrue(algoName.endsWith("ED25519") || algoName.endsWith("ED25519DET") || algoName.endsWith("SHA256DSA")
+        	|| algoName.endsWith("QTESLA1") || algoName.endsWith("QTESLA3") || algoName.endsWith("EMPTY"));
     }
 
     @Test
@@ -114,13 +119,9 @@ public class NodeFromNetwork extends HotmokaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag for a non-existing reference")
-    void testRemoteGetClassTagNonExisting() {
+    void testRemoteGetClassTagNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	remote.getClassTag(getInexistentStorageReference());
-        }
-        catch (Exception e) {
-        	assertTrue(e instanceof NoSuchElementException);
-            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
+        	assertThrows(NoSuchElementException.class, () -> remote.getClassTag(INEXISTENT_STORAGE_REFERENCE));
         }
     }
 
@@ -138,14 +139,10 @@ public class NodeFromNetwork extends HotmokaTest {
     }
 
     @Test
-    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState for a non-existing reference")
-    void testRemoteGetStateNonExisting() {
+    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getState with a non-existing reference")
+    void testRemoteGetStateNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	remote.getState(getInexistentStorageReference());
-        }
-        catch (Exception e) {
-        	assertTrue(e instanceof NoSuchElementException);
-            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
+        	assertThrows(UnknownReferenceException.class, () -> remote.getState(INEXISTENT_STORAGE_REFERENCE));
         }
     }
 
@@ -164,17 +161,10 @@ public class NodeFromNetwork extends HotmokaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getRequest for a non-existing reference")
-    void testRemoteGetRequestNonExisting() {
+    void testRemoteGetRequestNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	remote.getRequest(getInexistentTransactionReference());
+        	assertThrows(NoSuchElementException.class, () -> remote.getRequest(INEXISTENT_TRANSACTION_REFERENCE));
         }
-        catch (Exception e) {
-        	assertTrue(e instanceof NoSuchElementException);
-            assertEquals("unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
-        	return;
-        }
-
-    	fail("expected exception");
     }
 
     @Test
@@ -192,17 +182,10 @@ public class NodeFromNetwork extends HotmokaTest {
 
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
-    void testRemoteGetResponseNonExisting() {
+    void testRemoteGetResponseNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	remote.getResponse(getInexistentTransactionReference());
+        	assertThrows(NoSuchElementException.class, () -> remote.getResponse(INEXISTENT_TRANSACTION_REFERENCE));
         }
-        catch (Exception e) {
-        	assertTrue(e instanceof NoSuchElementException);
-            assertEquals("Unknown transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", e.getMessage());
-        	return;
-        }
-
-    	fail("expected exception");
     }
 
     @Test
@@ -257,7 +240,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for a non-existing reference")
     void testRemoteGetPolledResponseNonExisting() {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	remote.getPolledResponse(getInexistentTransactionReference());
+        	remote.getPolledResponse(INEXISTENT_TRANSACTION_REFERENCE);
         }
         catch (Exception e) {
         	assertTrue(e instanceof TimeoutException);
@@ -447,12 +430,4 @@ public class NodeFromNetwork extends HotmokaTest {
 
     	assertEquals(ZERO, value.getValue());
     }
-
-    private static TransactionReference getInexistentTransactionReference() {
-    	return TransactionReferences.of("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef");
-	}
-
-	private static StorageReference getInexistentStorageReference() {
-		return StorageValues.reference(getInexistentTransactionReference(), BigInteger.valueOf(42));
-	}
 }

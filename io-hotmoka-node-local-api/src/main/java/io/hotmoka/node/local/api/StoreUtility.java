@@ -183,7 +183,7 @@ public interface StoreUtility {
 	 * @param object the reference to the object
 	 * @return the state
 	 */
-	Stream<Update> getStateCommitted(StorageReference object);
+	Stream<Update> getStateCommitted(StorageReference object); // TODO: is this really committed?
 
 	/**
 	 * Yields the most recent update to the given field

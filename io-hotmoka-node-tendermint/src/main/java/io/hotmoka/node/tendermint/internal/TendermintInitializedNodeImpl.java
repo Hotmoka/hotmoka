@@ -71,6 +71,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
@@ -244,7 +245,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 		return parent.getState(reference);
 	}
 

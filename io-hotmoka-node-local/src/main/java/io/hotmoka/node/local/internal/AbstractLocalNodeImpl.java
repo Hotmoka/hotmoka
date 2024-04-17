@@ -99,6 +99,7 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
@@ -488,17 +489,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException {
+	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			try {
 				if (isNotCommitted(reference.getTransaction()))
-					throw new NoSuchElementException("Unknown transaction reference " + reference.getTransaction());
+					throw new UnknownReferenceException(reference);
 
 				return storeUtilities.getStateCommitted(reference);
 			}
 			catch (NoSuchElementException e) {
-				throw e;
+				throw new UnknownReferenceException(reference);
 			}
 			catch (RuntimeException e) {
 				LOGGER.log(Level.WARNING, "Unexpected exception", e);

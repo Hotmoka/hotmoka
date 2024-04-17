@@ -79,6 +79,7 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;
@@ -587,14 +588,14 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public Stream<Update> getState(StorageReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+	public Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetState(reference, id);
 		try {
 			return waitForResult(id, this::processGetStateSuccess, this::processGetStateExceptions);
 		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
 			throw e;
 		}
 		catch (Exception e) {
@@ -624,7 +625,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	private boolean processGetStateExceptions(ExceptionMessage message) {
 		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
 			processStandardExceptions(message);
 	}
 
