@@ -42,7 +42,6 @@ import static io.hotmoka.node.service.api.NodeService.RUN_STATIC_METHOD_CALL_TRA
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
@@ -702,14 +701,14 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws NoSuchElementException, TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetResponse(reference, id);
 		try {
 			return waitForResult(id, this::processGetResponseSuccess, this::processGetResponseExceptions);
 		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException e) {
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | UnknownReferenceException e) {
 			throw e;
 		}
 		catch (Exception e) {
@@ -739,7 +738,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	private boolean processGetResponseExceptions(ExceptionMessage message) {
 		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
 			TransactionRejectedException.class.isAssignableFrom(clazz) ||
 			processStandardExceptions(message);
 	}

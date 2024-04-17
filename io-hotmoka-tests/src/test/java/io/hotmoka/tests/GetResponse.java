@@ -42,6 +42,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * A test for {@link io.hotmoka.node.api.Node#getResponse(io.hotmoka.beans.api.transactions.TransactionReference)}.
@@ -60,7 +61,7 @@ class GetResponse extends HotmokaTest {
 	}
 
 	@Test @DisplayName("getResponse works for an existing transaction")
-	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void getResponse() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 		TransactionResponse response = getResponse(abstractfail.getTransaction());
 		Assertions.assertTrue(response instanceof ConstructorCallTransactionResponse);
@@ -72,6 +73,6 @@ class GetResponse extends HotmokaTest {
 		byte[] hash = abstractfail.getTransaction().getHash();
 		// we modify the first byte: the resulting transaction reference does not exist
 		hash[0]++;
-		assertThrows(NoSuchElementException.class, () -> getResponse(TransactionReferences.of(hash)));
+		assertThrows(UnknownReferenceException.class, () -> getResponse(TransactionReferences.of(hash)));
 	}
 }

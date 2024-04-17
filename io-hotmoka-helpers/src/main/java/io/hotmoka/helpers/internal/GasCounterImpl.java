@@ -18,7 +18,6 @@ package io.hotmoka.helpers.internal;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
@@ -33,6 +32,7 @@ import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * Implementation of a counter of the gas consumed for the execution of a set of requests.
@@ -96,7 +96,7 @@ public class GasCounterImpl implements GasCounter {
 						forPenalty = forPenalty.add(ftr.getGasConsumedForPenalty());
 				}
 			}
-			catch (TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {}
+			catch (TransactionRejectedException | UnknownReferenceException | NodeException | TimeoutException | InterruptedException e) {}
 	
 		this.total = forCPU.add(forRAM).add(forStorage).add(forPenalty);
 		this.forCPU = forCPU;

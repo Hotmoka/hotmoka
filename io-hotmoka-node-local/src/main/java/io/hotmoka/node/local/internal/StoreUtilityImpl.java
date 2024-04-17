@@ -38,6 +38,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
@@ -225,15 +226,14 @@ public class StoreUtilityImpl implements StoreUtility {
 	 */
 	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
 		try {
-			TransactionResponse response = node.getResponse(transaction);
-			if (response instanceof TransactionResponseWithUpdates trwu)
+			if (node.getResponse(transaction) instanceof TransactionResponseWithUpdates trwu)
 				trwu.getUpdates()
 					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
 					.forEach(updates::add);
 			else
 				throw new RuntimeException("Storage reference " + transaction + " does not contain updates");
 		}
-		catch (TransactionRejectedException | NodeException e) {
+		catch (TransactionRejectedException | UnknownReferenceException | NodeException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
 			throw new RuntimeException(e);
 		}

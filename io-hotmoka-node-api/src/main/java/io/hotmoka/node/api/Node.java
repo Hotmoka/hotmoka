@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -155,7 +154,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the request
-	 * @throws UnknownReferenceException if {@code reference} cannot be found in this node
+	 * @throws UnknownReferenceException if the request of {@code reference} cannot be found in this node
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
@@ -173,12 +172,12 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 * @throws UnknownReferenceException if the response of {@code reference} cannot be found in this node
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException; // throw UnknownReferenceException
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.

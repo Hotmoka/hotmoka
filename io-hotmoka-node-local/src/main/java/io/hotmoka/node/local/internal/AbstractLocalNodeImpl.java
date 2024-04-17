@@ -417,7 +417,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					getRequest(reference);
 					return response;
 				}
-				catch (NoSuchElementException | UnknownReferenceException e) {
+				catch (UnknownReferenceException e) {
 					Thread.sleep(delay);
 				}
 
@@ -445,10 +445,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
-			String error;
 
 			try {
 				Optional<TransactionResponse> response = caches.getResponse(reference);
@@ -459,17 +458,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				// in that case, the node contains the error message in its store; afterwards
 				// we check if the request did not pass its checkTransaction():
 				// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
-				error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
+				String error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
+
+				if (error != null)
+					throw new TransactionRejectedException(error);
+				else
+					throw new UnknownReferenceException(reference);
 			}
 			catch (RuntimeException e) {
 				LOGGER.log(Level.WARNING, "Unexpected exception", e);
 				throw e;
 			}
-
-			if (error != null)
-				throw new TransactionRejectedException(error);
-			else
-				throw new NoSuchElementException("Unknown transaction reference " + reference);
 		}
 	}
 
@@ -993,7 +992,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			getResponse(transaction);
 			return false;
 		}
-		catch (TransactionRejectedException | NoSuchElementException e) {
+		catch (TransactionRejectedException | UnknownReferenceException e) {
 			return true;
 		}
 	}
@@ -1139,7 +1138,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException {
+		public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
 			return AbstractLocalNodeImpl.this.getResponse(reference);
 		}
 

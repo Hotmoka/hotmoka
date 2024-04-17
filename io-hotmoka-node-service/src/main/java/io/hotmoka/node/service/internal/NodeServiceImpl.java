@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.service.internal;
 
 import java.io.IOException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -458,7 +457,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 			try {
 				sendObjectAsync(session, GetResponseResultMessages.of(node.getResponse(message.getReference()), message.getId()));
 			}
-			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | NoSuchElementException e) {
+			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | UnknownReferenceException e) {
 				sendExceptionAsync(session, e, message.getId());
 			}
 		}

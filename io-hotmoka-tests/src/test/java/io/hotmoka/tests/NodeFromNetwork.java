@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -174,7 +173,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getResponse for a non-existing reference")
     void testRemoteGetResponseNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	assertThrows(NoSuchElementException.class, () -> remote.getResponse(INEXISTENT_TRANSACTION_REFERENCE));
+        	assertThrows(UnknownReferenceException.class, () -> remote.getResponse(INEXISTENT_TRANSACTION_REFERENCE));
         }
     }
 
@@ -187,7 +186,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// the execution does not stop, nor throws anything
         	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// takamakaCode(), // <-- forgot that
-        		);
+        	);
 
         	// we wait until the request has been processed; this will throw a TransactionRejectedException at the end,
         	// since the request failed and its transaction was rejected

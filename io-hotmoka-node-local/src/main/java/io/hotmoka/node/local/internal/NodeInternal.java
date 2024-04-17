@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -113,9 +112,9 @@ public interface NodeInternal {
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 * @throws TransactionRejectedException if there is a request for that transaction but it failed with this exception
-	 * @throws NoSuchElementException if there is no request, and hence no response, with that reference
+	 * @throws UnknownReferenceException if the response for {@code reference} cannot be found in the node
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException;
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException;
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.

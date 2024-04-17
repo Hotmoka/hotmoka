@@ -36,7 +36,6 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.crypto.api.Signer;
@@ -44,6 +43,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.tests.HotmokaTest;
 
 /**
@@ -57,19 +57,16 @@ class Repeated extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar")
-	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void installJar() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
-		TransactionResponse response = node.getResponse(reference);
-
-		assertTrue(response instanceof JarStoreTransactionSuccessfulResponse);
+		assertTrue(node.getResponse(reference) instanceof JarStoreTransactionSuccessfulResponse);
 	}
 
 	@Test @DisplayName("install jar twice")
 	void installJarTwice() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var request = TransactionRequests.jarStore(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0), getNonceOf(account(0)), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		node.addJarStoreTransaction(request);
-		
 		throwsTransactionRejectedException(() -> node.addJarStoreTransaction(request));
 	}
 
@@ -81,7 +78,7 @@ class Repeated extends HotmokaTest {
 	}
 
 	@Test @DisplayName("install jar twice, the first time fails, the second succeeds")
-	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	void installJarFirstTimeFailsSecondTimeSucceeds() throws InvalidKeyException, SignatureException, TransactionException, TransactionRejectedException, IOException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		BigInteger nonce = getNonceOf(account(0));
 		Signer<SignedTransactionRequest<?>> signer = signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature);
 
