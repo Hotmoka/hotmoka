@@ -89,11 +89,13 @@ public class Faucet extends AbstractCommand {
 				throw e;
 			}
 
+			var takamakaCode = node.getTakamakaCode();
+
 			// we set the thresholds for the faucets of the gamete
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(SignatureHelpers.of(node).signatureAlgorithmFor(gamete).getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature),
 				gamete, NonceHelpers.of(node).getNonceOf(gamete),
-				manifestHelper.getChainId(), _100_000, GasHelpers.of(node).getGasPrice(), node.getTakamakaCode(),
+				manifestHelper.getChainId(), _100_000, GasHelpers.of(node).getGasPrice(), takamakaCode,
 				MethodSignatures.ofVoid(GAMETE, "setMaxFaucet", BIG_INTEGER, BIG_INTEGER), gamete,
 				StorageValues.bigIntegerOf(max), StorageValues.bigIntegerOf(maxRed)));
 		}

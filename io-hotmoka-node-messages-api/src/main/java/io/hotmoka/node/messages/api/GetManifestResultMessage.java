@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.messages.api;
 
-import java.util.Optional;
-
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
@@ -26,5 +24,5 @@ import io.hotmoka.node.api.Node;
  * The network message corresponding to the result of the {@link Node#getManifest()} method.
  */
 @Immutable
-public interface GetManifestResultMessage extends ResultMessage<Optional<StorageReference>> {
+public interface GetManifestResultMessage extends ResultMessage<StorageReference> {
 }

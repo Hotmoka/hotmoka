@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.api;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -63,32 +62,33 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	void close() throws InterruptedException, NodeException;
 
 	/**
-	 * Yields the reference, in the store of the node, where the base Takamaka base classes are installed.
+	 * Yields the reference to the jar installed in the store of the node, when the node was initialized,
+	 * containing the classes of the Takamaka runtime.
 	 * If this node has some form of commit, then this method returns a reference
-	 * only if the installation of the jar with the Takamaka base classes has been
-	 * already committed.
+	 * only if the installation of the manifest has been already committed.
 	 * 
-	 * @throws NoSuchElementException if the node has not been initialized yet
-	 * @return the reference to the installed Takamaka base classes
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @return the reference to the jar containing the classes of the Takamaka runtime
+	 * @throws NodeException if the node is not able to perform the operation, for instance, if the
+	 *                       node is not initialized yet
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
-	 * Yields the manifest installed in the store of the node, when the node gets initialized.
+	 * Yields the manifest installed in the store of the node, when the node was initialized.
 	 * The manifest is an object of type {@code io.takamaka.code.system.Manifest} that contains
 	 * information about the node, useful for the users of the node.
 	 * If this node has some form of commit, then this method returns a reference
 	 * only if the installation of the manifest has been already committed.
 	 * 
-	 * @return the reference to the manifest; this is empty if the node has not been initialized yet
-	 * @throws NodeException if the node is not able to perform the operation
+	 * @return the reference to the manifest
+	 * @throws NodeException if the node is not able to perform the operation, for instance,
+	 *                       if the node has not been initialized yet
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException;
+	StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields node-specific information about the node. This is likely different for each node

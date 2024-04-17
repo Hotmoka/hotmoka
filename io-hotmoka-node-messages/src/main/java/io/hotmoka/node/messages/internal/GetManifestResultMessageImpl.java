@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
-import java.util.Optional;
 
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
@@ -32,7 +31,7 @@ public class GetManifestResultMessageImpl extends AbstractRpcMessage implements 
 	/**
 	 * The result of the call.
 	 */
-	private final Optional<StorageReference> result;
+	private final StorageReference result;
 
 	/**
 	 * Creates the message.
@@ -40,11 +39,10 @@ public class GetManifestResultMessageImpl extends AbstractRpcMessage implements 
 	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 */
-	public GetManifestResultMessageImpl(Optional<StorageReference> result, String id) {
+	public GetManifestResultMessageImpl(StorageReference result, String id) {
 		super(id);
 
-		this.result = Objects.requireNonNull(result, "result cannot be null")
-			.map(reference -> Objects.requireNonNull(reference, "the manifest in the result cannot be null"));
+		this.result = Objects.requireNonNull(result, "result cannot be null");
 	}
 
 	@Override
@@ -58,7 +56,7 @@ public class GetManifestResultMessageImpl extends AbstractRpcMessage implements 
 	}
 
 	@Override
-	public Optional<StorageReference> get() {
+	public StorageReference get() {
 		return result;
 	}
 }

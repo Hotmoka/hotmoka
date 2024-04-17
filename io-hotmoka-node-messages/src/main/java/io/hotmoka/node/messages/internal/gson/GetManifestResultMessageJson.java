@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import java.util.Optional;
-
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.HexConversionException;
@@ -34,17 +32,14 @@ public abstract class GetManifestResultMessageJson extends AbstractRpcMessageJso
 	protected GetManifestResultMessageJson(GetManifestResultMessage message) {
 		super(message);
 
-		this.result = message.get().map(StorageValues.Json::new).orElse(null);
+		this.result = new StorageValues.Json(message.get());
 	}
 
 	@Override
 	public GetManifestResultMessage unmap() throws HexConversionException {
-		if (result == null)
-			return GetManifestResultMessages.of(Optional.empty(), getId());
-
 		var unmappedResult = result.unmap();
 		if (unmappedResult instanceof StorageReference sr)
-			return GetManifestResultMessages.of(Optional.of(sr), getId());
+			return GetManifestResultMessages.of(sr, getId());
 		else
 			throw new IllegalArgumentException("The result of a getManifest() call must be a storage reference");
 	}

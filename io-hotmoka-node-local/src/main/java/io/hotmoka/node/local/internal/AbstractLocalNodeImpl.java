@@ -88,6 +88,7 @@ import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.SubscriptionsManagers;
+import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
@@ -377,20 +378,23 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException {
+	public final TransactionReference getTakamakaCode() throws NodeException {
 		try (var scope = mkScope()) {
-			var maybeManifest = getManifest();
-			if (maybeManifest.isEmpty())
-				throw new NoSuchElementException("The node has no takamaka code installed");
+			var manifest = getManifest();
 
-			return getClassTag(maybeManifest.get()).getJar();
+			try {
+				return getClassTag(manifest).getJar();
+			}
+			catch (NoSuchElementException e) {
+				throw new NodeException("The manifest of the node cannot be found in the node itself");
+			}
 		}
 	}
 
 	@Override
-	public final Optional<StorageReference> getManifest() throws NodeException {
+	public final StorageReference getManifest() throws NodeException {
 		try (var scope = mkScope()) {
-			return store.getManifest();
+			return store.getManifest().orElseThrow(UninitializedNodeException::new);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

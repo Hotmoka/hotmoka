@@ -37,7 +37,6 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.helpers.api.ManifestHelper;
-import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -71,7 +70,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 	public ManifestHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
 		this.takamakaCode = node.getTakamakaCode();
-		this.manifest = node.getManifest().orElseThrow(UninitializedNodeException::new);
+		this.manifest = node.getManifest();
 		this.validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
 		this.initialValidators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

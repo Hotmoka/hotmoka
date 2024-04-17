@@ -23,7 +23,6 @@ import java.util.function.Function;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionRequests;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base58;
@@ -105,7 +104,7 @@ public class ShowAccount extends AbstractCommand {
 	}
 
 	private void showBalances(Account account, Node node) throws Exception {
-		TransactionReference takamakaCode = node.getTakamakaCode();
+		var takamakaCode = node.getTakamakaCode();
 		StorageReference reference = account.getReference();
 		BigInteger balance = ((BigIntegerValue) node.runInstanceMethodCallTransaction(
 				TransactionRequests.instanceViewMethodCall(reference, _100_000, takamakaCode, MethodSignatures.BALANCE, reference))).getValue();

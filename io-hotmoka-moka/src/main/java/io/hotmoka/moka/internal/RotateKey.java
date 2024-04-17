@@ -119,10 +119,11 @@ public class RotateKey extends AbstractCommand {
 		}
 
 		private InstanceMethodCallTransactionRequest createRequest() throws Exception {
-			var manifest = node.getManifest().orElseThrow(() -> new CommandException("The node at \"" + uri + "\" has no manifest."));
+			var manifest = node.getManifest();
+			var takamakaCode = node.getTakamakaCode();
 			KeyPair keys = readKeys(Accounts.of(account), node, passwordOfAccount);
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, node.getTakamakaCode(), MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
 			var signature = SignatureHelpers.of(node).signatureAlgorithmFor(account);
 			BigInteger nonce = NonceHelpers.of(node).getNonceOf(account);
 			BigInteger gasPrice = getGasPrice();

@@ -29,7 +29,6 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
-import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -62,7 +61,7 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 	 */
 	public ClassLoaderHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
-		this.manifest = node.getManifest().orElseThrow(UninitializedNodeException::new);
+		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest));

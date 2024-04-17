@@ -45,7 +45,6 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
-import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -77,7 +76,7 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 	 */
 	public SendCoinsHelperImpl(Node node) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		this.node = node;
-		this.manifest = node.getManifest().orElseThrow(UninitializedNodeException::new);
+		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);

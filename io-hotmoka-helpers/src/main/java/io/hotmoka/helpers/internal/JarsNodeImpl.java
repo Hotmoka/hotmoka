@@ -27,7 +27,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -59,7 +58,6 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.helpers.api.JarsNode;
 import io.hotmoka.node.ClosedNodeException;
-import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -123,7 +121,7 @@ public class JarsNodeImpl implements JarsNode {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
-		StorageReference manifest = getManifest().orElseThrow(UninitializedNodeException::new);
+		StorageReference manifest = getManifest();
 		var signature = SignatureHelpers.of(this).signatureAlgorithmFor(payer);
 		Signer<SignedTransactionRequest<?>> signerOnBehalfOfPayer = signature.getSigner(privateKeyOfPayer, SignedTransactionRequest::toByteArrayWithoutSignature);
 		var _50_000 = BigInteger.valueOf(50_000);
@@ -174,12 +172,12 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() throws NodeException, TimeoutException, InterruptedException {
+	public StorageReference getManifest() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getManifest();
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public TransactionReference getTakamakaCode() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getTakamakaCode();
 	}
 

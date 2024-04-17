@@ -30,11 +30,9 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.cli.CommandException;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
@@ -180,8 +178,8 @@ public class InitTendermint extends AbstractCommand {
 
 		private void bindValidators() throws Exception {
 			if (bindValidators) {
-				TransactionReference takamakaCode = initialized.getTakamakaCode();
-				var manifest = initialized.getManifest().orElseThrow(() -> new CommandException("The node has no manifest after initialization!"));
+				var takamakaCode = initialized.getTakamakaCode();
+				var manifest = initialized.getManifest();
 				var validators = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
 				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

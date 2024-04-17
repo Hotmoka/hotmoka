@@ -24,7 +24,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -103,12 +102,8 @@ public class Create extends AbstractCommand {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
 			try (Node node = RemoteNodes.of(uri, 10_000L)) {
-				TransactionReference takamakaCode = node.getTakamakaCode();
-				Optional<StorageReference> maybeManifest = node.getManifest();
-				if (maybeManifest.isEmpty())
-					throw new CommandException("The node at \"" + uri + "\" has no manifest.");
-
-				StorageReference manifest = maybeManifest.get();
+				var takamakaCode = node.getTakamakaCode();
+				var manifest = node.getManifest();
 				var payer = StorageValues.reference(Create.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();

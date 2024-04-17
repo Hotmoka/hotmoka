@@ -213,7 +213,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        initializeNodeIfNeeded(wrapped);
 	        Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 
-	        manifest = node.getManifest().get();
+	        manifest = node.getManifest();
 	        takamakaCode = node.getTakamakaCode();
 
 	        var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -245,7 +245,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	private static void initializeNodeIfNeeded(Node node) throws TransactionRejectedException, TransactionException,
 			CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 
-		if (node.getManifest().isEmpty()) {
+		try {
+			node.getManifest();
+		}
+		catch (NodeException e) {
 			// if the original node has no manifest yet, it means that it is not initialized and we initialize it
 			// with the Takamaka runtime, that we can find in the Maven repository
 			var takamakaCode = Maven.resolver().resolve("io.hotmoka:io-takamaka-code:" + Constants.TAKAMAKA_VERSION).withoutTransitivity().asSingleFile().toPath();

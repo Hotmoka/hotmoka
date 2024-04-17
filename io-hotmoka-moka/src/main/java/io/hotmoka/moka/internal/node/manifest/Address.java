@@ -31,11 +31,7 @@ public class Address extends AbstractMokaRpcCommand {
 
 	private void body(RemoteNode remote) throws TimeoutException, InterruptedException, NodeException, CommandException {
 		try {
-			var maybeManifest = remote.getManifest();
-			if (maybeManifest.isEmpty())
-				throw new CommandException("The node at \"" + uri() + "\" has no manifest.");
-
-			var manifest = maybeManifest.get();
+			var manifest = remote.getManifest();
 			System.out.println(json() ? new StorageValues.Encoder().encode(manifest) : manifest);
 		}
 		catch (EncodeException e) {

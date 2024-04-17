@@ -165,18 +165,9 @@ public class MessagesTests extends AbstractLoggedTests {
 	}
 
 	@Test
-	@DisplayName("getManifestResult non-empty messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetManifestNonEmptyResult() throws EncodeException, DecodeException {
-		var expected = GetManifestResultMessages.of(Optional.of(OBJECT), "id");
-		String encoded = new GetManifestResultMessages.Encoder().encode(expected);
-		var actual = new GetManifestResultMessages.Decoder().decode(encoded);
-		assertEquals(expected, actual);
-	}
-
-	@Test
-	@DisplayName("getManifestResult empty messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetManifestEmptyResult() throws EncodeException, DecodeException {
-		var expected = GetManifestResultMessages.of(Optional.empty(), "id");
+	@DisplayName("getManifestResult messages are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForGetManifestResult() throws EncodeException, DecodeException {
+		var expected = GetManifestResultMessages.of(OBJECT, "id");
 		String encoded = new GetManifestResultMessages.Encoder().encode(expected);
 		var actual = new GetManifestResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);

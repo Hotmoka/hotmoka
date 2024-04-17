@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.moka.internal.node;
 
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.TransactionReferences;
@@ -37,9 +36,6 @@ public class Takamaka extends AbstractMokaRpcCommand {
 		}
 		catch (EncodeException e) {
 			throw new CommandException("Cannot encode in JSON format the transaction that installed the Takamaka runtime of the node at \"" + uri() + "\".", e);
-		}
-		catch (NoSuchElementException e) {
-			throw new CommandException("The node at \"" + uri() + "\" has no Takamaka runtime installed.", e);
 		}
 	}
 

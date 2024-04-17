@@ -27,12 +27,10 @@ import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.cli.CommandException;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
@@ -86,12 +84,8 @@ public class BuyValidation extends AbstractCommand {
 			try (Node node = this.node = RemoteNodes.of(uri, 10_000L)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
-				TransactionReference takamakaCode = node.getTakamakaCode();
-				var maybeManifest = node.getManifest();
-				if (maybeManifest.isEmpty())
-					throw new CommandException("The node at \"" + uri + "\" has no manifest.");
-
-				var manifest = maybeManifest.get();
+				var takamakaCode = node.getTakamakaCode();
+				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
 				var buyer = StorageValues.reference(BuyValidation.this.buyer);

@@ -430,12 +430,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public TransactionReference getTakamakaCode() throws NoSuchElementException, NodeException, InterruptedException, TimeoutException { // TODO: remove NoSuchElement at the end
+	public TransactionReference getTakamakaCode() throws NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetTakamakaCode(id);
 		try {
-			return waitForResult(id, this::processGetTakamakaCodeSuccess, this::processGetTakamakaCodeExceptions);
+			return waitForResult(id, this::processGetTakamakaCodeSuccess, this::processStandardExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
 			throw e;
@@ -464,12 +464,6 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		return message instanceof GetTakamakaCodeResultMessage gtcrm ? gtcrm.get() : null;
 	}
 
-	private boolean processGetTakamakaCodeExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
-	}
-
 	/**
 	 * Hook called when a {@link GetTakamakaCodeResultMessage} has been received.
 	 * 
@@ -486,12 +480,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() throws NodeException, InterruptedException, TimeoutException {
+	public StorageReference getManifest() throws NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetManifest(id);
 		try {
-			return waitForResult(id, this::processGetManifestSuccess, this::processGetManifestExceptions);
+			return waitForResult(id, this::processGetManifestSuccess, this::processStandardExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
 			throw e;
@@ -516,14 +510,8 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private Optional<StorageReference> processGetManifestSuccess(RpcMessage message) {
+	private StorageReference processGetManifestSuccess(RpcMessage message) {
 		return message instanceof GetManifestResultMessage gmrm ? gmrm.get() : null;
-	}
-
-	private boolean processGetManifestExceptions(ExceptionMessage message) {
-		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
-			processStandardExceptions(message);
 	}
 
 	/**

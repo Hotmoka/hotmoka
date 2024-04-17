@@ -67,11 +67,7 @@ public class BindKey extends AbstractCommand {
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
 		try (var node = RemoteNodes.of(uri, 10_000L)) {
-			var maybeManifest = node.getManifest();
-			if (maybeManifest.isEmpty())
-				throw new CommandException("The node at \"" + uri + "\" has no manifest.");
-
-			var manifest = maybeManifest.get();
+			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
 
 			// we must translate the key from Base58 to Base64

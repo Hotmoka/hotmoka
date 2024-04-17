@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import java.util.Optional;
-
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.node.messages.internal.GetManifestResultMessageImpl;
@@ -39,7 +37,7 @@ public final class GetManifestResultMessages {
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetManifestResultMessage of(Optional<StorageReference> result, String id) {
+	public static GetManifestResultMessage of(StorageReference result, String id) {
 		return new GetManifestResultMessageImpl(result, id);
 	}
 

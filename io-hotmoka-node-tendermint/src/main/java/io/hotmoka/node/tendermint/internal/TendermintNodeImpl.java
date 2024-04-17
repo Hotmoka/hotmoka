@@ -31,7 +31,6 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeoutException;
@@ -274,15 +273,11 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 
-	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException {
+	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
-		Optional<StorageReference> maybeManifest = getManifest();
-		if (maybeManifest.isEmpty())
-			return Optional.empty();
-
-		StorageReference manifest = maybeManifest.get();
+		StorageReference manifest = getManifest();
 		StorageReference validators = caches.getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
@@ -379,7 +374,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException {
+		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 			return TendermintNodeImpl.this.getTendermintValidatorsInStore();
 		}
 
