@@ -355,7 +355,7 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 		return parent.getRequest(reference);
 	}
 

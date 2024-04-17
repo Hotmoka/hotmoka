@@ -98,9 +98,9 @@ public interface NodeInternal {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the request
-	 * @throws NoSuchElementException if there is no request with that reference
+	 * @throws UnknownReferenceException if {@code reference} cannot be found in the node
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException;
 
 	/**
 	 * Yields the response generated for the request for the given transaction.

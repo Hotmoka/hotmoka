@@ -60,6 +60,7 @@ import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
@@ -320,7 +321,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		var classLoader = classLoaders.get(classpath);
 		if (classLoader != null)
 			return classLoader;

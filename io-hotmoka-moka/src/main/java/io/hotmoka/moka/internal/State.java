@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.moka.internal;
 
 import java.net.URI;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
@@ -33,6 +32,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
@@ -77,7 +77,7 @@ public class State extends AbstractCommand {
 			}
 		}
 
-		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+		private void printAPI() throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 			System.out.println();
 			if (api)
 				new PrintAPI(node, tag);

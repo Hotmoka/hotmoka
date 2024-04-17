@@ -29,6 +29,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * The cache of a local node.
@@ -95,7 +96,7 @@ public interface NodeCache {
 	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException;
+	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException;
 
 	/**
 	 * Checks that the given request is signed with the private key of its caller.

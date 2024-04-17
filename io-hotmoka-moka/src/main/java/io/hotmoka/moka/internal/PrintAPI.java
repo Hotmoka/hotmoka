@@ -22,7 +22,6 @@ import java.lang.reflect.Executable;
 import java.lang.reflect.Method;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +33,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
 import io.takamaka.code.constants.Constants;
@@ -42,7 +42,7 @@ class PrintAPI {
 	private final Class<?> clazz;
 	private final WhiteListingWizard whiteListingWizard;
 
-	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	PrintAPI(Node node, ClassTag tag) throws ClassNotFoundException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		TakamakaClassLoader classloader = ClassLoaderHelpers.of(node).classloaderFor(tag.getJar());
 		this.clazz = classloader.loadClass(tag.getClazz().getName());
 		this.whiteListingWizard = classloader.getWhiteListingWizard();

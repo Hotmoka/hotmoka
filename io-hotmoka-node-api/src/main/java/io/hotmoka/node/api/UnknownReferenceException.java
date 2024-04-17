@@ -18,6 +18,7 @@ package io.hotmoka.node.api;
 
 import java.util.Objects;
 
+import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 
 /**
@@ -39,6 +40,15 @@ public class UnknownReferenceException extends Exception {
 	 * @param reference the reference that cannot be found
 	 */
 	public UnknownReferenceException(StorageReference reference) {
+		super("Unknown reference " + reference);
+	}
+
+	/**
+	 * Creates a new exception.
+	 * 
+	 * @param reference the reference that cannot be found
+	 */
+	public UnknownReferenceException(TransactionReference reference) {
 		super("Unknown reference " + reference);
 	}
 

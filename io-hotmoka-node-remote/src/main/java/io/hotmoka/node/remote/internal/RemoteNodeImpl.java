@@ -645,14 +645,14 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetRequest(reference, id);
 		try {
 			return waitForResult(id, this::processGetRequestSuccess, this::processGetRequestExceptions);
 		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
 			throw e;
 		}
 		catch (Exception e) {
@@ -682,7 +682,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	private boolean processGetRequestExceptions(ExceptionMessage message) {
 		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
 			processStandardExceptions(message);
 	}
 

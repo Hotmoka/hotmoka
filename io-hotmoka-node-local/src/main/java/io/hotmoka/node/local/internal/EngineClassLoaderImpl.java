@@ -46,6 +46,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;
@@ -167,7 +168,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, NodeInternal node, boolean reverify, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -662,7 +663,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public void replaceReverifiedResponses() throws NoSuchElementException, NodeException {
+	public void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
 		reverification.replace();
 	}
 

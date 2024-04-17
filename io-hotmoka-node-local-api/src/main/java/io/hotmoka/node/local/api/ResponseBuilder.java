@@ -22,6 +22,7 @@ import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * The creator of a response from a request. It executes a transaction from the request and builds the corresponding response.
@@ -50,7 +51,7 @@ public interface ResponseBuilder<Request extends TransactionRequest<Response>, R
 	/**
 	 * Replaces all reverified responses into the store of the node for which the response is built.
 	 */
-	void replaceReverifiedResponses() throws NoSuchElementException, NodeException;
+	void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException;
 
 	/**
 	 * Yields the class loader used to build the response.

@@ -417,7 +417,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					getRequest(reference);
 					return response;
 				}
-				catch (NoSuchElementException e) {
+				catch (NoSuchElementException | UnknownReferenceException e) {
 					Thread.sleep(delay);
 				}
 
@@ -430,20 +430,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
-			Optional<TransactionRequest<?>> request;
 
 			try {
-				request = caches.getRequest(reference);
+				return caches.getRequest(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 			}
 			catch (RuntimeException e) {
 				LOGGER.log(Level.WARNING, "unexpected exception", e);
 				throw e;
 			}
-
-			return request.orElseThrow(() -> new NoSuchElementException("unknown transaction reference " + reference));
 		}
 	}
 
@@ -687,7 +684,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			LOGGER.log(Level.INFO, "transaction rejected", e);
 			throw e;
 		}
-		catch (IOException | ClassNotFoundException | NodeException e) {
+		catch (IOException | ClassNotFoundException | NodeException | UnknownReferenceException e) {
 			store.push(reference, request, trimmedMessage(e));
 			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 			throw new RuntimeException(e);
@@ -1137,7 +1134,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException {
+		public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
 			return AbstractLocalNodeImpl.this.getRequest(reference);
 		}
 

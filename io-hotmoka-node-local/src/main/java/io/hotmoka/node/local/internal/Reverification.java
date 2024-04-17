@@ -29,17 +29,18 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
-import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
+import io.hotmoka.beans.api.requests.InitialTransactionRequest;
+import io.hotmoka.beans.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
@@ -82,7 +83,7 @@ public class Reverification {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		this.node = node;
 		this.consensus = consensus;
 
@@ -106,7 +107,7 @@ public class Reverification {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public void replace() throws NoSuchElementException, NodeException {
+	public void replace() throws UnknownReferenceException, NodeException {
 		for (var entry: reverified.entrySet()) {
 			var reference = entry.getKey();
 			node.getStore().replace(reference, node.getRequest(reference), entry.getValue());
@@ -131,7 +132,7 @@ public class Reverification {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
@@ -152,7 +153,7 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, UnknownReferenceException, NodeException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
 		var jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) node.getRequest(transaction);
@@ -188,7 +189,7 @@ public class Reverification {
 		return response.getVerificationVersion() != consensus.getVerificationVersion();
 	}
 
-	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, NodeException {
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter));
