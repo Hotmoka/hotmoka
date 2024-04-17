@@ -47,6 +47,7 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
@@ -171,8 +172,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws ClassNotFoundException if the class of the caller cannot be found
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
+	 * @throws UnknownReferenceException 
 	 */
-	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException, NoSuchElementException, NodeException {
+	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
@@ -195,8 +197,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws ClassNotFoundException if the class of the caller cannot be determined
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
+	 * @throws UnknownReferenceException 
 	 */
-	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
+	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		ClassTag classTag = node.getClassTag(request.getCaller());
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
@@ -210,8 +213,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws ClassNotFoundException if the class of the payer cannot be determined
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
+	 * @throws UnknownReferenceException 
 	 */
-	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
+	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		StorageReference payer = getPayerFromRequest();
 	
 		if (payer.equals(request.getCaller()))

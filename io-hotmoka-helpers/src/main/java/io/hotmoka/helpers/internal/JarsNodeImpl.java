@@ -117,8 +117,9 @@ public class JarsNodeImpl implements JarsNode {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
+	 * @throws UnknownReferenceException if {@code payer} cannot be found in {@code parent}
      */
-	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException {
+	public JarsNodeImpl(Node parent, StorageReference payer, PrivateKey privateKeyOfPayer, Path... jars) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		this.parent = parent;
 
 		TransactionReference takamakaCode = getTakamakaCode();
@@ -188,7 +189,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public ClassTag getClassTag(StorageReference reference) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return parent.getClassTag(reference);
 	}
 

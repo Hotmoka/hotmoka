@@ -52,6 +52,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -137,7 +138,7 @@ class RemotePurchase extends HotmokaTest {
 	}
 
 	@Test @DisplayName("seller runs purchase = new Purchase(20); buyer runs purchase.confirmPurchase(20); a purchase event is generated")
-	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException, NoSuchElementException, NodeException {
+	void buyerHonestConfirmationEvent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, InterruptedException, ExecutionException, TimeoutException, NoSuchElementException, NodeException, UnknownReferenceException {
 		StorageReference purchase = addConstructorCallTransaction(privateKey(0), seller, _100_000, BigInteger.ONE,jar(), CONSTRUCTOR_PURCHASE, StorageValues.intOf(20));
 
 		var received = new CompletableFuture<StorageReference>();
@@ -175,7 +176,7 @@ class RemotePurchase extends HotmokaTest {
 		try {
 			return PURCHASE_CONFIRMED_NAME.equals(node.getClassTag(event).getClazz().getName());
 		}
-		catch (NodeException | NoSuchElementException | TimeoutException | InterruptedException e) {
+		catch (NodeException | UnknownReferenceException | TimeoutException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}

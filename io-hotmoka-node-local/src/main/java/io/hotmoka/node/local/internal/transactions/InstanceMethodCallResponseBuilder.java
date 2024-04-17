@@ -19,7 +19,6 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -40,6 +39,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.stores.StoreException;
 import io.takamaka.code.constants.Constants;
@@ -71,7 +71,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 	}
 
-	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
+	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		enforceExported(request.getReceiver());
 	}
 

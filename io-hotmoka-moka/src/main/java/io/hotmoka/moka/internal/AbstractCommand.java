@@ -21,7 +21,6 @@ import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +44,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -91,11 +91,11 @@ public abstract class AbstractCommand implements Runnable {
 	 * @throws TransactionException
 	 * @throws CodeExecutionException
 	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws NoSuchElementException 
 	 * @throws InterruptedException 
 	 * @throws TimeoutException 
+	 * @throws UnknownReferenceException 
 	 */
-	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	protected KeyPair readKeys(Account account, Node node, String password) throws IOException, NoSuchAlgorithmException, ClassNotFoundException, InvalidKeyException, TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		StorageReference reference = account.getReference();
 		var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(reference);
 		var keys = account.keys(password, algorithm);

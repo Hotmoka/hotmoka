@@ -24,7 +24,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -53,6 +52,7 @@ import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.remote.RemoteNodes;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -176,7 +176,7 @@ public class Call extends AbstractCommand {
 			}
 		}
 
-		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+		private Class<?> getClassOfReceiver() throws ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 			try {
 				return classloader.loadClass(Call.this.receiver);
 			}

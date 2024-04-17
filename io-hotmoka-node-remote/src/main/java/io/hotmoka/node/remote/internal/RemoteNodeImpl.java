@@ -531,14 +531,14 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, InterruptedException, TimeoutException {
+	public ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetClassTag(reference, id);
 		try {
 			return waitForResult(id, this::processGetClassTagSuccess, this::processGetClassTagExceptions);
 		}
-		catch (RuntimeException | TimeoutException | InterruptedException | NodeException e) {
+		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | UnknownReferenceException e) {
 			throw e;
 		}
 		catch (Exception e) {
@@ -568,7 +568,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 
 	private boolean processGetClassTagExceptions(ExceptionMessage message) {
 		var clazz = message.getExceptionClass();
-		return NoSuchElementException.class.isAssignableFrom(clazz) ||
+		return UnknownReferenceException.class.isAssignableFrom(clazz) ||
 			processStandardExceptions(message);
 	}
 

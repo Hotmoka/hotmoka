@@ -30,7 +30,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.Base64;
-import java.util.NoSuchElementException;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +56,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token.
@@ -135,7 +135,7 @@ class WTSC2021bis extends HotmokaTest {
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException
 				| TransactionRejectedException | InterruptedException | ExecutionException
-				| NoSuchAlgorithmException | NoSuchElementException | ClassNotFoundException | IOException | NodeException | TimeoutException e) {
+				| NoSuchAlgorithmException | UnknownReferenceException | ClassNotFoundException | IOException | NodeException | TimeoutException e) {
 			throw new RuntimeException(e);
 		}
 	}

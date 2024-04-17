@@ -110,13 +110,13 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * existed in store.
 	 * 
 	 * @param object the storage reference of the object
-	 * @return the class tag, if any
-	 * @throws NoSuchElementException if there is no object with that reference
+	 * @return the class tag
+	 * @throws UnknownReferenceException if {@code object} cannot be found in this node
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException; // improve NoSuchElementException
+	ClassTag getClassTag(StorageReference object) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the current state of the object at the given storage reference.
@@ -129,7 +129,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param object the storage reference of the object
 	 * @return the last updates of all its instance fields; these updates include
 	 *         the class tag update for the object
-	 * @throws UnknownReferenceException if there is no object with that reference
+	 * @throws UnknownReferenceException if {@code object} cannot be found in this node
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
@@ -160,7 +160,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	TransactionRequest<?> getRequest(TransactionReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException; // throw UnknownReferenceException
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -178,7 +178,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException;
+	TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, NoSuchElementException, NodeException, TimeoutException, InterruptedException; // throw UnknownReferenceException
 
 	/**
 	 * Waits until a transaction has been committed, or until its delivering fails.

@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.helpers.internal;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.StorageTypes;
@@ -32,6 +31,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**
@@ -47,7 +47,7 @@ public class SignatureHelperImpl implements SignatureHelper {
 	}
 
 	@Override
-	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public SignatureAlgorithm signatureAlgorithmFor(StorageReference account) throws NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		var tag = node.getClassTag(account);
 
 		// first we try without the class loader, that does not work under Android...

@@ -304,7 +304,7 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public ClassTag getClassTag(StorageReference reference) throws NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		return parent.getClassTag(reference);
 	}
 

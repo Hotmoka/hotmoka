@@ -34,6 +34,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 
 /**
  * An object that helps with the creation of new accounts.
@@ -67,7 +68,7 @@ public interface AccountCreationHelper {
 	 */
 	StorageReference paidByFaucet(SignatureAlgorithm signatureAlgorithm, PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
 
 	/**
 	 * Creates a new account by letting another account pay.
@@ -93,7 +94,7 @@ public interface AccountCreationHelper {
 	 * @throws InterruptedException if the current thread is interrupted while performing the operation
 	 * @throws TimeoutException if the operation does not complete within the expected time window
 	 * @throws NodeException if the node is not able to complete the operation
-	 * @throws NoSuchElementException if the node is not properly initialized	
+	 * @throws UnknownReferenceException if the node is not properly initialized	
 	 */
 	StorageReference paidBy(StorageReference payer, KeyPair keysOfPayer,
 			SignatureAlgorithm signatureAlgorithm, PublicKey publicKey, BigInteger balance, BigInteger balanceRed,
@@ -101,7 +102,7 @@ public interface AccountCreationHelper {
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
-					NodeException, NoSuchElementException, TimeoutException, InterruptedException;
+					NodeException, TimeoutException, InterruptedException, UnknownReferenceException;
 
 	/**
 	 * Creates a new Tendermint validator by letting the faucet pay.
@@ -123,7 +124,7 @@ public interface AccountCreationHelper {
 	 */
 	StorageReference tendermintValidatorPaidByFaucet(PublicKey publicKey,
 			BigInteger balance, BigInteger balanceRed, Consumer<TransactionRequest<?>[]> requestsHandler)
-			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException;
+			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException;
 
 	/**
 	 * Creates a new Tendermint validator by letting another account pay.
@@ -152,5 +153,5 @@ public interface AccountCreationHelper {
 			Consumer<BigInteger> gasHandler,
 			Consumer<TransactionRequest<?>[]> requestsHandler)
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException,
-				NodeException, TimeoutException, InterruptedException, NoSuchElementException;
+				NodeException, TimeoutException, InterruptedException, NoSuchElementException, UnknownReferenceException;
 }

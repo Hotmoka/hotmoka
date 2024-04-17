@@ -240,7 +240,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
+	public ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException {
 		return parent.getClassTag(reference);
 	}
 

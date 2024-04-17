@@ -386,8 +386,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			try {
 				return getClassTag(manifest).getJar();
 			}
-			catch (NoSuchElementException e) {
-				throw new NodeException("The manifest of the node cannot be found in the node itself");
+			catch (UnknownReferenceException e) {
+				throw new NodeException("The manifest of the node cannot be found in the node itself", e);
 			}
 		}
 	}
@@ -477,14 +477,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final ClassTag getClassTag(StorageReference reference) throws NoSuchElementException, NodeException {
+	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 
 			if (isNotCommitted(reference.getTransaction()))
-				throw new NoSuchElementException("Unknown transaction reference " + reference.getTransaction());
+				throw new UnknownReferenceException(reference);
 
 			return storeUtilities.getClassTagUncommitted(reference);
+		}
+		catch (NoSuchElementException e) {
+			throw new UnknownReferenceException(reference);
 		}
 	}
 
@@ -1144,7 +1147,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException {
+		public ClassTag getClassTag(StorageReference object) throws NodeException, UnknownReferenceException {
 			return AbstractLocalNodeImpl.this.getClassTag(object);
 		}
 

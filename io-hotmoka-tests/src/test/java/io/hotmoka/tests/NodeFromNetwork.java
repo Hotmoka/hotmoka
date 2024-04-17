@@ -121,7 +121,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getClassTag for a non-existing reference")
     void testRemoteGetClassTagNonExisting() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	assertThrows(NoSuchElementException.class, () -> remote.getClassTag(INEXISTENT_STORAGE_REFERENCE));
+        	assertThrows(UnknownReferenceException.class, () -> remote.getClassTag(INEXISTENT_STORAGE_REFERENCE));
         }
     }
 

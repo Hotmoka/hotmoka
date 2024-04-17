@@ -36,6 +36,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.Serializer;
@@ -82,9 +83,10 @@ public abstract class CodeCallResponseBuilder
 	 * @throws TransactionRejectedException if that condition does not hold
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
 	 * @throws NodeException 
+	 * @throws UnknownReferenceException 
 	 * @throws NoSuchElementException 
 	 */
-	private void argumentsAreExported() throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
+	private void argumentsAreExported() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		List<StorageReference> args = request.actuals()
 			.filter(actual -> actual instanceof StorageReference)
 			.map(actual -> (StorageReference) actual)
@@ -100,10 +102,10 @@ public abstract class CodeCallResponseBuilder
 	 * @param reference the transaction reference
 	 * @throws TransactionRejectedException of the type of the object in store is not exported
 	 * @throws ClassNotFoundException if the class tag of {@code reference} cannot be found in the Takamaka program
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * @throws NodeException
+	 * @throws UnknownReferenceException 
 	 */
-	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException, NoSuchElementException, NodeException {
+	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
 		var clazz = node.getClassTag(reference).getClazz();
 		if (!classLoader.isExported(clazz.getName()))
 			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);

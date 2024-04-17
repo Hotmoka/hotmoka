@@ -32,6 +32,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
@@ -126,10 +127,10 @@ public interface NodeInternal {
 	 * 
 	 * @param object the storage reference of the object
 	 * @return the class tag, if any
-	 * @throws NoSuchElementException if there is no object with that reference or
-	 *                                if the class tag could not be found
+	 * @throws UnknownReferenceException if there is no object with that reference
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	ClassTag getClassTag(StorageReference object) throws NoSuchElementException, NodeException;
+	ClassTag getClassTag(StorageReference object) throws UnknownReferenceException, NodeException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
