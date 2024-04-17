@@ -235,7 +235,7 @@ public class InitTendermint extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(initialized));
 		}
 
-		private void dumpInstructionsToBindGamete() {
+		private void dumpInstructionsToBindGamete() throws NodeException, TimeoutException, InterruptedException {
 			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
 			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
 			System.out.println("or");

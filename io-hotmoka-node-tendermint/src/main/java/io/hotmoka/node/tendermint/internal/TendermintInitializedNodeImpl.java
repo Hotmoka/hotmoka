@@ -214,7 +214,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference gamete() {
+	public StorageReference gamete() throws NodeException, TimeoutException, InterruptedException {
 		return parent.gamete();
 	}
 

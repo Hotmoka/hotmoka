@@ -57,6 +57,7 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
+import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.ConsensusConfig;
@@ -278,7 +279,10 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageReference gamete() { // TODO: throw exception if closed
+	public StorageReference gamete() throws ClosedNodeException {
+		if (isClosed.get())
+			throw new ClosedNodeException();
+
 		return gamete;
 	}
 

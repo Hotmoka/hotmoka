@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.crypto.Base58;
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
@@ -124,7 +124,7 @@ public class InitDisk extends AbstractCommand {
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
 				.setInitialRedSupply(initialRedSupply)
-				.setPublicKeyOfGamete(Base64.getEncoder().encodeToString(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(Base64.toBase64String(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);
@@ -157,7 +157,7 @@ public class InitDisk extends AbstractCommand {
 			System.out.println("\nThe following node has been initialized:\n" + ManifestHelpers.of(node));
 		}
 
-		private void dumpInstructionsToBindGamete() {
+		private void dumpInstructionsToBindGamete() throws NodeException, TimeoutException, InterruptedException {
 			System.out.println("\nThe owner of the key of the gamete can bind it to its address now:");
 			System.out.println("  moka bind-key " + keyOfGamete + " --url url_of_this_node");
 			System.out.println("or");
