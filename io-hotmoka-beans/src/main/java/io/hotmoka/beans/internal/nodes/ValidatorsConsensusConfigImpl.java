@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.internal;
+package io.hotmoka.beans.internal.nodes;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -23,11 +23,11 @@ import java.security.spec.InvalidKeySpecException;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.AbstractConsensusConfig;
+import io.hotmoka.beans.AbstractConsensusConfigBuilder;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.AbstractConsensusConfig;
-import io.hotmoka.node.AbstractConsensusConfigBuilder;
-import io.hotmoka.node.api.ValidatorsConsensusConfig;
-import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node that uses validators.

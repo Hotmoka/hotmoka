@@ -23,12 +23,12 @@ import java.nio.file.Paths;
 import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
+import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.beans;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -22,10 +22,10 @@ import java.security.spec.InvalidKeySpecException;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
+import io.hotmoka.beans.internal.nodes.ValidatorsConsensusConfigImpl;
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.internal.ConsensusConfigImpl;
 
 /**
  * The builder of a configuration object.
@@ -33,14 +33,14 @@ import io.hotmoka.node.internal.ConsensusConfigImpl;
  * @param <C> the concrete type of the configuration
  * @param <B> the concrete type of the builder
  */
-public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> extends ConsensusConfigImpl.ConsensusConfigBuilderImpl<C,B> {
+public abstract class AbstractValidatorsConsensusConfigBuilder<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>> extends ValidatorsConsensusConfigImpl.ValidatorsConsensusConfigBuilderImpl<C,B> {
 
 	/**
 	 * Creates the builder.
 	 * 
 	 * @throws NoSuchAlgorithmException if the configuration refers to some unknown hashing algorithm
 	 */
-	protected AbstractConsensusConfigBuilder() throws NoSuchAlgorithmException {
+	protected AbstractValidatorsConsensusConfigBuilder() throws NoSuchAlgorithmException {
 	}
 
 	/**
@@ -53,7 +53,7 @@ public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
 	 */
-	protected AbstractConsensusConfigBuilder(Toml toml) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
+	protected AbstractValidatorsConsensusConfigBuilder(Toml toml) throws NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		super(toml);
 	}
 
@@ -62,7 +62,7 @@ public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C
 	 * 
 	 * @param config the configuration object
 	 */
-	protected AbstractConsensusConfigBuilder(ConsensusConfig<C,B> config) {
+	protected AbstractValidatorsConsensusConfigBuilder(ValidatorsConsensusConfig<C,B> config) {
 		super(config);
 	}
 }

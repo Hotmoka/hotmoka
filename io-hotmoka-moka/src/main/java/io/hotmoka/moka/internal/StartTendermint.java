@@ -23,7 +23,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 
-import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
+import io.hotmoka.beans.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -69,7 +69,7 @@ public class StartTendermint extends AbstractCommand {
 				.setDir(dir)
 				.build();
 
-			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
+			var consensus = ValidatorsConsensusConfigBuilders.defaults()
 				.build();
 
 			try (var node = TendermintNodes.init(nodeConfig, consensus); var service = NodeServices.of(node, port)) {

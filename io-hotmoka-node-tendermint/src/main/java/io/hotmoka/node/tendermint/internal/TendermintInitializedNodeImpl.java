@@ -41,6 +41,7 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
@@ -71,7 +72,6 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 
 /**

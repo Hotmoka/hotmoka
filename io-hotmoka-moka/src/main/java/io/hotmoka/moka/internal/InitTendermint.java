@@ -30,6 +30,7 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
@@ -40,7 +41,6 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.Accounts;
-import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -150,7 +150,7 @@ public class InitTendermint extends AbstractCommand {
 
 			var signature = SignatureAlgorithms.ed25519();
 
-			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
+			var consensus = ValidatorsConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
 				.setSignatureForRequests(signature)

@@ -19,7 +19,7 @@ package io.hotmoka.node.tendermint;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;
@@ -44,7 +44,7 @@ public abstract class TendermintNodes {
 	 * @return the Tendermint node
 	 * @throws IOException if an I/O error occurs
 	 */
-	public static TendermintNode init(TendermintNodeConfig config, SimpleValidatorsConsensusConfig consensus) throws IOException {
+	public static TendermintNode init(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws IOException {
 		return new TendermintNodeImpl(config, consensus);
 	}
 

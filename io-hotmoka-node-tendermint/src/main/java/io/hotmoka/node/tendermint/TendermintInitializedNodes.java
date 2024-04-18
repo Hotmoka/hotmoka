@@ -24,14 +24,13 @@ import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
 
@@ -87,7 +86,7 @@ public abstract class TendermintInitializedNodes {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	public static InitializedNode of(TendermintNode parent, SimpleValidatorsConsensusConfig consensus,
+	public static InitializedNode of(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus,
 			ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStation, Path takamakaCode) throws TransactionRejectedException, TransactionException, CodeExecutionException, IOException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NodeException, TimeoutException, InterruptedException {
 		return new TendermintInitializedNodeImpl(parent, consensus, producerOfGasStation, takamakaCode);
 	}

@@ -14,10 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.beans.api.nodes;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
 
 /**
  * A specification of the consensus parameters of a Hotmoka node that uses validators.

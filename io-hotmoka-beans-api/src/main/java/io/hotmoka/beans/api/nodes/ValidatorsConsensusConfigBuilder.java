@@ -1,6 +1,4 @@
-package io.hotmoka.node.api;
-
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+package io.hotmoka.beans.api.nodes;
 
 /**
  * The builder of a configuration object of a Hotmoka node that uses validators.

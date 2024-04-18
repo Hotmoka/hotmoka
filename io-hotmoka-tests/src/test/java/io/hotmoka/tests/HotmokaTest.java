@@ -43,12 +43,15 @@ import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
+import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -68,8 +71,6 @@ import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
-import io.hotmoka.node.ConsensusConfigBuilders;
-import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.JarSupplier;
@@ -78,7 +79,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
-import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -184,7 +184,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var password = "";
 			var localSignature = SignatureAlgorithms.ed25519det();
 			var keys = entropy.keys(password, localSignature);
-			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
+			consensus = ValidatorsConsensusConfigBuilders.defaults()
 	    			.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
@@ -254,7 +254,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	@SuppressWarnings("unused")
 	private static Node mkTendermintBlockchain() throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-		var consensus = fillConsensusConfig(SimpleValidatorsConsensusConfigBuilders.defaults()).build();
+		var consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 
 		isUsingTendermint = true;

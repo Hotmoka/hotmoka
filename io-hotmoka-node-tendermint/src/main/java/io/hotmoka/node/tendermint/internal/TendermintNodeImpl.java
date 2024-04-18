@@ -48,6 +48,7 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
@@ -61,7 +62,6 @@ import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -115,7 +115,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * @param consensus the consensus parameters of the node
 	 * @throws IOException 
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, SimpleValidatorsConsensusConfig consensus) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws IOException {
 		super(config, consensus);
 
 		try {

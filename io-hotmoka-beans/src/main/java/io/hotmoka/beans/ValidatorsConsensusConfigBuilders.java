@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.beans;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -22,17 +22,17 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
 
 /**
- * Providers of consensus configurations.
+ * Providers of consensus configuration builders for Hotmoka nodes with validators.
  */
-public abstract class ConsensusConfigBuilders {
+public abstract class ValidatorsConsensusConfigBuilders {
 
-	private ConsensusConfigBuilders() {}
+	private ValidatorsConsensusConfigBuilders() {}
 
-	private static class MyConsensusConfig extends AbstractConsensusConfig<MyConsensusConfig, MyConsensusConfigBuilder> {
+	private static class MyConsensusConfig extends AbstractValidatorsConsensusConfig<MyConsensusConfig, MyConsensusConfigBuilder> {
 		
 		/**
 		 * Full constructor for the builder pattern.
@@ -52,7 +52,7 @@ public abstract class ConsensusConfigBuilders {
 	/**
 	 * The builder of consensus configurations, according to the builder pattern.
 	 */
-	private static class MyConsensusConfigBuilder extends AbstractConsensusConfigBuilder<MyConsensusConfig, MyConsensusConfigBuilder> {
+	private static class MyConsensusConfigBuilder extends AbstractValidatorsConsensusConfigBuilder<MyConsensusConfig, MyConsensusConfigBuilder> {
 
 		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {
 		}
@@ -80,9 +80,9 @@ public abstract class ConsensusConfigBuilders {
 	 * Creates a builder containing default data.
 	 * 
 	 * @return the builder
-	 * @throws NoSuchAlgorithmException if some hashing algorithm used in the default configuration is not available
+	 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 	 */
-	public static ConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
+	public static ValidatorsConsensusConfigBuilder<?,?> defaults() throws NoSuchAlgorithmException {
 		return new MyConsensusConfigBuilder();
 	}
 
@@ -94,12 +94,12 @@ public abstract class ConsensusConfigBuilders {
 	 * @param path the path to the TOML file
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
-	 * @throws NoSuchAlgorithmException if some hashing algorithm cannot be found
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
 	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
 	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
 	 * @throws InvalidKeyException if some public key in the TOML file is invalid
 	 */
-	public static ConsensusConfigBuilder<?,?> load(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
+	public static ValidatorsConsensusConfigBuilder<?,?> load(Path path) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 		return new MyConsensusConfigBuilder(path);
 	}
 }

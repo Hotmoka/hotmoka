@@ -19,12 +19,10 @@ limitations under the License.
  */
 module io.hotmoka.node {
 	exports io.hotmoka.node;
+
 	requires transitive io.hotmoka.node.api;
-	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.annotations;
-	requires toml4j;
 	requires java.logging;
-	requires io.hotmoka.beans.api;
 }

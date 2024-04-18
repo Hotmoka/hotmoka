@@ -14,12 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node;
+package io.hotmoka.beans;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.node.internal.ConsensusConfigImpl;
+import io.hotmoka.beans.internal.nodes.ConsensusConfigImpl;
 
 /**
  * The configuration of a Hotmoka node. Nodes of the same network must agree
