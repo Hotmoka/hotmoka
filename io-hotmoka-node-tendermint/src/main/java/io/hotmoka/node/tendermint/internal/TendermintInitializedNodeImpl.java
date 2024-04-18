@@ -125,8 +125,8 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	public TendermintInitializedNodeImpl(TendermintNode parent, ValidatorsConsensusConfig<?,?> consensus,
 			ProducerOfStorageObject<ConsensusConfig<?,?>> producerOfGasStationBuilder, Path takamakaCode) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, IOException, NodeException, TimeoutException, InterruptedException {
 
-		var tendermintConfigFile = new TendermintConfigFile(parent.getConfig());
-		var poster = new TendermintPoster(parent.getConfig(), tendermintConfigFile.tendermintPort);
+		var tendermintConfigFile = new TendermintConfigFile(parent.getLocalConfig());
+		var poster = new TendermintPoster(parent.getLocalConfig(), tendermintConfigFile.tendermintPort);
 
 		// we modify the consensus parameters, by setting the chain identifier and the genesis time to that of the underlying Tendermint network
 		consensus = consensus.toBuilder()
@@ -314,8 +314,8 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getConsensusConfig();
+	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+		return parent.getConfig();
 	}
 
 	@Override

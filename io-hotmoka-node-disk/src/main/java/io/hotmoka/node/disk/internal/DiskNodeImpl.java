@@ -75,13 +75,13 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	}
 
 	@Override
-	public DiskNodeConfig getConfig() {
+	public DiskNodeConfig getLocalConfig() {
 		return config;
 	}
 
 	@Override
 	protected Store mkStore() {
-		return new Store(caches::getResponseUncommitted, getConfig().getDir(), getConfig().getTransactionsPerBlock());
+		return new Store(caches::getResponseUncommitted, getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
 	}
 
 	@Override

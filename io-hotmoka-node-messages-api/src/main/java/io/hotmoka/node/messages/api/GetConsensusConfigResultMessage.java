@@ -20,7 +20,7 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.api.Node;
 
 /**
- * The network message corresponding to the result of the {@link Node#getConsensusConfig()} method.
+ * The network message corresponding to the result of the {@link Node#getConfig()} method.
  */
 @Immutable
 public interface GetConsensusConfigResultMessage extends ResultMessage<String> {

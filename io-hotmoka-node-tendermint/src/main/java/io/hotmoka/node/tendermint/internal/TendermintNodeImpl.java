@@ -220,7 +220,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	public TendermintNodeConfig getConfig() {
+	public TendermintNodeConfig getLocalConfig() {
 		return config;
 	}
 

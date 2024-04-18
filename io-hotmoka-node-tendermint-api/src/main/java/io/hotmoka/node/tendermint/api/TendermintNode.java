@@ -30,5 +30,5 @@ public interface TendermintNode extends Node {
 	 * 
 	 * @return the configuration
 	 */
-	TendermintNodeConfig getConfig();
+	TendermintNodeConfig getLocalConfig();
 }

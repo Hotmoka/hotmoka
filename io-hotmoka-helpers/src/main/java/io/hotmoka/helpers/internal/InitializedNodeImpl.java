@@ -382,8 +382,8 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getConsensusConfig();
+	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+		return parent.getConfig();
 	}
 
 	@Override

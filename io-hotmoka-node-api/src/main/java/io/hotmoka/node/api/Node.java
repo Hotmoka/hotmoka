@@ -61,6 +61,16 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	void close() throws InterruptedException, NodeException;
 
 	/**
+	 * Yields the consensus configuration of this node.
+	 * 
+	 * @return the consensus configuration of this node
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
+	 */
+	String getConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yields the name of the signature used for requests: change it!
+
+	/**
 	 * Yields the reference to the jar installed in the store of the node, when the node was initialized,
 	 * containing the classes of the Takamaka runtime.
 	 * If this node has some form of commit, then this method returns a reference
@@ -134,16 +144,6 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	Stream<Update> getState(StorageReference object) throws UnknownReferenceException, NodeException, TimeoutException, InterruptedException;
-
-	/**
-	 * Yields the consensus configuration of this node.
-	 * 
-	 * @return the consensus configuration of this node
-	 * @throws NodeException if the node is not able to perform the operation
-	 * @throws TimeoutException if no answer arrives before a time window
-	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
-	 */
-	String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yields the name of the signature used for requests: change it!
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

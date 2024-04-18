@@ -21,7 +21,7 @@ import io.hotmoka.node.messages.api.GetConsensusConfigMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 
 /**
- * Implementation of the network message corresponding to {@link Node#getConsensusConfig()}.
+ * Implementation of the network message corresponding to {@link Node#getConfig()}.
  */
 public class GetConsensusConfigMessageImpl extends AbstractRpcMessage implements GetConsensusConfigMessage {
 

@@ -281,7 +281,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
 		try {
 			try {
-				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConsensusConfig(), message.getId()));
+				sendObjectAsync(session, GetConsensusConfigResultMessages.of(node.getConfig(), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException e) {
 				sendExceptionAsync(session, e, message.getId());

@@ -33,5 +33,5 @@ public interface DiskNode extends Node {
 	 * 
 	 * @return the configuration
 	 */
-	DiskNodeConfig getConfig();
+	DiskNodeConfig getLocalConfig();
 }

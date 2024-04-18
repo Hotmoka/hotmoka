@@ -380,7 +380,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
+	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetConsensusConfig(id);

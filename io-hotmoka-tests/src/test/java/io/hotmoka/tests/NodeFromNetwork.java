@@ -92,7 +92,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	SignatureAlgorithm algo;
 
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	algo = SignatureAlgorithms.of(remote.getConsensusConfig());
+        	algo = SignatureAlgorithms.of(remote.getConfig());
         }
 
         assertNotNull(algo);

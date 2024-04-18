@@ -21,7 +21,7 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.websockets.beans.api.RpcMessage;
 
 /**
- * The network message corresponding to {@link Node#getConsensusConfig()}.
+ * The network message corresponding to {@link Node#getConfig()}.
  */
 @Immutable
 public interface GetConsensusConfigMessage extends RpcMessage {

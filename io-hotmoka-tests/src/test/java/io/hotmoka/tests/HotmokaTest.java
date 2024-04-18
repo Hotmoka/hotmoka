@@ -202,7 +202,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
 
-	        signature = SignatureAlgorithms.of(node.getConsensusConfig());
+	        signature = SignatureAlgorithms.of(node.getConfig());
 	        initializeNodeIfNeeded(wrapped);
 	        Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 

@@ -264,8 +264,8 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public String getConsensusConfig() throws NodeException, TimeoutException, InterruptedException {
-		return parent.getConsensusConfig();
+	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+		return parent.getConfig();
 	}
 
 	@Override
