@@ -53,7 +53,6 @@ public abstract class CheckOnClasses {
 	protected final Annotations annotations;
 	protected final BcelToClass bcelToClass;
 	protected final boolean duringInitialization;
-	protected final boolean allowSelfCharged;
 	protected final String className;
 	protected final ConstantPoolGen cpg;
 
@@ -69,7 +68,6 @@ public abstract class CheckOnClasses {
 		this.className = verifiedClass.getClassName();
 		this.cpg = verifiedClass.getConstantPool();
 		this.duringInitialization = builder.duringInitialization;
-		this.allowSelfCharged = builder.allowSelfCharged;
 	}
 
 	protected final void issue(AbstractErrorImpl issue) {

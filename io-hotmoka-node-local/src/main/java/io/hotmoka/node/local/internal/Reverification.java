@@ -178,7 +178,7 @@ public class Reverification {
 
 		try {
 			return VerifiedJars.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
-					consensus != null && consensus.allowsSelfCharged(), consensus != null && consensus.skipsVerification());
+				consensus != null && consensus.skipsVerification());
 		}
 		catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {
 			throw new UnsupportedVerificationVersionException(e.verificationVerification);

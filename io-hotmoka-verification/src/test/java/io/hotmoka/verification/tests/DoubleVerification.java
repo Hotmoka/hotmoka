@@ -45,7 +45,7 @@ class DoubleVerification extends AbstractLoggedTests {
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var bytesOfClasspath = Files.readAllBytes(classpath);
     	var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
-    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false);
+    	VerifiedJars.of(bytesOfOrigin, classLoader, false, false);
 	}
 }

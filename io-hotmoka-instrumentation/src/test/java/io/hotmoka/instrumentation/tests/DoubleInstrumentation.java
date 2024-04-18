@@ -48,7 +48,7 @@ class DoubleInstrumentation extends AbstractLoggedTests {
 		var bytesOfClasspath = Files.readAllBytes(classpath);
 		var bytesOfOrigin = Files.readAllBytes(origin);
 		var classLoader = TakamakaClassLoaders.of(Stream.of(bytesOfClasspath, bytesOfOrigin), 0);
-    	var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, false, false, false);
+    	var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, false, false);
     	var costModel = GasCostModels.standard();
 		InstrumentedJars.of(verifiedJar, costModel);
     	InstrumentedJars.of(verifiedJar, costModel);

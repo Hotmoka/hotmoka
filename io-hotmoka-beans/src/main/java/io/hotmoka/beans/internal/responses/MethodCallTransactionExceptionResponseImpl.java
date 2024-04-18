@@ -67,16 +67,14 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 	 * @param classNameOfCause the fully-qualified class name of the cause exception
 	 * @param messageOfCause of the message of the cause exception; this might be {@code null}
 	 * @param where the program point where the cause exception occurred; this might be {@code null}
-	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
-	 *                    execution was charged to its receiver
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionExceptionResponseImpl(String classNameOfCause, String messageOfCause, String where, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public MethodCallTransactionExceptionResponseImpl(String classNameOfCause, String messageOfCause, String where, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.classNameOfCause = Objects.requireNonNull(classNameOfCause, "classNameOfCause cannot be null");
 		this.events = events.toArray(StorageReference[]::new);
@@ -131,7 +129,6 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 	public void into(MarshallingContext context) throws IOException {
 		context.writeByte(SELECTOR);
 		super.into(context);
-		context.writeBoolean(getSelfCharged());
 		intoArrayWithoutSelector(events, context);
 		context.writeStringUnshared(classNameOfCause);
 		context.writeStringUnshared(messageOfCause);
@@ -151,11 +148,10 @@ public class MethodCallTransactionExceptionResponseImpl extends MethodCallTransa
 		var gasConsumedForCPU = context.readBigInteger();
 		var gasConsumedForRAM = context.readBigInteger();
 		var gasConsumedForStorage = context.readBigInteger();
-		var selfCharged = context.readBoolean();
 		Stream<StorageReference> events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
 		var classNameOfCause = context.readStringUnshared();
 		var messageOfCause = context.readStringUnshared();
 		var where = context.readStringUnshared();
-		return new MethodCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		return new MethodCallTransactionExceptionResponseImpl(classNameOfCause, messageOfCause, where, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

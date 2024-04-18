@@ -23,12 +23,4 @@ import io.hotmoka.annotations.Immutable;
  */
 @Immutable
 public interface MethodCallTransactionResponse extends CodeExecutionTransactionResponse {
-
-	/**
-	 * Determines if the called method was annotated as {@code @@SelfCharged}, hence the
-	 * execution was charged to its receiver.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	boolean getSelfCharged();
 }

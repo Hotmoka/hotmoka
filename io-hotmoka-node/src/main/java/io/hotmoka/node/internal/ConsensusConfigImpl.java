@@ -72,11 +72,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final long maxCumulativeSizeOfDependencies;
 
 	/**
-	 * True if and only if the use of the {@code @@SelfCharged} annotation is allowed.
-	 */
-	public final boolean allowsSelfCharged;
-
-	/**
 	 * True if and only if the use of the faucet of the gamete is allowed without a valid signature.
 	 * It defaults to false.
 	 */
@@ -181,7 +176,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.maxErrorLength = builder.maxErrorLength;
 		this.maxDependencies = builder.maxDependencies;
 		this.maxCumulativeSizeOfDependencies = builder.maxCumulativeSizeOfDependencies;
-		this.allowsSelfCharged = builder.allowsSelfCharged;
 		this.allowsUnsignedFaucet = builder.allowsUnsignedFaucet;
 		this.initialGasPrice = builder.initialGasPrice;
 		this.maxGasPerTransaction = builder.maxGasPerTransaction;
@@ -208,7 +202,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 				maxErrorLength == otherConfig.maxErrorLength &&
 				maxDependencies == otherConfig.maxDependencies &&
 				maxCumulativeSizeOfDependencies == otherConfig.maxCumulativeSizeOfDependencies &&
-				allowsSelfCharged == otherConfig.allowsSelfCharged &&
 				allowsUnsignedFaucet == otherConfig.allowsUnsignedFaucet &&
 				initialGasPrice.equals(otherConfig.initialGasPrice) &&
 				maxGasPerTransaction.equals(otherConfig.maxGasPerTransaction) &&
@@ -257,9 +250,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("# the maximal cumulative size (in bytes) of the instrumented jars\n");
 		sb.append("# of the dependencies of a transaction\n");
 		sb.append("max_cumulative_size_of_dependencies = " + maxCumulativeSizeOfDependencies + "\n");
-		sb.append("\n");
-		sb.append("# true if and only if the use of the @SelfCharged annotation is allowed\n");
-		sb.append("allows_self_charged = " + allowsSelfCharged + "\n");
 		sb.append("\n");
 		sb.append("# true if and only if the use of the faucet of the gamete is allowed without a valid signature\n");
 		sb.append("allows_unsigned_faucet = " + allowsUnsignedFaucet + "\n");
@@ -347,11 +337,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public boolean allowsSelfCharged() {
-		return allowsSelfCharged;
-	}
-
-	@Override
 	public boolean allowsUnsignedFaucet() {
 		return allowsUnsignedFaucet;
 	}
@@ -435,7 +420,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private String chainId = "";
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
 		private long maxErrorLength = 300L;
-		private boolean allowsSelfCharged = false;
 		private boolean allowsUnsignedFaucet = false;
 		private SignatureAlgorithm signature;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
@@ -483,7 +467,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setMaxErrorLength(config.getMaxErrorLength());
 			setMaxDependencies(config.getMaxDependencies());
 			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
-			allowSelfCharged(config.allowsSelfCharged());
 			allowUnsignedFaucet(config.allowsUnsignedFaucet());
 			signRequestsWith(config.getSignature());
 			setMaxGasPerTransaction(config.getMaxGasPerTransaction());
@@ -528,10 +511,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			var maxCumulativeSizeOfDependencies = toml.getLong("max_cumulative_size_of_dependencies");
 			if (maxCumulativeSizeOfDependencies != null)
 				setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies);
-
-			var allowsSelfCharged = toml.getBoolean("allows_self_charged");
-			if (allowsSelfCharged != null)
-				allowSelfCharged(allowsSelfCharged);
 
 			var allowsUnsignedFaucet = toml.getBoolean("allows_unsigned_faucet");
 			if (allowsUnsignedFaucet != null)
@@ -621,12 +600,6 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
 			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
-			return getThis();
-		}
-
-		@Override
-		public B allowSelfCharged(boolean allowsSelfCharged) {
-			this.allowsSelfCharged = allowsSelfCharged;
 			return getThis();
 		}
 

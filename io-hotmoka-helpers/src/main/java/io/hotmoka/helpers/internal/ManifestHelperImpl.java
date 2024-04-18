@@ -161,11 +161,6 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			builder.append("   ├─ maxCumulativeSizeOfDependencies: ").append(maxCumulativeSizeOfDependencies).append("\n");
 
-			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_SELF_CHARGED, manifest))).getValue();
-
-			builder.append("   ├─ allowsSelfCharged: ").append(allowsSelfCharged).append("\n");
-
 			boolean allowsUnsignedFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))).getValue();
 

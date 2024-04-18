@@ -57,15 +57,6 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies);
 
 	/**
-	 * Specifies to allow the {@code @@SelfCharged} annotation in the Takamaka
-	 * code that runs in the node.
-	 * 
-	 * @param allowsSelfCharged true if and only if the annotation is allowed
-	 * @return this builder
-	 */
-	B allowSelfCharged(boolean allowsSelfCharged);
-
-	/**
 	 * Specifies to allow the {@code faucet()} methods of the gametes without a valid signature.
 	 * This is only useful for testing networks, where users can freely fill their accounts at the faucet.
 	 * 

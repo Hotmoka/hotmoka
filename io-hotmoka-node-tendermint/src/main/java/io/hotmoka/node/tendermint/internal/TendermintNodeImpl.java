@@ -58,6 +58,7 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
@@ -277,20 +278,28 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
-		StorageReference manifest = getManifest();
+		StorageReference manifest;
+
+		try {
+			manifest = getManifest();
+		}
+		catch (UninitializedNodeException e) {
+			return Optional.empty();
+		}
+
 		StorageReference validators = caches.getValidators().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
-		StorageReference shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+		var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _50_000, takamakaCode, GET_SHARES, validators));
 
 		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 			(manifest, _50_000, takamakaCode, SIZE, shares))).getValue();
 
-		TendermintValidator[] result = new TendermintValidator[numOfValidators];
+		var result = new TendermintValidator[numOfValidators];
 
 		for (int num = 0; num < numOfValidators; num++) {
-			StorageReference validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			var validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall

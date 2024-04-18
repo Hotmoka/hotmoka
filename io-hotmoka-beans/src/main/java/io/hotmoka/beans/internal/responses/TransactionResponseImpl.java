@@ -58,10 +58,10 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 		case MethodCallTransactionExceptionResponseImpl.SELECTOR: return MethodCallTransactionExceptionResponseImpl.from(context);
 		case MethodCallTransactionFailedResponseImpl.SELECTOR: return MethodCallTransactionFailedResponseImpl.from(context);
 		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR:
-		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS_NO_SELF_CHARGED:
-		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT_NO_SELF_CHARGED: return MethodCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS:
+		case MethodCallTransactionSuccessfulResponseImpl.SELECTOR_ONE_EVENT: return MethodCallTransactionSuccessfulResponseImpl.from(context, selector);
 		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR:
-		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS_NO_SELF_CHARGED: return VoidMethodCallTransactionSuccessfulResponseImpl.from(context, selector);
+		case VoidMethodCallTransactionSuccessfulResponseImpl.SELECTOR_NO_EVENTS: return VoidMethodCallTransactionSuccessfulResponseImpl.from(context, selector);
 		default: throw new IOException("Unexpected response selector: " + selector);
 		}
 	}

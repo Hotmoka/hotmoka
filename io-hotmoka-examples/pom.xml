@@ -509,24 +509,6 @@
             </configuration>
           </execution>
 
-		  <execution><id>selfchargednotincontract</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>selfchargednotincontract</classifier>
-              <includes><include>io/hotmoka/examples/errors/selfchargednotincontract/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>selfchargednotoninstance</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>selfchargednotoninstance</classifier>
-              <includes><include>io/hotmoka/examples/errors/selfchargednotoninstance/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>selfchargednotonpublic</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>selfchargednotonpublic</classifier>
-              <includes><include>io/hotmoka/examples/errors/selfchargednotonpublic/**</include></includes>
-            </configuration>
-          </execution>
-
 		  <execution><id>illegalexceptionhandler1</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>illegalexceptionhandler1</classifier>
               <includes><include>io/hotmoka/examples/errors/illegalexceptionhandler1/**</include></includes>
@@ -836,12 +818,6 @@
 		  <execution><id>accountwithenum</id><goals><goal>jar</goal></goals><phase>package</phase>
             <configuration><classifier>accountwithenum</classifier>
               <includes><include>io/hotmoka/examples/accountwithenum/**</include></includes>
-            </configuration>
-          </execution>
-
-		  <execution><id>selfcharged</id><goals><goal>jar</goal></goals><phase>package</phase>
-            <configuration><classifier>selfcharged</classifier>
-              <includes><include>io/hotmoka/examples/selfcharged/**</include></includes>
             </configuration>
           </execution>
 

@@ -43,9 +43,6 @@ public class Verify extends AbstractCommand {
 	@Option(names = { "--init" }, description = "verify as during node initialization")
 	private boolean init;
 
-	@Option(names = { "--allow-self-charged" }, description = "assume that @SelfCharged methods are allowed")
-	private boolean allowSelfCharged;
-
 	@Option(names = { "--version" }, description = "use the given version of the verification rules", defaultValue = "0")
 	private int version;
 
@@ -57,7 +54,7 @@ public class Verify extends AbstractCommand {
 			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
-		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, allowSelfCharged, false);
+		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, false);
 		verifiedJar.forEachError(System.err::println);
 		if (verifiedJar.hasErrors())
 			throw new CommandException("Verification failed because of errors");

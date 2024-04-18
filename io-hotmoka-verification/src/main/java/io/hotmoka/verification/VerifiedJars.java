@@ -38,14 +38,13 @@ public final class VerifiedJars {
 	 * @param classLoader the class loader that can be used to resolve the classes of the program,
 	 *                    including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during the initialization of the node
-	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @return the verified jar
 	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
-		return new VerifiedJarImpl(jar, classLoader, duringInitialization, allowSelfCharged, skipsVerification);
+	public static VerifiedJar of(byte[] jar, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+		return new VerifiedJarImpl(jar, classLoader, duringInitialization, skipsVerification);
 	}
 }

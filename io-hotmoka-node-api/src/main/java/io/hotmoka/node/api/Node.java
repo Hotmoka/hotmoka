@@ -262,7 +262,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the created object, if the constructor was successfully executed, without exception
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the constructor
+	 *                                because of an exception in the user code, that is allowed to be thrown by the constructor
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the constructor
 	 * @throws NodeException if the node is not able to perform the operation
@@ -279,7 +279,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
+	 *                                because of an exception in the user code, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
 	 * @throws NodeException if the node is not able to perform the operation
@@ -297,9 +297,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 *         declared to return {@code void}, this result will be {@code null}
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                                because of an exception in the user code in blockchain, that is allowed to be thrown by the method
+	 *                                because of an exception in the user code, that is allowed to be thrown by the method
 	 * @throws TransactionException if the transaction could be executed and the node has been expanded with a failed transaction,
-	 *                              because of an exception outside the user code in blockchain, or not allowed to be thrown by the method
+	 *                              because of an exception outside the user code, or not allowed to be thrown by the method
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
@@ -314,9 +314,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
 	 * @throws TransactionRejectedException if the transaction could not be executed
-	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
 	 *                                that is allowed to be thrown by the method
-	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
@@ -332,9 +332,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the result of the call, if the method was successfully executed, without exception
 	 * @throws TransactionRejectedException if the transaction could not be executed
-	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
 	 *                                that is allowed to be thrown by the method
-	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
+	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code,
 	 *                              or that is not allowed to be thrown by the method
 	 * @throws NodeException if the node is not able to perform the operation
 	 * @throws TimeoutException if no answer arrives before a time window
@@ -349,6 +349,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the reference to the transaction where the jar has been installed
 	 * @throws TransactionRejectedException if the transaction could not be posted
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
@@ -370,6 +373,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
@@ -379,6 +385,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param request the transaction request
 	 * @return the future holding the result of the transaction
 	 * @throws TransactionRejectedException if the transaction could not be posted
+	 * @throws NodeException if the node is not able to perform the operation
+	 * @throws TimeoutException if no answer arrives before a time window
+	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
 	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 

@@ -201,7 +201,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	    			.build();
 	        privateKeyOfGamete = keys.getPrivate();
 
-	        // Change this to test with different node implementations
 	        Node wrapped;
 	        node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();

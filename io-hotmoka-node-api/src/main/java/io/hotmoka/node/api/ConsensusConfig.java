@@ -70,13 +70,6 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	long getMaxCumulativeSizeOfDependencies();
 
 	/**
-	 * Yields true if and only if the use of the {@code @@SelfCharged} annotation is allowed.
-	 * 
-	 * @return true if and only if the condition holds
-	 */
-	boolean allowsSelfCharged();
-
-	/**
 	 * Yields true if and only if the use of the faucet of the gamete is allowed without a valid signature.
 	 * 
 	 * @return true if and only if the condition holds

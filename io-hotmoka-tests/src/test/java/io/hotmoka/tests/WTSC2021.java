@@ -106,6 +106,9 @@ class WTSC2021 extends HotmokaTest {
 		catch (TransactionException e) {
 			// this occurs when a contract has no more money for running further transactions
 		}
+		catch (TimeoutException e) {
+			// this occurs if the node is remote and very slow, so that the connection timeouts
+		}
 		catch (Exception e) {
 			e.printStackTrace();
 		}

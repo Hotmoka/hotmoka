@@ -48,9 +48,6 @@ public class Instrument extends AbstractCommand {
 	@Option(names = { "--init" }, description = "verifies as during node initialization")
 	private boolean init;
 
-	@Option(names = { "--allow-self-charged" }, description = "assumes that @SelfCharged methods are allowed")
-	private boolean allowSelfCharged;
-
 	@Option(names = { "--version" }, description = "uses the given version of the verification rules", defaultValue = "0")
 	private int version;
 
@@ -65,7 +62,7 @@ public class Instrument extends AbstractCommand {
 			classpath = Stream.concat(classpath, libs.stream().map(this::readAllBytes));
 
 		var classLoader = TakamakaClassLoaders.of(classpath, version);
-		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, allowSelfCharged, skipVerification);
+		var verifiedJar = VerifiedJars.of(bytesOfOrigin, classLoader, init, skipVerification);
 		verifiedJar.forEachError(System.err::println);
 		if (verifiedJar.hasErrors())
 			throw new CommandException("Verification failed because of errors, no instrumented jar was generated");

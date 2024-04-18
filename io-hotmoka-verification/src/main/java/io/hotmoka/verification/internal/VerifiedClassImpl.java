@@ -85,12 +85,11 @@ public class VerifiedClassImpl implements VerifiedClass {
 	 * @param versionsManager the manager of the versions of the verification module
 	 * @param issueHandler the handler that is notified of every verification error or warning
 	 * @param duringInitialization true if and only if the class is verified during the initialization of the node
-	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the class must be skipped
 	 * @throws VerificationException if the class could not be verified
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 */
-	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
+	VerifiedClassImpl(JavaClass clazz, VerifiedJarImpl jar, VersionsManager versionsManager, Consumer<AbstractErrorImpl> issueHandler, boolean duringInitialization, boolean skipsVerification) throws VerificationException, ClassNotFoundException {
 		this.clazz = new ClassGen(clazz);
 		this.jar = jar;
 		ConstantPoolGen cpg = getConstantPool();
@@ -101,7 +100,7 @@ public class VerifiedClassImpl implements VerifiedClass {
 		this.resolver = new Resolver(this);
 
 		if (!skipsVerification)
-			new Verification(issueHandler, methods, duringInitialization, allowSelfCharged, versionsManager);
+			new Verification(issueHandler, methods, duringInitialization, versionsManager);
 	}
 
 	@Override
@@ -237,11 +236,6 @@ public class VerifiedClassImpl implements VerifiedClass {
 		final boolean duringInitialization;
 
 		/**
-		 * True if and only if {@code @SelfCharged} methods are allowed.
-		 */
-		final boolean allowSelfCharged;
-
-		/**
 		 * A map from each method to its line number table.
 		 */
 		private final Map<MethodGen, LineNumberTable> lines;
@@ -261,19 +255,17 @@ public class VerifiedClassImpl implements VerifiedClass {
 		 * 
 		 * @param issueHandler the handler to call when an issue is found
 		 * @param duringInitialization true if and only if verification is performed during the initialization of the node
-		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @param versionsManager the manager of the versions of the verification module
 		 * @throws VerificationException if some verification error occurs
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 		 */
-		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, boolean allowSelfCharged, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
+		private Verification(Consumer<AbstractErrorImpl> issueHandler, MethodGen[] methods, boolean duringInitialization, VersionsManager versionsManager) throws VerificationException, ClassNotFoundException {
 			this.issueHandler = issueHandler;
 			this.versionsManager = versionsManager;
 			ConstantPoolGen cpg = getConstantPool();
 			this.methods = methods;
 			this.lines = Stream.of(methods).collect(Collectors.toMap(method -> method, method -> method.getLineNumberTable(cpg)));
 			this.duringInitialization = duringInitialization;
-			this.allowSelfCharged = allowSelfCharged;
 
 			applyAllChecksToTheClass();
 			applyAllChecksToTheMethodsOfTheClass();

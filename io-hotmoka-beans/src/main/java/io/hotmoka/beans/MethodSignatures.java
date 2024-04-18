@@ -263,11 +263,6 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_MAX_RED_FAUCET = AbstractMethodSignature.GET_MAX_RED_FAUCET;
 
 	/**
-	 * The method {@code allowsSelfCharged} of the manifest.
-	 */
-	public final static NonVoidMethodSignature ALLOWS_SELF_CHARGED = AbstractMethodSignature.ALLOWS_SELF_CHARGED; // TODO: remove
-
-	/**
 	 * The method {@code allowsUnsignedFaucet} of the manifest.
 	 */
 	public final static NonVoidMethodSignature ALLOWS_UNSIGNED_FAUCET = AbstractMethodSignature.ALLOWS_UNSIGNED_FAUCET;

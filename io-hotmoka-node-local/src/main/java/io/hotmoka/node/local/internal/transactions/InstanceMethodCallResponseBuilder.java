@@ -83,7 +83,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	protected StorageReference getPayerFromRequest() {
 		// calls to instance methods might be self charged, in which case the receiver is paying
-		return isSelfCharged() ? request.getReceiver() : request.getCaller();
+		return request.getCaller();
 	}
 
 	@Override
@@ -124,31 +124,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 			.orElseThrow(() -> new NoSuchMethodException(method.toString()));
 	}
 
-	/**
-	 * Determines if the target method exists and is annotated as @SelfCharged.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	private boolean isSelfCharged() {
-		// consensus might be null during the recomputation of the same consensus at the restart of a node
-		if (consensus != null && consensus.allowsSelfCharged())
-			try {
-				try {
-					// we first try to call the method with exactly the parameter types explicitly provided
-					return hasAnnotation(getMethod(), Constants.SELF_CHARGED_NAME);
-				}
-				catch (NoSuchMethodException e) {
-					// if not found, we try to add the trailing types that characterize the @Entry methods
-					return hasAnnotation(getFromContractMethod(), Constants.SELF_CHARGED_NAME);
-				}
-			}
-			catch (Throwable t) {
-				// the method does not exist: ok to ignore, since this exception will be dealt with in body()
-			}
-
-		return false;
-	}
-
 	private class ResponseCreator extends MethodCallResponseBuilder<InstanceMethodCallTransactionRequest>.ResponseCreator {
 
 		/**
@@ -166,8 +141,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 		@Override
 		protected Object deserializedPayer() {
-			// self charged methods use the receiver of the call as payer
-			return isSelfCharged() ? deserializer.deserialize(request.getReceiver()) : getDeserializedCaller();
+			return getDeserializedCaller();
 		}
 
 		@Override
@@ -209,9 +183,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 					Throwable cause = e.getCause();
 					if (isCheckedForThrowsExceptions(cause, methodJVM)) {
 						viewMustBeSatisfied(isView, null);
-						chargeGasForStorageOf(TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+						chargeGasForStorageOf(TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 						refundPayerForAllRemainingGas();
-						return TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+						return TransactionResponses.methodCallException(cause.getClass().getName(), cause.getMessage(), where(cause), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 					}
 					else
 						throw cause;
@@ -220,14 +194,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				viewMustBeSatisfied(isView, result);
 
 				if (methodJVM.getReturnType() == void.class) {
-					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return TransactionResponses.voidMethodCallSuccessful(isSelfCharged(), updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
-					chargeGasForStorageOf(TransactionResponses.methodCallSuccessful(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(TransactionResponses.methodCallSuccessful(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return TransactionResponses.methodCallSuccessful(serializer.serialize(result), isSelfCharged(), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return TransactionResponses.methodCallSuccessful(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {
@@ -235,7 +209,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 				resetBalanceOfPayerToInitialValueMinusAllPromisedGas();
 
 				// we do not pay back the gas: the only update resulting from the transaction is one that withdraws all gas from the balance of the caller or validators
-				return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), isSelfCharged(), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
+				return TransactionResponses.methodCallFailed(t.getClass().getName(), t.getMessage(), where(t), updatesToBalanceOrNonceOfCaller(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage(), gasConsumedForPenalty());
 			}
 		}
 

@@ -66,7 +66,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 			@Override
 			protected JarStoreInitialTransactionResponse body() throws ClassNotFoundException, UnsupportedVerificationVersionException, VerificationException {
 				try {
-					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.allowsSelfCharged(), consensus.skipsVerification()), node.getGasCostModel());
+					var instrumentedJar = InstrumentedJars.of(VerifiedJars.of(request.getJar(), classLoader, true, consensus.skipsVerification()), node.getGasCostModel());
 					return TransactionResponses.jarStoreInitial(instrumentedJar.toBytes(), request.getDependencies(), consensus.getVerificationVersion());
 				}
 				catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {

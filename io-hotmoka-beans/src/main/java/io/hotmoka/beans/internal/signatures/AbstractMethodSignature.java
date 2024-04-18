@@ -185,11 +185,6 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	public final static NonVoidMethodSignature GET_MAX_RED_FAUCET = MethodSignatures.of(StorageTypes.GAMETE, "getMaxRedFaucet", StorageTypes.BIG_INTEGER);
 
 	/**
-	 * The method {@code allowsSelfCharged} of the manifest.
-	 */
-	public final static NonVoidMethodSignature ALLOWS_SELF_CHARGED = MethodSignatures.of(StorageTypes.MANIFEST, "allowsSelfCharged", StorageTypes.BOOLEAN);
-
-	/**
 	 * The method {@code allowsUnsignedFaucet} of the manifest.
 	 */
 	public final static NonVoidMethodSignature ALLOWS_UNSIGNED_FAUCET = MethodSignatures.of(StorageTypes.MANIFEST, "allowsUnsignedFaucet", StorageTypes.BOOLEAN);

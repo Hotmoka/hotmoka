@@ -214,9 +214,6 @@ public class NodeCachesImpl implements NodeCache {
 			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).getValue();
 
-			boolean allowsSelfCharged = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_SELF_CHARGED, manifest))).getValue();
-	
 			boolean allowsFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))).getValue();
 
@@ -284,7 +281,6 @@ public class NodeCachesImpl implements NodeCache {
 				.setMaxErrorLength(maxErrorLength)
 				.setMaxDependencies(maxDependencies)
 				.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
-				.allowSelfCharged(allowsSelfCharged)
 				.allowUnsignedFaucet(allowsFaucet)
 				.skipVerification(skipsVerification)
 				.setVerificationVersion(verificationVersion)

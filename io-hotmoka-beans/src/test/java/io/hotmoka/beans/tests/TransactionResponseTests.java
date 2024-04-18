@@ -134,7 +134,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("method call exception transaction responses are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForMethodCallTransactionExceptionResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.methodCallException(classNameOfCause, messageName, where, true, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		var response1 = TransactionResponses.methodCallException(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -143,7 +143,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("method call failed transaction responses are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForMethodCallTransactionFailedResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.methodCallFailed(classNameOfCause, messageName, where, false, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+		var response1 = TransactionResponses.methodCallFailed(classNameOfCause, messageName, where, Stream.of(update1, update2, update3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -152,7 +152,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("method call successful transaction responses are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.methodCallSuccessful(result, false, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		var response1 = TransactionResponses.methodCallSuccessful(result, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);
@@ -161,7 +161,7 @@ public class TransactionResponseTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("void method call successful transaction responses are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForVoidMethodCallTransactionSuccessfulResponse() throws EncodeException, DecodeException {
-		var response1 = TransactionResponses.voidMethodCallSuccessful(false, Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		var response1 = TransactionResponses.voidMethodCallSuccessful(Stream.of(update1, update2, update3), Stream.of(event1, event2, event3), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		String encoded = new TransactionResponses.Encoder().encode(response1);
 		var response2 = new TransactionResponses.Decoder().decode(encoded);
 		assertEquals(response1, response2);

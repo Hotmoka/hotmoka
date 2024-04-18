@@ -58,7 +58,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 		return TransactionResponses.methodCallFailed
 			("placeholder for the name of the exception", "placeholder for the message of the exception", "placeholder for where",
-			false, Stream.empty(), gas, gas, gas, gas).size();
+			Stream.empty(), gas, gas, gas, gas).size();
 	}
 
 	/**

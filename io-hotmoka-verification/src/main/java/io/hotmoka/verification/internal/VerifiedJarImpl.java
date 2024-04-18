@@ -82,13 +82,12 @@ public class VerifiedJarImpl implements VerifiedJar {
 	 * @param origin the jar file to verify, given as an array of bytes
 	 * @param classLoader the class loader that can be used to resolve the classes of the program, including those of {@code origin}
 	 * @param duringInitialization true if and only if verification occurs during the node initialization
-	 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 	 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 	 * @throws IOException if an I/O error occurred while accessing the classes
 	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 */
-	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+	public VerifiedJarImpl(byte[] origin, TakamakaClassLoader classLoader, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 		this.classLoader = classLoader;
 
 		// we set the BCEL repository so that it matches the class path made up of the jar to
@@ -97,7 +96,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		// whole hierarchy of classes must be available to BCEL through its repository
 		Repository.setRepository(new ClassLoaderRepository(classLoader.getJavaClassLoader()));
 
-		new Initializer(origin, duringInitialization, allowSelfCharged, skipsVerification);
+		new Initializer(origin, duringInitialization, skipsVerification);
 	}
 
 	@Override
@@ -152,11 +151,6 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private final boolean duringInitialization;
 
 		/**
-		 * True if and only if {@code @@SelfCharged} methods are allowed.
-		 */
-		private final boolean allowSelfCharged;
-
-		/**
 		 * True if and only if the static verification of the classses in the jar must be skipped.
 		 */
 		private final boolean skipsVerification;
@@ -171,15 +165,13 @@ public class VerifiedJarImpl implements VerifiedJar {
 		 * 
 		 * @param origin the jar file to verify, as an array of bytes
 		 * @param duringInitialization true if and only if the verification is performed during the initialization of the node
-		 * @param allowSelfCharged true if and only if {@code @@SelfCharged} methods are allowed
 		 * @param skipsVerification true if and only if the static verification of the classes of the jar must be skipped
 		 * @throws ClassNotFoundException if some class of the Takamaka program cannot be found
 		 * @throws UnsupportedVerificationVersionException if the verification version is not available
 		 * @throws IOException if an I/O error occurred while accessing the classes
 		 */
-		private Initializer(byte[] origin, boolean duringInitialization, boolean allowSelfCharged, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
+		private Initializer(byte[] origin, boolean duringInitialization, boolean skipsVerification) throws IOException, ClassNotFoundException, UnsupportedVerificationVersionException {
 			this.duringInitialization = duringInitialization;
-			this.allowSelfCharged = allowSelfCharged;
 			this.versionsManager = new VersionsManager(classLoader.getVerificationVersion());
 			this.skipsVerification = skipsVerification;
 
@@ -205,7 +197,7 @@ public class VerifiedJarImpl implements VerifiedJar {
 		private Optional<VerifiedClass> buildVerifiedClass(ZipEntry entry, InputStream input) throws ClassNotFoundException, ClassFormatException, IOException {
 			try {
 				// generates a RAM image of the class file, by using the BCEL library for bytecode manipulation
-				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, allowSelfCharged, skipsVerification));
+				return Optional.of(new VerifiedClassImpl(new ClassParser(input, entry.getName()).parse(), VerifiedJarImpl.this, versionsManager, errors::add, duringInitialization, skipsVerification));
 			}
 			catch (VerificationException e) {
 				return Optional.empty();

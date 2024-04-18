@@ -34,15 +34,15 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * Implemenation of a response for a successful transaction that calls a method
+ * Implementation of a response for a successful transaction that calls a method
  * in the store of the node. The method has been called without problems and
  * without generating exceptions. The method does not return {@code void}.
  */
 @Immutable
 public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTransactionResponseImpl implements MethodCallTransactionSuccessfulResponse {
 	final static byte SELECTOR = 9;
-	final static byte SELECTOR_NO_EVENTS_NO_SELF_CHARGED = 10;
-	final static byte SELECTOR_ONE_EVENT_NO_SELF_CHARGED = 11;
+	final static byte SELECTOR_NO_EVENTS = 10;
+	final static byte SELECTOR_ONE_EVENT = 11;
 
 	/**
 	 * The return value of the method.
@@ -58,16 +58,14 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 	 * Builds the transaction response.
 	 * 
 	 * @param result the value returned by the method
-	 * @param selfCharged true if and only if the called method was annotated as {@code @@SelfCharged}, hence the
-	 *                    execution was charged to its receiver
 	 * @param updates the updates resulting from the execution of the transaction
 	 * @param events the events resulting from the execution of the transaction
 	 * @param gasConsumedForCPU the amount of gas consumed by the transaction for CPU execution
 	 * @param gasConsumedForRAM the amount of gas consumed by the transaction for RAM allocation
 	 * @param gasConsumedForStorage the amount of gas consumed by the transaction for storage consumption
 	 */
-	public MethodCallTransactionSuccessfulResponseImpl(StorageValue result, boolean selfCharged, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
-		super(selfCharged, updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+	public MethodCallTransactionSuccessfulResponseImpl(StorageValue result, Stream<Update> updates, Stream<StorageReference> events, BigInteger gasConsumedForCPU, BigInteger gasConsumedForRAM, BigInteger gasConsumedForStorage) {
+		super(updates, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 
 		this.result = Objects.requireNonNull(result);
 		this.events = events.toArray(StorageReference[]::new);
@@ -104,16 +102,14 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		boolean optimized = events.length == 0 && !getSelfCharged();
-		boolean optimized1 = events.length == 1 && !getSelfCharged();
-		context.writeByte(optimized ? SELECTOR_NO_EVENTS_NO_SELF_CHARGED : (optimized1 ? SELECTOR_ONE_EVENT_NO_SELF_CHARGED : SELECTOR));
+		boolean optimized = events.length == 0;
+		boolean optimized1 = events.length == 1;
+		context.writeByte(optimized ? SELECTOR_NO_EVENTS : (optimized1 ? SELECTOR_ONE_EVENT : SELECTOR));
 		super.into(context);
 		result.into(context);
 
-		if (!optimized && !optimized1) {
-			context.writeBoolean(getSelfCharged());
+		if (!optimized && !optimized1)
 			intoArrayWithoutSelector(events, context);
-		}
 
 		if (optimized1)
 			events[0].intoWithoutSelector(context);
@@ -135,23 +131,16 @@ public class MethodCallTransactionSuccessfulResponseImpl extends MethodCallTrans
 		var gasConsumedForStorage = context.readBigInteger();
 		var result = StorageValues.from(context);
 		Stream<StorageReference> events;
-		boolean selfCharged;
 
-		if (selector == SELECTOR) {
-			selfCharged = context.readBoolean();
+		if (selector == SELECTOR)
 			events = Stream.of(context.readLengthAndArray(StorageValues::referenceWithoutSelectorFrom, StorageReference[]::new));
-		}
-		else if (selector == SELECTOR_NO_EVENTS_NO_SELF_CHARGED) {
-			selfCharged = false;
+		else if (selector == SELECTOR_NO_EVENTS)
 			events = Stream.empty();
-		}
-		else if (selector == SELECTOR_ONE_EVENT_NO_SELF_CHARGED) {
-			selfCharged = false;
+		else if (selector == SELECTOR_ONE_EVENT)
 			events = Stream.of(StorageValues.referenceWithoutSelectorFrom(context));
-		}
 		else
 			throw new IOException("Unexpected response selector: " + selector);
 
-		return new MethodCallTransactionSuccessfulResponseImpl(result, selfCharged, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+		return new MethodCallTransactionSuccessfulResponseImpl(result, updates, events, gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 	}
 }

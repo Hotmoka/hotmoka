@@ -64,7 +64,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 	private final StorageValues.Json[] events;
 	private final String where;
 	private final StorageValues.Json newObject;
-	private final Boolean selfCharged;
 	private final StorageValues.Json result;
 
 	protected TransactionResponseJson(TransactionResponse response) {
@@ -84,7 +83,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof InitializationTransactionResponse) {
@@ -103,7 +101,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof JarStoreInitialTransactionResponse jsitr) {
@@ -122,7 +119,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof JarStoreTransactionFailedResponse jstfr) {
@@ -141,7 +137,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof JarStoreTransactionSuccessfulResponse jstsr) {
@@ -160,7 +155,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof ConstructorCallTransactionExceptionResponse ccter) {
@@ -179,7 +173,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = ccter.getEvents().map(StorageValues.Json::new).toArray(StorageValues.Json[]::new);
 			this.where = ccter.getWhere();
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof ConstructorCallTransactionFailedResponse cctfr) {
@@ -198,7 +191,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = cctfr.getWhere();
 			this.newObject = null;
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof ConstructorCallTransactionSuccessfulResponse cctsr) {
@@ -217,7 +209,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = cctsr.getEvents().map(StorageValues.Json::new).toArray(StorageValues.Json[]::new);
 			this.where = null;
 			this.newObject = new StorageValues.Json(cctsr.getNewObject());
-			this.selfCharged = null;
 			this.result = null;
 		}
 		else if (response instanceof MethodCallTransactionExceptionResponse mcter) {
@@ -236,7 +227,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = mcter.getEvents().map(StorageValues.Json::new).toArray(StorageValues.Json[]::new);
 			this.where = mcter.getWhere();
 			this.newObject = null;
-			this.selfCharged = mcter.getSelfCharged();
 			this.result = null;
 		}
 		else if (response instanceof MethodCallTransactionFailedResponse mctfr) {
@@ -255,7 +245,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = null;
 			this.where = mctfr.getWhere();
 			this.newObject = null;
-			this.selfCharged = mctfr.getSelfCharged();
 			this.result = null;
 		}
 		else if (response instanceof MethodCallTransactionSuccessfulResponse mctsr) {
@@ -274,7 +263,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = mctsr.getEvents().map(StorageValues.Json::new).toArray(StorageValues.Json[]::new);
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = mctsr.getSelfCharged();
 			this.result = new StorageValues.Json(mctsr.getResult());
 		}
 		else if (response instanceof VoidMethodCallTransactionSuccessfulResponse vmctsr) {
@@ -293,7 +281,6 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 			this.events = vmctsr.getEvents().map(StorageValues.Json::new).toArray(StorageValues.Json[]::new);
 			this.where = null;
 			this.newObject = null;
-			this.selfCharged = vmctsr.getSelfCharged();
 			this.result = null;
 		}
 		else
@@ -319,13 +306,13 @@ public abstract class TransactionResponseJson implements JsonRepresentation<Tran
 		else if (ConstructorCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
 			return TransactionResponses.constructorCallSuccessful((StorageReference) newObject.unmap(), convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else if (MethodCallTransactionExceptionResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallException(classNameOfCause, messageOfCause, where, selfCharged, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			return TransactionResponses.methodCallException(classNameOfCause, messageOfCause, where, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else if (MethodCallTransactionFailedResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallFailed(classNameOfCause, messageOfCause, where, selfCharged, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
+			return TransactionResponses.methodCallFailed(classNameOfCause, messageOfCause, where, convertedUpdates(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage, gasConsumedForPenalty);
 		else if (MethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.methodCallSuccessful(result.unmap(), selfCharged, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			return TransactionResponses.methodCallSuccessful(result.unmap(), convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else if (VoidMethodCallTransactionSuccessfulResponse.class.getSimpleName().equals(type))
-			return TransactionResponses.voidMethodCallSuccessful(selfCharged, convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
+			return TransactionResponses.voidMethodCallSuccessful(convertedUpdates(), convertedEvents(), gasConsumedForCPU, gasConsumedForRAM, gasConsumedForStorage);
 		else
 			throw new IllegalArgumentException("Unexpected response type " + type);
 	}

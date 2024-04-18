@@ -50,7 +50,6 @@ import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -143,7 +142,7 @@ class WTSC2021bis extends HotmokaTest {
     private void runTransfersForSender(int senderIndex) {
     	StorageReference sender = investors[senderIndex];
     	PrivateKey privateKeyOfSender = privateKeysOfInvestors[senderIndex];
-    	Random random = new Random(13011973);
+    	var random = new Random(13011973);
 
     	// choose 5 receivers randomly and send random tokens to them
     	random.ints(0, NUMBER_OF_INVESTORS).limit(NUMBER_OF_TRANSFERS)
@@ -153,17 +152,17 @@ class WTSC2021bis extends HotmokaTest {
     /**
      * Transition that performs the transfer on ERC20
      */
-    private boolean createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
-    	BooleanValue transfer_result;
+    private void createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
 		try {
-			transfer_result = (BooleanValue) addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
+			addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
 		}
-		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | TimeoutException | InterruptedException e) {
+		catch (TimeoutException e) {
+			// this occurs if the node is remote and very slow, so that the connection timeouts
+		}
+		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NodeException | InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 
     	numberOfTransactions.getAndIncrement();
-
-    	return transfer_result.getValue();
     }
 }

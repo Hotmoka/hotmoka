@@ -41,7 +41,6 @@ import io.hotmoka.verification.internal.checksOnMethods.PayableCodeReceivesAmoun
 import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeIsConsistentWithClassHierarchyCheck;
 import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeIsFromContractOfRedGreenContractCheck;
 import io.hotmoka.verification.internal.checksOnMethods.RedPayableCodeReceivesAmountCheck;
-import io.hotmoka.verification.internal.checksOnMethods.SelfChargedCodeIsInstancePublicMethodOfContractCheck;
 import io.hotmoka.verification.internal.checksOnMethods.ThrowsExceptionsCodeIsPublicCheck;
 import io.hotmoka.verification.internal.checksOnMethods.ThrowsExceptionsIsConsistentWithClassHierarchyCheck;
 import io.hotmoka.verification.internal.checksOnMethods.UsedCodeIsWhiteListedCheck;
@@ -108,7 +107,6 @@ final class VersionsManager {
 			new CallerIsUsedOnThisAndInFromContractCheck(context, method);
 			new ExceptionHandlersAreForCheckedExceptionsCheck(context, method);
 			new UsedCodeIsWhiteListedCheck(context, method);
-			new SelfChargedCodeIsInstancePublicMethodOfContractCheck(context, method);
 			new AmountIsNotModifiedInConstructorChaining(context, method);
 		}
 	}
