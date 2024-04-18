@@ -32,7 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
 
@@ -42,14 +42,14 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
 	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		var path = dir.resolve("config.toml");
-		var config1 = SimpleConsensusConfigBuilders.defaults()
+		var config1 = ConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
 			.setInitialGasPrice(BigInteger.valueOf(1233L))
 			.setInitialSupply(BigInteger.valueOf(45678L))
 			.setMaxCumulativeSizeOfDependencies(345678L)
 			.build();
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
-		var config2 = SimpleConsensusConfigBuilders.load(path).build();
+		var config2 = ConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
 	}
 

@@ -26,4 +26,5 @@ module io.hotmoka.node {
 	requires io.hotmoka.annotations;
 	requires toml4j;
 	requires java.logging;
+	requires io.hotmoka.beans.api;
 }

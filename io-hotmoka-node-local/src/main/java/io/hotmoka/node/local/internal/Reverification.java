@@ -29,6 +29,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.TransactionResponses;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.beans.api.requests.InitialTransactionRequest;
 import io.hotmoka.beans.api.responses.GenericJarStoreTransactionResponse;
@@ -38,7 +39,6 @@ import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.node.api.ConsensusConfig;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;

@@ -24,6 +24,8 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.node.AbstractConsensusConfig;
+import io.hotmoka.node.AbstractConsensusConfigBuilder;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
 
@@ -33,7 +35,7 @@ import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
  */
 @Immutable
 public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
-		extends ConsensusConfigImpl<C,B>
+		extends AbstractConsensusConfig<C,B>
 		implements ValidatorsConsensusConfig<C,B> {
 
 	/**
@@ -132,7 +134,7 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 	 * @param <T> the concrete type of the builder
 	 */
 	public abstract static class ValidatorsConsensusConfigBuilderImpl<C extends ValidatorsConsensusConfig<C,B>, B extends ValidatorsConsensusConfigBuilder<C,B>>
-			extends ConsensusConfigBuilderImpl<C,B>
+			extends AbstractConsensusConfigBuilder<C,B>
 			implements ValidatorsConsensusConfigBuilder<C,B> {
 
 		private int percentStaked = 75_000_000;

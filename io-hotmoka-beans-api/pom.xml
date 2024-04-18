@@ -25,6 +25,11 @@
       <artifactId>io-hotmoka-marshalling-api</artifactId>
       <version>${io.hotmoka.marshalling.version}</version>
     </dependency>
+  	<dependency>
+      <groupId>io.hotmoka.crypto</groupId>
+      <artifactId>io-hotmoka-crypto-api</artifactId>
+      <version>${io.hotmoka.crypto.version}</version>
+    </dependency>
   </dependencies>
 
   <profiles>

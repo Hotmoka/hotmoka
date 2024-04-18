@@ -1,4 +1,4 @@
-package io.hotmoka.node.api;
+package io.hotmoka.beans.api.nodes;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;

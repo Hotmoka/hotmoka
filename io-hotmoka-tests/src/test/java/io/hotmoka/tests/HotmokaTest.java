@@ -47,6 +47,8 @@ import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
+import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
@@ -66,12 +68,10 @@ import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
-import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
-import io.hotmoka.node.api.ConsensusConfig;
-import io.hotmoka.node.api.ConsensusConfigBuilder;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -267,7 +267,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return TendermintNodes.init(config, consensus);
 	}
 
-	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException, InvalidKeyException {
+	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NoSuchAlgorithmException, InvalidKeyException {
 		return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
 			.allowUnsignedFaucet(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
@@ -278,7 +278,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 	@SuppressWarnings("unused")
 	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException, InvalidKeyException {
-		var consensus = fillConsensusConfig(SimpleConsensusConfigBuilders.defaults()).build();
+		var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 
 		var config = DiskNodeConfigBuilders.defaults()

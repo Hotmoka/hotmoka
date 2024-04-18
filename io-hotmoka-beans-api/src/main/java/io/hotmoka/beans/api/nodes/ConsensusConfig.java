@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.api;
+package io.hotmoka.beans.api.nodes;
 
 import java.math.BigInteger;
 import java.security.PublicKey;

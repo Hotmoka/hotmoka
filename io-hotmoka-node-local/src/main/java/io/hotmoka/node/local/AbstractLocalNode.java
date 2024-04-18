@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.ConsensusConfig;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.AbstractStore;

@@ -21,13 +21,13 @@ import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.NodeInfos;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
@@ -54,7 +54,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
 	 */
-	public DiskNodeImpl(DiskNodeConfig config, SimpleConsensusConfig consensus) {
+	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) {
 		super(config, consensus);
 
 		try {

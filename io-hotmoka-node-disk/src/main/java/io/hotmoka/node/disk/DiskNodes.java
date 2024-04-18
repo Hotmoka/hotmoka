@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.disk;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.SimpleConsensusConfig;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.disk.internal.DiskNodeImpl;
@@ -40,7 +40,7 @@ public abstract class DiskNodes {
 	 * @param consensus the consensus configuration of the node
 	 * @return the node
 	 */
-	public static DiskNode init(DiskNodeConfig config, SimpleConsensusConfig consensus) {
+	public static DiskNode init(DiskNodeConfig config, ConsensusConfig<?,?> consensus) {
 		return new DiskNodeImpl(config, consensus);
 	}
 }

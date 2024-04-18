@@ -28,7 +28,7 @@ import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
-import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -117,7 +117,7 @@ public class InitDisk extends AbstractCommand {
 
 			var signature = SignatureAlgorithms.ed25519();
 
-			var consensus = SimpleConsensusConfigBuilders.defaults()
+			var consensus = ConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.setInitialGasPrice(initialGasPrice)
 				.setSignatureForRequests(signature)
