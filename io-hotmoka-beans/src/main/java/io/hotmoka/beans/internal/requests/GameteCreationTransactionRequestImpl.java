@@ -66,7 +66,7 @@ public class GameteCreationTransactionRequestImpl extends TransactionRequestImpl
 	 * @param redInitialAmount the amount of red coins provided to the gamete
 	 * @param publicKey the Base64-encoded public key that will be assigned to the gamete
 	 */
-	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) { //TODO: publicKey could have type PublicKey
+	public GameteCreationTransactionRequestImpl(TransactionReference classpath, BigInteger initialAmount, BigInteger redInitialAmount, String publicKey) {
 		this.classpath = Objects.requireNonNull(classpath, "classpath cannot be null");
 		this.initialAmount = Objects.requireNonNull(initialAmount, "initialAmount cannot be null");
 		this.redInitialAmount = Objects.requireNonNull(redInitialAmount, "redInitialAmount cannot be null");

@@ -36,6 +36,7 @@ import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.Accounts;
@@ -147,9 +148,12 @@ public class InitTendermint extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitTendermint.this.deltaSupply);
 
+			var signature = SignatureAlgorithms.ed25519();
+
 			var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.ignoreGasPrice(ignoreGasPrice)
+				.setSignatureForRequests(signature)
 				.setInitialGasPrice(initialGasPrice)
 				.setOblivion(oblivion)
 				.setPercentStaked(percentStaked)
@@ -160,7 +164,7 @@ public class InitTendermint extends AbstractCommand {
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
 				.setInitialRedSupply(initialRedSupply)
-				.setPublicKeyOfGamete(Base64.toBase64String(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (var node = TendermintNodes.init(nodeConfig, consensus);

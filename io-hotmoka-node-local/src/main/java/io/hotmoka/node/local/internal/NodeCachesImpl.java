@@ -22,6 +22,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PublicKey;
@@ -268,12 +269,14 @@ public class NodeCachesImpl implements NodeCache {
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))).getValue();
 
+			var signatureAlgorithm = SignatureAlgorithms.of(signature);
+
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
 				.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 				.setChainId(chainId)
 				.setMaxGasPerTransaction(maxGasPerTransaction)
 				.ignoreGasPrice(ignoresGasPrice)
-				.signRequestsWith(SignatureAlgorithms.of(signature))
+				.setSignatureForRequests(signatureAlgorithm)
 				.setInitialGasPrice(initialGasPrice)
 				.setTargetGasAtReward(targetGasAtReward)
 				.setOblivion(oblivion)
@@ -288,14 +291,14 @@ public class NodeCachesImpl implements NodeCache {
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(finalSupply)
 				.setInitialRedSupply(initialRedSupply)
-				.setPublicKeyOfGamete(publicKeyOfGamete)
+				.setPublicKeyOfGamete(signatureAlgorithm.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)))
 				.setPercentStaked(percentStaked)
 				.setBuyerSurcharge(buyerSurcharge)
 				.setSlashingForMisbehaving(slashingForMisbehaving)
 				.setSlashingForNotBehaving(slashingForNotBehaving)
 				.build();
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | StoreException | NodeException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | StoreException | InvalidKeyException | NodeException | InvalidKeySpecException | Base64ConversionException e) {
 			logger.log(Level.SEVERE, "could not reconstruct the consensus parameters from the manifest", e);
 			throw new RuntimeException("could not reconstruct the consensus parameters from the manifest", e);
 		}

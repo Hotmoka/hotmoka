@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.api;
 
 import java.math.BigInteger;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 
 import io.hotmoka.annotations.Immutable;
@@ -84,11 +85,18 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	boolean skipsVerification();
 
 	/**
+	 * Yields the public key of the gamete account.
+	 * 
+	 * @return the public key
+	 */
+	PublicKey getPublicKeyOfGamete();
+
+	/**
 	 * Yields the Base64-encoded public key of the gamete account.
 	 * 
 	 * @return the Base64-encoded public key
 	 */
-	String getPublicKeyOfGamete();
+	String getPublicKeyOfGameteBase64();
 
 	/**
 	 * Yields the initial gas price.
@@ -186,7 +194,7 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 * 
 	 * @return the signature algorithm
 	 */
-	SignatureAlgorithm getSignature();
+	SignatureAlgorithm getSignatureForRequests();
 
 	/**
 	 * Yields a TOML representation of this configuration.
@@ -204,6 +212,9 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 
 	@Override
 	boolean equals(Object other);
+
+	@Override
+	int hashCode();
 
 	@Override
 	String toString();

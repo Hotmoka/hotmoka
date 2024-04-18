@@ -18,9 +18,12 @@ package io.hotmoka.node.internal;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfig;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfigBuilder;
 
@@ -64,9 +67,12 @@ public class SimpleValidatorsConsensusConfigImpl extends ValidatorsConsensusConf
 		 * 
 		 * @param toml the file
 		 * @throws FileNotFoundException if the file cannot be found
-		 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+		 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
+		 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
+		 * @throws InvalidKeyException if some public key in the TOML file is invalid
 		 */
-		public SimpleValidatorsConsensusConfigBuilderImpl(Path toml) throws FileNotFoundException, NoSuchAlgorithmException {
+		public SimpleValidatorsConsensusConfigBuilderImpl(Path toml) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 			super(readToml(toml));
 		}
 
@@ -75,7 +81,7 @@ public class SimpleValidatorsConsensusConfigImpl extends ValidatorsConsensusConf
 		 * 
 		 * @param config the configuration object
 		 */
-		private SimpleValidatorsConsensusConfigBuilderImpl(SimpleValidatorsConsensusConfig config) {
+		private SimpleValidatorsConsensusConfigBuilderImpl(SimpleValidatorsConsensusConfigImpl config) {
 			super(config);
 		}
 

@@ -57,7 +57,6 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -109,11 +108,6 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	 * each test will create the accounts and add the jars that it needs.
 	 */
 	protected final static Node node;
-
-	/**
-	 * The public key chosen for the gamete of the testing node.
-	 */
-	private final static String publicKeyOfGamete;
 
 	/**
 	 * The consensus parameters of the node.
@@ -190,14 +184,13 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			var password = "";
 			var localSignature = SignatureAlgorithms.ed25519det();
 			var keys = entropy.keys(password, localSignature);
-			publicKeyOfGamete = Base64.toBase64String(localSignature.encodingOf(keys.getPublic()));
 			consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
-	    			.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
+	    			.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
 	    			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 	    			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
-	    			.setPublicKeyOfGamete(publicKeyOfGamete)
+	    			.setPublicKeyOfGamete(keys.getPublic())
 	    			.build();
 	        privateKeyOfGamete = keys.getPrivate();
 
@@ -260,7 +253,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws IOException, NoSuchAlgorithmException {
+	private static Node mkTendermintBlockchain() throws IOException, NoSuchAlgorithmException, InvalidKeyException {
 		var consensus = fillConsensusConfig(SimpleValidatorsConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 
@@ -274,17 +267,17 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		return TendermintNodes.init(config, consensus);
 	}
 
-	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException {
-		return builder.signRequestsWith(SignatureAlgorithms.ed25519det()) // good for testing
+	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(B builder) throws NoSuchAlgorithmException, InvalidKeyException {
+		return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
 			.allowUnsignedFaucet(true) // good for testing
 			.ignoreGasPrice(true) // good for testing
 			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
 			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
-			.setPublicKeyOfGamete(publicKeyOfGamete);
+			.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException {
+	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException, InvalidKeyException {
 		var consensus = fillConsensusConfig(SimpleConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 

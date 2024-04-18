@@ -187,7 +187,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
 			return SignatureAlgorithms.qtesla3();
 		else
-			return consensus.getSignature();
+			return consensus.getSignatureForRequests();
 	}
 
 	/**

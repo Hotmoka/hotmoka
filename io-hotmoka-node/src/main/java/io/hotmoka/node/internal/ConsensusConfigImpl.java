@@ -19,7 +19,10 @@ package io.hotmoka.node.internal;
 import java.io.FileNotFoundException;
 import java.math.BigInteger;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -28,6 +31,9 @@ import java.util.Objects;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.ConsensusConfig;
@@ -84,9 +90,14 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public final boolean skipsVerification;
 
 	/**
-	 * The Base64-encoded public key of the gamete account.
+	 * The public key of the gamete account.
 	 */
-	public final String publicKeyOfGamete;
+	public final PublicKey publicKeyOfGamete;
+
+	/**
+	 * The Base64 encoding of {@link #publicKeyOfGamete}.
+	 */
+	private final String publicKeyOfGameteBase64;
 
 	/**
 	 * The initial gas price. It defaults to 100.
@@ -190,36 +201,41 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.finalSupply = builder.finalSupply;
 		this.initialRedSupply = builder.initialRedSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
+		this.publicKeyOfGameteBase64 = builder.publicKeyOfGameteBase64;
 		this.signature = builder.signature;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		if (other != null && getClass() == other.getClass()) {
-			var otherConfig = (ConsensusConfigImpl<?,?>) other;
-			return genesisTime.equals(otherConfig.genesisTime) &&
-				chainId.equals(otherConfig.chainId) &&
-				maxErrorLength == otherConfig.maxErrorLength &&
-				maxDependencies == otherConfig.maxDependencies &&
-				maxCumulativeSizeOfDependencies == otherConfig.maxCumulativeSizeOfDependencies &&
-				allowsUnsignedFaucet == otherConfig.allowsUnsignedFaucet &&
-				initialGasPrice.equals(otherConfig.initialGasPrice) &&
-				maxGasPerTransaction.equals(otherConfig.maxGasPerTransaction) &&
-				ignoresGasPrice == otherConfig.ignoresGasPrice &&
-				skipsVerification == otherConfig.skipsVerification &&
-				targetGasAtReward.equals(otherConfig.targetGasAtReward) &&
-				oblivion == otherConfig.oblivion &&
-				initialInflation == otherConfig.initialInflation &&
-				verificationVersion == otherConfig.verificationVersion &&
-				ticketForNewPoll.equals(otherConfig.ticketForNewPoll) &&
-				initialSupply.equals(otherConfig.initialSupply) &&
-				finalSupply.equals(otherConfig.finalSupply) &&
-				initialRedSupply.equals(otherConfig.initialRedSupply) &&
-				publicKeyOfGamete.equals(otherConfig.publicKeyOfGamete) &&
-				signature.equals(otherConfig.signature);
-		}
-		else
-			return false;
+		return other instanceof ConsensusConfigImpl<?,?> occi && getClass() == other.getClass() &&
+			genesisTime.equals(occi.genesisTime) &&
+			chainId.equals(occi.chainId) &&
+			maxErrorLength == occi.maxErrorLength &&
+			maxDependencies == occi.maxDependencies &&
+			maxCumulativeSizeOfDependencies == occi.maxCumulativeSizeOfDependencies &&
+			allowsUnsignedFaucet == occi.allowsUnsignedFaucet &&
+			initialGasPrice.equals(occi.initialGasPrice) &&
+			maxGasPerTransaction.equals(occi.maxGasPerTransaction) &&
+			ignoresGasPrice == occi.ignoresGasPrice &&
+			skipsVerification == occi.skipsVerification &&
+			targetGasAtReward.equals(occi.targetGasAtReward) &&
+			oblivion == occi.oblivion &&
+			initialInflation == occi.initialInflation &&
+			verificationVersion == occi.verificationVersion &&
+			ticketForNewPoll.equals(occi.ticketForNewPoll) &&
+			initialSupply.equals(occi.initialSupply) &&
+			finalSupply.equals(occi.finalSupply) &&
+			initialRedSupply.equals(occi.initialRedSupply) &&
+			publicKeyOfGamete.equals(occi.publicKeyOfGamete) &&
+			signature.equals(occi.signature);
+	}
+
+	@Override
+	public int hashCode() {
+		return genesisTime.hashCode() ^ chainId.hashCode() ^ Long.hashCode(maxErrorLength) ^ Long.hashCode(maxDependencies)
+			^ Long.hashCode(maxCumulativeSizeOfDependencies) ^ publicKeyOfGameteBase64.hashCode() ^ initialGasPrice.hashCode()
+			^ maxGasPerTransaction.hashCode() ^ targetGasAtReward.hashCode() ^ Long.hashCode(oblivion)
+			^ Long.hashCode(initialInflation) ^ Long.hashCode(verificationVersion) ^ initialSupply.hashCode();
 	}
 
 	@Override
@@ -258,7 +274,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("skips_verification = " + skipsVerification + "\n");
 		sb.append("\n");
 		sb.append("# the Base64-encoded public key of the gamete account\n");
-		sb.append("public_key_of_gamete = \"" + publicKeyOfGamete + "\"\n");
+		sb.append("public_key_of_gamete = \"" + publicKeyOfGameteBase64 + "\"\n");
 		sb.append("\n");
 		sb.append("# the initial gas price\n");
 		sb.append("initial_gas_price = \"" + initialGasPrice + "\"\n");
@@ -347,8 +363,13 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public String getPublicKeyOfGamete() {
+	public PublicKey getPublicKeyOfGamete() {
 		return publicKeyOfGamete;
+	}
+
+	@Override
+	public String getPublicKeyOfGameteBase64() {
+		return publicKeyOfGameteBase64;
 	}
 
 	@Override
@@ -407,7 +428,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public SignatureAlgorithm getSignature() {
+	public SignatureAlgorithm getSignatureForRequests() {
 		return signature;
 	}
 
@@ -435,25 +456,25 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private BigInteger initialSupply = BigInteger.ZERO;
 		private BigInteger finalSupply = BigInteger.ZERO;
 		private BigInteger initialRedSupply = BigInteger.ZERO;
-		private String publicKeyOfGamete = "";
+		private PublicKey publicKeyOfGamete;
+		private String publicKeyOfGameteBase64;
 		private BigInteger ticketForNewPoll = BigInteger.valueOf(100);
 
 		/**
 		 * Creates a builder with default values for the properties.
 		 * 
-		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 		 */
 		protected ConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			this(SignatureAlgorithms.ed25519());
-		}
+			setSignatureForRequests(SignatureAlgorithms.ed25519());
 
-		/**
-		 * Creates a builder with default values for the properties, except for the signature algorithm.
-		 * 
-		 * @param signature the signature algorithm to store in the builder
-		 */
-		protected ConsensusConfigBuilderImpl(SignatureAlgorithm signature) {
-			this.signature = signature;
+			try {
+				setPublicKeyOfGamete(Entropies.of(new byte[16]).keys("", signature).getPublic());
+			}
+			catch (InvalidKeyException e) {
+				// we have generated the key ourselves, how could it be invalid?
+				throw new RuntimeException("Unexpected exception", e);
+			}
 		}
 
 		/**
@@ -468,7 +489,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setMaxDependencies(config.getMaxDependencies());
 			setMaxCumulativeSizeOfDependencies(config.getMaxCumulativeSizeOfDependencies());
 			allowUnsignedFaucet(config.allowsUnsignedFaucet());
-			signRequestsWith(config.getSignature());
+			setSignatureForRequests(config.getSignatureForRequests());
 			setMaxGasPerTransaction(config.getMaxGasPerTransaction());
 			setInitialGasPrice(config.getInitialGasPrice());
 			ignoreGasPrice(config.ignoresGasPrice());
@@ -480,7 +501,8 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			setInitialSupply(config.getInitialSupply());
 			setFinalSupply(config.getFinalSupply());
 			setInitialRedSupply(config.getInitialRedSupply());
-			setPublicKeyOfGamete(config.getPublicKeyOfGamete());
+			this.publicKeyOfGamete = config.getPublicKeyOfGamete();
+			this.publicKeyOfGameteBase64 = config.getPublicKeyOfGameteBase64();
 			setTicketForNewPoll(config.getTicketForNewPoll());
 		}
 
@@ -489,9 +511,14 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
-		 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+		 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
+		 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
+		 * @throws InvalidKeyException if some public key in the TOML file is invalid
 		 */
-		protected ConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException {
+		protected ConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
+			this();
+
 			var genesisTime = toml.getString("genesis_time");
 			if (genesisTime != null)
 				setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME));
@@ -518,7 +545,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 			var signature = toml.getString("signature");
 			if (signature != null)
-				signRequestsWith(SignatureAlgorithms.of(signature));
+				setSignatureForRequests(SignatureAlgorithms.of(signature));
 
 			var maxGasPerTransaction = toml.getString("max_gas_per_transaction");
 			if (maxGasPerTransaction != null)
@@ -570,35 +597,44 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 			var publicKeyOfGamete = toml.getString("public_key_of_gamete");
 			if (publicKeyOfGamete != null)
-				setPublicKeyOfGamete(publicKeyOfGamete);
+				setPublicKeyOfGamete(this.signature.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)));
 		}
 
 		@Override
 		public B setGenesisTime(LocalDateTime genesisTime) {
-			this.genesisTime = genesisTime;
+			this.genesisTime = Objects.requireNonNull(genesisTime, "The genesis time cannot be null");
 			return getThis();
 		}
 
 		@Override
 		public B setChainId(String chainId) {
-			this.chainId = chainId;
+			this.chainId = Objects.requireNonNull(chainId, "The chain id cannot be null");
 			return getThis();
 		}
 
 		@Override
 		public B setMaxErrorLength(long maxErrorLength) {
+			if (maxErrorLength < 0L)
+				throw new IllegalArgumentException("The max error length cannot be negative");
+
 			this.maxErrorLength = maxErrorLength;
 			return getThis();
 		}
 
 		@Override
 		public B setMaxDependencies(long maxDependencies) {
+			if (maxDependencies < 0L)
+				throw new IllegalArgumentException("The max number of dependencies cannot be negative");
+
 			this.maxDependencies = maxDependencies;
 			return getThis();
 		}
 
 		@Override
 		public B setMaxCumulativeSizeOfDependencies(long maxCumulativeSizeOfDependencies) {
+			if (maxCumulativeSizeOfDependencies < 0L)
+				throw new IllegalArgumentException("The max cumulative size opf the dependencies cannot be negative");
+
 			this.maxCumulativeSizeOfDependencies = maxCumulativeSizeOfDependencies;
 			return getThis();
 		}
@@ -610,9 +646,8 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		}
 
 		@Override
-		public B signRequestsWith(SignatureAlgorithm signature) {
-			Objects.requireNonNull(signature, "The signature algorithm cannot be null");
-			this.signature = signature;
+		public B setSignatureForRequests(SignatureAlgorithm signature) {
+			this.signature = Objects.requireNonNull(signature, "The signature algorithm cannot be null");
 			return getThis();
 		}
 
@@ -708,9 +743,9 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		}
 
 		@Override
-		public B setPublicKeyOfGamete(String publicKeyOfGamete) {
-			Objects.requireNonNull(publicKeyOfGamete, "The public key of the gamete cannot be null");
-			this.publicKeyOfGamete = publicKeyOfGamete;
+		public B setPublicKeyOfGamete(PublicKey publicKeyOfGamete) throws InvalidKeyException {
+			this.publicKeyOfGamete = Objects.requireNonNull(publicKeyOfGamete, "The public key of the gamete cannot be null");
+			this.publicKeyOfGameteBase64 = Base64.toBase64String(signature.encodingOf(publicKeyOfGamete));
 			return getThis();
 		}
 
@@ -757,8 +792,8 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			catch (RuntimeException e) {
 				// the toml4j library wraps the FileNotFoundException inside a RuntimeException...
 				Throwable cause = e.getCause();
-				if (cause instanceof FileNotFoundException)
-					throw (FileNotFoundException) cause;
+				if (cause instanceof FileNotFoundException fne)
+					throw fne;
 				else
 					throw e;
 			}

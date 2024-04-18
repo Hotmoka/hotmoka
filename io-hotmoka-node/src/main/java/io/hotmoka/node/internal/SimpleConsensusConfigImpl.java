@@ -18,10 +18,12 @@ package io.hotmoka.node.internal;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.api.SimpleConsensusConfig;
 import io.hotmoka.node.api.SimpleConsensusConfigBuilder;
 
@@ -57,7 +59,6 @@ public class SimpleConsensusConfigImpl extends ConsensusConfigImpl<SimpleConsens
 		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
 		 */
 		public SimpleConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			super(SignatureAlgorithms.ed25519());
 		}
 
 		/**
@@ -66,9 +67,12 @@ public class SimpleConsensusConfigImpl extends ConsensusConfigImpl<SimpleConsens
 		 * 
 		 * @param toml the file
 		 * @throws FileNotFoundException if the file cannot be found
-		 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+		 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
+		 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
+		 * @throws InvalidKeyException if some public key in the TOML file is invalid
 		 */
-		public SimpleConsensusConfigBuilderImpl(Path toml) throws FileNotFoundException, NoSuchAlgorithmException {
+		public SimpleConsensusConfigBuilderImpl(Path toml) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 			super(readToml(toml));
 		}
 

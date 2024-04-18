@@ -374,7 +374,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	@Override
 	public final String getConsensusConfig() throws NodeException {
 		try (var scope = mkScope()) {
-			return caches.getConsensusParams().getSignature().getName();
+			return caches.getConsensusParams().getSignatureForRequests().getName();
 		}
 	}
 

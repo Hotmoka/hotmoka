@@ -165,7 +165,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGameteBase64()));
 
 		if (producerOfValidatorsBuilder == null)
 			producerOfValidatorsBuilder = this::createEmptyValidatorsBuilder;
@@ -196,7 +196,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			StorageValues.stringOf(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
 			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			StorageValues.stringOf(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+			StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);
@@ -237,7 +237,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		TransactionReference takamakaCodeReference = parent.addJarStoreInitialTransaction(TransactionRequests.jarStoreInitial(Files.readAllBytes(takamakaCode)));
 
 		// we create a gamete with both red and green coins
-		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGamete()));
+		this.gamete = parent.addGameteCreationTransaction(TransactionRequests.gameteCreation(takamakaCodeReference, consensus.getInitialSupply(), consensus.getInitialRedSupply(), consensus.getPublicKeyOfGameteBase64()));
 
 		if (producerOfGasStationBuilder == null)
 			producerOfGasStationBuilder = this::createGenericGasStationBuilder;
@@ -265,7 +265,7 @@ public class InitializedNodeImpl implements InitializedNode {
 			StorageValues.stringOf(consensus.getChainId()), StorageValues.longOf(consensus.getMaxErrorLength()), StorageValues.longOf(consensus.getMaxDependencies()),
 			StorageValues.longOf(consensus.getMaxCumulativeSizeOfDependencies()),
 			StorageValues.booleanOf(consensus.allowsUnsignedFaucet()), StorageValues.booleanOf(consensus.skipsVerification()),
-			StorageValues.stringOf(consensus.getSignature().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
+			StorageValues.stringOf(consensus.getSignatureForRequests().getName()), gamete, StorageValues.longOf(consensus.getVerificationVersion()),
 			builderOfValidators, builderOfGasStation);
 
 		StorageReference manifest = parent.addConstructorCallTransaction(request);

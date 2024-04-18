@@ -24,7 +24,7 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.crypto.Base58;
-import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.api.InitializedNode;
@@ -115,16 +115,19 @@ public class InitDisk extends AbstractCommand {
 			else
 				deltaSupply = new BigInteger(InitDisk.this.deltaSupply);
 
+			var signature = SignatureAlgorithms.ed25519();
+
 			var consensus = SimpleConsensusConfigBuilders.defaults()
 				.allowUnsignedFaucet(openUnsignedFaucet)
 				.setInitialGasPrice(initialGasPrice)
+				.setSignatureForRequests(signature)
 				.setOblivion(oblivion)
 				.ignoreGasPrice(ignoreGasPrice)
 				.setChainId(chainId)
 				.setInitialSupply(initialSupply)
 				.setFinalSupply(initialSupply.add(deltaSupply))
 				.setInitialRedSupply(initialRedSupply)
-				.setPublicKeyOfGamete(Base64.toBase64String(Base58.decode(keyOfGamete)))
+				.setPublicKeyOfGamete(signature.publicKeyFromEncoding(Base58.decode(keyOfGamete)))
 				.build();
 
 			try (var node = this.node = DiskNodes.init(nodeConfig, consensus);

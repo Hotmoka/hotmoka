@@ -18,8 +18,11 @@ package io.hotmoka.node;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.api.SimpleValidatorsConsensusConfigBuilder;
 import io.hotmoka.node.internal.SimpleValidatorsConsensusConfigImpl.SimpleValidatorsConsensusConfigBuilderImpl;
 
@@ -48,9 +51,12 @@ public abstract class SimpleValidatorsConsensusConfigBuilders {
 	 * @param path the path to the TOML file
 	 * @return the builder
 	 * @throws FileNotFoundException if {@code path} cannot be found
-	 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
+	 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+	 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
+	 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
+	 * @throws InvalidKeyException if some public key in the TOML file is invalid
 	 */
-	public static SimpleValidatorsConsensusConfigBuilder load(Path path) throws FileNotFoundException, NoSuchAlgorithmException {
+	public static SimpleValidatorsConsensusConfigBuilder load(Path path) throws FileNotFoundException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 		return new SimpleValidatorsConsensusConfigBuilderImpl(path);
 	}
 }

@@ -23,12 +23,15 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.SimpleConsensusConfigBuilders;
 import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
@@ -37,7 +40,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("configs are correctly dumped into TOML and reloaded from TOML")
-	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
+	public void configDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		var path = dir.resolve("config.toml");
 		var config1 = SimpleConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")
@@ -52,7 +55,7 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("validators configs are correctly dumped into TOML and reloaded from TOML")
-	public void validatorsConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException {
+	public void validatorsConfigDumpLoadTOMLWorks(@TempDir Path dir) throws IOException, NoSuchAlgorithmException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		var path = dir.resolve("validators_config.toml");
 		var config1 = SimpleValidatorsConsensusConfigBuilders.defaults()
 			.setChainId("my-chain")

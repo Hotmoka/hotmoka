@@ -16,12 +16,14 @@ limitations under the License.
 
 package io.hotmoka.node.internal;
 
+import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
 
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.api.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.ValidatorsConsensusConfigBuilder;
 
@@ -74,20 +76,16 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 
 	@Override
 	public boolean equals(Object other) {
-		if (super.equals(other)) {
-			var otherConfig = (ValidatorsConsensusConfigImpl<?,?>) other;
-			return percentStaked == otherConfig.percentStaked &&
-				buyerSurcharge == otherConfig.buyerSurcharge &&
-				slashingForMisbehaving == otherConfig.slashingForMisbehaving &&
-				slashingForNotBehaving == otherConfig.slashingForNotBehaving;
-		}
-		else
-			return false;
+		return other instanceof ValidatorsConsensusConfigImpl<?,?> vcci && super.equals(other) &&
+			percentStaked == vcci.percentStaked &&
+			buyerSurcharge == vcci.buyerSurcharge &&
+			slashingForMisbehaving == vcci.slashingForMisbehaving &&
+			slashingForNotBehaving == vcci.slashingForNotBehaving;
 	}
 
 	@Override
 	public String toToml() {
-		StringBuilder sb = new StringBuilder(super.toToml());
+		var sb = new StringBuilder(super.toToml());
 
 		sb.append("\n");
 		sb.append("# the amount of validators' rewards that gets staked. The rest is sent to the validators\n");
@@ -145,19 +143,9 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		/**
 		 * Creates a builder with default values for the properties.
 		 * 
-		 * @throws NoSuchAlgorithmException if some signature algorithm is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-		}
-
-		/**
-		 * Creates a builder with default values for the properties, except for the signature algorithm.
-		 * 
-		 * @param signature the signature algorithm to store in the builder
-		 */
-		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm signature) {
-			super(signature);
-		}
+		protected ValidatorsConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {}
 
 		/**
 		 * Creates a builder with properties initialized to those of the given configuration object.
@@ -178,61 +166,80 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * the corresponding fields of this builder.
 		 * 
 		 * @param toml the file
-		 * @throws NoSuchAlgorithmException if some signature algorithm in the TOML file is not available
+		 * @throws NoSuchAlgorithmException if some cryptographic algorithm in the TOML file is not available
+		 * @throws Base64ConversionException if some public key in the TOML file is not correctly Base64-encoded
+		 * @throws InvalidKeySpecException if the specification of some public key in the TOML file is illegal
+		 * @throws InvalidKeyException if some public key in the TOML file is invalid
 		 */
-		protected ValidatorsConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException {
+		protected ValidatorsConsensusConfigBuilderImpl(Toml toml) throws NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException, InvalidKeyException {
 			super(toml);
 
 			var percentStaked = toml.getLong("percent_staked");
 			if (percentStaked != null)
-				setPercentStaked((int) (long) percentStaked);
+				setPercentStaked((long) percentStaked);
 
 			var buyerSurcharge = toml.getLong("buyer_surcharge");
 			if (buyerSurcharge != null)
-				setBuyerSurcharge((int) (long) buyerSurcharge);
+				setBuyerSurcharge((long) buyerSurcharge);
 
 			var slashingForMisbehaving = toml.getLong("slashing_for_misbehaving");
 			if (slashingForMisbehaving != null)
-				setSlashingForMisbehaving((int) (long) slashingForMisbehaving);
+				setSlashingForMisbehaving((long) slashingForMisbehaving);
 
 			var slashingForNotBehaving = toml.getLong("slashing_for_not_behaving");
 			if (slashingForNotBehaving != null)
-				setSlashingForNotBehaving((int) (long) slashingForNotBehaving);
+				setSlashingForNotBehaving((long) slashingForNotBehaving);
 		}
 
 		@Override
 		public B setPercentStaked(int percentStaked) {
-			if (percentStaked < 0 || percentStaked > 100_000_000)
+			return setPercentStaked((long) percentStaked);
+		}
+
+		private B setPercentStaked(long percentStaked) {
+			if (percentStaked < 0 || percentStaked > 100_000_000L)
 				throw new IllegalArgumentException("percentStaked must be between 0 and 100_000_000");
 
-			this.percentStaked = percentStaked;
+			this.percentStaked = (int) percentStaked;
 			return getThis();
 		}
 
 		@Override
 		public B setBuyerSurcharge(int buyerSurcharge) {
-			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000)
+			return setBuyerSurcharge((long) buyerSurcharge);
+		}
+
+		private B setBuyerSurcharge(long buyerSurcharge) {
+			if (buyerSurcharge < 0 || buyerSurcharge > 100_000_000L)
 				throw new IllegalArgumentException("buyerSurcharge must be between 0 and 100_000_000");
 
-			this.buyerSurcharge = buyerSurcharge;
+			this.buyerSurcharge = (int) buyerSurcharge;
 			return getThis();
 		}
 
 		@Override
 		public B setSlashingForMisbehaving(int slashingForMisbehaving) {
-			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000)
+			return setSlashingForMisbehaving((long) slashingForMisbehaving);
+		}
+
+		private B setSlashingForMisbehaving(long slashingForMisbehaving) {
+			if (slashingForMisbehaving < 0 || slashingForMisbehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForMisbehaving must be between 0 and 100_000_000");
 
-			this.slashingForMisbehaving = slashingForMisbehaving;
+			this.slashingForMisbehaving = (int) slashingForMisbehaving;
 			return getThis();
 		}
 
 		@Override
 		public B setSlashingForNotBehaving(int slashingForNotBehaving) {
-			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000)
+			return setSlashingForNotBehaving((long) slashingForNotBehaving);
+		}
+
+		private B setSlashingForNotBehaving(long slashingForNotBehaving) {
+			if (slashingForNotBehaving < 0 || slashingForNotBehaving > 100_000_000L)
 				throw new IllegalArgumentException("slashingForNotBehaving must be between 0 and 100_000_000");
 
-			this.slashingForNotBehaving = slashingForNotBehaving;
+			this.slashingForNotBehaving = (int) slashingForNotBehaving;
 			return getThis();
 		}
 	}

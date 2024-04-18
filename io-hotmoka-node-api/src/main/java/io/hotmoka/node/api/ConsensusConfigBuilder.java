@@ -1,6 +1,8 @@
 package io.hotmoka.node.api;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PublicKey;
 import java.time.LocalDateTime;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -72,7 +74,7 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	 * @param signature the signature algorithm
 	 * @return this builder
 	 */
-	B signRequestsWith(SignatureAlgorithm signature);
+	B setSignatureForRequests(SignatureAlgorithm signature);
 
 	/**
 	 * Sets the initial gas price. It defaults to 100.
@@ -172,13 +174,14 @@ public interface ConsensusConfigBuilder<C extends ConsensusConfig<C,B>, B extend
 	B setInitialRedSupply(BigInteger initialRedSupply);
 
 	/**
-	 * Sets the public key for the gamete account.
-	 * It defaults to "" (hence a non-existent key).
+	 * Sets the public key for the gamete account. It defaults to a public key
+	 * with empty entropy and empty password.
 	 * 
-	 * @param publicKeyOfGamete the Base64-encoded public key of the gamete account
+	 * @param publicKeyOfGamete the public key of the gamete account
 	 * @return this builder
+	 * @throws InvalidKeyException if {@code publicKeyOfGamete} is invalid
 	 */
-	B setPublicKeyOfGamete(String publicKeyOfGamete);
+	B setPublicKeyOfGamete(PublicKey publicKeyOfGamete) throws InvalidKeyException;
 
 	/**
 	 * Sets the final supply of coins of the node.

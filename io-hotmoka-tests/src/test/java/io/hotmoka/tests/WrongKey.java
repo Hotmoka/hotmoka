@@ -47,7 +47,7 @@ class WrongKey extends HotmokaTest {
 	@Test @DisplayName("constructor call with wrong key fails")
 	void createAbstractFailImpl() throws NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		// the empty signature algorithm cannot fail
-		if (consensus != null && "empty".equals(consensus.getSignature().getName()))
+		if (consensus != null && "empty".equals(consensus.getSignatureForRequests().getName()))
 			return;
 
 		// key 1 for account 0 !
