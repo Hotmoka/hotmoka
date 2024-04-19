@@ -43,7 +43,6 @@ import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
-import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
@@ -70,6 +69,7 @@ import io.hotmoka.helpers.Coin;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;

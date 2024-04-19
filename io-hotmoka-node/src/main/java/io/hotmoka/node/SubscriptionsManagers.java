@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.node.api.SubscriptionsManager;
-import io.hotmoka.node.internal.SubscriptionsManagerImpl;
+import io.hotmoka.node.internal.nodes.SubscriptionsManagerImpl;
 
 /**
  * Provider of manager of subscriptions to the events occurring in a Hotmoka node.

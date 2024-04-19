@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -24,9 +24,9 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.beans.internal.nodes.ConsensusConfigImpl;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
 
 /**
  * The builder of a configuration object.

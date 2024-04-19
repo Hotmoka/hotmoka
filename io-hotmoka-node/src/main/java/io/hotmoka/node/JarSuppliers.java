@@ -19,7 +19,7 @@ package io.hotmoka.node;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.internal.JarSupplierImpl;
+import io.hotmoka.node.internal.nodes.JarSupplierImpl;
 
 /**
  * Provider of futures of jar installations in a Hotmoka node.

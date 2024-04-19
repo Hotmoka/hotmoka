@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
@@ -24,11 +24,11 @@ import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.beans.internal.gson.ConsensusConfigDecoder;
-import io.hotmoka.beans.internal.gson.ConsensusConfigEncoder;
-import io.hotmoka.beans.internal.gson.ConsensusConfigJson;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.internal.gson.ConsensusConfigDecoder;
+import io.hotmoka.node.internal.gson.ConsensusConfigEncoder;
+import io.hotmoka.node.internal.gson.ConsensusConfigJson;
 
 /**
  * Providers of consensus configurations.

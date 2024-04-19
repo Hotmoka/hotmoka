@@ -21,8 +21,8 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.Node;
-import io.hotmoka.node.internal.CodeSupplierConstructor;
-import io.hotmoka.node.internal.CodeSupplierMethod;
+import io.hotmoka.node.internal.nodes.CodeSupplierConstructor;
+import io.hotmoka.node.internal.nodes.CodeSupplierMethod;
 
 /**
  * Provider of futures of code executions in a Hotmoka node.

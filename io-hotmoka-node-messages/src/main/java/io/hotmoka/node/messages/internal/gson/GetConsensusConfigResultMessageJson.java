@@ -20,8 +20,8 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;

@@ -31,8 +31,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;

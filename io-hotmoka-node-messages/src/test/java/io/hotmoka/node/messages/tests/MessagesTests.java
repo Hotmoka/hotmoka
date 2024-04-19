@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.MethodSignatures;
@@ -48,6 +47,7 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;

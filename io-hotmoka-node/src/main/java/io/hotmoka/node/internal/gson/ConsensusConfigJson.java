@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
 import static java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
@@ -24,11 +24,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 
-import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

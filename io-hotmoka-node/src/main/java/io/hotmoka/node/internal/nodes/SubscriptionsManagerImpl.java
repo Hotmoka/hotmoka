@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.internal;
+package io.hotmoka.node.internal.nodes;
 
 import java.util.HashMap;
 import java.util.HashSet;
