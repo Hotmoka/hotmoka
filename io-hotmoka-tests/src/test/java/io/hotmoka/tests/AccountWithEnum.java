@@ -64,10 +64,10 @@ class AccountWithEnum extends HotmokaTest {
 		StorageReference account = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
 			ConstructorSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", StorageTypes.STRING), StorageValues.stringOf(publicKey));
 
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.RECEIVE_INT, account, StorageValues.intOf(100_000));
 
-		IntValue result = (IntValue) addInstanceMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
+		IntValue result = (IntValue) addInstanceNonVoidMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);
 
 		assertEquals(0, result.getValue());

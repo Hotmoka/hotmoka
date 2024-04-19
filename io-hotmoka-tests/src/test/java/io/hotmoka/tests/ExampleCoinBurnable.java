@@ -115,7 +115,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("199999999999999999500000"));
         StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("500000"));
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCB, "burn", UBI),
@@ -151,7 +151,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         StorageReference ubi_3000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("3000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.of(EXCB, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -159,7 +159,7 @@ class ExampleCoinBurnable extends HotmokaTest {
                 investor1, ubi_7000);
         // Now investor1 is able to spend or burn 7000 MiniEb for creator
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
@@ -201,7 +201,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("4000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.of(EXCB, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -210,7 +210,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         // Now investor1 is able to spend or burn 7000 MiniEb for creator
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                        addInstanceMethodCallTransaction(
+                        addInstanceVoidMethodCallTransaction(
                                 investor2_prv_key, investor2,
                                 _100_000, panarea(1), jar(),
                                 MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),
@@ -220,7 +220,7 @@ class ExampleCoinBurnable extends HotmokaTest {
         );
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                        addInstanceMethodCallTransaction(
+        				addInstanceVoidMethodCallTransaction(
                                 investor1_prv_key, investor1,
                                 _100_000, panarea(1), jar(),
                                 MethodSignatures.ofVoid(EXCB, "burnFrom", StorageTypes.CONTRACT, UBI),

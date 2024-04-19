@@ -121,7 +121,7 @@ class ExampleCoinCapped extends HotmokaTest {
         StorageReference ubi_700000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("700000000000000000000000"));
         StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
@@ -150,7 +150,7 @@ class ExampleCoinCapped extends HotmokaTest {
         StorageReference ubi_900000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900000000000000000000000"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+        		addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),
@@ -160,7 +160,7 @@ class ExampleCoinCapped extends HotmokaTest {
         );
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+        		addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCC, "mint", StorageTypes.CONTRACT, UBI),

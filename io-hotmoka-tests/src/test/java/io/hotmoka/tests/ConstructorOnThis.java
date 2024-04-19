@@ -60,7 +60,7 @@ class ConstructorOnThis extends HotmokaTest {
 	@Test @DisplayName("new Bridge().foo(100) then Bridge has balance 0 and its Sub field has balance 100")
 	void testBalances() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE));
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER), bridge);
@@ -75,7 +75,7 @@ class ConstructorOnThis extends HotmokaTest {
 	@Test @DisplayName("new Bridge2().foo(100) then Bridge2 has balance 0 and its Sub2 field has balance 100")
 	void testBalances2() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference bridge = addConstructorCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(), ConstructorSignatures.of(BRIDGE2));
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE2, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
 		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER), bridge);

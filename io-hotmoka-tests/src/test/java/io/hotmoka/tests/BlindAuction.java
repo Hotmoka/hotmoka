@@ -47,7 +47,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.NullValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -89,11 +90,11 @@ class BlindAuction extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_REVEALED_BID = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"),
 			StorageTypes.BIG_INTEGER, BOOLEAN, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature BID = MethodSignatures.ofVoid(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
+	private static final VoidMethodSignature BID = MethodSignatures.ofVoid(BLIND_AUCTION, "bid", StorageTypes.BIG_INTEGER, StorageTypes.BYTES32_SNAPSHOT);
 
-	private static final MethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
+	private static final VoidMethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
-	private static final MethodSignature AUCTION_END = MethodSignatures.of(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
+	private static final NonVoidMethodSignature AUCTION_END = MethodSignatures.of(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 
 	/**
 	 * The hashing algorithm used to hide the bids.
@@ -131,7 +132,7 @@ class BlindAuction extends HotmokaTest {
 			byte[] salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 		}
 	}
 
@@ -151,7 +152,7 @@ class BlindAuction extends HotmokaTest {
 				byte[] salt = new byte[32];
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
-				addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+				addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 				sleep(2000);
 			}
 		});
@@ -226,7 +227,7 @@ class BlindAuction extends HotmokaTest {
 
 			// we store the explicit bid in memory, not yet in blockchain, since it would be visible there
 			bids.add(new BidToReveal(player, value, fake, salt));
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
 
         	i++;
 		}
@@ -244,13 +245,13 @@ class BlindAuction extends HotmokaTest {
 		Iterator<BidToReveal> it = bids.iterator();
 		for (StorageReference bidInStore: bidsInStore) {
 			int player = it.next().player;
-			addInstanceMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), REVEAL, auction.get(), bidInStore);
+			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), REVEAL, auction.get(), bidInStore);
 		}
 
 		waitUntil(BIDDING_TIME + REVEAL_TIME + 5000, start);
 
 		// the winner can be a StorageReference but also a NullValue, if all bids were fake
-		StorageValue winner = addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), AUCTION_END, auction.get());
+		StorageValue winner = addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), AUCTION_END, auction.get());
 		if (winner instanceof NullValue)
 			winner = null;
 

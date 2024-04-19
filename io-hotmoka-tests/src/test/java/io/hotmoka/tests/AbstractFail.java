@@ -76,7 +76,7 @@ class AbstractFail extends HotmokaTest {
 	void createAbstractFailImplThenCallAbstractMethod() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference abstractfail = addConstructorCallTransaction(privateKey(0), account(0), _100_000, panarea(1), jar(), ABSTRACT_FAIL_IMPL_CONSTRUCTOR, StorageValues.intOf(42));
 
-		StorageReference result = (StorageReference) addInstanceMethodCallTransaction
+		StorageReference result = (StorageReference) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), MethodSignatures.of(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
 		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.of(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();

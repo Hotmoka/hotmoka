@@ -63,7 +63,7 @@ class PayableFailure extends HotmokaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), ConstructorSignatures.of(C));
 
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
+			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
 
 		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 		assertEquals(_1_000_000, balance);
@@ -75,7 +75,7 @@ class PayableFailure extends HotmokaTest {
 
 		// sends 1000 as payment for a transaction that fails
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
-			addInstanceMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
+			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
 		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 

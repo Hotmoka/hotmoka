@@ -79,7 +79,7 @@ class Bombing extends HotmokaTest {
 			while (ticket.getAndIncrement() < NUMBER_OF_TRANSFERS) {
 				StorageReference to = random.ints(0, NUMBER_OF_ACCOUNTS).filter(i -> i != num).mapToObj(i -> accounts[i]).findAny().get();
 				int amount = 1 + random.nextInt(10);
-				addInstanceMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
+				addInstanceVoidMethodCallTransaction(key, from, _50_000, ZERO, takamakaCode(), MethodSignatures.RECEIVE_INT, to, StorageValues.intOf(amount));
 			}
 		}
 		catch (InvalidKeyException | SignatureException | TransactionException | CodeExecutionException | TransactionRejectedException | NoSuchElementException | NodeException | TimeoutException | InterruptedException e) {

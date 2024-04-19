@@ -53,7 +53,8 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -66,10 +67,10 @@ class WTSC2021bis extends HotmokaTest {
 	private final static int NUMBER_OF_ITERATIONS = 10;
     private final ClassType COIN = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoin");
     private final ConstructorSignature CONSTRUCTOR_OF_COIN = ConstructorSignatures.of(COIN);
-    private final MethodSignature TRANSFER = MethodSignatures.of(StorageTypes.IERC20, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
+    private final NonVoidMethodSignature TRANSFER = MethodSignatures.of(StorageTypes.IERC20, "transfer", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.INT);
     private final ClassType CREATOR = StorageTypes.classNamed("io.hotmoka.examples.tokens.ExampleCoinCreator");
     private final ConstructorSignature CONSTRUCTOR_OF_CREATOR = ConstructorSignatures.of(CREATOR, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
-    private final MethodSignature DISTRIBUTE = MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT);
+    private final VoidMethodSignature DISTRIBUTE = MethodSignatures.ofVoid(CREATOR, "distribute", StorageTypes.ACCOUNTS, StorageTypes.IERC20, StorageTypes.INT);
     private StorageReference[] investors;
     private PrivateKey[] privateKeysOfInvestors;
     private StorageReference token;
@@ -127,7 +128,7 @@ class WTSC2021bis extends HotmokaTest {
 			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);
 
 			// @creator makes a token transfer to each @investor (investors will now have tokens to trade)
-			addInstanceMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
+			addInstanceVoidMethodCallTransaction(privateKeyOfCreator, creator, _100_000.multiply(BigInteger.valueOf(NUMBER_OF_INVESTORS)), ZERO, jar(),
 				DISTRIBUTE, creator, containerOfAccounts(), token, StorageValues.intOf(50_000));
 
 			customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_INVESTORS).parallel().forEach(this::runTransfersForSender)).get();
@@ -154,7 +155,7 @@ class WTSC2021bis extends HotmokaTest {
      */
     private void createTransfer(StorageReference sender, PrivateKey privateKeyOfSender, StorageReference receiver, int howMuch) {
 		try {
-			addInstanceMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
+			addInstanceNonVoidMethodCallTransaction(privateKeyOfSender, sender, _500_000, ZERO, jar(), TRANSFER, token, receiver, StorageValues.intOf(howMuch));
 		}
 		catch (TimeoutException e) {
 			// this occurs if the node is remote and very slow, so that the connection timeouts

@@ -40,7 +40,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -51,8 +52,8 @@ import io.hotmoka.node.api.values.StorageValue;
  */
 class Storage extends HotmokaTest {
 	private static final ClassType SIMPLE_STORAGE = StorageTypes.classNamed("io.hotmoka.examples.storage.SimpleStorage");
-	private static final MethodSignature SET = MethodSignatures.ofVoid(SIMPLE_STORAGE, "set", INT);
-	private static final MethodSignature GET = MethodSignatures.of(SIMPLE_STORAGE, "get", INT);
+	private static final VoidMethodSignature SET = MethodSignatures.ofVoid(SIMPLE_STORAGE, "set", INT);
+	private static final NonVoidMethodSignature GET = MethodSignatures.of(SIMPLE_STORAGE, "get", INT);
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_STORAGE = ConstructorSignatures.of("io.hotmoka.examples.storage.SimpleStorage");
 	private static final BigInteger ALL_FUNDS = BigInteger.valueOf(1_000_000);
 
@@ -88,24 +89,24 @@ class Storage extends HotmokaTest {
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 0);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then get() == 13")
 	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
+		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 13);
 	}
 
 	@Test @DisplayName("new SimpleStorage().set(13) then set(17) then get() == 17")
 	void set13set17ThenGet17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		addInstanceMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
-		IntValue value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
+		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
+		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 17);
 	}
 }

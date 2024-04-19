@@ -38,7 +38,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -50,8 +50,8 @@ class SimplePyramidWithBalance extends HotmokaTest {
 	private static final BigIntegerValue MINIMUM_INVESTMENT = StorageValues.bigIntegerOf(10_000);
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.ponzi.SimplePyramidWithBalance");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
-	private static final MethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
-	private static final MethodSignature WITHDRAW = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "withdraw");
+	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
+	private static final VoidMethodSignature WITHDRAW = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "withdraw");
 	private static final BigInteger _200_000 = BigInteger.valueOf(200_000);
 
 	@BeforeAll
@@ -67,19 +67,19 @@ class SimplePyramidWithBalance extends HotmokaTest {
 	@Test @DisplayName("two investors do not get investment back yet")
 	void twoInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
+		var balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
 	@Test @DisplayName("with three investors the first gets its investment back")
 	void threeInvestors() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
-		addInstanceMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
+		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
+		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
+		var balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

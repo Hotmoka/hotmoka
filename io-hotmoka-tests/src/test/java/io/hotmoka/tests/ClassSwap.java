@@ -39,7 +39,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -49,7 +49,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class ClassSwap extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of("C");
-	private static final MethodSignature GET = MethodSignatures.of("C", "get", StorageTypes.INT);
+	private static final NonVoidMethodSignature GET = MethodSignatures.of("C", "get", StorageTypes.INT);
 
 	/**
 	 * The only account of the blockchain.
@@ -87,7 +87,7 @@ class ClassSwap extends HotmokaTest {
 	@Test @DisplayName("c13 new/get works in its classpath")
 	void testC13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c13 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, CONSTRUCTOR_C);
-		var get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
+		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC13, GET, c13);
 
 		assertSame(13, get.getValue());
 	}
@@ -95,7 +95,7 @@ class ClassSwap extends HotmokaTest {
 	@Test @DisplayName("c17 new/get works in its classpath")
 	void testC17() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference c17 = addConstructorCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, CONSTRUCTOR_C);
-		var get = (IntValue) addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
+		var get = (IntValue) addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c17);
 
 		assertSame(17, get.getValue());
 	}
@@ -106,7 +106,7 @@ class ClassSwap extends HotmokaTest {
 
 		// the following call should fail since c13 was created from another jar
 		throwsTransactionExceptionWithCause(DeserializationError.class, () ->
-			addInstanceMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c13)
+			addInstanceNonVoidMethodCallTransaction(key, account, _50_000, BigInteger.ONE, classpathC17, GET, c13)
 		);
 	}
 }

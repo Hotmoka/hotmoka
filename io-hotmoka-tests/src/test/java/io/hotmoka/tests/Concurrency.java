@@ -95,7 +95,7 @@ class Concurrency extends HotmokaTest {
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units
 					int sent = ourBalance.subtract(otherBalance).signum() < 0 ? 5_000 : 10_000;
-					addInstanceMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
+					addInstanceVoidMethodCallTransaction(privateKey(num), account(num), _50_000, ONE, takamakaCode(),
 							MethodSignatures.RECEIVE_INT, account(other), StorageValues.intOf(sent));
 				}
 			}

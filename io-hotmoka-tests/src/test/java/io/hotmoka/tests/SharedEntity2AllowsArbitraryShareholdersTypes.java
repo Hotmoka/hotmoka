@@ -86,17 +86,17 @@ class SharedEntity2AllowsArbitraryShareholdersTypes extends HotmokaTest {
                 SIMPLE_SHARED_ENTITY_2_CONSTRUCTOR, sellerContractMyClass, StorageValues.bigIntegerOf(10));
 
         // create an offer by the seller using his contract
-        StorageReference offer = (StorageReference) addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
+        var offer = (StorageReference) addInstanceNonVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
                 MethodSignatures.of(MY_CLASS, "createOffer2", OFFER_2, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
                 sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract
-        addInstanceMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
+        addInstanceVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
         		MethodSignatures.ofVoid(MY_CLASS, "placeOffer", SHARED_ENTITY_2, StorageTypes.BIG_INTEGER, OFFER_2),
                 sellerContractMyClass, sharedEntity, StorageValues.bigIntegerOf(0), offer);
 
         // the buyer is an account (EOA) and he accepts the offer: this should not be valid but the test shows that it actually works
-        addInstanceMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
+        addInstanceVoidMethodCallTransaction(privateKey(2), buyer, _200_000, panarea(1), classpath,
         		MethodSignatures.ofVoid(SIMPLE_SHARED_ENTITY_2, "accept", StorageTypes.BIG_INTEGER, OFFER_2),
                 sharedEntity, StorageValues.bigIntegerOf(2), offer);
     }

@@ -94,7 +94,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("new TicTacToe() then first player plays")
 	void crossPlays() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -117,7 +117,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("new TicTacToe(), first player plays, second player plays same position")
 	void bothPlaySamePosition() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -129,7 +129,7 @@ class TicTacToe extends HotmokaTest {
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 				privateKey(3),
 				player2,
 				_100_000,
@@ -145,7 +145,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("new TicTacToe(), same player plays twice")
 	void samePlayerPlaysTwice() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -157,7 +157,7 @@ class TicTacToe extends HotmokaTest {
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(
+			addInstanceVoidMethodCallTransaction(
 				privateKey(2),
 				player1,
 				_100_000,
@@ -173,7 +173,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("new TicTacToe(), second player bets too little")
 	void circleBetsTooLittle() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1,
 			_100_000,
@@ -185,7 +185,7 @@ class TicTacToe extends HotmokaTest {
 			_1, _1);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(
+			addInstanceVoidMethodCallTransaction(
 				privateKey(3),
 				player2,
 				_100_000,
@@ -201,7 +201,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("first player wins")
 	void crossWins() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -211,7 +211,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
 			_100_000,
@@ -221,7 +221,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -231,7 +231,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
 			_100_000,
@@ -241,7 +241,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -252,7 +252,7 @@ class TicTacToe extends HotmokaTest {
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
 
-		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
+		var toString = (StringValue) runInstanceMethodCallTransaction(
 			player1, 
 			_100_000,
 			jar(),
@@ -266,7 +266,7 @@ class TicTacToe extends HotmokaTest {
 	@Test @DisplayName("first player wins but second continues to play")
 	void crossWinsButCircleContinues() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ticTacToe = addConstructorCallTransaction(privateKey(1), creator, _500_000, panarea(1), jar(), CONSTRUCTOR_TIC_TAC_TOE);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -276,7 +276,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
 			_100_000,
@@ -286,7 +286,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_2, _1);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -296,7 +296,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _2);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(3),
 			player2,
 			_100_000,
@@ -306,7 +306,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(0).longValue()),
 			_2, _2);
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2),
 			player1, 
 			_100_000,
@@ -318,7 +318,7 @@ class TicTacToe extends HotmokaTest {
 			_1, _3);
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-			addInstanceMethodCallTransaction(
+			addInstanceVoidMethodCallTransaction(
 				privateKey(3),
 				player2, 
 				_100_000,

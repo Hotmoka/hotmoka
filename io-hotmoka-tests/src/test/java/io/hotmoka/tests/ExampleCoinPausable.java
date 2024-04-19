@@ -123,7 +123,7 @@ class ExampleCoinPausable extends HotmokaTest {
     void _pause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
@@ -144,7 +144,7 @@ class ExampleCoinPausable extends HotmokaTest {
     void _pauseException() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
@@ -152,7 +152,7 @@ class ExampleCoinPausable extends HotmokaTest {
         // The contract has been put in the paused state
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+                addInstanceVoidMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), jar(),
                         MethodSignatures.ofVoid(EXCP, "pause"),
@@ -165,7 +165,7 @@ class ExampleCoinPausable extends HotmokaTest {
     void _unpause() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
@@ -179,7 +179,7 @@ class ExampleCoinPausable extends HotmokaTest {
                 example_token);
         // paused_before = example_token.paused() == true
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "unpause"),
@@ -201,7 +201,7 @@ class ExampleCoinPausable extends HotmokaTest {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                        addInstanceMethodCallTransaction(
+                        addInstanceVoidMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), jar(),
                                 MethodSignatures.ofVoid(EXCP, "unpause"),
@@ -217,7 +217,7 @@ class ExampleCoinPausable extends HotmokaTest {
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue transfer_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXCP, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -262,7 +262,7 @@ class ExampleCoinPausable extends HotmokaTest {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXCP);
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXCP, "pause"),
@@ -270,7 +270,7 @@ class ExampleCoinPausable extends HotmokaTest {
         // The contract has been put in the paused state
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                        addInstanceMethodCallTransaction(
+                        addInstanceNonVoidMethodCallTransaction(
                                 creator_prv_key, creator,
                                 _100_000, panarea(1), jar(),
                                 MethodSignatures.of(EXCP, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),

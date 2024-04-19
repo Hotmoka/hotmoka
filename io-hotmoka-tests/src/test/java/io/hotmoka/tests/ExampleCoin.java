@@ -184,7 +184,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue transfer_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -230,7 +230,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_5000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("5000"));
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+                addInstanceNonVoidMethodCallTransaction(
                         investor1_prv_key, investor1,
                         _500_000, panarea(1), jar(),
                         MethodSignatures.of(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -244,7 +244,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference example_token = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_EXAMPLECOIN);
         StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("4000"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -308,7 +308,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_3000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("3000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -316,7 +316,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, ubi_7000);
         // Now investor1 is able to spend 7000 MiniEx for creator
 
-        BooleanValue transfer_from_result = (BooleanValue) addInstanceMethodCallTransaction(
+        var transfer_from_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
@@ -357,7 +357,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_4000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("4000"));
         StorageReference ubi_0 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("0"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -366,7 +366,7 @@ class ExampleCoin extends HotmokaTest {
         // Now investor1 is able to spend 7000 MiniEx for creator
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+                addInstanceNonVoidMethodCallTransaction(
                         investor2_prv_key, investor2,
                         _500_000, panarea(1), jar(),
                         MethodSignatures.of(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
@@ -376,7 +376,7 @@ class ExampleCoin extends HotmokaTest {
         );
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+                addInstanceNonVoidMethodCallTransaction(
                         investor1_prv_key, investor1,
                         _500_000, panarea(1), jar(),
                         MethodSignatures.of(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
@@ -412,7 +412,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_1000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("1000"));
         StorageReference ubi_900 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("900"));
 
-        BooleanValue transfer_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue transfer_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "transfer", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -420,7 +420,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, ubi_1000);
         // balances = [creator:..., investor1:1000, investor2:0]
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -428,7 +428,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, ubi_1000);
         // Now investor1 is able to spend his tokens through the transferFrom function
 
-        BooleanValue transfer_from_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue transfer_from_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 investor1_prv_key, investor1,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "transferFrom", BOOLEAN, StorageTypes.CONTRACT, StorageTypes.CONTRACT, UBI),
@@ -436,7 +436,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, investor1, ubi_900);
         // balances = [creator:..., investor1:1000, investor2:0]
 
-        StorageReference investor1_tokens_ubi = (StorageReference) runInstanceMethodCallTransaction(
+        var investor1_tokens_ubi = (StorageReference) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
                 MethodSignatures.of(EXAMPLECOIN, "balanceOf", UBI, StorageTypes.CONTRACT),
@@ -444,7 +444,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1);
         // investor1_tokens_ubi = 1000
 
-        StringValue investor1_tokens_string = (StringValue) runInstanceMethodCallTransaction(
+        var investor1_tokens_string = (StringValue) runInstanceMethodCallTransaction(
                 creator,
                 _500_000, jar(),
                 MethodSignatures.of(UBI, "toString", StorageTypes.STRING),
@@ -462,7 +462,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("999"));
         StorageReference ubi_4999 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("4999"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -470,7 +470,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, ubi_4000);
         // Now investor1 is able to spend 4000 MiniEx for creator
 
-        BooleanValue increase_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue increase_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "increaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -504,7 +504,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("999"));
         StorageReference ubi_3001 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("3001"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -512,7 +512,7 @@ class ExampleCoin extends HotmokaTest {
                 investor1, ubi_4000);
         // Now investor1 is able to spend 4000 MiniEx for creator
 
-        BooleanValue decrease_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue decrease_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -545,7 +545,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_998 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("998"));
         StorageReference ubi_999 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("999"));
 
-        BooleanValue approve_result = (BooleanValue) addInstanceMethodCallTransaction(
+        BooleanValue approve_result = (BooleanValue) addInstanceNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.of(EXAMPLECOIN, "approve", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -554,7 +554,7 @@ class ExampleCoin extends HotmokaTest {
         // Now investor1 is able to spend 998 MiniEx for creator
 
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addInstanceMethodCallTransaction(
+                addInstanceNonVoidMethodCallTransaction(
                         creator_prv_key, creator,
                         _500_000, panarea(1), jar(),
                         MethodSignatures.of(EXAMPLECOIN, "decreaseAllowance", BOOLEAN, StorageTypes.CONTRACT, UBI),
@@ -574,7 +574,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_check2 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("200000000000000001000000"));
         StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("500000"));
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
@@ -582,7 +582,7 @@ class ExampleCoin extends HotmokaTest {
                 creator, ubi_500000);
         // balances = [creator:200000000000000000500000], totalSupply:200000000000000000500000
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXAMPLECOIN, "mint", StorageTypes.CONTRACT, UBI),
@@ -620,7 +620,7 @@ class ExampleCoin extends HotmokaTest {
         StorageReference ubi_check = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("199999999999999999500000"));
         StorageReference ubi_500000 = addConstructorCallTransaction(creator_prv_key, creator, _500_000, panarea(1), classpath_takamaka_code, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("500000"));
 
-        addInstanceMethodCallTransaction(
+        addInstanceVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _500_000, panarea(1), jar(),
                 MethodSignatures.ofVoid(EXAMPLECOIN, "burn", StorageTypes.CONTRACT, UBI),

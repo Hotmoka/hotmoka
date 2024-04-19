@@ -40,7 +40,7 @@ import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
@@ -50,7 +50,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class RedGreenDistributor extends HotmokaTest {
 	private static final ClassType DISTRIBUTOR = StorageTypes.classNamed("io.hotmoka.examples.redgreendistributor.Distributor");
-	private static final MethodSignature ADD_AS_PAYEE = MethodSignatures.ofVoid(DISTRIBUTOR, "addAsPayee");
+	private static final VoidMethodSignature ADD_AS_PAYEE = MethodSignatures.ofVoid(DISTRIBUTOR, "addAsPayee");
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 
 	@BeforeAll
@@ -78,7 +78,7 @@ class RedGreenDistributor extends HotmokaTest {
 	void createDistributorAndTwoPayees() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(1), account(1),
 			_20_000,
 			ONE,
@@ -87,7 +87,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2), account(2),
 			_20_000,
 			ONE,
@@ -96,7 +96,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,
@@ -105,7 +105,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		var balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),
@@ -113,7 +113,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		var balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),
@@ -129,7 +129,7 @@ class RedGreenDistributor extends HotmokaTest {
 	void createDistributorAndTwoPayeesThenDistributes1000Red() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(1), account(1),
 			_20_000,
 			ONE,
@@ -138,7 +138,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2), account(2),
 			_20_000,
 			ONE,
@@ -147,7 +147,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,
@@ -190,7 +190,7 @@ class RedGreenDistributor extends HotmokaTest {
 			StorageValues.bigIntegerOf(_20_000)
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(1), account(1),
 			_20_000,
 			ONE,
@@ -199,7 +199,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor
 		);
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(2), account(2),
 			_20_000,
 			ONE,
@@ -209,7 +209,7 @@ class RedGreenDistributor extends HotmokaTest {
 		);
 
 		throwsTransactionException(() ->
-			addInstanceMethodCallTransaction(
+			addInstanceVoidMethodCallTransaction(
 				keys.getPrivate(),
 				eoa.get(),
 				_20_000,
@@ -226,7 +226,7 @@ class RedGreenDistributor extends HotmokaTest {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		throwsTransactionRejectedException(() ->
-			addInstanceMethodCallTransaction(
+			addInstanceVoidMethodCallTransaction(
 				privateKey(3), account(3),
 				_500_000,
 				ONE,
@@ -241,7 +241,7 @@ class RedGreenDistributor extends HotmokaTest {
 	void createDistributorThenAddsPayeePayingWithRedAndGreen() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
-		addInstanceMethodCallTransaction(
+		addInstanceVoidMethodCallTransaction(
 			privateKey(3), account(3),
 			BigInteger.valueOf(100_000), // more than 90,000, but it can use green after red are exhausted
 			ONE,
