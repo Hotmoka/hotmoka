@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.crypto.HexConversionException;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.messages.GetClassTagResultMessages;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;

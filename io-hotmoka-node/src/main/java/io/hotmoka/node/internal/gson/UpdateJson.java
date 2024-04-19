@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfEnum;
@@ -40,6 +39,7 @@ import io.hotmoka.beans.api.values.ShortValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.HexConversionException;
+import io.hotmoka.node.Updates;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -38,25 +38,25 @@ import io.hotmoka.beans.api.updates.UpdateOfStorage;
 import io.hotmoka.beans.api.updates.UpdateOfString;
 import io.hotmoka.beans.api.updates.UpdateToNull;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.gson.UpdateDecoder;
-import io.hotmoka.beans.internal.gson.UpdateEncoder;
-import io.hotmoka.beans.internal.gson.UpdateJson;
-import io.hotmoka.beans.internal.updates.AbstractUpdate;
-import io.hotmoka.beans.internal.updates.ClassTagImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfBigIntegerImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfBooleanImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfByteImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfCharImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfDoubleImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfEnumImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfFloatImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfIntImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfLongImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfShortImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfStorageImpl;
-import io.hotmoka.beans.internal.updates.UpdateOfStringImpl;
-import io.hotmoka.beans.internal.updates.UpdateToNullImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.internal.gson.UpdateDecoder;
+import io.hotmoka.node.internal.gson.UpdateEncoder;
+import io.hotmoka.node.internal.gson.UpdateJson;
+import io.hotmoka.node.internal.updates.AbstractUpdate;
+import io.hotmoka.node.internal.updates.ClassTagImpl;
+import io.hotmoka.node.internal.updates.UpdateOfBigIntegerImpl;
+import io.hotmoka.node.internal.updates.UpdateOfBooleanImpl;
+import io.hotmoka.node.internal.updates.UpdateOfByteImpl;
+import io.hotmoka.node.internal.updates.UpdateOfCharImpl;
+import io.hotmoka.node.internal.updates.UpdateOfDoubleImpl;
+import io.hotmoka.node.internal.updates.UpdateOfEnumImpl;
+import io.hotmoka.node.internal.updates.UpdateOfFloatImpl;
+import io.hotmoka.node.internal.updates.UpdateOfIntImpl;
+import io.hotmoka.node.internal.updates.UpdateOfLongImpl;
+import io.hotmoka.node.internal.updates.UpdateOfShortImpl;
+import io.hotmoka.node.internal.updates.UpdateOfStorageImpl;
+import io.hotmoka.node.internal.updates.UpdateOfStringImpl;
+import io.hotmoka.node.internal.updates.UpdateToNullImpl;
 
 /**
  * Providers of updates.

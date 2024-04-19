@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
@@ -43,6 +42,7 @@ import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.Updates;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

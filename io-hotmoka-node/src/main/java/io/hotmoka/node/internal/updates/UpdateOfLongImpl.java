@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.updates;
+package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
 
@@ -22,50 +22,49 @@ import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfBoolean;
-import io.hotmoka.beans.api.values.BooleanValue;
+import io.hotmoka.beans.api.updates.UpdateOfLong;
+import io.hotmoka.beans.api.values.LongValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * The implementation of an update of a field of type {@code boolean}.
+ * The implementation of an update of a field of type {@code long}.
  */
 @Immutable
-public final class UpdateOfBooleanImpl extends UpdateOfFieldImpl implements UpdateOfBoolean {
-	final static byte SELECTOR_FALSE = 3;
-	final static byte SELECTOR_TRUE = 4;
+public final class UpdateOfLongImpl extends UpdateOfFieldImpl implements UpdateOfLong {
+	final static byte SELECTOR = 11;
 
 	/**
 	 * The new value of the field.
 	 */
-	private final boolean value;
+	private final long value;
 
 	/**
-	 * Builds an update of an {@code boolean} field.
+	 * Builds an update of an {@code long} field.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
 	 * @param value the new value of the field
 	 */
-	public UpdateOfBooleanImpl(StorageReference object, FieldSignature field, boolean value) {
+	public UpdateOfLongImpl(StorageReference object, FieldSignature field, long value) {
 		super(object, field);
 
 		this.value = value;
 	}
 
 	@Override
-	public BooleanValue getValue() {
-		return StorageValues.booleanOf(value);
+	public LongValue getValue() {
+		return StorageValues.longOf(value);
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfBoolean uob && super.equals(other) && uob.getValue().getValue() == value;
+		return other instanceof UpdateOfLong uol && super.equals(other) && uol.getValue().getValue() == value;
 	}
 
 	@Override
 	public int hashCode() {
-		return super.hashCode() ^ Boolean.hashCode(value);
+		return super.hashCode() ^ Long.hashCode(value);
 	}
 
 	@Override
@@ -74,12 +73,13 @@ public final class UpdateOfBooleanImpl extends UpdateOfFieldImpl implements Upda
 		if (diff != 0)
 			return diff;
 		else
-			return Boolean.compare(value, ((UpdateOfBooleanImpl) other).value);
+			return Long.compare(value, ((UpdateOfLongImpl) other).value);
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(value ? SELECTOR_TRUE : SELECTOR_FALSE);
+		context.writeByte(SELECTOR);
 		super.into(context);
+		context.writeLong(value);
 	}
 }

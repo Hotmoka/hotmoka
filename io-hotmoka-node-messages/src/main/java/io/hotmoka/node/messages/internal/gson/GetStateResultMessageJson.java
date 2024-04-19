@@ -18,10 +18,10 @@ package io.hotmoka.node.messages.internal.gson;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.Updates;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.messages.GetStateResultMessages;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;

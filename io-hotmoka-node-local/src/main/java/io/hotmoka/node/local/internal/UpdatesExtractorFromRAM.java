@@ -30,12 +30,12 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.instrumentation.InstrumentationFields;
 import io.hotmoka.node.DeserializationError;
+import io.hotmoka.node.Updates;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 

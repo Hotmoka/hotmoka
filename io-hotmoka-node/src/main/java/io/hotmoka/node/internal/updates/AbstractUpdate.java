@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.updates;
+package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -23,17 +23,17 @@ import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.FieldSignatures;
+import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.Updates;
 
 /**
  * Shared implementation of an update.
@@ -153,6 +153,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new NodeMarshallingContext(os);
+		return NodeMarshallingContexts.of(os);
 	}
 }

@@ -14,72 +14,62 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.updates;
+package io.hotmoka.node.internal.updates;
 
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfChar;
-import io.hotmoka.beans.api.values.CharValue;
+import io.hotmoka.beans.api.updates.UpdateToNull;
+import io.hotmoka.beans.api.values.NullValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * The implementation of an update of a field of type {@code char}.
+ * Implementation of an update of a field to {@code null}.
  */
 @Immutable
-public final class UpdateOfCharImpl extends UpdateOfFieldImpl implements UpdateOfChar {
-	final static byte SELECTOR = 6;
+public final class UpdateToNullImpl extends UpdateOfFieldImpl implements UpdateToNull {
+	final static byte SELECTOR_EAGER = 18;
+	final static byte SELECTOR_LAZY = 19;
 
 	/**
-	 * The new value of the field.
+	 * True if and only if the update is eager.
 	 */
-	private final char value;
+	private final boolean eager;
 
 	/**
-	 * Builds an update of an {@code char} field.
+	 * Builds an update of a field to {@code null}.
 	 * 
 	 * @param object the storage reference of the object whose field is modified
 	 * @param field the field that is modified
-	 * @param value the new value of the field
+	 * @param eager true if and only if the update is eager
 	 */
-	public UpdateOfCharImpl(StorageReference object, FieldSignature field, char value) {
+	public UpdateToNullImpl(StorageReference object, FieldSignature field, boolean eager) {
 		super(object, field);
 
-		this.value = value;
+		this.eager = eager;
 	}
 
 	@Override
-	public CharValue getValue() {
-		return StorageValues.charOf(value);
+	public NullValue getValue() {
+		return StorageValues.NULL;
 	}
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof UpdateOfChar uoc && super.equals(other) && uoc.getValue().getValue() == value;
+		return other instanceof UpdateToNull uon && super.equals(other) && uon.isEager() == eager;
 	}
 
 	@Override
-	public int hashCode() {
-		return super.hashCode() ^ value;
-	}
-
-	@Override
-	public int compareTo(Update other) {
-		int diff = super.compareTo(other);
-		if (diff != 0)
-			return diff;
-		else
-			return Character.compare(value, ((UpdateOfCharImpl) other).value);
+	public boolean isEager() {
+		return eager;
 	}
 
 	@Override
 	public void into(MarshallingContext context) throws IOException {
-		context.writeByte(SELECTOR);
+		context.writeByte(eager ? SELECTOR_EAGER : SELECTOR_LAZY);
 		super.into(context);
-		context.writeChar(value);
 	}
 }
