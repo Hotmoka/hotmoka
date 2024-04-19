@@ -29,9 +29,9 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.internal.gson.MethodSignatureDecoder;
 import io.hotmoka.node.internal.gson.MethodSignatureEncoder;
 import io.hotmoka.node.internal.gson.MethodSignatureJson;
-import io.hotmoka.node.internal.requests.signatures.AbstractMethodSignature;
-import io.hotmoka.node.internal.requests.signatures.NonVoidMethodSignatureImpl;
-import io.hotmoka.node.internal.requests.signatures.VoidMethodSignatureImpl;
+import io.hotmoka.node.internal.signatures.AbstractMethodSignature;
+import io.hotmoka.node.internal.signatures.NonVoidMethodSignatureImpl;
+import io.hotmoka.node.internal.signatures.VoidMethodSignatureImpl;
 
 /**
  * Providers of method signatures.

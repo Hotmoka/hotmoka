@@ -27,7 +27,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.internal.gson.ConstructorSignatureDecoder;
 import io.hotmoka.node.internal.gson.ConstructorSignatureEncoder;
 import io.hotmoka.node.internal.gson.ConstructorSignatureJson;
-import io.hotmoka.node.internal.requests.signatures.ConstructorSignatureImpl;
+import io.hotmoka.node.internal.signatures.ConstructorSignatureImpl;
 
 /**
  * Providers of constructor signatures.
