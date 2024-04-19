@@ -14,28 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.api.nodes.NodeInfo;
-import io.hotmoka.websockets.beans.api.JsonRepresentation;
+import io.hotmoka.node.NodeInfos;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * The JSON representation of a {@link NodeInfo}.
+ * A decoder for {@link NodeInfo}.
  */
-public abstract class NodeInfoJson implements JsonRepresentation<NodeInfo> {
-	private final String type;
-	private final String version;
-	private final String ID;
+public class NodeInfoDecoder extends MappedDecoder<NodeInfo, NodeInfos.Json> {
 
-	protected NodeInfoJson(NodeInfo info) {
-		this.type = info.getType();
-		this.version = info.getVersion();
-		this.ID = info.getID();
-	}
-
-	@Override
-	public NodeInfo unmap() {
-		return NodeInfos.of(type, version, ID);
+	public NodeInfoDecoder() {
+		super(NodeInfos.Json.class);
 	}
 }

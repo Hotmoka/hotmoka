@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.nodes;
+package io.hotmoka.node.internal.nodes;
 
 import java.util.Objects;
 

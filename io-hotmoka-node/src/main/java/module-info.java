@@ -19,10 +19,23 @@ limitations under the License.
  */
 module io.hotmoka.node {
 	exports io.hotmoka.node;
+	// beans must be accessible, encoded and decoded by reflection through Gson
+	opens io.hotmoka.node.internal.gson to com.google.gson;
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.beans;
 	requires io.hotmoka.annotations;
+	requires transitive io.hotmoka.beans.api;
+	requires transitive io.hotmoka.marshalling;
+	requires io.hotmoka.exceptions;
+	requires io.hotmoka.websockets.beans;
+	requires io.takamaka.code.constants;
+	requires toml4j;
+	requires static com.google.gson;
 	requires java.logging;
+
+	// this makes sun.misc.Unsafe accessible, so that Gson can instantiate
+	// classes without the no-args constructor
+	requires jdk.unsupported;
 }

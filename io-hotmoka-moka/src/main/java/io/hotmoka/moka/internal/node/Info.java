@@ -18,9 +18,9 @@ package io.hotmoka.moka.internal.node;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.cli.CommandException;
 import io.hotmoka.moka.internal.AbstractMokaRpcCommand;
+import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.remote.api.RemoteNode;
 import jakarta.websocket.EncodeException;

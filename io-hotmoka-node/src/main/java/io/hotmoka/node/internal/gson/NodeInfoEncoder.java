@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.NodeInfos;
 import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.node.NodeInfos;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import io.hotmoka.beans.api.nodes.NodeInfo;
-import io.hotmoka.beans.internal.gson.NodeInfoDecoder;
-import io.hotmoka.beans.internal.gson.NodeInfoEncoder;
-import io.hotmoka.beans.internal.gson.NodeInfoJson;
-import io.hotmoka.beans.internal.nodes.NodeInfoImpl;
+import io.hotmoka.node.internal.gson.NodeInfoDecoder;
+import io.hotmoka.node.internal.gson.NodeInfoEncoder;
+import io.hotmoka.node.internal.gson.NodeInfoJson;
+import io.hotmoka.node.internal.nodes.NodeInfoImpl;
 
 /**
  * Providers of node-specific information about a Hotmoka node.
