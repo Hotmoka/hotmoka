@@ -14,13 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.responses;
+package io.hotmoka.node.internal.responses;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
+import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -68,6 +68,6 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new NodeMarshallingContext(os);
+		return NodeMarshallingContexts.of(os);
 	}
 }

@@ -19,10 +19,10 @@ package io.hotmoka.node.local.internal.transactions;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 
-import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;

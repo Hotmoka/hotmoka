@@ -14,14 +14,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
-import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
@@ -43,6 +42,7 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

@@ -14,18 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.websockets.beans.MappedEncoder;
+import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * An encoder for {@link TransactionResponse}.
+ * A decoder for {@link TransactionResponse}.
  */
-public class TransactionResponseEncoder extends MappedEncoder<TransactionResponse, TransactionResponses.Json> {
+public class TransactionResponseDecoder extends MappedDecoder<TransactionResponse, TransactionResponses.Json> {
 
-	public TransactionResponseEncoder() {
-		super(TransactionResponses.Json::new);
+	public TransactionResponseDecoder() {
+		super(TransactionResponses.Json.class);
 	}
 }

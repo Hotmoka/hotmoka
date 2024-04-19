@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -37,23 +37,23 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.gson.TransactionResponseDecoder;
-import io.hotmoka.beans.internal.gson.TransactionResponseEncoder;
-import io.hotmoka.beans.internal.gson.TransactionResponseJson;
-import io.hotmoka.beans.internal.responses.ConstructorCallTransactionExceptionResponseImpl;
-import io.hotmoka.beans.internal.responses.ConstructorCallTransactionFailedResponseImpl;
-import io.hotmoka.beans.internal.responses.ConstructorCallTransactionSuccessfulResponseImpl;
-import io.hotmoka.beans.internal.responses.GameteCreationTransactionResponseImpl;
-import io.hotmoka.beans.internal.responses.InitializationTransactionResponseImpl;
-import io.hotmoka.beans.internal.responses.JarStoreInitialTransactionResponseImpl;
-import io.hotmoka.beans.internal.responses.JarStoreTransactionFailedResponseImpl;
-import io.hotmoka.beans.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
-import io.hotmoka.beans.internal.responses.MethodCallTransactionExceptionResponseImpl;
-import io.hotmoka.beans.internal.responses.MethodCallTransactionFailedResponseImpl;
-import io.hotmoka.beans.internal.responses.MethodCallTransactionSuccessfulResponseImpl;
-import io.hotmoka.beans.internal.responses.TransactionResponseImpl;
-import io.hotmoka.beans.internal.responses.VoidMethodCallTransactionSuccessfulResponseImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.internal.gson.TransactionResponseDecoder;
+import io.hotmoka.node.internal.gson.TransactionResponseEncoder;
+import io.hotmoka.node.internal.gson.TransactionResponseJson;
+import io.hotmoka.node.internal.responses.ConstructorCallTransactionExceptionResponseImpl;
+import io.hotmoka.node.internal.responses.ConstructorCallTransactionFailedResponseImpl;
+import io.hotmoka.node.internal.responses.ConstructorCallTransactionSuccessfulResponseImpl;
+import io.hotmoka.node.internal.responses.GameteCreationTransactionResponseImpl;
+import io.hotmoka.node.internal.responses.InitializationTransactionResponseImpl;
+import io.hotmoka.node.internal.responses.JarStoreInitialTransactionResponseImpl;
+import io.hotmoka.node.internal.responses.JarStoreTransactionFailedResponseImpl;
+import io.hotmoka.node.internal.responses.JarStoreTransactionSuccessfulResponseImpl;
+import io.hotmoka.node.internal.responses.MethodCallTransactionExceptionResponseImpl;
+import io.hotmoka.node.internal.responses.MethodCallTransactionFailedResponseImpl;
+import io.hotmoka.node.internal.responses.MethodCallTransactionSuccessfulResponseImpl;
+import io.hotmoka.node.internal.responses.TransactionResponseImpl;
+import io.hotmoka.node.internal.responses.VoidMethodCallTransactionSuccessfulResponseImpl;
 
 /**
  * Providers of transaction responses.
