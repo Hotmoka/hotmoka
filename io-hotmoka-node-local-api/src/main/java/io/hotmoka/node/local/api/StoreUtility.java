@@ -21,12 +21,12 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.ClassTag;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfField;
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.stores.StoreException;
 
 /**

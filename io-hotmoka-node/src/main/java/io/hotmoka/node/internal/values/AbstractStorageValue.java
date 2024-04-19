@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 
 /**

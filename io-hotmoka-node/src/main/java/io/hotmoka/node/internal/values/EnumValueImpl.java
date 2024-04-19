@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.EnumValue;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.values.EnumValue;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * An element of an enumeration stored in blockchain.

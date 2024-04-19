@@ -19,10 +19,6 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.BooleanValue;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
@@ -31,6 +27,10 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * An object that helps with gas operations.

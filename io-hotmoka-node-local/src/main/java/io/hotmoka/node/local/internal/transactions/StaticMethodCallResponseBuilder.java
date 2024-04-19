@@ -21,11 +21,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.takamaka.code.constants.Constants;
 

@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

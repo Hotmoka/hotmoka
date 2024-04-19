@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.messages.api;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The network message corresponding to an event generated in a Hotmoka node.

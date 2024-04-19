@@ -19,10 +19,10 @@ package io.hotmoka.node.internal.signatures;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.signatures.VoidMethodSignature;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
 
 /**
  * The signature of a method of a class, that does not return any value.

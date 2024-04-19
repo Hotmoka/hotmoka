@@ -23,14 +23,14 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.responses.TransactionResponseWithInstrumentedJar;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.Update;
 
 /**
  * Implementation of a response for a successful transaction that installs a jar in a blockchain.

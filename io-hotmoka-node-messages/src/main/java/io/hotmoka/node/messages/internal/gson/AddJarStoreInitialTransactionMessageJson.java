@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.messages.AddJarStoreInitialTransactionMessages;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;

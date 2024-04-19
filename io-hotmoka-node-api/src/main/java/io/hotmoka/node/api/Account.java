@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The information to control an account of a Hotmoka node.

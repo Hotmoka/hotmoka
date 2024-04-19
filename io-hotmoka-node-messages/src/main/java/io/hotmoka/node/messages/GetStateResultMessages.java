@@ -18,7 +18,7 @@ package io.hotmoka.node.messages;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.updates.Update;
+import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.messages.api.GetStateResultMessage;
 import io.hotmoka.node.messages.internal.GetStateResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetStateResultMessageDecoder;

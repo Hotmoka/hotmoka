@@ -22,11 +22,11 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.node.api.updates.Update;
 
 /**
  * Implementation of a response for a failed transaction that should have called a constructor

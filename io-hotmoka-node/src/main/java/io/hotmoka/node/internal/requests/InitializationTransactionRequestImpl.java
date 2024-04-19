@@ -20,14 +20,14 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.api.responses.InitializationTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.responses.InitializationTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of a request to initialize a node. It sets the manifest of a node.

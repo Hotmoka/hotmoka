@@ -22,13 +22,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
+import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of a request for calling a method in a node.

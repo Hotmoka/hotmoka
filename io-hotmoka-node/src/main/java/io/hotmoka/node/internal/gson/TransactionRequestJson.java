@@ -19,18 +19,6 @@ package io.hotmoka.node.internal.gson;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
@@ -42,6 +30,18 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceSystemMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

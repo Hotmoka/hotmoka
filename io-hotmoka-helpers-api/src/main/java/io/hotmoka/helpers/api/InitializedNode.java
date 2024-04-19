@@ -19,9 +19,9 @@ package io.hotmoka.helpers.api;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A node where the jar with the basic Takamaka classes have been installed,

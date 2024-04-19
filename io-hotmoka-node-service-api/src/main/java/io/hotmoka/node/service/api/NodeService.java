@@ -17,16 +17,16 @@ limitations under the License.
 package io.hotmoka.node.service.api;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A network service that exposes a REST API to a Hotmoka node.

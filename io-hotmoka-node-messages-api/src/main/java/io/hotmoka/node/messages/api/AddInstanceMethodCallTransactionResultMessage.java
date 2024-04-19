@@ -19,9 +19,9 @@ package io.hotmoka.node.messages.api;
 import java.util.Optional;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * The network message corresponding to the result of the {@link Node#addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest)} method.

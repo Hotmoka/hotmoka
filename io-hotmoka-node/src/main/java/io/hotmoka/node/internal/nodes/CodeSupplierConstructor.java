@@ -18,18 +18,18 @@ package io.hotmoka.node.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionExceptionResponse;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionFailedResponse;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionExceptionResponse;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionFailedResponse;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of the future of a transaction that executes a constructor in a node.

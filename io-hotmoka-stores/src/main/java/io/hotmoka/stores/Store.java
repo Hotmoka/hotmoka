@@ -21,10 +21,10 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The store of a node. It keeps information about the state of the objects created

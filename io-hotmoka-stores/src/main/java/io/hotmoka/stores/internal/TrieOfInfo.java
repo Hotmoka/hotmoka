@@ -19,12 +19,12 @@ package io.hotmoka.stores.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;

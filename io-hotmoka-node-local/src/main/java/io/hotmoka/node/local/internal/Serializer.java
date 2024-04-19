@@ -18,8 +18,8 @@ package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 import io.takamaka.code.constants.Constants;
 

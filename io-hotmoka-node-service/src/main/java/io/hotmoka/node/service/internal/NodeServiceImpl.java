@@ -25,7 +25,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.closeables.api.OnCloseHandler;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
@@ -34,6 +33,7 @@ import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.AddConstructorCallTransactionMessages;
 import io.hotmoka.node.messages.AddConstructorCallTransactionResultMessages;
 import io.hotmoka.node.messages.AddGameteCreationTransactionMessages;

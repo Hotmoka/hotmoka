@@ -21,12 +21,12 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.AbstractInstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A request for calling an instance method of a storage object in a node.

@@ -16,30 +16,30 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.updates.ClassTag;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfEnum;
-import io.hotmoka.beans.api.updates.UpdateOfField;
-import io.hotmoka.beans.api.updates.UpdateToNull;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.BooleanValue;
-import io.hotmoka.beans.api.values.ByteValue;
-import io.hotmoka.beans.api.values.CharValue;
-import io.hotmoka.beans.api.values.DoubleValue;
-import io.hotmoka.beans.api.values.EnumValue;
-import io.hotmoka.beans.api.values.FloatValue;
-import io.hotmoka.beans.api.values.IntValue;
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.NullValue;
-import io.hotmoka.beans.api.values.ShortValue;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.updates.UpdateOfEnum;
+import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.api.updates.UpdateToNull;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.ByteValue;
+import io.hotmoka.node.api.values.CharValue;
+import io.hotmoka.node.api.values.DoubleValue;
+import io.hotmoka.node.api.values.EnumValue;
+import io.hotmoka.node.api.values.FloatValue;
+import io.hotmoka.node.api.values.IntValue;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.NullValue;
+import io.hotmoka.node.api.values.ShortValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

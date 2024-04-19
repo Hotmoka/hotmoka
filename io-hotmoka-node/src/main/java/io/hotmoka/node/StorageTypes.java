@@ -18,10 +18,10 @@ package io.hotmoka.node;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.api.types.BasicType;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.api.types.BasicType;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.StorageTypeDecoder;
 import io.hotmoka.node.internal.gson.StorageTypeEncoder;
 import io.hotmoka.node.internal.gson.StorageTypeJson;

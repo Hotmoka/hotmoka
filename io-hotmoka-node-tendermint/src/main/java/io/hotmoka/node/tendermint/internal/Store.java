@@ -22,11 +22,11 @@ import java.util.Optional;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
 
 /**

@@ -25,7 +25,6 @@ module io.hotmoka.node {
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.annotations;
-	requires transitive io.hotmoka.beans.api;
 	requires transitive io.hotmoka.marshalling;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;

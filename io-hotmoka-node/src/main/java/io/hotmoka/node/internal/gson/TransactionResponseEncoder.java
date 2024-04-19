@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.node.TransactionResponses;
+import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

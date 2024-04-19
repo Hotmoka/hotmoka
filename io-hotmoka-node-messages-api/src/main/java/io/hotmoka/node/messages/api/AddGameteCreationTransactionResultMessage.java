@@ -17,9 +17,9 @@ limitations under the License.
 package io.hotmoka.node.messages.api;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The network message corresponding to the result of the {@link Node#addGameteCreationTransaction(GameteCreationTransactionRequest)} method.

@@ -25,7 +25,7 @@ import java.util.Objects;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 

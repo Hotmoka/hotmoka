@@ -23,13 +23,13 @@ import java.math.BigInteger;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;

@@ -16,11 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.CodeSupplier;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.nodes.CodeSupplierConstructor;
 import io.hotmoka.node.internal.nodes.CodeSupplierMethod;
 

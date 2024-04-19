@@ -19,7 +19,15 @@ limitations under the License.
  */
 module io.hotmoka.node.api {
 	exports io.hotmoka.node.api;
-	requires transitive io.hotmoka.beans.api;
+	exports io.hotmoka.node.api.nodes;
+	exports io.hotmoka.node.api.requests;
+	exports io.hotmoka.node.api.responses;
+	exports io.hotmoka.node.api.signatures;
+	exports io.hotmoka.node.api.transactions;
+	exports io.hotmoka.node.api.types;
+	exports io.hotmoka.node.api.updates;
+	exports io.hotmoka.node.api.values;
+
 	requires transitive io.hotmoka.marshalling.api;
 	requires transitive io.hotmoka.crypto.api;
 	requires io.hotmoka.annotations;

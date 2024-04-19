@@ -18,8 +18,8 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.messages.api.AddInitializationTransactionMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 

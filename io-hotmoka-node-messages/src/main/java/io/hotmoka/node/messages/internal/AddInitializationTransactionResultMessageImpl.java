@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal;
 
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.messages.api.AddInitializationTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 

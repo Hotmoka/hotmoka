@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.GetManifestResultMessages;
 import io.hotmoka.node.messages.api.GetManifestResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;

@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.messages.api.AddConstructorCallTransactionMessage;
 import io.hotmoka.node.messages.internal.AddConstructorCallTransactionMessageImpl;
 import io.hotmoka.node.messages.internal.gson.AddConstructorCallTransactionMessageDecoder;

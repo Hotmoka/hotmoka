@@ -19,9 +19,9 @@ package io.hotmoka.node.internal.values;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.BooleanValue;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of a {@code boolean} value stored in blockchain.

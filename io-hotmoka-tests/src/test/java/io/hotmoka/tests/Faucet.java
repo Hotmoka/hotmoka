@@ -28,8 +28,6 @@ import java.util.concurrent.TimeoutException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.MethodSignatures;
@@ -40,6 +38,8 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
 public class Faucet extends HotmokaTest {

@@ -19,7 +19,7 @@ package io.hotmoka.node.api;
 import java.util.function.BiConsumer;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A manager of subscriptions to the events occurring in a Hotmoka node.

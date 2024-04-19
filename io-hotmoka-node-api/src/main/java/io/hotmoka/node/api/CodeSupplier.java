@@ -18,8 +18,8 @@ package io.hotmoka.node.api;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * The future of a transaction that executes code in a node.

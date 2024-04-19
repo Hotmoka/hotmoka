@@ -18,8 +18,8 @@ package io.hotmoka.node.api;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * An exception stating that a storage reference cannot be found in a Hotmoka node.

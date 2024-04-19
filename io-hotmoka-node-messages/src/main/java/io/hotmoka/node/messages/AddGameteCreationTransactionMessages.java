@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.messages.api.AddGameteCreationTransactionMessage;
 import io.hotmoka.node.messages.internal.AddGameteCreationTransactionMessageImpl;
 import io.hotmoka.node.messages.internal.gson.AddGameteCreationTransactionMessageDecoder;

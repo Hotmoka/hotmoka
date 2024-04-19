@@ -19,7 +19,6 @@ package io.hotmoka.helpers.internal;
 import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.helpers.ClassLoaderHelpers;
@@ -32,6 +31,7 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
 /**

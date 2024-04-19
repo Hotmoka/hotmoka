@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

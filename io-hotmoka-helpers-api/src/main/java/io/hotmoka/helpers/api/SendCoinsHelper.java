@@ -25,13 +25,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * An object that helps with sending coins to accounts.

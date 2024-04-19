@@ -19,9 +19,9 @@ package io.hotmoka.node.internal.types;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.api.types.StorageType;
 
 /**
  * Shared code of the storage types.

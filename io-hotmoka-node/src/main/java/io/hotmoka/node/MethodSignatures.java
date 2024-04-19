@@ -19,12 +19,12 @@ package io.hotmoka.node;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.api.signatures.VoidMethodSignature;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.signatures.VoidMethodSignature;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.internal.gson.MethodSignatureDecoder;
 import io.hotmoka.node.internal.gson.MethodSignatureEncoder;
 import io.hotmoka.node.internal.gson.MethodSignatureJson;

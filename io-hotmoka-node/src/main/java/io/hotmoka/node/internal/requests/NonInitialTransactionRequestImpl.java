@@ -21,11 +21,11 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
-import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
+import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of a request for a transaction that can only be run after the node has been initialized.

@@ -22,10 +22,10 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.gson.ConsensusConfigDecoder;
 import io.hotmoka.node.internal.gson.ConsensusConfigEncoder;
 import io.hotmoka.node.internal.gson.ConsensusConfigJson;

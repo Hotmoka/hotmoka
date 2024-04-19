@@ -25,8 +25,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.internal.AccountsNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -35,6 +33,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.takamaka.code.constants.Constants;
 
 /**

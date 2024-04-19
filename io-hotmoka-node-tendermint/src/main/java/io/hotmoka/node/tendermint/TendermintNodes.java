@@ -19,7 +19,7 @@ package io.hotmoka.node.tendermint;
 import java.io.IOException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.TendermintNodeImpl;

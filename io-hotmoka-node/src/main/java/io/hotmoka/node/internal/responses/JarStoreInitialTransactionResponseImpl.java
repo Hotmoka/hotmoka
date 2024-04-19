@@ -21,11 +21,11 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * Implementation of a response for a transaction that installs a jar in a yet non-initialized node.

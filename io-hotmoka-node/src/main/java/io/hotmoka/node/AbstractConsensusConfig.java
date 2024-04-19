@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.node.internal.nodes.ConsensusConfigImpl;
 
 /**

@@ -14,7 +14,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
@@ -24,6 +23,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 
 public class SignedRequests {
     private static KeyPair keys;

@@ -24,10 +24,6 @@ import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.helpers.internal.InitializedNodeImpl;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -35,6 +31,10 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Providers of nodes where the jar with the basic Takamaka classes have been installed,

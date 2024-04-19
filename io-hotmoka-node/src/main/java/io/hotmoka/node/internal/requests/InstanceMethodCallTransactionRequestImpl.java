@@ -26,14 +26,6 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.IntValue;
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -41,6 +33,14 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.IntValue;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of a request for calling an instance method of a storage object in a node.

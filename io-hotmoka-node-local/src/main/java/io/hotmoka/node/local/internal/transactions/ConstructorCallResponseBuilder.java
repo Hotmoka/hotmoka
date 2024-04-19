@@ -25,14 +25,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.api.signatures.ConstructorSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.node.api.signatures.ConstructorSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.internal.NodeInternal;
 
 /**

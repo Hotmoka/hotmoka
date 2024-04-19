@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

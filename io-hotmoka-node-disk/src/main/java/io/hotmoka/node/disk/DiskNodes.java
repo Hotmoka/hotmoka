@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.disk;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.disk.internal.DiskNodeImpl;

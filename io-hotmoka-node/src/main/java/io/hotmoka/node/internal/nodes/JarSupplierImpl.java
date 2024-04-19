@@ -18,14 +18,14 @@ package io.hotmoka.node.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.responses.JarStoreTransactionFailedResponse;
-import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
+import io.hotmoka.node.api.responses.JarStoreTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * Implementation of the future of a transaction that installs a jar in a node.

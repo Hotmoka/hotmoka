@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
 import io.hotmoka.node.messages.internal.EventMessageImpl;
 import io.hotmoka.node.messages.internal.gson.EventMessageDecoder;

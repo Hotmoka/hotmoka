@@ -22,9 +22,9 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
 
 /**
  * Providers of consensus configuration builders for Hotmoka nodes with validators.

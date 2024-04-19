@@ -30,11 +30,6 @@
       <artifactId>io-hotmoka-crypto</artifactId>
       <version>${io.hotmoka.crypto.version}</version>
     </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans-api</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
 	<dependency>
       <groupId>io.hotmoka</groupId>
       <artifactId>io-takamaka-code-constants</artifactId>

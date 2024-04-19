@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

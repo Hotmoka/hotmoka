@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.updates.ClassTag;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of an update that states that an object belongs to a given class.

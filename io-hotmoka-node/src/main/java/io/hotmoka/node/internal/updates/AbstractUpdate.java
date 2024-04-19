@@ -22,9 +22,6 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -34,6 +31,9 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Shared implementation of an update.

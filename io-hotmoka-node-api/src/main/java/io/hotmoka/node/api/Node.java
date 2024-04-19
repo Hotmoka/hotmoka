@@ -21,23 +21,23 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.NodeInfo;
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.updates.ClassTag;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.closeables.api.OnCloseHandlersContainer;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.NodeInfo;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * A node of the Hotmoka network, that provides the storage

@@ -21,13 +21,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.NoSuchElementException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
-import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
+import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;

@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 public class ConsensusConfigEncoder extends MappedEncoder<ConsensusConfig<?,?>, ConsensusConfigBuilders.Json> {

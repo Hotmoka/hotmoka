@@ -26,11 +26,6 @@ import java.util.Arrays;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -38,6 +33,11 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of a request for calling a static method of a storage class in a node.

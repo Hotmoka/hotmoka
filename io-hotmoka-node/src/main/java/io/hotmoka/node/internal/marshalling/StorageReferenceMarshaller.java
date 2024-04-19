@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Knowledge about how a storage reference can be marshalled.

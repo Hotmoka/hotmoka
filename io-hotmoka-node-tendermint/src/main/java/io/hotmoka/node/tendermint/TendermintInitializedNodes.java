@@ -23,14 +23,14 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.internal.TendermintInitializedNodeImpl;
 

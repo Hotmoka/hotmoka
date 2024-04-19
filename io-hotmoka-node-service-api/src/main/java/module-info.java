@@ -21,6 +21,5 @@ module io.hotmoka.node.service.api {
 	exports io.hotmoka.node.service.api;
 
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.beans.api;
-	requires static io.hotmoka.node.api;
+	requires io.hotmoka.node.api;
 }

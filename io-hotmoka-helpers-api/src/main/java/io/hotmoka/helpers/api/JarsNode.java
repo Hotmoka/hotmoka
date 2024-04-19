@@ -20,9 +20,9 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * A node that provides access to a set of previously installed jars,

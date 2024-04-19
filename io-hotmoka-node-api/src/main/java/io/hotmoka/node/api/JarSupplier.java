@@ -18,7 +18,7 @@ package io.hotmoka.node.api;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The future of a transaction that stores a jar in a node.

@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 

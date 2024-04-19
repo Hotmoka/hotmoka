@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.api;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.websockets.beans.api.RpcMessage;
 
 /**

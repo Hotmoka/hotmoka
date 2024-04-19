@@ -32,10 +32,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.responses.JarStoreTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
@@ -44,6 +40,10 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.tests.HotmokaTest;
 
 /**

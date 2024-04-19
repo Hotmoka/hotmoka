@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

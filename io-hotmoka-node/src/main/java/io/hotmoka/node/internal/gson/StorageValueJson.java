@@ -18,23 +18,23 @@ package io.hotmoka.node.internal.gson;
 
 import java.math.BigInteger;
 
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.BooleanValue;
-import io.hotmoka.beans.api.values.ByteValue;
-import io.hotmoka.beans.api.values.CharValue;
-import io.hotmoka.beans.api.values.DoubleValue;
-import io.hotmoka.beans.api.values.EnumValue;
-import io.hotmoka.beans.api.values.FloatValue;
-import io.hotmoka.beans.api.values.IntValue;
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.NullValue;
-import io.hotmoka.beans.api.values.ShortValue;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.ByteValue;
+import io.hotmoka.node.api.values.CharValue;
+import io.hotmoka.node.api.values.DoubleValue;
+import io.hotmoka.node.api.values.EnumValue;
+import io.hotmoka.node.api.values.FloatValue;
+import io.hotmoka.node.api.values.IntValue;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.NullValue;
+import io.hotmoka.node.api.values.ShortValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

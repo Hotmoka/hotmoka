@@ -21,10 +21,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.requests.GenericJarStoreTransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.ClassLoaderHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
@@ -34,6 +30,10 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 

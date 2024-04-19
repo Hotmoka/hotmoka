@@ -22,10 +22,10 @@ import java.security.spec.InvalidKeySpecException;
 
 import com.moandjiezana.toml.Toml;
 
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
-import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
+import io.hotmoka.node.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.node.internal.nodes.ValidatorsConsensusConfigImpl;
 
 /**

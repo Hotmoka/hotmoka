@@ -19,9 +19,9 @@ package io.hotmoka.node.messages.api;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The network message corresponding to the result of the {@link Node#getState(StorageReference)} method.

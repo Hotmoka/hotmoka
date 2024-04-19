@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionSuccessfulResponse;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of a response for a successful transaction that calls a constructor to instantiate an object in the store

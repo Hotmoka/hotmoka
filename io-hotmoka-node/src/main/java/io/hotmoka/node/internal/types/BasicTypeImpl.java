@@ -19,9 +19,9 @@ package io.hotmoka.node.internal.types;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.types.BasicType;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.types.BasicType;
+import io.hotmoka.node.api.types.StorageType;
 
 /**
  * The basic types of the Takamaka language.

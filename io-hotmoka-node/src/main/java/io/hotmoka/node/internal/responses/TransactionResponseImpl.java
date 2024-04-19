@@ -19,11 +19,11 @@ package io.hotmoka.node.internal.responses;
 import java.io.IOException;
 import java.io.OutputStream;
 
-import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.api.responses.TransactionResponse;
 
 /**
  * Shared implementation of the response of a transaction.

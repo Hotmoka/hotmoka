@@ -30,10 +30,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.signatures.ConstructorSignature;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -43,6 +39,10 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.signatures.ConstructorSignature;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A test for {@link io.hotmoka.node.api.Node#getResponse(io.hotmoka.beans.api.transactions.TransactionReference)}.

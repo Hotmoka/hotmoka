@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.messages.api.AddJarStoreInitialTransactionMessage;
 import io.hotmoka.node.messages.internal.AddJarStoreInitialTransactionMessageImpl;
 import io.hotmoka.node.messages.internal.gson.AddJarStoreInitialTransactionMessageDecoder;

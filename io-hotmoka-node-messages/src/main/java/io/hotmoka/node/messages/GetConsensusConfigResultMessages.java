@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageDecoder;

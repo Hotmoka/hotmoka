@@ -31,13 +31,13 @@ import java.util.Objects;
 import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node. This information

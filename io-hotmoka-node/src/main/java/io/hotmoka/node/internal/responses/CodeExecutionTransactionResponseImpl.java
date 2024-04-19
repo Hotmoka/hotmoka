@@ -21,10 +21,10 @@ import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of a response for a transaction that calls a constructor or method.

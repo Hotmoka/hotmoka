@@ -21,8 +21,8 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.TransactionRequest;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,

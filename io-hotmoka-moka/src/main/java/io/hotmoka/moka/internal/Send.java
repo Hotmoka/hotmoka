@@ -20,8 +20,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountCreationHelpers;
@@ -30,6 +28,8 @@ import io.hotmoka.node.Accounts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

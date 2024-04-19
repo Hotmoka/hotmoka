@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

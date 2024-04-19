@@ -24,11 +24,11 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.ConsensusConfigBuilders;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

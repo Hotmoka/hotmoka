@@ -19,13 +19,13 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfDouble;
-import io.hotmoka.beans.api.values.DoubleValue;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.updates.UpdateOfDouble;
+import io.hotmoka.node.api.values.DoubleValue;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The implementation of an update of a field of type {@code double}.

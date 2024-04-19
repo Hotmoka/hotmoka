@@ -21,9 +21,9 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * Implementation of a big integer stored in blockchain.

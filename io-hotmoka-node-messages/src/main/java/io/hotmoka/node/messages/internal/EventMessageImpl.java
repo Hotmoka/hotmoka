@@ -18,7 +18,7 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.messages.api.EventMessage;
 
 /**

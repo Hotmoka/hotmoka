@@ -17,8 +17,8 @@ limitations under the License.
 package io.hotmoka.node.messages.api;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * The network message corresponding to the result of the {@link Node#getTakamakaCode()} method.

@@ -21,15 +21,15 @@ import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The cache of a local node.

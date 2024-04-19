@@ -18,10 +18,10 @@ package io.hotmoka.node.internal.gson;
 
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.signatures.ConstructorSignature;
-import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.signatures.ConstructorSignature;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 
 /**

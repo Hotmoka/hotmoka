@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.FieldSignature;
 
 /**
  * Knowledge about how a field signature can be marshalled.

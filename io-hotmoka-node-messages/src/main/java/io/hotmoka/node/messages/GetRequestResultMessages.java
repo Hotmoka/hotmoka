@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.messages.api.GetRequestResultMessage;
 import io.hotmoka.node.messages.internal.GetRequestResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetRequestResultMessageDecoder;

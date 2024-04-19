@@ -18,9 +18,9 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Optional;
 
-import io.hotmoka.beans.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.RunStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 

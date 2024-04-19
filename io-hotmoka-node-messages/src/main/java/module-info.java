@@ -24,11 +24,11 @@ module io.hotmoka.node.messages {
 	opens io.hotmoka.node.messages.internal.gson to com.google.gson;
 
 	requires transitive io.hotmoka.node.messages.api;
+	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.node;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;
-	requires static io.hotmoka.node.api;
 	requires static com.google.gson;
 
 	// this makes sun.misc.Unsafe accessible, so that Gson can instantiate

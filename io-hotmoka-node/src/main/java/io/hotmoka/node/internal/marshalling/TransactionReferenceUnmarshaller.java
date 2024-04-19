@@ -20,10 +20,10 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * An unmarshaller for transaction references.

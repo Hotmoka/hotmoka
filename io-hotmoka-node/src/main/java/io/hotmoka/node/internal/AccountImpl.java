@@ -19,12 +19,12 @@ package io.hotmoka.node.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * The information to control an account of a Hotmoka node.

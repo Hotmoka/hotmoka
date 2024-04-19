@@ -24,8 +24,6 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.ManifestHelpers;
 import io.hotmoka.helpers.NonceHelpers;
@@ -35,6 +33,8 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;

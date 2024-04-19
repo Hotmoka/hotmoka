@@ -25,10 +25,6 @@ import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.Base58;
 import io.hotmoka.crypto.Base58ConversionException;
 import io.hotmoka.crypto.Base64;
@@ -45,6 +41,10 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StringValue;
 
 public abstract class AbstractCommand implements Runnable {
 	protected static final BigInteger _100_000 = BigInteger.valueOf(100_000L);

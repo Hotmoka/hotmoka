@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.nodes.NodeInfo;
+import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
 import io.hotmoka.node.messages.internal.GetNodeInfoResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetNodeInfoResultMessageDecoder;

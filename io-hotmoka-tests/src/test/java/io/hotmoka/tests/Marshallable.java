@@ -12,10 +12,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.MarshallingContexts;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.FieldSignatures;
@@ -24,6 +20,10 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 
 public class Marshallable {

@@ -21,10 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.FailedTransactionResponse;
-import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.api.GasCounter;
@@ -33,6 +29,10 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.FailedTransactionResponse;
+import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * Implementation of a counter of the gas consumed for the execution of a set of requests.

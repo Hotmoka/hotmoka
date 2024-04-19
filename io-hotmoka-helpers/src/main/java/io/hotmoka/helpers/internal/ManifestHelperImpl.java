@@ -24,14 +24,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.BooleanValue;
-import io.hotmoka.beans.api.values.IntValue;
-import io.hotmoka.beans.api.values.LongValue;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.helpers.api.ManifestHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -42,6 +34,14 @@ import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.IntValue;
+import io.hotmoka.node.api.values.LongValue;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.api.values.StringValue;
 
 /**
  * Implementation of an object that helps with the access to the manifest of a node.

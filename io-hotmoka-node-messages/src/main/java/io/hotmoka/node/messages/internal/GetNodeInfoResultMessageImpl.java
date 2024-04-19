@@ -18,8 +18,8 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
-import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.messages.api.GetNodeInfoResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
 

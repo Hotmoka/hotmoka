@@ -17,10 +17,10 @@ limitations under the License.
 package io.hotmoka.helpers;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.helpers.api.GasCounter;
 import io.hotmoka.helpers.internal.GasCounterImpl;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.requests.TransactionRequest;
 
 /**
  * Providers of counters of the gas consumed for the execution of a set of requests.

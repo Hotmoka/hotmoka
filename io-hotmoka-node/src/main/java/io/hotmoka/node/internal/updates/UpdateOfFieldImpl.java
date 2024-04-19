@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.updates.Update;
-import io.hotmoka.beans.api.updates.UpdateOfField;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of an update of a field of an object.

@@ -24,9 +24,9 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of a manager of subscriptions to the events occurring in a Hotmoka node.

@@ -20,9 +20,9 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.AbstractObjectMarshaller;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.transactions.TransactionReference;
 
 /**
  * Knowledge about how a transaction reference can be marshalled.

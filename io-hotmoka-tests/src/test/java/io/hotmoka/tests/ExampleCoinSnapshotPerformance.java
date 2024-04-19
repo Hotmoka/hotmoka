@@ -45,15 +45,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
@@ -71,6 +62,15 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * A test that performs repeated transfers between accounts of an ERC20 token, performing snapshots at regular intervals.

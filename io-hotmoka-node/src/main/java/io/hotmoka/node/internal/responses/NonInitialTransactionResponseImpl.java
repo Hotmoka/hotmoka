@@ -24,9 +24,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
-import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
+import io.hotmoka.node.api.updates.Update;
 
 /**
  * A response for a non-initial transaction.

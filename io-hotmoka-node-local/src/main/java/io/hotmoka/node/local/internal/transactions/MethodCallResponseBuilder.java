@@ -22,15 +22,15 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.api.requests.MethodCallTransactionRequest;
-import io.hotmoka.beans.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.beans.api.signatures.MethodSignature;
-import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
-import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
+import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.node.api.signatures.MethodSignature;
+import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.internal.NodeInternal;
 
 /**

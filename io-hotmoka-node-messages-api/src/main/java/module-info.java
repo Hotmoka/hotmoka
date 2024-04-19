@@ -19,8 +19,7 @@ limitations under the License.
  */
 module io.hotmoka.node.messages.api {
 	exports io.hotmoka.node.messages.api;
-	requires transitive io.hotmoka.beans.api;
+	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.websockets.beans.api;
 	requires io.hotmoka.annotations;
-	requires static io.hotmoka.node.api;
 }

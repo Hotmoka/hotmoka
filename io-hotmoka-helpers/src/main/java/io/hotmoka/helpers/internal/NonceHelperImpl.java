@@ -19,8 +19,6 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.api.values.BigIntegerValue;
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
@@ -30,6 +28,8 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * Implementation of an object that helps with nonce operations.

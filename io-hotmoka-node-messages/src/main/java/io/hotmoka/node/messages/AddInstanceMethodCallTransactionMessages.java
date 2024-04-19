@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionMessage;
 import io.hotmoka.node.messages.internal.AddInstanceMethodCallTransactionMessageImpl;
 import io.hotmoka.node.messages.internal.gson.AddInstanceMethodCallTransactionMessageDecoder;

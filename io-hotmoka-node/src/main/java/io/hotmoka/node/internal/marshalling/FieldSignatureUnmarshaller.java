@@ -20,12 +20,12 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.signatures.FieldSignature;
-import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.api.signatures.FieldSignature;
+import io.hotmoka.node.api.types.ClassType;
 
 /**
  * An unmarshaller for field signatures.

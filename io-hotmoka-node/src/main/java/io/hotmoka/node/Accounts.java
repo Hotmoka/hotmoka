@@ -18,9 +18,9 @@ package io.hotmoka.node;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.api.Entropy;
 import io.hotmoka.node.api.Account;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.internal.AccountImpl;
 
 /**

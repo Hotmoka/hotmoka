@@ -26,14 +26,6 @@ import java.util.NoSuchElementException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
-import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.beans.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.beans.api.requests.SignedTransactionRequest;
-import io.hotmoka.beans.api.requests.TransactionRequest;
-import io.hotmoka.beans.api.transactions.TransactionReference;
-import io.hotmoka.beans.api.types.ClassType;
-import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.api.values.StringValue;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
@@ -55,6 +47,14 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StringValue;
 
 /**
  * An object that helps with the creation of new accounts.

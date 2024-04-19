@@ -20,11 +20,11 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractObjectUnmarshaller;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.values.StorageReference;
 
 /**
  * An unmarshaller for storage references.

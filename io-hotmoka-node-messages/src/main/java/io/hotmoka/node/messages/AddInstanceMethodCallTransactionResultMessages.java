@@ -18,7 +18,7 @@ package io.hotmoka.node.messages;
 
 import java.util.Optional;
 
-import io.hotmoka.beans.api.values.StorageValue;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.messages.api.AddInstanceMethodCallTransactionResultMessage;
 import io.hotmoka.node.messages.internal.AddInstanceMethodCallTransactionResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.AddInstanceMethodCallTransactionResultMessageDecoder;

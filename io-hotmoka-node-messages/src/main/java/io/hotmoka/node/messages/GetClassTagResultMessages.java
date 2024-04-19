@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
-import io.hotmoka.beans.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.messages.api.GetClassTagResultMessage;
 import io.hotmoka.node.messages.internal.GetClassTagResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetClassTagResultMessageDecoder;
