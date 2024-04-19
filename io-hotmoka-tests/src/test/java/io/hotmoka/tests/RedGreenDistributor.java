@@ -36,7 +36,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.ConstructorSupplier;
+import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -181,7 +181,7 @@ class RedGreenDistributor extends HotmokaTest {
 		StorageReference distributor = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(), ConstructorSignatures.of(DISTRIBUTOR));
 
 		KeyPair keys = signature().getKeyPair();
-		ConstructorSupplier eoa = postConstructorCallTransaction(
+		ConstructorFuture eoa = postConstructorCallTransaction(
 			privateKey(0), account(0),
 			_20_000,
 			ONE,

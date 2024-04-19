@@ -18,7 +18,7 @@ package io.hotmoka.node.internal.nodes;
 
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -31,7 +31,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
  * Implementation of the future of a transaction that installs a jar in a node.
  * It caches the result for repeated use.
  */
-public class JarSupplierImpl implements JarSupplier {
+public class JarFutureImpl implements JarFuture {
 	private final TransactionReference reference;
 	private final Node node;
 
@@ -47,7 +47,7 @@ public class JarSupplierImpl implements JarSupplier {
 	 * @param reference the reference to the request of the transaction
 	 * @param node the node where the jar is installed
 	 */
-	public JarSupplierImpl(TransactionReference reference, Node node) {
+	public JarFutureImpl(TransactionReference reference, Node node) {
 		this.reference = reference;
 		this.node = node;
 	}

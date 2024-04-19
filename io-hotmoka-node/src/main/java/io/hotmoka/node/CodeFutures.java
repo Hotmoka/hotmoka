@@ -16,19 +16,19 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.node.api.ConstructorSupplier;
-import io.hotmoka.node.api.MethodSupplier;
+import io.hotmoka.node.api.ConstructorFuture;
+import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.internal.nodes.CodeSupplierConstructor;
-import io.hotmoka.node.internal.nodes.CodeSupplierMethod;
+import io.hotmoka.node.internal.nodes.ConstructorFutureImpl;
+import io.hotmoka.node.internal.nodes.MethodFutureImpl;
 
 /**
  * Provider of futures of code executions in a Hotmoka node.
  */
-public abstract class CodeSuppliers {
+public abstract class CodeFutures {
 
-	private CodeSuppliers() {}
+	private CodeFutures() {}
 
 	/**
 	 * Creates a future for the execution of a constructor, whose request has the given reference.
@@ -37,8 +37,8 @@ public abstract class CodeSuppliers {
 	 * @param node the node where the constructor is executed
 	 * @return the future
 	 */
-	public static ConstructorSupplier ofConstructor(TransactionReference reference, Node node) {
-		return new CodeSupplierConstructor(reference, node);
+	public static ConstructorFuture ofConstructor(TransactionReference reference, Node node) {
+		return new ConstructorFutureImpl(reference, node);
 	}
 
 	/**
@@ -48,7 +48,7 @@ public abstract class CodeSuppliers {
 	 * @param node the node where the constructor is executed
 	 * @return the future
 	 */
-	public static MethodSupplier ofMethod(TransactionReference reference, Node node) {
-		return new CodeSupplierMethod(reference, node);
+	public static MethodFuture ofMethod(TransactionReference reference, Node node) {
+		return new MethodFutureImpl(reference, node);
 	}
 }

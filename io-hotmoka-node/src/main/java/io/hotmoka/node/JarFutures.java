@@ -16,17 +16,17 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.internal.nodes.JarSupplierImpl;
+import io.hotmoka.node.internal.nodes.JarFutureImpl;
 
 /**
  * Provider of futures of jar installations in a Hotmoka node.
  */
-public abstract class JarSuppliers {
+public abstract class JarFutures {
 
-	private JarSuppliers() {}
+	private JarFutures() {}
 
 	/**
 	 * Creates a future for the installation of a jar, whose request has the given reference.
@@ -35,7 +35,7 @@ public abstract class JarSuppliers {
 	 * @param node the node where the jar is installed
 	 * @return the future
 	 */
-	public static JarSupplier of(TransactionReference reference, Node node) {
-		return new JarSupplierImpl(reference, node);
+	public static JarFuture of(TransactionReference reference, Node node) {
+		return new JarFutureImpl(reference, node);
 	}
 }

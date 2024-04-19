@@ -19,7 +19,7 @@ package io.hotmoka.node.internal.nodes;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.ConstructorSupplier;
+import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -35,7 +35,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * Implementation of the future of a transaction that executes a constructor in a node.
  * It caches the result for repeated use.
  */
-public class CodeSupplierConstructor implements ConstructorSupplier {
+public class ConstructorFutureImpl implements ConstructorFuture {
 	private final TransactionReference reference;
 	private final Node node;
 
@@ -51,7 +51,7 @@ public class CodeSupplierConstructor implements ConstructorSupplier {
 	 * @param reference the reference to the request of the transaction
 	 * @param node the node where the constructor is executed
 	 */
-	public CodeSupplierConstructor(TransactionReference reference, Node node) {
+	public ConstructorFutureImpl(TransactionReference reference, Node node) {
 		this.reference = reference;
 		this.node = node;
 	}

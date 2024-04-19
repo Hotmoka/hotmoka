@@ -40,7 +40,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -183,7 +183,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+        	JarFuture future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// takamakaCode(), // <-- forgot that
         	);
 
@@ -212,7 +212,7 @@ public class NodeFromNetwork extends HotmokaTest {
     void testRemoteGetPolledResponse() throws Exception {
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
         	// we install a jar in blockchain
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
+        	JarFuture future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode());
 
         	// we poll for its result: lambdas.jar has been correctly installed in the node, hence the response is successful
         	assertTrue(remote.getPolledResponse(future.getReferenceOfRequest()) instanceof JarStoreTransactionSuccessfulResponse);
@@ -245,7 +245,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
+        	JarFuture future = postJarStoreTransaction(privateKey(0), account(0), _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// takamakaCode(), // <-- forgot that
         		);
 
@@ -327,7 +327,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	TransactionReference transaction;
 
     	try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-    		JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
+    		JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            			(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
     				ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar"), takamakaCode()));
 
@@ -345,7 +345,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
+        	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
     			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("lambdas.jar")
         		// , takamakaCode() // <-- forgot that
@@ -370,7 +370,7 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we try to install a jar, but we forget to add its dependency (lambdas.jar needs takamakaCode() as dependency);
         	// this means that the request fails and the future refers to a failed request; since this is a post,
         	// the execution does not stop, nor throws anything
-        	JarSupplier future = remote.postJarStoreTransaction(TransactionRequests.jarStore
+        	JarFuture future = remote.postJarStoreTransaction(TransactionRequests.jarStore
            		(signature().getSigner(privateKey(0), SignedTransactionRequest::toByteArrayWithoutSignature), account(0),
        			ZERO, chainId, _500_000, ONE, takamakaCode(), bytesOf("callernotonthis.jar"), takamakaCode()));
 

@@ -21,5 +21,5 @@ import io.hotmoka.node.api.values.StorageReference;
 /**
  * The future of a transaction that executes a constructor in a node.
  */
-public interface ConstructorSupplier extends CodeSupplier<StorageReference> {
+public interface ConstructorFuture extends CodeFuture<StorageReference> {
 }

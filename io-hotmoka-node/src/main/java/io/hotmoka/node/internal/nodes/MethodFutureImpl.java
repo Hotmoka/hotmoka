@@ -20,7 +20,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.MethodSupplier;
+import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -36,7 +36,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * Implementation of the future of a transaction that executes a method in a node.
  * It caches the result for repeated use.
  */
-public class CodeSupplierMethod implements MethodSupplier {
+public class MethodFutureImpl implements MethodFuture {
 	private final TransactionReference reference;
 	private final Node node;
 
@@ -52,7 +52,7 @@ public class CodeSupplierMethod implements MethodSupplier {
 	 * @param reference the reference to the request of the transaction
 	 * @param node the node where the method is executed
 	 */
-	public CodeSupplierMethod(TransactionReference reference, Node node) {
+	public MethodFutureImpl(TransactionReference reference, Node node) {
 		this.reference = reference;
 		this.node = node;
 	}

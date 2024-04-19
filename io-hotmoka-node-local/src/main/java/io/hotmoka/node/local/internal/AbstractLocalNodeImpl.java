@@ -54,8 +54,8 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.ClosedNodeException;
-import io.hotmoka.node.CodeSuppliers;
-import io.hotmoka.node.JarSuppliers;
+import io.hotmoka.node.CodeFutures;
+import io.hotmoka.node.JarFutures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.SubscriptionsManagers;
@@ -63,9 +63,9 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.ConstructorSupplier;
-import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.node.api.MethodSupplier;
+import io.hotmoka.node.api.ConstructorFuture;
+import io.hotmoka.node.api.JarFuture;
+import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
@@ -581,23 +581,23 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> JarSuppliers.of(post(request), this));
+	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> JarFutures.of(post(request), this));
 	}
 
 	@Override
-	public final ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(post(request), this));
+	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofConstructor(post(request), this));
 	}
 
 	@Override
-	public final MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
+	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofMethod(post(request), this));
 	}
 
 	@Override
-	public final MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
+	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofMethod(post(request), this));
 	}
 
 	/**

@@ -42,9 +42,9 @@ import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.ConstructorSupplier;
-import io.hotmoka.node.api.JarSupplier;
-import io.hotmoka.node.api.MethodSupplier;
+import io.hotmoka.node.api.ConstructorFuture;
+import io.hotmoka.node.api.JarFuture;
+import io.hotmoka.node.api.MethodFuture;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
@@ -142,7 +142,7 @@ public class JarsNodeImpl implements JarsNode {
 			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
-		var jarSuppliers = new JarSupplier[jars.length];
+		var jarSuppliers = new JarFuture[jars.length];
 		int pos = 0;
 		for (Path jar: jars) {
 			byte[] bytes = Files.readAllBytes(jar);
@@ -244,22 +244,22 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public JarSupplier postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postJarStoreTransaction(request);
 	}
 
 	@Override
-	public ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postConstructorCallTransaction(request);
 	}
 
 	@Override
-	public MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postStaticMethodCallTransaction(request);
 	}
 
