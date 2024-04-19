@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.signatures;
+package io.hotmoka.node.internal.requests.signatures;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -24,10 +24,10 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
@@ -99,6 +99,6 @@ public abstract class AbstractCodeSignature extends AbstractMarshallable impleme
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new NodeMarshallingContext(os);
+		return NodeMarshallingContexts.of(os);
 	}
 }

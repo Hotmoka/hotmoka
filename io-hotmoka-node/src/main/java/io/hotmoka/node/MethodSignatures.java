@@ -14,23 +14,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.IOException;
 import java.util.stream.Stream;
 
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.gson.MethodSignatureDecoder;
-import io.hotmoka.beans.internal.gson.MethodSignatureEncoder;
-import io.hotmoka.beans.internal.gson.MethodSignatureJson;
-import io.hotmoka.beans.internal.signatures.AbstractMethodSignature;
-import io.hotmoka.beans.internal.signatures.NonVoidMethodSignatureImpl;
-import io.hotmoka.beans.internal.signatures.VoidMethodSignatureImpl;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.internal.gson.MethodSignatureDecoder;
+import io.hotmoka.node.internal.gson.MethodSignatureEncoder;
+import io.hotmoka.node.internal.gson.MethodSignatureJson;
+import io.hotmoka.node.internal.requests.signatures.AbstractMethodSignature;
+import io.hotmoka.node.internal.requests.signatures.NonVoidMethodSignatureImpl;
+import io.hotmoka.node.internal.requests.signatures.VoidMethodSignatureImpl;
 
 /**
  * Providers of method signatures.

@@ -19,12 +19,12 @@ package io.hotmoka.helpers.internal;
 import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.GasHelper;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;

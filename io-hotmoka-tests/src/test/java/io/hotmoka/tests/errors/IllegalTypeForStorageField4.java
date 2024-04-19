@@ -23,7 +23,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.ConstructorSignatures;
+import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.tests.HotmokaTest;
 

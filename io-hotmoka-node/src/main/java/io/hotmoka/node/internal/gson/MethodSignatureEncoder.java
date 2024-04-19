@@ -14,18 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.ConstructorSignatures;
-import io.hotmoka.beans.api.signatures.ConstructorSignature;
-import io.hotmoka.websockets.beans.MappedDecoder;
+import io.hotmoka.beans.api.signatures.MethodSignature;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**
- * A decoder for {@link ConstructorSignature}.
+ * An encoder for {@link MethodSignature}.
  */
-public class ConstructorSignatureDecoder extends MappedDecoder<ConstructorSignature, ConstructorSignatures.Json> {
+public class MethodSignatureEncoder extends MappedEncoder<MethodSignature, MethodSignatures.Json> {
 
-	public ConstructorSignatureDecoder() {
-		super(ConstructorSignatures.Json.class);
+	public MethodSignatureEncoder() {
+		super(MethodSignatures.Json::new);
 	}
 }

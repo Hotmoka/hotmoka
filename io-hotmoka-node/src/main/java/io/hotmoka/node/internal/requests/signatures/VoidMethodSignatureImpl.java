@@ -14,55 +14,41 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.signatures;
+package io.hotmoka.node.internal.requests.signatures;
 
 import java.io.IOException;
-import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
+import io.hotmoka.beans.api.signatures.VoidMethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * The signature of a method of a class, that returns a value.
+ * The signature of a method of a class, that does not return any value.
  */
 @Immutable
-public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature implements NonVoidMethodSignature {
+public final class VoidMethodSignatureImpl extends AbstractMethodSignature implements VoidMethodSignature {
 
 	/**
-	 * The type of the returned value.
-	 */
-	private final StorageType returnType;
-
-	/**
-	 * Builds the signature of a method, that returns a value.
+	 * Builds the signature of a method, that returns no value.
 	 * 
 	 * @param definingClass the class of the method
 	 * @param methodName the name of the method
-	 * @param returnType the type of the returned value
 	 * @param formals the formal arguments of the method
 	 */
-	public NonVoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
+	public VoidMethodSignatureImpl(ClassType definingClass, String methodName, StorageType... formals) {
 		super(definingClass, methodName, formals);
-
-		this.returnType = Objects.requireNonNull(returnType, "returnType cannot be null");
-	}
-
-	@Override
-	public StorageType getReturnType() {
-		return returnType;
 	}
 
 	@Override
 	public String toString() {
-		return returnType + " " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
+		return "void " + getDefiningClass() + "." + getMethodName() + commaSeparatedFormals();
 	}
 
     @Override
 	public boolean equals(Object other) {
-		return other instanceof NonVoidMethodSignature nvms && returnType.equals(nvms.getReturnType()) && super.equals(other);
+		return other instanceof VoidMethodSignature && super.equals(other);
 	}
 
     @Override
@@ -71,10 +57,8 @@ public final class NonVoidMethodSignatureImpl extends AbstractMethodSignature im
     	context.writeStringUnshared(getMethodName());
 
     	var formals = getFormals().toArray(StorageType[]::new);
-    	context.writeCompactInt(formals.length * 2 + 1); // this signals that the method is non-void (see from() inside AbstractMethodSignature)
+    	context.writeCompactInt(formals.length * 2); // this signals that the method is void (see from() inside AbstractMethodSignature)
     	for (var formal: formals)
     		formal.into(context);
-
-    	returnType.into(context);
     }
 }

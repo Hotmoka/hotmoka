@@ -42,7 +42,6 @@ import java.util.stream.Stream;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.nodes.NodeInfo;
@@ -57,6 +56,7 @@ import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.IntValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;

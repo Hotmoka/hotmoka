@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.security.KeyPair;
 import java.util.List;
 
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
@@ -33,6 +32,7 @@ import io.hotmoka.helpers.GasHelpers;
 import io.hotmoka.helpers.NonceHelpers;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;

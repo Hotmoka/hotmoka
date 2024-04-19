@@ -27,8 +27,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.api.transactions.TransactionReference;
+import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;

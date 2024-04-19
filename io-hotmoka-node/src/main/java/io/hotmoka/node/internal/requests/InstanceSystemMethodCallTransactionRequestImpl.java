@@ -20,7 +20,6 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.InstanceSystemMethodCallTransactionRequest;
@@ -31,6 +30,7 @@ import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.Marshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.MethodSignatures;
 
 /**
  * Implementation of a request for calling an instance method of a storage object in a node.
