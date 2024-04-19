@@ -54,7 +54,7 @@ class IllegalCallToNonWhiteListedMethod12 extends HotmokaTest {
 		StorageReference eoa = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), ConstructorSignatures.of(StorageTypes.EOA, StorageTypes.STRING), StorageValues.stringOf(publicKey));
 
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), MethodSignatures.of(StorageTypes.OBJECT, "hashCode", StorageTypes.INT), eoa)
+			addInstanceNonVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, takamakaCode(), MethodSignatures.ofNonVoid(StorageTypes.OBJECT, "hashCode", StorageTypes.INT), eoa)
 		);
 	}
 }

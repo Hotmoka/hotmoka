@@ -109,7 +109,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -117,7 +117,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 
@@ -160,7 +160,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(1)
 		);
 
@@ -168,7 +168,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(0),
 			_20_000,
 			jar(),
-			MethodSignatures.of(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(StorageTypes.EOA, "balanceRed", StorageTypes.BIG_INTEGER),
 			account(2)
 		);
 

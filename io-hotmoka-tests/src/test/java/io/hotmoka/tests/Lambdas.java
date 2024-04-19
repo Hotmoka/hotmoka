@@ -115,7 +115,7 @@ class Lambdas extends HotmokaTest {
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntry()")
 	void testMethodReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
-		var result = (IntValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.of(LAMBDAS, "testMethodReferenceToEntry", INT), lambdas);
+		var result = (IntValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.ofNonVoid(LAMBDAS, "testMethodReferenceToEntry", INT), lambdas);
 
 		assertEquals(11, result.getValue());
 	}
@@ -129,13 +129,13 @@ class Lambdas extends HotmokaTest {
 	@Test @DisplayName("new Lambdas().testMethodReferenceToEntrySameContract()")
 	void testMethodReferenceToEntrySameContract() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
-		addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.of(LAMBDAS, "testMethodReferenceToEntrySameContract", INT), lambdas);
+		addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.ofNonVoid(LAMBDAS, "testMethodReferenceToEntrySameContract", INT), lambdas);
 	}
 
 	@Test @DisplayName("new Lambdas().testConstructorReferenceToEntry()")
 	void testConstructorReferenceToEntry() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
-		var result = (IntValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.of(LAMBDAS, "testConstructorReferenceToEntry", INT), lambdas);
+		var result = (IntValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), MethodSignatures.ofNonVoid(LAMBDAS, "testConstructorReferenceToEntry", INT), lambdas);
 
 		assertEquals(11, result.getValue());
 	}
@@ -150,7 +150,7 @@ class Lambdas extends HotmokaTest {
 	void testWhiteListChecks() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		IntValue result = (IntValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
-			MethodSignatures.of(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT),
+			MethodSignatures.ofNonVoid(LAMBDAS, "whiteListChecks", INT, StorageTypes.OBJECT, StorageTypes.OBJECT, StorageTypes.OBJECT),
 			lambdas, StorageValues.bigIntegerOf(13L), StorageValues.bigIntegerOf(1L), StorageValues.bigIntegerOf(1973L));
 
 		assertEquals(7, result.getValue());
@@ -160,7 +160,7 @@ class Lambdas extends HotmokaTest {
 	void testConcatenation() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference lambdas = addConstructorCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(), CONSTRUCTOR_LAMBDAS, StorageValues.bigIntegerOf(_100_000), StorageValues.stringOf(publicKey));
 		var result = (StringValue) addInstanceNonVoidMethodCallTransaction(key, eoa, _500_000, BigInteger.ONE, jar(),
-			MethodSignatures.of(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, StorageTypes.LONG, INT),
+			MethodSignatures.ofNonVoid(LAMBDAS, "concatenation", StorageTypes.STRING, StorageTypes.STRING, StorageTypes.OBJECT, LAMBDAS, StorageTypes.LONG, INT),
 			lambdas,
 			StorageValues.stringOf("hello"), StorageValues.stringOf("hi"), lambdas, StorageValues.longOf(1973L), StorageValues.intOf(13));
 

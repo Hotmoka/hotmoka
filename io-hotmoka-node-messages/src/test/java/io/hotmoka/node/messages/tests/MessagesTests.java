@@ -292,7 +292,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("runInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
@@ -324,7 +324,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("runStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForRunStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
@@ -356,7 +356,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
@@ -388,7 +388,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("addStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForAddStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);
@@ -548,7 +548,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("postInstanceMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForPostInstanceMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), InstanceMethodCallTransactionRequest::toByteArrayWithoutSignature);
@@ -571,7 +571,7 @@ public class MessagesTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("postStaticMethodCallTransaction messages are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForPostStaticMethodCallTransaction() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
+		var method = MethodSignatures.ofNonVoid("my.class", "target", StorageTypes.STRING, StorageTypes.BOOLEAN, StorageTypes.FLOAT, StorageTypes.INT);
 		var ed25519 = SignatureAlgorithms.ed25519();
 		var keys = ed25519.getKeyPair();
 		var signer = ed25519.getSigner(keys.getPrivate(), StaticMethodCallTransactionRequest::toByteArrayWithoutSignature);

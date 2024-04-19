@@ -85,7 +85,7 @@ class SharedEntityAllowsArbitraryShareholdersTypes extends HotmokaTest {
 
         // create an offer (v3) by the seller using his contract
         var offer = (StorageReference) addInstanceNonVoidMethodCallTransaction(privateKey(1), seller, _200_000, panarea(1), classpath,
-                MethodSignatures.of(MY_CLASS, "createOffer", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
+                MethodSignatures.ofNonVoid(MY_CLASS, "createOffer", StorageTypes.SHARED_ENTITY_OFFER, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, LONG),
                 sellerContractMyClass, StorageValues.bigIntegerOf(2), StorageValues.bigIntegerOf(2), StorageValues.longOf(1893456000));
 
         // the seller places his offer using his contract

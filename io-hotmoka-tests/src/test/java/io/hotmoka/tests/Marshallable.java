@@ -294,7 +294,7 @@ public class Marshallable {
         byte[] bytes;
 
         try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
-            var nonVoidMethodSignature = MethodSignatures.of(
+            var nonVoidMethodSignature = MethodSignatures.ofNonVoid(
             		StorageTypes.GAS_STATION,
                     "balance",
                     StorageTypes.BIG_INTEGER,

@@ -56,7 +56,7 @@ class View extends HotmokaTest {
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-				MethodSignatures.of("io.hotmoka.examples.errors.view.C", "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+				MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "no1", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
@@ -66,7 +66,7 @@ class View extends HotmokaTest {
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () -> 
 			runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-				MethodSignatures.of("io.hotmoka.examples.errors.view.C", "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+				MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "no2", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 				c, StorageValues.intOf(13), StorageValues.intOf(17)));
 	}
 
@@ -75,7 +75,7 @@ class View extends HotmokaTest {
 		StorageReference c = addConstructorCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), ConstructorSignatures.of("io.hotmoka.examples.errors.view.C"));
 
 		runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-			MethodSignatures.of("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
+			MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.view.C", "yes", StorageTypes.INT, StorageTypes.INT, StorageTypes.INT),
 			c, StorageValues.intOf(13), StorageValues.intOf(17));
 	}
 }

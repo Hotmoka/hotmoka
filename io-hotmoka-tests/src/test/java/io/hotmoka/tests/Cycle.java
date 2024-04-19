@@ -59,7 +59,7 @@ class Cycle extends HotmokaTest {
 			ConstructorSignatures.of("io.hotmoka.examples.cycle.Cycle"));
 
 		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
-			MethodSignatures.of("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
+			MethodSignatures.ofNonVoid("io.hotmoka.examples.cycle.Cycle", "foo", StorageTypes.INT), cycle);
 
 		assertEquals(42, result.getValue());
 	}

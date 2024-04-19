@@ -46,6 +46,6 @@ public abstract class MethodSignatureJson implements JsonRepresentation<MethodSi
 		if (returnType == null)
 			return MethodSignatures.ofVoid(StorageTypes.classNamed(definingClass), name, Stream.of(formals).map(StorageTypes::named));
 		else
-			return MethodSignatures.of(StorageTypes.classNamed(definingClass), name, StorageTypes.named(returnType), Stream.of(formals).map(StorageTypes::named));
+			return MethodSignatures.ofNonVoid(StorageTypes.classNamed(definingClass), name, StorageTypes.named(returnType), Stream.of(formals).map(StorageTypes::named));
 	}
 }

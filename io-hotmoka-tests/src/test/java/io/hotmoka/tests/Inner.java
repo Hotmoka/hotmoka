@@ -52,9 +52,9 @@ class Inner extends HotmokaTest {
 	private static final ConstructorSignature TEST_INNER_INSIDE_CONSTRUCTOR = ConstructorSignatures.of("io.hotmoka.examples.inner.TestInner$Inside",
 			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"), StorageTypes.LONG);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.of("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETBALANCE = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getBalance", StorageTypes.BIG_INTEGER);
 
-	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.of("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
+	private static final NonVoidMethodSignature TEST_INNER_INSIDE_GETPARENT = MethodSignatures.ofNonVoid("io.hotmoka.examples.inner.TestInner$Inside", "getParent",
 			StorageTypes.classNamed("io.hotmoka.examples.inner.TestInner"));
 
 	@BeforeAll

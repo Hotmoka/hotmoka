@@ -98,7 +98,7 @@ class CrowdFunding extends HotmokaTest {
 	void createCampaign() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		assertEquals(0, id.getValue());
@@ -108,12 +108,12 @@ class CrowdFunding extends HotmokaTest {
 	void createTwoCampaigns() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		assertEquals(1, id.getValue());
@@ -123,7 +123,7 @@ class CrowdFunding extends HotmokaTest {
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
@@ -138,7 +138,7 @@ class CrowdFunding extends HotmokaTest {
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
 		assertFalse(reached.getValue());
@@ -148,7 +148,7 @@ class CrowdFunding extends HotmokaTest {
 	void contributionsAreEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		IntValue id = (IntValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "newCampaign", INT, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
 
 		addInstanceVoidMethodCallTransaction
@@ -163,7 +163,7 @@ class CrowdFunding extends HotmokaTest {
 
 		var reached = (BooleanValue) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account0, _100_000, ONE, jar(),
-			MethodSignatures.of(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
+			MethodSignatures.ofNonVoid(CROWD_FUNDING, "checkGoalReached", BOOLEAN, INT),
 			crowdFunding, id);
 
 		assertTrue(reached.getValue());

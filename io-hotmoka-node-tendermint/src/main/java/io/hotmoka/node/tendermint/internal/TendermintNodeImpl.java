@@ -267,10 +267,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ClassType storageMapView = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
-	private static final MethodSignature SIZE = MethodSignatures.of(storageMapView, "size", StorageTypes.INT);
-	private static final MethodSignature GET_SHARES = MethodSignatures.of(StorageTypes.VALIDATORS, "getShares", storageMapView);
-	private static final MethodSignature SELECT = MethodSignatures.of(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
-	private static final MethodSignature GET = MethodSignatures.of(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
+	private static final MethodSignature SIZE = MethodSignatures.ofNonVoid(storageMapView, "size", StorageTypes.INT);
+	private static final MethodSignature GET_SHARES = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getShares", storageMapView);
+	private static final MethodSignature SELECT = MethodSignatures.ofNonVoid(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
+	private static final MethodSignature GET = MethodSignatures.ofNonVoid(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 

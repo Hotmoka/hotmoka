@@ -278,22 +278,22 @@ public class NodeCachesImpl implements NodeCache {
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))).getValue();
 
-			var method1 = MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
+			var method1 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, method1, validators))
 				.orElseThrow(() -> new NodeException(method1 + " should not return void"))).getValue();
 
-			var method2 = MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
+			var method2 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
 			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, method2, validators))
 				.orElseThrow(() -> new NodeException(method2 + " should not return void"))).getValue();
 
-			var method3 = MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
+			var method3 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, method3, validators))
 				.orElseThrow(() -> new NodeException(method3 + " should not return void"))).getValue();
 
-			var method4 = MethodSignatures.of(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
+			var method4 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, method4, validators))
 				.orElseThrow(() -> new NodeException(method4 + " should not return void"))).getValue();

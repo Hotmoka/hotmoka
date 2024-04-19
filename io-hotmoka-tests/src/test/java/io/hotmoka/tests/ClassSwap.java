@@ -49,7 +49,7 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 class ClassSwap extends HotmokaTest {
 	private static final ConstructorSignature CONSTRUCTOR_C = ConstructorSignatures.of("C");
-	private static final NonVoidMethodSignature GET = MethodSignatures.of("C", "get", StorageTypes.INT);
+	private static final NonVoidMethodSignature GET = MethodSignatures.ofNonVoid("C", "get", StorageTypes.INT);
 
 	/**
 	 * The only account of the blockchain.

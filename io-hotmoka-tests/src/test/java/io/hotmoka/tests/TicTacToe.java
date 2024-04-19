@@ -108,7 +108,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			MethodSignatures.of(TIC_TAC_TOE, "toString", StorageTypes.STRING),
+			MethodSignatures.ofNonVoid(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X| | \n-----\n | | \n-----\n | | ", toString.getValue());
@@ -256,7 +256,7 @@ class TicTacToe extends HotmokaTest {
 			player1, 
 			_100_000,
 			jar(),
-			MethodSignatures.of(TIC_TAC_TOE, "toString", StorageTypes.STRING),
+			MethodSignatures.ofNonVoid(TIC_TAC_TOE, "toString", StorageTypes.STRING),
 			ticTacToe);
 
 		assertEquals("X|O| \n-----\nX|O| \n-----\nX| | ", toString.getValue());

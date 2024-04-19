@@ -64,8 +64,8 @@ class SimplePoll extends HotmokaTest {
 	private static final VoidMethodSignature VOTE_POLL = MethodSignatures.ofVoid(SIMPLE_POLL, "vote");
 	private static final VoidMethodSignature VOTE_POLL_WITH_PARAM = MethodSignatures.ofVoid(SIMPLE_POLL, "vote", BIG_INTEGER);
 	private static final VoidMethodSignature CLOSE_POLL = MethodSignatures.ofVoid(SIMPLE_POLL, "close");
-	private static final NonVoidMethodSignature IS_POLL_OVER = MethodSignatures.of(SIMPLE_POLL, "isOver", StorageTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS_RUN_PERFORMED = MethodSignatures.of(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_POLL_OVER = MethodSignatures.ofNonVoid(SIMPLE_POLL, "isOver", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_RUN_PERFORMED = MethodSignatures.ofNonVoid(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;

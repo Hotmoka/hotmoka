@@ -257,41 +257,41 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ validators: ").append(validators).append("\n");
 
 			var shares = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators))
 				.orElseThrow(() -> new NodeException("getShares() should not return void"));
 
 			int numOfValidators = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
 				.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 			var offers = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY, "getOffers", StorageTypes.STORAGE_SET_VIEW), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY, "getOffers", StorageTypes.STORAGE_SET_VIEW), validators))
 				.orElseThrow(() -> new NodeException("getOffers() should not return void"));
 
 			int numOfOffers = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_SET_VIEW, "size", StorageTypes.INT), offers))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "size", StorageTypes.INT), offers))
 				.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))
 				.orElseThrow(() -> new NodeException("getBuyerSurcharge() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ surcharge for buying validation power: %d (ie. %.6f%%)\n", buyerSurcharge, buyerSurcharge / 1_000_000.0));
 
 			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))
 				.orElseThrow(() -> new NodeException("getSlashingForMisbehaving() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ slashing for misbehaving validators: %d (ie. %.6f%%)\n", slashingForMisbehaving, slashingForMisbehaving / 1_000_000.0));
 
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))
 				.orElseThrow(() -> new NodeException("getSlashingForNotBehaving() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ slashing for not behaving validators: %d (ie. %.6f%%)\n", slashingForNotBehaving, slashingForNotBehaving / 1_000_000.0));
 
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))
 				.orElseThrow(() -> new NodeException("getPercentStaked() should not return void"))).getValue();
 
 			builder.append(String.format("   │  ├─ percent of validators' reward that gets staked: %d (ie. %.6f%%)\n", percentStaked, percentStaked / 1_000_000.0));
@@ -301,21 +301,21 @@ public class ManifestHelperImpl implements ManifestHelper {
 			var validatorsArray = new StorageReference[numOfValidators];
 			for (int num = 0; num < numOfValidators; num++)
 				validatorsArray[num] = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
 					.orElseThrow(() -> new NodeException("select() should not return void"));
 
 			Map<StorageReference, SortedSet<StorageReference>> offersPerValidator = new HashMap<>();
 			for (int num = 0; num < numOfOffers; num++) {
 				var offer = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), offers, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), offers, StorageValues.intOf(num)))
 					.orElseThrow(() -> new NodeException("select() should not return void"));
 				var seller = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getSeller", StorageTypes.PAYABLE_CONTRACT), offer))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSeller", StorageTypes.PAYABLE_CONTRACT), offer))
 					.orElseThrow(() -> new NodeException("getSeller() should not return void"));
 
 				// the set of offers might contain expired offers since it gets updated lazily
 				boolean isOngoing = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", StorageTypes.BOOLEAN), offer))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "isOngoing", StorageTypes.BOOLEAN), offer))
 					.orElseThrow(() -> new NodeException("isOngoing() should not return void"))).getValue();
 
 				if (isOngoing)
@@ -346,7 +346,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				builder.append("   │  │  ├─ staked: ").append(stakedForValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))
 					.orElseThrow(() -> new NodeException("get() should not return void"))).getValue();
 
 				SortedSet<StorageReference> saleOffers = offersPerValidator.get(validator);
@@ -364,17 +364,17 @@ public class ManifestHelperImpl implements ManifestHelper {
 							builder.append("   │  │  ├─ sale offer #" + counter + ": ").append(offer).append("\n");
 
 						BigInteger powerOnSale = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getSharesOnSale", StorageTypes.BIG_INTEGER), offer))
 							.orElseThrow(() -> new NodeException("getSharesOnSale() should not return void"))).getValue();
 						BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
 							.orElseThrow(() -> new NodeException("getCost() should not return void"))).getValue();
 						BigInteger costWithSurchage = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000)).divide(_100_000_000);
 						var expiration = new Date(((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getExpiration", StorageTypes.LONG), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getExpiration", StorageTypes.LONG), offer))
 							.orElseThrow(() -> new NodeException("getExpiration() should not return void"))).getValue());
 						StorageValue buyer = node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-							(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getBuyer", StorageTypes.PAYABLE_CONTRACT), offer))
+							(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_OFFER, "getBuyer", StorageTypes.PAYABLE_CONTRACT), offer))
 							.orElseThrow(() -> new NodeException("getBuyer() should not return void"));
 
 						if (isLast) {
@@ -458,7 +458,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_POLLS + " should not return void"));
 
 			int numOfPolls = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_SET_VIEW, "size", StorageTypes.INT), polls))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "size", StorageTypes.INT), polls))
 				.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 			if (numOfPolls == 0)
@@ -468,7 +468,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfPolls; num++) {
 				var poll = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), polls, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_SET_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), polls, StorageValues.intOf(num)))
 					.orElseThrow(() -> new NodeException("select() should not return void"));
 
 				boolean isLast = num == numOfPolls - 1;
@@ -479,7 +479,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  ├─ poll #").append(num).append(": ").append(poll).append("\n");
 
 				String description = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.POLL, "getDescription", StorageTypes.STRING), poll))
 					.orElseThrow(() -> new NodeException("getDescription() should not return void"))).getValue();
 
 				if (isLast)
@@ -491,11 +491,11 @@ public class ManifestHelperImpl implements ManifestHelper {
 			builder.append("   ├─ initial validators: ").append(initialValidators).append("\n");
 
 			shares = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), initialValidators))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), initialValidators))
 				.orElseThrow(() -> new NodeException("getShares() should not return void"));
 
 			int numOfInitialValidators = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
+				(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
 				.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 			if (numOfInitialValidators == 0)
@@ -505,7 +505,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 
 			for (int num = 0; num < numOfInitialValidators; num++) {
 				var validator = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
 					.orElseThrow(() -> new NodeException("select() should not return void"));
 
 				boolean isLast = num == numOfInitialValidators - 1;
@@ -534,7 +534,7 @@ public class ManifestHelperImpl implements ManifestHelper {
 					builder.append("   │  │  ├─ balance: ").append(balanceOfValidator).append("\n");
 
 				BigInteger power = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT), shares, validator))
 					.orElseThrow(() -> new NodeException("get() should not return void"))).getValue();
 
 				if (isLast)

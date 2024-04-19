@@ -80,7 +80,7 @@ class Signatures extends HotmokaTest {
 	@Test @DisplayName("create accounts with distinct signing algorithms and use them for signing transactions")
 	void createAccountsWithDistinctSigningAlgorithmsAndUseThem() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		var amount = StorageValues.intOf(_10_000_000.intValue());
-		var callee = MethodSignatures.of("io.takamaka.code.lang.Coin", "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
+		var callee = MethodSignatures.ofNonVoid("io.takamaka.code.lang.Coin", "panarea", StorageTypes.BIG_INTEGER, StorageTypes.LONG);
 
 		var sha256dsa = SignatureAlgorithms.sha256dsa();
 		KeyPair sha256dsaKeyPair = sha256dsa.getKeyPair();

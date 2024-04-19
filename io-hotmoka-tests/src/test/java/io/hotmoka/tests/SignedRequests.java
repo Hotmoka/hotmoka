@@ -137,7 +137,7 @@ public class SignedRequests {
     @Test
     @DisplayName("new StaticMethodCallTransactionRequest(..) balance of gasStation")
     public void testNonVoidStaticMethodCallTransactionGasStationRequest() throws Exception {
-        var nonVoidMethodSignature = MethodSignatures.of(
+        var nonVoidMethodSignature = MethodSignatures.ofNonVoid(
         		StorageTypes.GAS_STATION,
                 "balance",
                 StorageTypes.BIG_INTEGER,

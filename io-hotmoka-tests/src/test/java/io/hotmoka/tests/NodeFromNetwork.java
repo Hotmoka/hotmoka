@@ -395,7 +395,7 @@ public class NodeFromNetwork extends HotmokaTest {
     			_500_000, ONE, takamakaCode(), bytesOf("javacollections.jar"), takamakaCode());
 
     		var toString = (StringValue) remote.runStaticMethodCallTransaction
-       			(TransactionRequests.staticViewMethodCall(account(0), _100_000, jar, MethodSignatures.of(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING))).get();
+       			(TransactionRequests.staticViewMethodCall(account(0), _100_000, jar, MethodSignatures.ofNonVoid(HASH_MAP_TESTS, "testToString1", StorageTypes.STRING))).get();
 
     		assertEquals("[how, are, hello, you, ?]", toString.getValue());
     	}

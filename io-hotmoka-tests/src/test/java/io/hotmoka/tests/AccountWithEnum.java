@@ -68,7 +68,7 @@ class AccountWithEnum extends HotmokaTest {
 			MethodSignatures.RECEIVE_INT, account, StorageValues.intOf(100_000));
 
 		IntValue result = (IntValue) addInstanceNonVoidMethodCallTransaction(keys.getPrivate(), account, _100_000, BigInteger.ONE, jar(),
-			MethodSignatures.of("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);
+			MethodSignatures.ofNonVoid("io.hotmoka.examples.accountwithenum.AccountWithEnum", "ordinal", StorageTypes.INT), account);
 
 		assertEquals(0, result.getValue());
 	}

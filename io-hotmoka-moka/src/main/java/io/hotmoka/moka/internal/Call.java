@@ -323,7 +323,7 @@ public class Call extends AbstractCommand {
 			if (returnType == void.class)
 				return MethodSignatures.ofVoid(clazz.getName(), methodName, formals);
 			else
-				return MethodSignatures.of(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
+				return MethodSignatures.ofNonVoid(clazz.getName(), methodName, StorageTypes.of(returnType), formals);
 		}
 
 		private Method askForMethod() throws ClassNotFoundException, CommandException {

@@ -41,7 +41,7 @@ public class MethodSignatureTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("non-void method signatures are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForNonVoidMethodSignature() throws EncodeException, DecodeException {
-		var method1 = MethodSignatures.of("io.hotmoka.MyClass", "m", StorageTypes.FLOAT, StorageTypes.named("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.named("io.hotmoka.Something"));
+		var method1 = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "m", StorageTypes.FLOAT, StorageTypes.named("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.named("io.hotmoka.Something"));
 		String encoded = new MethodSignatures.Encoder().encode(method1);
 		var method2 = new MethodSignatures.Decoder().decode(encoded);
 		assertEquals(method1, method2);

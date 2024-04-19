@@ -64,8 +64,8 @@ class PollWithTimeWindow extends HotmokaTest {
 
 	private static final VoidMethodSignature VOTE_POLL = MethodSignatures.ofVoid(POLL_WITH_TIME_WINDOW, "vote");
 	private static final VoidMethodSignature CLOSE_POLL = MethodSignatures.ofVoid(POLL_WITH_TIME_WINDOW, "close");
-	private static final NonVoidMethodSignature IS_OVER = MethodSignatures.of(POLL_WITH_TIME_WINDOW, "isOver", StorageTypes.BOOLEAN);
-	private static final NonVoidMethodSignature IS_RUN_PERFORMED = MethodSignatures.of(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_OVER = MethodSignatures.ofNonVoid(POLL_WITH_TIME_WINDOW, "isOver", StorageTypes.BOOLEAN);
+	private static final NonVoidMethodSignature IS_RUN_PERFORMED = MethodSignatures.ofNonVoid(ACTION, "isRunPerformed", StorageTypes.BOOLEAN);
 
 	private StorageReference stakeholder0;
 	private StorageReference stakeholder1;

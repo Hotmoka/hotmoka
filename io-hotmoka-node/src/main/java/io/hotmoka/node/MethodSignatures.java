@@ -48,7 +48,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static NonVoidMethodSignature of(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
+	public static NonVoidMethodSignature ofNonVoid(ClassType definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals);
 	}
 
@@ -61,7 +61,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static NonVoidMethodSignature of(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
+	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, StorageType... formals) {
 		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals);
 	}
 
@@ -74,7 +74,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static NonVoidMethodSignature of(ClassType definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
+	public static NonVoidMethodSignature ofNonVoid(ClassType definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
 		return new NonVoidMethodSignatureImpl(definingClass, methodName, returnType, formals.toArray(StorageType[]::new));
 	}
 
@@ -87,7 +87,7 @@ public abstract class MethodSignatures {
 	 * @param formals the formal arguments of the method
 	 * @return the signature of the method
 	 */
-	public static NonVoidMethodSignature of(String definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
+	public static NonVoidMethodSignature ofNonVoid(String definingClass, String methodName, StorageType returnType, Stream<StorageType> formals) {
 		return new NonVoidMethodSignatureImpl(StorageTypes.classNamed(definingClass), methodName, returnType, formals.toArray(StorageType[]::new));
 	}
 

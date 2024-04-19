@@ -74,7 +74,7 @@ class Encapsulation extends HotmokaTest {
 			list1);
 
 		var result = (IntValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(),
-			MethodSignatures.of("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
+			MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.encapsulation.Encapsulated", "size1", StorageTypes.INT),
 			encapsulated);
 
 		assertSame(0, result.getValue());

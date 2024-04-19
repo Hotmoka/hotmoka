@@ -117,7 +117,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("static method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForStaticMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
 		var request1 = TransactionRequests.staticMethodCall(signer, caller, nonce, chainId, gasLimit, gasPrice, classpath, method, value1, value2);
@@ -129,7 +129,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("instance method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17));
@@ -142,7 +142,7 @@ public class TransactionRequestTests extends AbstractLoggedTests {
 	@Test
 	@DisplayName("instance system method call transaction requests are correctly encoded into Json and decoded from Json")
 	public void encodeDecodeWorksForInstanceSystemMethodCallTransactionRequest() throws EncodeException, DecodeException, NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-		var method = MethodSignatures.of("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
+		var method = MethodSignatures.ofNonVoid("io.hotmoka.MyClass", "moo", StorageTypes.BOOLEAN, StorageTypes.INT, StorageTypes.named("io.hotmoka.OtherClass"));
 		var value1 = StorageValues.intOf(13);
 		var value2 = StorageValues.reference(reference2, BigInteger.ZERO);
 		var receiver = StorageValues.reference(reference2, BigInteger.valueOf(17));

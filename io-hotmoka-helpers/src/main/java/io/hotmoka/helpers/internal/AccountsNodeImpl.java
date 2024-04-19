@@ -202,7 +202,7 @@ public class AccountsNodeImpl implements AccountsNode {
 				this.container, StorageValues.bigIntegerOf(sumRed), StorageValues.stringOf(redBalances.toString())));
 		}
 
-		var get = MethodSignatures.of(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
+		var get = MethodSignatures.ofNonVoid(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
 			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))

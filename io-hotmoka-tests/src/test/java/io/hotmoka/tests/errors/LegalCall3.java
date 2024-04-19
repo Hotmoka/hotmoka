@@ -52,7 +52,7 @@ class LegalCall3 extends HotmokaTest {
 	@Test @DisplayName("C.test() == false")
 	void callTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		BooleanValue result = (BooleanValue) addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-			MethodSignatures.of("io.hotmoka.examples.errors.legalcall3.C", "test", StorageTypes.BOOLEAN));
+			MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.legalcall3.C", "test", StorageTypes.BOOLEAN));
 
 		assertFalse(result.getValue());
 	}

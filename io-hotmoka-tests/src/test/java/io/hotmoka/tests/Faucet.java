@@ -64,7 +64,7 @@ public class Faucet extends HotmokaTest {
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
-		var method = MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
+		var method = MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
 			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
@@ -88,7 +88,7 @@ public class Faucet extends HotmokaTest {
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signer, caller, getNonceOf(caller), chainId, _50_000, ONE, takamakaCode(),
-				MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
+				MethodSignatures.ofNonVoid(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
 				gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey))));
 	}
 }

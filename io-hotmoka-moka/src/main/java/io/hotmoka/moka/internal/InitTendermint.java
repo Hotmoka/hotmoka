@@ -188,15 +188,15 @@ public class InitTendermint extends AbstractCommand {
 					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_VALIDATORS + " should not return void"));
 				var shares = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.SHARED_ENTITY_VIEW, "getShares", StorageTypes.STORAGE_MAP_VIEW), validators))
 					.orElseThrow(() -> new NodeException("getShares() should not return void"));
 				int numOfValidators = ((IntValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
+					(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT), shares))
 					.orElseThrow(() -> new NodeException("size() should not return void"))).getValue();
 
 				for (int num = 0; num < numOfValidators; num++) {
 					var validator = (StorageReference) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
+						(manifest, _100_000, takamakaCode, MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT), shares, StorageValues.intOf(num)))
 						.orElseThrow(() -> new NodeException("select() should not return void"));
 					String publicKeyBase64 = ((StringValue) initialized.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, validator))

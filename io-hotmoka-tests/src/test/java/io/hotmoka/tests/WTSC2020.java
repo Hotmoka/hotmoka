@@ -55,8 +55,8 @@ class WTSC2020 extends HotmokaTest {
 	private static final ClassType SIMPLE_PYRAMID = StorageTypes.classNamed("io.hotmoka.examples.wtsc2020.SimplePyramid");
 	private static final ConstructorSignature CONSTRUCTOR_SIMPLE_PYRAMID = ConstructorSignatures.of(SIMPLE_PYRAMID, StorageTypes.BIG_INTEGER);
 	private static final VoidMethodSignature INVEST = MethodSignatures.ofVoid(SIMPLE_PYRAMID, "invest", StorageTypes.BIG_INTEGER);
-	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR = MethodSignatures.of(SIMPLE_PYRAMID, "mostFrequentInvestor", StorageTypes.PAYABLE_CONTRACT);
-	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR_CLASS = MethodSignatures.of(SIMPLE_PYRAMID, "mostFrequentInvestorClass", StorageTypes.STRING);
+	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR = MethodSignatures.ofNonVoid(SIMPLE_PYRAMID, "mostFrequentInvestor", StorageTypes.PAYABLE_CONTRACT);
+	private static final NonVoidMethodSignature MOST_FREQUENT_INVESTOR_CLASS = MethodSignatures.ofNonVoid(SIMPLE_PYRAMID, "mostFrequentInvestorClass", StorageTypes.STRING);
 	private static final BigInteger _20_000 = BigInteger.valueOf(20_000);
 	private static final BigInteger _20_000_000 = BigInteger.valueOf(20_000_000);
 

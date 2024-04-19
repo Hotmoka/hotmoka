@@ -63,9 +63,9 @@ class ConstructorOnThis extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getBalance", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());
@@ -78,10 +78,10 @@ class ConstructorOnThis extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofVoid(BRIDGE2, "foo", StorageTypes.INT), bridge, StorageValues.intOf(100));
 		
-		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue initialBalanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE2, "getInitialBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
-		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.of(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getBalance", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue initialBalanceOfBridge = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalance", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue initialBalanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getInitialBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
+		BigIntegerValue balanceOfSub = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.ofNonVoid(BRIDGE2, "getBalanceOfSub", StorageTypes.BIG_INTEGER), bridge);
 
 		assertEquals(BigInteger.ZERO, balanceOfBridge.getValue());
 		assertEquals(BigInteger.valueOf(100L), initialBalanceOfBridge.getValue());

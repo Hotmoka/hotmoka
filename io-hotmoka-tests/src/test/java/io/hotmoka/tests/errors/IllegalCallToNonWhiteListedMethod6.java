@@ -44,7 +44,7 @@ class IllegalCallToNonWhiteListedMethod6 extends HotmokaTest {
 	void installJar() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
 			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(),
-				MethodSignatures.of("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod6.C", "foo", StorageTypes.STRING))
+				MethodSignatures.ofNonVoid("io.hotmoka.examples.errors.illegalcalltononwhitelistedmethod6.C", "foo", StorageTypes.STRING))
 		);
 	}
 }

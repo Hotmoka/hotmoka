@@ -94,7 +94,7 @@ class BlindAuction extends HotmokaTest {
 
 	private static final VoidMethodSignature REVEAL = MethodSignatures.ofVoid(BLIND_AUCTION, "reveal", StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction$RevealedBid"));
 
-	private static final NonVoidMethodSignature AUCTION_END = MethodSignatures.of(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
+	private static final NonVoidMethodSignature AUCTION_END = MethodSignatures.ofNonVoid(BLIND_AUCTION, "auctionEnd", StorageTypes.PAYABLE_CONTRACT);
 
 	/**
 	 * The hashing algorithm used to hide the bids.
