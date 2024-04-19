@@ -51,6 +51,7 @@ public class NonceHelperImpl implements NonceHelper {
 	public BigInteger getNonceOf(StorageReference account) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {
 		// we ask the account: 100,000 units of gas should be enough to run the method
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))).getValue();
+			(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 	}
 }

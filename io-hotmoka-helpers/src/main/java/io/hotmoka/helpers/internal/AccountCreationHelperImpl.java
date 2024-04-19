@@ -86,7 +86,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 	}
 
 	@Override
@@ -95,7 +96,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
 
 		String methodName;
 		ClassType eoaType;
@@ -119,14 +121,15 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		Signer<SignedTransactionRequest<?>> signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.toBase64String(signatureAlgorithm.encodingOf(publicKey));
+		var method = MethodSignatures.of(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		var request = TransactionRequests.instanceMethodCall
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			MethodSignatures.of(StorageTypes.GAMETE, methodName, eoaType, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-			gamete,
+			method, gamete,
 			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
-		return (StorageReference) node.addInstanceMethodCallTransaction(request);
+		return (StorageReference) node.addInstanceMethodCallTransaction(request)
+			.orElseThrow(() -> new NodeException(method + " should not return void"));
 	}
 
 	@Override
@@ -171,17 +174,20 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 
 		if (addToLedger) {
 			var accountsLedger = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest));
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_ACCOUNTS_LEDGER, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_ACCOUNTS_LEDGER + " should not return void"));
 
+			var method = MethodSignatures.of(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 			request1 = TransactionRequests.instanceMethodCall
 				(signer, payer, nonceHelper.getNonceOf(payer),
 				chainId, gas1.add(gas2).add(EXTRA_GAS_FOR_ANONYMOUS), gasHelper.getGasPrice(), takamakaCode,
-				MethodSignatures.of(StorageTypes.ACCOUNTS_LEDGER, "add", StorageTypes.EOA, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
+				method,
 				accountsLedger,
 				StorageValues.bigIntegerOf(balance),
 				StorageValues.stringOf(publicKeyEncoded));
 
-			account = (StorageReference) node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1);
+			account = (StorageReference) node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request1)
+				.orElseThrow(() -> new NodeException(method + " should not return void"));
 		}
 		else {
 			request1 = TransactionRequests.constructorCall
@@ -212,7 +218,8 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
 
 		var ed25519 = SignatureAlgorithms.ed25519();
 		BigInteger gas = gasForCreatingAccountWithSignature(ed25519);
@@ -222,14 +229,15 @@ public class AccountCreationHelperImpl implements AccountCreationHelper {
 		KeyPair keyPair = signatureForFaucet.getKeyPair();
 		Signer<SignedTransactionRequest<?>> signer = signatureForFaucet.getSigner(keyPair.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 		String publicKeyEncoded = Base64.toBase64String(ed25519.encodingOf(publicKey)); // Tendermint uses ed25519 only
+		var method = MethodSignatures.of(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING);
 		var request = TransactionRequests.instanceMethodCall
 			(signer, gamete, nonceHelper.getNonceOf(gamete),
 			chainId, gas, gasHelper.getGasPrice(), takamakaCode,
-			MethodSignatures.of(StorageTypes.GAMETE, "faucetTendermintED25519Validator", StorageTypes.TENDERMINT_ED25519_VALIDATOR, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING),
-			gamete,
+			method, gamete,
 			StorageValues.bigIntegerOf(balance), StorageValues.bigIntegerOf(balanceRed), StorageValues.stringOf(publicKeyEncoded));
 
-		return (StorageReference) node.addInstanceMethodCallTransaction(request);
+		return (StorageReference) node.addInstanceMethodCallTransaction(request)
+			.orElseThrow(() -> new NodeException(method + " should not return void"));
 	}
 
 	@Override

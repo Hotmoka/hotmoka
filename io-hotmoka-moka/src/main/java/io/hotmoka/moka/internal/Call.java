@@ -24,6 +24,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.KeyPair;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -226,7 +227,8 @@ public class Call extends AbstractCommand {
 				KeyPair keys = readKeys(Accounts.of(payer), node, passwordOfPayer);
 				var takamakaCode = node.getTakamakaCode();
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				var signature = SignatureHelpers.of(node).signatureAlgorithmFor(payer);
 				BigInteger nonce = NonceHelpers.of(node).getNonceOf(payer);
 				BigInteger gasPrice = getGasPrice();
@@ -278,7 +280,7 @@ public class Call extends AbstractCommand {
 		}
 
 		private void callMethod() throws Exception {
-			StorageValue result;
+			Optional<StorageValue> result;
 
 			if (isStatic)
 				if (isView)
@@ -291,11 +293,11 @@ public class Call extends AbstractCommand {
 				else
 					result = node.addInstanceMethodCallTransaction((InstanceMethodCallTransactionRequest) request);
 
-			if (method.getReturnType() != void.class)
+			if (result.isPresent())
 				if (useColors)
-					System.out.println(ANSI_YELLOW + result + ANSI_RESET);
+					System.out.println(ANSI_YELLOW + result.get() + ANSI_RESET);
 				else
-					System.out.println(result);
+					System.out.println(result.get());
 		}
 
 		private StorageValue[] actualsAsStorageValues(CodeSignature signature) {

@@ -87,22 +87,23 @@ public class BuyValidation extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest)).orElseThrow(() -> new CommandException("getValidators() should not return void"));
 				var buyer = StorageValues.reference(BuyValidation.this.buyer);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(buyer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest)).orElseThrow(() -> new CommandException("getChainId() should not return void"))).getValue();
 				KeyPair keys = readKeys(Accounts.of(buyer), node, passwordOfBuyer);
 				var signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest<?>::toByteArrayWithoutSignature);				
 				InstanceMethodCallTransactionRequest request;
 
 				int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators)).orElseThrow(() -> new CommandException("getBuyerSurcharge() should not return void"))).getValue();
 
 				StorageReference offer = StorageValues.reference(BuyValidation.this.offer);
 
 				BigInteger cost = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.SHARED_ENTITY_OFFER, "getCost", StorageTypes.BIG_INTEGER), offer))
+						.orElseThrow(() -> new CommandException("getCost() should not return void"))).getValue();
 				BigInteger costWithSurcharge = cost.multiply(BigInteger.valueOf(buyerSurcharge + 100_000_000L)).divide(_100_000_000);
 
 				askForConfirmation(gasLimit, costWithSurcharge);

@@ -63,8 +63,9 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
@@ -537,22 +538,22 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> postInstanceMethodCallTransaction(request).get());
 	}
 
 	@Override
-	public final StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> postStaticMethodCallTransaction(request).get());
 	}
 
 	@Override
-	public final StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 
-			StorageValue result;
+			Optional<StorageValue> result;
 
 			synchronized (deliverTransactionLock) {
 				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse());
@@ -564,11 +565,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return wrapInCaseOfExceptionFull(() -> {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
-			StorageValue result;
+			Optional<StorageValue> result;
 
 			synchronized (deliverTransactionLock) {
 				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse());
@@ -585,17 +586,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public final CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
+	public final ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofConstructor(post(request), this));
 	}
 
 	@Override
-	public final CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
+	public final MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
 	}
 
 	@Override
-	public final CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
+	public final MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
 		return wrapInCaseOfExceptionSimple(() -> CodeSuppliers.ofMethod(post(request), this));
 	}
 
@@ -969,15 +970,15 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
-	private StorageValue getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
+	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
 		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
-			return mctsr.getResult();
+			return Optional.of(mctsr.getResult());
 		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
 			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
 		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
 			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
 		else
-			return null; // void methods return no value
+			return Optional.empty(); // void methods return no value
 	}
 
 	/**
@@ -1148,7 +1149,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 			return AbstractLocalNodeImpl.this.runInstanceMethodCallTransaction(request);
 		}
 

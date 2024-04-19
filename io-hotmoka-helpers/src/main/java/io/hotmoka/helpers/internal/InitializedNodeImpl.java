@@ -26,6 +26,7 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
 import java.time.ZoneOffset;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -42,8 +43,9 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
@@ -100,7 +102,7 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _200_000 = BigInteger.valueOf(200_000);
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _200_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
+		var nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest).orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 
 		// we create the builder of zero validators
 		var request = TransactionRequests.constructorCall
@@ -119,7 +121,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _100_000 = BigInteger.valueOf(100_000);
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _100_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)
+				.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 
 		// we create the builder of a generic gas station
 		var request = TransactionRequests.constructorCall
@@ -182,7 +185,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
@@ -251,7 +255,8 @@ public class InitializedNodeImpl implements InitializedNode {
 		var _1_000_000 = BigInteger.valueOf(1_000_000);
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, _1_000_000, takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
+		BigInteger nonceOfGamete = ((BigIntegerValue) parent.runInstanceMethodCallTransaction(getNonceRequest)
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 		var function = StorageTypes.classNamed(Function.class.getName());
 
 		// we create the manifest, passing the storage array of validators in store and their powers
@@ -337,22 +342,22 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runStaticMethodCallTransaction(request);
 	}
 
@@ -362,17 +367,17 @@ public class InitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postConstructorCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postStaticMethodCallTransaction(request);
 	}
 

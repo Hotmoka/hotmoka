@@ -64,7 +64,8 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		this.manifest = node.getManifest();
 		this.takamakaCode = node.getTakamakaCode();
 		this.versions = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERSIONS, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERSIONS + " should not return void"));
 	}
 
 	@Override
@@ -84,7 +85,8 @@ public class ClassLoaderHelperImpl implements ClassLoaderHelper {
 		while (!ws.isEmpty());
 
 		long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))).getValue();
 
 		return TakamakaClassLoaders.of(jars.stream(), verificationVersion);
 	}

@@ -54,7 +54,7 @@ public class Faucet extends HotmokaTest {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
+		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
@@ -64,10 +64,11 @@ public class Faucet extends HotmokaTest {
 		// we use an arbitrary signature for calling the faucet, since it won't be checked
 		Signer<SignedTransactionRequest<?>> signer = signature.getSigner(signature.getKeyPair().getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 
+		var method = MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING);
 		var account = (StorageReference) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 			(signer, gamete, getNonceOf(gamete), chainId, _100_000, ONE, takamakaCode(),
-			MethodSignatures.of(StorageTypes.GAMETE, "faucet", StorageTypes.EOA, StorageTypes.INT, StorageTypes.STRING),
-			gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)));
+			method, gamete, StorageValues.intOf(100_000), StorageValues.stringOf(publicKey)))
+			.orElseThrow(() -> new NodeException(method + " should not return void"));
 
 		assertNotNull(account);
 	}

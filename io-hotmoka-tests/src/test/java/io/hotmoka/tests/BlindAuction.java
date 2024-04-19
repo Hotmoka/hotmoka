@@ -42,7 +42,7 @@ import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -119,7 +119,7 @@ class BlindAuction extends HotmokaTest {
 
 	@Test @DisplayName("three players put bids before end of bidding time")
 	void bids() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
+		ConstructorSupplier auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		var random = new Random();
@@ -137,7 +137,7 @@ class BlindAuction extends HotmokaTest {
 
 	@Test @DisplayName("three players put bids but bidding time expires")
 	void biddingTimeExpires() throws TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, InterruptedException, TimeoutException {
-		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
+		ConstructorSupplier auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(4000), StorageValues.intOf(REVEAL_TIME));
 
 		throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
@@ -197,7 +197,7 @@ class BlindAuction extends HotmokaTest {
 	@Test @DisplayName("three players put bids before end of bidding time then reveal")
 	void bidsThenReveal() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		long start = System.currentTimeMillis();
-		CodeSupplier<StorageReference> auction = postConstructorCallTransaction
+		ConstructorSupplier auction = postConstructorCallTransaction
 			(privateKey(0), account(0), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_BLIND_AUCTION, StorageValues.intOf(BIDDING_TIME), StorageValues.intOf(REVEAL_TIME));
 
 		List<BidToReveal> bids = new ArrayList<>();

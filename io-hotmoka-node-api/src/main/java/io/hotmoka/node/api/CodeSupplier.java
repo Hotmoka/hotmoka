@@ -19,14 +19,13 @@ package io.hotmoka.node.api;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * The future of a transaction that executes code in a node.
  * 
  * @param <V> the type of the value computed by the transaction
  */
-public interface CodeSupplier<V extends StorageValue> {
+public interface CodeSupplier<V> {
 
 	/**
 	 * Yields the reference of the request of the transaction.
@@ -38,7 +37,7 @@ public interface CodeSupplier<V extends StorageValue> {
 	/**
      * Waits if necessary for the transaction to complete, and then retrieves its result.
      *
-     * @return the computed result of the transaction
+     * @return the computed result of the transaction; this is empty only for calls to void methods
      * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
      * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
      *                                that is allowed to be thrown by the constructor
@@ -47,5 +46,5 @@ public interface CodeSupplier<V extends StorageValue> {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
      */
-    V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	V get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 }

@@ -291,22 +291,27 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _50_000, takamakaCode, GET_SHARES, validators));
+			(manifest, _50_000, takamakaCode, GET_SHARES, validators))
+			.orElseThrow(() -> new NodeException(GET_SHARES + " should not return void"));
 
 		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _50_000, takamakaCode, SIZE, shares))).getValue();
+			(manifest, _50_000, takamakaCode, SIZE, shares))
+			.orElseThrow(() -> new NodeException(SIZE + " should not return void"))).getValue();
 
 		var result = new TendermintValidator[numOfValidators];
 
 		for (int num = 0; num < numOfValidators; num++) {
 			var validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)));
+				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)))
+				.orElseThrow(() -> new NodeException(SELECT + " should not return void"));
 
 			String id = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))).getValue();
+				(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
+				.orElseThrow(() -> new NodeException(MethodSignatures.ID + " should not return void"))).getValue();
 
 			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, GET, shares, validator))).getValue().longValue();
+				(manifest, _50_000, takamakaCode, GET, shares, validator))
+				.orElseThrow(() -> new NodeException(GET + " should not return void"))).getValue().longValue();
 
 			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
 

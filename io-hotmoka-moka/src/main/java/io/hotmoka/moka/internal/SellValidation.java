@@ -31,6 +31,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -111,11 +112,13 @@ public class SellValidation extends AbstractCommand {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var validators = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest));
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_VALIDATORS, manifest))
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_VALIDATORS + " should not return void"));
 				var seller = StorageValues.reference(SellValidation.this.seller);
 				var algorithm = SignatureHelpers.of(node).signatureAlgorithmFor(seller);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				KeyPair keys = readKeys(Accounts.of(seller), node, passwordOfSeller);
 				Signer<SignedTransactionRequest<?>> signer = algorithm.getSigner(keys.getPrivate(), SignedTransactionRequest::toByteArrayWithoutSignature);
 

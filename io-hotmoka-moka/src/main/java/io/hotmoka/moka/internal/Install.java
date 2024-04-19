@@ -84,7 +84,8 @@ public class Install extends AbstractCommand {
 				checkStorageReference(payer);
 				var payer = StorageValues.reference(Install.this.payer);
 				String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+					(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+					.orElseThrow(() -> new CommandException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var bytes = Files.readAllBytes(jar);

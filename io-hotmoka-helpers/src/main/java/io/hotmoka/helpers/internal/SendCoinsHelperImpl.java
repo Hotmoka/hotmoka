@@ -81,7 +81,8 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 		this.nonceHelper = NonceHelpers.of(node);
 		this.gasHelper = GasHelpers.of(node);
 		this.chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 	}
 
 	@Override
@@ -127,7 +128,8 @@ public class SendCoinsHelperImpl implements SendCoinsHelper {
 			throws TransactionRejectedException, TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, NoSuchAlgorithmException, ClassNotFoundException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
 
 		var gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
 
 		gasHandler.accept(_100_000);
 

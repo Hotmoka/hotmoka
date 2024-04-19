@@ -105,7 +105,8 @@ public abstract class AbstractCommand implements Runnable {
 			TransactionReference classpath = node.getClassTag(reference).getJar();
 			// we read the public key stored inside the account in the node (it is Base64-encoded)
 			String publicKeyAsFound = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(reference, _100_000, classpath, MethodSignatures.PUBLIC_KEY, reference))).getValue();
+				(reference, _100_000, classpath, MethodSignatures.PUBLIC_KEY, reference))
+				.orElseThrow(() -> new CommandException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
 			// we compare it with what we reconstruct from entropy and password
 			String publicKeyAsGiven = Base64.toBase64String(algorithm.encodingOf(keys.getPublic()));
 			if (!publicKeyAsGiven.equals(publicKeyAsFound))

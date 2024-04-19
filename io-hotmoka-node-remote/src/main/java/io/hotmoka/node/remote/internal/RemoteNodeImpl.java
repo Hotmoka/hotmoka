@@ -56,8 +56,9 @@ import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
@@ -817,12 +818,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendRunInstanceMethodCallTransaction(request, id);
 		try {
-			return waitForResult(id, this::processRunInstanceMethodCallTransactionSuccess, this::processRunInstanceMethodCallTransactionExceptions).orElse(null);
+			return waitForResult(id, this::processRunInstanceMethodCallTransactionSuccess, this::processRunInstanceMethodCallTransactionExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw e;
@@ -876,12 +877,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendRunStaticMethodCallTransaction(request, id);
 		try {
-			return waitForResult(id, this::processRunStaticMethodCallTransactionSuccess, this::processRunStaticMethodCallTransactionExceptions).orElse(null);
+			return waitForResult(id, this::processRunStaticMethodCallTransactionSuccess, this::processRunStaticMethodCallTransactionExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw e;
@@ -935,12 +936,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendAddInstanceMethodCallTransaction(request, id);
 		try {
-			return waitForResult(id, this::processAddInstanceMethodCallTransactionSuccess, this::processAddInstanceMethodCallTransactionExceptions).orElse(null);
+			return waitForResult(id, this::processAddInstanceMethodCallTransactionSuccess, this::processAddInstanceMethodCallTransactionExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw e;
@@ -994,12 +995,12 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendAddStaticMethodCallTransaction(request, id);
 		try {
-			return waitForResult(id, this::processAddStaticMethodCallTransactionSuccess, this::processAddStaticMethodCallTransactionExceptions).orElse(null);
+			return waitForResult(id, this::processAddStaticMethodCallTransactionSuccess, this::processAddStaticMethodCallTransactionExceptions);
 		}
 		catch (RuntimeException | TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw e;
@@ -1341,7 +1342,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendPostConstructorCallTransaction(request, id);
@@ -1372,7 +1373,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private CodeSupplier<StorageReference> processPostConstructorCallTransactionSuccess(RpcMessage message) {
+	private ConstructorSupplier processPostConstructorCallTransactionSuccess(RpcMessage message) {
 		return message instanceof PostConstructorCallTransactionResultMessage pcctrm ? CodeSuppliers.ofConstructor(pcctrm.get(), this) : null;
 	}
 
@@ -1398,7 +1399,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendPostInstanceMethodCallTransaction(request, id);
@@ -1429,7 +1430,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private CodeSupplier<StorageValue> processPostInstanceMethodCallTransactionSuccess(RpcMessage message) {
+	private MethodSupplier processPostInstanceMethodCallTransactionSuccess(RpcMessage message) {
 		return message instanceof PostInstanceMethodCallTransactionResultMessage pimctrm ? CodeSuppliers.ofMethod(pimctrm.get(), this) : null;
 	}
 
@@ -1455,7 +1456,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		ensureIsOpen();
 		var id = nextId();
 		sendPostStaticMethodCallTransaction(request, id);
@@ -1486,7 +1487,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private CodeSupplier<StorageValue> processPostStaticMethodCallTransactionSuccess(RpcMessage message) {
+	private MethodSupplier processPostStaticMethodCallTransactionSuccess(RpcMessage message) {
 		return message instanceof PostStaticMethodCallTransactionResultMessage psmctrm ? CodeSuppliers.ofMethod(psmctrm.get(), this) : null;
 	}
 

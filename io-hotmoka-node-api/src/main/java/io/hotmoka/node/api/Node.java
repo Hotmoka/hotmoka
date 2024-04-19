@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
@@ -287,15 +288,14 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	// TODO: return Optional
-	StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Expands this node's store with a transaction that runs a static method of a class in this node.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception. If the method is
-	 *         declared to return {@code void}, this result will be {@code null}
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
 	 * @throws CodeExecutionException if the transaction could be executed and the node has been expanded with a failed transaction,
 	 *                                because of an exception in the user code, that is allowed to be thrown by the method
@@ -305,8 +305,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	// TODO: return Optional
-	StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
@@ -323,15 +322,15 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	// TODO: return Optional
-	StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Runs a static {@code @@View} method of a class in this node.
 	 * The node's store is not expanded, since the execution of the method has no side-effects.
 	 * 
 	 * @param request the transaction request
-	 * @return the result of the call, if the method was successfully executed, without exception
+	 * @return the result of the call, if the method was successfully executed, without exception. This is empty
+	 *         if and only if the method is declared to return {@code void}
 	 * @throws TransactionRejectedException if the transaction could not be executed
 	 * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code,
 	 *                                that is allowed to be thrown by the method
@@ -341,8 +340,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	// TODO: return Optional
-	StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Posts a transaction that expands the store of this node with a transaction that installs a jar in it.
@@ -366,7 +364,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a transaction that runs an instance method of an object already in this node's store.
@@ -378,7 +376,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Posts a request that runs a static method of a class in this node.
@@ -390,7 +388,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
+	MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException;
 
 	/**
 	 * Subscribes the given handler for events with the given creator.

@@ -28,6 +28,7 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -47,8 +48,9 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.TransactionException;
@@ -146,7 +148,8 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)).getValue();
+		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
@@ -269,22 +272,22 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runStaticMethodCallTransaction(request);
 	}
 
@@ -294,17 +297,17 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postConstructorCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postStaticMethodCallTransaction(request);
 	}
 

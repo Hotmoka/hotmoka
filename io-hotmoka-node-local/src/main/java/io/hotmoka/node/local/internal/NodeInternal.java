@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -143,7 +144,7 @@ public interface NodeInternal {
 	 * @throws TransactionException if the transaction could be executed but led to an exception outside the user code in blockchain,
 	 *                              or that is not allowed to be thrown by the method
 	 */
-	StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Runs the given task with the executor service of this node.

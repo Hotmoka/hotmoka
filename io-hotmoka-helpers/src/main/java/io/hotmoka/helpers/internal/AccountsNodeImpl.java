@@ -26,6 +26,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -44,8 +45,9 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
 import io.hotmoka.node.api.JarSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
@@ -149,11 +151,13 @@ public class AccountsNodeImpl implements AccountsNode {
 
 		// we get the chainId of the parent
 		String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _100_000, classpath, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+			(payer, _100_000, classpath, MethodSignatures.GET_CHAIN_ID, manifest))
+			.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 
 		// we get the nonce of the payer
 		BigInteger nonce = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))).getValue();
+			(payer, _100_000, classpath, MethodSignatures.NONCE, payer))
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
 
 		var gasHelper = GasHelpers.of(this);
 		BigInteger sum = ZERO;
@@ -201,7 +205,8 @@ public class AccountsNodeImpl implements AccountsNode {
 		var get = MethodSignatures.of(StorageTypes.ACCOUNTS, "get", StorageTypes.EOA, StorageTypes.INT);
 
 		for (int i = 0; i < funds.length / k; i++)
-			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)));
+			this.accounts[i] = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(payer, _100_000, classpath, get, container, StorageValues.intOf(i)))
+				.orElseThrow(() -> new NodeException("get() should not return void"));
 
 		// when the parent is closed, this decorator will be closed as well
 		parent.addOnCloseHandler(this_close);
@@ -306,22 +311,22 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public StorageValue addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.addStaticMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public StorageValue runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		return parent.runStaticMethodCallTransaction(request);
 	}
 
@@ -331,17 +336,17 @@ public class AccountsNodeImpl implements AccountsNode {
 	}
 
 	@Override
-	public CodeSupplier<StorageReference> postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public ConstructorSupplier postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postConstructorCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postInstanceMethodCallTransaction(request);
 	}
 
 	@Override
-	public CodeSupplier<StorageValue> postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
+	public MethodSupplier postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		return parent.postStaticMethodCallTransaction(request);
 	}
 

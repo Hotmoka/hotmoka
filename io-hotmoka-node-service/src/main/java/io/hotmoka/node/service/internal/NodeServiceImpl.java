@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.service.internal;
 
 import java.io.IOException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeoutException;
@@ -513,7 +512,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
 		try {
 			try {
-				sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(Optional.ofNullable(node.runInstanceMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, RunInstanceMethodCallTransactionResultMessages.of(node.runInstanceMethodCallTransaction(message.getRequest()), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -542,7 +541,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
 		try {
 			try {
-				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(Optional.ofNullable(node.runStaticMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, RunStaticMethodCallTransactionResultMessages.of(node.runStaticMethodCallTransaction(message.getRequest()), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -571,7 +570,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
 		try {
 			try {
-				sendObjectAsync(session, AddInstanceMethodCallTransactionResultMessages.of(Optional.ofNullable(node.addInstanceMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, AddInstanceMethodCallTransactionResultMessages.of(node.addInstanceMethodCallTransaction(message.getRequest()), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());
@@ -600,7 +599,7 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
 
 		try {
 			try {
-				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(Optional.ofNullable(node.addStaticMethodCallTransaction(message.getRequest())), message.getId()));
+				sendObjectAsync(session, AddStaticMethodCallTransactionResultMessages.of(node.addStaticMethodCallTransaction(message.getRequest()), message.getId()));
 			}
 			catch (TimeoutException | InterruptedException | NodeException | TransactionRejectedException | TransactionException | CodeExecutionException e) {
 				sendExceptionAsync(session, e, message.getId());

@@ -368,14 +368,14 @@ class ExampleCoinSnapshotPerformance extends HotmokaTest {
 
     	private int convertUBItoInt(StorageReference ubi) throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
     		var request = TransactionRequests.instanceViewMethodCall(creator, _50_000, jar(), TO_BIG_INTEGER, ubi);
-        	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request);
+        	BigIntegerValue bi = (BigIntegerValue) node.runInstanceMethodCallTransaction(request).get();
             return bi.getValue().intValue();
         }
 
         private StorageReference createSnapshot() throws SignatureException, TransactionException, CodeExecutionException, InvalidKeyException, TransactionRejectedException, NoSuchElementException, NodeException, InterruptedException, TimeoutException, UnknownReferenceException {
         	var request = TransactionRequests.instanceMethodCall
         		(signature().getSigner(privateKeyOfCreator, SignedTransactionRequest::toByteArrayWithoutSignature), creator, nonceHelper.getNonceOf(creator), chainId, _500_000, ZERO, jar(), YIELD_SNAPSHOT, coin);
-            StorageReference result = (StorageReference) node.addInstanceMethodCallTransaction(request);
+            StorageReference result = (StorageReference) node.addInstanceMethodCallTransaction(request).get();
             trace(result.getTransaction());
 
             return result;

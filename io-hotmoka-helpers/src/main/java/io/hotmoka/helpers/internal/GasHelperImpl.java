@@ -59,7 +59,8 @@ public class GasHelperImpl implements GasHelper {
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		this.gasStation = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest));
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_STATION, manifest))
+				.orElseThrow(() -> new NodeException("getGasStation() should not return void"));
 	}
 
 	@Override
@@ -67,7 +68,8 @@ public class GasHelperImpl implements GasHelper {
 		var _100_000 = BigInteger.valueOf(100_000);
 
 		boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
+				.orElseThrow(() -> new NodeException("ignoresGasPrice() should not return void"))).getValue();
 
 		// this helps with testing, since otherwise previous tests might make the gas price explode for the subsequent tests
 		if (ignoresGasPrice)
@@ -75,7 +77,8 @@ public class GasHelperImpl implements GasHelper {
 
 		// we double the minimal price, to be sure that the transaction won't be rejected
 		return ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))).getValue();
+			(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAS_PRICE, gasStation))
+				.orElseThrow(() -> new NodeException("getGasPrice() should not return void"))).getValue();
 	}
 
 	@Override

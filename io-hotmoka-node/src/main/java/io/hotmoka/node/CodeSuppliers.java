@@ -16,11 +16,10 @@ limitations under the License.
 
 package io.hotmoka.node;
 
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.ConstructorSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.nodes.CodeSupplierConstructor;
 import io.hotmoka.node.internal.nodes.CodeSupplierMethod;
 
@@ -38,7 +37,7 @@ public abstract class CodeSuppliers {
 	 * @param node the node where the constructor is executed
 	 * @return the future
 	 */
-	public static CodeSupplier<StorageReference> ofConstructor(TransactionReference reference, Node node) {
+	public static ConstructorSupplier ofConstructor(TransactionReference reference, Node node) {
 		return new CodeSupplierConstructor(reference, node);
 	}
 
@@ -49,7 +48,7 @@ public abstract class CodeSuppliers {
 	 * @param node the node where the constructor is executed
 	 * @return the future
 	 */
-	public static CodeSupplier<StorageValue> ofMethod(TransactionReference reference, Node node) {
+	public static MethodSupplier ofMethod(TransactionReference reference, Node node) {
 		return new CodeSupplierMethod(reference, node);
 	}
 }

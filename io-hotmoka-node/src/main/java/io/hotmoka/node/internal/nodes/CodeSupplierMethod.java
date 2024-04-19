@@ -16,10 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.internal.nodes;
 
+import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.CodeSupplier;
+import io.hotmoka.node.api.MethodSupplier;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -35,7 +36,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * Implementation of the future of a transaction that executes a method in a node.
  * It caches the result for repeated use.
  */
-public class CodeSupplierMethod implements CodeSupplier<StorageValue> {
+public class CodeSupplierMethod implements MethodSupplier {
 	private final TransactionReference reference;
 	private final Node node;
 
@@ -62,9 +63,9 @@ public class CodeSupplierMethod implements CodeSupplier<StorageValue> {
 	}
 
 	@Override
-	public StorageValue get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+	public Optional<StorageValue> get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
 		try {
-			return cachedGet != null ? cachedGet : (cachedGet = getOutcome((MethodCallTransactionResponse) node.getPolledResponse(reference)));
+			return Optional.ofNullable(cachedGet != null ? cachedGet : (cachedGet = getOutcome((MethodCallTransactionResponse) node.getPolledResponse(reference))));
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | TimeoutException | InterruptedException e) {
 			throw e;

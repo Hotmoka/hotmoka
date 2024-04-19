@@ -195,79 +195,108 @@ public class NodeCachesImpl implements NodeCache {
 			StorageReference manifest = node.getStore().getManifestUncommitted().get();
 	
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))).getValue();
 
 			String chainId = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
 	
 			StorageReference gamete = (StorageReference) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest));
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAMETE + " should not return void"));
 
 			String publicKeyOfGamete = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, gamete))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, gamete))
+				.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
 
 			long maxErrorLength = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))).getValue();
 
 			long maxDependencies = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))).getValue();
 
 			long maxCumulativeSizeOfDependencies = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should not return void"))).getValue();
 
 			boolean allowsFaucet = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should not return void"))).getValue();
 
 			boolean skipsVerification = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.SKIPS_VERIFICATION + " should not return void"))).getValue();
 
 			String signature = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_SIGNATURE + " should not return void"))).getValue();
 
 			BigInteger ticketForNewPoll = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_TICKET_FOR_NEW_POLL + " should not return void"))).getValue();
 
 			BigInteger initialGasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_GAS_PRICE + " should not return void"))).getValue();
 
 			BigInteger maxGasPerTransaction = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION + " should not return void"))).getValue();
 	
 			boolean ignoresGasPrice = ((BooleanValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
+				.orElseThrow(() -> new NodeException(MethodSignatures.IGNORES_GAS_PRICE + " should not return void"))).getValue();
 	
 			BigInteger targetGasAtReward = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_TARGET_GAS_AT_REWARD + " should not return void"))).getValue();
 	
 			long oblivion = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_OBLIVION + " should not return void"))).getValue();
 	
 			long initialInflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))).getValue();
 
 			long verificationVersion = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))).getValue();
 
 			BigInteger initialSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))).getValue();
 
 			BigInteger initialRedSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_RED_SUPPLY, validators))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_RED_SUPPLY, validators))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_INITIAL_RED_SUPPLY + " should not return void"))).getValue();
 
 			BigInteger finalSupply = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))).getValue();
+				(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
+				.orElseThrow(() -> new NodeException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))).getValue();
 
+			var method1 = MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
 			int buyerSurcharge = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT), validators))).getValue();
+				(manifest, _100_000, takamakaCode, method1, validators))
+				.orElseThrow(() -> new NodeException(method1 + " should not return void"))).getValue();
 
+			var method2 = MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
 			int slashingForMisbehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT), validators))).getValue();
+				(manifest, _100_000, takamakaCode, method2, validators))
+				.orElseThrow(() -> new NodeException(method2 + " should not return void"))).getValue();
 
+			var method3 = MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
 			int slashingForNotBehaving = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT), validators))).getValue();
+				(manifest, _100_000, takamakaCode, method3, validators))
+				.orElseThrow(() -> new NodeException(method3 + " should not return void"))).getValue();
 
+			var method4 = MethodSignatures.of(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
 			int percentStaked = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _100_000, takamakaCode, MethodSignatures.of(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT), validators))).getValue();
+				(manifest, _100_000, takamakaCode, method4, validators))
+				.orElseThrow(() -> new NodeException(method4 + " should not return void"))).getValue();
 
 			var signatureAlgorithm = SignatureAlgorithms.of(signature);
 
@@ -435,7 +464,8 @@ public class NodeCachesImpl implements NodeCache {
 			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_GAS_PRICE, getGasStation().get()))).getValue();
+					MethodSignatures.GET_GAS_PRICE, getGasStation().get()))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
 			throw new RuntimeException("could not determine the gas price", e);
@@ -448,7 +478,8 @@ public class NodeCachesImpl implements NodeCache {
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))).getValue();
+					MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))
+					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
 			throw new RuntimeException("could not determine the current inflation", e);
