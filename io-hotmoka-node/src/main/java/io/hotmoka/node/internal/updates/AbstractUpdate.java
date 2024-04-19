@@ -22,17 +22,17 @@ import java.math.BigInteger;
 import java.util.Objects;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.FieldSignatures;
-import io.hotmoka.beans.NodeMarshallingContexts;
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.Updates;
 
 /**

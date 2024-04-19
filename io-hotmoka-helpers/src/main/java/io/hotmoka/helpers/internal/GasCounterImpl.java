@@ -21,7 +21,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.FailedTransactionResponse;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
@@ -29,6 +28,7 @@ import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.helpers.api.GasCounter;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;

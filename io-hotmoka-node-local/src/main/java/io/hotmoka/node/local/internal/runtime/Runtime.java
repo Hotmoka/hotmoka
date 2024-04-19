@@ -20,10 +20,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
-import io.hotmoka.beans.FieldSignatures;
-import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;

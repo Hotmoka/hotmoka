@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.StorageTypes.INT;
-import static io.hotmoka.beans.StorageTypes.LONG;
 import static io.hotmoka.node.MethodSignatures.RECEIVE_INT;
+import static io.hotmoka.node.StorageTypes.INT;
+import static io.hotmoka.node.StorageTypes.LONG;
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -35,8 +35,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -48,6 +46,8 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.SideEffectsInViewMethodException;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;

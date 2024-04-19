@@ -25,7 +25,6 @@ module io.hotmoka.node.messages {
 
 	requires transitive io.hotmoka.node.messages.api;
 	requires io.hotmoka.crypto;
-	requires io.hotmoka.beans;
 	requires io.hotmoka.node;
 	requires io.hotmoka.exceptions;
 	requires io.hotmoka.websockets.beans;

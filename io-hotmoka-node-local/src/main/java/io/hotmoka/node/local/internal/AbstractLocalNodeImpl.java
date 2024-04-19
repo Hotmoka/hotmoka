@@ -48,8 +48,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
@@ -87,7 +85,9 @@ import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeSuppliers;
 import io.hotmoka.node.JarSuppliers;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.SubscriptionsManagers;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.api.CodeExecutionException;

@@ -14,15 +14,15 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.HexConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 
 public class SignedRequests {

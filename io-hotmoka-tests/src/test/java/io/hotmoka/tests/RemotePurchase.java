@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.StorageTypes.INT;
+import static io.hotmoka.node.StorageTypes.INT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -39,14 +39,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;

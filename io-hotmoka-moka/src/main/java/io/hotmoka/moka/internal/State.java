@@ -20,13 +20,13 @@ import java.net.URI;
 import java.util.concurrent.TimeoutException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.ClassTag;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfField;
 import io.hotmoka.beans.api.updates.UpdateOfString;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;

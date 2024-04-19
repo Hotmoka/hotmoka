@@ -19,7 +19,6 @@ package io.hotmoka.node;
 import java.io.IOException;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.beans.api.signatures.VoidMethodSignature;

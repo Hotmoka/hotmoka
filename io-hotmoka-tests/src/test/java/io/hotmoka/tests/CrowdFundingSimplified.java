@@ -16,7 +16,7 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.StorageTypes.BOOLEAN;
+import static io.hotmoka.node.StorageTypes.BOOLEAN;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -31,14 +31,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.values.BooleanValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -104,7 +104,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 
 	@Test @DisplayName("contributions are not enough then checkGoalReached yields false")
 	void contributionsAreNotEnough() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		StorageReference campaign = (StorageReference) addInstanceMethodCallTransaction
+		var campaign = (StorageReference) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of(CROWD_FUNDING_SIMPLIFIED, "newCampaign", CAMPAIGN, StorageTypes.PAYABLE_CONTRACT, StorageTypes.BIG_INTEGER),
 			crowdFunding, beneficiary, StorageValues.bigIntegerOf(50L));
@@ -119,7 +119,7 @@ class CrowdFundingSimplified extends HotmokaTest {
 			MethodSignatures.ofVoid(CROWD_FUNDING_SIMPLIFIED, "contribute", StorageTypes.BIG_INTEGER, CAMPAIGN),
 			crowdFunding, StorageValues.bigIntegerOf(1L), campaign);
 
-		BooleanValue reached = (BooleanValue) addInstanceMethodCallTransaction
+		var reached = (BooleanValue) addInstanceMethodCallTransaction
 			(privateKey(0), account0, _100_000, BigInteger.ONE, jar(),
 			MethodSignatures.of(CROWD_FUNDING_SIMPLIFIED, "checkGoalReached", BOOLEAN, CAMPAIGN),
 			crowdFunding, campaign);

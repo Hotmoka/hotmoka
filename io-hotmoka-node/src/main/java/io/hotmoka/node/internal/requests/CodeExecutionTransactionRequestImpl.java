@@ -24,13 +24,13 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
 
 /**
  * A request for executing a constructor or a method.

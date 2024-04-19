@@ -20,11 +20,6 @@
       <artifactId>io-hotmoka-helpers-api</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
-	<dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
     <dependency>
       <groupId>io.hotmoka.annotations</groupId>
       <artifactId>io-hotmoka-annotations</artifactId>

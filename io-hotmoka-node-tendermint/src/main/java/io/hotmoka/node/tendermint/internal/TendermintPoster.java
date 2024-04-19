@@ -36,11 +36,11 @@ import java.util.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Hex;
+import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;

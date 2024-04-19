@@ -24,13 +24,13 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.FieldSignatures;
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.Updates;
 import io.hotmoka.testing.AbstractLoggedTests;

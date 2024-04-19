@@ -22,12 +22,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.Updates;
 
 /**

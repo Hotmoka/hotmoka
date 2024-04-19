@@ -24,12 +24,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.api.signatures.CodeSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
 
 /**
  * The signature of a method or constructor.

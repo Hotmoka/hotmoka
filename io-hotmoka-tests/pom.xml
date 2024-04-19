@@ -37,12 +37,6 @@
       <version>${hotmoka.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>test</scope>
-    </dependency>
    	<dependency>
       <groupId>io.hotmoka.crypto</groupId>
       <artifactId>io-hotmoka-crypto</artifactId>

@@ -34,8 +34,6 @@ import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
@@ -63,6 +61,8 @@ import io.hotmoka.helpers.InitializedNodes.ProducerOfStorageObject;
 import io.hotmoka.helpers.api.InitializedNode;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.CodeSupplier;

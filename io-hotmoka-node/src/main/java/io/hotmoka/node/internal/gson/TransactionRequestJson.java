@@ -19,8 +19,6 @@ package io.hotmoka.node.internal.gson;
 import java.math.BigInteger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.beans.api.requests.InitializationTransactionRequest;
@@ -41,6 +39,8 @@ import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.websockets.beans.api.JsonRepresentation;
 

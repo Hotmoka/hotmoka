@@ -25,8 +25,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.beans.api.signatures.ConstructorSignature;
@@ -38,6 +36,8 @@ import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.ConstructorSignatures;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 
 /**
  * Implementation of a request for calling a constructor of a storage class in a node.

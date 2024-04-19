@@ -43,8 +43,6 @@ import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.resolver.api.maven.Maven;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
@@ -69,6 +67,8 @@ import io.hotmoka.helpers.JarsNodes;
 import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -195,9 +195,9 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfGamete = keys.getPrivate();
 
 	        Node wrapped;
-	        node = wrapped = mkDiskBlockchain();
+	        //node = wrapped = mkDiskBlockchain();
 	        //node = wrapped = mkTendermintBlockchain();
-	        //node = mkRemoteNode(wrapped = mkDiskBlockchain());
+	        node = mkRemoteNode(wrapped = mkDiskBlockchain());
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");

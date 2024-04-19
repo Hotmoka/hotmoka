@@ -25,7 +25,6 @@ import java.util.Scanner;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
@@ -37,6 +36,7 @@ import io.hotmoka.helpers.GasCounters;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.OutOfGasError;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.CodeExecutionException;

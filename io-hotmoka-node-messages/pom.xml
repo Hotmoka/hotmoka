@@ -22,11 +22,6 @@
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-beans</artifactId>
-      <version>${hotmoka.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka</groupId>
       <artifactId>io-hotmoka-node</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>

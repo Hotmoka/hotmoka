@@ -26,9 +26,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.NodeMarshallingContexts;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -37,6 +34,9 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 
 /**
  * A request for a transaction that installs a jar in an initialized node.

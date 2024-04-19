@@ -19,13 +19,13 @@ package io.hotmoka.node.internal.updates;
 import java.io.IOException;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.updates.UpdateOfByte;
 import io.hotmoka.beans.api.values.ByteValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.node.StorageValues;
 
 /**
  * The implementation of an update of a field of type {@code byte}.

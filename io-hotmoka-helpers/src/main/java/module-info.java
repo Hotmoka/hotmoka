@@ -22,7 +22,6 @@ module io.hotmoka.helpers {
 	requires transitive io.hotmoka.helpers.api;
 	requires transitive io.hotmoka.node;
 	requires transitive io.hotmoka.verification;
-	requires io.hotmoka.beans;
 	requires transitive io.hotmoka.crypto;
 	requires io.takamaka.code.constants;
 	requires io.hotmoka.annotations;

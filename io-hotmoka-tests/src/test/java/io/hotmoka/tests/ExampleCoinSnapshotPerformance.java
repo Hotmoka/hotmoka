@@ -16,10 +16,10 @@ limitations under the License.
 
 package io.hotmoka.tests;
 
-import static io.hotmoka.beans.StorageTypes.BOOLEAN;
 import static io.hotmoka.helpers.Coin.level2;
 import static io.hotmoka.helpers.Coin.level3;
 import static io.hotmoka.helpers.Coin.panarea;
+import static io.hotmoka.node.StorageTypes.BOOLEAN;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -45,9 +45,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import io.hotmoka.beans.StorageTypes;
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
@@ -65,6 +62,9 @@ import io.hotmoka.helpers.api.AccountsNode;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;

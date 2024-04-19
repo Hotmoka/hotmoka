@@ -97,7 +97,6 @@ Note: submodules whose artifact must be deployed on Maven Central must activate 
     <module>io-hotmoka-instrumentation-api</module>
     <module>io-hotmoka-instrumentation</module>
     <module>io-hotmoka-beans-api</module>
-    <module>io-hotmoka-beans</module>
     <module>io-hotmoka-node-api</module>
     <module>io-hotmoka-node</module>
     <module>io-hotmoka-node-local-api</module>

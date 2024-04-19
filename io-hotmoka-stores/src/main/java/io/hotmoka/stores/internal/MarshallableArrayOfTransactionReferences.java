@@ -18,11 +18,11 @@ package io.hotmoka.stores.internal;
 
 import java.io.IOException;
 
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.TransactionReferences;
 
 /**
  * An array of transaction references that can be marshalled into an object stream.

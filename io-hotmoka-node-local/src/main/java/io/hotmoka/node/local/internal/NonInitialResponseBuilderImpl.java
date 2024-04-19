@@ -31,7 +31,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.responses.NonInitialTransactionResponse;
@@ -44,6 +43,7 @@ import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.instrumentation.api.GasCostModel;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;

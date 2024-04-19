@@ -34,7 +34,6 @@ module io.hotmoka.moka {
 	requires io.hotmoka.node.remote;
 	requires io.hotmoka.instrumentation;
 	requires io.hotmoka.whitelisting.api;
-	requires io.hotmoka.beans;
 	requires io.hotmoka.cli;
 	requires io.takamaka.code.constants;
 	requires info.picocli;

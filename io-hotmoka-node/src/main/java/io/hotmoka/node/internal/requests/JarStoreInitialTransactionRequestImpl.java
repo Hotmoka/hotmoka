@@ -22,12 +22,12 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.TransactionReferences;
 
 /**
  * Implementation of a request for a transaction that installs a jar in a yet non-initialized node.

@@ -19,11 +19,11 @@ package io.hotmoka.node.internal;
 import java.io.IOException;
 import java.math.BigInteger;
 
-import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.AbstractAccount;
 import io.hotmoka.crypto.api.Entropy;
+import io.hotmoka.node.StorageValues;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.Account;
 
 /**

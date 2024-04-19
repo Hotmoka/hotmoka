@@ -16,9 +16,9 @@ limitations under the License.
 
 package io.hotmoka.helpers.internal;
 
-import static io.hotmoka.beans.StorageTypes.BIG_INTEGER;
-import static io.hotmoka.beans.StorageTypes.GAMETE;
-import static io.hotmoka.beans.StorageTypes.PAYABLE_CONTRACT;
+import static io.hotmoka.node.StorageTypes.BIG_INTEGER;
+import static io.hotmoka.node.StorageTypes.GAMETE;
+import static io.hotmoka.node.StorageTypes.PAYABLE_CONTRACT;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -28,7 +28,6 @@ import java.security.SignatureException;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Consumer;
 
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -43,6 +42,7 @@ import io.hotmoka.helpers.api.GasHelper;
 import io.hotmoka.helpers.api.NonceHelper;
 import io.hotmoka.helpers.api.SendCoinsHelper;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;

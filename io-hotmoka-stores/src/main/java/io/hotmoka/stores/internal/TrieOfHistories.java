@@ -20,10 +20,10 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.xodus.env.Store;

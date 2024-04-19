@@ -19,7 +19,6 @@ package io.hotmoka.moka.internal;
 import java.net.URI;
 import java.nio.file.Paths;
 
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
 import io.hotmoka.cli.CommandException;
@@ -28,6 +27,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.node.Accounts;
 import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.remote.RemoteNodes;
 import picocli.CommandLine.Command;

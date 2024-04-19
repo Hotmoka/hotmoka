@@ -18,8 +18,8 @@ package io.hotmoka.node.messages.internal.gson;
 
 import java.util.Optional;
 
-import io.hotmoka.beans.StorageValues;
 import io.hotmoka.crypto.HexConversionException;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.messages.AddStaticMethodCallTransactionResultMessages;
 import io.hotmoka.node.messages.api.AddStaticMethodCallTransactionResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
