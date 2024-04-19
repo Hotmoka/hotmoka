@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -35,20 +35,20 @@ import io.hotmoka.beans.api.signatures.MethodSignature;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.gson.TransactionRequestDecoder;
-import io.hotmoka.beans.internal.gson.TransactionRequestEncoder;
-import io.hotmoka.beans.internal.gson.TransactionRequestJson;
-import io.hotmoka.beans.internal.requests.ConstructorCallTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.GameteCreationTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.InitializationTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.InstanceMethodCallTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.InstanceSystemMethodCallTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.JarStoreInitialTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.JarStoreTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.StaticMethodCallTransactionRequestImpl;
-import io.hotmoka.beans.internal.requests.TransactionRequestImpl;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.node.internal.gson.TransactionRequestDecoder;
+import io.hotmoka.node.internal.gson.TransactionRequestEncoder;
+import io.hotmoka.node.internal.gson.TransactionRequestJson;
+import io.hotmoka.node.internal.requests.ConstructorCallTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.GameteCreationTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.InitializationTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.InstanceMethodCallTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.InstanceSystemMethodCallTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.JarStoreInitialTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.JarStoreTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.StaticMethodCallTransactionRequestImpl;
+import io.hotmoka.node.internal.requests.TransactionRequestImpl;
 
 /**
  * Providers of transaction requests.

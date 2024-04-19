@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 import com.google.protobuf.ByteString;
 
 import io.hotmoka.beans.NodeUnmarshallingContexts;
-import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;

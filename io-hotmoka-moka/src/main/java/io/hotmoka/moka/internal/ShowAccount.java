@@ -22,7 +22,6 @@ import java.security.KeyPair;
 import java.util.function.Function;
 
 import io.hotmoka.beans.MethodSignatures;
-import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.Base58;
@@ -31,6 +30,7 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.helpers.SignatureHelpers;
 import io.hotmoka.node.Accounts;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.Account;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.remote.RemoteNodes;

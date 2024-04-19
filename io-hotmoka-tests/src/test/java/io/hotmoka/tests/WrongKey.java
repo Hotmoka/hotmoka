@@ -29,9 +29,9 @@ import org.junit.jupiter.api.Test;
 
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.StorageValues;
-import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.SignedTransactionRequest;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 
 /**

@@ -14,10 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.gson;
+package io.hotmoka.node.internal.gson;
 
-import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.requests.TransactionRequest;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.websockets.beans.MappedEncoder;
 
 /**

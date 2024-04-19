@@ -36,12 +36,12 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.NodeUnmarshallingContexts;
-import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.TransactionRequest;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.stores.AbstractStore;
 
 /**

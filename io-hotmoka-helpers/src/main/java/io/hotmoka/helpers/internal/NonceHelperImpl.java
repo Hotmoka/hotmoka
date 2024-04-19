@@ -20,10 +20,10 @@ import java.math.BigInteger;
 import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.beans.MethodSignatures;
-import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.helpers.api.NonceHelper;
+import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;

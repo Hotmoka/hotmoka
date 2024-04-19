@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.requests;
+package io.hotmoka.node.internal.requests;
 
 import java.io.IOException;
 import java.util.Arrays;

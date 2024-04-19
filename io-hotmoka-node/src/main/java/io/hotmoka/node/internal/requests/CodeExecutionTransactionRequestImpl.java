@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.requests;
+package io.hotmoka.node.internal.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -24,12 +24,12 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.beans.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
@@ -87,7 +87,7 @@ public abstract class CodeExecutionTransactionRequestImpl<R extends CodeExecutio
 	}
 
 	public final byte[] toByteArrayWithoutSignature() {
-		try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
 			return baos.toByteArray();

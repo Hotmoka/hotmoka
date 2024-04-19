@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.requests;
+package io.hotmoka.node.internal.requests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,13 +26,13 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.NodeMarshallingContexts;
 import io.hotmoka.beans.StorageValues;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -190,7 +190,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 
 	@Override
 	public byte[] toByteArrayWithoutSignature() {
-		try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = NodeMarshallingContexts.of(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
 			return baos.toByteArray();

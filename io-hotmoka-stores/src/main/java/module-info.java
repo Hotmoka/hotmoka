@@ -20,6 +20,7 @@ limitations under the License.
 module io.hotmoka.stores {
 	exports io.hotmoka.stores;
 	requires transitive io.hotmoka.beans;
+	requires io.hotmoka.node;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.patricia;
