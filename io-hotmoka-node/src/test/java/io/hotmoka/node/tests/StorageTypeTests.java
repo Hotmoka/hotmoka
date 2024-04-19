@@ -14,26 +14,35 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.tests;
+package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.TransactionReferences;
+import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
-public class TransactionReferenceTests extends AbstractLoggedTests {
+public class StorageTypeTests extends AbstractLoggedTests {
 
 	@Test
-	@DisplayName("transaction references are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForTransactionReference() throws EncodeException, DecodeException {
-		var reference1 = TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678");
-		String encoded = new TransactionReferences.Encoder().encode(reference1);
-		var reference2 = new TransactionReferences.Decoder().decode(encoded);
-		assertEquals(reference1, reference2);
+	@DisplayName("basic types are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForBasicType() throws EncodeException, DecodeException {
+		var type1 = StorageTypes.INT;
+		String encoded = new StorageTypes.Encoder().encode(type1);
+		var type2 = new StorageTypes.Decoder().decode(encoded);
+		assertEquals(type1, type2);
+	}
+
+	@Test
+	@DisplayName("class types are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForClassType() throws EncodeException, DecodeException {
+		var type1 = StorageTypes.STRING;
+		String encoded = new StorageTypes.Encoder().encode(type1);
+		var type2 = new StorageTypes.Decoder().decode(encoded);
+		assertEquals(type1, type2);
 	}
 }

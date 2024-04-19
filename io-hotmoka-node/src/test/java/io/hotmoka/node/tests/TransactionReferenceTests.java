@@ -14,27 +14,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.tests;
+package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import io.hotmoka.beans.ConstructorSignatures;
-import io.hotmoka.beans.StorageTypes;
+import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;
 
-public class ConstructorSignatureTests extends AbstractLoggedTests {
+public class TransactionReferenceTests extends AbstractLoggedTests {
 
 	@Test
-	@DisplayName("constructor signatures are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForConstructorSignature() throws EncodeException, DecodeException {
-		var constructor1 = ConstructorSignatures.of("io.hotmoka.MyClass", StorageTypes.named("io.hotmoka.OtherClass"), StorageTypes.CHAR, StorageTypes.DOUBLE, StorageTypes.named("io.hotmoka.Something"));
-		String encoded = new ConstructorSignatures.Encoder().encode(constructor1);
-		var constructor2 = new ConstructorSignatures.Decoder().decode(encoded);
-		assertEquals(constructor1, constructor2);
+	@DisplayName("transaction references are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForTransactionReference() throws EncodeException, DecodeException {
+		var reference1 = TransactionReferences.of("cafebabe12345678cafebabe12345678cafebabe12345678cafebabe12345678");
+		String encoded = new TransactionReferences.Encoder().encode(reference1);
+		var reference2 = new TransactionReferences.Decoder().decode(encoded);
+		assertEquals(reference1, reference2);
 	}
 }

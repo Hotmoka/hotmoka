@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.tests;
+package io.hotmoka.node.tests;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -32,8 +32,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import io.hotmoka.beans.ConsensusConfigBuilders;
-import io.hotmoka.beans.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.testing.AbstractLoggedTests;
 import jakarta.websocket.DecodeException;
 import jakarta.websocket.EncodeException;

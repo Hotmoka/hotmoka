@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.node;
 
 import java.io.FileNotFoundException;
 import java.nio.file.Path;
