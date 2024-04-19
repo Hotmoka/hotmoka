@@ -82,14 +82,14 @@ class Storage extends HotmokaTest {
 	@Test @DisplayName("new SimpleStorage().get() is an int")
 	void neverInitializedStorageYieldsInt() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		StorageValue value = runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		StorageValue value = runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertTrue(value instanceof IntValue);
 	}
 
 	@Test @DisplayName("new SimpleStorage().get() == 0")
 	void neverInitializedStorageYields0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
-		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 0);
 	}
 
@@ -97,7 +97,7 @@ class Storage extends HotmokaTest {
 	void set13ThenGet13() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
-		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 13);
 	}
 
@@ -106,7 +106,7 @@ class Storage extends HotmokaTest {
 		StorageReference storage = addConstructorCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), CONSTRUCTOR_SIMPLE_STORAGE);
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(13));
 		addInstanceVoidMethodCallTransaction(key, eoa, _50_000, BigInteger.ONE, jar(), SET, storage, StorageValues.intOf(17));
-		var value = (IntValue) runInstanceMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
+		var value = (IntValue) runInstanceNonVoidMethodCallTransaction(eoa, _50_000, jar(), GET, storage);
 		assertEquals(value.getValue(), 17);
 	}
 }

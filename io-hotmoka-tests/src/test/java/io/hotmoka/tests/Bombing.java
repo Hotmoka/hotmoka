@@ -100,7 +100,7 @@ class Bombing extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))).getValue());
+			sum = sum.add(((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))).getValue());
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));

@@ -104,7 +104,7 @@ class TicTacToe extends HotmokaTest {
 			ticTacToe,
 			StorageValues.longOf(panarea(100).longValue()),
 			_1, _1);
-		StringValue toString = (StringValue) runInstanceMethodCallTransaction(
+		StringValue toString = (StringValue) runInstanceNonVoidMethodCallTransaction(
 			player1, 
 			_100_000,
 			jar(),
@@ -252,7 +252,7 @@ class TicTacToe extends HotmokaTest {
 			StorageValues.longOf(panarea(0).longValue()),
 			_1, _3);
 
-		var toString = (StringValue) runInstanceMethodCallTransaction(
+		var toString = (StringValue) runInstanceNonVoidMethodCallTransaction(
 			player1, 
 			_100_000,
 			jar(),

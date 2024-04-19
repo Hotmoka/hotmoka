@@ -79,7 +79,7 @@ class AbstractFail extends HotmokaTest {
 		StorageReference result = (StorageReference) addInstanceNonVoidMethodCallTransaction
 			(privateKey(0), account(0), _100_000, panarea(1), jar(), MethodSignatures.ofNonVoid(ABSTRACT_FAIL, "method", ABSTRACT_FAIL), abstractfail);
 
-		String className = ((StringValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.ofNonVoid(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
+		String className = ((StringValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.ofNonVoid(Constants.STORAGE_NAME, "getClassName", StorageTypes.STRING), result)).getValue();
 
 		assertEquals("io.hotmoka.examples.abstractfail.AbstractFailImpl", className);
 	}

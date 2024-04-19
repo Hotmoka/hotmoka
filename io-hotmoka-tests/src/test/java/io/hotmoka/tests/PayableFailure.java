@@ -65,7 +65,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "foo", C), c, StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
+		BigInteger balance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 		assertEquals(_1_000_000, balance);
 	}
 
@@ -77,7 +77,7 @@ class PayableFailure extends HotmokaTest {
 		throwsTransactionExceptionWithCauseAndMessageContaining("io.takamaka.code.lang.RequirementViolationException", "parameter cannot be null", () ->
 			addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _50_000, ZERO, jar(), MethodSignatures.ofVoid(C, "goo", StorageTypes.LONG, C), c, StorageValues.longOf(1000), StorageValues.NULL));
 
-		BigInteger balance = ((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
+		BigInteger balance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0))).getValue();
 
 		// 1000 is back in the balance of the caller
 		assertEquals(_1_000_000, balance);

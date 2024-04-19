@@ -122,7 +122,7 @@ class WTSC2021 extends HotmokaTest {
 		customThreadPool.submit(() -> IntStream.range(0, NUMBER_OF_ACCOUNTS).parallel().forEach(this::run)).get();
 
 		// we ask for the richest account
-		StorageValue richest = runInstanceMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
+		StorageValue richest = runInstanceNonVoidMethodCallTransaction(account(0), _1_000_000, jar(), MethodSignatures.ofNonVoid(StorageTypes.classNamed(MY_ACCOUNTS), "richest", StorageTypes.EOA), containerOfAccounts());
 
 		totalTime += System.currentTimeMillis() - start;
 
@@ -131,7 +131,7 @@ class WTSC2021 extends HotmokaTest {
 		// we compute the sum of the balances of the accounts
 		BigInteger sum = ZERO;
 		for (int i = 0; i < NUMBER_OF_ACCOUNTS; i++)
-			sum = sum.add(((BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))).getValue());
+			sum = sum.add(((BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(i))).getValue());
 
 		// no money got lost in translation
 		assertEquals(sum, BigInteger.valueOf(NUMBER_OF_ACCOUNTS).multiply(_50_000));

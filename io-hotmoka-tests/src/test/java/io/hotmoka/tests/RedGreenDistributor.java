@@ -105,7 +105,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
-		var balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		var balanceRed1 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),
@@ -113,7 +113,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(1)
 		);
 
-		var balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		var balanceRed2 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),
@@ -156,7 +156,7 @@ class RedGreenDistributor extends HotmokaTest {
 			distributor, StorageValues.bigIntegerOf(1_000)
 		);
 
-		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed1 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),
@@ -164,7 +164,7 @@ class RedGreenDistributor extends HotmokaTest {
 			account(1)
 		);
 
-		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceMethodCallTransaction(
+		BigIntegerValue balanceRed2 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(
 			account(0),
 			_20_000,
 			jar(),

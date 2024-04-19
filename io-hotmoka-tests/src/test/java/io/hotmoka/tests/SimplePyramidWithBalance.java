@@ -69,7 +69,7 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		StorageReference pyramid = addConstructorCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), CONSTRUCTOR_SIMPLE_PYRAMID, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(190_000)) <= 0);
 	}
 
@@ -79,7 +79,7 @@ class SimplePyramidWithBalance extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _100_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 		addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ZERO, jar(), WITHDRAW, pyramid);
-		var balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _100_000, jar(), MethodSignatures.BALANCE, account(0));
 		assertTrue(balance0.getValue().compareTo(BigInteger.valueOf(201_000)) > 0);
 	}
 }

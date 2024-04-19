@@ -114,12 +114,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		
-		BooleanValue isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
+		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
@@ -135,26 +135,26 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
 		long now = System.currentTimeMillis();
 
-		BooleanValue isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
+		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertFalse(isOver.getValue());
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 
 		TimeUnit.MILLISECONDS.sleep(start - (System.currentTimeMillis() - now) + 2000);
 		
-		isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll);
+		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_OVER, poll);
 		Assertions.assertFalse(isOver.getValue());
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll));
 		
 		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now) + 2000);
 		
-		isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
+		isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
@@ -180,12 +180,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), stakeholder2, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		addInstanceVoidMethodCallTransaction(privateKey(3), stakeholder3, _1_000_000, ZERO, jar(), VOTE_POLL, poll);
 		
-		var isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
+		var isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		var isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
+		var isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertTrue(isActionPerformed.getValue());
 	}
 	
@@ -203,12 +203,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		
 		assertThrows(TransactionException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), VOTE_POLL, poll));
 
-		BooleanValue isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
+		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);
 		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	
@@ -230,12 +230,12 @@ class PollWithTimeWindow extends HotmokaTest {
 		
 		TimeUnit.MILLISECONDS.sleep(expired - (System.currentTimeMillis() - now) + 2000);
 		
-		BooleanValue isOver = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);	
+		BooleanValue isOver = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _100_000, jar(), IS_OVER, poll);	
 		Assertions.assertTrue(isOver.getValue());
 		
 		addInstanceVoidMethodCallTransaction(privateKey(0), stakeholder0, _1_000_000, ZERO, jar(), CLOSE_POLL, poll);
 		
-		BooleanValue isActionPerformed = (BooleanValue) runInstanceMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
+		BooleanValue isActionPerformed = (BooleanValue) runInstanceNonVoidMethodCallTransaction(stakeholder0, _50_000, jar(), IS_RUN_PERFORMED, action);
 		Assertions.assertFalse(isActionPerformed.getValue());
 	}
 	

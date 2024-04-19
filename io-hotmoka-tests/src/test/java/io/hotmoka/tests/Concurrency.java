@@ -86,11 +86,11 @@ class Concurrency extends HotmokaTest {
 					int other = random.ints(0, NUMBER_OF_THREADS).filter(i -> i != num).findFirst().getAsInt();
 
 					// we ask for the balance of the account bound to the this worker
-					BigInteger ourBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
+					BigInteger ourBalance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction
 						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(num))).getValue();
 
 					// we ask for the balance of the account bound to the other worker
-					BigInteger otherBalance = ((BigIntegerValue) runInstanceMethodCallTransaction
+					BigInteger otherBalance = ((BigIntegerValue) runInstanceNonVoidMethodCallTransaction
 						(account(num), _50_000, takamakaCode(), MethodSignatures.BALANCE, account(other))).getValue();
 
 					// if we are poorer than other, we send him only 5,000 units of coin; otherwise, we send him 10,000 units

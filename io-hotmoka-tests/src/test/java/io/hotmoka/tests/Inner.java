@@ -76,7 +76,7 @@ class Inner extends HotmokaTest {
 	void newTestInnerInsideGetBalance() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		BigIntegerValue balance = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside);
+		BigIntegerValue balance = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETBALANCE, inside);
 		
 		assertEquals(balance.getValue(), BigInteger.valueOf(1000L));
 	}
@@ -85,7 +85,7 @@ class Inner extends HotmokaTest {
 	void newTestInnerInsideGetParent() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference testInner = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_CONSTRUCTOR);
 		StorageReference inside = addConstructorCallTransaction(privateKey(0), account(0), _50_000, ONE, jar(), TEST_INNER_INSIDE_CONSTRUCTOR, testInner, StorageValues.longOf(1000L));
-		StorageReference parent = (StorageReference) runInstanceMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside);
+		StorageReference parent = (StorageReference) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), TEST_INNER_INSIDE_GETPARENT, inside);
 		
 		assertEquals(testInner, parent);
 	}

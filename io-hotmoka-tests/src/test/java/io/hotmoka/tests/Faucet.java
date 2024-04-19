@@ -54,7 +54,7 @@ public class Faucet extends HotmokaTest {
 		if (consensus == null || !consensus.allowsUnsignedFaucet())
 			return;
 
-		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
+		var gamete = (StorageReference) runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
 
 		// we generate the key pair of the new account created by the faucet
 		var signature = signature();
@@ -75,7 +75,7 @@ public class Faucet extends HotmokaTest {
 
 	@Test
 	void callToFaucetFailsIfCallerIsNotTheGamete() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
-		var gamete = (StorageReference) runInstanceMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
+		var gamete = (StorageReference) runInstanceNonVoidMethodCallTransaction(manifest(), _50_000, takamakaCode(), MethodSignatures.GET_GAMETE, manifest());
 
 		// we generate the key pair of the new account created by the faucet
 		KeyPair keys = signature().getKeyPair();

@@ -70,7 +70,7 @@ class Enums extends HotmokaTest {
 		StorageReference testEnums = addConstructorCallTransaction(privateKey(0), account(0), _10_000_000, ONE, jar(),
 			ConstructorSignatures.of("io.hotmoka.examples.enums.TestEnums", MY_ENUM), StorageValues.enumElementOf("io.hotmoka.examples.enums.MyEnum", "PRESENT"));
 
-		IntValue ordinal = (IntValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(),
+		var ordinal = (IntValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(),
 			MethodSignatures.ofNonVoid("io.hotmoka.examples.enums.TestEnums", "getOrdinal", StorageTypes.INT), testEnums);
 
 		assertSame(1, ordinal.getValue());

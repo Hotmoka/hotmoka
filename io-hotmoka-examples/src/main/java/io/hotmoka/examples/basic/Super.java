@@ -32,7 +32,7 @@ public abstract class Super extends Contract {
 	protected Super(int a) {}
 	public @FromContract Super(boolean b) {}
 	public @FromContract @Payable Super(int amount, int a, boolean b) {}
-	public @FromContract void m1() {}
+	public @FromContract int m1() { return 42; }
 	public void m2() {}
 	public abstract @FromContract void m3();
 	public abstract @FromContract @Payable String m4(int amount);

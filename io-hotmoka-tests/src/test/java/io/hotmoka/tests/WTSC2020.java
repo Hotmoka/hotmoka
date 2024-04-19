@@ -79,7 +79,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(BigInteger.valueOf(19_950_000), balance0.getValue());
@@ -97,7 +97,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _20_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		BigIntegerValue balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.getValue(), BigInteger.valueOf(20_006_666));
@@ -118,7 +118,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ONE, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks which is the most frequent investor class
-		var result = (StringValue) runInstanceMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
+		var result = (StringValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR_CLASS, pyramid);
 
 		assertEquals(StorageTypes.EOA.getName(), result.getValue());
 	}
@@ -139,7 +139,7 @@ class WTSC2020 extends HotmokaTest {
 
 		// account(0) checks who is the most frequent investor
 		throwsTransactionExceptionWithCauseAndMessageContaining(NonWhiteListedCallException.class, "cannot prove that equals() and hashCode() on this object are deterministic and terminating", () ->
-			runInstanceMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR, pyramid)
+			runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MOST_FREQUENT_INVESTOR, pyramid)
 		);
 	}
 }

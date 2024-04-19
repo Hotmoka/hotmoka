@@ -179,72 +179,72 @@ class Collections extends HotmokaTest {
 	@Test @DisplayName("new MapHolder().get0() == RUNNING")
 	void mapHolderGet0() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING")
 	void mapHolderGet1() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING")
 	void mapHolderGet10() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting", BOOLEAN, StorageTypes.OBJECT), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with State")
 	void mapHolderGet0State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning2", BOOLEAN, STATE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with State")
 	void mapHolderGet1State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping2", BOOLEAN, STATE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with State")
 	void mapHolderGet10State() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting2", BOOLEAN, STATE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get0() == RUNNING with Comparable")
 	void mapHolderGet0Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get0", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isRunning3", BOOLEAN, COMPARABLE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get1() == SLEEPING with Comparable")
 	void mapHolderGet1Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get1", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isSleeping3", BOOLEAN, COMPARABLE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 
 	@Test @DisplayName("new MapHolder().get10() == WAITING with Comparable")
 	void mapHolderGet10Comparable() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference mapHolder = addConstructorCallTransaction(key, eoa, _10_000_000, BigInteger.ONE, jar(), ConstructorSignatures.of(MAP_HOLDER));
-		StorageValue state = runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
-		BooleanValue result = (BooleanValue) runInstanceMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state);
+		StorageValue state = runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "get10", STATE), mapHolder);
+		BooleanValue result = (BooleanValue) runInstanceNonVoidMethodCallTransaction(eoa, _10_000_000, jar(), MethodSignatures.ofNonVoid(MAP_HOLDER, "isWaiting3", BOOLEAN, COMPARABLE), mapHolder, state);
 		assertTrue(result.getValue());
 	}
 }
