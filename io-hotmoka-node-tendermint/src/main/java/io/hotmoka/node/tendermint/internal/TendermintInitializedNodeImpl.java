@@ -314,7 +314,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 	}
 
 	@Override
-	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getConfig();
 	}
 

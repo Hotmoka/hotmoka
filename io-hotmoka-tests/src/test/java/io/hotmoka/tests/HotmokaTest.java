@@ -182,10 +182,10 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        // we use always the same entropy and password, so that the tests become deterministic (if they are not explicitly non-deterministic)
 	        var entropy = Entropies.of(new byte[16]);
 			var password = "";
-			var localSignature = SignatureAlgorithms.ed25519det();
+			var localSignature = signature = SignatureAlgorithms.ed25519det();  // good for testing
 			var keys = entropy.keys(password, localSignature);
 			consensus = ValidatorsConsensusConfigBuilders.defaults()
-	    			.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
+	    			.setSignatureForRequests(signature)
 	    			.allowUnsignedFaucet(true) // good for testing
 	    			.ignoreGasPrice(true) // good for testing
 	    			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
@@ -201,10 +201,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        //node = mkRemoteNode(wrapped = mkTendermintBlockchain());
 	        //node = wrapped = mkRemoteNode("ec2-54-194-239-91.eu-west-1.compute.amazonaws.com:8080");
 	        //node = wrapped = mkRemoteNode("localhost:8080");
-
-	        signature = SignatureAlgorithms.of(node.getConfig());
 	        initializeNodeIfNeeded(wrapped);
-	        Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 
 	        manifest = node.getManifest();
 	        takamakaCode = node.getTakamakaCode();
@@ -221,6 +218,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 			BigInteger aLot = Coin.level6(1000000000);
 
 			// we set the thresholds for the faucets of the gamete
+			Signer<SignedTransactionRequest<?>> signerOfGamete = signature.getSigner(privateKeyOfGamete, SignedTransactionRequest::toByteArrayWithoutSignature);
 			node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall
 				(signerOfGamete, gamete, nonce, chainId, _100_000, BigInteger.ONE, takamakaCode,
 				MethodSignatures.ofVoid(StorageTypes.GAMETE, "setMaxFaucet", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER), gamete,

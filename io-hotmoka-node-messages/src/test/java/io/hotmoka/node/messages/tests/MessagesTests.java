@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.ConstructorSignatures;
 import io.hotmoka.beans.FieldSignatures;
 import io.hotmoka.beans.MethodSignatures;
@@ -130,8 +131,12 @@ public class MessagesTests extends AbstractLoggedTests {
 
 	@Test
 	@DisplayName("getConsensusConfigResult messages are correctly encoded into Json and decoded from Json")
-	public void encodeDecodeWorksForGetConsensusConfigResult() throws EncodeException, DecodeException {
-		var expected = GetConsensusConfigResultMessages.of("config", "id");
+	public void encodeDecodeWorksForGetConsensusConfigResult() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var config = ConsensusConfigBuilders.defaults()
+			.setChainId("my chain")
+			.setInitialSupply(BigInteger.valueOf(100L))
+			.build();
+		var expected = GetConsensusConfigResultMessages.of(config, "id");
 		String encoded = new GetConsensusConfigResultMessages.Encoder().encode(expected);
 		var actual = new GetConsensusConfigResultMessages.Decoder().decode(encoded);
 		assertEquals(expected, actual);

@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.beans.MethodSignatures;
 import io.hotmoka.beans.TransactionRequests;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
@@ -264,7 +265,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
 		return parent.getConfig();
 	}
 

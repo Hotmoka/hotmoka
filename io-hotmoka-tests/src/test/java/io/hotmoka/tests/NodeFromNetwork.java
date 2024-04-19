@@ -50,7 +50,6 @@ import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.BigIntegerValue;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StringValue;
-import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.JarSupplier;
 import io.hotmoka.node.api.TransactionException;
@@ -92,7 +91,7 @@ public class NodeFromNetwork extends HotmokaTest {
     	SignatureAlgorithm algo;
 
         try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000L)) {
-        	algo = SignatureAlgorithms.of(remote.getConfig());
+        	algo = remote.getConfig().getSignatureForRequests();
         }
 
         assertNotNull(algo);

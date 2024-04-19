@@ -28,6 +28,7 @@ import io.hotmoka.beans.AbstractConsensusConfigBuilder;
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * Implementation of the consensus parameters of a Hotmoka node that uses validators.
@@ -148,6 +149,16 @@ public abstract class ValidatorsConsensusConfigImpl<C extends ValidatorsConsensu
 		 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 		 */
 		protected ValidatorsConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {}
+
+		/**
+		 * Creates a builder containing default data. but for the given signature.
+		 * 
+		 * @param signatureForRequests the signature algorithm to use for signing the requests
+		 * @return the builder
+		 */
+		protected ValidatorsConsensusConfigBuilderImpl(SignatureAlgorithm signatureForRequests) {
+			super(signatureForRequests);
+		}
 
 		/**
 		 * Creates a builder with properties initialized to those of the given configuration object.

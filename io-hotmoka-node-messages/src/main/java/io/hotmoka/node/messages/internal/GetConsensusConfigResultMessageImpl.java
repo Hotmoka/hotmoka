@@ -18,6 +18,7 @@ package io.hotmoka.node.messages.internal;
 
 import java.util.Objects;
 
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessage;
@@ -30,7 +31,7 @@ public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage impl
 	/**
 	 * The result of the call.
 	 */
-	private final String result;
+	private final ConsensusConfig<?,?> result;
 
 	/**
 	 * Creates the message.
@@ -38,7 +39,7 @@ public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage impl
 	 * @param result the result of the call
 	 * @param id the identifier of the message
 	 */
-	public GetConsensusConfigResultMessageImpl(String result, String id) {
+	public GetConsensusConfigResultMessageImpl(ConsensusConfig<?,?> result, String id) {
 		super(id);
 
 		this.result = Objects.requireNonNull(result, "result cannot be null");
@@ -55,7 +56,7 @@ public class GetConsensusConfigResultMessageImpl extends AbstractRpcMessage impl
 	}
 
 	@Override
-	public String get() {
+	public ConsensusConfig<?,?> get() {
 		return result;
 	}
 }

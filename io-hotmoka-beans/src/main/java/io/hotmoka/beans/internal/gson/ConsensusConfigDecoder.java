@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,15 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.messages.api;
+package io.hotmoka.beans.internal.gson;
 
-import io.hotmoka.annotations.Immutable;
+import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.Node;
+import io.hotmoka.websockets.beans.MappedDecoder;
 
 /**
- * The network message corresponding to the result of the {@link Node#getConfig()} method.
+ * A decoder for {@link ConsensusConfig}.
  */
-@Immutable
-public interface GetConsensusConfigResultMessage extends ResultMessage<ConsensusConfig<?,?>> {
+public class ConsensusConfigDecoder extends MappedDecoder<ConsensusConfig<?,?>, ConsensusConfigBuilders.Json> {
+
+	public ConsensusConfigDecoder() {
+		super(ConsensusConfigBuilders.Json.class);
+	}
 }

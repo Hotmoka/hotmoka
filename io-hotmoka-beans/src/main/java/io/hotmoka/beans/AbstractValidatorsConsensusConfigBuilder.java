@@ -26,6 +26,7 @@ import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.beans.internal.nodes.ValidatorsConsensusConfigImpl;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * The builder of a configuration object.
@@ -41,6 +42,16 @@ public abstract class AbstractValidatorsConsensusConfigBuilder<C extends Validat
 	 * @throws NoSuchAlgorithmException if the configuration refers to some unknown hashing algorithm
 	 */
 	protected AbstractValidatorsConsensusConfigBuilder() throws NoSuchAlgorithmException {
+	}
+
+	/**
+	 * Creates a builder containing default data. but for the given signature.
+	 * 
+	 * @param signatureForRequests the signature algorithm to use for signing the requests
+	 * @return the builder
+	 */
+	protected AbstractValidatorsConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
+		super(signatureForRequests);
 	}
 
 	/**

@@ -24,8 +24,9 @@ import com.moandjiezana.toml.Toml;
 
 import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
-import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.beans.internal.nodes.ConsensusConfigImpl;
+import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * The builder of a configuration object.
@@ -41,6 +42,16 @@ public abstract class AbstractConsensusConfigBuilder<C extends ConsensusConfig<C
 	 * @throws NoSuchAlgorithmException if the configuration refers to some unknown hashing algorithm
 	 */
 	protected AbstractConsensusConfigBuilder() throws NoSuchAlgorithmException {
+	}
+
+	/**
+	 * Creates a builder containing default data. but for the given signature.
+	 * 
+	 * @param signatureForRequests the signature algorithm to use for signing the requests
+	 * @return the builder
+	 */
+	protected AbstractConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
+		super(signatureForRequests);
 	}
 
 	/**

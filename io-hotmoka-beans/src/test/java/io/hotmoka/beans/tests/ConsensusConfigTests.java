@@ -35,6 +35,8 @@ import io.hotmoka.beans.ConsensusConfigBuilders;
 import io.hotmoka.beans.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.testing.AbstractLoggedTests;
+import jakarta.websocket.DecodeException;
+import jakarta.websocket.EncodeException;
 
 public class ConsensusConfigTests extends AbstractLoggedTests {
 
@@ -68,5 +70,18 @@ public class ConsensusConfigTests extends AbstractLoggedTests {
 		Files.writeString(path, config1.toToml(), StandardCharsets.UTF_8);
 		var config2 = ValidatorsConsensusConfigBuilders.load(path).build();
 		assertEquals(config1, config2);
+	}
+
+	@Test
+	@DisplayName("configs are correctly encoded into Json and decoded from Json")
+	public void encodeDecodeWorksForConfig() throws EncodeException, DecodeException, NoSuchAlgorithmException {
+		var expected = ConsensusConfigBuilders.defaults()
+			.setChainId("my chain")
+			.setInitialSupply(BigInteger.valueOf(100L))
+			.build();
+
+		String encoded = new ConsensusConfigBuilders.Encoder().encode(expected);
+		var actual = new ConsensusConfigBuilders.Decoder().decode(encoded);
+		assertEquals(expected, actual);
 	}
 }

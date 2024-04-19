@@ -21,6 +21,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
@@ -68,7 +69,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	String getConfig() throws NodeException, TimeoutException, InterruptedException; // TODO: currently this just yields the name of the signature used for requests: change it!
+	ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException;
 
 	/**
 	 * Yields the reference to the jar installed in the store of the node, when the node was initialized,

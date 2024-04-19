@@ -16,6 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.messages.internal.gson;
 
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
+import io.hotmoka.beans.ConsensusConfigBuilders;
+import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.messages.GetConsensusConfigResultMessages;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
@@ -24,17 +30,17 @@ import io.hotmoka.websockets.beans.AbstractRpcMessageJsonRepresentation;
  * The JSON representation of a {@link GetConsensusConfigResultMessage}.
  */
 public abstract class GetConsensusConfigResultMessageJson extends AbstractRpcMessageJsonRepresentation<GetConsensusConfigResultMessage> {
-	private final String result;
+	private final ConsensusConfigBuilders.Json result;
 
 	protected GetConsensusConfigResultMessageJson(GetConsensusConfigResultMessage message) {
 		super(message);
 
-		this.result = message.get();
+		this.result = new ConsensusConfigBuilders.Json(message.get());
 	}
 
 	@Override
-	public GetConsensusConfigResultMessage unmap() {
-		return GetConsensusConfigResultMessages.of(result, getId());
+	public GetConsensusConfigResultMessage unmap() throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, Base64ConversionException {
+		return GetConsensusConfigResultMessages.of(result.unmap(), getId());
 	}
 
 	@Override

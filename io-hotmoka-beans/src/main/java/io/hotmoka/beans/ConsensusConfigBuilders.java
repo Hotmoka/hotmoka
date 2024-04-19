@@ -22,8 +22,13 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.ConsensusConfigBuilder;
+import io.hotmoka.beans.internal.gson.ConsensusConfigDecoder;
+import io.hotmoka.beans.internal.gson.ConsensusConfigEncoder;
+import io.hotmoka.beans.internal.gson.ConsensusConfigJson;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * Providers of consensus configurations.
@@ -57,6 +62,10 @@ public abstract class ConsensusConfigBuilders {
 		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {
 		}
 
+		private MyConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
+			super(signatureForRequests);
+		}
+
 		private MyConsensusConfigBuilder(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 			super(readToml(path));
 		}
@@ -87,6 +96,16 @@ public abstract class ConsensusConfigBuilders {
 	}
 
 	/**
+	 * Creates a builder containing default data. but for the given signature.
+	 * 
+	 * @param signatureForRequests the signature algorithm to use for signing the requests
+	 * @return the builder
+	 */
+	public static ConsensusConfigBuilder<?,?> defaults(SignatureAlgorithm signatureForRequests) {
+		return new MyConsensusConfigBuilder(signatureForRequests);
+	}
+
+	/**
 	 * Creates a builder from the given TOML configuration file.
 	 * The resulting builder will contain the information in the file,
 	 * and use defaults for the data not contained in the file.
@@ -102,4 +121,41 @@ public abstract class ConsensusConfigBuilders {
 	public static ConsensusConfigBuilder<?,?> load(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {
 		return new MyConsensusConfigBuilder(path);
 	}
+
+	/**
+	 * Gson encoder.
+	 */
+	public static class Encoder extends ConsensusConfigEncoder {
+
+		/**
+		 * Creates a new encoder.
+		 */
+		public Encoder() {}
+	}
+
+	/**
+	 * Gson decoder.
+	 */
+	public static class Decoder extends ConsensusConfigDecoder {
+
+		/**
+		 * Creates a new decoder.
+		 */
+		public Decoder() {}
+	}
+
+    /**
+     * Json representation.
+     */
+    public static class Json extends ConsensusConfigJson {
+
+    	/**
+    	 * Creates the Json representation for the given configuration.
+    	 * 
+    	 * @param config the configuration
+    	 */
+    	public Json(ConsensusConfig<?,?> config) {
+    		super(config);
+    	}
+    }
 }

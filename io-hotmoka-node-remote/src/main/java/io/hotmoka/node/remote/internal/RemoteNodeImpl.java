@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.beans.api.nodes.NodeInfo;
 import io.hotmoka.beans.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.beans.api.requests.GameteCreationTransactionRequest;
@@ -380,7 +381,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	@Override
-	public String getConfig() throws NodeException, TimeoutException, InterruptedException {
+	public ConsensusConfig<?,?> getConfig() throws NodeException, TimeoutException, InterruptedException {
 		ensureIsOpen();
 		var id = nextId();
 		sendGetConsensusConfig(id);
@@ -410,7 +411,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 		}
 	}
 
-	private String processGetConsensusConfigSuccess(RpcMessage message) {
+	private ConsensusConfig<?,?> processGetConsensusConfigSuccess(RpcMessage message) {
 		return message instanceof GetConsensusConfigResultMessage gccrm ? gccrm.get() : null;
 	}
 

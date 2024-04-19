@@ -24,6 +24,7 @@ import java.security.spec.InvalidKeySpecException;
 
 import io.hotmoka.beans.api.nodes.ValidatorsConsensusConfigBuilder;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 
 /**
  * Providers of consensus configuration builders for Hotmoka nodes with validators.
@@ -55,6 +56,10 @@ public abstract class ValidatorsConsensusConfigBuilders {
 	private static class MyConsensusConfigBuilder extends AbstractValidatorsConsensusConfigBuilder<MyConsensusConfig, MyConsensusConfigBuilder> {
 
 		private MyConsensusConfigBuilder() throws NoSuchAlgorithmException {
+		}
+
+		private MyConsensusConfigBuilder(SignatureAlgorithm signatureForRequests) {
+			super(signatureForRequests);
 		}
 
 		private MyConsensusConfigBuilder(Path path) throws NoSuchAlgorithmException, FileNotFoundException, InvalidKeyException, InvalidKeySpecException, Base64ConversionException {

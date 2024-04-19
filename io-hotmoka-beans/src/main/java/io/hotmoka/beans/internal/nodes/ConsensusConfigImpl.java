@@ -174,7 +174,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	/**
 	 * The signature algorithm for signing requests. It defaults to "ed25519".
 	 */
-	public final SignatureAlgorithm signature;
+	public final SignatureAlgorithm signatureForRequests;
 
 	/**
 	 * Full constructor for the builder pattern.
@@ -202,7 +202,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		this.initialRedSupply = builder.initialRedSupply;
 		this.publicKeyOfGamete = builder.publicKeyOfGamete;
 		this.publicKeyOfGameteBase64 = builder.publicKeyOfGameteBase64;
-		this.signature = builder.signature;
+		this.signatureForRequests = builder.signatureForRequests;
 	}
 
 	@Override
@@ -227,7 +227,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 			finalSupply.equals(occi.finalSupply) &&
 			initialRedSupply.equals(occi.initialRedSupply) &&
 			publicKeyOfGamete.equals(occi.publicKeyOfGamete) &&
-			signature.equals(occi.signature);
+			signatureForRequests.equals(occi.signatureForRequests);
 	}
 
 	@Override
@@ -322,7 +322,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		sb.append("ticket_for_new_poll = \"" + ticketForNewPoll + "\"\n");
 		sb.append("\n");
 		sb.append("# the name of the signature algorithm for signing requests\n");
-		sb.append("signature = \"" + signature + "\"\n");
+		sb.append("signature = \"" + signatureForRequests + "\"\n");
 
 		return sb.toString();
 	}
@@ -429,7 +429,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 	@Override
 	public SignatureAlgorithm getSignatureForRequests() {
-		return signature;
+		return signatureForRequests;
 	}
 
 	/**
@@ -442,7 +442,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
 		private long maxErrorLength = 300L;
 		private boolean allowsUnsignedFaucet = false;
-		private SignatureAlgorithm signature;
+		private SignatureAlgorithm signatureForRequests;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
 		private long maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000L;
@@ -466,10 +466,20 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		 * @throws NoSuchAlgorithmException if some cryptographic algorithm is not available
 		 */
 		protected ConsensusConfigBuilderImpl() throws NoSuchAlgorithmException {
-			setSignatureForRequests(SignatureAlgorithms.ed25519());
+			this(SignatureAlgorithms.ed25519());
+		}
+
+		/**
+		 * Creates a builder containing default data. but for the given signature.
+		 * 
+		 * @param signatureForRequests the signature algorithm to use for signing the requests
+		 * @return the builder
+		 */
+		protected ConsensusConfigBuilderImpl(SignatureAlgorithm signatureForRequests) {
+			setSignatureForRequests(signatureForRequests);
 
 			try {
-				setPublicKeyOfGamete(Entropies.of(new byte[16]).keys("", signature).getPublic());
+				setPublicKeyOfGamete(Entropies.of(new byte[16]).keys("", signatureForRequests).getPublic());
 			}
 			catch (InvalidKeyException e) {
 				// we have generated the key ourselves, how could it be invalid?
@@ -597,7 +607,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 			var publicKeyOfGamete = toml.getString("public_key_of_gamete");
 			if (publicKeyOfGamete != null)
-				setPublicKeyOfGamete(this.signature.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)));
+				setPublicKeyOfGamete(this.signatureForRequests.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)));
 		}
 
 		@Override
@@ -647,7 +657,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 
 		@Override
 		public B setSignatureForRequests(SignatureAlgorithm signature) {
-			this.signature = Objects.requireNonNull(signature, "The signature algorithm cannot be null");
+			this.signatureForRequests = Objects.requireNonNull(signature, "The signature algorithm cannot be null");
 			return getThis();
 		}
 
@@ -745,7 +755,7 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		@Override
 		public B setPublicKeyOfGamete(PublicKey publicKeyOfGamete) throws InvalidKeyException {
 			this.publicKeyOfGamete = Objects.requireNonNull(publicKeyOfGamete, "The public key of the gamete cannot be null");
-			this.publicKeyOfGameteBase64 = Base64.toBase64String(signature.encodingOf(publicKeyOfGamete));
+			this.publicKeyOfGameteBase64 = Base64.toBase64String(signatureForRequests.encodingOf(publicKeyOfGamete));
 			return getThis();
 		}
 

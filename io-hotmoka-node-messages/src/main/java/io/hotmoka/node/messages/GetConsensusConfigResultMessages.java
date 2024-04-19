@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.node.messages;
 
+import io.hotmoka.beans.api.nodes.ConsensusConfig;
 import io.hotmoka.node.messages.api.GetConsensusConfigResultMessage;
 import io.hotmoka.node.messages.internal.GetConsensusConfigResultMessageImpl;
 import io.hotmoka.node.messages.internal.gson.GetConsensusConfigResultMessageDecoder;
@@ -36,7 +37,7 @@ public final class GetConsensusConfigResultMessages {
 	 * @param id the identifier of the message
 	 * @return the message
 	 */
-	public static GetConsensusConfigResultMessage of(String result, String id) {
+	public static GetConsensusConfigResultMessage of(ConsensusConfig<?,?> result, String id) {
 		return new GetConsensusConfigResultMessageImpl(result, id);
 	}
 
