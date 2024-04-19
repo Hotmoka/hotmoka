@@ -20,7 +20,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 import io.hotmoka.beans.api.responses.TransactionResponse;
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -68,6 +68,6 @@ public abstract class TransactionResponseImpl extends AbstractMarshallable imple
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
+		return new NodeMarshallingContext(os);
 	}
 }

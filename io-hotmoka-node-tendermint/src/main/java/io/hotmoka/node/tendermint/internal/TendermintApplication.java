@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 
 import com.google.protobuf.ByteString;
 
-import io.hotmoka.beans.BeanUnmarshallingContexts;
+import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
@@ -224,7 +224,7 @@ class TendermintApplication extends ABCI {
 		var tx = request.getTx();
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
-        try (var context = BeanUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
+        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
         	node.checkTransaction(TransactionRequests.from(context));
         	responseBuilder.setCode(0);
         }
@@ -259,7 +259,7 @@ class TendermintApplication extends ABCI {
 		var tx = request.getTx();
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
-        try (var context = BeanUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
+        try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
         	node.deliverTransaction(TransactionRequests.from(context));
         	responseBuilder.setCode(0);
         }

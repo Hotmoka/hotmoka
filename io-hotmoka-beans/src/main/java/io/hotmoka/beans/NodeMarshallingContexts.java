@@ -1,5 +1,5 @@
 /*
-Copyright 2023 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,30 +14,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans.internal.marshalling;
+package io.hotmoka.beans;
 
 import java.io.IOException;
 import java.io.OutputStream;
 
-import io.hotmoka.marshalling.AbstractMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
+import io.hotmoka.marshalling.api.MarshallingContext;
 
 /**
- * A context used during bean marshalling into bytes. It shares beans
- * subcomponents in such a way to get a more compact representation.
+ * Providers of node's API marshalling contexts.
  */
-public class BeanMarshallingContext extends AbstractMarshallingContext {
+public abstract class NodeMarshallingContexts {
+
+	private NodeMarshallingContexts() {}
 
 	/**
-	 * Creates the context.
+	 * Yields a marshalling context for node's API, more optimized than
+	 * a normal context, since it shares subcomponents of the node's API.
 	 * 
 	 * @param oos the stream where bytes are marshalled.
 	 * @throws IOException if the context cannot be created
+	 * @return the context
 	 */
-	public BeanMarshallingContext(OutputStream oos) throws IOException {
-		super(oos);
-		
-		registerObjectMarshaller(new TransactionReferenceMarshaller());
-		registerObjectMarshaller(new StorageReferenceMarshaller());
-		registerObjectMarshaller(new FieldSignatureMarshaller());
+	public static MarshallingContext of(OutputStream oos) throws IOException {
+		return new NodeMarshallingContext(oos);
 	}
 }

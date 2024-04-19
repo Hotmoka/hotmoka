@@ -20,7 +20,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.beans.BeanUnmarshallingContexts;
+import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -56,7 +56,7 @@ public class TrieOfHistories {
 		try {
 			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
 			parent = PatriciaTries.of(keyValueStoreOfHistories, HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
-				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, BeanUnmarshallingContexts::of, numberOfCommits);
+				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Unexpected exception", e);

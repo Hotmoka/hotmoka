@@ -32,7 +32,7 @@ import io.hotmoka.beans.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.beans.api.responses.JarStoreTransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Signer;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -190,7 +190,7 @@ public class JarStoreTransactionRequestImpl extends NonInitialTransactionRequest
 
 	@Override
 	public byte[] toByteArrayWithoutSignature() {
-		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
 			intoWithoutSignature(context);
 			context.flush();
 			return baos.toByteArray();

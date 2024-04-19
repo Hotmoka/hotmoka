@@ -27,7 +27,7 @@ import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.transactions.TransactionReference;
 import io.hotmoka.beans.api.values.StorageReference;
 import io.hotmoka.beans.api.values.StorageValue;
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
 
@@ -122,7 +122,7 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 
 	@Override
 	public final byte[] toByteArrayWithoutSelector() {
-		try (var baos = new ByteArrayOutputStream(); var context = new BeanMarshallingContext(baos)) {
+		try (var baos = new ByteArrayOutputStream(); var context = new NodeMarshallingContext(baos)) {
 			intoWithoutSelector(context);
 			context.flush();
 			return baos.toByteArray();

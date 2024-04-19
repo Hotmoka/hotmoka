@@ -17,27 +17,29 @@ limitations under the License.
 package io.hotmoka.beans;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
-import io.hotmoka.marshalling.api.MarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeUnmarshallingContext;
+import io.hotmoka.marshalling.api.UnmarshallingContext;
 
 /**
- * Providers of bean marshalling contexts.
+ * Providers of node's API unmarshalling contexts.
  */
-public abstract class BeanMarshallingContexts {
+public abstract class NodeUnmarshallingContexts {
 
-	private BeanMarshallingContexts() {}
+	private NodeUnmarshallingContexts() {}
 
 	/**
-	 * Yields a marshalling context for beans, more optimized than
-	 * a normal context, since it shares subcomponents of the beans.
+	 * Yields an unmarshalling context for node's API, that understands
+	 * the optimized marshalling obtained through a
+	 * {@link NodeMarshallingContexts#of(OutputStream)}.
 	 * 
-	 * @param oos the stream where bytes are marshalled.
+	 * @param is the stream from which bytes get unmarshalled
 	 * @throws IOException if the context cannot be created
 	 * @return the context
 	 */
-	public static MarshallingContext of(OutputStream oos) throws IOException {
-		return new BeanMarshallingContext(oos);
+	public static UnmarshallingContext of(InputStream is) throws IOException {
+		return new NodeUnmarshallingContext(is);
 	}
 }

@@ -26,7 +26,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.BeanUnmarshallingContexts;
+import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.TransactionReferences;
 import io.hotmoka.beans.api.responses.TransactionResponse;
 import io.hotmoka.beans.api.transactions.TransactionReference;
@@ -136,7 +136,7 @@ public abstract class PartialTrieBasedFlatHistoryStore extends PartialTrieBasedS
 	}
 
 	private static TransactionReference[] fromByteArray(ByteIterable bytes) throws UncheckedIOException {
-		try (var context = BeanUnmarshallingContexts.of(new ByteArrayInputStream(bytes.getBytes()))) {
+		try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes.getBytes()))) {
 			return context.readLengthAndArray(TransactionReferences::from, TransactionReference[]::new);
 		}
 		catch (IOException e) {

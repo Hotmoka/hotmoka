@@ -30,7 +30,7 @@ import io.hotmoka.beans.Updates;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.updates.Update;
 import io.hotmoka.beans.api.values.StorageReference;
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -153,6 +153,6 @@ public abstract class AbstractUpdate extends AbstractMarshallable implements Upd
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
+		return new NodeMarshallingContext(os);
 	}
 }

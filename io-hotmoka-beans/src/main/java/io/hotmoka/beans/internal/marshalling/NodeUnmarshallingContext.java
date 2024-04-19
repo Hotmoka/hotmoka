@@ -1,5 +1,5 @@
 /*
-Copyright 2024 Fausto Spoto
+Copyright 2023 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,32 +14,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.beans;
+package io.hotmoka.beans.internal.marshalling;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 
-import io.hotmoka.beans.internal.marshalling.BeanUnmarshallingContext;
-import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.marshalling.AbstractUnmarshallingContext;
 
 /**
- * Providers of bean unmarshalling contexts.
+ * A context used during bytes unmarshalling into node's API.
+ * It understands the optimized marshalling obtained through
+ * a {@link NodeMarshallingContext}.
  */
-public abstract class BeanUnmarshallingContexts {
-
-	private BeanUnmarshallingContexts() {}
+public class NodeUnmarshallingContext extends AbstractUnmarshallingContext {
 
 	/**
-	 * Yields an unmarshalling context for beans, that understands
-	 * the optimized marshalling obtained through a
-	 * {@link BeanMarshallingContexts#of(OutputStream)}.
+	 * Creates the context.
 	 * 
 	 * @param is the stream from which bytes get unmarshalled
 	 * @throws IOException if the context cannot be created
-	 * @return the context
 	 */
-	public static UnmarshallingContext of(InputStream is) throws IOException {
-		return new BeanUnmarshallingContext(is);
+	public NodeUnmarshallingContext(InputStream is) throws IOException {
+		super(is);
+
+		registerObjectUnmarshaller(new StorageReferenceUnmarshaller());
+		registerObjectUnmarshaller(new TransactionReferenceUnmarshaller());
+		registerObjectUnmarshaller(new FieldSignatureUnmarshaller());
 	}
 }

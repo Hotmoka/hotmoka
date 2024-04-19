@@ -26,7 +26,7 @@ import io.hotmoka.beans.StorageTypes;
 import io.hotmoka.beans.api.signatures.FieldSignature;
 import io.hotmoka.beans.api.types.ClassType;
 import io.hotmoka.beans.api.types.StorageType;
-import io.hotmoka.beans.internal.marshalling.BeanMarshallingContext;
+import io.hotmoka.beans.internal.marshalling.NodeMarshallingContext;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.UnmarshallingContext;
@@ -257,6 +257,6 @@ public final class FieldSignatureImpl extends AbstractMarshallable implements Fi
 
 	@Override
 	protected final MarshallingContext createMarshallingContext(OutputStream os) throws IOException {
-		return new BeanMarshallingContext(os);
+		return new NodeMarshallingContext(os);
 	}
 }

@@ -34,8 +34,8 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.beans.BeanMarshallingContexts;
-import io.hotmoka.beans.BeanUnmarshallingContexts;
+import io.hotmoka.beans.NodeMarshallingContexts;
+import io.hotmoka.beans.NodeUnmarshallingContexts;
 import io.hotmoka.beans.TransactionRequests;
 import io.hotmoka.beans.TransactionResponses;
 import io.hotmoka.beans.api.requests.TransactionRequest;
@@ -110,7 +110,7 @@ class Store extends AbstractStore {
 		synchronized (lock) {
     		try {
     			Path response = getPathFor(reference, "response");
-    			try (var context = BeanUnmarshallingContexts.of(Files.newInputStream(response))) {
+    			try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
     				return Optional.of(TransactionResponses.from(context));
     			}
     		}
@@ -155,7 +155,7 @@ class Store extends AbstractStore {
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
 			Path response = getPathFor(reference, "request");
-			try (var context = BeanUnmarshallingContexts.of(Files.newInputStream(response))) {
+			try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
 				return Optional.of(TransactionRequests.from(context));
 			}
 		}
@@ -176,11 +176,11 @@ class Store extends AbstractStore {
 			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
 			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
-			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(requestPath))) {
+			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
 
-			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(getPathFor(reference, "response")))) {
+			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(getPathFor(reference, "response")))) {
 				response.into(context);
 			}
 		}
@@ -211,7 +211,7 @@ class Store extends AbstractStore {
 
 			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 
-			try (var context = BeanMarshallingContexts.of(Files.newOutputStream(requestPath))) {
+			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
 		}
