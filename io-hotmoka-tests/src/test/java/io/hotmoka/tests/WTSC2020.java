@@ -79,7 +79,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(1), account(1), _50_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// no money back yet
 		assertEquals(BigInteger.valueOf(19_950_000), balance0.getValue());
@@ -97,7 +97,7 @@ class WTSC2020 extends HotmokaTest {
 		addInstanceVoidMethodCallTransaction(privateKey(2), account(2), _20_000, ZERO, jar(), INVEST, pyramid, MINIMUM_INVESTMENT);
 
 		// account(0) checks its balance
-		BigIntegerValue balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
+		var balance0 = (BigIntegerValue) runInstanceNonVoidMethodCallTransaction(account(0), _50_000, jar(), MethodSignatures.BALANCE, account(0));
 
 		// the money is back!
 		assertEquals(balance0.getValue(), BigInteger.valueOf(20_006_666));

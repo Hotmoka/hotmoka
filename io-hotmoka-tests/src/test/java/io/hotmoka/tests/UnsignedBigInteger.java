@@ -492,7 +492,7 @@ class UnsignedBigInteger extends HotmokaTest {
     void valueOfTest() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
         StorageReference ubi_99 = addConstructorCallTransaction(creator_prv_key, creator, _100_000, panarea(1), classpath, CONSTRUCTOR_UBI_STR, StorageValues.stringOf("99"));
 
-        StorageReference ubi_result = (StorageReference) addStaticMethodCallTransaction(
+        StorageReference ubi_result = (StorageReference) addStaticNonVoidMethodCallTransaction(
                 creator_prv_key, creator,
                 _100_000, panarea(1), classpath,
                 MethodSignatures.ofNonVoid(UBI, "valueOf", UBI, LONG),
@@ -512,7 +512,7 @@ class UnsignedBigInteger extends HotmokaTest {
     @Test @DisplayName("Test of valueOf method with the generation of an Exception: long@-99.valueOf()")
     void valueOfExceptionTest() {
         throwsTransactionExceptionWithCause(Constants.REQUIREMENT_VIOLATION_EXCEPTION_NAME, () ->
-                addStaticMethodCallTransaction(
+                addStaticNonVoidMethodCallTransaction(
                         creator_prv_key, creator,
                         _100_000, panarea(1), classpath,
                         MethodSignatures.ofNonVoid(UBI, "valueOf", UBI, LONG),

@@ -45,7 +45,7 @@ class InterfaceOverridesObject1 extends HotmokaTest {
 	@Test @DisplayName("C.test()")
 	void createC() {
 		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () ->
-			addStaticMethodCallTransaction(privateKey(0), account(0), _1_000_000, BigInteger.ONE, jar(),
+			addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _1_000_000, BigInteger.ONE, jar(),
 				MethodSignatures.ofNonVoid(StorageTypes.classNamed("io.hotmoka.examples.interfaceoverridesobject1.C"), "test", StorageTypes.INT)));
 	}
 }

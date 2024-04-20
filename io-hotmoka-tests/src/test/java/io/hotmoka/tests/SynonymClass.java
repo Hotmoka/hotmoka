@@ -61,7 +61,7 @@ class SynonymClass extends HotmokaTest {
 
 	@Test @DisplayName("SignatureAlgorithm.empty() yields null")
 	void createAbstractFail() throws TransactionException, CodeExecutionException, InvalidKeyException, SignatureException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		StorageValue result = addStaticMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), EMPTY);
+		StorageValue result = addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _20_000, panarea(1), jar(), EMPTY);
 		// we verify that the result is null; this means that the implementation of SignatureAlgorithm
 		// from the store of the node has been run, not that used by the node
 		assertSame(StorageValues.NULL, result);

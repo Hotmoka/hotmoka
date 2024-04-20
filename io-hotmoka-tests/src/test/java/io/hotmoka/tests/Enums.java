@@ -78,7 +78,7 @@ class Enums extends HotmokaTest {
 
 	@Test @DisplayName("TestEnums.getFor(2) == MyEnum.FUTURE")
 	void testGetFor() throws TransactionException, CodeExecutionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		EnumValue element = (EnumValue) runStaticMethodCallTransaction(account(0), _50_000, jar(),
+		var element = (EnumValue) runStaticNonVoidMethodCallTransaction(account(0), _50_000, jar(),
 			MethodSignatures.ofNonVoid("io.hotmoka.examples.enums.TestEnums", "getFor", MY_ENUM, StorageTypes.INT), StorageValues.intOf(2));
 
 		assertEquals(StorageValues.enumElementOf(MY_ENUM.getName(), "FUTURE"), element);

@@ -27,9 +27,8 @@ public class Simple extends Storage {
 	}
 
 	// this is not a legal @View
-	public @View int foo1() {
+	public @View void foo1() {
 		i++;
-		return 42;
 	}
 
 	// this is not a legal @View

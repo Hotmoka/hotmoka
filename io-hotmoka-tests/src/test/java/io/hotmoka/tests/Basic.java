@@ -64,7 +64,7 @@ class Basic extends HotmokaTest {
 	private static final ClassType WITH_LIST = StorageTypes.classNamed("io.hotmoka.examples.basic.WithList");
 	private static final ClassType FROM_CONTRACT_FILTER = StorageTypes.classNamed("io.hotmoka.examples.basic.FromContractFilter");
 	private static final ConstructorSignature CONSTRUCTOR_ALIAS = ConstructorSignatures.of(ALIAS);
-	private static final NonVoidMethodSignature SUB_MS = MethodSignatures.ofNonVoid("io.hotmoka.examples.basic.Sub", "ms", INT);
+	private static final VoidMethodSignature SUB_MS = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "ms");
 	private static final VoidMethodSignature SUB_M5 = MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "m5");
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_1 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"));
 	private static final ConstructorSignature CONSTRUCTOR_WRAPPER_2 = ConstructorSignatures.of("io.hotmoka.examples.basicdependency.Wrapper", StorageTypes.classNamed("io.hotmoka.examples.basicdependency.Time"), StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.LONG);
@@ -140,7 +140,7 @@ class Basic extends HotmokaTest {
 		StorageReference sub = addConstructorCallTransaction
 			(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
 
-		runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofNonVoid("io.hotmoka.examples.basic.Sub", "m1", INT), sub);
+		runInstanceVoidMethodCallTransaction(master, _200_000, classpath, MethodSignatures.ofVoid("io.hotmoka.examples.basic.Sub", "m1"), sub);
 	}
 
 	@Test @DisplayName("new Sub().ms() throws TransactionException since NoSuchMethodException")
@@ -148,19 +148,19 @@ class Basic extends HotmokaTest {
 		StorageReference sub = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of("io.hotmoka.examples.basic.Sub"));
 
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			runInstanceNonVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
+			runInstanceVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS, sub)
 		);
 	}
 
 	@Test @DisplayName("Sub.ms()")
 	void callStaticAsStatic() throws CodeExecutionException, TransactionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		runStaticMethodCallTransaction(master, _200_000, classpath, SUB_MS);
+		runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_MS);
 	}
 
 	@Test @DisplayName("Sub.m5() throws TransactionException since NoSuchMethodException")
 	void callInstanceAsStatic() {
 		throwsTransactionExceptionWithCause(NoSuchMethodException.class, () ->
-			runStaticMethodCallTransaction(master, _200_000, classpath, SUB_M5)
+			runStaticVoidMethodCallTransaction(master, _200_000, classpath, SUB_M5)
 		);
 	}
 
@@ -281,7 +281,7 @@ class Basic extends HotmokaTest {
 		StorageReference s = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(SIMPLE, INT), StorageValues.intOf(13));
 
 		throwsTransactionExceptionWithCause(SideEffectsInViewMethodException.class, () ->
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo1", INT), s)
+			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(SIMPLE, "foo1"), s)
 		);
 	}
 
@@ -314,7 +314,7 @@ class Basic extends HotmokaTest {
 	@Test @DisplayName("new Simple(13).foo5() == 13")
 	void viewMethodOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
 		assertEquals(StorageValues.intOf(14),
-			runStaticMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo5", INT)));
+			runStaticNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(SIMPLE, "foo5", INT)));
 	}
 
 	@Test @DisplayName("new WithList().toString().equals(\"[hello,how,are,you]\")")
@@ -336,19 +336,19 @@ class Basic extends HotmokaTest {
 	@Test @DisplayName("new FromContractFilter().foo1() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk1() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo1", INT), ef);
+		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo1"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo2() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk2() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo2", INT), ef);
+		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo2"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo3() called by an ExternallyOwnedAccount")
 	void fromContractFilterOk3() throws CodeExecutionException, TransactionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
-		runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo3", INT), ef);
+		runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo3"), ef);
 	}
 
 	@Test @DisplayName("new FromContractFilter().foo4() called by an ExternallyOwnedAccount throws TransactionException since ClassCastException")
@@ -356,7 +356,7 @@ class Basic extends HotmokaTest {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		throwsTransactionExceptionWithCause(ClassCastException.class, () ->
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo4", INT), ef)
+			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo4"), ef)
 		);
 	}
 
@@ -365,7 +365,7 @@ class Basic extends HotmokaTest {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		try {
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo5", INT), ef);
+			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo5"), ef);
 		}
 		catch (CodeExecutionException e) {
 			Assertions.assertTrue(e.getMessage().startsWith("io.hotmoka.examples.basic.MyCheckedException"), "wrong exception");
@@ -380,6 +380,6 @@ class Basic extends HotmokaTest {
 		StorageReference ef = addConstructorCallTransaction(key, master, _50_000, ONE, classpath, ConstructorSignatures.of(FROM_CONTRACT_FILTER));
 
 		Assertions.assertThrows(TransactionException.class, () ->
-			runInstanceNonVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofNonVoid(FROM_CONTRACT_FILTER, "foo6", INT), ef));
+			runInstanceVoidMethodCallTransaction(master, _50_000, classpath, MethodSignatures.ofVoid(FROM_CONTRACT_FILTER, "foo6"), ef));
 	}
 }

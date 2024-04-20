@@ -52,6 +52,6 @@ class LegalCall5 extends HotmokaTest {
 	void newTestToString() throws TransactionException, CodeExecutionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		TransactionReference jar = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("legalcall5.jar"), takamakaCode());
 
-		addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
+		addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, jar, MethodSignatures.ofVoid(StorageTypes.classNamed("io.hotmoka.examples.errors.legalcall5.C"), "foo"));
 	}
 }

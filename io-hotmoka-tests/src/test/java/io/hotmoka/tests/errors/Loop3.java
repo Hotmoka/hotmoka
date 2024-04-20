@@ -51,7 +51,7 @@ class Loop3 extends HotmokaTest {
 	void callLoop() throws TransactionException, IOException, TransactionRejectedException, InvalidKeyException, SignatureException, NoSuchElementException, NodeException, TimeoutException, InterruptedException {
 		TransactionReference loop = addJarStoreTransaction(privateKey(0), account(0), _500_000, BigInteger.ONE, takamakaCode(), bytesOf("loop3.jar"), takamakaCode());
 
-		HotmokaTest.throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
-			addStaticMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, loop, MethodSignatures.ofVoid("io.hotmoka.examples.errors.loop3.Loop", "loop")));
+		throwsTransactionExceptionWithCause(NonWhiteListedCallException.class, () -> 
+			addStaticVoidMethodCallTransaction(privateKey(0), account(0), _100_000, BigInteger.ONE, loop, MethodSignatures.ofVoid("io.hotmoka.examples.errors.loop3.Loop", "loop")));
 	}
 }

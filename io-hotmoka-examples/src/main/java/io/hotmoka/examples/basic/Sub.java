@@ -33,8 +33,8 @@ public class Sub extends Super {
 	}
 
 	@Override @FromContract @View
-	public int m1() {
-		return super.m1();
+	public void m1() {
+		super.m1();
 	}
 
 	@Override @FromContract @View
@@ -63,5 +63,5 @@ public class Sub extends Super {
 	}
 
 	@View
-	public static int ms() { return 42; }
+	public static void ms() {}
 }

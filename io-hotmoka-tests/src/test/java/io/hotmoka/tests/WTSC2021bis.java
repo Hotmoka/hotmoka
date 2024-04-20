@@ -29,7 +29,6 @@ import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.SignatureException;
-import java.util.Base64;
 import java.util.Random;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -43,6 +42,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import io.hotmoka.crypto.Base64;
 import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -116,13 +116,10 @@ class WTSC2021bis extends HotmokaTest {
 			// the creator is created apart, since it has a different class
 			KeyPair keys = signature().getKeyPair();
 			PrivateKey privateKeyOfCreator = keys.getPrivate();
-			String publicKey = Base64.getEncoder().encodeToString(signature().encodingOf(keys.getPublic()));
+			String publicKey = Base64.toBase64String(signature().encodingOf(keys.getPublic()));
 			StorageReference creator = addConstructorCallTransaction
 				(privateKey(NUMBER_OF_INVESTORS), account(NUMBER_OF_INVESTORS), _50_000, ZERO, jar(), CONSTRUCTOR_OF_CREATOR,
 				StorageValues.bigIntegerOf(level2(500)), StorageValues.stringOf(publicKey));
-
-			investors = accounts().limit(NUMBER_OF_INVESTORS).toArray(StorageReference[]::new);
-			privateKeysOfInvestors = privateKeys().limit(NUMBER_OF_INVESTORS).toArray(PrivateKey[]::new);
 
 			// @creator creates the coin; initially, @creator will hold all tokens
 			token = addConstructorCallTransaction(privateKeyOfCreator, creator, _500_000, panarea(1), jar(), CONSTRUCTOR_OF_COIN);

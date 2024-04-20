@@ -23,14 +23,14 @@ import io.takamaka.code.lang.ThrowsExceptions;
 import io.takamaka.code.lang.View;
 
 public class FromContractFilter extends Contract {
-	public @FromContract @View int foo1() { return 42; }
-	public @FromContract(Contract.class) @View int foo2() { return 42; }
-	public @FromContract(PayableContract.class) @View int foo3() { return 42; }
-	public @FromContract(FromContractFilter.class) @View int foo4() { return 42; }
-	public @ThrowsExceptions @View int foo5() throws MyCheckedException {
+	public @FromContract @View void foo1() {}
+	public @FromContract(Contract.class) @View void foo2() {}
+	public @FromContract(PayableContract.class) @View void foo3() {}
+	public @FromContract(FromContractFilter.class) @View void foo4() {}
+	public @ThrowsExceptions @View void foo5() throws MyCheckedException {
 		throw new MyCheckedException();
 	}
-	public @View int foo6() throws MyCheckedException {
+	public @View void foo6() throws MyCheckedException {
 		throw new MyCheckedException();
 	}
 }

@@ -53,7 +53,7 @@ class StaticFromStatic extends HotmokaTest {
 
 	@Test @DisplayName("StaticFromStatic.foo() == 42")
 	void callFoo() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
-		IntValue result = (IntValue) addStaticMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
+		var result = (IntValue) addStaticNonVoidMethodCallTransaction(privateKey(0), account(0), _50_000, BigInteger.ONE, jar(),
 			MethodSignatures.ofNonVoid("io.hotmoka.examples.staticfromstatic.StaticFromStatic", "foo", StorageTypes.INT));
 
 		assertEquals(42, result.getValue());

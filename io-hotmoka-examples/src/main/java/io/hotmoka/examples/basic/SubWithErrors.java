@@ -36,8 +36,8 @@ public class SubWithErrors extends Super {
 	}
 
 	@Override @FromContract
-	public int m1() {
-		return super.m1();
+	public void m1() {
+		super.m1();
 	}
 
 	@Override
