@@ -26,8 +26,8 @@ scripts/*_node_info/
 .settings/
 .project
 hotmoka.log*
-spring.log.*
 tendermint.log
+moka_*.tar.gz
 
 # IntelliJ
 out/
