@@ -64,12 +64,12 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	 * The maximal length of the error message kept in the store of the node.
 	 * Beyond this threshold, the message gets truncated.
 	 */
-	public final long maxErrorLength;
+	public final int maxErrorLength;
 
 	/**
 	 * The maximal number of dependencies in the classpath of a transaction.
 	 */
-	public final long maxDependencies;
+	public final int maxDependencies;
 
 	/**
 	 * The maximal cumulative size (in bytes) of the instrumented jars of the dependencies
@@ -338,12 +338,12 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	}
 
 	@Override
-	public long getMaxErrorLength() {
+	public int getMaxErrorLength() {
 		return maxErrorLength;
 	}
 
 	@Override
-	public long getMaxDependencies() {
+	public int getMaxDependencies() {
 		return maxDependencies;
 	}
 
@@ -440,11 +440,11 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	public abstract static class ConsensusConfigBuilderImpl<C extends ConsensusConfig<C,B>, B extends ConsensusConfigBuilder<C,B>> implements ConsensusConfigBuilder<C,B> {
 		private String chainId = "";
 		private LocalDateTime genesisTime = LocalDateTime.now(ZoneId.of("UTC"));
-		private long maxErrorLength = 300L;
+		private int maxErrorLength = 300;
 		private boolean allowsUnsignedFaucet = false;
 		private SignatureAlgorithm signatureForRequests;
 		private BigInteger maxGasPerTransaction = BigInteger.valueOf(1_000_000_000L);
-		private long maxDependencies = 20;
+		private int maxDependencies = 20;
 		private long maxCumulativeSizeOfDependencies = 10_000_000L;
 		private BigInteger initialGasPrice = BigInteger.valueOf(100L);
 		private boolean ignoresGasPrice = false;
@@ -623,20 +623,36 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 		}
 
 		@Override
-		public B setMaxErrorLength(long maxErrorLength) {
-			if (maxErrorLength < 0L)
+		public B setMaxErrorLength(int maxErrorLength) {
+			if (maxErrorLength < 0)
 				throw new IllegalArgumentException("The max error length cannot be negative");
 
 			this.maxErrorLength = maxErrorLength;
 			return getThis();
 		}
 
+		private B setMaxErrorLength(long maxErrorLength) {
+			if (maxErrorLength < 0 || maxErrorLength > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("maxErrorLength must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+
+			this.maxErrorLength = (int) maxErrorLength;
+			return getThis();
+		}
+
 		@Override
-		public B setMaxDependencies(long maxDependencies) {
-			if (maxDependencies < 0L)
+		public B setMaxDependencies(int maxDependencies) {
+			if (maxDependencies < 0)
 				throw new IllegalArgumentException("The max number of dependencies cannot be negative");
 
 			this.maxDependencies = maxDependencies;
+			return getThis();
+		}
+
+		private B setMaxDependencies(long maxDependencies) {
+			if (maxDependencies < 0 || maxDependencies > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("maxDependencies must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+
+			this.maxDependencies = (int) maxDependencies;
 			return getThis();
 		}
 

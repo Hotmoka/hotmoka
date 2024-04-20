@@ -208,7 +208,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	 * @throws DeploymentException if the remote node could not be deployed
 	 * @throws IOException if the remote node could not be created
      */
-    public RemoteNodeImpl(URI uri, long timeout) throws IOException, DeploymentException {
+    public RemoteNodeImpl(URI uri, int timeout) throws IOException, DeploymentException {
     	super(timeout);
 
     	this.logPrefix = "node remote(" + uri + "): ";

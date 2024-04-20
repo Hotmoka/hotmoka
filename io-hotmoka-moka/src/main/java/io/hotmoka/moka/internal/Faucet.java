@@ -71,7 +71,7 @@ public class Faucet extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfGamete = ensurePassword(passwordOfGamete, "the gamete account", interactive, false);
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				openFaucet();
 			}
 		}

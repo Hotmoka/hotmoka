@@ -101,7 +101,7 @@ public class Create extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (Node node = RemoteNodes.of(uri, 10_000L)) {
+			try (Node node = RemoteNodes.of(uri, 10_000)) {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				var payer = StorageValues.reference(Create.this.payer);

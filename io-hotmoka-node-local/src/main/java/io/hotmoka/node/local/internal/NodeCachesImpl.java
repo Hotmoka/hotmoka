@@ -210,11 +210,11 @@ public class NodeCachesImpl implements NodeCache {
 				(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, gamete))
 				.orElseThrow(() -> new NodeException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
 
-			long maxErrorLength = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			int maxErrorLength = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))).getValue();
 
-			long maxDependencies = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+			int maxDependencies = ((IntValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
 				.orElseThrow(() -> new NodeException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))).getValue();
 

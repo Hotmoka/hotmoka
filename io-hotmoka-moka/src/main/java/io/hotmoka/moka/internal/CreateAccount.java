@@ -98,7 +98,7 @@ public class CreateAccount extends AbstractCommand {
 			if (createTendermintValidator)
 				signature = "ed25519";
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				String nameOfSignatureAlgorithmOfNewAccount = "default".equals(signature) ? node.getConfig().getSignatureForRequests().getName() : signature;
 				signatureAlgorithmOfNewAccount = SignatureAlgorithms.of(nameOfSignatureAlgorithmOfNewAccount);
 

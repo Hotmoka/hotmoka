@@ -125,7 +125,7 @@ public class Call extends AbstractCommand {
 		private final TakamakaClassLoader classloader;
 
 		private Run() throws Exception {
-			try (Node node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (Node node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("the classpath of the receiver".equals(Call.this.classpath))
 					this.classpath = node.getClassTag(StorageValues.reference(Call.this.receiver)).getJar();
 				else

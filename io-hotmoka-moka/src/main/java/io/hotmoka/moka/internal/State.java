@@ -66,7 +66,7 @@ public class State extends AbstractCommand {
 			checkStorageReference(object);
 			var reference = StorageValues.reference(object);
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				this.updates = node.getState(reference).sorted().toArray(Update[]::new);
 				this.tag = getClassTag();
 

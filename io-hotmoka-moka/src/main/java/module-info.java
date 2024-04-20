@@ -23,6 +23,7 @@ module io.hotmoka.moka {
 	// for injecting CLI options
 	opens io.hotmoka.moka to info.picocli;
     opens io.hotmoka.moka.internal to info.picocli;
+    opens io.hotmoka.moka.internal.config to info.picocli;
     opens io.hotmoka.moka.internal.node to info.picocli;
     opens io.hotmoka.moka.internal.node.manifest to info.picocli;
 

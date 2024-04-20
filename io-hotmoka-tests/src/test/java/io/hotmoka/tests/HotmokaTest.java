@@ -297,12 +297,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(Node exposed) throws IOException, DeploymentException {
 		NodeServices.of(exposed, 8001);
-		return RemoteNodes.of(URI.create("ws://localhost:8001"), 100_000L);
+		return RemoteNodes.of(URI.create("ws://localhost:8001"), 100_000);
 	}
 
 	@SuppressWarnings("unused")
 	private static Node mkRemoteNode(String uri) throws IOException, DeploymentException {
-		return RemoteNodes.of(URI.create(uri), 100_000L);
+		return RemoteNodes.of(URI.create(uri), 100_000);
 	}
 
 	protected final void setAccounts(BigInteger... coins) throws InvalidKeyException, SignatureException, NoSuchAlgorithmException, TransactionRejectedException, TransactionException, CodeExecutionException, ClassNotFoundException, NodeException, TimeoutException, InterruptedException, UnknownReferenceException {

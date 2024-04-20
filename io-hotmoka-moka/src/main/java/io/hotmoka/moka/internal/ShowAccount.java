@@ -71,7 +71,7 @@ public class ShowAccount extends AbstractCommand {
 		System.out.println("entropy: " + Base64.toBase64String(account.getEntropyAsBytes()));
 
 		if (balances || keys) {
-			try (var node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = RemoteNodes.of(uri, 10_000)) {
 				if (balances)
 					showBalances(account, node);
 

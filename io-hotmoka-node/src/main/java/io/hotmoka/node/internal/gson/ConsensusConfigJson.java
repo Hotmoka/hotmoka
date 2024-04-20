@@ -37,8 +37,8 @@ import io.hotmoka.websockets.beans.api.JsonRepresentation;
 public abstract class ConsensusConfigJson implements JsonRepresentation<ConsensusConfig<?,?>> {
 	private final String genesisTime;
 	private final String chainId;
-	private final long maxErrorLength;
-	private final long maxDependencies;
+	private final int maxErrorLength;
+	private final int maxDependencies;
 	private final long maxCumulativeSizeOfDependencies;
 	private final boolean allowsUnsignedFaucet;
 	private final boolean skipsVerification;

@@ -81,7 +81,7 @@ public class BuyValidation extends AbstractCommand {
 
 			passwordOfBuyer = ensurePassword(passwordOfBuyer, "the buyer validator", interactive, false);
 
-			try (Node node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (Node node = this.node = RemoteNodes.of(uri, 10_000)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var takamakaCode = node.getTakamakaCode();

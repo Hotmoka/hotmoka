@@ -66,7 +66,7 @@ public class BindKey extends AbstractCommand {
 	}
 
 	private StorageReference getReferenceFromAccountLedger() throws Exception {
-		try (var node = RemoteNodes.of(uri, 10_000L)) {
+		try (var node = RemoteNodes.of(uri, 10_000)) {
 			var manifest = node.getManifest();
 			var takamakaCode = node.getTakamakaCode();
 

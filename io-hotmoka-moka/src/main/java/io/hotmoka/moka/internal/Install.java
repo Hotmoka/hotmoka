@@ -78,7 +78,7 @@ public class Install extends AbstractCommand {
 		private Run() throws Exception {
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, false);
 
-			try (var node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = RemoteNodes.of(uri, 10_000)) {
 				var takamakaCode = node.getTakamakaCode();
 				var manifest = node.getManifest();
 				checkStorageReference(payer);

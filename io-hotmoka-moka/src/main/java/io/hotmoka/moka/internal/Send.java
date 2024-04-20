@@ -90,7 +90,7 @@ public class Send extends AbstractCommand {
 
 			passwordOfPayer = ensurePassword(passwordOfPayer, "the payer account", interactive, "faucet".equals(payer));
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("faucet".equals(payer))
 					sendCoinsFromFaucet();
 				else if (looksLikePublicKey(destination)) {

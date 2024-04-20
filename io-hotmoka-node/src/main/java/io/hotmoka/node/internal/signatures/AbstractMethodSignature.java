@@ -142,12 +142,12 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	/**
 	 * The method {@code getMaxErrorLength} of the manifest.
 	 */
-	public final static NonVoidMethodSignature GET_MAX_ERROR_LENGTH = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getMaxErrorLength", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_MAX_ERROR_LENGTH = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getMaxErrorLength", StorageTypes.INT);
 
 	/**
 	 * The method {@code getMaxDependencies} of the manifest.
 	 */
-	public final static NonVoidMethodSignature GET_MAX_DEPENDENCIES = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getMaxDependencies", StorageTypes.LONG);
+	public final static NonVoidMethodSignature GET_MAX_DEPENDENCIES = MethodSignatures.ofNonVoid(StorageTypes.MANIFEST, "getMaxDependencies", StorageTypes.INT);
 
 	/**
 	 * The method {@code getMaxCumulativeSizeOfDependencies} of the manifest.

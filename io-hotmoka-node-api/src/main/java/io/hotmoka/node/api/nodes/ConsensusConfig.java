@@ -53,14 +53,14 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 * 
 	 * @return the maximal length
 	 */
-	long getMaxErrorLength();
+	int getMaxErrorLength();
 
 	/**
 	 * Yields the maximal number of dependencies in the classpath of a transaction.
 	 * 
 	 * @return the maximal number of dependencies
 	 */
-	long getMaxDependencies();
+	int getMaxDependencies();
 
 	/**
 	 * Yields the maximal cumulative size (in bytes) of the instrumented jars of the dependencies

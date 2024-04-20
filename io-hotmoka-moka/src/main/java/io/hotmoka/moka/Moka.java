@@ -23,6 +23,7 @@ import java.util.logging.LogManager;
 import io.hotmoka.moka.internal.BindKey;
 import io.hotmoka.moka.internal.BuyValidation;
 import io.hotmoka.moka.internal.Call;
+import io.hotmoka.moka.internal.Config;
 import io.hotmoka.moka.internal.Create;
 import io.hotmoka.moka.internal.CreateAccount;
 import io.hotmoka.moka.internal.CreateKey;
@@ -59,6 +60,7 @@ import picocli.CommandLine.Command;
 	subcommands = { BindKey.class,
 					BuyValidation.class,
 					Call.class,
+					Config.class,
 					Create.class,
 					CreateAccount.class,
 					CreateKey.class,

@@ -106,7 +106,7 @@ public class SellValidation extends AbstractCommand {
 
 			passwordOfSeller = ensurePassword(passwordOfSeller, "the seller validator", interactive, false);
 
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				var gasHelper = GasHelpers.of(node);
 				var nonceHelper = NonceHelpers.of(node);
 				var takamakaCode = node.getTakamakaCode();

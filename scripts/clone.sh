@@ -96,7 +96,7 @@ if [ -z "$4" ]
 then
 	echo " * extracting the pem of the validator key"
 	cd $DIR
-	docker cp ${TYPE}:/home/${TYPE}/extract/. .
+	docker cp ${TYPE}:/home/${TYPE}/extract/. . >/dev/null
 	VALIDATOR_KEY=$(ls *.pem)
 	ln -s ${VALIDATOR_KEY} validator_key.pem
 

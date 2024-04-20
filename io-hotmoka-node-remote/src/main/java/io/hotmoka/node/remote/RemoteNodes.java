@@ -40,7 +40,7 @@ public abstract class RemoteNodes {
 	 * @throws DeploymentException if the remote node could not be deployed
 	 * @throws IOException if the remote node could not be created
      */
-	public static RemoteNode of(URI uri, long timeout) throws IOException, DeploymentException {
+	public static RemoteNode of(URI uri, int timeout) throws IOException, DeploymentException {
         return new RemoteNodeImpl(uri, timeout);
     }
 }

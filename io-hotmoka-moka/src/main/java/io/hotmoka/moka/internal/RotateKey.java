@@ -90,7 +90,7 @@ public class RotateKey extends AbstractCommand {
 		private final Entropy entropy;
 
 		private Run() throws Exception {
-			try (var node = this.node = RemoteNodes.of(uri, 10_000L)) {
+			try (var node = this.node = RemoteNodes.of(uri, 10_000)) {
 				if ("the classpath of the account".equals(RotateKey.this.classpath))
 					this.classpath = node.getClassTag(StorageValues.reference(RotateKey.this.account)).getJar();
 				else
