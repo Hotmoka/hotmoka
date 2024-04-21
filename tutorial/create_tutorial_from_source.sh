@@ -136,7 +136,7 @@ sed -i "s/\[Hotmokaonly]://g" ProgrammingHotmoka.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingHotmoka.md
-sed -i 's/@takamaka_version/1.1.0/g' ProgrammingHotmoka.md
+sed -i 's/@takamaka_version/1.3.0/g' ProgrammingHotmoka.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Hotmoka\/hotmoka/g' ProgrammingHotmoka.md
 sed -i 's/@tool/moka/g' ProgrammingHotmoka.md
 sed -i 's/@Tool/Moka/g' ProgrammingHotmoka.md
@@ -204,7 +204,7 @@ sed -i "/^\[Hotmokaonly]:/d" ProgrammingBlueknot.md
 
 # These must be edited by hand since, for instance, they depend on accounts created in Mokito or on the configuration (hotmoka/blueknot)
 sed -i 's/@tendermint_version/0.34.15/g' ProgrammingBlueknot.md
-sed -i 's/@takamaka_version/1.1.0/g' ProgrammingBlueknot.md
+sed -i 's/@takamaka_version/1.3.0/g' ProgrammingBlueknot.md
 sed -i 's/@tool_repo/https:\/\/github.com\/Vero4Chain\/blueknot/g' ProgrammingBlueknot.md
 sed -i 's/@tool/blue/g' ProgrammingBlueknot.md
 sed -i 's/@Tool/Blue/g' ProgrammingBlueknot.md
