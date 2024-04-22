@@ -19,11 +19,13 @@ limitations under the License.
  */
 module io.hotmoka.stores {
 	exports io.hotmoka.stores;
-	requires transitive io.hotmoka.node;
+
+	requires transitive io.hotmoka.node.api;
+	requires io.hotmoka.node;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.crypto;
 	requires io.hotmoka.patricia;
 	requires io.hotmoka.exceptions;
-	requires transitive io.hotmoka.xodus;
+	requires io.hotmoka.xodus;
 	requires java.logging;
 }

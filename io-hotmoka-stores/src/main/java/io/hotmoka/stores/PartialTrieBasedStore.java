@@ -220,10 +220,18 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	/**
 	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
+	 */
+	public final void beginTransaction() {
+		beginTransactionInternal();
+	}
+
+	/**
+	 * Starts a transaction. Instance updates during the transaction are saved
+	 * in the supporting database if the transaction will later be committed.
 	 * 
 	 * @return the transaction
 	 */
-	public Transaction beginTransaction() {
+	protected Transaction beginTransactionInternal() {
 		synchronized (lock) {
 			txn = env.beginTransaction();
 			long numberOfCommits = getNumberOfCommits();
@@ -234,7 +242,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Commits to the database all data written from the last call to {@link #beginTransaction()}.
+	 * Commits to the database all data written from the last call to {@link #beginTransactionInternal()}.
 	 * This does not change the view of the store, since its roots are not updated,
 	 * unless the hash returned by this method gets later checked out to update the roots.
 	 * 
@@ -302,7 +310,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Yields the Xodus transaction active between {@link #beginTransaction()} and
+	 * Yields the Xodus transaction active between {@link #beginTransactionInternal()} and
 	 * {@link #commitTransaction()}. This is where store updates must be written.
 	 * 
 	 * @return the transaction
@@ -312,7 +320,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	}
 
 	/**
-	 * Determines if the store is between a {@link #beginTransaction()} and a
+	 * Determines if the store is between a {@link #beginTransactionInternal()} and a
 	 * {@link #commitTransaction()}.
 	 * 
 	 * @return true if and only if that condition holds
