@@ -27,17 +27,18 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.PartialTrieBasedWithHistoryStore;
+import io.hotmoka.stores.PartialStoreWithCheckableHistories;
+import io.hotmoka.stores.StoreException;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialTrieBasedWithHistoryStore {
+class Store extends PartialStoreWithCheckableHistories {
 
 	/**
-	 * The node having this store.
+	 * An object that can be used to send post requests to Tendermint
 	 */
 	private final TendermintNodeInternal nodeInternal;
 
@@ -52,7 +53,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
      * 
      * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
 	 * @param dir the path where the database of the store gets created
-     * @param nodeInternal the same node, with internal methods
+     * @param nodeInternal an object that can be used to send post requests to Tendermint
      */
     Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintNodeInternal nodeInternal) {
     	super(getResponseUncommittedCached, dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
@@ -92,6 +93,7 @@ class Store extends PartialTrieBasedWithHistoryStore {
 	 * @return the hash. If the store is currently empty, it yields an empty array of bytes
 	 */
 	byte[] getHash() {
+		try {
 		synchronized (lock) {
 			return isEmpty() ?
 				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
@@ -100,6 +102,10 @@ class Store extends PartialTrieBasedWithHistoryStore {
 				// although the info part has changed for the update of the number of commits
 				hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
@@ -107,8 +113,9 @@ class Store extends PartialTrieBasedWithHistoryStore {
 	 * with the exclusion of the info trie, whose root is masked with 0's.
 	 * 
 	 * @return the concatenation
+	 * @throws TrieException 
 	 */
-	private byte[] mergeRootsOfTriesWithoutInfo() {
+	private byte[] mergeRootsOfTriesWithoutInfo() throws StoreException {
 		byte[] bytes = mergeRootsOfTries();
 		for (int pos = 32; pos < 64; pos++)
 			bytes[pos] = 0;

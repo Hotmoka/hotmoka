@@ -27,6 +27,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -53,7 +54,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedStore {
+public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -93,7 +94,7 @@ public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedS
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected PartialTrieBasedWithHistoryStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+	protected PartialStoreWithCheckableHistories(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
 		super(getResponseUncommittedCached, dir, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
@@ -126,9 +127,15 @@ public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedS
 	}
 
 	@Override
-	protected void garbageCollect(long commitNumber) {
+	protected void garbageCollect(long commitNumber) throws StoreException {
 		super.garbageCollect(commitNumber);
-		trieOfHistories.garbageCollect(commitNumber);
+
+		try {
+			trieOfHistories.garbageCollect(commitNumber);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
@@ -144,20 +151,25 @@ public abstract class PartialTrieBasedWithHistoryStore extends PartialTrieBasedS
 	}
 
 	@Override
-	protected byte[] mergeRootsOfTries() {
+	protected byte[] mergeRootsOfTries() throws StoreException {
 		// this can be null if this is called before any new transaction has been executed over this store
 		if (trieOfHistories == null)
 			return super.mergeRootsOfTries();
 
-		byte[] superMerge = super.mergeRootsOfTries();
-		byte[] result = new byte[superMerge.length + 32];
-		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
+		try {
+			byte[] superMerge = super.mergeRootsOfTries();
+			byte[] result = new byte[superMerge.length + 32];
+			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
 
-		byte[] rootOfHistories = trieOfHistories.getRoot();
-		if (rootOfHistories != null)
-			System.arraycopy(rootOfHistories, 0, result, superMerge.length, 32);
+			byte[] rootOfHistories = trieOfHistories.getRoot();
+			if (rootOfHistories != null)
+				System.arraycopy(rootOfHistories, 0, result, superMerge.length, 32);
 
-		return result;
+			return result;
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override

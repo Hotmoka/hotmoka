@@ -28,6 +28,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
@@ -58,7 +59,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore extends PartialTrieBasedStore implements CheckableStore {
+public abstract class FullTrieBasedStore extends PartialStore implements CheckableStore {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -199,11 +200,17 @@ public abstract class FullTrieBasedStore extends PartialTrieBasedStore implement
 	}
 
 	@Override
-	protected void garbageCollect(long commitNumber) {
+	protected void garbageCollect(long commitNumber) throws StoreException {
 		super.garbageCollect(commitNumber);
-		trieOfErrors.garbageCollect(commitNumber);
-		trieOfRequests.garbageCollect(commitNumber);
-		trieOfHistories.garbageCollect(commitNumber);
+
+		try {
+			trieOfErrors.garbageCollect(commitNumber);
+			trieOfRequests.garbageCollect(commitNumber);
+			trieOfHistories.garbageCollect(commitNumber);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
@@ -227,28 +234,33 @@ public abstract class FullTrieBasedStore extends PartialTrieBasedStore implement
 	}
 
 	@Override
-	protected byte[] mergeRootsOfTries() {
-		// this can be null if this is called before any new transaction has been executed over this store
-		if (trieOfErrors == null)
-			return super.mergeRootsOfTries();
+	protected byte[] mergeRootsOfTries() throws StoreException {
+		try {
+			// this can be null if this is called before any new transaction has been executed over this store
+			if (trieOfErrors == null)
+				return super.mergeRootsOfTries();
 
-		byte[] superMerge = super.mergeRootsOfTries();
-		byte[] result = new byte[superMerge.length + 96];
-		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
+			byte[] superMerge = super.mergeRootsOfTries();
+			byte[] result = new byte[superMerge.length + 96];
+			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
 
-		byte[] rootOfErrors = trieOfErrors.getRoot();
-		if (rootOfErrors != null)
-			System.arraycopy(rootOfErrors, 0, result, superMerge.length, 32);
+			byte[] rootOfErrors = trieOfErrors.getRoot();
+			if (rootOfErrors != null)
+				System.arraycopy(rootOfErrors, 0, result, superMerge.length, 32);
 
-		byte[] rootOfRequests = trieOfRequests.getRoot();
-		if (rootOfRequests != null)
-			System.arraycopy(rootOfRequests, 0, result, superMerge.length + 32, 32);
+			byte[] rootOfRequests = trieOfRequests.getRoot();
+			if (rootOfRequests != null)
+				System.arraycopy(rootOfRequests, 0, result, superMerge.length + 32, 32);
 
-		byte[] rootOfHistories = trieOfHistories.getRoot();
-		if (rootOfHistories != null)
-			System.arraycopy(rootOfHistories, 0, result, superMerge.length + 64, 32);
+			byte[] rootOfHistories = trieOfHistories.getRoot();
+			if (rootOfHistories != null)
+				System.arraycopy(rootOfHistories, 0, result, superMerge.length + 64, 32);
 
-		return result;
+			return result;
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override

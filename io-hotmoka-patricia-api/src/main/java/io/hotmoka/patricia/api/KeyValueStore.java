@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.patricia.api;
 
-import java.util.NoSuchElementException;
-
 /**
  * An abstraction of a store that persists the nodes of a Patricia tree.
  */
@@ -29,39 +27,45 @@ public interface KeyValueStore {
 	 * 
 	 * @return the hash of the root; this might be {@code null}
 	 *         if this store supports the empty Patricia trie
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
 	 */
-	byte[] getRoot();
+	byte[] getRoot() throws KeyValueStoreException;
 
 	/**
 	 * Sets the hash of the root of the Patricia trie
 	 * that this store supports.
 	 * 
 	 * @param root the hash of the root of the trie
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
 	 */
-	void setRoot(byte[] root);
+	void setRoot(byte[] root) throws KeyValueStoreException;
 
 	/**
 	 * Persists an association of a key to a value in this store.
 	 * It replaces it if it was already present.
 	 * 
-	 * @param key the key
+	 * @param key the key; this might be missing in this store, in which case nothing happens
 	 * @param value the value
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
 	 */
-	void put(byte[] key, byte[] value);
+	void put(byte[] key, byte[] value) throws KeyValueStoreException;
 
 	/**
 	 * Deletes the association for the given key, that must exist in store.
 	 * 
 	 * @param key the key
+	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
 	 */
-	void remove(byte[] key);
+	void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException;
 
 	/**
 	 * Gets the association of a key in this store.
 	 * 
 	 * @param key the key
 	 * @return the value associated with the key
-	 * @throws NoSuchElementException if the key is not associated in this store
+	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
 	 */
-	byte[] get(byte[] key) throws NoSuchElementException;
+	byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException;
 }

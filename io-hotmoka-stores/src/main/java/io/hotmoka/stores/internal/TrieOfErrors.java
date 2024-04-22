@@ -28,6 +28,7 @@ import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -71,7 +72,7 @@ public class TrieOfErrors {
 		parent.put(key, new MarshallableString(value));
 	}
 
-	public byte[] getRoot() {
+	public byte[] getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 
@@ -111,8 +112,9 @@ public class TrieOfErrors {
 	 * Garbage-collects all keys that have been updated during the given number of commit.
 	 * 
 	 * @param commitNumber the number of the commit to garbage collect
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	public void garbageCollect(long commitNumber) {
+	public void garbageCollect(long commitNumber) throws TrieException {
 		parent.garbageCollect(commitNumber);
 	}
 }

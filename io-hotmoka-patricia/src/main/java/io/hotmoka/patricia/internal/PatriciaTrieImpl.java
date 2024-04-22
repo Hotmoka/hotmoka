@@ -34,7 +34,10 @@ import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.marshalling.api.Unmarshaller;
 import io.hotmoka.patricia.PatriciaTries.UnmarshallingContextSupplier;
 import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
  * Implementation of a Patricia trie.
@@ -108,11 +111,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 	@Override
 	public Optional<Value> get(Key key) throws NoSuchElementException {
-		byte[] hashOfRoot = store.getRoot();
-		if (hashOfRoot == null)
-			return Optional.empty();
-
 		try {
+			byte[] hashOfRoot = store.getRoot();
+			if (hashOfRoot == null)
+				return Optional.empty();
+
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 			return Optional.of(getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0));
@@ -123,6 +126,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		catch (IOException e) {
 			logger.log(Level.WARNING, "unexpected error while getting key from Patricia trie", e);
 			throw new RuntimeException("Unexpected error while getting key from Patricia trie", e);
+		}
+		catch (KeyValueStoreException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -148,24 +154,37 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			logger.log(Level.WARNING, "unexpected error while putting key into Patricia trie", e);
 			throw new RuntimeException("Unexpected error while putting key into Patricia trie", e);
 		}
+		catch (KeyValueStoreException | TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override
-	public byte[] getRoot() {
-		return store.getRoot();
+	public byte[] getRoot() throws TrieException {
+		try {
+			return store.getRoot();
+		}
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	@Override
-	public void garbageCollect(long commitNumber) {
-		long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
+	public void garbageCollect(long commitNumber) throws TrieException {
+		try {
+			long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
 
-		// there is nothing to remove when numberOfGarbageKeys == 0, since even the
-		// garbage collection support data is empty
-		if (numberOfGarbageKeys > 0) {
-			for (long num = 0; num < numberOfGarbageKeys; num++)
-				store.remove(getGarbageKey(commitNumber, num));
+			// there is nothing to remove when numberOfGarbageKeys == 0, since even the
+			// garbage collection support data is empty
+			if (numberOfGarbageKeys > 0) {
+				for (long num = 0; num < numberOfGarbageKeys; num++)
+					store.remove(getGarbageKey(commitNumber, num));
 
-			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
+				removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
+			}
+		}
+		catch (UnknownKeyException | KeyValueStoreException e) {
+			throw new TrieException(e);
 		}
 	}
 
@@ -241,6 +260,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, IOException {
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
+		}
+		catch (UnknownKeyException | KeyValueStoreException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -363,7 +385,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 		protected final AbstractNode putInStore() {
 			// we bind it to its hash in the store
-			store.put(hasherForNodes.hash(this), toByteArray());
+			try {
+				store.put(hasherForNodes.hash(this), toByteArray());
+			}
+			catch (KeyValueStoreException e) {
+				throw new RuntimeException(e); // TODO
+			}
+
 			return this;
 		}
 	}
@@ -443,7 +471,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			else {
 				// there was already a path for this selection: we recur
 				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-				addGarbageKey(children[selection]);
+				try {
+					addGarbageKey(children[selection]);
+				}
+				catch (TrieException e) {
+					throw new RuntimeException(e); // TODO
+				}
 			}
 
 			byte[][] childrenCopy = children.clone();
@@ -533,7 +566,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				addGarbageKey(next);
+				try {
+					addGarbageKey(next);
+				}
+				catch (TrieException e) {
+					throw new RuntimeException(e); // TODO
+				}
 
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
 			}
@@ -678,19 +716,22 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	/**
-	 * Yields the number of keys that could be garbage collected for the
-	 * given number of commit.
+	 * Yields the number of keys that could be garbage collected for the given number of commit.
 	 * 
 	 * @param commitNumber the number of commit
 	 * @return the number of keys
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	private long getNumberOfGarbageKeys(long commitNumber) {
+	private long getNumberOfGarbageKeys(long commitNumber) throws TrieException {
 	    try {
 	    	return bytesToLong(store.get(twoLongsToBytes(commitNumber, 0L)));
 	    }
-	    catch (NoSuchElementException e) {
+	    catch (NoSuchElementException | UnknownKeyException e) { // TODO: remove NoSuchElementException
 	    	return 0L;
 	    }
+	    catch (KeyValueStoreException e) {
+	    	throw new TrieException(e);
+		}
 	}
 
 	/**
@@ -699,9 +740,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * 
 	 * @param commitNumber the number of commit
 	 * @param newNumberOfGarbageKeys the new number of garbage keys to set
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	private void setNumberOfGarbageKeys(long commitNumber, long newNumberOfGarbageKeys) {
-		store.put(twoLongsToBytes(numberOfCommits, 0L), longToBytes(newNumberOfGarbageKeys));
+	private void setNumberOfGarbageKeys(long commitNumber, long newNumberOfGarbageKeys) throws TrieException {
+		try {
+			store.put(twoLongsToBytes(numberOfCommits, 0L), longToBytes(newNumberOfGarbageKeys));
+		}
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	/**
@@ -711,10 +758,14 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param numberOfCommit the number of commit
 	 * @param keyNumber the progressive number of the key
 	 * @return the key
-	 * @throws NoSuchElementException if the key does not exist in this trie
 	 */
-	private byte[] getGarbageKey(long commitNumber, long keyNumber) throws NoSuchElementException {
-		return store.get(twoLongsToBytes(commitNumber, keyNumber + 1));
+	private byte[] getGarbageKey(long commitNumber, long keyNumber) throws TrieException {
+		try {
+			return store.get(twoLongsToBytes(commitNumber, keyNumber + 1));
+		}
+		catch (UnknownKeyException | KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	/**
@@ -724,9 +775,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param commitNumber the number of commit
 	 * @param keyNumber the progressive number of the key updated during the commit
 	 * @param key the updated key
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	private void setGarbageKey(long commitNumber, long keyNumber, byte[] key) {
-		store.put(twoLongsToBytes(commitNumber, keyNumber + 1), key);
+	private void setGarbageKey(long commitNumber, long keyNumber, byte[] key) throws TrieException {
+		try {
+			store.put(twoLongsToBytes(commitNumber, keyNumber + 1), key);
+		}
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	/**
@@ -734,8 +791,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * occurred during the current commit.
 	 * 
 	 * @param key the key that became garbage
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
-	private void addGarbageKey(byte[] key) {
+	private void addGarbageKey(byte[] key) throws TrieException {
 		long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
 		setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
 		setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
@@ -754,10 +812,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	    return buffer.array();
 	}
 
-	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) {
-		// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
-		for (long num = 0; num <= numberOfGarbageKeys; num++)
-			store.remove(twoLongsToBytes(commitNumber, num));
+	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) throws TrieException {
+		try {
+			// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
+			for (long num = 0; num <= numberOfGarbageKeys; num++)
+				store.remove(twoLongsToBytes(commitNumber, num));
+		}
+		catch (UnknownKeyException | KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
 	}
 
 	private static long bytesToLong(byte[] bytes) {

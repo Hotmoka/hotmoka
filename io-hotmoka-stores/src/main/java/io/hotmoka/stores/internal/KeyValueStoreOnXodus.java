@@ -20,6 +20,7 @@ import java.util.NoSuchElementException;
 
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.xodus.ByteIterable;
+import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -48,17 +49,17 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 	}
 
 	@Override
-	public void put(byte[] key, byte[] value) {
+	public void put(byte[] key, byte[] value) throws ExodusException {
 		store.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
 	}
 
 	@Override
-	public void remove(byte[] key) {
+	public void remove(byte[] key) throws ExodusException {
 		store.delete(txn, ByteIterable.fromBytes(key));
 	}
 
 	@Override
-	public byte[] get(byte[] key) throws NoSuchElementException {
+	public byte[] get(byte[] key) throws NoSuchElementException, ExodusException {
 		ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
 		if (result == null)
 			throw new NoSuchElementException("no Merkle-Patricia trie node");

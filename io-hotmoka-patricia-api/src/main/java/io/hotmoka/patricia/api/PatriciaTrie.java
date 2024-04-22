@@ -49,13 +49,15 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * Yields the root of the trie, that can be used as a hash of its content.
 	 * 
 	 * @return the root
+	 * @throws TrieException if the trie is misbehaving
 	 */
-	byte[] getRoot();
+	byte[] getRoot() throws TrieException;
 
 	/**
 	 * Garbage-collects all keys that have been updated during the given number of commit.
 	 * 
 	 * @param commitNumber the number of the commit to garbage collect
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	void garbageCollect(long commitNumber);
+	void garbageCollect(long commitNumber) throws TrieException;
 }

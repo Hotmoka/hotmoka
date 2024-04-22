@@ -34,6 +34,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -153,12 +154,12 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	@Override
-	public byte[] getRoot() {
+	public byte[] getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 
 	@Override
-	public void garbageCollect(long commitNumber) {
+	public void garbageCollect(long commitNumber) throws TrieException {
 		parent.garbageCollect(commitNumber);
 	}
 }

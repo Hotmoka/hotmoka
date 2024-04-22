@@ -45,7 +45,7 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the response of the transaction having the given reference.
-	 * The response if returned also when it is not committed yet.
+	 * The response is returned also when it is not committed yet.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response, if any
@@ -62,7 +62,7 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
-	 * that provide information about the current values of its fields.
+	 * that can be used to reconstruct the current values of its fields.
 	 * 
 	 * @param object the reference of the object
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
@@ -71,7 +71,7 @@ public interface Store extends AutoCloseable {
 
 	/**
 	 * Yields the history of the given object, that is, the references of the transactions
-	 * that provide information about the current values of its fields. This considers also
+	 * that can be used to reconstruct the current values of its fields. This considers also
 	 * updates of the transaction not committed yet.
 	 * 
 	 * @param object the reference of the object

@@ -29,6 +29,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
@@ -56,7 +57,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedStore extends AbstractStore {
+public abstract class PartialStore extends AbstractStore {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -118,7 +119,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 */
 	private TrieOfInfo trieOfInfo;
 
-	private final static Logger logger = Logger.getLogger(PartialTrieBasedStore.class.getName());
+	private final static Logger logger = Logger.getLogger(PartialStore.class.getName());
 
 	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
@@ -141,7 +142,7 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
 	 */
-    protected PartialTrieBasedStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+    protected PartialStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
     	super(getResponseUncommittedCached, dir);
 
     	this.checkableDepth = checkableDepth;
@@ -250,20 +251,25 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
 	public byte[] commitTransaction() {
-		synchronized (lock) {
-			long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
-	
-			// a negative number means that garbage-collection is disabled
-			if (checkableDepth >= 0L) {
-				long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
-				if (commitToGarbageCollect >= 0L)
-					garbageCollect(commitToGarbageCollect);
+		try {
+			synchronized (lock) {
+				long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
+
+				// a negative number means that garbage-collection is disabled
+				if (checkableDepth >= 0L) {
+					long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
+					if (commitToGarbageCollect >= 0L)
+						garbageCollect(commitToGarbageCollect);
+				}
+
+				if (!txn.commit())
+					logger.info("transaction's commit failed");
+
+				return mergeRootsOfTries();
 			}
-	
-			if (!txn.commit())
-				logger.info("transaction's commit failed");
-	
-			return mergeRootsOfTries();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -291,10 +297,16 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * Garbage-collects all keys updated during the given commit.
 	 * 
 	 * @param commitNumber the number of the commit
+	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected void garbageCollect(long commitNumber) {
-		trieOfResponses.garbageCollect(commitNumber);
-		trieOfInfo.garbageCollect(commitNumber);
+	protected void garbageCollect(long commitNumber) throws StoreException {
+		try {
+			trieOfResponses.garbageCollect(commitNumber);
+			trieOfInfo.garbageCollect(commitNumber);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	/**
@@ -360,22 +372,27 @@ public abstract class PartialTrieBasedStore extends AbstractStore {
 	 * 
 	 * @return the concatenation
 	 */
-	protected byte[] mergeRootsOfTries() {
-		// this can be null if this is called before any new transaction has been executed over this store
-		if (trieOfResponses == null)
-			return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
+	protected byte[] mergeRootsOfTries() throws StoreException {
+		try {
+			// this can be null if this is called before any new transaction has been executed over this store
+			if (trieOfResponses == null)
+				return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
-		byte[] result = new byte[64];
+			byte[] result = new byte[64];
 
-		byte[] rootOfResponses = trieOfResponses.getRoot();
-		if (rootOfResponses != null)
-			System.arraycopy(rootOfResponses, 0, result, 0, 32);
-	
-		byte[] rootOfInfo = trieOfInfo.getRoot();
-		if (rootOfInfo != null)
-			System.arraycopy(rootOfInfo, 0, result, 32, 32);
-	
-		return result;
+			byte[] rootOfResponses = trieOfResponses.getRoot();
+			if (rootOfResponses != null)
+				System.arraycopy(rootOfResponses, 0, result, 0, 32);
+
+			byte[] rootOfInfo = trieOfInfo.getRoot();
+			if (rootOfInfo != null)
+				System.arraycopy(rootOfInfo, 0, result, 32, 32);
+
+			return result;
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	/**

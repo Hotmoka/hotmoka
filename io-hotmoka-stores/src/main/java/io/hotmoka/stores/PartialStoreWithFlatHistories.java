@@ -61,7 +61,7 @@ import io.hotmoka.xodus.ByteIterable;
  * This class is meant to be subclassed by specifying where errors and requests are kept.
  */
 @ThreadSafe
-public abstract class PartialTrieBasedFlatHistoryStore extends PartialTrieBasedStore {
+public abstract class PartialStoreWithFlatHistories extends PartialStore {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -91,7 +91,7 @@ public abstract class PartialTrieBasedFlatHistoryStore extends PartialTrieBasedS
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
 	 */
-    protected PartialTrieBasedFlatHistoryStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+    protected PartialStoreWithFlatHistories(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
     	super(getResponseUncommittedCached, dir, checkableDepth);
 
     	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
