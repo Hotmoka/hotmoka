@@ -1667,7 +1667,7 @@ Total gas consumed: 500000
   for RAM: 1225
   for storage: 11310
   for penalty: 487175
-io.hotmoka.beans.TransactionException: java.lang.IllegalArgumentException:
+io.hotmoka.node.api.TransactionException: java.lang.IllegalArgumentException:
 an object of class io.takamaka.family.Person cannot be kept in store
 since it does not implement io.takamaka.code.lang.Storage
 ```
@@ -2003,7 +2003,7 @@ Total gas consumed: 0
   for RAM: 0
   for storage: 0
   for penalty: 0
-io.hotmoka.beans.TransactionRejectedException:
+io.hotmoka.node.api.TransactionRejectedException:
 cannot pass as argument a value of the non-exported type io.takamaka.family.Person
 ```
 
@@ -3423,7 +3423,7 @@ Please specify the password of the payer account: chocolate
 Do you really want to spend up to 500000 gas units to call
 public void invest(java.math.BigInteger) ? [Y/N] Y
 
-io.hotmoka.beans.TransactionException:
+io.hotmoka.node.api.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
 you must invest at least 1000@GradualPonzi.java:46
 ```
@@ -4155,7 +4155,7 @@ $ moka call
     --payer 66ac35b5435eb558f1c09cac7b8eed44a17c71b9cb8fecc7a1822f51b8397e08#0
     --uri ws://panarea.hotmoka.io
 
-io.hotmoka.beans.TransactionException:
+io.hotmoka.node.api.TransactionException:
 io.takamaka.code.lang.RequirementViolationException:
 the game is over@TicTacToe.java:79
 ```
@@ -5871,20 +5871,22 @@ That interface can be split in five parts:
 1. A `get` part, that includes methods for querying the
    state of the node and for accessing the objects contained in its store.
 2. An `add` part, that expands the store of the node with the result of a transaction.
-3. A `run` part, that allows one to run transactions that execute `@View` methods and hence do not
+3. A `run` part, that runs transactions that execute `@View` methods and hence do not
    expand the store of the node.
 4. A `post` part, that expands the store of the node with the result of a transaction,
    without waiting for its result; instead, a future is returned.
-5. A `subscribe` part, that allows users to subscribe listeners of events generated during
-   the execution of the transactions.
+5. A `contextual` part, that allows users to subscribe listeners of events generated during
+   the execution of the transactions, or listeners called when the node gets closed, or
+   to close the node itself.
 
  <p align="center"><img width="800" src="pics/nodes.png" alt="Figure 34. The hierarchy of Hotmoka nodes"></p><p align="center">Figure 34. The hierarchy of Hotmoka nodes.</p>
 
 
 If a node belongs to a blockchain, then all nodes of the blockchain have the same vision
-of the state, so that it is equivalent to call a method of a node or of any other node of the
-network. The only method that is out of consensus, since it contains information specific
-to each node, is `getNodeInfo`. It reports for instance the type of the node and its version.
+of the state, so that it is equivalent to call a method on a node or on any other node of the
+network. The only methods that are out of consensus, since they deal with information specific
+to each node, are `getInfo` and the four contextual methods
+`subscribeToEvents`, `addOnCloseHandler`, `removeOnCloseHandler` and `close`.
 
 Looking at Figure 34, it is possible to see that
 the `Node` interface has many implementations, that we describe below.
@@ -5910,18 +5912,19 @@ Some implementations have to ability to _resume_.
 This means that they recover the state at the end of a previous execution, reconstruct the
 consensus parameters from that state and resume the execution from there, downloading
 and verifying blocks already processed by the network. In order to resume
-a node from an already existing state, the static `resume()` method of its implementing interface
+a node from an already existing state, the static `resume()` method of its supplier class
 must be used.
 
 #### Decorators
 
 The `Node` interface is implemented by some decorators as well.
 Typically, these decorators run some transactions on the decorated node,
-to simplify some tasks, such as the initialization of a node, the installation of jars into a node
-or the creation of accounts in a node. These decorators are views of the decorated node, in the sense
+to simplify some tasks, such as the initialization of the node, the installation of jars into the node
+or the creation of accounts in the node. These decorators are views of the decorated node, in the sense
 that any method of the `Node` interface, invoked on the decorator, is forwarded
-to the decorated node. We will discuss them in
-[Node Decorators](#node-decorators).
+to the decorated node, with the exception of the contextual methods that are executed locally
+on the specific node where they are invoked.
+We will discuss them in [Node Decorators](#node-decorators).
 
 #### Adaptors
 
@@ -5933,14 +5936,14 @@ In other words, we would like to publish _any_
 Hotmoka node as a service, accessible through the internet. This will be the subject
 of [Hotmoka Services](#hotmoka-services).
 Conversely, once a Hotmoka node has been published at some URI, say
-`ws://my.company.com`, it will be accessible through some network API, through the
-SOAP or REST protocol, and also through websockets, for subscription to events. This complexity
+`ws://my.company.com`, it will be accessible through websockets. This complexity
 might make it awkward, for a programmer, to use the published node.
 In that case, we can create an instance of `Node` that operates as
 a proxy to the network service, helping programmers integrate
 their software to the service in a seamless way. This _remote_ node still implements
-the `Node` interface, but simply forwards all its calls to the remote service.
-By programming against
+the `Node` interface, but simply forwards all its calls to the remote service
+(with the exception of the contextual methods, that are executed locally on
+the remote node itself). By programming against
 the same `Node` interface, it becomes easy for a programmer
 to swap a local node with a remote node, or
 vice versa. This mechanism is described in
@@ -6094,7 +6097,7 @@ The following node has been initialized:
       ...
     ...
 
-The node has been published at localhost:8001
+The node has been published at ws://localhost:8001
 
 The owner of the key of the gamete can bind it to its address now:
   moka bind-key FaHYC1TxCJBcpgz8FrXy2bidwNBgPjPg1L7GEHaDHwmZ
@@ -6114,19 +6117,9 @@ an externally-owned account named `gamete`, whose public key is
 that provided after `--key-of-gamete`;
 it has initialized the balance of the gamete to
 the value passed after `moka init-tendermint`. Finally, this command
-has published an internet service at localhost, that exports the API
-of the node. For instance, you can open the suggested URI
-
-```url
-http://localhost:8001/get/manifest
-```
-in a browser, to see the JSON answer:
-
-```json
-{"transaction":{"type":"local",
-    "hash":"21d375ae9bac3b74d1a54a6418f7c70c2c107665fb2066a94dbf65cb3db9cdc6"},
-  "progressive":"0"}
-```
+has published an internet service at the URI `ws://localhost:8001`,
+reachable through websockets connections, that exports the API
+of the node.
 
 > By default, `init-tendermint` publishes the service at port 8001. This can be changed
 > with its `--port` switch.
@@ -6134,18 +6127,6 @@ in a browser, to see the JSON answer:
 > The chain identifier of the blockchain is specified inside the Tendermint configuration
 > files. You can edit such files and set your preferred chain identifier before invoking
 > `init-tendermint`.
-
-You can also try
-
-```url
-http://localhost:8001/get/nameOfSignatureAlgorithmForRequests
-```
-
-and see the following response in your browser:
-
-```json
-{"algorithm":"ed25519"}
-```
 
 In order to use the gamete, you should bind its key to its actual storage
 reference in the node, on your local machine. Open another shell,
@@ -6248,8 +6229,8 @@ consensus is imposed. But they are very
 handy because they allow one to inspect, very easily, the requests sent to
 the node and the corresponding responses.
 
-You can start a memory Hotmoka node, with an open faucet, exactly as you did,
-in the previous section, for a Tendermint node, but using the `moka init-disk`
+You can start a disk Hotmoka node, with an open faucet, exactly as you did,
+in the previous section for a Tendermint node, but using the `moka init-disk`
 command instead of `moka init-tendermint`. You do not need any Tendermint configuration
 this time, but still need a key to control the gamete of the node, that you can create
 exactly as for a Tendermint Hotmoka node:
@@ -6350,7 +6331,7 @@ for it. They are text files, that you can open to understand what is happening i
 
 The transactions shown above are those that have initialized the node and
 opened the faucet. The last transaction inside each block is a _reward_
-transaction, that distributes the earnings of the block to the (zero) validators
+transaction, that distributes the earnings of the block to the (zero, for disk nodes) validators
 and increases block height and number of transactions in the manifest.
 
 Spend some time looking at the `request.txt` and `response.txt` files.
@@ -6485,8 +6466,8 @@ A few examples are:
    versions of Hotmoka. Performing this initialization by hand leads to fragile
    and error-prone code.
 
-In all these examples, Hotmoka provides decorators, that is, implementation of the
-`Node` interface built from an existing `Node` object. The decorator is just an alias
+In all these examples, Hotmoka provides decorators, that is, implementations of the
+`Node` interface built from an existing `Node` object. A decorator is just an alias
 to the decorated node, but adds some functionality or performs some action on it.
 Figure 34 shows that there are decorators for each of the three
 situations enumerated above.
@@ -6508,14 +6489,13 @@ package runs;
 import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
-import java.util.Base64;
 
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.AccountsNodes;
 import io.hotmoka.helpers.InitializedNodes;
 import io.hotmoka.helpers.JarsNodes;
-import io.hotmoka.node.SimpleConsensusConfigBuilders;
+import io.hotmoka.node.ConsensusConfigBuilders;
 import io.hotmoka.node.disk.DiskNodeConfigBuilders;
 import io.hotmoka.node.disk.DiskNodes;
 import io.takamaka.code.constants.Constants;
@@ -6529,21 +6509,19 @@ public class Decorators {
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
-      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION +
-      "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
+      "/.m2/repository/io/hotmoka/io-takamaka-code/" + Constants.TAKAMAKA_VERSION
+      + "/io-takamaka-code-" + Constants.TAKAMAKA_VERSION + ".jar");
 
     // the path of the user jar to install
     var familyPath = Paths.get("../family/target/family-0.0.1.jar");
 
-    // create a key pair for the gamete and compute the Base64-encoding of its public key
+    // create a key pair for the gamete
     var signature = SignatureAlgorithms.ed25519();
 	var entropy = Entropies.random();
 	KeyPair keys = entropy.keys("password", signature);
-	var publicKeyBase64 = Base64.getEncoder().encodeToString
-	  (signature.encodingOf(keys.getPublic()));
-	var consensus = SimpleConsensusConfigBuilders.defaults()
+	var consensus = ConsensusConfigBuilders.defaults()
    		.setInitialSupply(SUPPLY)
-   		.setPublicKeyOfGamete(publicKeyBase64).build();
+   		.setPublicKeyOfGamete(keys.getPublic()).build();
 
 	try (var node = DiskNodes.init(config, consensus)) {
       // first view: store the io-takamaka-code jar and create manifest and gamete
@@ -6587,7 +6565,7 @@ account #1: f0840b73741d3fceefc4e87a4d055a7044dbcbdeb8213636c0d810eba4cf60cc#0
 You can see that the use of decorators has avoided us the burden of
 programming transaction requests, explicitly, and makes our code more robust,
 since future versions of Hotmoka will update the implementation of the decorators,
-while their interface will remain untouched, protecting our code from modifications.
+while their interface will remain untouched, shielding our code from modifications.
 
 As we have already said, decorators are
 views of the same node, just seen through different lenses
@@ -6621,12 +6599,10 @@ import java.math.BigInteger;
 import java.nio.file.Paths;
 import java.security.KeyPair;
 
-import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.helpers.InitializedNodes;
-import io.hotmoka.node.SimpleValidatorsConsensusConfigBuilders;
-import io.hotmoka.node.service.NodeServiceConfigBuilders;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.node.tendermint.TendermintNodeConfigBuilders;
 import io.hotmoka.node.tendermint.TendermintNodes;
@@ -6637,7 +6613,6 @@ public class Publisher {
 
   public static void main(String[] args) throws Exception {
     var config = TendermintNodeConfigBuilders.defaults().build();
-    var serviceConfig = NodeServiceConfigBuilders.defaults().build();
     // the path of the runtime Takamaka jar, inside Maven's cache
     var takamakaCodePath = Paths.get
       (System.getProperty("user.home") +
@@ -6648,19 +6623,18 @@ public class Publisher {
     var signature = SignatureAlgorithms.ed25519();
     var entropy = Entropies.random();
 	KeyPair keys = entropy.keys("password", signature);
-	var publicKeyBase64 = Base64.toBase64String(signature.encodingOf(keys.getPublic()));
-	var consensus = SimpleValidatorsConsensusConfigBuilders.defaults()
-		.setPublicKeyOfGamete(publicKeyBase64)
+	var consensus = ValidatorsConsensusConfigBuilders.defaults()
+		.setPublicKeyOfGamete(keys.getPublic())
 		.setInitialSupply(SUPPLY)
 		.build();
 
 	try (var original = TendermintNodes.init(config, consensus);
-         // remove the next line if you want to publish an uninitialized node
-         var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
-         var service = NodeServices.of(serviceConfig, original)) {
+      // uncomment the next line if you want to initialize the node
+      // var initialized = InitializedNodes.of(original, consensus, takamakaCodePath);
+      var service = NodeServices.of(original, 8001)) {
 
-        System.out.println("\nPress ENTER to turn off the server and exit this program");
-        System.in.read();
+      System.out.println("\nPress ENTER to turn off the server and exit this program");
+      System.in.read();
     }
   }
 }
@@ -6675,63 +6649,40 @@ var service = NodeServices.of(serviceConfig, original);
 
 Variable `service` holds a Hotmoka _service_, that is, an actual network service that adapts
 the `original` node to a web API that is published at localhost, at port 8001
-(another port number can be selected through the `serviceConfig` object, if needed). The service
+(another port number can be required to the factory
+method `NodeServices.of`, if needed). The service
 is an `AutoCloseable` object: it starts when it is created and gets shut down 
 when its `close()` method is invoked, which occurs, implicitly, at the end of the
 scope of the try-with-resources. Hence, this service remains online until the user
 presses the ENTER key and terminates the service (and the program).
 
 Run class `Publisher` from Eclipse.
-It should run for a few seconds and then start waiting for the ENTER key. Do not press such key yet! Instead,
-enter the following URI into a browser running in your machine:
-
-```url
-http://localhost:8001/get/nameOfSignatureAlgorithmForRequests
-```
-
-You should see the following response in your browser:
-
-```json
-{"algorithm":"ed25519"}
-```
-
-What we have achieved, is to call the method `getNameOfSignatureAlgorithmForRequests()` of `original`,
-accessible through the network service.
-
-Let us try to ask for the storage address of the manifest of the node. Again, insert the following
-URI in a browser on your local machine:
-
-```url
-http://localhost:8001/get/manifest
-```
-
-This time, the response is negative:
-
-```json
-{"message":"no manifest set for this node",
- "exceptionClassName":"java.util.NoSuchElementException"}
-```
-
-We have called the method `getManifest()` of `original`, through the network service.
+It should run for a few seconds and then start waiting for the ENTER key. Do not press such key yet!
 Since `original` is not initialized yet, it has no manifest and no gamete. Its store is just empty
-at the moment. Hence the negative response.
+at the moment. You canverify that by running:
+
+```shell
+$ moka info
+```
+
+which will fail since it cannot find a manifest in the node.
 
 Thus, let us initialize the node before publishing it, so that it is already
 initialized when published. Press ENTER to terminate the service, then modify
 the `Publisher.java` class by uncommenting the use of the `InitializedNode` decorator,
 whose goal is to create manifest and gamete of the node
-and install the basic classes of Takamaka inside the node.
+and install the basic classes of the Takamaka runtime inside the node.
 
 > Note that we have published `original`:
 >
 > ```java
-> var service = NodeServices.of(serviceConfig, original);
+> var service = NodeServices.of(original, 8001);
 > ```
 >
 > We could have published `initialized` instead:
 >
 > ```java
-> var service = NodeServices.of(serviceConfig, initialized);
+> var service = NodeServices.of(initialized, 8001);
 > ```
 >
 > The result would be the same, since both are views of the same node object.
@@ -6742,21 +6693,8 @@ and install the basic classes of Takamaka inside the node.
 > to the risk that somebody else might initialize the node, hence taking its control
 > since he will set the keys of the gamete.
 
-If you re-run class `Publisher` and re-enter the last
-URI in a browser on your local machine, the response will be positive this time:
-
-```json
-{
-  "transaction":
-  {
-    "type":"local",
-    "hash":"f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867"
-  },
-  "progressive":"0"
-}
-```
-This means that the manifest is allocated, in the store of `original`, at the storage reference
-`f9ac8849f7ee484d73fd84470652582cf93da97c379fee9ccc66bd5e2ffc9867#0`.
+If you re-run class `Publisher` and retry the `moka info` command, you should see
+the manifest of the now initialized node on the screen.
 
 > A Hotmoka node, once published, can be accessed by many
 > users, _concurrently_. This is not a problem, since Hotmoka nodes are thread-safe and can
@@ -6773,11 +6711,11 @@ This means that the manifest is allocated, in the store of `original`, at the st
 __[See project `runs` inside the `hotmoka_tutorial` repository]__
 
 We have seen how a service can be published and its methods called through
-a browser. This has been easy for methods such as `getManifest()` and
-`getNameOfSignatureAlgorithmForRequest()` of the interface `Node`. However, it
+a browser. This is easy for methods such as `getManifest()` and
+`getConfig()` of the interface `Node`. However, it
 becomes harder if we want to call methods of `Node` that need parameters, such
 as `getState()` or the many `add/post/run` methods for scheduling transactions on
-the node. Parameters should be passed as JSON payload of the http connection, in a format
+the node. Parameters should be passed as JSON payload of the websockets connection, in a format
 that is hard to remember, easy to get wrong and possibly changing in the future.
 Moreover, the JSON responses must be parsed back.
 In principle, this can be done by hand or through software that builds the
@@ -6798,34 +6736,14 @@ Namely, if you go back to [Installation of the Jar in a Hotmoka Node](#installat
 you will see that we have built a Hotmoka node from a remote service:
 
 ```java
-var config = RemoteNodeConfigBuilders.defaults()
-  .setURL("panarea.hotmoka.io")
- .build();
-
-try (var node = RemoteNodes.of(config)) {
+try (var node = RemoteNodes.of(URI.create("ws://panarea.hotmoka.io"), 20000)) {
   ...
 }
 ```
 The `RemoteNodes.of(...)` method adapts a remote service into a Hotmoka node,
-so that we can call all methods of that (Figure 34).
-
-By default, a remote node connects to a service by using the HTTP protocol, but
-handles event notification by using web sockets. This is automatic and you do not need
-to understand the details of this connection. It is possible to use web sockets for
-*all* communications, also those of the many `get/add/post/run` methods of the
-`Node` interface. For that, you can set a flag in the configuration of the remote node,
-as follows:
-
-```java
-var config = RemoteNodeConfigBuilders.defaults()
-  .setURL("panarea.hotmoka.io")
-  .setWebSockets(true)
- .build();
-```
-
-Nevertheless, there is currently no actual benefit in using web sockets for
-all communications. Thus, we suggest to stick to the default configuration,
-that uses web sockets only for event notification to the subscribed event handlers.
+so that we can call all methods of that (Figure 34). The
+`20000` is the timeout, in milliseconds, for connecting to the service
+and for the methods called on the remote node.
 
 ### Creating Sentry Nodes
 
@@ -6834,46 +6752,32 @@ on a machine `my.validator.com` we can execute:
 
 ```java
 TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults().build();
-SimpleConsensusConfig consensus = SimpleConsensusConfigBuilders.defaults().build();
-NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().build();
+ValidatorsConsensusConfig consensus = ValidatorsConsensusConfigBuilders.defaults().build();
 
 try (Node original = TendermintNodes.init(config, consensus);
-     NodeService service = NodeServices.of(serviceConfig, original)) {
+     NodeService service = NodeServices.of(original, 8001)) {
   ...
 }
 ```
 
-The service will be available on the internet as
-
-```url
-http://my.validator.com:8001
-```
-
+The service will be published on the internet at `ws://my.validator.com:8001`.
 Moreover, on another machine `my.sentry.com`,
 that Hotmoka service can be adapted into a remote node
 that, itself, can be published on that machine:
 
 ```java
-NodeServiceConfig serviceConfig = NodeServiceConfigBuilders.defaults().build();
-RemoteNodeConfig config = RemoteNodeConfigBuilders.defaults()
-  .setURL("my.validator.com:8001")
-  .build();
-
-try (Node validator = RemoteNodes.of(config);
-     NodeService service = NodeServices.of(serviceConfig, validator)) {
+try (Node validator = RemoteNodes.of(URI.create("ws://my.validator:8001"), 8001);
+     NodeService service = NodeServices.of(validator, 8001)) {
   ...
 }
 ```
 
-The service will be available at
-```url
-http://my.sentry.com:8001
-```
+The service will be published at `ws://my.sentry.com:8001`.
 
 We can continue this process as much as we want, but let us stop at this point.
 Programmers can connect to the service published at
-`http://my.sentry.com:8001` and send requests to it. That service is just a bridge
-that forwards everything to the service at `http://my.validator.com:8001`.
+`ws://my.sentry.com:8001` and send requests to it. That service is just a bridge
+that forwards everything to the service at `ws://my.validator.com:8001`.
 It might not be immediately clear why this intermediate step could be useful
 or desirable. The motivation is that we could keep the (precious) validator
 machine under a firewall that allows connections with `my.sentry.com` only.
@@ -6884,7 +6788,8 @@ of blocks. Moreover, since many sentries can be connected to a single validator,
 remains accessible through the other sentries, if needed.
 This is an effective way to mitigate the problem of DOS attacks to validator nodes.
 
-The idea of sentry nodes against DOS attacks is not new and is used, for
+The idea of using sentry nodes against DOS attacks is not new for proof-of-stake networks,
+whose validators are considered as precious resources that must be protected. It is used, for
 instance, in Cosmos networks [[Sentry]](#references).
 However, note how it is easy, with Hotmoka,
 to build such a network architecture by using network
@@ -6906,11 +6811,15 @@ The default signature algorithm used by a node is specified at construction time
 parameter. For instance, the code
 
 ```java
-TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults()
-                                .signRequestsWith("ed25519")
-                                .build();
+var config = TendermintNodeConfigBuilders.defaults().build();
+var consensus = ValidatorsConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ....
+  .setSignatureForRequests(SignatureAlgorithms.ed25519()) // this is the default
+  .build();
 
-try (Node node = TendermintNodes.of(config, consensus)) {
+try (Node node = TendermintNodes.init(config, consensus)) {
   ...
 }
 ```
@@ -6921,8 +6830,7 @@ Requests sent to that node can be signed as follows:
 
 ```java
 // recover the algorithm used by the node
-SignatureAlgorithm signature
-  = SignatureAlgorithms.of(node.getNameOfSignatureAlgorithmForRequests());
+SignatureAlgorithm signature = node.getConfig().getSignatureAlgorithmForRequests();
 
 // create a key pair for that algorithm
 KeyPair keys = signature.getKeyPair();
@@ -6951,21 +6859,27 @@ It is possible to configure nodes with other default signature algorithms.
 For instance:
 
 ```java
-TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults()
-                                .signRequestsWith("sha256dsa")
-                                .build();
+var consensus = ValidatorsConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ....
+  .setSignatureForRequests(SignatureAlgorithms.sha256dsa()) // this replaces the default
+  .build();
 ```
 
 configures a node that uses sha256dsa as default signature algorithm, while
 
 ```java
-TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults()
-                                .signRequestsWith("empty")
-                                .build();
+var consensus = ValidatorsConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ....
+  .setSignatureForRequests(SignatureAlgorithms.empty())
+  .build();
 ```
 
 configures a node that uses the empty signature as default signature algorithm; it is an
-algorithm that accepts all signatures, in practice disabling any signature checking.
+algorithm that accepts all signatures, in practice disabling signature checking.
 
 It is possible to specify a quantum-resistant signature algorithm as default,
 that is, one that belongs to
@@ -6973,18 +6887,24 @@ a family of algorithms that are expected to be immune from attacks performed thr
 a quantistic computer. For instance,
 
 ```java
-TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults()
-                                .signRequestsWith("qtesla1")
-                                .build();
+var consensus = ValidatorsConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ....
+  .setSignatureForRequests(SignatureAlgorithms.qtesla1())
+  .build();
 ```
 
 configures a node that uses the quantum-resistant qtesla-p-I algorithm as default signature algorithm,
 while
 
 ```java
-TendermintNodeConfig config = TendermintNodeConfigBuilders.defaults()
-                                .signRequestsWith("qtesla3")
-                                .build();
+var consensus = ValidatorsConsensusConfigBuilders.defaults()
+  .setPublicKeyOfGamete(keys.getPublic())
+  .setInitialSupply(SUPPLY)
+  ....
+  .setSignatureForRequests(SignatureAlgorithms.qtesla3())
+  .build();
 ```
 
 configures a node that uses the quantum-resistant qtesla-p-III
@@ -7195,7 +7115,7 @@ Wait for around 30 seconds, in order to give time to the node to start. After th
 and running in your local machine, as you can verify with `moka info`:
 
 ```shell
-$ moka info --uri localhost:8001
+$ moka info --uri ws://localhost:8001
 
 Info about the node:
   takamakaCode: 539c58b64358bcd2aaca8752ae2442aa119b0cadffc233ac7cfc07dd6d69e96f
@@ -7249,7 +7169,7 @@ gamete: use `false` for that in a real blockchain.
 As shown in Figure 35, a Tendermint Hotmoka node communicates
 to the external world through ports 26656 for gossip and 8001 (or 80 or any other port) for clients.
 Hence those ports must be connected to the Docker image. We do that with the
-`-p` switch. Specifically, port 8001 of the real machine is bound to port 8001 of the Docker image
+`-p` switch. Specifically, in our example, port 8001 of the real machine is bound to port 8001 of the Docker image
 and port 26656 of the real machine is bound to port 26656 of the Docker image. If we prefer to use
 port 80 for clients, we should use `-p 80:8001` instead of `-p 8001:8001`.
 
@@ -7840,7 +7760,7 @@ Assume for instance that Alice follows the instructions in
 [Starting a Tendermint Hotmoka Node on Amazon EC2](#starting-a-tendermint-hotmoka-node-on-amazon-ec2)
 and starts a Hotmoka node with Docker, that is a network with
 a single node that, moreover, is the only validator. Her node will be publicly accessible
-as `http://alice.hotmoka.io`. The key of the only validator is in the `chain`
+as `ws://alice.hotmoka.io`. The key of the only validator is in the `chain`
 volume of Docker in Alice's machine, as said before.
 Alice moves that key to a safer place, where she can use it to control the validator:
 ```shell
@@ -7882,7 +7802,7 @@ and the key of the validator
 
 After some time, Bob starts another node, connected to Alice's node, by following the instructions in
 [Connecting a Tendermint Hotmoka Node to an Existing Blockchain](#connecting-a-tendermint-hotmoka-node-to-an-existing-blockchain).
-Bob's node is publicly accessible as `http://bob.hotmoka.io`.
+Bob's node is publicly accessible as `ws://bob.hotmoka.io`.
 ```shell
 bob.hotmoka.io$ docker run --rm -dit
     -e NETWORK_URI=alice.hotmoka.io

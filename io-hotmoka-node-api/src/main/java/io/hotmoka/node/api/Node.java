@@ -54,15 +54,6 @@ import io.hotmoka.node.api.values.StorageValue;
 public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 
 	/**
-	 * Closes the node.
-	 * 
-	 * @throws InterruptedException if the current thread has been interrupted while closing the node
-	 * @throws NodeException if the node is not able to close correctly
-	 */
-	@Override
-	void close() throws InterruptedException, NodeException;
-
-	/**
 	 * Yields the consensus configuration of this node.
 	 * 
 	 * @return the consensus configuration of this node
@@ -110,7 +101,7 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @throws TimeoutException if no answer arrives before a time window
 	 * @throws InterruptedException if the current thread is interrupted while waiting for an answer to arrive
 	 */
-	NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException;
+	NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException; // TODO: change into getInfo()
 
 	/**
 	 * Yields the class tag of the object with the given storage reference.
@@ -400,4 +391,13 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @return the subscription, that can be used later to stop event handling with {@code handler}
 	 */
 	Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler);
+
+	/**
+	 * Closes the node.
+	 * 
+	 * @throws InterruptedException if the current thread has been interrupted while closing the node
+	 * @throws NodeException if the node is not able to close correctly
+	 */
+	@Override
+	void close() throws InterruptedException, NodeException;
 }
