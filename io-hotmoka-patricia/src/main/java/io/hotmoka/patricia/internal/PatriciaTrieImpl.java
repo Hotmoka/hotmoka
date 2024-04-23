@@ -139,6 +139,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		catch (KeyValueStoreException | TrieException e) {
 			throw new RuntimeException(e); // TODO
 		}
+		catch (UnknownKeyException e) {
+			return Optional.empty(); // TODO
+		}
 	}
 
 	@Override
@@ -369,7 +372,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * @throws NoSuchElementException if there is not such value
 		 * @throws IOException if some data could not be unmarshalled
 		 */
-		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws NoSuchElementException, IOException;
+		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, IOException;
 
 		/**
 		 * Binds the given value to the given key.
@@ -459,7 +462,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws NoSuchElementException, IOException {
+		protected Value get(byte[] nibblesOfHashedKey, final int cursor) throws UnknownKeyException, IOException {
 			if (cursor >= nibblesOfHashedKey.length)
 				throw new RuntimeException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
@@ -558,7 +561,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws NoSuchElementException, IOException {
+		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, IOException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < sharedNibbles.length; cursor1++, cursor++)
 				if (sharedNibbles[cursor1] != nibblesOfHashedKey[cursor])
@@ -670,11 +673,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws NoSuchElementException, IOException {
+		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, IOException {
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < keyEnd.length; cursor1++, cursor++)
 				if (keyEnd[cursor1] != nibblesOfHashedKey[cursor])
-					throw new NoSuchElementException("key not found in Patricia trie");
+					throw new UnknownKeyException("key not found in Patricia trie");
 
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new RuntimeException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
