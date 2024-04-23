@@ -462,12 +462,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (children[selection] == null)
 				throw new UnknownKeyException("Key not found in Patricia trie");
 
-			try {
-				return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
-			}
-			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
-			}
+			return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
 		}
 
 		@Override
@@ -562,12 +557,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie");
 
-			try {
-				return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
-			}
-			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
-			}
+			return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
 		}
 
 		@Override
@@ -740,7 +730,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	    try {
 	    	return bytesToLong(store.get(twoLongsToBytes(commitNumber, 0L)));
 	    }
-	    catch (NoSuchElementException | UnknownKeyException e) { // TODO: remove NoSuchElementException
+	    catch (UnknownKeyException e) {
 	    	return 0L;
 	    }
 	    catch (KeyValueStoreException e) {
