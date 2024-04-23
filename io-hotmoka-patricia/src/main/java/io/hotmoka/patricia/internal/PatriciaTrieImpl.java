@@ -118,7 +118,16 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			return Optional.of(getNodeFromHash(maybeHashOfRoot.get(), 0).get(nibblesOfHashedKey, 0));
+			AbstractNode root;
+
+			try {
+				root = getNodeFromHash(maybeHashOfRoot.get(), 0);
+			}
+			catch (NoSuchElementException e) {
+				System.out.println("YES 1");
+				throw e;
+			}
+			return Optional.of(root.get(nibblesOfHashedKey, 0));
 		}
 		catch (NoSuchElementException e) {
 			return Optional.empty();
@@ -127,35 +136,42 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			logger.log(Level.WARNING, "unexpected error while getting key from Patricia trie", e);
 			throw new RuntimeException("Unexpected error while getting key from Patricia trie", e);
 		}
-		catch (KeyValueStoreException e) {
+		catch (KeyValueStoreException | TrieException e) {
 			throw new RuntimeException(e); // TODO
 		}
 	}
 
 	@Override
-	public void put(Key key, Value value) {
+	public void put(Key key, Value value) throws TrieException {
 		try {
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 
-			AbstractNode newRoot;
 			Optional<byte[]> maybeHashOfRoot = store.getRoot();
+			AbstractNode newRoot;
+
 			if (maybeHashOfRoot.isEmpty())
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 			else {
-				newRoot = getNodeFromHash(maybeHashOfRoot.get(), 0).put(nibblesOfHashedKey, 0, value);
+				AbstractNode root;
+
+				try {
+					root = getNodeFromHash(maybeHashOfRoot.get(), 0);
+				}
+				catch (NoSuchElementException e) {
+					System.out.println("YES 2");
+					throw e;
+				}
+
+				newRoot = root.put(nibblesOfHashedKey, 0, value);
 				addGarbageKey(maybeHashOfRoot.get());
 			}
 
 			store.setRoot(hasherForNodes.hash(newRoot));
 		}
-		catch (IOException e) {
-			logger.log(Level.WARNING, "unexpected error while putting key into Patricia trie", e);
-			throw new RuntimeException("Unexpected error while putting key into Patricia trie", e);
-		}
-		catch (KeyValueStoreException | TrieException e) {
-			throw new RuntimeException(e); // TODO
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
 		}
 	}
 
@@ -257,12 +273,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @throws NoSuchElementException if the store has no node with the given {@code hash}
 	 * @throws IOException if the node could not be unmarshalled
 	 */
-	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws NoSuchElementException, IOException {
+	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws TrieException {
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
-		catch (UnknownKeyException | KeyValueStoreException e) {
-			throw new RuntimeException(e); // TODO
+		catch (UnknownKeyException | KeyValueStoreException | IOException e) {
+			throw new TrieException(e);
 		}
 	}
 
@@ -368,7 +384,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *         value, then this node will coincide with this, that is, they have the same hash
 		 * @throws IOException if some data could not be unmarshalled
 		 */
-		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException;
+		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException;
 
 		/*
 		protected abstract int depth(int cursor) throws NoSuchElementException, IOException;
@@ -383,13 +399,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 		*/
 
-		protected final AbstractNode putInStore() {
+		protected final AbstractNode putInStore() throws TrieException {
 			// we bind it to its hash in the store
 			try {
 				store.put(hasherForNodes.hash(this), toByteArray());
 			}
 			catch (KeyValueStoreException e) {
-				throw new RuntimeException(e); // TODO
+				throw new TrieException(e);
 			}
 
 			return this;
@@ -451,11 +467,16 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (children[selection] == null)
 				throw new NoSuchElementException("Key not found in Patricia trie");
 
-			return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
+			try {
+				return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws IOException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws TrieException {
 			if (cursor >= nibblesOfHashedKey.length)
 				throw new RuntimeException("Inconsistent key length in Patricia trie");
 
@@ -471,12 +492,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			else {
 				// there was already a path for this selection: we recur
 				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-				try {
-					addGarbageKey(children[selection]);
-				}
-				catch (TrieException e) {
-					throw new RuntimeException(e); // TODO
-				}
+				addGarbageKey(children[selection]);
 			}
 
 			byte[][] childrenCopy = children.clone();
@@ -551,11 +567,16 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != sharedNibbles.length || cursor >= nibblesOfHashedKey.length)
 				throw new RuntimeException("Inconsistent key length in Patricia trie");
 
-			return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
+			try {
+				return getNodeFromHash(next, cursor).get(nibblesOfHashedKey, cursor);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws IOException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, final int cursor, Value value) throws TrieException {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < sharedNibbles.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == sharedNibbles[lengthOfSharedPortion])
@@ -566,12 +587,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
 				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				try {
-					addGarbageKey(next);
-				}
-				catch (TrieException e) {
-					throw new RuntimeException(e); // TODO
-				}
+				addGarbageKey(next);
 
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
 			}
@@ -669,7 +685,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		}
 
 		@Override
-		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws IOException {
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException {
 			int lengthOfSharedPortion = 0;
 
 			while (lengthOfSharedPortion < keyEnd.length && nibblesOfHashedKey[lengthOfSharedPortion + cursor] == keyEnd[lengthOfSharedPortion])

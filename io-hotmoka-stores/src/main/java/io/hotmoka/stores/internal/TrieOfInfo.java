@@ -103,8 +103,13 @@ public class TrieOfInfo {
 	 */
 	public Optional<StorageReference> getManifest() {
 		try {
-			return parent.get((byte) 1)
-					.map(manifest -> (StorageReference) manifest);
+			Optional<StorageValue> maybeManifest = parent.get((byte) 1);
+			if (maybeManifest.isEmpty())
+				return Optional.empty();
+			else if (maybeManifest.get() instanceof StorageReference manifest)
+				return Optional.of(manifest);
+			else
+				throw new TrieException("This trie contains a manifest but is not a StorageReference");
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

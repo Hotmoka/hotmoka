@@ -235,6 +235,8 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	        privateKeyOfLocalGamete = local.privateKey(0);
 		}
 		catch (Exception e) {
+			e.printStackTrace();
+			System.exit(0);
 			throw new ExceptionInInitializerError(e);
 		}
 	}
