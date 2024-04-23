@@ -18,7 +18,6 @@ package io.hotmoka.stores.internal;
 
 import java.util.Optional;
 
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.UnknownKeyException;
@@ -65,7 +64,7 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 	public void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException {
 		try {
 			if (!store.delete(txn, ByteIterable.fromBytes(key)))
-				throw new UnknownKeyException("Key " + Hex.toHexString(key) + " is not present in this key/value store");
+				throw new UnknownKeyException();
 		}
 		catch (ExodusException e) {
 			throw new KeyValueStoreException(e);
@@ -77,7 +76,7 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 		try {
 			ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
 			if (result == null)
-				throw new UnknownKeyException("Key " + Hex.toHexString(key) + " is not present in this key/value store");
+				throw new UnknownKeyException();
 
 			return result.getBytes();
 		}

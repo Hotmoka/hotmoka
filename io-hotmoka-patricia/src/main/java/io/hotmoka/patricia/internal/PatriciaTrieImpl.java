@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
@@ -68,7 +69,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	/**
 	 * The supplier of the unmarshalling context for values.
 	 */
-	private final UnmarshallingContextSupplier unmarshallingContextSupplier;
+	private final UnmarshallingContextSupplier valueUnmarshallingContextSupplier;
 
 	/**
 	 * The current number of commits already executed on the store; this trie
@@ -87,26 +88,29 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
-	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
+	 * @param valueUnmarshallingContextSupplier the supplier of the unmarshalling context for the values
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
-	 *                        will record which data must be garbage collected (eventually)
-	 *                        as result of the store updates performed during that commit
+	 *                        will record which data can be garbage collected (eventually)
+	 *                        because they become unreachable as result of the store updates
+	 *                        performed during commit {@code numerOfCommits}; this value could
+	 *                        be -1L if the trie is only used or reading, so that there is no need
+	 *                        to keep track of keys that can be garbage-collected
 	 */
 	public PatriciaTrieImpl(KeyValueStore store,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
-			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
+			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
 		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
 		this.valueUnmarshaller = valueUnmarshaller;
-		this.unmarshallingContextSupplier = unmarshallingContextSupplier;
+		this.valueUnmarshallingContextSupplier = valueUnmarshallingContextSupplier;
 		this.numberOfCommits = numberOfCommits;
 	}
 
 	@Override
-	public Optional<Value> get(Key key) throws NoSuchElementException {
+	public Optional<Value> get(Key key) throws TrieException {
 		try {
 			Optional<byte[]> maybeHashOfRoot = store.getRoot();
 			if (maybeHashOfRoot.isEmpty())
@@ -114,60 +118,35 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			AbstractNode root;
-
-			try {
-				root = getNodeFromHash(maybeHashOfRoot.get(), 0);
-			}
-			catch (NoSuchElementException e) {
-				System.out.println("YES 1");
-				throw e;
-			}
+			AbstractNode root = getNodeFromHash(maybeHashOfRoot.get(), 0);
 			return Optional.of(root.get(nibblesOfHashedKey, 0));
 		}
-		catch (NoSuchElementException e) {
-			return Optional.empty();
-		}
-		catch (KeyValueStoreException | TrieException e) {
-			throw new RuntimeException(e); // TODO
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
 		}
 		catch (UnknownKeyException e) {
-			return Optional.empty(); // TODO
+			return Optional.empty();
 		}
 	}
 
 	@Override
 	public void put(Key key, Value value) throws TrieException {
-		try {
-			byte[] hashedKey = hasherForKeys.hash(key);
-			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
+		byte[] hashedKey = hasherForKeys.hash(key);
+		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 
-			Optional<byte[]> maybeHashOfRoot = store.getRoot();
-			AbstractNode newRoot;
+		Optional<byte[]> maybeHashOfRoot = getRoot();
+		AbstractNode newRoot;
 
-			if (maybeHashOfRoot.isEmpty())
-				// the trie was empty: a leaf node with the value becomes the new root of the trie
-				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
-			else {
-				AbstractNode root;
-
-				try {
-					root = getNodeFromHash(maybeHashOfRoot.get(), 0);
-				}
-				catch (NoSuchElementException e) {
-					System.out.println("YES 2");
-					throw e;
-				}
-
-				newRoot = root.put(nibblesOfHashedKey, 0, value);
-				addGarbageKey(maybeHashOfRoot.get());
-			}
-
-			store.setRoot(hasherForNodes.hash(newRoot));
+		if (maybeHashOfRoot.isEmpty())
+			// the trie was empty: a leaf node with the value becomes the new root of the trie
+			newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
+		else {
+			AbstractNode root = getNodeFromHash(maybeHashOfRoot.get(), 0);
+			newRoot = root.put(nibblesOfHashedKey, 0, value);
+			addGarbageKey(maybeHashOfRoot.get());
 		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
+
+		setRoot(hasherForNodes.hash(newRoot));
 	}
 
 	@Override
@@ -182,19 +161,32 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 	@Override
 	public void garbageCollect(long commitNumber) throws TrieException {
-		try {
-			long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
+		long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
 
-			// there is nothing to remove when numberOfGarbageKeys == 0, since even the
-			// garbage collection support data is empty
-			if (numberOfGarbageKeys > 0) {
-				for (long num = 0; num < numberOfGarbageKeys; num++)
+		// there is nothing to remove when numberOfGarbageKeys == 0, since even the
+		// garbage collection support data is empty
+		if (numberOfGarbageKeys > 0) {
+			for (long num = 0; num < numberOfGarbageKeys; num++) {
+				try {
 					store.remove(getGarbageKey(commitNumber, num));
-
-				removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
+				}
+				catch (UnknownKeyException e) {
+					throw new TrieException("This trie refers to a garbage key that does not exist in the trie itself", e);
+				}
+				catch (KeyValueStoreException e) {
+					throw new TrieException(e);
+				}
 			}
+
+			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
 		}
-		catch (UnknownKeyException | KeyValueStoreException e) {
+	}
+
+	private void setRoot(byte[] newRoot) throws TrieException {
+		try {
+			store.setRoot(newRoot);
+		}
+		catch (KeyValueStoreException e) {
 			throw new TrieException(e);
 		}
 	}
@@ -261,7 +253,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	/**
 	 * Yields the node whose hash is the given one.
 	 * 
-	 * @param hash the hash of the node to look up
+	 * @param hash the hash of the node to look up; this must exist in this trie
 	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
 	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
@@ -272,7 +264,10 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
-		catch (UnknownKeyException | KeyValueStoreException | IOException e) {
+		catch (UnknownKeyException e) {
+			throw new TrieException("This trie refers to a node " + Hex.toHexString(hash) + " that cannot be found in the trie itself", e);
+		}
+		catch (KeyValueStoreException | IOException e) {
 			throw new TrieException(e);
 		}
 	}
@@ -361,8 +356,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 *                           constantly 0
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
 		 * @return the value
-		 * @throws NoSuchElementException if there is not such value
-		 * @throws IOException if some data could not be unmarshalled
+		 * @throws UnknownKeyException if there is not such value
+		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
 		protected abstract Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException, TrieException;
 
@@ -377,7 +372,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * @param value the value
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
 		 *         value, then this node will coincide with this, that is, they have the same hash
-		 * @throws IOException if some data could not be unmarshalled
+		 * @throws TrieException if the trie is not able to complete the operation correctly
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException;
 
@@ -664,7 +659,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
-			try (var context = unmarshallingContextSupplier.get(new ByteArrayInputStream(value))) {
+			try (var context = valueUnmarshallingContextSupplier.get(new ByteArrayInputStream(value))) {
 				return valueUnmarshaller.from(context);
 			}
 			catch (IOException e) {
@@ -803,6 +798,20 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
 	}
 
+	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) throws TrieException {
+		try {
+			// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
+			for (long num = 0; num <= numberOfGarbageKeys; num++)
+				store.remove(twoLongsToBytes(commitNumber, num));
+		}
+		catch (UnknownKeyException e) {
+			throw new TrieException("This trie refers to a key to garbage collect that cannot be found in the trie itself", e);
+		}
+		catch (KeyValueStoreException e) {
+			throw new TrieException(e);
+		}
+	}
+
 	private static byte[] longToBytes(long l) {
 		var buffer = ByteBuffer.wrap(new byte[Long.BYTES]);
 	    buffer.putLong(l);
@@ -814,17 +823,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	    buffer.putLong(l1);
 	    buffer.putLong(l2);
 	    return buffer.array();
-	}
-
-	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) throws TrieException {
-		try {
-			// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
-			for (long num = 0; num <= numberOfGarbageKeys; num++)
-				store.remove(twoLongsToBytes(commitNumber, num));
-		}
-		catch (UnknownKeyException | KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
 	}
 
 	private static long bytesToLong(byte[] bytes) {

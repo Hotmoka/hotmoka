@@ -22,7 +22,7 @@ module io.hotmoka.patricia {
 
 	requires transitive io.hotmoka.patricia.api;
 	requires transitive io.hotmoka.crypto.api;
-	requires io.hotmoka.marshalling;
+	requires io.hotmoka.crypto;
 	requires transitive io.hotmoka.marshalling.api;
-	requires java.logging;
+	requires io.hotmoka.marshalling;
 }

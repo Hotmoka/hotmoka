@@ -45,20 +45,22 @@ public final class PatriciaTries {
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
-	 * @param unmarshallingContextSupplier the supplier of the unmarshalling context
+	 * @param valueUnmarshallingContextSupplier the supplier of the unmarshalling context for the values
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
-	 *                        will record which data must be garbage collected (eventually)
-	 *                        as result of the store updates performed during that commit; this could
-	 *                        be -1L if the trie is only used or reading
+	 *                        will record which data can be garbage collected (eventually)
+	 *                        because they become unreachable as result of the store updates
+	 *                        performed during commit {@code numerOfCommits}; this value could
+	 *                        be -1L if the trie is only used or reading, so that there is no need
+	 *                        to keep track of keys that can be garbage-collected
 	 * @return the trie
 	 */
 	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
 			(KeyValueStore store,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
-			UnmarshallingContextSupplier unmarshallingContextSupplier, long numberOfCommits) {
+			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
 
-		return new PatriciaTrieImpl<>(store, hasherForKeys, hashingForNodes, valueUnmarshaller, unmarshallingContextSupplier, numberOfCommits);
+		return new PatriciaTrieImpl<>(store, hasherForKeys, hashingForNodes, valueUnmarshaller, valueUnmarshallingContextSupplier, numberOfCommits);
 	}
 
 	/**
