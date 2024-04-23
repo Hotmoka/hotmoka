@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -150,39 +151,49 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
     @Override
 	public Optional<String> getError(TransactionReference reference) {
     	synchronized (lock) {
-    		return env.computeInReadonlyTransaction
-   				(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference));
+    		return env.computeInReadonlyTransaction // TODO: recheck
+   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference)));
     	}
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		synchronized (lock) {
-			return env.computeInReadonlyTransaction
-				(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference));
+			return env.computeInReadonlyTransaction // TODO: recheck
+				(UncheckFunction.uncheck(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference)));
 		}
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		synchronized (lock) {
-			return env.computeInReadonlyTransaction
-				(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object));
+			return env.computeInReadonlyTransaction // TODO: recheck
+				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
 		}
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		synchronized (lock) {
-			return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+			try {
+				return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 		}
 	}
 
 	@Override
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		synchronized (lock) {
-			trieOfRequests.put(reference, request);
-			trieOfErrors.put(reference, errorMessage);
+		try {
+			synchronized (lock) {
+				trieOfRequests.put(reference, request);
+				trieOfErrors.put(reference, errorMessage);
+			}
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -225,12 +236,22 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 		super.setResponse(reference, request, response);
 	
 		// we also store the request
-		trieOfRequests.put(reference, request);
+		try {
+			trieOfRequests.put(reference, request);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		trieOfHistories.put(object, history);
+		try {
+			trieOfHistories.put(object, history);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override
@@ -243,18 +264,9 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 			byte[] superMerge = super.mergeRootsOfTries();
 			byte[] result = new byte[superMerge.length + 96];
 			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-
-			byte[] rootOfErrors = trieOfErrors.getRoot();
-			if (rootOfErrors != null)
-				System.arraycopy(rootOfErrors, 0, result, superMerge.length, 32);
-
-			byte[] rootOfRequests = trieOfRequests.getRoot();
-			if (rootOfRequests != null)
-				System.arraycopy(rootOfRequests, 0, result, superMerge.length + 32, 32);
-
-			byte[] rootOfHistories = trieOfHistories.getRoot();
-			if (rootOfHistories != null)
-				System.arraycopy(rootOfHistories, 0, result, superMerge.length + 64, 32);
+			System.arraycopy(trieOfErrors.getRoot().orElse(NO_ROOT), 0, result, superMerge.length, 32);
+			System.arraycopy(trieOfRequests.getRoot().orElse(NO_ROOT), 0, result, superMerge.length + 32, 32);
+			System.arraycopy(trieOfHistories.getRoot().orElse(NO_ROOT), 0, result, superMerge.length + 64, 32);
 
 			return result;
 		}

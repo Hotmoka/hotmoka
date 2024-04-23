@@ -55,8 +55,7 @@ public class TrieOfHistories {
 	 */
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			var keyValueStoreOfHistories = new KeyValueStoreOnXodus(store, txn, root);
-			parent = PatriciaTries.of(keyValueStoreOfHistories, HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -64,7 +63,7 @@ public class TrieOfHistories {
 		}
 	}
 
-	public Stream<TransactionReference> get(StorageReference key) {
+	public Stream<TransactionReference> get(StorageReference key) throws TrieException {
 		Optional<MarshallableArrayOfTransactionReferences> result = parent.get(key);
 		if (result.isEmpty())
 			return Stream.empty();
@@ -78,7 +77,7 @@ public class TrieOfHistories {
 		return Stream.of(withLast);
 	}
 
-	public void put(StorageReference key, Stream<TransactionReference> history) {
+	public void put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
@@ -88,7 +87,7 @@ public class TrieOfHistories {
 		parent.put(key, new MarshallableArrayOfTransactionReferences(withoutLast));
 	}
 
-	public byte[] getRoot() throws TrieException {
+	public Optional<byte[]> getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 

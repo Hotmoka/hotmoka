@@ -55,8 +55,7 @@ public class TrieOfErrors {
 	 */
 	public TrieOfErrors(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			var keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
-			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 				HashingAlgorithms.sha256(), MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -64,15 +63,15 @@ public class TrieOfErrors {
 		}
 	}
 
-	public Optional<String> get(TransactionReference key) {
+	public Optional<String> get(TransactionReference key) throws TrieException {
 		return parent.get(key).map(MarshallableString::toString);
 	}
 
-	public void put(TransactionReference key, String value) {
+	public void put(TransactionReference key, String value) throws TrieException {
 		parent.put(key, new MarshallableString(value));
 	}
 
-	public byte[] getRoot() throws TrieException {
+	public Optional<byte[]> getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 

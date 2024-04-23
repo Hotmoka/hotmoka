@@ -25,6 +25,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -119,6 +120,11 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	private TrieOfInfo trieOfInfo;
 
+	/**
+	 * The hash used for the tries that are still empty.
+	 */
+	protected final byte[] NO_ROOT = new byte[32];
+
 	private final static Logger logger = Logger.getLogger(PartialStore.class.getName());
 
 	/**
@@ -181,15 +187,20 @@ public abstract class PartialStore extends AbstractStore {
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
-    		return env.computeInReadonlyTransaction
-    			(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference));
+    		return env.computeInReadonlyTransaction // TODO: recheck
+    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference)));
     	}
 	}
 
 	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		synchronized (lock) {
-			return duringTransaction() ? trieOfResponses.get(reference) : getResponse(reference);
+			try {
+				return duringTransaction() ? trieOfResponses.get(reference) : getResponse(reference);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 		}
 	}
 
@@ -268,8 +279,8 @@ public abstract class PartialStore extends AbstractStore {
 				return mergeRootsOfTries();
 			}
 		}
-		catch (StoreException e) {
-			throw new RuntimeException(e);
+		catch (StoreException | TrieException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -279,18 +290,28 @@ public abstract class PartialStore extends AbstractStore {
 	 * @return the number of commits
 	 */
 	public long getNumberOfCommits() {
-		return env.computeInReadonlyTransaction
-			(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits());
+		return env.computeInReadonlyTransaction // TODO: recheck
+			(UncheckFunction.uncheck(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits()));
 	}
 
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		trieOfResponses.put(reference, response);
+		try {
+			trieOfResponses.put(reference, response);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override
 	protected void setManifest(StorageReference manifest) {
-		trieOfInfo.setManifest(manifest);
+		try {
+			trieOfInfo.setManifest(manifest);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
@@ -379,14 +400,8 @@ public abstract class PartialStore extends AbstractStore {
 				return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
 			byte[] result = new byte[64];
-
-			byte[] rootOfResponses = trieOfResponses.getRoot();
-			if (rootOfResponses != null)
-				System.arraycopy(rootOfResponses, 0, result, 0, 32);
-
-			byte[] rootOfInfo = trieOfInfo.getRoot();
-			if (rootOfInfo != null)
-				System.arraycopy(rootOfInfo, 0, result, 32, 32);
+			System.arraycopy(trieOfResponses.getRoot().orElse(NO_ROOT), 0, result, 0, 32);
+			System.arraycopy(trieOfInfo.getRoot().orElse(NO_ROOT), 0, result, 32, 32);
 
 			return result;
 		}

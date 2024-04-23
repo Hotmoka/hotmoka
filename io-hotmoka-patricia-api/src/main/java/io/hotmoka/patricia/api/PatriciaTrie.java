@@ -33,28 +33,29 @@ public interface PatriciaTrie<Key, Value extends Marshallable> {
 	 * 
 	 * @param key the key
 	 * @return the value, if any
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	Optional<Value> get(Key key);
+	Optional<Value> get(Key key) throws TrieException;
 
 	/**
-	 * Binds the given key to the given value. It replaces it
-	 * if already present.
+	 * Binds the given key to the given value. It replaces it if it was already present.
 	 * 
 	 * @param key the key
 	 * @param value the value
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	void put(Key key, Value value);
+	void put(Key key, Value value) throws TrieException;
 
 	/**
 	 * Yields the root of the trie, that can be used as a hash of its content.
 	 * 
-	 * @return the root
-	 * @throws TrieException if the trie is misbehaving
+	 * @return the root, if it has been set already
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	byte[] getRoot() throws TrieException;
+	Optional<byte[]> getRoot() throws TrieException;
 
 	/**
-	 * Garbage-collects all keys that have been updated during the given number of commit.
+	 * Garbage-collects all keys that have been updated during the commit with the given number.
 	 * 
 	 * @param commitNumber the number of the commit to garbage collect
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly

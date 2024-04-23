@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.patricia.api;
 
+import java.util.Optional;
+
 /**
  * An abstraction of a store that persists the nodes of a Patricia tree.
  */
@@ -25,18 +27,17 @@ public interface KeyValueStore {
 	 * Yields the hash of the root of the Patricia trie
 	 * that this store supports.
 	 * 
-	 * @return the hash of the root; this might be {@code null}
-	 *         if this store supports the empty Patricia trie
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
+	 * @return the hash of the root; this might be missing if {@link #setRoot(byte[])}
+	 *         has not been called yet
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
-	byte[] getRoot() throws KeyValueStoreException;
+	Optional<byte[]> getRoot() throws KeyValueStoreException;
 
 	/**
-	 * Sets the hash of the root of the Patricia trie
-	 * that this store supports.
+	 * Sets the hash of the root of the Patricia trie that this store supports.
 	 * 
 	 * @param root the hash of the root of the trie
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
 	void setRoot(byte[] root) throws KeyValueStoreException;
 
@@ -46,7 +47,7 @@ public interface KeyValueStore {
 	 * 
 	 * @param key the key; this might be missing in this store, in which case nothing happens
 	 * @param value the value
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
 	void put(byte[] key, byte[] value) throws KeyValueStoreException;
 
@@ -55,7 +56,7 @@ public interface KeyValueStore {
 	 * 
 	 * @param key the key
 	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
 	void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException;
 
@@ -65,7 +66,7 @@ public interface KeyValueStore {
 	 * @param key the key
 	 * @return the value associated with the key
 	 * @throws UnknownKeyException if {@code key} is not present in this key/value store
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation correctly
+	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
 	 */
 	byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException;
 }

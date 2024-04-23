@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -105,15 +106,20 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
     @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
     	synchronized (lock) {
-    		return env.computeInReadonlyTransaction
-    			(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object));
+    		return env.computeInReadonlyTransaction // TODO: recheck
+    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
     	}
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		synchronized (lock) {
-			return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+			try {
+				return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 		}
 	}
 
@@ -147,7 +153,12 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		trieOfHistories.put(object, history);
+		try {
+			trieOfHistories.put(object, history);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override
@@ -160,10 +171,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 			byte[] superMerge = super.mergeRootsOfTries();
 			byte[] result = new byte[superMerge.length + 32];
 			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-
-			byte[] rootOfHistories = trieOfHistories.getRoot();
-			if (rootOfHistories != null)
-				System.arraycopy(rootOfHistories, 0, result, superMerge.length, 32);
+			System.arraycopy(trieOfHistories.getRoot().orElse(NO_ROOT), 0, result, superMerge.length, 32);
 
 			return result;
 		}

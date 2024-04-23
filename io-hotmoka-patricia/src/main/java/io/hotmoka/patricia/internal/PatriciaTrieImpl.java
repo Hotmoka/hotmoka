@@ -112,13 +112,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	@Override
 	public Optional<Value> get(Key key) throws NoSuchElementException {
 		try {
-			byte[] hashOfRoot = store.getRoot();
-			if (hashOfRoot == null)
+			Optional<byte[]> maybeHashOfRoot = store.getRoot();
+			if (maybeHashOfRoot.isEmpty())
 				return Optional.empty();
 
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			return Optional.of(getNodeFromHash(hashOfRoot, 0).get(nibblesOfHashedKey, 0));
+			return Optional.of(getNodeFromHash(maybeHashOfRoot.get(), 0).get(nibblesOfHashedKey, 0));
 		}
 		catch (NoSuchElementException e) {
 			return Optional.empty();
@@ -139,13 +139,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 
 			AbstractNode newRoot;
-			byte[] hashOfRoot = store.getRoot();
-			if (hashOfRoot == null)
+			Optional<byte[]> maybeHashOfRoot = store.getRoot();
+			if (maybeHashOfRoot.isEmpty())
 				// the trie was empty: a leaf node with the value becomes the new root of the trie
 				newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 			else {
-				newRoot = getNodeFromHash(hashOfRoot, 0).put(nibblesOfHashedKey, 0, value);
-				addGarbageKey(hashOfRoot);
+				newRoot = getNodeFromHash(maybeHashOfRoot.get(), 0).put(nibblesOfHashedKey, 0, value);
+				addGarbageKey(maybeHashOfRoot.get());
 			}
 
 			store.setRoot(hasherForNodes.hash(newRoot));
@@ -160,7 +160,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	@Override
-	public byte[] getRoot() throws TrieException {
+	public Optional<byte[]> getRoot() throws TrieException {
 		try {
 			return store.getRoot();
 		}

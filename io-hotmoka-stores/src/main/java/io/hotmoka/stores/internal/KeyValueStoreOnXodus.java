@@ -16,9 +16,12 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import java.util.NoSuchElementException;
+import java.util.Optional;
 
+import io.hotmoka.crypto.Hex;
 import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Store;
@@ -39,8 +42,8 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 	}
 
     @Override
-	public byte[] getRoot() {
-    	return root;
+	public Optional<byte[]> getRoot() {
+    	return Optional.ofNullable(root);
 	}
 
 	@Override
@@ -49,21 +52,37 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 	}
 
 	@Override
-	public void put(byte[] key, byte[] value) throws ExodusException {
-		store.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
+	public void put(byte[] key, byte[] value) throws KeyValueStoreException {
+		try {
+			store.put(txn, ByteIterable.fromBytes(key), ByteIterable.fromBytes(value));
+		}
+		catch (ExodusException e) {
+			throw new KeyValueStoreException(e);
+		}
 	}
 
 	@Override
-	public void remove(byte[] key) throws ExodusException {
-		store.delete(txn, ByteIterable.fromBytes(key));
+	public void remove(byte[] key) throws UnknownKeyException, KeyValueStoreException {
+		try {
+			if (!store.delete(txn, ByteIterable.fromBytes(key)))
+				throw new UnknownKeyException("Key " + Hex.toHexString(key) + " is not present in this key/value store");
+		}
+		catch (ExodusException e) {
+			throw new KeyValueStoreException(e);
+		}
 	}
 
 	@Override
-	public byte[] get(byte[] key) throws NoSuchElementException, ExodusException {
-		ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
-		if (result == null)
-			throw new NoSuchElementException("no Merkle-Patricia trie node");
-		else
+	public byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException {
+		try {
+			ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
+			if (result == null)
+				throw new UnknownKeyException("Key " + Hex.toHexString(key) + " is not present in this key/value store");
+
 			return result.getBytes();
+		}
+		catch (ExodusException e) {
+			throw new KeyValueStoreException(e);
+		}
 	}
 }

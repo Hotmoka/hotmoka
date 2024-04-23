@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.stores.internal;
 
 import java.security.NoSuchAlgorithmException;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -33,8 +32,11 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.PatriciaTries;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -59,7 +61,7 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	/**
 	 * The store of the underlying Patricia trie.
 	 */
-	private final KeyValueStoreOnXodus keyValueStoreOfResponses;
+	private final KeyValueStore keyValueStoreOfResponses;
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -97,7 +99,13 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
 			byte[] reference = hasherForJars.hash(jar);
-			keyValueStoreOfResponses.put(reference, jar);
+
+			try {
+				keyValueStoreOfResponses.put(reference, jar);
+			}
+			catch (KeyValueStoreException e) {
+				throw new RuntimeException(e);
+			}
 
 			// we replace the jar with its hash
 			response = replaceJar(trwij, reference);
@@ -121,9 +129,9 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 				byte[] jar = keyValueStoreOfResponses.get(trwij.getInstrumentedJar());
 				response = replaceJar(trwij, jar);
 			}
-			catch (NoSuchElementException e) {
+			catch (UnknownKeyException | KeyValueStoreException e) {
 				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
-				throw e;
+				throw new RuntimeException(e); // TODO
 			}
 		}
 
@@ -144,17 +152,17 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	@Override
-	public Optional<TransactionResponse> get(TransactionReference key) {
+	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
 		return parent.get(key).map(this::readTransformation);
 	}
 
 	@Override
-	public void put(TransactionReference key, TransactionResponse value) {
+	public void put(TransactionReference key, TransactionResponse value) throws TrieException {
 		parent.put(key, writeTransformation(value));
 	}
 
 	@Override
-	public byte[] getRoot() throws TrieException {
+	public Optional<byte[]> getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 

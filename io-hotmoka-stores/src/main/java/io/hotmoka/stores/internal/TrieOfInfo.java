@@ -54,8 +54,7 @@ public class TrieOfInfo {
 	 */
 	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			var keyValueStoreOfInfos = new KeyValueStoreOnXodus(store, txn, root);
-			parent = PatriciaTries.of(keyValueStoreOfInfos, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 				HashingAlgorithms.sha256(), StorageValues::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
@@ -69,7 +68,7 @@ public class TrieOfInfo {
 	 * @return the root
 	 * @throws TrieException 
 	 */
-	public byte[] getRoot() throws TrieException {
+	public Optional<byte[]> getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 
@@ -77,8 +76,9 @@ public class TrieOfInfo {
 	 * Yields the number of commits.
 	 * 
 	 * @return the number of commits. This is 0 if the number of commits has not been set yet
+	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public long getNumberOfCommits() {
+	public long getNumberOfCommits() throws TrieException {
 		return parent.get((byte) 0)
 			.map(commits -> ((LongValue) commits).getValue())
 			.orElse(0L);
@@ -88,8 +88,9 @@ public class TrieOfInfo {
 	 * Increases the number of commits.
 	 * 
 	 * @return the new (ie, incremented) number of commits
+	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public long increaseNumberOfCommits() {
+	public long increaseNumberOfCommits() throws TrieException {
 		long numberOfCommits = getNumberOfCommits() + 1;
 		parent.put((byte) 0, StorageValues.longOf(numberOfCommits));
 		return numberOfCommits;
@@ -101,16 +102,22 @@ public class TrieOfInfo {
 	 * @return the manifest, if any
 	 */
 	public Optional<StorageReference> getManifest() {
-		return parent.get((byte) 1)
-			.map(manifest -> (StorageReference) manifest);
+		try {
+			return parent.get((byte) 1)
+					.map(manifest -> (StorageReference) manifest);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
 	 * Sets the manifest.
 	 * 
 	 * @param manifest the manifest to set
+	 * @throws TrieException if this trie is not able to complete the operatoin correcly
 	 */
-	public void setManifest(StorageReference manifest) {
+	public void setManifest(StorageReference manifest) throws TrieException {
 		parent.put((byte) 1, manifest);
 	}
 

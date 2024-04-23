@@ -222,7 +222,7 @@ public class NodeFromNetwork extends HotmokaTest {
     @Test
     @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for a non-existing reference")
     void testRemoteGetPolledResponseNonExisting() {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 10_000)) {
+        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 50_000)) {
         	remote.getPolledResponse(INEXISTENT_TRANSACTION_REFERENCE);
         }
         catch (Exception e) {

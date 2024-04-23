@@ -21,4 +21,5 @@ module io.hotmoka.patricia.api {
 	exports io.hotmoka.patricia.api;
 
 	requires io.hotmoka.marshalling.api;
+	requires io.hotmoka.exceptions;
 }
