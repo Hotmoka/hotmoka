@@ -83,6 +83,11 @@ class Store extends AbstractStore {
 	private final ConcurrentMap<TransactionReference, Integer> progressive;
 
 	/**
+	 * The path where the database of the store gets created.
+	 */
+	private final Path dir;
+
+	/**
 	 * The number of transactions that fit inside a block.
 	 */
 	private final long transactionsPerBlock;
@@ -97,8 +102,9 @@ class Store extends AbstractStore {
      * @param transactionsPerBlock the number of transactions that fit inside a block
      */
     Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long transactionsPerBlock) {
-    	super(getResponseUncommittedCached, dir);
+    	super(getResponseUncommittedCached);
 
+    	this.dir = dir;
     	this.transactionsPerBlock = transactionsPerBlock;
     	this.histories = new ConcurrentHashMap<>();
     	this.errors = new ConcurrentHashMap<>();
@@ -236,7 +242,7 @@ class Store extends AbstractStore {
 		if (progressive == null)
 			throw new FileNotFoundException("Unknown transaction reference " + reference);
 
-		return getDir().resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
+		return dir.resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
 	}
 
 	/**

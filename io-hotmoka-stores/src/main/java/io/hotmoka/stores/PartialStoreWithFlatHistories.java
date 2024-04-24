@@ -72,7 +72,7 @@ public abstract class PartialStoreWithFlatHistories extends PartialStore {
 
     /**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
+	 * a call to {@link #setRootsTo(Optional)} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
 	 * @param dir the path where the database of the store gets created

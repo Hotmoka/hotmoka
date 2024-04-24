@@ -181,13 +181,13 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	}
 
 	@Override
-	protected void setRootsTo(byte[] root) {
+	protected void setRootsTo(Optional<byte[]> root) {
 		super.setRootsTo(root);
 
-		if (root == null)
+		if (root.isEmpty())
 			Arrays.fill(rootOfHistories, (byte) 0);
 		else
-			System.arraycopy(root, 64, rootOfHistories, 0, 32);
+			System.arraycopy(root.get(), 64, rootOfHistories, 0, 32);
 	}
 
 	@Override

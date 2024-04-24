@@ -129,7 +129,7 @@ public abstract class PartialStore extends AbstractStore {
 
 	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
+	 * a call to {@link #setRootsTo(Optional)} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
 	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
@@ -149,7 +149,7 @@ public abstract class PartialStore extends AbstractStore {
 	 *                       is disabled)
 	 */
     protected PartialStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
-    	super(getResponseUncommittedCached, dir);
+    	super(getResponseUncommittedCached);
 
     	this.checkableDepth = checkableDepth;
     	this.env = new Environment(dir + "/store");
@@ -337,7 +337,7 @@ public abstract class PartialStore extends AbstractStore {
 	 * @param root the root to reset to
 	 */
 	protected void checkout(byte[] root) {
-		setRootsTo(root);
+		setRootsTo(Optional.of(root));
 		var rootAsBI = ByteIterable.fromBytes(root);
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
@@ -367,22 +367,23 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	protected final void setRootsAsCheckedOut() {
 		ByteIterable root = env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT));
-		setRootsTo(root == null ? null : root.getBytes());
+		setRootsTo(Optional.ofNullable(root).map(ByteIterable::getBytes));
 	}
 
 	/**
 	 * Sets the roots of this store to the given (merged) root.
 	 * 
-	 * @param root the merged root
+	 * @param root the merged root; this is empty if the store is empty and has consequently no root yet
 	 */
-	protected void setRootsTo(byte[] root) {
-		if (root == null) {
+	protected void setRootsTo(Optional<byte[]> root) {
+		if (root.isEmpty()) {
 			Arrays.fill(rootOfResponses, (byte) 0);
 			Arrays.fill(rootOfInfo, (byte) 0);
 		}
 		else {
-			System.arraycopy(root, 0, rootOfResponses, 0, 32);
-			System.arraycopy(root, 32, rootOfInfo, 0, 32);
+			byte[] bytes = root.get();
+			System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
+			System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
 		}
 	}
 
@@ -399,7 +400,7 @@ public abstract class PartialStore extends AbstractStore {
 			if (trieOfResponses == null)
 				return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
-			byte[] result = new byte[64];
+			var result = new byte[64];
 			System.arraycopy(trieOfResponses.getRoot().orElse(NO_ROOT), 0, result, 0, 32);
 			System.arraycopy(trieOfInfo.getRoot().orElse(NO_ROOT), 0, result, 32, 32);
 

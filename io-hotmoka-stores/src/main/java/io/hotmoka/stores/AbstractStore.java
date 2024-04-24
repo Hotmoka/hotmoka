@@ -20,7 +20,6 @@ import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -59,22 +58,15 @@ public abstract class AbstractStore implements Store {
 	 */
 	private final Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommitedCached;
 
-	/**
-	 * The path where the database of the store gets created.
-	 */
-	private final Path dir;
-
 	private final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
 	 * Builds the store for a node.
 	 * 
 	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
-	 * @param dir the path where the database of the store gets created
 	 */
-	protected AbstractStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir) {
+	protected AbstractStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached) {
 		this.getResponseUncommitedCached = getResponseUncommittedCached;
-		this.dir = dir;
 	}
 
 	@Override
@@ -89,7 +81,7 @@ public abstract class AbstractStore implements Store {
 			if (response instanceof TransactionResponseWithUpdates trwu)
 				expandHistory(reference, trwu);
 
-			if (response instanceof InitializationTransactionResponse) {
+			if (response instanceof InitializationTransactionResponse itr) {
 				StorageReference manifest = ((InitializationTransactionRequest) request).getManifest();
 				setManifest(manifest);
 				logger.info(manifest + ": set as manifest");
@@ -106,15 +98,6 @@ public abstract class AbstractStore implements Store {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 		}
-	}
-
-	/**
-	 * Yields the path where the database of the store gets created.
-	 * 
-	 * @return the path
-	 */
-	protected final Path getDir() {
-		return dir;
 	}
 
 	/**

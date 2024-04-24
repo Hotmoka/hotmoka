@@ -276,18 +276,19 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
 	@Override
-	protected void setRootsTo(byte[] root) {
+	protected void setRootsTo(Optional<byte[]> root) {
 		super.setRootsTo(root);
 
-		if (root == null) {
+		if (root.isEmpty()) {
 			Arrays.fill(rootOfErrors, (byte) 0);
 			Arrays.fill(rootOfRequests, (byte) 0);
 			Arrays.fill(rootOfHistories, (byte) 0);
 		}
 		else {
-			System.arraycopy(root, 64, rootOfErrors, 0, 32);
-			System.arraycopy(root, 96, rootOfRequests, 0, 32);
-			System.arraycopy(root, 128, rootOfHistories, 0, 32);
+			var bytes = root.get();
+			System.arraycopy(bytes, 64, rootOfErrors, 0, 32);
+			System.arraycopy(bytes, 96, rootOfRequests, 0, 32);
+			System.arraycopy(bytes, 128, rootOfHistories, 0, 32);
 		}
 	}
 
