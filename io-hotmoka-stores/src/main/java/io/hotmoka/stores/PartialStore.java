@@ -417,28 +417,4 @@ public abstract class PartialStore extends AbstractStore {
 	protected boolean isEmpty() {
 		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty();
 	}
-
-	/**
-	 * Yields the given hash, if non-empty, or otherwise {@code null}.
-	 * 
-	 * @param hash the hash
-	 * @return {@code hash}, if non-empty, or otherwise {@code null}
-	 */
-	protected static byte[] nullIfEmpty(byte[] hash) {
-		return isEmpty(hash) ? null : hash;
-	}
-
-	/**
-	 * Checks that all positions of the given array hold 0.
-	 * 
-	 * @param array the array
-	 * @return true if and only if that condition holds
-	 */
-	protected static boolean isEmpty(byte[] array) {
-		for (byte b: array)
-			if (b != (byte) 0)
-				return false;
-
-		return true;
-	}
 }
