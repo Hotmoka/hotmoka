@@ -145,9 +145,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			// the trie was empty: a leaf node with the value becomes the new root of the trie
 			newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
 		else {
-			AbstractNode root = getNodeFromHash(maybeHashOfRoot.get(), 0);
-			newRoot = root.put(nibblesOfHashedKey, 0, value);
-			addGarbageKey(maybeHashOfRoot.get());
+			AbstractNode oldRoot = getNodeFromHash(maybeHashOfRoot.get(), 0);
+			newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
+			oldRoot.markAsGarbageCollectable(maybeHashOfRoot.get());
 		}
 
 		root = hasherForNodes.hash(newRoot);
@@ -389,6 +389,19 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return this;
 		}
+
+		/**
+		 * Takes note that this node, having the given key (hash), became garbage during an update
+		 * occurred during the current commit.
+		 * 
+		 * @param key the key that became garbage
+		 * @throws TrieException if this trie is not able to complete the operation correctly
+		 */
+		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
+			long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
+			setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
+			setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
+		}
 	}
 
 	/**
@@ -455,22 +468,23 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				throw new TrieException("Inconsistent key length in Patricia trie");
 
 			byte selection = nibblesOfHashedKey[cursor];
-			AbstractNode child;
+			AbstractNode newChild;
 
 			if (children[selection] == null) {
 				// there was no path for this selection: we attach a leaf with the remaining nibbles
 				byte[] nibblesButFirst = new byte[nibblesOfHashedKey.length - cursor - 1];
 				System.arraycopy(nibblesOfHashedKey, cursor + 1, nibblesButFirst, 0, nibblesButFirst.length);
-				child = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
+				newChild = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
 			}
 			else {
 				// there was already a path for this selection: we recur
-				child = getNodeFromHash(children[selection], cursor + 1).put(nibblesOfHashedKey, cursor + 1, value);
-				addGarbageKey(children[selection]);
+				AbstractNode oldChild = getNodeFromHash(children[selection], cursor + 1);
+				newChild = oldChild.put(nibblesOfHashedKey, cursor + 1, value);
+				oldChild.markAsGarbageCollectable(children[selection]);
 			}
 
 			byte[][] childrenCopy = children.clone();
-			childrenCopy[selection] = hasherForNodes.hash(child);
+			childrenCopy[selection] = hasherForNodes.hash(newChild);
 
 			return new Branch(childrenCopy).putInStore();
 		}
@@ -555,8 +569,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			if (lengthOfDistinctPortion == 0) {
 				// we recur
-				AbstractNode newNext = getNodeFromHash(next, sharedNibbles.length + cursor).put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
-				addGarbageKey(next);
+				AbstractNode oldNext = getNodeFromHash(next, sharedNibbles.length + cursor);
+				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
+				oldNext.markAsGarbageCollectable(next);
 
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
 			}
@@ -766,19 +781,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		catch (KeyValueStoreException e) {
 			throw new TrieException(e);
 		}
-	}
-
-	/**
-	 * Takes note that the given key became garbage during an update
-	 * occurred during the current commit.
-	 * 
-	 * @param key the key that became garbage
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	private void addGarbageKey(byte[] key) throws TrieException {
-		long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
-		setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
-		setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
 	}
 
 	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) throws TrieException {
