@@ -18,6 +18,7 @@ package io.hotmoka.patricia;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
@@ -42,7 +43,7 @@ public final class PatriciaTries {
 	 * @param <Key> the type of the keys of the trie
 	 * @param <Value> the type of the values of the trie
 	 * @param store the store used to store a mapping from nodes' hashes to their content
-	 * @param root the root of the trie; use {@code null} if the trie is empty
+	 * @param root the root of the trie; use empty to get the empty trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
@@ -56,7 +57,7 @@ public final class PatriciaTries {
 	 * @return the trie
 	 */
 	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
-			(KeyValueStore store, byte[] root,
+			(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {

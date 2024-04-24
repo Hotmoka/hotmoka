@@ -47,13 +47,13 @@ public class TrieOfHistories {
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
-	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
+	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
+	public TrieOfHistories(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		try {
 			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, NodeUnmarshallingContexts::of, numberOfCommits);
@@ -87,7 +87,7 @@ public class TrieOfHistories {
 		parent.put(key, new MarshallableArrayOfTransactionReferences(withoutLast));
 	}
 
-	public Optional<byte[]> getRoot() throws TrieException {
+	public byte[] getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 

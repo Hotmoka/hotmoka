@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -65,9 +64,9 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	private final io.hotmoka.xodus.env.Store storeOfHistory;
 
 	/**
-	 * The root of the trie of histories. It is an empty array if the trie is empty.
+	 * The root of the trie of histories. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfHistories = new byte[32];
+	private Optional<byte[]> rootOfHistories = Optional.empty();
 
 	/**
 	 * The trie of histories.
@@ -107,7 +106,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	public Stream<TransactionReference> getHistory(StorageReference object) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
+    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object)));
     	}
 	}
 
@@ -126,7 +125,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	@Override
 	protected Transaction beginTransactionInternal() {
 		Transaction txn = super.beginTransactionInternal();
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), getNumberOfCommits());
+		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, rootOfHistories, getNumberOfCommits());
 		return txn;
 	}
 
@@ -169,7 +168,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 			byte[] superMerge = super.mergeRootsOfTries();
 			byte[] result = new byte[superMerge.length + 32];
 			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-			System.arraycopy(trieOfHistories.getRoot().orElse(NO_ROOT), 0, result, superMerge.length, 32);
+			System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length, 32);
 
 			return result;
 		}
@@ -179,17 +178,16 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	}
 
 	@Override
-	protected void setRootsTo(Optional<byte[]> root) {
+	protected void setRootsTo(byte[] root) {
 		super.setRootsTo(root);
 
-		if (root.isEmpty())
-			Arrays.fill(rootOfHistories, (byte) 0);
-		else
-			System.arraycopy(root.get(), 64, rootOfHistories, 0, 32);
+		var bytesOfRootOfHistories = new byte[32];
+		System.arraycopy(root, 64, bytesOfRootOfHistories, 0, 32);
+		rootOfHistories = Optional.of(bytesOfRootOfHistories);
 	}
 
 	@Override
 	protected boolean isEmpty() {
-		return super.isEmpty() && isEmpty(rootOfHistories);
+		return super.isEmpty() && rootOfHistories.isEmpty();
 	}
 }

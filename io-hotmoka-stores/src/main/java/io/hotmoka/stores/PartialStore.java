@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -91,14 +90,14 @@ public abstract class PartialStore extends AbstractStore {
     private final io.hotmoka.xodus.env.Store storeOfInfo;
 
 	/**
-	 * The root of the trie of the responses. It is an empty array if the trie is empty.
+	 * The root of the trie of the responses. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfResponses = new byte[32];
+	private Optional<byte[]> rootOfResponses = Optional.empty();
 
 	/**
-	 * The root of the trie of the miscellaneous info. It is an empty array if the trie is empty.
+	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfInfo = new byte[32];
+	private Optional<byte[]> rootOfInfo = Optional.empty();
 
 	/**
 	 * The key used inside {@link #storeOfInfo} to keep the root.
@@ -188,7 +187,7 @@ public abstract class PartialStore extends AbstractStore {
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), -1L).get(reference)));
+    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(storeOfResponses, txn, rootOfResponses, -1L).get(reference)));
     	}
 	}
 
@@ -208,8 +207,7 @@ public abstract class PartialStore extends AbstractStore {
 	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			synchronized (lock) {
-				return env.computeInReadonlyTransaction
-						(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getManifest());
+				return env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, rootOfInfo, -1L).getManifest());
 			}
 		}
 		catch (ExodusException e) {
@@ -248,8 +246,8 @@ public abstract class PartialStore extends AbstractStore {
 	protected Transaction beginTransactionInternal() {
 		txn = env.beginTransaction();
 		long numberOfCommits = getNumberOfCommits();
-		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
-		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
+		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses, numberOfCommits);
+		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, rootOfInfo, numberOfCommits);
 		return txn;
 	}
 
@@ -291,7 +289,7 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	public long getNumberOfCommits() {
 		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), -1L).getNumberOfCommits()));
+			(UncheckFunction.uncheck(txn -> new TrieOfInfo(storeOfInfo, txn, rootOfInfo, -1L).getNumberOfCommits()));
 	}
 
 	@Override
@@ -337,7 +335,7 @@ public abstract class PartialStore extends AbstractStore {
 	 * @param root the root to reset to
 	 */
 	protected void checkout(byte[] root) {
-		setRootsTo(Optional.of(root));
+		setRootsTo(root);
 		var rootAsBI = ByteIterable.fromBytes(root);
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
@@ -367,7 +365,8 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	protected final void setRootsAsCheckedOut() {
 		ByteIterable root = env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT));
-		setRootsTo(Optional.ofNullable(root).map(ByteIterable::getBytes));
+		if (root != null)
+			setRootsTo(root.getBytes());
 	}
 
 	/**
@@ -375,16 +374,14 @@ public abstract class PartialStore extends AbstractStore {
 	 * 
 	 * @param root the merged root; this is empty if the store is empty and has consequently no root yet
 	 */
-	protected void setRootsTo(Optional<byte[]> root) {
-		if (root.isEmpty()) {
-			Arrays.fill(rootOfResponses, (byte) 0);
-			Arrays.fill(rootOfInfo, (byte) 0);
-		}
-		else {
-			byte[] bytes = root.get();
-			System.arraycopy(bytes, 0, rootOfResponses, 0, 32);
-			System.arraycopy(bytes, 32, rootOfInfo, 0, 32);
-		}
+	protected void setRootsTo(byte[] root) {
+		var bytesOfRootOfResponses = new byte[32];
+		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
+		rootOfResponses = Optional.of(bytesOfRootOfResponses);
+
+		var bytesOfRootOfInfo = new byte[32];
+		System.arraycopy(root, 32, bytesOfRootOfInfo, 0, 32);
+		rootOfInfo = Optional.of(bytesOfRootOfInfo);
 	}
 
 	/**
@@ -401,8 +398,8 @@ public abstract class PartialStore extends AbstractStore {
 				return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
 			var result = new byte[64];
-			System.arraycopy(trieOfResponses.getRoot().orElse(NO_ROOT), 0, result, 0, 32);
-			System.arraycopy(trieOfInfo.getRoot().orElse(NO_ROOT), 0, result, 32, 32);
+			System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
+			System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);
 
 			return result;
 		}
@@ -418,7 +415,7 @@ public abstract class PartialStore extends AbstractStore {
 	 * @return true if and only if that condition holds
 	 */
 	protected boolean isEmpty() {
-		return isEmpty(rootOfResponses) && isEmpty(rootOfInfo);
+		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty();
 	}
 
 	/**

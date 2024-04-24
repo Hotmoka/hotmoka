@@ -46,13 +46,13 @@ public class TrieOfInfo {
 	 * 
 	 * @param store the supporting store of the database
 	 * @param txn the transaction where updates are reported
-	 * @param root the root of the trie to check out; use {@code null} if the trie is empty
+	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
+	public TrieOfInfo(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		try {
 			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 				HashingAlgorithms.sha256(), StorageValues::from, NodeUnmarshallingContexts::of, numberOfCommits);
@@ -68,7 +68,7 @@ public class TrieOfInfo {
 	 * @return the root
 	 * @throws TrieException 
 	 */
-	public Optional<byte[]> getRoot() throws TrieException {
+	public byte[] getRoot() throws TrieException {
 		return parent.getRoot();
 	}
 

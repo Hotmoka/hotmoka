@@ -96,7 +96,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * 
 	 * @param store the store used to store a mapping from nodes' hashes to the marshalled
 	 *              representation of the nodes
-	 * @param root the root of the trie; use {@code null} if the trie is empty
+	 * @param root the root of the trie; use empty to create an empty trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
@@ -108,7 +108,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *                        be -1L if the trie is only used or reading, so that there is no need
 	 *                        to keep track of keys that can be garbage-collected
 	 */
-	public PatriciaTrieImpl(KeyValueStore store, byte[] root,
+	public PatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
@@ -120,24 +120,16 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		this.valueUnmarshallingContextSupplier = valueUnmarshallingContextSupplier;
 		this.hashOfEmpty = hasherForNodes.hash(new Empty());
 		this.numberOfCommits = numberOfCommits;
-
-		if (root != null)
-			this.root = root;
-		else
-			this.root = hashOfEmpty;
+		this.root = root.orElse(hashOfEmpty);
 	}
 
 	@Override
 	public Optional<Value> get(Key key) throws TrieException {
 		try {
-			Optional<byte[]> maybeHashOfRoot = getRoot();
-			if (maybeHashOfRoot.isEmpty())
-				return Optional.empty();
-
 			byte[] hashedKey = hasherForKeys.hash(key);
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-			AbstractNode root = getNodeFromHash(maybeHashOfRoot.get(), 0);
-			return Optional.of(root.get(nibblesOfHashedKey, 0));
+			AbstractNode rootNode = getNodeFromHash(root, 0);
+			return Optional.of(rootNode.get(nibblesOfHashedKey, 0));
 		}
 		catch (UnknownKeyException e) {
 			return Optional.empty();
@@ -155,11 +147,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	@Override
-	public Optional<byte[]> getRoot() {
-		if (Arrays.equals(root, hashOfEmpty))
-			return Optional.empty();
-		else
-			return Optional.of(root);
+	public byte[] getRoot() {
+		return root;
 	}
 
 	@Override

@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
@@ -80,19 +79,19 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	private final io.hotmoka.xodus.env.Store storeOfHistory;
 
 	/**
-	 * The root of the trie of the errors. It is an empty array if the trie is empty.
+	 * The root of the trie of the errors. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfErrors = new byte[32];
+	private Optional<byte[]> rootOfErrors = Optional.empty();
 
 	/**
-	 * The root of the trie of the requests. It is an empty array if the trie is empty.
+	 * The root of the trie of the requests. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfRequests = new byte[32];
+	private Optional<byte[]> rootOfRequests = Optional.empty();
 
 	/**
-	 * The root of the trie of histories. It is an empty array if the trie is empty.
+	 * The root of the trie of histories. It is empty if the trie is empty.
 	 */
-	private final byte[] rootOfHistories = new byte[32];
+	private Optional<byte[]> rootOfHistories = Optional.empty();
 
 	/**
      * The trie of the errors.
@@ -152,7 +151,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Optional<String> getError(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), -1L).get(reference)));
+   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(storeOfErrors, txn, rootOfErrors, -1L).get(reference)));
     	}
 	}
 
@@ -160,7 +159,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), -1L).get(reference)));
+				(UncheckFunction.uncheck(txn -> new TrieOfRequests(storeOfRequests, txn, rootOfRequests, -1L).get(reference)));
 		}
 	}
 
@@ -168,7 +167,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), -1L).get(object)));
+				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object)));
 		}
 	}
 
@@ -201,9 +200,9 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	protected Transaction beginTransactionInternal() {
 		Transaction txn = super.beginTransactionInternal();
 		long numberOfCommits = getNumberOfCommits();
-		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, nullIfEmpty(rootOfErrors), numberOfCommits);
-		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, nullIfEmpty(rootOfRequests), numberOfCommits);
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), numberOfCommits);
+		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, rootOfErrors, numberOfCommits);
+		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, rootOfRequests, numberOfCommits);
+		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, rootOfHistories, numberOfCommits);
 
 		return txn;
 	}
@@ -262,9 +261,9 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 			byte[] superMerge = super.mergeRootsOfTries();
 			byte[] result = new byte[superMerge.length + 96];
 			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-			System.arraycopy(trieOfErrors.getRoot().orElse(NO_ROOT), 0, result, superMerge.length, 32);
-			System.arraycopy(trieOfRequests.getRoot().orElse(NO_ROOT), 0, result, superMerge.length + 32, 32);
-			System.arraycopy(trieOfHistories.getRoot().orElse(NO_ROOT), 0, result, superMerge.length + 64, 32);
+			System.arraycopy(trieOfErrors.getRoot(), 0, result, superMerge.length, 32);
+			System.arraycopy(trieOfRequests.getRoot(), 0, result, superMerge.length + 32, 32);
+			System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length + 64, 32);
 
 			return result;
 		}
@@ -274,24 +273,24 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
 	@Override
-	protected void setRootsTo(Optional<byte[]> root) {
+	protected void setRootsTo(byte[] root) {
 		super.setRootsTo(root);
 
-		if (root.isEmpty()) {
-			Arrays.fill(rootOfErrors, (byte) 0);
-			Arrays.fill(rootOfRequests, (byte) 0);
-			Arrays.fill(rootOfHistories, (byte) 0);
-		}
-		else {
-			var bytes = root.get();
-			System.arraycopy(bytes, 64, rootOfErrors, 0, 32);
-			System.arraycopy(bytes, 96, rootOfRequests, 0, 32);
-			System.arraycopy(bytes, 128, rootOfHistories, 0, 32);
-		}
+		var bytesOfRootOfErrors = new byte[32];
+		System.arraycopy(root, 64, bytesOfRootOfErrors, 0, 32);
+		rootOfErrors = Optional.of(bytesOfRootOfErrors);
+
+		var bytesOfRootOfRequests = new byte[32];
+		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
+		rootOfRequests = Optional.of(bytesOfRootOfRequests);
+
+		var bytesOfRootOfHistories = new byte[32];
+		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
+		rootOfHistories = Optional.of(bytesOfRootOfHistories);
 	}
 
 	@Override
 	protected boolean isEmpty() {
-		return super.isEmpty() && isEmpty(rootOfErrors) && isEmpty(rootOfRequests) && isEmpty(rootOfHistories);
+		return super.isEmpty() && rootOfErrors.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
 	}
 }
