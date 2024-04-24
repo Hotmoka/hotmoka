@@ -21,6 +21,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
@@ -80,6 +81,11 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private final long numberOfCommits;
 
 	/**
+	 * The hash of the empty node.
+	 */
+	private final byte[] hashOfEmpty;
+
+	/**
 	 * The root of the trie. This is {@code null} if the trie is empty.
 	 */
 	private byte[] root;
@@ -108,12 +114,17 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
 
 		this.store = store;
-		this.root = root;
 		this.hasherForKeys = hasherForKeys;
 		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
 		this.valueUnmarshaller = valueUnmarshaller;
 		this.valueUnmarshallingContextSupplier = valueUnmarshallingContextSupplier;
+		this.hashOfEmpty = hasherForNodes.hash(new Empty());
 		this.numberOfCommits = numberOfCommits;
+
+		if (root != null)
+			this.root = root;
+		else
+			this.root = hashOfEmpty;
 	}
 
 	@Override
@@ -137,25 +148,18 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	public void put(Key key, Value value) throws TrieException {
 		byte[] hashedKey = hasherForKeys.hash(key);
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
-
-		Optional<byte[]> maybeHashOfRoot = getRoot();
-		AbstractNode newRoot;
-
-		if (maybeHashOfRoot.isEmpty())
-			// the trie was empty: a leaf node with the value becomes the new root of the trie
-			newRoot = new Leaf(nibblesOfHashedKey, value.toByteArray()).putInStore();
-		else {
-			AbstractNode oldRoot = getNodeFromHash(maybeHashOfRoot.get(), 0);
-			newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
-			oldRoot.markAsGarbageCollectable(maybeHashOfRoot.get());
-		}
-
+		AbstractNode oldRoot = getNodeFromHash(root, 0);
+		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
+		oldRoot.markAsGarbageCollectable(root);
 		root = hasherForNodes.hash(newRoot);
 	}
 
 	@Override
 	public Optional<byte[]> getRoot() {
-		return Optional.ofNullable(root);
+		if (Arrays.equals(root, hashOfEmpty))
+			return Optional.empty();
+		else
+			return Optional.of(root);
 	}
 
 	@Override
@@ -235,6 +239,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 
 			return new Leaf(keyEnd, value);
 		}
+		else if (kind == 0x05)
+			return new Empty();
 		else
 			throw new IOException("Unexpected Patricia node kind: " + kind);
 	}
@@ -250,6 +256,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 * @throws IOException if the node could not be unmarshalled
 	 */
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws TrieException {
+		if (Arrays.equals(hash, hashOfEmpty))
+			return new Empty();
+
 		try (var ois = new ObjectInputStream(new BufferedInputStream(new ByteArrayInputStream(store.get(hash))))) {
 			return from(ois, cursor);
 		}
@@ -355,8 +364,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * It considers only the portion of the key starting at the {@code cursor}th nibble.
 		 * 
 		 * @param nibblesOfHashedKey the nibbles of the key to look up; only the 4 least significant bits
-		 *                           of each element are significant; the 4 most significant bits must be
-		 *                           constantly 0
+		 *                           of each element are relevant; the 4 most significant bits must be 0
 		 * @param cursor the starting point of the significant portion of {@code nibblesOfHashedKey}
 		 * @param value the value
 		 * @return the new node that replaced this in the trie; if the key was already bound to the same
@@ -419,10 +427,15 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		 * Builds a branch node of a Patricia trie.
 		 * 
 		 * @param children the hashes of the branching children of the node.
-		 *                 If the nth child is missing the array will hold null for it
+		 *                 If the nth child is missing the array can hold null for it,
+		 *                 which will be replaced with {@code hashOfEmpty}
 		 */
 		private Branch(byte[][] children) {
 			this.children = children;
+
+			for (int pos = 0; pos < children.length; pos++)
+				if (this.children[pos] == null)
+					this.children[pos] = hashOfEmpty.clone();
 		}
 
 		/**
@@ -434,7 +447,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			short result = 0;
 
 			for (int pos = 0, bit = 0x8000; pos < 16; pos++, bit >>= 1)
-				if (children[pos] != null)
+				if (!Arrays.equals(children[pos], hashOfEmpty))
 					result |= bit;
 
 			return result;
@@ -446,7 +459,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			context.writeShort(selector());
 
 			for (byte[] child: children)
-				if (child != null)
+				if (!Arrays.equals(child, hashOfEmpty))
 					context.writeBytes(child);
 		}
 
@@ -456,7 +469,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				throw new TrieException("Inconsistent key length in Patricia trie nibblesOfHashedKey.length = " + nibblesOfHashedKey.length + ", cursor = " + cursor);
 
 			byte selection = nibblesOfHashedKey[cursor];
-			if (children[selection] == null)
+			if (Arrays.equals(children[selection], hashOfEmpty))
 				throw new UnknownKeyException("Key not found in Patricia trie");
 
 			return getNodeFromHash(children[selection], cursor + 1).get(nibblesOfHashedKey, cursor + 1);
@@ -468,21 +481,9 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				throw new TrieException("Inconsistent key length in Patricia trie");
 
 			byte selection = nibblesOfHashedKey[cursor];
-			AbstractNode newChild;
-
-			if (children[selection] == null) {
-				// there was no path for this selection: we attach a leaf with the remaining nibbles
-				byte[] nibblesButFirst = new byte[nibblesOfHashedKey.length - cursor - 1];
-				System.arraycopy(nibblesOfHashedKey, cursor + 1, nibblesButFirst, 0, nibblesButFirst.length);
-				newChild = new Leaf(nibblesButFirst, value.toByteArray()).putInStore();
-			}
-			else {
-				// there was already a path for this selection: we recur
-				AbstractNode oldChild = getNodeFromHash(children[selection], cursor + 1);
-				newChild = oldChild.put(nibblesOfHashedKey, cursor + 1, value);
-				oldChild.markAsGarbageCollectable(children[selection]);
-			}
-
+			AbstractNode oldChild = getNodeFromHash(children[selection], cursor + 1); // we recur
+			AbstractNode newChild = oldChild.put(nibblesOfHashedKey, cursor + 1, value);
+			oldChild.markAsGarbageCollectable(children[selection]);
 			byte[][] childrenCopy = children.clone();
 			childrenCopy[selection] = hasherForNodes.hash(newChild);
 
@@ -568,9 +569,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			int lengthOfDistinctPortion = sharedNibbles.length - lengthOfSharedPortion;
 
 			if (lengthOfDistinctPortion == 0) {
-				// we recur
 				AbstractNode oldNext = getNodeFromHash(next, sharedNibbles.length + cursor);
-				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value);
+				AbstractNode newNext = oldNext.put(nibblesOfHashedKey, sharedNibbles.length + cursor, value); // we recur
 				oldNext.markAsGarbageCollectable(next);
 
 				return new Extension(sharedNibbles, hasherForNodes.hash(newNext)).putInStore();
@@ -582,11 +582,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
 				byte selection1 = sharedNibbles[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
-				byte[][] children = new byte[16][];
+				var children = new byte[16][];
 				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next).putInStore());
 				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
+
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
@@ -690,6 +691,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				AbstractNode leaf2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hasherForNodes.hash(leaf1);
 				children[selection2] = hasherForNodes.hash(leaf2);
+
 				AbstractNode branch = new Branch(children).putInStore();
 
 				if (lengthOfSharedPortion > 0) {
@@ -710,6 +712,40 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return keyEnd.length;
 		}
 		*/
+	}
+
+	/**
+	 * An empty node, that represents an empty Patricia trie.
+	 */
+	private class Empty extends AbstractNode {
+
+		/**
+		 * Builds an empty node of a Patricia trie.
+		 */
+		private Empty() {}
+
+		@Override
+		public void into(MarshallingContext context) throws IOException {
+			context.writeByte((byte) 0x05);
+		}
+
+		@Override
+		protected Value get(byte[] nibblesOfHashedKey, int cursor) throws UnknownKeyException {
+			throw new UnknownKeyException("Key not found in Patricia trie");
+		}
+
+		@Override
+		protected AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException {
+			var nibblesEnd = new byte[nibblesOfHashedKey.length - cursor];
+			System.arraycopy(nibblesOfHashedKey, cursor, nibblesEnd, 0, nibblesEnd.length);
+			return new Leaf(nibblesEnd, value.toByteArray()).putInStore();
+		}
+
+		@Override
+		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
+			// we disable garbage collection for the empty nodes, since
+			// they are not kept in store
+		}
 	}
 
 	/**
