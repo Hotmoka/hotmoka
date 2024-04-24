@@ -150,7 +150,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			addGarbageKey(maybeHashOfRoot.get());
 		}
 
-		setRoot(hasherForNodes.hash(newRoot));
+		root = hasherForNodes.hash(newRoot);
 	}
 
 	@Override
@@ -165,24 +165,19 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		// there is nothing to remove when numberOfGarbageKeys == 0, since even the
 		// garbage collection support data is empty
 		if (numberOfGarbageKeys > 0) {
-			for (long num = 0; num < numberOfGarbageKeys; num++) {
-				try {
+			try {
+				for (long num = 0; num < numberOfGarbageKeys; num++)
 					store.remove(getGarbageKey(commitNumber, num));
-				}
-				catch (UnknownKeyException e) {
-					throw new TrieException("This trie refers to a garbage key that does not exist in the trie itself", e);
-				}
-				catch (KeyValueStoreException e) {
-					throw new TrieException(e);
-				}
+			}
+			catch (UnknownKeyException e) {
+				throw new TrieException("This trie refers to a garbage key that does not exist in the trie itself", e);
+			}
+			catch (KeyValueStoreException e) {
+				throw new TrieException(e);
 			}
 
 			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
 		}
-	}
-
-	private void setRoot(byte[] newRoot) throws TrieException {
-		root = newRoot;
 	}
 
 	/**
@@ -200,10 +195,10 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
 			int nodeHashSize = hasherForNodes.length();
 			int sharedBytesLength = ois.available() - nodeHashSize + 1;
-			byte[] sharedBytes = new byte[sharedBytesLength];
+			var sharedBytes = new byte[sharedBytesLength];
 			sharedBytes[0] = kind;
 			if (sharedBytesLength - 1 != ois.readNBytes(sharedBytes, 1, sharedBytesLength - 1))
-				throw new IOException("nibbles length mismatch in an extension node of a Patricia trie");
+				throw new IOException("Nibbles length mismatch in an extension node of a Patricia trie");
 
 			byte[] sharedNibbles = expandBytesIntoNibbles(sharedBytes, (byte) 0x00);
 			byte[] next = ois.readAllBytes();
@@ -213,12 +208,12 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 		else if (kind == 0x04) {
 			short selector = ois.readShort();
 			int nodeHashSize = hasherForNodes.length();
-			byte[][] children = new byte[16][];
+			var children = new byte[16][];
 			for (int pos = 0, bit = 0x8000; pos < 16; pos++, bit >>= 1)
 				if ((selector & bit) != 0) {
 					children[pos] = new byte[nodeHashSize];
 					if (nodeHashSize != ois.readNBytes(children[pos], 0, nodeHashSize))
-						throw new IOException("hash length mismatch in Patricia node");
+						throw new IOException("Hash length mismatch in Patricia node");
 				}
 
 			return new Branch(children);
@@ -230,7 +225,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			else
 				expected = hasherForKeys.length() - cursor / 2;
 
-			byte[] nibbles = new byte[expected];
+			var nibbles = new byte[expected];
 			nibbles[0] = kind;
 			if (expected - 1 != ois.readNBytes(nibbles, 1, expected - 1))
 				throw new IOException("keyEnd length mismatch in a leaf node of a Patricia trie");
@@ -241,7 +236,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			return new Leaf(keyEnd, value);
 		}
 		else
-			throw new IOException("unexpected Patricia node kind: " + kind);
+			throw new IOException("Unexpected Patricia node kind: " + kind);
 	}
 
 	/**
@@ -573,13 +568,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 				byte selection1 = sharedNibbles[lengthOfSharedPortion];
 				byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
 				byte[][] children = new byte[16][];
-
-				byte[] hashOfChild1;
-				if (sharedNibbles1.length == 0)
-					hashOfChild1 = next;
-				else
-					hashOfChild1 = hasherForNodes.hash(new Extension(sharedNibbles1, next).putInStore());
-					
+				byte[] hashOfChild1 = (sharedNibbles1.length == 0) ? next : hasherForNodes.hash(new Extension(sharedNibbles1, next).putInStore());
 				AbstractNode child2 = new Leaf(keyEnd2, value.toByteArray()).putInStore();
 				children[selection1] = hashOfChild1;
 				children[selection2] = hasherForNodes.hash(child2);
@@ -648,7 +637,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			int cursor1;
 			for (cursor1 = 0; cursor < nibblesOfHashedKey.length && cursor1 < keyEnd.length; cursor1++, cursor++)
 				if (keyEnd[cursor1] != nibblesOfHashedKey[cursor])
-					throw new UnknownKeyException("key not found in Patricia trie");
+					throw new UnknownKeyException("Key not found in Patricia trie");
 
 			if (cursor1 != keyEnd.length || cursor != nibblesOfHashedKey.length)
 				throw new TrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
