@@ -76,9 +76,9 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 */
 	public TrieOfResponses(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn, root);
+			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn);
 			this.hasherForJars = HashingAlgorithms.sha256().getHasher(Function.identity());
-			parent = PatriciaTries.of(keyValueStoreOfResponses, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash), HashingAlgorithms.sha256(),
+			this.parent = PatriciaTries.of(keyValueStoreOfResponses, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash), HashingAlgorithms.sha256(),
 					TransactionResponses::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

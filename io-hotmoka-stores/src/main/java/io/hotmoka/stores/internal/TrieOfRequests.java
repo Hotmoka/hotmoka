@@ -53,7 +53,7 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	 */
 	public TrieOfRequests(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 				HashingAlgorithms.sha256(), TransactionRequests::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

@@ -55,7 +55,7 @@ public class TrieOfHistories {
 	 */
 	public TrieOfHistories(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 				HashingAlgorithms.sha256(), MarshallableArrayOfTransactionReferences::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

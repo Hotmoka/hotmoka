@@ -16,30 +16,10 @@ limitations under the License.
 
 package io.hotmoka.patricia.api;
 
-import java.util.Optional;
-
 /**
  * An abstraction of a store that persists the nodes of a Patricia tree.
  */
 public interface KeyValueStore {
-
-	/**
-	 * Yields the hash of the root of the Patricia trie
-	 * that this store supports.
-	 * 
-	 * @return the hash of the root; this might be missing if {@link #setRoot(byte[])}
-	 *         has not been called yet
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
-	 */
-	Optional<byte[]> getRoot() throws KeyValueStoreException;
-
-	/**
-	 * Sets the hash of the root of the Patricia trie that this store supports.
-	 * 
-	 * @param root the hash of the root of the trie
-	 * @throws KeyValueStoreException if this key/value store is not able to complete the operation
-	 */
-	void setRoot(byte[] root) throws KeyValueStoreException;
 
 	/**
 	 * Persists an association of a key to a value in this store.

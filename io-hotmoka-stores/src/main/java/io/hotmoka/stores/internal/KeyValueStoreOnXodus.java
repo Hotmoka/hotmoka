@@ -16,8 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import java.util.Optional;
-
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.UnknownKeyException;
@@ -32,22 +30,24 @@ import io.hotmoka.xodus.env.Transaction;
 class KeyValueStoreOnXodus implements KeyValueStore {
 	private final Store store;
 	private final Transaction txn;
-	private byte[] root;
 
-	KeyValueStoreOnXodus(Store store, Transaction txn, byte[] root) {
+	KeyValueStoreOnXodus(Store store, Transaction txn) {
 		this.store = store;
 		this.txn = txn;
-		this.root = root;
-	}
-
-    @Override
-	public Optional<byte[]> getRoot() {
-    	return Optional.ofNullable(root);
 	}
 
 	@Override
-	public void setRoot(byte[] root) {
-		this.root = root;
+	public byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException {
+		try {
+			ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
+			if (result == null)
+				throw new UnknownKeyException();
+	
+			return result.getBytes();
+		}
+		catch (ExodusException e) {
+			throw new KeyValueStoreException(e);
+		}
 	}
 
 	@Override
@@ -65,20 +65,6 @@ class KeyValueStoreOnXodus implements KeyValueStore {
 		try {
 			if (!store.delete(txn, ByteIterable.fromBytes(key)))
 				throw new UnknownKeyException();
-		}
-		catch (ExodusException e) {
-			throw new KeyValueStoreException(e);
-		}
-	}
-
-	@Override
-	public byte[] get(byte[] key) throws UnknownKeyException, KeyValueStoreException {
-		try {
-			ByteIterable result = store.get(txn, ByteIterable.fromBytes(key));
-			if (result == null)
-				throw new UnknownKeyException();
-
-			return result.getBytes();
 		}
 		catch (ExodusException e) {
 			throw new KeyValueStoreException(e);

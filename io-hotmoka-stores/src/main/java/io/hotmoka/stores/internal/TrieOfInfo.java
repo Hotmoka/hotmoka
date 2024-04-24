@@ -54,7 +54,7 @@ public class TrieOfInfo {
 	 */
 	public TrieOfInfo(Store store, Transaction txn, byte[] root, long numberOfCommits) {
 		try {
-			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn, root), HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 				HashingAlgorithms.sha256(), StorageValues::from, NodeUnmarshallingContexts::of, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {

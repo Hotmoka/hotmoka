@@ -80,11 +80,17 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	private final long numberOfCommits;
 
 	/**
+	 * The root of the trie. This is {@code null} if the trie is empty.
+	 */
+	private byte[] root;
+
+	/**
 	 * Creates a new Merkle-Patricia trie supported by the underlying store,
 	 * using the given hashing algorithm to hash nodes and values.
 	 * 
 	 * @param store the store used to store a mapping from nodes' hashes to the marshalled
 	 *              representation of the nodes
+	 * @param root the root of the trie; use {@code null} if the trie is empty
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
 	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
@@ -96,12 +102,13 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	 *                        be -1L if the trie is only used or reading, so that there is no need
 	 *                        to keep track of keys that can be garbage-collected
 	 */
-	public PatriciaTrieImpl(KeyValueStore store,
+	public PatriciaTrieImpl(KeyValueStore store, byte[] root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			Unmarshaller<? extends Value> valueUnmarshaller,
 			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
 
 		this.store = store;
+		this.root = root;
 		this.hasherForKeys = hasherForKeys;
 		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
 		this.valueUnmarshaller = valueUnmarshaller;
@@ -112,7 +119,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	@Override
 	public Optional<Value> get(Key key) throws TrieException {
 		try {
-			Optional<byte[]> maybeHashOfRoot = store.getRoot();
+			Optional<byte[]> maybeHashOfRoot = getRoot();
 			if (maybeHashOfRoot.isEmpty())
 				return Optional.empty();
 
@@ -120,9 +127,6 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 			byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 			AbstractNode root = getNodeFromHash(maybeHashOfRoot.get(), 0);
 			return Optional.of(root.get(nibblesOfHashedKey, 0));
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
 		}
 		catch (UnknownKeyException e) {
 			return Optional.empty();
@@ -150,13 +154,8 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	@Override
-	public Optional<byte[]> getRoot() throws TrieException {
-		try {
-			return store.getRoot();
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
+	public Optional<byte[]> getRoot() {
+		return Optional.ofNullable(root);
 	}
 
 	@Override
@@ -183,12 +182,7 @@ public class PatriciaTrieImpl<Key, Value extends Marshallable> implements Patric
 	}
 
 	private void setRoot(byte[] newRoot) throws TrieException {
-		try {
-			store.setRoot(newRoot);
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
+		root = newRoot;
 	}
 
 	/**
