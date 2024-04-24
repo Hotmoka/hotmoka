@@ -234,7 +234,9 @@ public abstract class PartialStore extends AbstractStore {
 	 * in the supporting database if the transaction will later be committed.
 	 */
 	public final void beginTransaction() {
-		beginTransactionInternal();
+		synchronized (lock) {
+			beginTransactionInternal();
+		}
 	}
 
 	/**
@@ -244,13 +246,11 @@ public abstract class PartialStore extends AbstractStore {
 	 * @return the transaction
 	 */
 	protected Transaction beginTransactionInternal() {
-		synchronized (lock) {
-			txn = env.beginTransaction();
-			long numberOfCommits = getNumberOfCommits();
-			trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
-			trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
-			return txn;
-		}
+		txn = env.beginTransaction();
+		long numberOfCommits = getNumberOfCommits();
+		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, nullIfEmpty(rootOfResponses), numberOfCommits);
+		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, nullIfEmpty(rootOfInfo), numberOfCommits);
+		return txn;
 	}
 
 	/**

@@ -125,11 +125,9 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 
 	@Override
 	protected Transaction beginTransactionInternal() {
-		synchronized (lock) {
-			Transaction txn = super.beginTransactionInternal();
-			trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), getNumberOfCommits());
-			return txn;
-		}
+		Transaction txn = super.beginTransactionInternal();
+		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, nullIfEmpty(rootOfHistories), getNumberOfCommits());
+		return txn;
 	}
 
 	@Override
