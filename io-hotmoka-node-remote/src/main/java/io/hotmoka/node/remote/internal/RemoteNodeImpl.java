@@ -1317,7 +1317,7 @@ public class RemoteNodeImpl extends AbstractRemote<NodeException> implements Rem
 	}
 
 	private Boolean processAddInitializationTransactionSuccess(RpcMessage message) {
-		return message instanceof AddInitializationTransactionResultMessage aitrm ? Boolean.TRUE : null;
+		return message instanceof AddInitializationTransactionResultMessage ? Boolean.TRUE : null;
 	}
 
 	private boolean processAddInitializationTransactionExceptions(ExceptionMessage message) {

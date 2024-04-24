@@ -37,7 +37,7 @@ public class AddInitializationTransactionResultMessageImpl extends AbstractRpcMe
 
 	@Override
 	public boolean equals(Object other) {
-		return other instanceof AddInitializationTransactionResultMessage aitrm && super.equals(other);
+		return other instanceof AddInitializationTransactionResultMessage && super.equals(other);
 	}
 
 	@Override
