@@ -409,8 +409,7 @@ public abstract class PartialStore extends AbstractStore {
 	}
 
 	/**
-	 * Determines if all roots of the tries in this store are empty
-	 * (sequence of 0's).
+	 * Determines if all roots of the tries in this store are empty.
 	 * 
 	 * @return true if and only if that condition holds
 	 */

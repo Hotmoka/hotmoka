@@ -29,7 +29,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A map from transaction requests into their error, backed by a Merkle-Patricia trie.
  */
-public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, String> {
+public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, String, TrieOfErrors> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
@@ -45,6 +45,15 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 	public TrieOfErrors(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), String::getBytes, String::new, numberOfCommits);
+	}
+
+	private TrieOfErrors(TrieOfErrors cloned, byte[] root) {
+		super(cloned, root);
+	}
+
+	@Override
+	protected TrieOfErrors cloneAndCheckout(byte[] root) {
+		return new TrieOfErrors(this, root);
 	}
 
 	private static HashingAlgorithm sha256() {

@@ -20,7 +20,8 @@ import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.patricia.internal.PatriciaTrieImpl;
+import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.internal.AbstractPatriciaTrieImpl;
 
 /**
  * Abstract implementation of a Patricia trie.
@@ -28,7 +29,7 @@ import io.hotmoka.patricia.internal.PatriciaTrieImpl;
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public abstract class AbstractPatriciaTrie<Key, Value> extends PatriciaTrieImpl<Key, Value> {
+public abstract class AbstractPatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value>> extends AbstractPatriciaTrieImpl<Key, Value, T> {
 
 	/**
 	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
@@ -54,5 +55,9 @@ public abstract class AbstractPatriciaTrie<Key, Value> extends PatriciaTrieImpl<
 			long numberOfCommits) {
 
 		super(store, root, hasherForKeys, hashingForNodes, valueToBytes, bytesToValue, numberOfCommits);
+	}
+
+	protected AbstractPatriciaTrie(AbstractPatriciaTrie<Key, Value, T> cloned, byte[] root) {
+		super(cloned, root);
 	}
 }

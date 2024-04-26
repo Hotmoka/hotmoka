@@ -33,7 +33,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
  */
-public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>> {
+public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>, TrieOfRequests> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -49,6 +49,15 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	public TrieOfRequests(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+	}
+
+	private TrieOfRequests(TrieOfRequests cloned, byte[] root) {
+		super(cloned, root);
+	}
+
+	@Override
+	protected TrieOfRequests cloneAndCheckout(byte[] root) {
+		return new TrieOfRequests(this, root);
 	}
 
 	private static HashingAlgorithm sha256() {

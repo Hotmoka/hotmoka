@@ -35,7 +35,7 @@ import io.hotmoka.xodus.env.Transaction;
  * A map from storage references to an array of transaction references (their <i>history</i>),
  * backed by a Merkle-Patricia trie.
  */
-public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stream<TransactionReference>> {
+public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stream<TransactionReference>, TrieOfHistories> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to storage references into
@@ -53,6 +53,10 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		super(new KeyValueStoreOnXodus(store, txn), root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 			sha256(), s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(),
 			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions), numberOfCommits);
+	}
+
+	private TrieOfHistories(TrieOfHistories cloned, byte[] root) {
+		super(cloned, root);
 	}
 
 	private static HashingAlgorithm sha256() {
@@ -80,13 +84,18 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public void put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
+	protected TrieOfHistories cloneAndCheckout(byte[] root) {
+		return new TrieOfHistories(this, root);
+	}
+
+	@Override
+	public TrieOfHistories put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
 		var transactionsAsArray = history.toArray(TransactionReference[]::new);
 		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
-		super.put(key, Stream.of(withoutLast));
+		return (TrieOfHistories) super.put(key, Stream.of(withoutLast));
 	}
 }

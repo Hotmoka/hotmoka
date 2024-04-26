@@ -35,7 +35,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A Merkle-Patricia trie that maps miscellaneous information into their value.
  */
-public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue> {
+public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfInfo> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps miscellaneous information into their value.
@@ -51,6 +51,15 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue> {
 	public TrieOfInfo(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+	}
+
+	private TrieOfInfo(TrieOfInfo cloned, byte[] root) {
+		super(cloned, root);
+	}
+
+	@Override
+	protected TrieOfInfo cloneAndCheckout(byte[] root) {
+		return new TrieOfInfo(this, root);
 	}
 
 	private static HashingAlgorithm sha256() {

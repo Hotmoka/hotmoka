@@ -37,12 +37,14 @@ public interface PatriciaTrie<Key, Value> {
 
 	/**
 	 * Binds the given key to the given value. It replaces it if it was already present.
+	 * This trie is not modified, but a new trie is returned instead, identical to this but for the added binding.
 	 * 
 	 * @param key the key
 	 * @param value the value
+	 * @return the resulting, modified Patricia trie
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	void put(Key key, Value value) throws TrieException;
+	PatriciaTrie<Key, Value> put(Key key, Value value) throws TrieException;
 
 	/**
 	 * Yields the root of the trie, that can be used as a hash of its content.

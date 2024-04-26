@@ -158,8 +158,8 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	}
 
 	@Override
-	public void put(TransactionReference key, TransactionResponse value) throws TrieException {
-		parent.put(key, writeTransformation(value));
+	public PatriciaTrie<TransactionReference, TransactionResponse> put(TransactionReference key, TransactionResponse value) throws TrieException {
+		return parent.put(key, writeTransformation(value));
 	}
 
 	@Override
