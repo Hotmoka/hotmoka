@@ -167,7 +167,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object)));
+				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object))).orElse(Stream.empty());
 		}
 	}
 
@@ -175,7 +175,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		synchronized (lock) {
 			try {
-				return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
 			}
 			catch (TrieException e) {
 				throw new RuntimeException(e); // TODO
@@ -253,23 +253,18 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 
 	@Override
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		try {
-			// this can be null if this is called before any new transaction has been executed over this store
-			if (trieOfErrors == null)
-				return super.mergeRootsOfTries();
+		// this can be null if this is called before any new transaction has been executed over this store
+		if (trieOfErrors == null)
+			return super.mergeRootsOfTries();
 
-			byte[] superMerge = super.mergeRootsOfTries();
-			byte[] result = new byte[superMerge.length + 96];
-			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-			System.arraycopy(trieOfErrors.getRoot(), 0, result, superMerge.length, 32);
-			System.arraycopy(trieOfRequests.getRoot(), 0, result, superMerge.length + 32, 32);
-			System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length + 64, 32);
+		byte[] superMerge = super.mergeRootsOfTries();
+		byte[] result = new byte[superMerge.length + 96];
+		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
+		System.arraycopy(trieOfErrors.getRoot(), 0, result, superMerge.length, 32);
+		System.arraycopy(trieOfRequests.getRoot(), 0, result, superMerge.length + 32, 32);
+		System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length + 64, 32);
 
-			return result;
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return result;
 	}
 
 	@Override

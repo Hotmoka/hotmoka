@@ -21,13 +21,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.patricia.PatriciaTries;
-import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
@@ -35,12 +35,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A Merkle-Patricia trie that maps miscellaneous information into their value.
  */
-public class TrieOfInfo {
-
-	/**
-	 * The supporting trie.
-	 */
-	private final PatriciaTrie<Byte, StorageValue> parent;
+public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps miscellaneous information into their value.
@@ -54,23 +49,17 @@ public class TrieOfInfo {
 	 *                        -1L if the trie is used only for reading
 	 */
 	public TrieOfInfo(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		try {
-			this.parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
-				HashingAlgorithms.sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits); // TODO: NodeUnmarshallingContexts?
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unexpected exception", e);
-		}
+		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
 	}
 
-	/**
-	 * Yields the root of the trie, that can be used as a hash of the trie itself.
-	 * 
-	 * @return the root
-	 * @throws TrieException 
-	 */
-	public byte[] getRoot() throws TrieException {
-		return parent.getRoot();
+	private static HashingAlgorithm sha256() {
+		try {
+			return HashingAlgorithms.sha256();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
@@ -80,7 +69,7 @@ public class TrieOfInfo {
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
 	public long getNumberOfCommits() throws TrieException {
-		return parent.get((byte) 0)
+		return get((byte) 0)
 			.map(commits -> ((LongValue) commits).getValue())
 			.orElse(0L);
 	}
@@ -93,7 +82,7 @@ public class TrieOfInfo {
 	 */
 	public long increaseNumberOfCommits() throws TrieException {
 		long numberOfCommits = getNumberOfCommits() + 1;
-		parent.put((byte) 0, StorageValues.longOf(numberOfCommits));
+		put((byte) 0, StorageValues.longOf(numberOfCommits));
 		return numberOfCommits;
 	}
 
@@ -104,7 +93,7 @@ public class TrieOfInfo {
 	 */
 	public Optional<StorageReference> getManifest() {
 		try {
-			Optional<StorageValue> maybeManifest = parent.get((byte) 1);
+			Optional<StorageValue> maybeManifest = get((byte) 1);
 			if (maybeManifest.isEmpty())
 				return Optional.empty();
 			else if (maybeManifest.get() instanceof StorageReference manifest)
@@ -124,16 +113,6 @@ public class TrieOfInfo {
 	 * @throws TrieException if this trie is not able to complete the operatoin correcly
 	 */
 	public void setManifest(StorageReference manifest) throws TrieException {
-		parent.put((byte) 1, manifest);
-	}
-
-	/**
-	 * Garbage-collects all keys that have been updated during the given number of commit.
-	 * 
-	 * @param commitNumber the number of the commit to garbage collect
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	public void garbageCollect(long commitNumber) throws TrieException {
-		parent.garbageCollect(commitNumber);
+		put((byte) 1, manifest);
 	}
 }

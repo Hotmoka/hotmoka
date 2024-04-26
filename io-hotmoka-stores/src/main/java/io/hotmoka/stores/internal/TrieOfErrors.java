@@ -20,22 +20,16 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.patricia.PatriciaTries;
-import io.hotmoka.patricia.api.PatriciaTrie;
-import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A map from transaction requests into their error, backed by a Merkle-Patricia trie.
  */
-public class TrieOfErrors {
-
-	/**
-	 * The supporting trie.
-	 */
-	private final PatriciaTrie<TransactionReference, String> parent;
+public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, String> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
@@ -49,34 +43,16 @@ public class TrieOfErrors {
 	 *                        -1L if the trie is used only for reading
 	 */
 	public TrieOfErrors(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
+		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+			sha256(), String::getBytes, String::new, numberOfCommits);
+	}
+
+	private static HashingAlgorithm sha256() {
 		try {
-			this.parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-				HashingAlgorithms.sha256(), String::getBytes, String::new, numberOfCommits);
+			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unexpected exception", e);
+			throw new RuntimeException(e); // TODO
 		}
-	}
-
-	public Optional<String> get(TransactionReference key) throws TrieException {
-		return parent.get(key);
-	}
-
-	public void put(TransactionReference key, String value) throws TrieException {
-		parent.put(key, value);
-	}
-
-	public byte[] getRoot() throws TrieException {
-		return parent.getRoot();
-	}
-
-	/**
-	 * Garbage-collects all keys that have been updated during the given number of commit.
-	 * 
-	 * @param commitNumber the number of the commit to garbage collect
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	public void garbageCollect(long commitNumber) throws TrieException {
-		parent.garbageCollect(commitNumber);
 	}
 }

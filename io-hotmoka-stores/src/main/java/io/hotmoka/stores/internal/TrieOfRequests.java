@@ -21,25 +21,19 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.patricia.PatriciaTries;
-import io.hotmoka.patricia.api.PatriciaTrie;
-import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.xodus.env.Store;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
  */
-public class TrieOfRequests implements PatriciaTrie<TransactionReference, TransactionRequest<?>> {
-
-	/**
-	 * The supporting trie.
-	 */
-	private final PatriciaTrie<TransactionReference, TransactionRequest<?>> parent;
+public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, TransactionRequest<?>> {
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -53,32 +47,16 @@ public class TrieOfRequests implements PatriciaTrie<TransactionReference, Transa
 	 *                        -1L if the trie is used only for reading
 	 */
 	public TrieOfRequests(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
+		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+	}
+
+	private static HashingAlgorithm sha256() {
 		try {
-			this.parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-				HashingAlgorithms.sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unexpected exception", e);
+			throw new RuntimeException(e); // TODO
 		}
-	}
-
-	@Override
-	public Optional<TransactionRequest<?>> get(TransactionReference key) throws TrieException {
-		return parent.get(key);
-	}
-
-	@Override
-	public void put(TransactionReference key, TransactionRequest<?> value) throws TrieException {
-		parent.put(key, value);
-	}
-
-	@Override
-	public byte[] getRoot() throws TrieException {
-		return parent.getRoot();
-	}
-
-	@Override
-	public void garbageCollect(long commitNumber) throws TrieException {
-		parent.garbageCollect(commitNumber);
 	}
 }

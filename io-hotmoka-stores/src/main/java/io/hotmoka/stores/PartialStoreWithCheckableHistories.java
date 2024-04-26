@@ -106,7 +106,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	public Stream<TransactionReference> getHistory(StorageReference object) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object)));
+    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object))).orElse(Stream.empty());
     	}
 	}
 
@@ -114,7 +114,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
 		synchronized (lock) {
 			try {
-				return duringTransaction() ? trieOfHistories.get(object) : getHistory(object);
+				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
 			}
 			catch (TrieException e) {
 				throw new RuntimeException(e); // TODO
@@ -164,17 +164,12 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 		if (trieOfHistories == null)
 			return super.mergeRootsOfTries();
 
-		try {
-			byte[] superMerge = super.mergeRootsOfTries();
-			byte[] result = new byte[superMerge.length + 32];
-			System.arraycopy(superMerge, 0, result, 0, superMerge.length);
-			System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length, 32);
+		byte[] superMerge = super.mergeRootsOfTries();
+		byte[] result = new byte[superMerge.length + 32];
+		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
+		System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length, 32);
 
-			return result;
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return result;
 	}
 
 	@Override
