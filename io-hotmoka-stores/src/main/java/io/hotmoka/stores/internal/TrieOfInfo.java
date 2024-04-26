@@ -89,10 +89,8 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @return the new (ie, incremented) number of commits
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
-	public long increaseNumberOfCommits() throws TrieException {
-		long numberOfCommits = getNumberOfCommits() + 1;
-		put((byte) 0, StorageValues.longOf(numberOfCommits));
-		return numberOfCommits;
+	public TrieOfInfo increaseNumberOfCommits() throws TrieException {
+		return put2((byte) 0, StorageValues.longOf(getNumberOfCommits() + 1));
 	}
 
 	/**
@@ -119,9 +117,9 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * Sets the manifest.
 	 * 
 	 * @param manifest the manifest to set
-	 * @throws TrieException if this trie is not able to complete the operatoin correcly
+	 * @throws TrieException if this trie is not able to complete the operation correcly
 	 */
-	public void setManifest(StorageReference manifest) throws TrieException {
-		put((byte) 1, manifest);
+	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
+		return put2((byte) 1, manifest);
 	}
 }

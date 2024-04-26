@@ -238,20 +238,6 @@ public abstract class PartialStore extends AbstractStore {
 	}
 
 	/**
-	 * Starts a transaction. Instance updates during the transaction are saved
-	 * in the supporting database if the transaction will later be committed.
-	 * 
-	 * @return the transaction
-	 */
-	protected Transaction beginTransactionInternal() {
-		txn = env.beginTransaction();
-		long numberOfCommits = getNumberOfCommits();
-		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses, numberOfCommits);
-		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, rootOfInfo, numberOfCommits);
-		return txn;
-	}
-
-	/**
 	 * Commits to the database all data written from the last call to {@link #beginTransactionInternal()}.
 	 * This does not change the view of the store, since its roots are not updated,
 	 * unless the hash returned by this method gets later checked out to update the roots.
@@ -262,7 +248,8 @@ public abstract class PartialStore extends AbstractStore {
 	public byte[] commitTransaction() {
 		try {
 			synchronized (lock) {
-				long newCommitNumber = trieOfInfo.increaseNumberOfCommits();
+				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
+				long newCommitNumber = trieOfInfo.getNumberOfCommits();
 
 				// a negative number means that garbage-collection is disabled
 				if (checkableDepth >= 0L) {
@@ -292,10 +279,24 @@ public abstract class PartialStore extends AbstractStore {
 			(UncheckFunction.uncheck(txn -> new TrieOfInfo(storeOfInfo, txn, rootOfInfo, -1L).getNumberOfCommits()));
 	}
 
+	/**
+	 * Starts a transaction. Instance updates during the transaction are saved
+	 * in the supporting database if the transaction will later be committed.
+	 * 
+	 * @return the transaction
+	 */
+	protected Transaction beginTransactionInternal() {
+		txn = env.beginTransaction();
+		long numberOfCommits = getNumberOfCommits();
+		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses, numberOfCommits);
+		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, rootOfInfo, numberOfCommits);
+		return txn;
+	}
+
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		try {
-			trieOfResponses.put(reference, response);
+			trieOfResponses = trieOfResponses.put2(reference, response);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -305,7 +306,7 @@ public abstract class PartialStore extends AbstractStore {
 	@Override
 	protected void setManifest(StorageReference manifest) {
 		try {
-			trieOfInfo.setManifest(manifest);
+			trieOfInfo = trieOfInfo.setManifest(manifest);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -392,20 +393,15 @@ public abstract class PartialStore extends AbstractStore {
 	 * @return the concatenation
 	 */
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		try {
-			// this can be null if this is called before any new transaction has been executed over this store
-			if (trieOfResponses == null)
-				return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
+		// this can be null if this is called before any new transaction has been executed over this store
+		if (trieOfResponses == null)
+			return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
 
-			var result = new byte[64];
-			System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
-			System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);
+		var result = new byte[64];
+		System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
+		System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);
 
-			return result;
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
+		return result;
 	}
 
 	/**

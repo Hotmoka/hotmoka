@@ -85,7 +85,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	/**
 	 * The root of the trie.
 	 */
-	private byte[] root;
+	private final byte[] root;
 
 	/**
 	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
@@ -158,14 +158,13 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	}
 
 	@Override
-	public T put(Key key, Value value) throws TrieException {
+	public T put2(Key key, Value value) throws TrieException {
 		byte[] hashedKey = hasherForKeys.hash(key);
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 		AbstractNode oldRoot = getNodeFromHash(root, 0);
 		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
 		oldRoot.markAsGarbageCollectable(root);
-		root = hasherForNodes.hash(newRoot);
-		return cloneAndCheckout(root);
+		return cloneAndCheckout(hasherForNodes.hash(newRoot));
 	}
 
 	@Override

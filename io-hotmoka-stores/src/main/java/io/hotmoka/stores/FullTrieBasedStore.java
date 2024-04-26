@@ -187,8 +187,8 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		try {
 			synchronized (lock) {
-				trieOfRequests.put(reference, request);
-				trieOfErrors.put(reference, errorMessage);
+				trieOfRequests = trieOfRequests.put2(reference, request);
+				trieOfErrors = trieOfErrors.put2(reference, errorMessage);
 			}
 		}
 		catch (TrieException e) {
@@ -234,7 +234,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	
 		// we also store the request
 		try {
-			trieOfRequests.put(reference, request);
+			trieOfRequests = trieOfRequests.put2(reference, request);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -244,7 +244,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
-			trieOfHistories.put(object, history);
+			trieOfHistories = trieOfHistories.put2(object, history);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

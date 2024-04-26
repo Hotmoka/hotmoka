@@ -44,7 +44,7 @@ public interface PatriciaTrie<Key, Value> {
 	 * @return the resulting, modified Patricia trie
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	PatriciaTrie<Key, Value> put(Key key, Value value) throws TrieException;
+	PatriciaTrie<Key, Value> put2(Key key, Value value) throws TrieException;
 
 	/**
 	 * Yields the root of the trie, that can be used as a hash of its content.

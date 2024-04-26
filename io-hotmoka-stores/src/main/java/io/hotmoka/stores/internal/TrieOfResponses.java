@@ -25,6 +25,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
@@ -32,10 +33,9 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.patricia.AbstractPatriciaTrie;
 import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.KeyValueStoreException;
-import io.hotmoka.patricia.PatriciaTries;
-import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.env.Store;
@@ -45,14 +45,9 @@ import io.hotmoka.xodus.env.Transaction;
  * A Merkle-Patricia trie that maps references to transaction requests into their responses.
  * It optimizes the trie by sharing identical jars in responses containing an instrumented jar.
  */
-public class TrieOfResponses implements PatriciaTrie<TransactionReference, TransactionResponse> {
+public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, TransactionResponse, TrieOfResponses> {
 
 	private final static Logger logger = Logger.getLogger(TrieOfResponses.class.getName());
-
-	/**
-	 * The supporting trie.
-	 */
-	private final PatriciaTrie<TransactionReference, TransactionResponse> parent;
 
 	/**
 	 * The hasher used for the jars in the responses that included a jar.
@@ -76,14 +71,31 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 	 *                        -1L if the trie is used only for reading
 	 */
 	public TrieOfResponses(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
+		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+			sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+
+		this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn);
+		this.hasherForJars = sha256().getHasher(Function.identity());
+	}
+
+	private TrieOfResponses(TrieOfResponses cloned, byte[] root) {
+		super(cloned, root);
+
+		this.keyValueStoreOfResponses = cloned.keyValueStoreOfResponses;
+		this.hasherForJars = cloned.hasherForJars;
+	}
+
+	@Override
+	protected TrieOfResponses cloneAndCheckout(byte[] root) {
+		return new TrieOfResponses(this, root);
+	}
+
+	private static HashingAlgorithm sha256() {
 		try {
-			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn);
-			this.hasherForJars = HashingAlgorithms.sha256().getHasher(Function.identity());
-			this.parent = PatriciaTries.of(keyValueStoreOfResponses, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-				HashingAlgorithms.sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
+			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("unexpected exception", e);
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -154,21 +166,11 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 
 	@Override
 	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
-		return parent.get(key).map(this::readTransformation);
+		return super.get(key).map(this::readTransformation);
 	}
 
 	@Override
-	public PatriciaTrie<TransactionReference, TransactionResponse> put(TransactionReference key, TransactionResponse value) throws TrieException {
-		return parent.put(key, writeTransformation(value));
-	}
-
-	@Override
-	public byte[] getRoot() throws TrieException {
-		return parent.getRoot();
-	}
-
-	@Override
-	public void garbageCollect(long commitNumber) throws TrieException {
-		parent.garbageCollect(commitNumber);
+	public TrieOfResponses put2(TransactionReference key, TransactionResponse value) throws TrieException {
+		return super.put2(key, writeTransformation(value));
 	}
 }

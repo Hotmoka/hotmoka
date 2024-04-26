@@ -89,13 +89,13 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	public TrieOfHistories put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
+	public TrieOfHistories put2(StorageReference key, Stream<TransactionReference> history) throws TrieException {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
 		var transactionsAsArray = history.toArray(TransactionReference[]::new);
 		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
-		return (TrieOfHistories) super.put(key, Stream.of(withoutLast));
+		return (TrieOfHistories) super.put2(key, Stream.of(withoutLast));
 	}
 }

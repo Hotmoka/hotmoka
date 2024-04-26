@@ -151,7 +151,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
-			trieOfHistories.put(object, history);
+			trieOfHistories = trieOfHistories.put2(object, history);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
