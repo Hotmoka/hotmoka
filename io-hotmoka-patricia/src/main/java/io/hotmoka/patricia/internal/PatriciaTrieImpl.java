@@ -22,24 +22,22 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
-import io.hotmoka.patricia.api.FromBytes;
-import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.KeyValueStoreException;
+import io.hotmoka.patricia.FromBytes;
+import io.hotmoka.patricia.KeyValueStore;
+import io.hotmoka.patricia.KeyValueStoreException;
+import io.hotmoka.patricia.ToBytes;
 import io.hotmoka.patricia.api.PatriciaTrie;
-import io.hotmoka.patricia.api.ToBytes;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 
 /**
- * Implementation of a Patricia trie.
+ * Implementation of a Merkle-Patricia trie.
  *
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
@@ -62,14 +60,14 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	private final Hasher<AbstractNode> hasherForNodes;
 
 	/**
-	 * A function able to marshal a value into its byte representation.
+	 * A function that marshals values into their byte representation.
 	 */
-	private final ToBytes<? super Value> bytesFromValue;
+	private final ToBytes<? super Value> valueToBytes;
 
 	/**
-	 * A function able to unmarshall a value from its byte representation.
+	 * A function that unmarshals bytes into the represented value.
 	 */
-	private final FromBytes<? extends Value> valueFromBytes;
+	private final FromBytes<? extends Value> bytesToValue;
 
 	/**
 	 * The current number of commits already executed on the store; this trie
@@ -85,39 +83,37 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	private final byte[] hashOfEmpty;
 
 	/**
-	 * The root of the trie. This is {@code null} if the trie is empty.
+	 * The root of the trie.
 	 */
 	private byte[] root;
 
 	/**
-	 * Creates a new Merkle-Patricia trie supported by the underlying store,
-	 * using the given hashing algorithm to hash nodes and values.
+	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
+	 * using the given hashing algorithms to hash nodes and values.
 	 * 
-	 * @param store the store used to store a mapping from nodes' hashes to the marshalled
-	 *              representation of the nodes
-	 * @param root the root of the trie; use empty to create an empty trie
+	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
+	 *              to the marshalled representation of the nodes
+	 * @param root the root of the trie; pass it empty to create an empty trie
 	 * @param hasherForKeys the hasher for the keys
 	 * @param hashingForNodes the hashing algorithm for the nodes of the trie
-	 * @param valueUnmarshaller a function able to unmarshall a value from its byte representation
-	 * @param valueUnmarshallingContextSupplier the supplier of the unmarshalling context for the values
+	 * @param valueToBytes a function that marshals values into their byte representation
+	 * @param bytesToValue a function that unmarshals bytes into the represented value
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data can be garbage collected (eventually)
 	 *                        because they become unreachable as result of the store updates
 	 *                        performed during commit {@code numerOfCommits}; this value could
-	 *                        be -1L if the trie is only used or reading, so that there is no need
+	 *                        be -1L if the trie is only used for reading, so that there is no need
 	 *                        to keep track of keys that can be garbage-collected
 	 */
 	public PatriciaTrieImpl(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			ToBytes<? super Value> bytesFromValue,
-			FromBytes<? extends Value> valueFromBytes,
-			long numberOfCommits) {
+			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue, long numberOfCommits) {
 
 		this.store = store;
 		this.hasherForKeys = hasherForKeys;
 		this.hasherForNodes = hashingForNodes.getHasher(AbstractNode::toByteArray);
-		this.valueFromBytes = valueFromBytes;
-		this.bytesFromValue = bytesFromValue;
+		this.bytesToValue = bytesToValue;
+		this.valueToBytes = valueToBytes;
 		this.hashOfEmpty = hasherForNodes.hash(new Empty());
 		this.numberOfCommits = numberOfCommits;
 		this.root = root.orElse(hashOfEmpty);
@@ -182,7 +178,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	 * @return the node
 	 * @throws IOException if the node could not be unmarshalled
 	 */
-	private AbstractNode from(ObjectInputStream ois, final int cursor) throws IOException {
+	private AbstractNode from(ObjectInputStream ois, int cursor) throws IOException {
 		byte kind = ois.readByte();
 
 		if (kind == 0x00 || (kind & 0xf0) == 0x10) {
@@ -241,8 +237,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	 * @param cursor the number of nibbles in the path from the root of the trie to the node;
 	 *               this is needed in order to foresee the size of the leaves
 	 * @return the node
-	 * @throws NoSuchElementException if the store has no node with the given {@code hash}
-	 * @throws IOException if the node could not be unmarshalled
+	 * @throws TrieException if this trie is not able to complete the operation correctly
 	 */
 	private AbstractNode getNodeFromHash(byte[] hash, int cursor) throws TrieException {
 		if (Arrays.equals(hash, hashOfEmpty))
@@ -252,7 +247,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 			return from(ois, cursor);
 		}
 		catch (UnknownKeyException e) {
-			throw new TrieException("This trie refers to a node " + Hex.toHexString(hash) + " that cannot be found in the trie itself", e);
+			throw new TrieException("This trie refers to a node that cannot be found in the trie itself", e);
 		}
 		catch (KeyValueStoreException | IOException e) {
 			throw new TrieException(e);
@@ -269,7 +264,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	 */
 	private static byte[] toNibbles(byte[] original) {
 		int length = original.length;
-		byte[] split = new byte[length * 2];
+		var split = new byte[length * 2];
 		int pos = 0;
 		for (byte b: original) {
 			split[pos++] = (byte) ((b & 0xf0) >> 4);
@@ -290,7 +285,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	 */
 	private static byte[] compactNibblesIntoBytes(byte[] nibbles, byte evenSelector, byte oddSelector) {
 		int length = nibbles.length;
-		byte[] result = new byte[1 + length / 2];
+		var result = new byte[1 + length / 2];
 
 		if (length % 2 == 0) {
 			result[0] = evenSelector;
@@ -330,7 +325,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 	}
 
 	/**
-	 * A node of a Patricia tree.
+	 * A node of a Merkle-Patricia tree.
 	 */
 	private abstract class AbstractNode extends AbstractMarshallable {
 
@@ -362,29 +357,20 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 		 */
 		protected abstract AbstractNode put(byte[] nibblesOfHashedKey, int cursor, Value value) throws TrieException;
 
-		/*
-		protected abstract int depth(int cursor) throws NoSuchElementException, IOException;
-
-		protected AbstractNode check(AbstractNode original) throws NoSuchElementException, IOException {
-			int d1 = depth(0);
-			int d2 = original.depth(0);
-			if (d1 != d2)
-				throw new IllegalStateException("inconsistent trie heights before: " + d2 + " after: " + d1);
-
-			return this;
-		}
-		*/
-
+		/**
+		 * Persist this node in the store of the trie.
+		 * 
+		 * @return this same node
+		 * @throws TrieException if the trie is not able to complete the operation correctly
+		 */
 		protected final AbstractNode putInStore() throws TrieException {
-			// we bind it to its hash in the store
 			try {
-				store.put(hasherForNodes.hash(this), toByteArray());
+				store.put(hasherForNodes.hash(this), toByteArray()); // we bind it to its hash in the store
+				return this;
 			}
 			catch (KeyValueStoreException e) {
 				throw new TrieException(e);
 			}
-
-			return this;
 		}
 
 		/**
@@ -408,7 +394,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 
 		/**
 		 * The hashes of the branching children of the node. If the nth child is missing,
-		 * the array will hold null for it.
+		 * the array will hold {@code hashOfEmpty} for it.
 		 */
 		private final byte[][] children;
 
@@ -448,6 +434,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 			context.writeShort(selector());
 
 			for (byte[] child: children)
+				// useless to write the empty nodes, since the selector keeps the same information
 				if (!Arrays.equals(child, hashOfEmpty))
 					context.writeBytes(child);
 		}
@@ -478,23 +465,6 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 
 			return new Branch(childrenCopy).putInStore();
 		}
-
-		/*
-		@Override
-		protected int depth(int cursor) throws NoSuchElementException, IOException {
-			int height = 0;
-			for (byte[] child: children)
-				if (child != null) {
-					int d = getNodeFromHash(child, cursor + 1).depth(cursor + 1) + 1;
-					if (height > 0 && height != d)
-						throw new IllegalStateException(height + " vs " + d);
-
-					height = d;
-				}
-
-			return height;
-		}
-		*/
 	}
 
 	/**
@@ -576,7 +546,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 				AbstractNode child2;
 
 				try {
-					child2 = new Leaf(keyEnd2, bytesFromValue.get(value)).putInStore();
+					child2 = new Leaf(keyEnd2, valueToBytes.get(value)).putInStore();
 				}
 				catch (IOException e) {
 					throw new TrieException(e);
@@ -598,13 +568,6 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 					return branch;
 			}
 		}
-
-		/*
-		@Override
-		protected int depth(int cursor) throws NoSuchElementException, IOException {
-			return sharedNibbles.length + getNodeFromHash(next, sharedNibbles.length + cursor).depth(sharedNibbles.length + cursor);
-		}
-		*/
 	}
 
 	/**
@@ -656,7 +619,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 				throw new TrieException("Inconsistent key length in Patricia trie: " + (cursor1 != keyEnd.length) + ", " + (cursor != nibblesOfHashedKey.length));
 
 			try {
-				return valueFromBytes.get(value);
+				return bytesToValue.get(value);
 			}
 			catch (IOException e) {
 				throw new TrieException(e);
@@ -675,7 +638,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 			try {
 				if (lengthOfDistinctPortion == 0)
 					// the keys coincide
-					return new Leaf(keyEnd, bytesFromValue.get(value)).putInStore();
+					return new Leaf(keyEnd, valueToBytes.get(value)).putInStore();
 				else {
 					// since there is a distinct portion, there must be at least a nibble in keyEnd
 					var keyEnd1 = new byte[keyEnd.length - lengthOfSharedPortion - 1];
@@ -684,13 +647,12 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 					System.arraycopy(nibblesOfHashedKey, lengthOfSharedPortion + cursor + 1, keyEnd2, 0, keyEnd2.length);
 					byte selection1 = keyEnd[lengthOfSharedPortion];
 					byte selection2 = nibblesOfHashedKey[lengthOfSharedPortion + cursor];
-					byte[][] children = new byte[16][];
-					AbstractNode leaf1 = new Leaf(keyEnd1, this.value).putInStore();
-					AbstractNode leaf2 = new Leaf(keyEnd2, bytesFromValue.get(value)).putInStore();
+					var children = new byte[16][];
+					var leaf1 = new Leaf(keyEnd1, this.value).putInStore();
+					var leaf2 = new Leaf(keyEnd2, valueToBytes.get(value)).putInStore();
 					children[selection1] = hasherForNodes.hash(leaf1);
 					children[selection2] = hasherForNodes.hash(leaf2);
-
-					AbstractNode branch = new Branch(children).putInStore();
+					var branch = new Branch(children).putInStore();
 
 					if (lengthOfSharedPortion > 0) {
 						// yield an extension node linked to a branch node with two alternatives leaves
@@ -707,13 +669,6 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 				throw new TrieException(e);
 			}
 		}
-
-		/*
-		@Override
-		protected int depth(int cursor) throws NoSuchElementException, IOException {
-			return keyEnd.length;
-		}
-		*/
 	}
 
 	/**
@@ -742,7 +697,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 			System.arraycopy(nibblesOfHashedKey, cursor, nibblesEnd, 0, nibblesEnd.length);
 
 			try {
-				return new Leaf(nibblesEnd, bytesFromValue.get(value)).putInStore();
+				return new Leaf(nibblesEnd, valueToBytes.get(value)).putInStore();
 			}
 			catch (IOException e) {
 				throw new TrieException(e);
@@ -751,8 +706,7 @@ public class PatriciaTrieImpl<Key, Value> implements PatriciaTrie<Key, Value> {
 
 		@Override
 		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
-			// we disable garbage collection for the empty nodes, since
-			// they are not kept in store
+			// we disable garbage collection for the empty nodes, since they are not kept in store
 		}
 	}
 

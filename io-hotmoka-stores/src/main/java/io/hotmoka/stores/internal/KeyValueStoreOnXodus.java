@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import io.hotmoka.patricia.api.KeyValueStore;
-import io.hotmoka.patricia.api.KeyValueStoreException;
+import io.hotmoka.patricia.KeyValueStore;
+import io.hotmoka.patricia.KeyValueStoreException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;

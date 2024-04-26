@@ -14,19 +14,6 @@
     <version>parent</version>
   </parent>
 
-  <dependencies>
-    <dependency>
-      <groupId>io.hotmoka.marshalling</groupId>
-      <artifactId>io-hotmoka-marshalling-api</artifactId>
-      <version>${io.hotmoka.marshalling.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.hotmoka.exceptions</groupId>
-      <artifactId>io-hotmoka-exceptions</artifactId>
-      <version>${io.hotmoka.exceptions.version}</version>
-    </dependency>
-  </dependencies>
-
   <profiles>
 	<profile>
 	  <id>release</id>

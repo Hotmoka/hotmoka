@@ -14,23 +14,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.patricia.api;
+package io.hotmoka.patricia;
 
 import java.io.IOException;
 
 /**
- * A function that unmarshals values from their byte representation.
+ * A function that marshals values into their byte representation.
  *
- * @param <Value> the type of the unmarshalled values
+ * @param <Value> the type of the marshalled values
  */
-public interface FromBytes<Value> {
+public interface ToBytes<Value> {
 
 	/**
-	 * Unmarshals a value from its byte representation.
+	 * Marshals a value into its byte representation.
 	 * 
-	 * @param bytes the bytes
-	 * @return the value unmarshalled from the bytes
-	 * @throws IOException if unmarshalling fails
+	 * @param value the value to marshals
+	 * @return the resulting bytes
+	 * @throws IOException if marshalling fails
 	 */
-	Value get(byte [] bytes) throws IOException;
+	byte[] get(Value value) throws IOException;
 }
