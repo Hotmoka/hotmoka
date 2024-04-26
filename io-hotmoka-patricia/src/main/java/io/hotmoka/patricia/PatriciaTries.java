@@ -16,17 +16,14 @@ limitations under the License.
 
 package io.hotmoka.patricia;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
-import io.hotmoka.marshalling.api.Marshallable;
-import io.hotmoka.marshalling.api.Unmarshaller;
-import io.hotmoka.marshalling.api.UnmarshallingContext;
+import io.hotmoka.patricia.api.FromBytes;
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.PatriciaTrie;
+import io.hotmoka.patricia.api.ToBytes;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
 /**
@@ -56,27 +53,12 @@ public final class PatriciaTries {
 	 *                        to keep track of keys that can be garbage-collected
 	 * @return the trie
 	 */
-	public static <Key, Value extends Marshallable> PatriciaTrie<Key, Value> of
-			(KeyValueStore store, Optional<byte[]> root,
+	public static <Key, Value> PatriciaTrie<Key, Value> of(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
-			Unmarshaller<? extends Value> valueUnmarshaller,
-			UnmarshallingContextSupplier valueUnmarshallingContextSupplier, long numberOfCommits) {
+			ToBytes<? super Value> bytesFromValue,
+			FromBytes<? extends Value> valueFromBytes,
+			long numberOfCommits) {
 
-		return new PatriciaTrieImpl<>(store, root, hasherForKeys, hashingForNodes, valueUnmarshaller, valueUnmarshallingContextSupplier, numberOfCommits);
-	}
-
-	/**
-	 * A function that supplies an unmarshalling context.
-	 */
-	public interface UnmarshallingContextSupplier {
-
-		/**
-		 * Yields the unmarshalling context.
-		 * 
-		 * @param is the input stream of the context
-		 * @return the unmarshalling context
-		 * @throws IOException if the context cannot be created
-		 */
-		UnmarshallingContext get(InputStream is) throws IOException;
+		return new PatriciaTrieImpl<>(store, root, hasherForKeys, hashingForNodes, bytesFromValue, valueFromBytes, numberOfCommits);
 	}
 }

@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.io.ByteArrayInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
@@ -54,8 +55,8 @@ public class TrieOfInfo {
 	 */
 	public TrieOfInfo(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		try {
-			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
-				HashingAlgorithms.sha256(), StorageValues::from, NodeUnmarshallingContexts::of, numberOfCommits);
+			this.parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+				HashingAlgorithms.sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits); // TODO: NodeUnmarshallingContexts?
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Unexpected exception", e);

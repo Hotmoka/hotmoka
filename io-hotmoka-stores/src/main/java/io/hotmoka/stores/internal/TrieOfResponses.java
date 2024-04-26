@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
+import java.io.ByteArrayInputStream;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Function;
@@ -78,8 +79,8 @@ public class TrieOfResponses implements PatriciaTrie<TransactionReference, Trans
 		try {
 			this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn);
 			this.hasherForJars = HashingAlgorithms.sha256().getHasher(Function.identity());
-			this.parent = PatriciaTries.of(keyValueStoreOfResponses, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash), HashingAlgorithms.sha256(),
-					TransactionResponses::from, NodeUnmarshallingContexts::of, numberOfCommits);
+			this.parent = PatriciaTries.of(keyValueStoreOfResponses, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+				HashingAlgorithms.sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("unexpected exception", e);

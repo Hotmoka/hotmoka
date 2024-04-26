@@ -16,15 +16,10 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 
 import io.hotmoka.crypto.HashingAlgorithms;
-import io.hotmoka.marshalling.AbstractMarshallable;
-import io.hotmoka.marshalling.UnmarshallingContexts;
-import io.hotmoka.marshalling.api.MarshallingContext;
-import io.hotmoka.marshalling.api.UnmarshallingContext;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.PatriciaTries;
 import io.hotmoka.patricia.api.PatriciaTrie;
@@ -40,7 +35,7 @@ public class TrieOfErrors {
 	/**
 	 * The supporting trie.
 	 */
-	private final PatriciaTrie<TransactionReference, MarshallableString> parent;
+	private final PatriciaTrie<TransactionReference, String> parent;
 
 	/**
 	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
@@ -55,8 +50,8 @@ public class TrieOfErrors {
 	 */
 	public TrieOfErrors(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
 		try {
-			parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-				HashingAlgorithms.sha256(), MarshallableString::from, UnmarshallingContexts::of, numberOfCommits);
+			this.parent = PatriciaTries.of(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+				HashingAlgorithms.sha256(), String::getBytes, String::new, numberOfCommits);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new RuntimeException("Unexpected exception", e);
@@ -64,47 +59,15 @@ public class TrieOfErrors {
 	}
 
 	public Optional<String> get(TransactionReference key) throws TrieException {
-		return parent.get(key).map(MarshallableString::toString);
+		return parent.get(key);
 	}
 
 	public void put(TransactionReference key, String value) throws TrieException {
-		parent.put(key, new MarshallableString(value));
+		parent.put(key, value);
 	}
 
 	public byte[] getRoot() throws TrieException {
 		return parent.getRoot();
-	}
-
-	/**
-	 * A string that can be marshalled into an object stream.
-	 */
-	private static class MarshallableString extends AbstractMarshallable {
-		private final String s;
-
-		private MarshallableString(String s) {
-			this.s = s;
-		}
-
-		@Override
-		public void into(MarshallingContext context) throws IOException {
-			context.writeStringUnshared(s);
-		}
-
-		@Override
-		public String toString() {
-			return s;
-		}
-
-		/**
-		 * Factory method that unmarshals a string from the given stream.
-		 * 
-		 * @param context the unmarshalling context
-		 * @return the string
-		 * @throws IOException if the string could not be unmarshalled
-		 */
-		private static MarshallableString from(UnmarshallingContext context) throws IOException {
-			return new MarshallableString(context.readStringUnshared());
-		}
 	}
 
 	/**

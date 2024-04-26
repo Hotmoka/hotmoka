@@ -18,15 +18,13 @@ package io.hotmoka.patricia.api;
 
 import java.util.Optional;
 
-import io.hotmoka.marshalling.api.Marshallable;
-
 /**
  * A Merkle-Patricia trie.
  * 
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public interface PatriciaTrie<Key, Value extends Marshallable> {
+public interface PatriciaTrie<Key, Value> {
 
 	/**
 	 * Yields the value bound to the given key.
