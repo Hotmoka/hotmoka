@@ -27,9 +27,8 @@ import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
+import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.xodus.env.Store;
-import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A map from storage references to an array of transaction references (their <i>history</i>),
@@ -41,7 +40,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 * Builds a Merkle-Patricia trie that maps references to storage references into
 	 * an array of transaction references (their <i>history</i>).
 	 * 
-	 * @param store the supporting store of the database
+	 * @param store the supporting key/value store
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
@@ -49,8 +48,8 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfHistories(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		super(new KeyValueStoreOnXodus(store, txn), root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
+	public TrieOfHistories(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
 			sha256(), s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(),
 			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions), numberOfCommits);
 	}
@@ -59,12 +58,22 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		super(cloned, root);
 	}
 
-	private static HashingAlgorithm sha256() {
+	/**
+	 * Clones the given trie, but for its supporting store, that is set to the provided value.
+	 * 
+	 * @param cloned the trie to clone
+	 * @param store the store to use in the cloned trie
+	 */
+	private TrieOfHistories(TrieOfHistories cloned, KeyValueStore store) {
+		super(cloned, store);
+	}
+
+	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
+			throw new TrieException(e);
 		}
 	}
 
@@ -84,18 +93,23 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	}
 
 	@Override
-	protected TrieOfHistories cloneAndCheckout(byte[] root) {
-		return new TrieOfHistories(this, root);
-	}
-
-	@Override
-	public TrieOfHistories put2(StorageReference key, Stream<TransactionReference> history) throws TrieException {
+	public TrieOfHistories put(StorageReference key, Stream<TransactionReference> history) throws TrieException {
 		// we do not keep the last transaction, since the history of an object always ends
 		// with the transaction that created the object, that is, with the same transaction
 		// of the storage reference of the object
 		var transactionsAsArray = history.toArray(TransactionReference[]::new);
 		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
-		return (TrieOfHistories) super.put2(key, Stream.of(withoutLast));
+		return (TrieOfHistories) super.put(key, Stream.of(withoutLast));
+	}
+
+	@Override
+	public TrieOfHistories checkoutAt(byte[] root) {
+		return new TrieOfHistories(this, root);
+	}
+
+	@Override
+	public TrieOfHistories with(KeyValueStore store) throws TrieException {
+		return new TrieOfHistories(this, store);
 	}
 }

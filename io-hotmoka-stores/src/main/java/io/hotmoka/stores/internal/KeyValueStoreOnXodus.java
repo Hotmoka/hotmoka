@@ -16,8 +16,8 @@ limitations under the License.
 
 package io.hotmoka.stores.internal;
 
-import io.hotmoka.patricia.KeyValueStore;
-import io.hotmoka.patricia.KeyValueStoreException;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.UnknownKeyException;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
@@ -27,11 +27,11 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A key/value store implemented over the Xodus database.
  */
-class KeyValueStoreOnXodus implements KeyValueStore {
+public class KeyValueStoreOnXodus implements KeyValueStore {
 	private final Store store;
 	private final Transaction txn;
 
-	KeyValueStoreOnXodus(Store store, Transaction txn) {
+	public KeyValueStoreOnXodus(Store store, Transaction txn) {
 		this.store = store;
 		this.txn = txn;
 	}

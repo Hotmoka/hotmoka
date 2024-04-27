@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.internal.AbstractPatriciaTrieImpl;
 
@@ -29,10 +30,10 @@ import io.hotmoka.patricia.internal.AbstractPatriciaTrieImpl;
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public abstract class AbstractPatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value>> extends AbstractPatriciaTrieImpl<Key, Value, T> {
+public abstract class AbstractPatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>> extends AbstractPatriciaTrieImpl<Key, Value, T> {
 
 	/**
-	 * Creates a new Merkle-Patricia trie supported by the given underlying store,
+	 * Creates an empty Merkle-Patricia trie supported by the given underlying store,
 	 * using the given hashing algorithms to hash nodes and values.
 	 * 
 	 * @param store the store used to store the nodes of the tree, as a mapping from nodes' hashes
@@ -59,5 +60,15 @@ public abstract class AbstractPatriciaTrie<Key, Value, T extends PatriciaTrie<Ke
 
 	protected AbstractPatriciaTrie(AbstractPatriciaTrie<Key, Value, T> cloned, byte[] root) {
 		super(cloned, root);
+	}
+
+	/**
+	 * Clones the given trie, but for its supporting store, that is set to the provided value.
+	 * 
+	 * @param cloned the trie to clone
+	 * @param store the store to use in the cloned trie
+	 */
+	protected AbstractPatriciaTrie(AbstractPatriciaTrie<Key, Value, T> cloned, KeyValueStore store) {
+		super(cloned, store);
 	}
 }

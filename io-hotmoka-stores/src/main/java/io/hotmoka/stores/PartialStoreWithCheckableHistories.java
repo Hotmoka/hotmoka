@@ -28,6 +28,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.stores.internal.KeyValueStoreOnXodus;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -106,7 +107,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	public Stream<TransactionReference> getHistory(StorageReference object) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object))).orElse(Stream.empty());
+    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty());
     	}
 	}
 
@@ -125,7 +126,14 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	@Override
 	protected Transaction beginTransactionInternal() {
 		Transaction txn = super.beginTransactionInternal();
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, rootOfHistories, getNumberOfCommits());
+
+		try {
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, getNumberOfCommits());
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e);
+		}
+
 		return txn;
 	}
 
@@ -151,7 +159,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
-			trieOfHistories = trieOfHistories.put2(object, history);
+			trieOfHistories = trieOfHistories.put(object, history);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

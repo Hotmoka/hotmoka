@@ -24,7 +24,7 @@ import java.util.Optional;
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public interface PatriciaTrie<Key, Value> {
+public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>> {
 
 	/**
 	 * Yields the value bound to the given key.
@@ -44,7 +44,7 @@ public interface PatriciaTrie<Key, Value> {
 	 * @return the resulting, modified Patricia trie
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
-	PatriciaTrie<Key, Value> put2(Key key, Value value) throws TrieException;
+	T put(Key key, Value value) throws TrieException;
 
 	/**
 	 * Yields the root of the trie, that can be used as a hash of its content.
@@ -53,6 +53,24 @@ public interface PatriciaTrie<Key, Value> {
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
 	byte[] getRoot() throws TrieException;
+
+	/**
+	 * Yields an independent clone of this trie, but for its root, that is set to the provided value.
+	 * 
+	 * @param root the root to use in the cloned trie
+	 * @return the resulting, cloned trie
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
+	 */
+	T checkoutAt(byte[] root) throws TrieException;
+
+	/**
+	 * Yields an independent clone of this trie, but for the supporting store, that is set to the provided value.
+	 * 
+	 * @param store the store to use in the cloned trie
+	 * @return the resulting, cloned trie
+	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
+	 */
+	T with(KeyValueStore store) throws TrieException;
 
 	/**
 	 * Garbage-collects all keys that have been updated during the commit with the given number.

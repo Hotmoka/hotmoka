@@ -20,6 +20,7 @@ import java.util.Optional;
 
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
+import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.internal.PatriciaTrieImpl;
 
@@ -49,7 +50,7 @@ public final class PatriciaTries {
 	 *                        to keep track of keys that can be garbage-collected
 	 * @return the trie
 	 */
-	public static <Key, Value> PatriciaTrie<Key, Value> of(KeyValueStore store, Optional<byte[]> root,
+	public static <Key, Value> PatriciaTrie<Key, Value, ?> of(KeyValueStore store, Optional<byte[]> root,
 			Hasher<? super Key> hasherForKeys, HashingAlgorithm hashingForNodes,
 			ToBytes<? super Value> valueToBytes, FromBytes<? extends Value> bytesToValue, long numberOfCommits) {
 

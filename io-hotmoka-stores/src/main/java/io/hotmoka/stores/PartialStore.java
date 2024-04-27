@@ -30,6 +30,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.stores.internal.KeyValueStoreOnXodus;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
@@ -187,7 +188,7 @@ public abstract class PartialStore extends AbstractStore {
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(storeOfResponses, txn, rootOfResponses, -1L).get(reference)));
+    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, -1L).get(reference)));
     	}
 	}
 
@@ -207,7 +208,7 @@ public abstract class PartialStore extends AbstractStore {
 	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			synchronized (lock) {
-				return env.computeInReadonlyTransaction(txn -> new TrieOfInfo(storeOfInfo, txn, rootOfInfo, -1L).getManifest());
+				return env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getManifest())); // TODO: recheck
 			}
 		}
 		catch (ExodusException e) {
@@ -222,7 +223,7 @@ public abstract class PartialStore extends AbstractStore {
 				return duringTransaction() ? trieOfInfo.getManifest() : getManifest();
 			}
 		}
-		catch (ExodusException e) {
+		catch (TrieException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -276,7 +277,7 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	public long getNumberOfCommits() {
 		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> new TrieOfInfo(storeOfInfo, txn, rootOfInfo, -1L).getNumberOfCommits()));
+			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getNumberOfCommits()));
 	}
 
 	/**
@@ -288,15 +289,22 @@ public abstract class PartialStore extends AbstractStore {
 	protected Transaction beginTransactionInternal() {
 		txn = env.beginTransaction();
 		long numberOfCommits = getNumberOfCommits();
-		trieOfResponses = new TrieOfResponses(storeOfResponses, txn, rootOfResponses, numberOfCommits);
-		trieOfInfo = new TrieOfInfo(storeOfInfo, txn, rootOfInfo, numberOfCommits);
+
+		try {
+			trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, numberOfCommits);
+			trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, numberOfCommits);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
+
 		return txn;
 	}
 
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		try {
-			trieOfResponses = trieOfResponses.put2(reference, response);
+			trieOfResponses = trieOfResponses.put(reference, response);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

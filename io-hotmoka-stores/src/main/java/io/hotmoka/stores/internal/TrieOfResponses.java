@@ -34,12 +34,10 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
-import io.hotmoka.patricia.KeyValueStore;
-import io.hotmoka.patricia.KeyValueStoreException;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
-import io.hotmoka.xodus.env.Store;
-import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their responses.
@@ -55,47 +53,64 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	private final Hasher<byte[]> hasherForJars;
 
 	/**
-	 * The store of the underlying Patricia trie.
-	 */
-	private final KeyValueStore keyValueStoreOfResponses;
-
-	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
 	 * 
-	 * @param store the supporting store of the database
-	 * @param txn the transaction where updates are reported
+	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfResponses(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+	public TrieOfResponses(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), TransactionResponse::toByteArray, bytes -> TransactionResponses.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
 
-		this.keyValueStoreOfResponses = new KeyValueStoreOnXodus(store, txn);
 		this.hasherForJars = sha256().getHasher(Function.identity());
 	}
 
 	private TrieOfResponses(TrieOfResponses cloned, byte[] root) {
 		super(cloned, root);
 
-		this.keyValueStoreOfResponses = cloned.keyValueStoreOfResponses;
+		this.hasherForJars = cloned.hasherForJars;
+	}
+
+	private TrieOfResponses(TrieOfResponses cloned, KeyValueStore store) {
+		super(cloned, store);
+
 		this.hasherForJars = cloned.hasherForJars;
 	}
 
 	@Override
-	protected TrieOfResponses cloneAndCheckout(byte[] root) {
+	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
+		Optional<TransactionResponse> maybeResponse = super.get(key);
+		if (maybeResponse.isPresent())
+			return Optional.of(readTransformation(maybeResponse.get()));
+		else
+			return Optional.empty();
+	}
+
+	@Override
+	public TrieOfResponses put(TransactionReference key, TransactionResponse value) throws TrieException {
+		return super.put(key, writeTransformation(value));
+	}
+
+	@Override
+	public TrieOfResponses with(KeyValueStore store) throws TrieException {
+		return new TrieOfResponses(this, store);
+	}
+
+	@Override
+	public TrieOfResponses checkoutAt(byte[] root) {
 		return new TrieOfResponses(this, root);
 	}
 
-	private static HashingAlgorithm sha256() {
+	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
+			throw new TrieException(e);
 		}
 	}
 
@@ -106,22 +121,23 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * 
 	 * @param response the actual response inserted in this trie
 	 * @return the response that is put in its place in the parent trie
+	 * @throws TrieException 
 	 */
-	private TransactionResponse writeTransformation(TransactionResponse response) {
+	private TransactionResponse writeTransformation(TransactionResponse response) throws TrieException {
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
 			byte[] jar = trwij.getInstrumentedJar();
 			// we store the jar in the store: if it was already installed before, it gets shared
-			byte[] reference = hasherForJars.hash(jar);
+			byte[] hashedJar = hasherForJars.hash(jar);
 
 			try {
-				keyValueStoreOfResponses.put(reference, jar);
+				getStore().put(hashedJar, jar);
 			}
 			catch (KeyValueStoreException e) {
-				throw new RuntimeException(e);
+				throw new TrieException(e);
 			}
 
 			// we replace the jar with its hash
-			response = replaceJar(trwij, reference);
+			response = replaceJar(trwij, hashedJar);
 		}
 
 		return response;
@@ -135,42 +151,30 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	 * @param response the response read from the parent trie
 	 * @return return the actual response returned by this trie
 	 */
-	private TransactionResponse readTransformation(TransactionResponse response) {
+	private TransactionResponse readTransformation(TransactionResponse response) throws TrieException {
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij) {
 			// we replace the hash of the jar with the actual jar
 			try {
-				byte[] jar = keyValueStoreOfResponses.get(trwij.getInstrumentedJar());
+				byte[] jar = getStore().get(trwij.getInstrumentedJar());
 				response = replaceJar(trwij, jar);
 			}
 			catch (UnknownKeyException | KeyValueStoreException e) {
 				logger.log(Level.SEVERE, "cannot find the jar for the transaction response");
-				throw new RuntimeException(e); // TODO
+				throw new TrieException("Cannot find the jar for the transaction response", e);
 			}
 		}
 
 		return response;
 	}
 
-	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) {
+	private TransactionResponse replaceJar(TransactionResponseWithInstrumentedJar response, byte[] newJar) throws TrieException {
 		if (response instanceof JarStoreTransactionSuccessfulResponse jstsr)
 			return TransactionResponses.jarStoreSuccessful
 				(newJar, jstsr.getDependencies(), jstsr.getVerificationVersion(), jstsr.getUpdates(),
 				jstsr.getGasConsumedForCPU(), jstsr.getGasConsumedForRAM(), jstsr.getGasConsumedForStorage());
 		else if (response instanceof JarStoreInitialTransactionResponse jsitr)
 			return TransactionResponses.jarStoreInitial(newJar, jsitr.getDependencies(), jsitr.getVerificationVersion());
-		else {
-			logger.log(Level.SEVERE, "Unexpected response containing jar, of class " + response.getClass().getName());
-			return response;
-		}
-	}
-
-	@Override
-	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
-		return super.get(key).map(this::readTransformation);
-	}
-
-	@Override
-	public TrieOfResponses put2(TransactionReference key, TransactionResponse value) throws TrieException {
-		return super.put2(key, writeTransformation(value));
+		else
+			throw new TrieException("Unexpected response containing jar, of class " + response.getClass().getName());
 	}
 }

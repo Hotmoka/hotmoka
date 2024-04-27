@@ -23,8 +23,8 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
-import io.hotmoka.xodus.env.Store;
-import io.hotmoka.xodus.env.Transaction;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 
 /**
  * A map from transaction requests into their error, backed by a Merkle-Patricia trie.
@@ -34,7 +34,7 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 	/**
 	 * Builds a Merkle-Patricia trie that maps transaction requests into their errors.
 	 * 
-	 * @param store the supporting store of the database
+	 * @param store the supporting key/value store
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
@@ -42,8 +42,8 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfErrors(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+	public TrieOfErrors(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), String::getBytes, String::new, numberOfCommits);
 	}
 
@@ -51,17 +51,32 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 		super(cloned, root);
 	}
 
+	/**
+	 * Clones the given trie, but for its supporting store, that is set to the provided value.
+	 * 
+	 * @param cloned the trie to clone
+	 * @param store the store to use in the cloned trie
+	 */
+	private TrieOfErrors(TrieOfErrors cloned, KeyValueStore store) {
+		super(cloned, store);
+	}
+
 	@Override
-	protected TrieOfErrors cloneAndCheckout(byte[] root) {
+	public TrieOfErrors checkoutAt(byte[] root) {
 		return new TrieOfErrors(this, root);
 	}
 
-	private static HashingAlgorithm sha256() {
+	@Override
+	public TrieOfErrors with(KeyValueStore store) {
+		return new TrieOfErrors(this, store);
+	}
+
+	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
+			throw new TrieException(e);
 		}
 	}
 }

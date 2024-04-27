@@ -29,9 +29,9 @@ import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
 import io.hotmoka.patricia.FromBytes;
-import io.hotmoka.patricia.KeyValueStore;
-import io.hotmoka.patricia.KeyValueStoreException;
 import io.hotmoka.patricia.ToBytes;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.KeyValueStoreException;
 import io.hotmoka.patricia.api.PatriciaTrie;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.patricia.api.UnknownKeyException;
@@ -42,7 +42,7 @@ import io.hotmoka.patricia.api.UnknownKeyException;
  * @param <Key> the type of the keys of the trie
  * @param <Value> the type of the values of the trie
  */
-public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTrie<Key, Value>> implements PatriciaTrie<Key, Value> {
+public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTrie<Key, Value, T>> implements PatriciaTrie<Key, Value, T> {
 
 	/**
 	 * The store that supports this trie.
@@ -133,16 +133,25 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 		this.valueToBytes = cloned.valueToBytes;
 		this.hashOfEmpty = cloned.hashOfEmpty;
 		this.numberOfCommits = cloned.numberOfCommits;
-		this.root = root;		
+		this.root = root.clone();
 	}
 
 	/**
-	 * Yields a clone of this trie, but for its root, that is set to the provided value.
+	 * Clones the given trie, but for its supporting store, that is set to the provided value.
 	 * 
-	 * @param root the root to use in the cloned trie
-	 * @return the resulting, cloned trie
+	 * @param cloned the trie to clone
+	 * @param store the store to use in the cloned trie
 	 */
-	protected abstract T cloneAndCheckout(byte[] root);
+	protected AbstractPatriciaTrieImpl(AbstractPatriciaTrieImpl<Key, Value, T> cloned, KeyValueStore store) {
+		this.store = store;
+		this.hasherForKeys = cloned.hasherForKeys;
+		this.hasherForNodes = cloned.hasherForNodes;
+		this.bytesToValue = cloned.bytesToValue;
+		this.valueToBytes = cloned.valueToBytes;
+		this.hashOfEmpty = cloned.hashOfEmpty;
+		this.numberOfCommits = cloned.numberOfCommits;
+		this.root = cloned.root;
+	}
 
 	@Override
 	public Optional<Value> get(Key key) throws TrieException {
@@ -158,18 +167,18 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	}
 
 	@Override
-	public T put2(Key key, Value value) throws TrieException {
+	public T put(Key key, Value value) throws TrieException {
 		byte[] hashedKey = hasherForKeys.hash(key);
 		byte[] nibblesOfHashedKey = toNibbles(hashedKey);
 		AbstractNode oldRoot = getNodeFromHash(root, 0);
 		AbstractNode newRoot = oldRoot.put(nibblesOfHashedKey, 0, value);
 		oldRoot.markAsGarbageCollectable(root);
-		return cloneAndCheckout(hasherForNodes.hash(newRoot));
+		return checkoutAt(hasherForNodes.hash(newRoot));
 	}
 
 	@Override
-	public byte[] getRoot() {
-		return root;
+	public final byte[] getRoot() {
+		return root.clone();
 	}
 
 	@Override
@@ -192,6 +201,15 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 
 			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
 		}
+	}
+
+	/**
+	 * Yields the key/value store that supports this trie.
+	 * 
+	 * @return the key/value store that supports this trie
+	 */
+	protected final KeyValueStore getStore() {
+		return store;
 	}
 
 	/**

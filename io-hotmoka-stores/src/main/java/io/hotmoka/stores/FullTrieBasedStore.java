@@ -29,6 +29,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.stores.internal.KeyValueStoreOnXodus;
 import io.hotmoka.stores.internal.TrieOfErrors;
 import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfRequests;
@@ -151,7 +152,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Optional<String> getError(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(storeOfErrors, txn, rootOfErrors, -1L).get(reference)));
+   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, -1L).get(reference)));
     	}
 	}
 
@@ -159,7 +160,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfRequests(storeOfRequests, txn, rootOfRequests, -1L).get(reference)));
+				(UncheckFunction.uncheck(txn -> new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, -1L).get(reference)));
 		}
 	}
 
@@ -167,7 +168,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public Stream<TransactionReference> getHistory(StorageReference object) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfHistories(storeOfHistory, txn, rootOfHistories, -1L).get(object))).orElse(Stream.empty());
+				(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty());
 		}
 	}
 
@@ -187,8 +188,8 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
 		try {
 			synchronized (lock) {
-				trieOfRequests = trieOfRequests.put2(reference, request);
-				trieOfErrors = trieOfErrors.put2(reference, errorMessage);
+				trieOfRequests = trieOfRequests.put(reference, request);
+				trieOfErrors = trieOfErrors.put(reference, errorMessage);
 			}
 		}
 		catch (TrieException e) {
@@ -199,10 +200,16 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	@Override
 	protected Transaction beginTransactionInternal() {
 		Transaction txn = super.beginTransactionInternal();
-		long numberOfCommits = getNumberOfCommits();
-		trieOfErrors = new TrieOfErrors(storeOfErrors, txn, rootOfErrors, numberOfCommits);
-		trieOfRequests = new TrieOfRequests(storeOfRequests, txn, rootOfRequests, numberOfCommits);
-		trieOfHistories = new TrieOfHistories(storeOfHistory, txn, rootOfHistories, numberOfCommits);
+
+		try {
+			long numberOfCommits = getNumberOfCommits();
+			trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, numberOfCommits);
+			trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, numberOfCommits);
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, numberOfCommits);
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
+		}
 
 		return txn;
 	}
@@ -234,7 +241,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	
 		// we also store the request
 		try {
-			trieOfRequests = trieOfRequests.put2(reference, request);
+			trieOfRequests = trieOfRequests.put(reference, request);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -244,7 +251,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	@Override
 	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
-			trieOfHistories = trieOfHistories.put2(object, history);
+			trieOfHistories = trieOfHistories.put(object, history);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

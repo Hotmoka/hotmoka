@@ -28,9 +28,8 @@ import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
+import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.xodus.env.Store;
-import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A Merkle-Patricia trie that maps miscellaneous information into their value.
@@ -40,7 +39,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	/**
 	 * Builds a Merkle-Patricia trie that maps miscellaneous information into their value.
 	 * 
-	 * @param store the supporting store of the database
+	 * @param store the supporting key/value store
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
@@ -48,8 +47,8 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfInfo(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
+	public TrieOfInfo(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+		super(store, root, HashingAlgorithms.identity1().getHasher(key -> new byte[] { key }),
 			sha256(), StorageValue::toByteArray, bytes -> StorageValues.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
 	}
 
@@ -57,18 +56,26 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 		super(cloned, root);
 	}
 
+	private TrieOfInfo(TrieOfInfo cloned, KeyValueStore store) {
+		super(cloned, store);
+	}
+
 	@Override
-	protected TrieOfInfo cloneAndCheckout(byte[] root) {
+	public TrieOfInfo checkoutAt(byte[] root) {
 		return new TrieOfInfo(this, root);
 	}
 
-	private static HashingAlgorithm sha256() {
+	@Override
+	public TrieOfInfo with(KeyValueStore store) throws TrieException {
+		return new TrieOfInfo(this, store);
+	}
+
+	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
-		}
+			throw new TrieException(e);		}
 	}
 
 	/**
@@ -90,7 +97,7 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @throws TrieException if the operation cannot be completed correctly
 	 */
 	public TrieOfInfo increaseNumberOfCommits() throws TrieException {
-		return put2((byte) 0, StorageValues.longOf(getNumberOfCommits() + 1));
+		return put((byte) 0, StorageValues.longOf(getNumberOfCommits() + 1));
 	}
 
 	/**
@@ -98,19 +105,14 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * 
 	 * @return the manifest, if any
 	 */
-	public Optional<StorageReference> getManifest() {
-		try {
-			Optional<StorageValue> maybeManifest = get((byte) 1);
-			if (maybeManifest.isEmpty())
-				return Optional.empty();
-			else if (maybeManifest.get() instanceof StorageReference manifest)
-				return Optional.of(manifest);
-			else
-				throw new TrieException("This trie contains a manifest but is not a StorageReference");
-		}
-		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	public Optional<StorageReference> getManifest() throws TrieException {
+		Optional<StorageValue> maybeManifest = get((byte) 1);
+		if (maybeManifest.isEmpty())
+			return Optional.empty();
+		else if (maybeManifest.get() instanceof StorageReference manifest)
+			return Optional.of(manifest);
+		else
+			throw new TrieException("This trie contains a manifest that is not a StorageReference");
 	}
 
 	/**
@@ -120,6 +122,6 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 	 * @throws TrieException if this trie is not able to complete the operation correcly
 	 */
 	public TrieOfInfo setManifest(StorageReference manifest) throws TrieException {
-		return put2((byte) 1, manifest);
+		return put((byte) 1, manifest);
 	}
 }

@@ -27,8 +27,8 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.patricia.AbstractPatriciaTrie;
-import io.hotmoka.xodus.env.Store;
-import io.hotmoka.xodus.env.Transaction;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 
 /**
  * A Merkle-Patricia trie that maps references to transaction requests into their request itself.
@@ -38,16 +38,15 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	/**
 	 * Builds a Merkle-Patricia trie that maps references to transaction requests into their responses.
 	 * 
-	 * @param store the supporting store of the database
-	 * @param txn the transaction where updates are reported
+	 * @param store the supporting key/value store
 	 * @param root the root of the trie to check out; use empty to create the empty trie
 	 * @param numberOfCommits the current number of commits already executed on the store; this trie
 	 *                        will record which data must be garbage collected (eventually)
 	 *                        as result of the store updates performed during that commit; you can pass
 	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfRequests(Store store, Transaction txn, Optional<byte[]> root, long numberOfCommits) {
-		super(new KeyValueStoreOnXodus(store, txn), root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
+	public TrieOfRequests(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
 			sha256(), TransactionRequest<?>::toByteArray, bytes -> TransactionRequests.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))), numberOfCommits);
 	}
 
@@ -55,17 +54,26 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 		super(cloned, root);
 	}
 
+	private TrieOfRequests(TrieOfRequests cloned, KeyValueStore store) {
+		super(cloned, store);
+	}
+
 	@Override
-	protected TrieOfRequests cloneAndCheckout(byte[] root) {
+	public TrieOfRequests with(KeyValueStore store) throws TrieException {
+		return new TrieOfRequests(this, store);
+	}
+
+	@Override
+	public TrieOfRequests checkoutAt(byte[] root) {
 		return new TrieOfRequests(this, root);
 	}
 
-	private static HashingAlgorithm sha256() {
+	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();
 		}
 		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException(e); // TODO
+			throw new TrieException(e);
 		}
 	}
 }

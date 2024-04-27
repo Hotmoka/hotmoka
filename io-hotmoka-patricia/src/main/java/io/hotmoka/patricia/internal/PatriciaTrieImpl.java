@@ -21,8 +21,9 @@ import java.util.Optional;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.HashingAlgorithm;
 import io.hotmoka.patricia.FromBytes;
-import io.hotmoka.patricia.KeyValueStore;
 import io.hotmoka.patricia.ToBytes;
+import io.hotmoka.patricia.api.KeyValueStore;
+import io.hotmoka.patricia.api.TrieException;
 
 /**
  * Implementation of a Merkle-Patricia trie.
@@ -67,8 +68,23 @@ public class PatriciaTrieImpl<Key, Value> extends AbstractPatriciaTrieImpl<Key, 
 		super(cloned, root);
 	}
 
+	/**
+	 * Clones the given trie, but for its supporting store, that is set to the provided value.
+	 * 
+	 * @param cloned the trie to clone
+	 * @param store the store to use in the cloned trie
+	 */
+	private PatriciaTrieImpl(PatriciaTrieImpl<Key, Value> cloned, KeyValueStore store) {
+		super(cloned, store);
+	}
+
 	@Override
-	protected PatriciaTrieImpl<Key, Value> cloneAndCheckout(byte[] root) {
+	public PatriciaTrieImpl<Key, Value> checkoutAt(byte[] root) {
 		return new PatriciaTrieImpl<>(this, root);
+	}
+
+	@Override
+	public PatriciaTrieImpl<Key, Value> with(KeyValueStore store) throws TrieException {
+		return new PatriciaTrieImpl<>(this, store);
 	}
 }
