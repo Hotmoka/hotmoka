@@ -43,6 +43,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.stores.AbstractStore;
+import io.hotmoka.stores.StoreException;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
@@ -207,7 +208,7 @@ class Store extends AbstractStore {
 	}
 
 	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
 		try {
 			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 			Path requestPath = getPathFor(reference, "request");
@@ -220,13 +221,12 @@ class Store extends AbstractStore {
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
+
+			errors.put(reference, errorMessage);
 		}
 		catch (IOException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			throw new RuntimeException("Unexpected exception", e);
+			throw new StoreException(e);
 		}
-
-		errors.put(reference, errorMessage);
 	}
 
 	/**

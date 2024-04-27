@@ -470,6 +470,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				LOGGER.log(Level.WARNING, "Unexpected exception", e);
 				throw e;
 			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
 		}
 	}
 
@@ -500,6 +503,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			}
 			catch (NoSuchElementException e) {
 				throw new UnknownReferenceException(reference);
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
 			}
 			catch (RuntimeException e) {
 				LOGGER.log(Level.WARNING, "Unexpected exception", e);
@@ -661,38 +667,43 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
-			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+			try {
+				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
 
-			TransactionResponse response;
+				TransactionResponse response;
 
-			synchronized (deliverTransactionLock) {
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-				response = responseBuilder.getResponse();
-				store.push(reference, request, response);
-				responseBuilder.replaceReverifiedResponses();
-				scheduleForNotificationOfEvents(response);
-				takeNoteForNextReward(request, response);
-				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+				synchronized (deliverTransactionLock) {
+					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+					response = responseBuilder.getResponse();
+					store.push(reference, request, response);
+					responseBuilder.replaceReverifiedResponses();
+					scheduleForNotificationOfEvents(response);
+					takeNoteForNextReward(request, response);
+					invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+				}
+
+				LOGGER.info(reference + ": delivering success");
+				return response;
 			}
-
-			LOGGER.info(reference + ": delivering success");
-			return response;
+			catch (TransactionRejectedException e) {
+				store.push(reference, request, trimmedMessage(e));
+				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
+				LOGGER.log(Level.INFO, "transaction rejected", e);
+				throw e;
+			}
+			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
+				store.push(reference, request, trimmedMessage(e));
+				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
+				throw new RuntimeException(e);
+			}
+			catch (RuntimeException e) {
+				store.push(reference, request, trimmedMessage(e));
+				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
+				throw e;
+			}
 		}
-		catch (TransactionRejectedException e) {
-			store.push(reference, request, trimmedMessage(e));
-			LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
-			LOGGER.log(Level.INFO, "transaction rejected", e);
-			throw e;
-		}
-		catch (IOException | ClassNotFoundException | NodeException | UnknownReferenceException e) {
-			store.push(reference, request, trimmedMessage(e));
-			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-			throw new RuntimeException(e);
-		}
-		catch (RuntimeException e) {
-			store.push(reference, request, trimmedMessage(e));
-			LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
-			throw e;
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
 		}
 		finally {
 			signalSemaphore(reference);

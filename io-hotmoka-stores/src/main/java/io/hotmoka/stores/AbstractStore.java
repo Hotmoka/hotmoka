@@ -19,7 +19,6 @@ package io.hotmoka.stores;
 import static io.hotmoka.exceptions.CheckRunnable.check;
 import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -74,14 +73,14 @@ public abstract class AbstractStore implements Store {
 	}
 
 	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws IOException {
+	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 
 			if (response instanceof TransactionResponseWithUpdates trwu)
 				expandHistory(reference, trwu);
 
-			if (response instanceof InitializationTransactionResponse itr) {
+			if (response instanceof InitializationTransactionResponse) {
 				StorageReference manifest = ((InitializationTransactionRequest) request).getManifest();
 				setManifest(manifest);
 				logger.info(manifest + ": set as manifest");
@@ -134,10 +133,10 @@ public abstract class AbstractStore implements Store {
 	 * 
 	 * @param reference the transaction that has generated the given response
 	 * @param response the response
-	 * @throws IOException if an I/O error occurred
+	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws IOException {
-		check(IOException.class, () ->
+	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
+		check(StoreException.class, () ->
 			// we collect the storage references that have been updated in the response; for each of them,
 			// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 			// in front of such lists and store back the updated lists, replacing the old ones
@@ -160,7 +159,7 @@ public abstract class AbstractStore implements Store {
 	 * @param addedUpdates the updates generated in {@code added}
 	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
 	 */
-	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) {
+	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
 		Stream<TransactionReference> old = getHistoryUncommitted(object);
 
 		// we trace the set of updates that are already covered by previous transactions, so that

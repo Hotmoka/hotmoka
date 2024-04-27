@@ -50,7 +50,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	 */
 	public TrieOfHistories(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
 		super(store, root, sha256().getHasher(StorageReference::toByteArrayWithoutSelector),
-			sha256(), s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(),
+			sha256(), s -> new MarshallableArrayOfTransactionReferences(s.toArray(TransactionReference[]::new)).toByteArray(), // TODO: avoid using marshallables
 			bytes -> Stream.of(MarshallableArrayOfTransactionReferences.from(NodeUnmarshallingContexts.of(new ByteArrayInputStream(bytes))).transactions), numberOfCommits);
 	}
 
@@ -58,12 +58,6 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		super(cloned, root);
 	}
 
-	/**
-	 * Clones the given trie, but for its supporting store, that is set to the provided value.
-	 * 
-	 * @param cloned the trie to clone
-	 * @param store the store to use in the cloned trie
-	 */
 	private TrieOfHistories(TrieOfHistories cloned, KeyValueStore store) {
 		super(cloned, store);
 	}
@@ -85,7 +79,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 
 		TransactionReference[] transactions = result.get().toArray(TransactionReference[]::new);
 		// histories always end with the transaction that created the object,
-		// hence with the transaction of the same storage reference of the object
+		// hence with the transaction of the storage reference of the object
 		var withLast = new TransactionReference[transactions.length + 1];
 		System.arraycopy(transactions, 0, withLast, 0, transactions.length);
 		withLast[transactions.length] = key.getTransaction();
@@ -100,7 +94,7 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		var transactionsAsArray = history.toArray(TransactionReference[]::new);
 		var withoutLast = new TransactionReference[transactionsAsArray.length - 1];
 		System.arraycopy(transactionsAsArray, 0, withoutLast, 0, withoutLast.length);
-		return (TrieOfHistories) super.put(key, Stream.of(withoutLast));
+		return super.put(key, Stream.of(withoutLast));
 	}
 
 	@Override

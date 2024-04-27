@@ -48,6 +48,7 @@ import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.StorageTypeToClass;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.verification.VerificationException;
 
 /**
@@ -275,10 +276,14 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
-			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
-				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
-
-			return deserializer.deserialize(update.getValue());
+			try {
+				UpdateOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
+						.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
+				return deserializer.deserialize(update.getValue());
+			}
+			catch (StoreException e) {
+				throw new DeserializationError(e);
+			}
 		}
 
 		/**

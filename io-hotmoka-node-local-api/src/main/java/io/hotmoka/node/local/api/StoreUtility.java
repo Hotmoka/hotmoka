@@ -175,7 +175,7 @@ public interface StoreUtility {
 	 * @param object the reference to the object
 	 * @return the last updates to the eager fields of {@code object}
 	 */
-	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object);
+	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException;
 
 	/**
 	 * Yields the committed state of the given object, that is, the last updates committed for its fields.
@@ -183,7 +183,7 @@ public interface StoreUtility {
 	 * @param object the reference to the object
 	 * @return the state
 	 */
-	Stream<Update> getStateCommitted(StorageReference object); // TODO: is this really committed?
+	Stream<Update> getStateCommitted(StorageReference object) throws StoreException; // TODO: is this really committed?
 
 	/**
 	 * Yields the most recent update to the given field
@@ -195,7 +195,7 @@ public interface StoreUtility {
 	 * @param field the field whose update is being looked for
 	 * @return the update, if any
 	 */
-	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field);
+	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException;
 
 	/**
 	 * Yields the most recent update for the given {@code final} field

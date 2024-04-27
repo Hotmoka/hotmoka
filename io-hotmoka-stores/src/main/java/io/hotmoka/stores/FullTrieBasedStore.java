@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -149,10 +150,15 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
     @Override
-	public Optional<String> getError(TransactionReference reference) {
+	public Optional<String> getError(TransactionReference reference) throws StoreException {
     	synchronized (lock) {
-    		return env.computeInReadonlyTransaction // TODO: recheck
-   				(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, -1L).get(reference)));
+    		try {
+				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+					(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, -1L).get(reference))));
+			}
+    		catch (TrieException e) {
+    			throw new StoreException(e);
+			}
     	}
 	}
 
@@ -185,7 +191,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
 	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
+	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
 		try {
 			synchronized (lock) {
 				trieOfRequests = trieOfRequests.put(reference, request);
@@ -193,7 +199,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 			}
 		}
 		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
+			throw new StoreException(e);
 		}
 	}
 

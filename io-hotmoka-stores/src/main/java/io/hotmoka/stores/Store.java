@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import java.io.IOException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -57,8 +56,9 @@ public interface Store extends AutoCloseable {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the error, if any
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	Optional<String> getError(TransactionReference reference);
+	Optional<String> getError(TransactionReference reference) throws StoreException;
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
@@ -66,8 +66,9 @@ public interface Store extends AutoCloseable {
 	 * 
 	 * @param object the reference of the object
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Stream<TransactionReference> getHistory(StorageReference object);
+	Stream<TransactionReference> getHistory(StorageReference object) throws StoreException;
 
 	/**
 	 * Yields the history of the given object, that is, the references of the transactions
@@ -76,14 +77,15 @@ public interface Store extends AutoCloseable {
 	 * 
 	 * @param object the reference of the object
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	Stream<TransactionReference> getHistoryUncommitted(StorageReference object);
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.
 	 * 
 	 * @return the manifest
-	 * @throws StoreException if the store is not able to perform the operation
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	Optional<StorageReference> getManifest() throws StoreException;
 
@@ -92,7 +94,7 @@ public interface Store extends AutoCloseable {
 	 * transaction that installed it is not committed yet.
 	 * 
 	 * @return the manifest
-	 * @throws StoreException if the store is not able to perform the operation
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
@@ -113,9 +115,9 @@ public interface Store extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
-	 * @throws IOException if an I/O occurred
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws IOException;
+	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Pushes into the store the result of executing a successful Hotmoka request.
@@ -133,6 +135,7 @@ public interface Store extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param errorMessage the error message
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage);
+	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
 }

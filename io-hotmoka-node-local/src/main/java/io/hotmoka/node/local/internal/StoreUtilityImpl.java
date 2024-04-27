@@ -175,27 +175,27 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	@Override
-	public Stream<Update> getStateCommitted(StorageReference object) {
-		Set<Update> updates = new HashSet<>();
+	public Stream<Update> getStateCommitted(StorageReference object) throws StoreException {
 		Stream<TransactionReference> history = getStore().getHistory(object);
+		var updates = new HashSet<Update>();
 		history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
 		return updates.stream();
 	}
 
 	@Override
-	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) {
+	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
 		Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
 		NodeCache caches = node.getCaches();
 
 		return getStore().getHistoryUncommitted(object)
-			.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
-			.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
-					fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
-			.map(update -> (UpdateOfField) update);
+				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
+				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
+						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+				.map(update -> (UpdateOfField) update);
 	}
 
 	@Override
-	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) {
+	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
 		return getStore().getHistoryUncommitted(object)
 			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
 			.filter(Optional::isPresent)
@@ -240,15 +240,30 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
-		return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
+		try {
+			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
-		return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		try {
+			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
-		return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		try {
+			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	/**
