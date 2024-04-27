@@ -27,7 +27,7 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.PartialStoreWithCheckableHistories;
+import io.hotmoka.stores.PartialStoreWithHistories;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -35,7 +35,7 @@ import io.hotmoka.stores.StoreException;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class TendermintStore extends PartialStoreWithCheckableHistories<TendermintStore> {
+class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 
 	/**
 	 * An object that can be used to send post requests to Tendermint

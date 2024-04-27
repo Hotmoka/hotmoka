@@ -39,7 +39,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions, together with their
- * requests and errors (for this reason it is <i>full</i>).
+ * requests, histories and errors (for this reason it is <i>full</i>).
  * This store has the ability of changing its <i>world view</i> by checking out different
  * hashes of its roots. Hence, it can be used to come back in time or change
  * history branch by simply checking out a different root. Its implementation
@@ -61,7 +61,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extends PartialStore<T> implements CheckableStore<T> {
+public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>> extends PartialStore<T> implements CheckableStore<T> {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -131,7 +131,7 @@ public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extend
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected FullTrieBasedStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+	protected AbstractCheckableStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
 		super(getResponseUncommittedCached, dir, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
@@ -149,7 +149,7 @@ public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extend
 		this.storeOfHistory = storeOfHistory.get();
 	}
 
-	protected FullTrieBasedStore(FullTrieBasedStore<T> toClone) {
+	protected AbstractCheckableStore(AbstractCheckableStore<T> toClone) {
 		super(toClone);
 
 		this.storeOfErrors = toClone.storeOfErrors;
@@ -188,21 +188,26 @@ public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extend
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
-		synchronized (lock) {
-			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty());
+	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
+		try {
+			synchronized (lock) {
+				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+			}
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
 		}
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
 		synchronized (lock) {
 			try {
 				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
 			}
 			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
+				throw new StoreException(e);
 			}
 		}
 	}
@@ -259,7 +264,7 @@ public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extend
 	}
 
 	@Override
-	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		T result = super.setResponse(reference, request, response);
 	
 		// we also store the request
@@ -268,7 +273,7 @@ public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extend
 			return result.mkClone();
 		}
 		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
+			throw new StoreException(e);
 		}
 	}
 

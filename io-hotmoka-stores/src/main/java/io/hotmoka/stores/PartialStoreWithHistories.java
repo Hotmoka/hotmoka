@@ -23,6 +23,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -35,7 +36,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions, together with their
- * history (for this reason it is <i>with history</i>).
+ * histories (for this reason it is <i>with history</i>).
  * This store has the ability of changing its <i>world view</i> by checking out different
  * hashes of its roots. Hence, it can be used to come back in time or change
  * history branch or create a snapshot of it by simply checking out a different root. Its implementation
@@ -49,13 +50,13 @@ import io.hotmoka.xodus.env.Transaction;
  *      to provide values to the fields of the storage object at that reference (its <i>history</i>);
  *      this is used by a node to reconstruct the state of the objects in store
  * <li> miscellaneous control information, such as where the node's manifest
- *      is installed or the current number of commits
+ *      is installed or the current root and number of commits
  * </ul>
  * 
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreWithCheckableHistories<T>> extends PartialStore<T> {
+public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistories<T>> extends PartialStore<T> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -95,7 +96,7 @@ public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreW
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected PartialStoreWithCheckableHistories(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
+	protected PartialStoreWithHistories(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
 		super(getResponseUncommittedCached, dir, checkableDepth);
 
 		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
@@ -103,7 +104,7 @@ public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreW
 		this.storeOfHistory = storeOfHistory.get();
 	}
 
-	protected PartialStoreWithCheckableHistories(PartialStoreWithCheckableHistories<T> toClone) {
+	protected PartialStoreWithHistories(PartialStoreWithHistories<T> toClone) {
 		super(toClone);
 
 		this.storeOfHistory = toClone.storeOfHistory;
@@ -115,21 +116,26 @@ public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreW
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
-    	synchronized (lock) {
-    		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty());
-    	}
+	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
+		try {
+			synchronized (lock) {
+				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+			}
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
 		synchronized (lock) {
 			try {
 				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
 			}
 			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
+				throw new StoreException(e);
 			}
 		}
 	}
@@ -185,7 +191,7 @@ public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreW
 			return super.mergeRootsOfTries();
 
 		byte[] superMerge = super.mergeRootsOfTries();
-		byte[] result = new byte[superMerge.length + 32];
+		var result = new byte[superMerge.length + 32];
 		System.arraycopy(superMerge, 0, result, 0, superMerge.length);
 		System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length, 32);
 

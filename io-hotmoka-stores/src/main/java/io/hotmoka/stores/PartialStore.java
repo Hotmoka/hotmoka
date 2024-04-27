@@ -24,6 +24,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -41,7 +42,7 @@ import io.hotmoka.xodus.env.Transaction;
 /**
  * A historical store of a node. It is a transactional database that keeps
  * the successful responses of the Hotmoka transactions
- * but not their requests nor errors (for this reason it is <i>partial</i>).
+ * but not their requests, histories and errors (for this reason it is <i>partial</i>).
  * Its implementation is based on Merkle-Patricia tries,
  * supported by JetBrains' Xodus transactional database.
  * 
@@ -50,7 +51,7 @@ import io.hotmoka.xodus.env.Transaction;
  * <ul>
  * <li> a map from each Hotmoka request reference to the response computed for that request
  * <li> miscellaneous control information, such as where the node's manifest
- *      is installed or the current number of commits
+ *      is installed or the current root and number of commits
  * </ul>
  * 
  * This information is added in store by push methods and accessed through get methods.
@@ -220,10 +221,11 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			synchronized (lock) {
-				return env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getManifest())); // TODO: recheck
+				return CheckSupplier.check(TrieException.class, () ->
+					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getManifest())));
 			}
 		}
-		catch (ExodusException e) {
+		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -314,24 +316,24 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	}
 
 	@Override
-	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		try {
 			trieOfResponses = trieOfResponses.put(reference, response);
 			return mkClone();
 		}
 		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
+			throw new StoreException(e);
 		}
 	}
 
 	@Override
-	protected T setManifest(StorageReference manifest) {
+	protected T setManifest(StorageReference manifest) throws StoreException {
 		try {
 			trieOfInfo = trieOfInfo.setManifest(manifest);
 			return mkClone();
 		}
 		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
+			throw new StoreException(e);
 		}
 	}
 
