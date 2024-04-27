@@ -42,6 +42,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
@@ -104,13 +105,20 @@ public class Reverification {
 
 	/**
 	 * Replaces all reverified responses into the store of the node whose jars have been reverified.
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * 
+	 * @throws NodeException if this node is not able to complete the operation correctly
 	 */
-	public void replace() throws UnknownReferenceException, NodeException {
+	public void replace() throws NodeException {
 		for (var entry: reverified.entrySet()) {
 			var reference = entry.getKey();
-			node.getStore().replace(reference, node.getRequest(reference), entry.getValue());
+
+			try {
+				node.getStore().replace(reference, node.getRequest(reference), entry.getValue());
+			}
+			catch (StoreException | UnknownReferenceException e) {
+				throw new NodeException(e);
+			}
+
 			logger.info(reference + ": updated after reverification");
 		}
 

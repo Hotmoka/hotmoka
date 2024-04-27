@@ -93,7 +93,7 @@ public abstract class AbstractStore implements Store {
 	}
 
 	@Override
-	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
 			setResponse(reference, request, response);
 		}
@@ -105,8 +105,9 @@ public abstract class AbstractStore implements Store {
 	 * @param reference the reference of the transaction
 	 * @param request the request
 	 * @param response the response
+	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	protected abstract void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Sets the history of the given object, that is,
@@ -125,8 +126,9 @@ public abstract class AbstractStore implements Store {
 	 * Mark the node as initialized. This happens for initialization requests.
 	 * 
 	 * @param manifest the manifest to put in the node
+	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract void setManifest(StorageReference manifest);
+	protected abstract void setManifest(StorageReference manifest) throws StoreException;
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.

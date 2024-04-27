@@ -126,8 +126,9 @@ public interface Store extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
+	 * throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response);
+	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
