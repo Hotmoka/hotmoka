@@ -32,7 +32,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * be used concurrently for executing more requests.
  */
 @ThreadSafe
-public interface Store extends AutoCloseable {
+public interface Store<T extends Store<T>> extends AutoCloseable {
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -109,15 +109,29 @@ public interface Store extends AutoCloseable {
 	Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
 
 	/**
-	 * Pushes into the store the result of executing a successful Hotmoka request.
+	 * Pushes the result of executing a successful Hotmoka request.
 	 * This method assumes that the given request was not already present in the store.
+	 * This method yields a store where the push is visible. Checkable stores remain
+	 * unchanged after a call to this method, while non-checkable stores might be
+	 * modified and coincide with the result of the method.
 	 * 
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
+	 * @return the store resulting after the push
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+	T push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+
+	/**
+	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param errorMessage the error message
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
 
 	/**
 	 * Pushes into the store the result of executing a successful Hotmoka request.
@@ -129,14 +143,4 @@ public interface Store extends AutoCloseable {
 	 * throws StoreException if the store is not able to complete the operation correctly
 	 */
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
-
-	/**
-	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param errorMessage the error message
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
 }

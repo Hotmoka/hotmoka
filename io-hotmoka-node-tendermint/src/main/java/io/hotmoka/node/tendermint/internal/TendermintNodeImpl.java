@@ -75,10 +75,10 @@ import io.hotmoka.tendermint.abci.Server;
  * An implementation of a node working over the Tendermint generic blockchain engine.
  * Requests sent to this node are forwarded to a Tendermint process. This process
  * checks and delivers such requests, by calling the ABCI interface. This blockchain keeps
- * its state in a transactional database implemented by the {@link Store} class.
+ * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, Store> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
@@ -225,8 +225,8 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected Store mkStore() {
-		return new Store(caches::getResponseUncommitted, config.getDir(), new TendermintBlockchainInternalImpl());
+	protected TendermintStore mkStore() {
+		return new TendermintStore(caches::getResponseUncommitted, config.getDir(), new TendermintBlockchainInternalImpl());
 	}
 
 	@Override
@@ -363,7 +363,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public Store getStore() {
+		public TendermintStore getStore() {
 			return store;
 		}
 

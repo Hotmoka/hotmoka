@@ -301,7 +301,7 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseCommit commit(RequestCommit request) {
-		Store store = node.getStore();
+		TendermintStore store = node.getStore();
     	node.commitTransactionAndCheckout();
     	// hash of the store, used for consensus
     	byte[] hash = store.getHash();

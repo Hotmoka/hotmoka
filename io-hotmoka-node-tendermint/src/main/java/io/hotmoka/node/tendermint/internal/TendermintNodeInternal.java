@@ -44,7 +44,7 @@ public interface TendermintNodeInternal {
 	 * 
 	 * @return the store
 	 */
-	Store getStore();
+	TendermintStore getStore();
 
 	/**
 	 * Yields an object that can be used to post requests to the Tendermint process.

@@ -55,7 +55,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class PartialStoreWithCheckableHistories extends PartialStore {
+public abstract class PartialStoreWithCheckableHistories<T extends PartialStoreWithCheckableHistories<T>> extends PartialStore<T> {
 
 	/**
 	 * The Xodus store that holds the history of each storage reference, ie, a list of
@@ -82,7 +82,7 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
      * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
 	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
-	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       change the world-view of the store (see {@link #checkoutAt(byte[])}).
 	 *                       This entails that such commits are not garbage-collected, until
 	 *                       new commits get created on top and they end up being deeper.
 	 *                       This is useful if we expect an old state to be checked out, for
@@ -103,7 +103,18 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 		this.storeOfHistory = storeOfHistory.get();
 	}
 
-    @Override
+	protected PartialStoreWithCheckableHistories(PartialStoreWithCheckableHistories<T> toClone) {
+		super(toClone);
+
+		this.storeOfHistory = toClone.storeOfHistory;
+
+		synchronized (toClone.lock) {
+			this.rootOfHistories = toClone.rootOfHistories;
+			this.trieOfHistories = toClone.trieOfHistories;
+		}
+	}
+
+	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
@@ -150,16 +161,17 @@ public abstract class PartialStoreWithCheckableHistories extends PartialStore {
 	}
 
 	@Override
-	public void checkout(byte[] root) {
+	public void checkoutAt(byte[] root) {
 		synchronized (lock) {
-			super.checkout(root);
+			super.checkoutAt(root);
 		}
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected T setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
 			trieOfHistories = trieOfHistories.put(object, history);
+			return mkClone();
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

@@ -18,18 +18,25 @@ package io.hotmoka.stores;
 
 /**
  * A store that can be checked out, that is, its view of the world can be moved
- * back and forth in time. Different moments of the store are identifies by hashes,
- * that can be checked out when needed.
+ * back and forth in time. Different moments of the store are identifies by state
+ * identifiers, that can be checked out when needed.
  */
-public interface CheckableStore extends Store {
+public interface CheckableStore<T extends CheckableStore<T>> extends Store<T> {
 
 	/**
-	 * Resets the store to the view of the world expressed by the given hash.
-	 * This assumes that no commit after the one that created the given hash has
-	 * been garbage-collected, since otherwise some data might be missing for the given hash,
+	 * Yields a unique identifier for the current state of this store.
+	 * 
+	 * @return the unique identifier; this is for instance the hash of the state
+	 */
+	byte[] getStateId() throws StoreException;
+
+	/**
+	 * Resets the store to the view of the world expressed by the given state identifier.
+	 * This assumes that no commit after the one that created the given state id has
+	 * been garbage-collected, since otherwise some data might be missing for the given state id,
 	 * which might result in missing objects.
 	 * 
-	 * @param hash the hash to reset the store to
+	 * @param stateId the state identifier to reset the store to
 	 */
-	void checkout(byte[] hash);
+	void checkoutAt(byte[] stateId);
 }

@@ -40,7 +40,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> implements DiskNode {
+public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> implements DiskNode {
 	private final static Logger LOGGER = Logger.getLogger(DiskNodeImpl.class.getName());
 
 	/**
@@ -80,8 +80,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, Store> imple
 	}
 
 	@Override
-	protected Store mkStore() {
-		return new Store(caches::getResponseUncommitted, getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
+	protected DiskStore mkStore() {
+		return new DiskStore(caches::getResponseUncommitted, getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
 	}
 
 	@Override

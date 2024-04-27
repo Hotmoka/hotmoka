@@ -126,7 +126,7 @@ import io.hotmoka.stores.StoreException;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore<S>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
 	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
@@ -191,7 +191,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	/**
 	 * The store of the node.
 	 */
-	protected final S store;
+	protected S store;
 
 	/**
 	 * The gas model of the node.
@@ -675,7 +675,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				synchronized (deliverTransactionLock) {
 					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 					response = responseBuilder.getResponse();
-					store.push(reference, request, response);
+					store = store.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
 					scheduleForNotificationOfEvents(response);
 					takeNoteForNextReward(request, response);
@@ -1135,7 +1135,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		@Override
-		public Store getStore() {
+		public Store<?> getStore() {
 			return store;
 		}
 

@@ -51,7 +51,7 @@ import io.hotmoka.stores.StoreException;
  * while the histories are kept in RAM.
  */
 @ThreadSafe
-class Store extends AbstractStore {
+class DiskStore extends AbstractStore<DiskStore> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -68,13 +68,13 @@ class Store extends AbstractStore {
 	/**
 	 * The storage reference of the manifest stored inside the node, if any.
 	 */
-	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
+	private final AtomicReference<StorageReference> manifest;
 
 	/**
 	 * The number of transactions added to the store. This is used to associate
 	 * each transaction to its progressive number.
 	 */
-	private final AtomicInteger transactionsCount = new AtomicInteger();
+	private final AtomicInteger transactionsCount;
 
 	/**
 	 * A map from the transactions added to the store to their progressive number.
@@ -93,7 +93,7 @@ class Store extends AbstractStore {
 	 */
 	private final long transactionsPerBlock;
 
-	private final static Logger logger = Logger.getLogger(Store.class.getName());
+	private final static Logger logger = Logger.getLogger(DiskStore.class.getName());
 
 	/**
      * Creates a state for a node.
@@ -102,7 +102,7 @@ class Store extends AbstractStore {
 	 * @param dir the path where the database of the store gets created
      * @param transactionsPerBlock the number of transactions that fit inside a block
      */
-    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long transactionsPerBlock) {
+    DiskStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long transactionsPerBlock) {
     	super(getResponseUncommittedCached);
 
     	this.dir = dir;
@@ -110,9 +110,28 @@ class Store extends AbstractStore {
     	this.histories = new ConcurrentHashMap<>();
     	this.errors = new ConcurrentHashMap<>();
     	this.progressive = new ConcurrentHashMap<>();
+    	this.manifest = new AtomicReference<>();
+    	this.transactionsCount = new AtomicInteger();
     }
 
-	@Override
+    /**
+	 * Creates a clone of the given store.
+	 * 
+	 * @param toClone the store to clone
+	 */
+    private DiskStore(DiskStore toClone) {
+    	super(toClone);
+
+    	this.dir = toClone.dir;
+    	this.transactionsPerBlock = toClone.transactionsPerBlock;
+    	this.histories = toClone.histories;
+    	this.errors = toClone.errors;
+    	this.progressive = toClone.progressive;
+    	this.manifest = toClone.manifest;
+    	this.transactionsCount = toClone.transactionsCount;
+    }
+
+    @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		synchronized (lock) {
     		try {
@@ -172,7 +191,17 @@ class Store extends AbstractStore {
 	}
 
 	@Override
-	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected DiskStore getThis() {
+		return this;
+	}
+
+	@Override
+	protected DiskStore mkClone() {
+		return new DiskStore(this);
+	}
+
+	@Override
+	protected DiskStore setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		try {
 			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 			Path requestPath = getPathFor(reference, "request");
@@ -190,6 +219,8 @@ class Store extends AbstractStore {
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(getPathFor(reference, "response")))) {
 				response.into(context);
 			}
+
+			return this;
 		}
 		catch (IOException e) {
 			logger.log(Level.WARNING, "unexpected exception", e);
@@ -198,13 +229,15 @@ class Store extends AbstractStore {
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected DiskStore setHistory(StorageReference object, Stream<TransactionReference> history) {
 		histories.put(object, history.toArray(TransactionReference[]::new));
+		return this;
 	}
 
 	@Override
-	protected void setManifest(StorageReference manifest) {
+	protected DiskStore setManifest(StorageReference manifest) {
 		this.manifest.set(manifest);
+		return this;
 	}
 
 	@Override

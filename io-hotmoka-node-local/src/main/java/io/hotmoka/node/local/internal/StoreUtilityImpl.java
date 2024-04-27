@@ -59,7 +59,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	/**
 	 * The store that is accessed.
 	 */
-	private Store store;
+	private Store<?> store;
 
 	/**
 	 * Builds an object that provides utility methods on the store of a node.
@@ -70,7 +70,7 @@ public class StoreUtilityImpl implements StoreUtility {
 		this.node = node;
 	}
 
-	private Store getStore() {
+	private Store<?> getStore() {
 		return store != null ? store : node.getStore();
 	}
 
@@ -80,7 +80,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	 * @param node the node for which the store utilities are being built
 	 * @param store the store accessed by the store utilities
 	 */
-	public StoreUtilityImpl(NodeInternal node, Store store) {
+	public StoreUtilityImpl(NodeInternal node, Store<?> store) {
 		this.node = node;
 		this.store = store;
 	}

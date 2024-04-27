@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import static io.hotmoka.exceptions.CheckRunnable.check;
-import static io.hotmoka.exceptions.UncheckConsumer.uncheck;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +42,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * by the requests executed by the node.
  */
 @ThreadSafe
-public abstract class AbstractStore implements Store {
+public abstract class AbstractStore<T extends AbstractStore<T>> implements Store<T> {
 
 	/**
 	 * The lock for modifications of the store.
@@ -68,27 +65,42 @@ public abstract class AbstractStore implements Store {
 		this.getResponseUncommitedCached = getResponseUncommittedCached;
 	}
 
+	/**
+	 * Creates a clone of the given store.
+	 * 
+	 * @param toClone the store to clone
+	 */
+	protected AbstractStore(AbstractStore<T> toClone) {
+		this.getResponseUncommitedCached = toClone.getResponseUncommitedCached;
+	}
+
+	protected abstract T mkClone();
+
+	protected abstract T getThis();
+
 	@Override
 	public void close() {
 	}
 
 	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	public final T push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
-			setResponse(reference, request, response);
+			T result = setResponse(reference, request, response);
 
 			if (response instanceof TransactionResponseWithUpdates trwu)
-				expandHistory(reference, trwu);
+				result = result.expandHistory(reference, trwu);
 
 			if (response instanceof InitializationTransactionResponse) {
 				StorageReference manifest = ((InitializationTransactionRequest) request).getManifest();
-				setManifest(manifest);
+				result = result.setManifest(manifest);
 				logger.info(manifest + ": set as manifest");
 				logger.info("the node has been initialized");
 			}
 
 			if (response instanceof GameteCreationTransactionResponse gctr)
 				logger.info(gctr.getGamete() + ": created as gamete");
+
+			return result;
 		}
 	}
 
@@ -107,7 +119,7 @@ public abstract class AbstractStore implements Store {
 	 * @param response the response
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+	protected abstract T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Sets the history of the given object, that is,
@@ -120,7 +132,7 @@ public abstract class AbstractStore implements Store {
 	 *                from newest transactions to oldest; hence the last transaction is
 	 *                that when the object has been created
 	 */
-	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
+	protected abstract T setHistory(StorageReference object, Stream<TransactionReference> history);
 
 	/**
 	 * Mark the node as initialized. This happens for initialization requests.
@@ -128,7 +140,7 @@ public abstract class AbstractStore implements Store {
 	 * @param manifest the manifest to put in the node
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract void setManifest(StorageReference manifest) throws StoreException;
+	protected abstract T setManifest(StorageReference manifest) throws StoreException;
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.
@@ -137,16 +149,19 @@ public abstract class AbstractStore implements Store {
 	 * @param response the response
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	private void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
-		check(StoreException.class, () ->
-			// we collect the storage references that have been updated in the response; for each of them,
-			// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-			// in front of such lists and store back the updated lists, replacing the old ones
-			response.getUpdates()
-				.map(Update::getObject)
-				.distinct()
-				.forEachOrdered(uncheck(object -> setHistory(object, simplifiedHistory(object, reference, response.getUpdates()))))
-		);
+	protected final T expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
+		// we collect the storage references that have been updated in the response; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		var modifiedObjects = response.getUpdates()
+			.map(Update::getObject)
+			.distinct().toArray(StorageReference[]::new);
+
+		T result = getThis();
+		for (StorageReference object: modifiedObjects)
+			result = result.setHistory(object, simplifiedHistory(object, reference, response.getUpdates()));
+
+		return result;
 	}
 
 	/**

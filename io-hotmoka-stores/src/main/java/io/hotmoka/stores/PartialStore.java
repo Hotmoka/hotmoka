@@ -58,7 +58,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialStore extends AbstractStore {
+public abstract class PartialStore<T extends PartialStore<T>> extends AbstractStore<T> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -67,7 +67,7 @@ public abstract class PartialStore extends AbstractStore {
 
 	/**
 	 * The number of last commits that can be checked out, in order to
-	 * change the world-view of the store (see {@link #checkout(byte[])}).
+	 * change the world-view of the store (see {@link #checkoutAt(byte[])}).
 	 * This entails that such commits are not garbage-collected. until
 	 * new commits get created on top and they end up being deeper.
 	 * This is useful if we expect an old state to be checked out, for
@@ -120,11 +120,6 @@ public abstract class PartialStore extends AbstractStore {
 	 */
 	private TrieOfInfo trieOfInfo;
 
-	/**
-	 * The hash used for the tries that are still empty.
-	 */
-	protected final byte[] NO_ROOT = new byte[32];
-
 	private final static Logger logger = Logger.getLogger(PartialStore.class.getName());
 
 	/**
@@ -135,7 +130,7 @@ public abstract class PartialStore extends AbstractStore {
 	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
  	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
-	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       change the world-view of the store (see {@link #checkoutAt(byte[])}).
 	 *                       This entails that such commits are not garbage-collected, until
 	 *                       new commits get created on top and they end up being deeper.
 	 *                       This is useful if we expect an old state to be checked out, for
@@ -166,7 +161,24 @@ public abstract class PartialStore extends AbstractStore {
     	this.storeOfInfo = storeOfInfo.get();
     }
 
-	@Override
+    protected PartialStore(PartialStore<T> toClone) {
+    	super(toClone);
+
+    	this.env = toClone.env;
+    	this.checkableDepth = toClone.checkableDepth;
+    	this.storeOfResponses = toClone.storeOfResponses;
+    	this.storeOfInfo = toClone.storeOfInfo;
+
+    	synchronized (toClone.lock) {
+    		this.rootOfResponses = toClone.rootOfResponses;
+    		this.rootOfInfo = toClone.rootOfInfo;
+    		this.txn = toClone.txn;
+    		this.trieOfResponses = toClone.trieOfResponses;
+    		this.trieOfInfo = toClone.trieOfInfo;
+    	}
+    }
+
+    @Override
     public void close() {
     	if (duringTransaction()) {
     		// store closed with yet uncommitted transactions: we abort them
@@ -302,9 +314,10 @@ public abstract class PartialStore extends AbstractStore {
 	}
 
 	@Override
-	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
 		try {
 			trieOfResponses = trieOfResponses.put(reference, response);
+			return mkClone();
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -312,9 +325,10 @@ public abstract class PartialStore extends AbstractStore {
 	}
 
 	@Override
-	protected void setManifest(StorageReference manifest) {
+	protected T setManifest(StorageReference manifest) {
 		try {
 			trieOfInfo = trieOfInfo.setManifest(manifest);
+			return mkClone();
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -343,7 +357,7 @@ public abstract class PartialStore extends AbstractStore {
 	 * 
 	 * @param root the root to reset to
 	 */
-	protected void checkout(byte[] root) {
+	protected void checkoutAt(byte[] root) {
 		setRootsTo(root);
 		var rootAsBI = ByteIterable.fromBytes(root);
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));

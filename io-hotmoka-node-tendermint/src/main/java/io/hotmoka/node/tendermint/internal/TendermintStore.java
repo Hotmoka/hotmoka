@@ -35,7 +35,7 @@ import io.hotmoka.stores.StoreException;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class Store extends PartialStoreWithCheckableHistories {
+class TendermintStore extends PartialStoreWithCheckableHistories<TendermintStore> {
 
 	/**
 	 * An object that can be used to send post requests to Tendermint
@@ -55,7 +55,7 @@ class Store extends PartialStoreWithCheckableHistories {
 	 * @param dir the path where the database of the store gets created
      * @param nodeInternal an object that can be used to send post requests to Tendermint
      */
-    Store(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintNodeInternal nodeInternal) {
+    TendermintStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintNodeInternal nodeInternal) {
     	super(getResponseUncommittedCached, dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
 
     	this.nodeInternal = nodeInternal;
@@ -68,6 +68,13 @@ class Store extends PartialStoreWithCheckableHistories {
     	catch (NoSuchAlgorithmException e) {
     		throw new RuntimeException("unexpected exception", e);
     	}
+    }
+
+    private TendermintStore(TendermintStore toClone) {
+    	super(toClone);
+ 
+    	this.nodeInternal = toClone.nodeInternal;
+    	this.hasherOfHashes = toClone.hasherOfHashes;
     }
 
     @Override
@@ -129,7 +136,17 @@ class Store extends PartialStoreWithCheckableHistories {
 	 */
 	final void commitTransactionAndCheckout() {
 		synchronized (lock) {
-			checkout(commitTransaction());
+			checkoutAt(commitTransaction());
 		}
+	}
+
+	@Override
+	protected TendermintStore getThis() {
+		return this;
+	}
+
+	@Override
+	protected TendermintStore mkClone() {
+		return new TendermintStore(this);
 	}
 }

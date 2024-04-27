@@ -72,7 +72,7 @@ public interface NodeInternal {
 	 * 
 	 * @return the store of this node
 	 */
-	Store getStore();
+	Store<?> getStore();
 
 	/**
 	 * Yields an object that provides methods for reconstructing data from the store of this node.

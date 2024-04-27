@@ -61,7 +61,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This information is added in store by push methods and accessed through get methods.
  */
 @ThreadSafe
-public abstract class FullTrieBasedStore extends PartialStore implements CheckableStore {
+public abstract class FullTrieBasedStore<T extends FullTrieBasedStore<T>> extends PartialStore<T> implements CheckableStore<T> {
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
@@ -103,7 +103,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	/**
      * The trie of the requests.
      */
-	private TrieOfRequests trieOfRequests;
+	protected TrieOfRequests trieOfRequests;
 
 	/**
 	 * The trie of histories.
@@ -118,7 +118,7 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
      * @param dir the path where the database of the store gets created
      * @param checkableDepth the number of last commits that can be checked out, in order to
-	 *                       change the world-view of the store (see {@link #checkout(byte[])}).
+	 *                       change the world-view of the store (see {@link #checkoutAt(byte[])}).
 	 *                       This entails that such commits are not garbage-collected, until
 	 *                       new commits get created on top and they end up being deeper.
 	 *                       This is useful if we expect an old state to be checked out, for
@@ -149,7 +149,24 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 		this.storeOfHistory = storeOfHistory.get();
 	}
 
-    @Override
+	protected FullTrieBasedStore(FullTrieBasedStore<T> toClone) {
+		super(toClone);
+
+		this.storeOfErrors = toClone.storeOfErrors;
+		this.storeOfHistory = toClone.storeOfHistory;
+		this.storeOfRequests = toClone.storeOfRequests;
+
+		synchronized (toClone.lock) {
+			this.rootOfErrors = toClone.rootOfErrors;
+			this.rootOfHistories = toClone.rootOfHistories;
+			this.rootOfRequests = toClone.rootOfRequests;
+			this.trieOfErrors = toClone.trieOfErrors;
+			this.trieOfHistories = toClone.trieOfHistories;
+			this.trieOfRequests = toClone.trieOfRequests;
+		}
+	}
+
+	@Override
 	public Optional<String> getError(TransactionReference reference) throws StoreException {
     	synchronized (lock) {
     		try {
@@ -235,19 +252,20 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
 	@Override
-	public void checkout(byte[] root) {
+	public void checkoutAt(byte[] root) {
 		synchronized (lock) {
-			super.checkout(root);
+			super.checkoutAt(root);
 		}
 	}
 
 	@Override
-	protected void setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
-		super.setResponse(reference, request, response);
+	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+		T result = super.setResponse(reference, request, response);
 	
 		// we also store the request
 		try {
-			trieOfRequests = trieOfRequests.put(reference, request);
+			result.trieOfRequests = result.trieOfRequests.put(reference, request);
+			return result.mkClone();
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -255,9 +273,10 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected T setHistory(StorageReference object, Stream<TransactionReference> history) {
 		try {
 			trieOfHistories = trieOfHistories.put(object, history);
+			return mkClone();
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO
@@ -278,6 +297,11 @@ public abstract class FullTrieBasedStore extends PartialStore implements Checkab
 		System.arraycopy(trieOfHistories.getRoot(), 0, result, superMerge.length + 64, 32);
 
 		return result;
+	}
+
+	@Override
+	public byte[] getStateId() throws StoreException {
+		return mergeRootsOfTries();
 	}
 
 	@Override
