@@ -19,7 +19,6 @@ package io.hotmoka.stores;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -128,7 +127,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * a call to {@link #setRootsTo(Optional)} or {@link #setRootsAsCheckedOut()}
 	 * should occur, to set the roots of the store.
 	 * 
-	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
  	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
 	 *                       change the world-view of the store (see {@link #checkoutAt(byte[])}).
@@ -144,9 +142,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
 	 */
-    protected PartialStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long checkableDepth) {
-    	super(getResponseUncommittedCached);
-
+    protected PartialStore(Path dir, long checkableDepth) {
     	this.checkableDepth = checkableDepth;
     	this.env = new Environment(dir + "/store");
 

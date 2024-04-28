@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -47,22 +46,15 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	/**
 	 * The lock for modifications of the store.
 	 */
-	protected final Object lock = new Object();
-
-	/**
-	 * A function that yields the transaction response for the given transaction reference, if any, using a cache.
-	 */
-	private final Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommitedCached;
+	protected final Object lock;
 
 	private final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
 	 * Builds the store for a node.
-	 * 
-	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
 	 */
-	protected AbstractStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached) {
-		this.getResponseUncommitedCached = getResponseUncommittedCached;
+	protected AbstractStore() {
+		this.lock = new Object();
 	}
 
 	/**
@@ -71,7 +63,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param toClone the store to clone
 	 */
 	protected AbstractStore(AbstractStore<T> toClone) {
-		this.getResponseUncommitedCached = toClone.getResponseUncommitedCached;
+		this.lock = toClone.lock;
 	}
 
 	protected abstract T mkClone();
@@ -207,7 +199,8 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		Optional<TransactionResponse> maybeResponse = getResponseUncommitedCached.apply(reference); // node.caches.getResponseUncommitted(reference);
+		Optional<TransactionResponse> maybeResponse = //getResponseUncommitedCached.apply(reference); // node.caches.
+				getResponseUncommitted(reference);
 
 		if (maybeResponse.isEmpty()) {
 			logger.log(Level.WARNING, "the history contains a reference to a transaction not in store");

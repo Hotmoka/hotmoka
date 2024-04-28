@@ -81,7 +81,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 
 	@Override
 	protected DiskStore mkStore() {
-		return new DiskStore(caches::getResponseUncommitted, getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
+		return new DiskStore(getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
 	}
 
 	@Override

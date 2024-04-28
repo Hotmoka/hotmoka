@@ -226,7 +226,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	protected TendermintStore mkStore() {
-		return new TendermintStore(caches::getResponseUncommitted, config.getDir(), new TendermintBlockchainInternalImpl());
+		return new TendermintStore(config.getDir(), new TendermintBlockchainInternalImpl());
 	}
 
 	@Override

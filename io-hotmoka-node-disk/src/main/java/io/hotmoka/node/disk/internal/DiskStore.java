@@ -28,8 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -93,18 +91,13 @@ class DiskStore extends AbstractStore<DiskStore> {
 	 */
 	private final long transactionsPerBlock;
 
-	private final static Logger logger = Logger.getLogger(DiskStore.class.getName());
-
 	/**
      * Creates a state for a node.
      * 
-	 * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
 	 * @param dir the path where the database of the store gets created
      * @param transactionsPerBlock the number of transactions that fit inside a block
      */
-    DiskStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, long transactionsPerBlock) {
-    	super(getResponseUncommittedCached);
-
+    DiskStore(Path dir, long transactionsPerBlock) {
     	this.dir = dir;
     	this.transactionsPerBlock = transactionsPerBlock;
     	this.histories = new ConcurrentHashMap<>();
@@ -201,7 +194,7 @@ class DiskStore extends AbstractStore<DiskStore> {
 	}
 
 	@Override
-	protected DiskStore setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) {
+	protected DiskStore setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		try {
 			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 			Path requestPath = getPathFor(reference, "request");
@@ -223,8 +216,7 @@ class DiskStore extends AbstractStore<DiskStore> {
 			return this;
 		}
 		catch (IOException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			throw new RuntimeException("unexpected exception", e);
+			throw new StoreException(e);
 		}
 	}
 

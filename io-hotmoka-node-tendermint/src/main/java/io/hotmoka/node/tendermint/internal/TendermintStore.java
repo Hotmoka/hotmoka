@@ -25,7 +25,6 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.stores.PartialStoreWithHistories;
 import io.hotmoka.stores.StoreException;
@@ -51,12 +50,11 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-     * @param getResponseUncommittedCached a function that yields the transaction response for the given transaction reference, if any, using a cache
 	 * @param dir the path where the database of the store gets created
      * @param nodeInternal an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(Function<TransactionReference, Optional<TransactionResponse>> getResponseUncommittedCached, Path dir, TendermintNodeInternal nodeInternal) {
-    	super(getResponseUncommittedCached, dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
+    TendermintStore(Path dir, TendermintNodeInternal nodeInternal) {
+    	super(dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
 
     	this.nodeInternal = nodeInternal;
 
