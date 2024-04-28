@@ -77,7 +77,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	 * transaction references that contribute
 	 * to provide values to the fields of the storage object at that reference.
 	 */
-	private final io.hotmoka.xodus.env.Store storeOfHistory;
+	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
 	 * The root of the trie of the errors. It is empty if the trie is empty.
@@ -111,8 +111,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 
 	/**
      * Creates the store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
-	 * should occur, to set the roots of the store.
+	 * a call to {@link #setRootsTo(byte[])} should occur, to set the roots of the store.
      * 
      * @param dir the path where the database of the store gets created
      * @param checkableDepth the number of last commits that can be checked out, in order to
@@ -130,28 +129,53 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	 *                       is disabled)
      */
 	protected AbstractCheckableStore(Path dir, long checkableDepth) {
-		super(dir, checkableDepth);
+		this(checkableDepth, new Roots(dir));
+	}
 
-		AtomicReference<io.hotmoka.xodus.env.Store> storeOfErrors = new AtomicReference<>();
-		AtomicReference<io.hotmoka.xodus.env.Store> storeOfRequests = new AtomicReference<>();
-		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+	protected AbstractCheckableStore(long checkableDepth, Roots roots) {
+		super(checkableDepth, roots);
+
+		var storeOfErrors = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
 
 		env.executeInTransaction(txn -> {
 			storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
 			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
-			storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn));
+			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
 		});
 
 		this.storeOfErrors = storeOfErrors.get();
 		this.storeOfRequests = storeOfRequests.get();
-		this.storeOfHistory = storeOfHistory.get();
+		this.storeOfHistories = storeOfHistories.get();
+
+		Optional<byte[]> hashesOfRoots = roots.get();
+
+    	if (hashesOfRoots.isEmpty()) {
+    		rootOfErrors = Optional.empty();
+    		rootOfRequests = Optional.empty();
+    		rootOfHistories = Optional.empty();
+    	}
+    	else {
+    		var rootOfErrors = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 64, rootOfErrors, 0, 32);
+    		this.rootOfErrors = Optional.of(rootOfErrors);
+
+    		var rootOfRequests = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 96, rootOfRequests, 0, 32);
+    		this.rootOfRequests = Optional.of(rootOfRequests);
+
+    		var rootOfHistory = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 128, rootOfHistory, 0, 32);
+    		this.rootOfHistories = Optional.of(rootOfHistory);
+    	}
 	}
 
 	protected AbstractCheckableStore(AbstractCheckableStore<T> toClone) {
 		super(toClone);
 
 		this.storeOfErrors = toClone.storeOfErrors;
-		this.storeOfHistory = toClone.storeOfHistory;
+		this.storeOfHistories = toClone.storeOfHistories;
 		this.storeOfRequests = toClone.storeOfRequests;
 
 		synchronized (toClone.lock) {
@@ -190,7 +214,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -231,7 +255,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 			long numberOfCommits = getNumberOfCommits();
 			trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, numberOfCommits);
 			trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, numberOfCommits);
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, numberOfCommits);
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, numberOfCommits);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

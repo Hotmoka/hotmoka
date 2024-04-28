@@ -66,7 +66,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 	/**
 	 * The root of the trie of histories. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfHistories = Optional.empty();
+	private Optional<byte[]> rootOfHistory = Optional.empty();
 
 	/**
 	 * The trie of histories.
@@ -75,8 +75,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 
 	/**
      * Creates the store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(byte[])} or {@link #setRootsAsCheckedOut()}
-	 * should occur, to set the roots of the store.
+	 * a call to {@link #setRootsTo(byte[])} should occur, to set the roots of the store.
      * 
 	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
@@ -94,11 +93,25 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 	 *                       is disabled)
      */
 	protected PartialStoreWithHistories(Path dir, long checkableDepth) {
-		super(dir, checkableDepth);
+		this(checkableDepth, new Roots(dir));
+	}
 
-		AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-		env.executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
+	protected PartialStoreWithHistories(long checkableDepth, Roots roots) {
+		super(checkableDepth, roots);
+
+		Optional<byte[]> hashesOfRoots = roots.get();
+
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
+		roots.getEnvironment().executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
 		this.storeOfHistory = storeOfHistory.get();
+
+		if (hashesOfRoots.isEmpty())
+    		rootOfHistory = Optional.empty();
+    	else {
+    		var rootOfHistory = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 64, rootOfHistory, 0, 32);
+    		this.rootOfHistory = Optional.of(rootOfHistory);
+    	}
 	}
 
 	protected PartialStoreWithHistories(PartialStoreWithHistories<T> toClone) {
@@ -107,7 +120,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		this.storeOfHistory = toClone.storeOfHistory;
 
 		synchronized (toClone.lock) {
-			this.rootOfHistories = toClone.rootOfHistories;
+			this.rootOfHistory = toClone.rootOfHistory;
 			this.trieOfHistories = toClone.trieOfHistories;
 		}
 	}
@@ -117,7 +130,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistory, -1L).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -142,7 +155,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		Transaction txn = super.beginTransactionInternal();
 
 		try {
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistories, getNumberOfCommits());
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistory, getNumberOfCommits());
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e);
@@ -201,11 +214,11 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 
 		var bytesOfRootOfHistories = new byte[32];
 		System.arraycopy(root, 64, bytesOfRootOfHistories, 0, 32);
-		rootOfHistories = Optional.of(bytesOfRootOfHistories);
+		rootOfHistory = Optional.of(bytesOfRootOfHistories);
 	}
 
 	@Override
 	protected boolean isEmpty() {
-		return super.isEmpty() && rootOfHistories.isEmpty();
+		return super.isEmpty() && rootOfHistory.isEmpty();
 	}
 }

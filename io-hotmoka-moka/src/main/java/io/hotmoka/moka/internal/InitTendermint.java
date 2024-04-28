@@ -112,10 +112,10 @@ public class InitTendermint extends AbstractCommand {
 	private Path dir;
 
 	@Option(names = { "--takamaka-code" }, description = "the jar with the basic Takamaka classes that will be installed in the node",
-			defaultValue = "modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar")
+			defaultValue = "io-hotmoka-moka/modules/explicit/io-takamaka-code-TAKAMAKA-VERSION.jar")
 	private String takamakaCode;
 
-	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
+	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-moka/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
 
 	@Option(names = { "--delete-tendermint-config" }, description = "delete the directory of the Tendermint configuration after starting the node")

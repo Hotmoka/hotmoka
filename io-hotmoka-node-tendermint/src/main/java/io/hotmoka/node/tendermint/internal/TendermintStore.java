@@ -58,8 +58,6 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 
     	this.nodeInternal = nodeInternal;
 
-    	setRootsAsCheckedOut();
-
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
     	}

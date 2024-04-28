@@ -38,7 +38,7 @@ import picocli.CommandLine.Option;
 	showDefaultValues = true)
 public class ResumeTendermint extends AbstractCommand {
 
-	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-tools/tendermint_configs/v1n0/node0")
+	@Option(names = { "--tendermint-config" }, description = "the directory of the Tendermint configuration of the node", defaultValue = "io-hotmoka-moka/tendermint_configs/v1n0/node0")
 	private Path tendermintConfig;
 
 	@Option(names = { "--dir" }, description = "the directory that contains blocks and state of the node", defaultValue = "chain")

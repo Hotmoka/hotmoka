@@ -93,7 +93,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	/**
 	 * The root of the trie of the responses. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfResponses = Optional.empty();
+	private Optional<byte[]> rootOfResponses;
 
 	/**
 	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
@@ -124,8 +124,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 
 	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(Optional)} or {@link #setRootsAsCheckedOut()}
-	 * should occur, to set the roots of the store.
+	 * a call to {@link #setRootsTo(Optional)} should occur, to set the roots of the store.
 	 * 
  	 * @param dir the path where the database of the store gets created
 	 * @param checkableDepth the number of last commits that can be checked out, in order to
@@ -143,19 +142,63 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 *                       is disabled)
 	 */
     protected PartialStore(Path dir, long checkableDepth) {
+    	this(checkableDepth, new Roots(dir));
+    }
+
+    protected PartialStore(long checkableDepth, Roots roots) {
     	this.checkableDepth = checkableDepth;
-    	this.env = new Environment(dir + "/store");
+    	this.env = roots.env;
 
     	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
-    	var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
-
-    	env.executeInTransaction(txn -> {
-    		storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-    		storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-    	});
+    	env.executeInTransaction(txn -> storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn)));
 
     	this.storeOfResponses = storeOfResponses.get();
-    	this.storeOfInfo = storeOfInfo.get();
+    	this.storeOfInfo = roots.storeOfInfo;
+
+    	Optional<byte[]> hashesOfRoots = roots.get();
+
+    	if (hashesOfRoots.isEmpty()) {
+    		rootOfResponses = Optional.empty();
+    		rootOfInfo = Optional.empty();
+    	}
+    	else {
+    		var rootOfResponses = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 0, rootOfResponses, 0, 32);
+    		this.rootOfResponses = Optional.of(rootOfResponses);
+
+    		var rootOfInfo = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 32, rootOfInfo, 0, 32);
+    		this.rootOfInfo = Optional.of(rootOfInfo);
+    	}
+    }
+
+    protected static class Roots {
+    	private final Environment env;
+        private final io.hotmoka.xodus.env.Store storeOfInfo;
+    	private final Optional<byte[]> roots;
+
+    	protected Roots(Path dir) {
+    		this.env = new Environment(dir + "/store");
+
+    		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
+    		var roots = new AtomicReference<Optional<byte[]>>();
+
+    		env.executeInTransaction(txn -> {
+    			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
+        		roots.set(Optional.ofNullable(storeOfInfo.get().get(txn, ROOT)).map(ByteIterable::getBytes));
+        	});
+
+    		this.storeOfInfo = storeOfInfo.get();
+    		this.roots = roots.get();
+    	}
+
+    	public Optional<byte[]> get() {
+    		return roots;
+    	}
+
+    	public Environment getEnvironment() {
+    		return env;
+    	}
     }
 
     protected PartialStore(PartialStore<T> toClone) {
@@ -169,6 +212,23 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     	synchronized (toClone.lock) {
     		this.rootOfResponses = toClone.rootOfResponses;
     		this.rootOfInfo = toClone.rootOfInfo;
+    		this.txn = toClone.txn;
+    		this.trieOfResponses = toClone.trieOfResponses;
+    		this.trieOfInfo = toClone.trieOfInfo;
+    	}
+    }
+
+    private PartialStore(PartialStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    	super(toClone);
+
+    	this.env = toClone.env;
+    	this.checkableDepth = toClone.checkableDepth;
+    	this.storeOfResponses = toClone.storeOfResponses;
+    	this.storeOfInfo = toClone.storeOfInfo;
+
+    	synchronized (toClone.lock) {
+    		this.rootOfResponses = rootOfResponses;
+    		this.rootOfInfo = rootOfInfo;
     		this.txn = toClone.txn;
     		this.trieOfResponses = toClone.trieOfResponses;
     		this.trieOfInfo = toClone.trieOfInfo;
@@ -379,15 +439,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 */
 	protected final boolean duringTransaction() {
 		return txn != null && !txn.isFinished();
-	}
-
-	/**
-	 * Sets the roots of the tries in this store to the previously checked out ones.
-	 */
-	protected final void setRootsAsCheckedOut() {
-		ByteIterable root = env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT));
-		if (root != null)
-			setRootsTo(root.getBytes());
 	}
 
 	/**
