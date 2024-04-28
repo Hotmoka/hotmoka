@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,7 +47,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 */
 	protected final Object lock;
 
-	private final static Logger logger = Logger.getLogger(AbstractStore.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(AbstractStore.class.getName());
 
 	/**
 	 * Builds the store for a node.
@@ -71,26 +70,29 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	protected abstract T getThis();
 
 	@Override
-	public void close() {
-	}
+	public void close() {}
 
 	@Override
 	public final T push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
 			T result = setResponse(reference, request, response);
 
-			if (response instanceof TransactionResponseWithUpdates trwu)
+			if (response instanceof TransactionResponseWithUpdates trwu) {
 				result = result.expandHistory(reference, trwu);
 
-			if (response instanceof InitializationTransactionResponse) {
-				StorageReference manifest = ((InitializationTransactionRequest) request).getManifest();
-				result = result.setManifest(manifest);
-				logger.info(manifest + ": set as manifest");
-				logger.info("the node has been initialized");
+				if (response instanceof GameteCreationTransactionResponse gctr)
+					LOGGER.info(gctr.getGamete() + ": created as gamete");
 			}
-
-			if (response instanceof GameteCreationTransactionResponse gctr)
-				logger.info(gctr.getGamete() + ": created as gamete");
+			else if (response instanceof InitializationTransactionResponse) {
+				if (request instanceof InitializationTransactionRequest itr) {
+					StorageReference manifest = itr.getManifest();
+					result = result.setManifest(manifest);
+					LOGGER.info(manifest + ": set as manifest");
+					LOGGER.info("the node has been initialized");
+				}
+				else
+					throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
+			}
 
 			return result;
 		}
@@ -198,16 +200,12 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param covered the set of updates for the already covered fields
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
-	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) {
-		Optional<TransactionResponse> maybeResponse = //getResponseUncommitedCached.apply(reference); // node.caches.
-				getResponseUncommitted(reference);
+	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
+		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference);
 
-		if (maybeResponse.isEmpty()) {
-			logger.log(Level.WARNING, "the history contains a reference to a transaction not in store");
-			throw new IllegalStateException("The history contains a reference to a transaction not in store");
-		}
-
-		if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
+		if (maybeResponse.isEmpty())
+			throw new StoreException("The history contains a reference to a transaction not in store");
+		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
 			// we check if there is at least an update for a field of the object
 			// that is not yet covered by another update in a previous element of the history
 			Set<Update> diff = trwu.getUpdates()
@@ -220,9 +218,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 				covered.addAll(diff);
 			}
 		}
-		else {
-			logger.log(Level.WARNING, "the history contains a reference to a transaction without updates");
-			throw new IllegalStateException("The history contains a reference to a transaction without updates");
-		}
+		else
+			throw new StoreException("The history contains a reference to a transaction without updates");
 	}
 }
