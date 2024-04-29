@@ -99,10 +99,32 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	}
 
 	@Override
-	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	public final T replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
-			setResponse(reference, request, response);
+			return setResponse(reference, request, response);
 		}
+	}
+
+	/**
+	 * Process the updates contained in the given response, expanding the history of the affected objects.
+	 * 
+	 * @param reference the transaction that has generated the given response
+	 * @param response the response
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	protected final T expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
+		// we collect the storage references that have been updated in the response; for each of them,
+		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
+		// in front of such lists and store back the updated lists, replacing the old ones
+		var modifiedObjects = response.getUpdates()
+			.map(Update::getObject)
+			.distinct().toArray(StorageReference[]::new);
+	
+		T result = getThis();
+		for (StorageReference object: modifiedObjects)
+			result = result.setHistory(object, simplifiedHistory(object, reference, response.getUpdates()));
+	
+		return result;
 	}
 
 	/**
@@ -135,28 +157,6 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	protected abstract T setManifest(StorageReference manifest) throws StoreException;
-
-	/**
-	 * Process the updates contained in the given response, expanding the history of the affected objects.
-	 * 
-	 * @param reference the transaction that has generated the given response
-	 * @param response the response
-	 * @throws StoreException if this store is not able to complete the operation correctly
-	 */
-	protected final T expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
-		// we collect the storage references that have been updated in the response; for each of them,
-		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
-		// in front of such lists and store back the updated lists, replacing the old ones
-		var modifiedObjects = response.getUpdates()
-			.map(Update::getObject)
-			.distinct().toArray(StorageReference[]::new);
-
-		T result = getThis();
-		for (StorageReference object: modifiedObjects)
-			result = result.setHistory(object, simplifiedHistory(object, reference, response.getUpdates()));
-
-		return result;
-	}
 
 	/**
 	 * Adds the given transaction reference to the history of the given object and yields the simplified

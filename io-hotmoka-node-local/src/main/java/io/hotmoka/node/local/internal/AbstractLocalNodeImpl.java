@@ -1139,6 +1139,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return store;
 		}
 
+		public void setStore(Store<?> store) {
+			AbstractLocalNodeImpl.this.store = (S) store; // TODO
+		}
+
 		@Override
 		public StoreUtility getStoreUtilities() {
 			return storeUtilities;

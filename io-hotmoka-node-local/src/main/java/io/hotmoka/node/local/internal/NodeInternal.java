@@ -74,6 +74,8 @@ public interface NodeInternal {
 	 */
 	Store<?> getStore();
 
+	void setStore(Store<?> store);
+
 	/**
 	 * Yields an object that provides methods for reconstructing data from the store of this node.
 	 * 

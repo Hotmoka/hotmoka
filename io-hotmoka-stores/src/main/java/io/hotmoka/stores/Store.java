@@ -142,5 +142,5 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * @param response the response of the transaction
 	 * throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+	T replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 }

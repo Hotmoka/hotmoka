@@ -376,8 +376,9 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	@Override
 	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		try {
-			trieOfResponses = trieOfResponses.put(reference, response);
-			return mkClone();
+			TrieOfResponses newTrieOfResponses = trieOfResponses.put(reference, response);
+			this.trieOfResponses = newTrieOfResponses;
+			return mkClone(); // TODO Optional.of(newTrieOfResponses.getRoot()), rootOfInfo);
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
@@ -387,8 +388,9 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	@Override
 	protected T setManifest(StorageReference manifest) throws StoreException {
 		try {
-			trieOfInfo = trieOfInfo.setManifest(manifest);
-			return mkClone();
+			TrieOfInfo newTrieOfInfo = trieOfInfo.setManifest(manifest);
+			this.trieOfInfo = newTrieOfInfo;
+			return mkClone(); //rootOfResponses, Optional.of(newTrieOfInfo.getRoot()));
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
