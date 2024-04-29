@@ -188,6 +188,27 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 		}
 	}
 
+	protected AbstractCheckableStore(AbstractCheckableStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    	this(toClone, rootOfResponses, rootOfInfo, toClone.rootOfErrors, toClone.rootOfHistories, toClone.rootOfRequests);
+    }
+
+	protected AbstractCheckableStore(AbstractCheckableStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, rootOfResponses, rootOfInfo);
+
+    	this.storeOfErrors = toClone.storeOfErrors;
+		this.storeOfHistories = toClone.storeOfHistories;
+		this.storeOfRequests = toClone.storeOfRequests;
+
+    	synchronized (toClone.lock) {
+    		this.rootOfErrors = rootOfErrors;
+			this.rootOfHistories = rootOfHistories;
+			this.rootOfRequests = rootOfRequests;
+			this.trieOfErrors = toClone.trieOfErrors;
+			this.trieOfHistories = toClone.trieOfHistories;
+			this.trieOfRequests = toClone.trieOfRequests;
+		}
+    }
+
 	@Override
 	public Optional<String> getError(TransactionReference reference) throws StoreException {
     	synchronized (lock) {

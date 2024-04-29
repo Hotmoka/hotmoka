@@ -98,7 +98,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	/**
 	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfInfo = Optional.empty();
+	private Optional<byte[]> rootOfInfo;
 
 	/**
 	 * The key used inside {@link #storeOfInfo} to keep the root.
@@ -218,7 +218,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     	}
     }
 
-    private PartialStore(PartialStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    protected PartialStore(PartialStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
     	super(toClone);
 
     	this.env = toClone.env;
@@ -234,6 +234,8 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     		this.trieOfInfo = toClone.trieOfInfo;
     	}
     }
+
+    protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo);
 
     @Override
     public void close() {

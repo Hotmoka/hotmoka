@@ -73,7 +73,21 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
     	this.hasherOfHashes = toClone.hasherOfHashes;
     }
 
-    @Override
+    private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    	super(toClone, rootOfResponses, rootOfInfo);
+
+    	this.nodeInternal = toClone.nodeInternal;
+    	this.hasherOfHashes = toClone.hasherOfHashes;
+	}
+
+    private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories) {
+    	super(toClone, rootOfResponses, rootOfInfo, rootOfHistories);
+
+    	this.nodeInternal = toClone.nodeInternal;
+    	this.hasherOfHashes = toClone.hasherOfHashes;
+	}
+
+	@Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
     	return nodeInternal.getPoster().getErrorMessage(reference.getHash());
@@ -144,5 +158,15 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 	@Override
 	protected TendermintStore mkClone() {
 		return new TendermintStore(this);
+	}
+
+	@Override
+	protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories) {
+		return new TendermintStore(this, rootOfResponses, rootOfInfo, rootOfHistories);
+	}
+
+	@Override
+	protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+		return new TendermintStore(this, rootOfResponses, rootOfInfo);
 	}
 }

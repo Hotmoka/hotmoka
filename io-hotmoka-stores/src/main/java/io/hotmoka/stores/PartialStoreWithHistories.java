@@ -61,12 +61,12 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 	 * transaction references that contribute
 	 * to provide values to the fields of the storage object at that reference.
 	 */
-	private final io.hotmoka.xodus.env.Store storeOfHistory;
+	private final io.hotmoka.xodus.env.Store storeOfHistories;
 
 	/**
 	 * The root of the trie of histories. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfHistory = Optional.empty();
+	private Optional<byte[]> rootOfHistories;
 
 	/**
 	 * The trie of histories.
@@ -101,36 +101,53 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 
 		Optional<byte[]> hashesOfRoots = roots.get();
 
-    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistory = new AtomicReference<>();
-		roots.getEnvironment().executeInTransaction(txn -> storeOfHistory.set(env.openStoreWithoutDuplicates("history", txn)));
-		this.storeOfHistory = storeOfHistory.get();
+    	AtomicReference<io.hotmoka.xodus.env.Store> storeOfHistories = new AtomicReference<>();
+		roots.getEnvironment().executeInTransaction(txn -> storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn)));
+		this.storeOfHistories = storeOfHistories.get();
 
 		if (hashesOfRoots.isEmpty())
-    		rootOfHistory = Optional.empty();
+    		rootOfHistories = Optional.empty();
     	else {
     		var rootOfHistory = new byte[32];
     		System.arraycopy(hashesOfRoots.get(), 64, rootOfHistory, 0, 32);
-    		this.rootOfHistory = Optional.of(rootOfHistory);
+    		this.rootOfHistories = Optional.of(rootOfHistory);
     	}
 	}
 
 	protected PartialStoreWithHistories(PartialStoreWithHistories<T> toClone) {
 		super(toClone);
 
-		this.storeOfHistory = toClone.storeOfHistory;
+		this.storeOfHistories = toClone.storeOfHistories;
 
 		synchronized (toClone.lock) {
-			this.rootOfHistory = toClone.rootOfHistory;
+			this.rootOfHistories = toClone.rootOfHistories;
 			this.trieOfHistories = toClone.trieOfHistories;
 		}
 	}
 
-	@Override
+	protected PartialStoreWithHistories(PartialStoreWithHistories<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    	this(toClone, rootOfResponses, rootOfInfo, toClone.rootOfHistories);
+    }
+
+	protected PartialStoreWithHistories(PartialStoreWithHistories<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories) {
+    	super(toClone, rootOfResponses, rootOfInfo);
+
+    	this.storeOfHistories = toClone.storeOfHistories;
+
+    	synchronized (toClone.lock) {
+			this.rootOfHistories = rootOfHistories;
+			this.trieOfHistories = toClone.trieOfHistories;
+		}
+    }
+
+	protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories);
+
+    @Override
 	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistory, -1L).get(object))).orElse(Stream.empty()));
+					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -155,7 +172,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		Transaction txn = super.beginTransactionInternal();
 
 		try {
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistory, txn), rootOfHistory, getNumberOfCommits());
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, getNumberOfCommits());
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e);
@@ -214,11 +231,11 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 
 		var bytesOfRootOfHistories = new byte[32];
 		System.arraycopy(root, 64, bytesOfRootOfHistories, 0, 32);
-		rootOfHistory = Optional.of(bytesOfRootOfHistories);
+		rootOfHistories = Optional.of(bytesOfRootOfHistories);
 	}
 
 	@Override
 	protected boolean isEmpty() {
-		return super.isEmpty() && rootOfHistory.isEmpty();
+		return super.isEmpty() && rootOfHistories.isEmpty();
 	}
 }
