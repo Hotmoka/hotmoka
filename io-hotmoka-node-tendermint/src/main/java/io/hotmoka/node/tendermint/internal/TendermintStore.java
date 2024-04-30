@@ -128,6 +128,9 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 	/**
 	 * Yields the concatenation of the roots of the tries in this store,
 	 * with the exclusion of the info trie, whose root is masked with 0's.
+	 * This is a trick to make the hash independent from the number of commits
+	 * stored in the info tries. In this way, Tendermint will eventually pause creating
+	 * blocks if the only different between states is the number of commits.
 	 * 
 	 * @return the concatenation
 	 * @throws TrieException 
