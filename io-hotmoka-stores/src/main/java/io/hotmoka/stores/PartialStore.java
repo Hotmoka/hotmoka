@@ -344,9 +344,11 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 				if (!txn.commit())
 					logger.info("transaction's commit failed");
 
-				checkoutAt(mergeRootsOfTries());
+				T result = mkClone();
+				result.setRootsTo(result.mergeRootsOfTries());
+				result.moveRootBranchToThis();
 
-				return mkClone();
+				return result;
 			}
 		}
 		catch (StoreException | TrieException e) {
@@ -413,6 +415,12 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	public void checkoutAt(byte[] root) {
 		synchronized (lock) {
 			setRootsTo(root);
+		}
+	}
+
+	public void moveRootBranchToThis() throws StoreException {
+		synchronized (lock) {
+			byte[] root = mergeRootsOfTries();
 			var rootAsBI = ByteIterable.fromBytes(root);
 			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 		}
