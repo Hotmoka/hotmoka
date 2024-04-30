@@ -21,16 +21,21 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.stores.internal.KeyValueStoreOnXodus;
+import io.hotmoka.stores.internal.TrieOfErrors;
+import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfInfo;
+import io.hotmoka.stores.internal.TrieOfRequests;
 import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
@@ -57,27 +62,12 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class PartialStore<T extends PartialStore<T>> extends AbstractStore<T> {
+public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>> extends AbstractStore<T> {
 
 	/**
 	 * The Xodus environment that holds the store.
 	 */
 	protected final Environment env;
-
-	/**
-	 * The number of last commits that can be checked out, in order to
-	 * change the world-view of the store (see {@link #checkoutAt(byte[])}).
-	 * This entails that such commits are not garbage-collected. until
-	 * new commits get created on top and they end up being deeper.
-	 * This is useful if we expect an old state to be checked out, for
-	 * instance because a blockchain swaps to another history, but we can
-	 * assume a reasonable depth for that to happen. Use 0 if the store
-	 * is not checkable, so that all its successive commits can be immediately
-	 * garbage-collected as soon as a new commit is created on top
-	 * (which corresponds to a blockchain that never swaps to a previous
-	 * state, because it has deterministic finality).
-	 */
-	//private final long checkableDepth;
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
@@ -90,6 +80,23 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     private final io.hotmoka.xodus.env.Store storeOfInfo;
 
 	/**
+	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfErrors;
+
+	/**
+	 * The Xodus store that holds the Merkle-Patricia trie of the requests.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfRequests;
+
+	/**
+	 * The Xodus store that holds the history of each storage reference, ie, a list of
+	 * transaction references that contribute
+	 * to provide values to the fields of the storage object at that reference.
+	 */
+	private final io.hotmoka.xodus.env.Store storeOfHistories;
+
+	/**
 	 * The root of the trie of the responses. It is empty if the trie is empty.
 	 */
 	private Optional<byte[]> rootOfResponses;
@@ -98,6 +105,46 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
 	 */
 	private Optional<byte[]> rootOfInfo;
+
+	/**
+	 * The root of the trie of the errors. It is empty if the trie is empty.
+	 */
+	private Optional<byte[]> rootOfErrors = Optional.empty();
+
+	/**
+	 * The root of the trie of the requests. It is empty if the trie is empty.
+	 */
+	private Optional<byte[]> rootOfRequests = Optional.empty();
+
+	/**
+	 * The root of the trie of histories. It is empty if the trie is empty.
+	 */
+	private Optional<byte[]> rootOfHistories = Optional.empty();
+
+	/**
+	 * The trie of the responses.
+	 */
+	private TrieOfResponses trieOfResponses;
+
+	/**
+	 * The trie for the miscellaneous information.
+	 */
+	private TrieOfInfo trieOfInfo;
+
+	/**
+     * The trie of the errors.
+     */
+	protected TrieOfErrors trieOfErrors;
+
+	/**
+     * The trie of the requests.
+     */
+	protected TrieOfRequests trieOfRequests;
+
+	/**
+	 * The trie of histories.
+	 */
+	private TrieOfHistories trieOfHistories;
 
 	/**
 	 * The key used inside {@link #storeOfInfo} to keep the root.
@@ -109,56 +156,51 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 */
 	private Transaction txn;
 
-	/**
-     * The trie of the responses.
-     */
-	private TrieOfResponses trieOfResponses;
-
-	/**
-	 * The trie for the miscellaneous information.
-	 */
-	private TrieOfInfo trieOfInfo;
-
-	private final static Logger logger = Logger.getLogger(PartialStore.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedStore.class.getName());
 
 	/**
 	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
 	 * a call to {@link #setRootsTo(Optional)} should occur, to set the roots of the store.
 	 * 
  	 * @param dir the path where the database of the store gets created
-	 * @param checkableDepth the number of last commits that can be checked out, in order to
-	 *                       change the world-view of the store (see {@link #checkoutAt(byte[])}).
-	 *                       This entails that such commits are not garbage-collected, until
-	 *                       new commits get created on top and they end up being deeper.
-	 *                       This is useful if we expect an old state to be checked out, for
-	 *                       instance because a blockchain swaps to another history, but we can
-	 *                       assume a reasonable depth for that to happen. Use 0 if the store
-	 *                       is not checkable, so that all its successive commits can be immediately
-	 *                       garbage-collected as soon as a new commit is created on top
-	 *                       (which corresponds to a blockchain that never swaps to a previous
-	 *                       state, because it has deterministic finality). Use a negative
-	 *                       number if all commits must be checkable (hence garbage-collection
-	 *                       is disabled)
 	 */
-    protected PartialStore(Path dir) {
-    	this(new Roots(dir));
-    }
+    protected AbstractTrieBasedStore(Path dir) {
+    	this.env = new Environment(dir + "/store");
 
-    protected PartialStore(Roots roots) {
-    	//this.checkableDepth = checkableDepth;
-    	this.env = roots.env;
+		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var roots = new AtomicReference<Optional<byte[]>>();
+
+		env.executeInTransaction(txn -> {
+			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
+    		roots.set(Optional.ofNullable(storeOfInfo.get().get(txn, ROOT)).map(ByteIterable::getBytes));
+    	});
 
     	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
-    	env.executeInTransaction(txn -> storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn)));
+    	var storeOfErrors = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
+		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
+
+		env.executeInTransaction(txn -> {
+			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
+			storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
+			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
+			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
+		});
 
     	this.storeOfResponses = storeOfResponses.get();
-    	this.storeOfInfo = roots.storeOfInfo;
+    	this.storeOfInfo = storeOfInfo.get();
+    	this.storeOfErrors = storeOfErrors.get();
+		this.storeOfRequests = storeOfRequests.get();
+		this.storeOfHistories = storeOfHistories.get();
 
     	Optional<byte[]> hashesOfRoots = roots.get();
 
     	if (hashesOfRoots.isEmpty()) {
     		rootOfResponses = Optional.empty();
     		rootOfInfo = Optional.empty();
+    		rootOfErrors = Optional.empty();
+    		rootOfRequests = Optional.empty();
+    		rootOfHistories = Optional.empty();
     	}
     	else {
     		var rootOfResponses = new byte[32];
@@ -168,79 +210,78 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     		var rootOfInfo = new byte[32];
     		System.arraycopy(hashesOfRoots.get(), 32, rootOfInfo, 0, 32);
     		this.rootOfInfo = Optional.of(rootOfInfo);
+
+    		var rootOfErrors = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 64, rootOfErrors, 0, 32);
+    		this.rootOfErrors = Optional.of(rootOfErrors);
+
+    		var rootOfRequests = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 96, rootOfRequests, 0, 32);
+    		this.rootOfRequests = Optional.of(rootOfRequests);
+
+    		var rootOfHistory = new byte[32];
+    		System.arraycopy(hashesOfRoots.get(), 128, rootOfHistory, 0, 32);
+    		this.rootOfHistories = Optional.of(rootOfHistory);
     	}
     }
 
-    protected static class Roots {
-    	private final Environment env;
-        private final io.hotmoka.xodus.env.Store storeOfInfo;
-    	private final Optional<byte[]> roots;
-
-    	protected Roots(Path dir) {
-    		this.env = new Environment(dir + "/store");
-
-    		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
-    		var roots = new AtomicReference<Optional<byte[]>>();
-
-    		env.executeInTransaction(txn -> {
-    			storeOfInfo.set(env.openStoreWithoutDuplicates("info", txn));
-        		roots.set(Optional.ofNullable(storeOfInfo.get().get(txn, ROOT)).map(ByteIterable::getBytes));
-        	});
-
-    		this.storeOfInfo = storeOfInfo.get();
-    		this.roots = roots.get();
-    	}
-
-    	public Optional<byte[]> get() {
-    		return roots;
-    	}
-
-    	public Environment getEnvironment() {
-    		return env;
-    	}
-    }
-
-    protected PartialStore(PartialStore<T> toClone) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone) {
     	super(toClone);
 
     	this.env = toClone.env;
-    	//this.checkableDepth = toClone.checkableDepth;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
+    	this.storeOfErrors = toClone.storeOfErrors;
+		this.storeOfHistories = toClone.storeOfHistories;
+		this.storeOfRequests = toClone.storeOfRequests;
 
     	synchronized (toClone.lock) {
     		this.rootOfResponses = toClone.rootOfResponses;
     		this.rootOfInfo = toClone.rootOfInfo;
-    		this.txn = toClone.txn;
+    		this.rootOfErrors = toClone.rootOfErrors;
+			this.rootOfHistories = toClone.rootOfHistories;
+			this.rootOfRequests = toClone.rootOfRequests;
     		this.trieOfResponses = toClone.trieOfResponses;
     		this.trieOfInfo = toClone.trieOfInfo;
-    	}
+			this.trieOfErrors = toClone.trieOfErrors;
+			this.trieOfHistories = toClone.trieOfHistories;
+			this.trieOfRequests = toClone.trieOfRequests;
+			this.txn = toClone.txn;
+		}
     }
 
-    protected PartialStore(PartialStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone);
 
     	this.env = toClone.env;
-    	//this.checkableDepth = toClone.checkableDepth;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
+    	this.storeOfErrors = toClone.storeOfErrors;
+		this.storeOfHistories = toClone.storeOfHistories;
+		this.storeOfRequests = toClone.storeOfRequests;
 
     	synchronized (toClone.lock) {
     		this.rootOfResponses = rootOfResponses;
     		this.rootOfInfo = rootOfInfo;
-    		this.txn = toClone.txn;
+    		this.rootOfErrors = rootOfErrors;
+			this.rootOfHistories = rootOfHistories;
+			this.rootOfRequests = rootOfRequests;
     		this.trieOfResponses = toClone.trieOfResponses;
     		this.trieOfInfo = toClone.trieOfInfo;
-    	}
+			this.trieOfErrors = toClone.trieOfErrors;
+			this.trieOfHistories = toClone.trieOfHistories;
+			this.trieOfRequests = toClone.trieOfRequests;
+			this.txn = toClone.txn;
+		}
     }
 
-    protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo);
+    protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
     public void close() {
     	if (duringTransaction()) {
     		// store closed with yet uncommitted transactions: we abort them
-    		logger.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
+    		LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
     	}
 
@@ -248,7 +289,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     		env.close();
     	}
     	catch (ExodusException e) {
-    		logger.log(Level.WARNING, "failed to close environment", e);
+    		LOGGER.log(Level.WARNING, "failed to close environment", e);
     	}
 
     	super.close();
@@ -299,6 +340,52 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 		}
 	}
 
+	@Override
+	public Optional<String> getError(TransactionReference reference) throws StoreException {
+    	synchronized (lock) {
+    		try {
+				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+					(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors).get(reference))));
+			}
+    		catch (TrieException e) {
+    			throw new StoreException(e);
+			}
+    	}
+	}
+
+	@Override
+	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+		synchronized (lock) {
+			return env.computeInReadonlyTransaction // TODO: recheck
+				(UncheckFunction.uncheck(txn -> new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests).get(reference)));
+		}
+	}
+
+	@Override
+	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
+		try {
+			synchronized (lock) {
+				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories).get(object))).orElse(Stream.empty()));
+			}
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+		synchronized (lock) {
+			try {
+				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
+			}
+			catch (TrieException e) {
+				throw new StoreException(e);
+			}
+		}
+	}
+
 	/**
 	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
@@ -310,6 +397,9 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 			try {
 				trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
 				trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
+				trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
+				trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+				trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 			}
 			catch (TrieException e) {
 				throw new RuntimeException(e); // TODO
@@ -341,7 +431,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 				}*/
 
 				if (!txn.commit())
-					logger.info("transaction's commit failed");
+					LOGGER.info("transaction's commit failed");
 
 				T result = mkClone();
 				result.setRootsTo(result.mergeRootsOfTries());
@@ -365,6 +455,10 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getNumberOfCommits()));
 	}
 
+	public byte[] getStateId() throws StoreException {
+		return mergeRootsOfTries();
+	}
+
 	@Override
 	protected T setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
 		try {
@@ -386,6 +480,41 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	protected T setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+		try {
+			T result = getThis();
+			result.trieOfRequests = result.trieOfRequests.put(reference, request);
+			return result.mkClone();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	protected T setError(TransactionReference reference, String error) throws StoreException {
+		try {
+			T result = getThis();
+			result.trieOfErrors = result.trieOfErrors.put(reference, error);
+			return result.mkClone();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	protected T setHistory(StorageReference object, Stream<TransactionReference> history) {
+		try {
+			trieOfHistories = trieOfHistories.put(object, history);
+			return mkClone();
+		}
+		catch (TrieException e) {
+			throw new RuntimeException(e); // TODO
 		}
 	}
 
@@ -448,6 +577,18 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 		var bytesOfRootOfInfo = new byte[32];
 		System.arraycopy(root, 32, bytesOfRootOfInfo, 0, 32);
 		rootOfInfo = Optional.of(bytesOfRootOfInfo);
+
+		var bytesOfRootOfErrors = new byte[32];
+		System.arraycopy(root, 64, bytesOfRootOfErrors, 0, 32);
+		rootOfErrors = Optional.of(bytesOfRootOfErrors);
+
+		var bytesOfRootOfRequests = new byte[32];
+		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
+		rootOfRequests = Optional.of(bytesOfRootOfRequests);
+
+		var bytesOfRootOfHistories = new byte[32];
+		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
+		rootOfHistories = Optional.of(bytesOfRootOfHistories);
 	}
 
 	/**
@@ -458,9 +599,12 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @return the concatenation
 	 */
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		var result = new byte[64];
+		var result = new byte[160];
 		System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
 		System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);
+		System.arraycopy(trieOfErrors.getRoot(), 0, result, 64, 32);
+		System.arraycopy(trieOfRequests.getRoot(), 0, result, 96, 32);
+		System.arraycopy(trieOfHistories.getRoot(), 0, result, 128, 32);
 
 		return result;
 	}
@@ -471,6 +615,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @return true if and only if that condition holds
 	 */
 	protected boolean isEmpty() {
-		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty();
+		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfErrors.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
 	}
 }

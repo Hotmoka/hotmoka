@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.tendermint.internal;
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;

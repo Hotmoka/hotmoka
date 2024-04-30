@@ -26,7 +26,7 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.PartialStoreWithHistories;
+import io.hotmoka.stores.AbstractTrieBasedStore;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -34,7 +34,7 @@ import io.hotmoka.stores.StoreException;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
+class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 
 	/**
 	 * An object that can be used to send post requests to Tendermint
@@ -54,7 +54,7 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
      * @param nodeInternal an object that can be used to send post requests to Tendermint
      */
     TendermintStore(Path dir, TendermintNodeInternal nodeInternal) {
-    	super(dir); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
+    	super(dir);
 
     	this.nodeInternal = nodeInternal;
 
@@ -73,15 +73,8 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
     	this.hasherOfHashes = toClone.hasherOfHashes;
     }
 
-    private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
-    	super(toClone, rootOfResponses, rootOfInfo);
-
-    	this.nodeInternal = toClone.nodeInternal;
-    	this.hasherOfHashes = toClone.hasherOfHashes;
-	}
-
-    private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories) {
-    	super(toClone, rootOfResponses, rootOfInfo, rootOfHistories);
+    private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
     	this.nodeInternal = toClone.nodeInternal;
     	this.hasherOfHashes = toClone.hasherOfHashes;
@@ -149,13 +142,8 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 	}
 
 	@Override
-	protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories) {
-		return new TendermintStore(this, rootOfResponses, rootOfInfo, rootOfHistories);
-	}
-
-	@Override
-	protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
-		return new TendermintStore(this, rootOfResponses, rootOfInfo);
+    protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+		return new TendermintStore(this, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 	}
 
 	@Override

@@ -58,7 +58,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 		super(config, consensus);
 
 		try {
-			this.mempool = new Mempool(new MemoryBlockchainInternalImpl());
+			this.mempool = new Mempool(new DiskNodeInternalImpl());
 		}
 		catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "failed to create the memory blockchain", e);
@@ -117,7 +117,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 		notifyEventsOf(response);
 	}
 
-	private class MemoryBlockchainInternalImpl implements DiskNodeInternal {
+	private class DiskNodeInternalImpl implements DiskNodeInternal {
 
 		@Override
 		public DiskNodeConfig getConfig() {
