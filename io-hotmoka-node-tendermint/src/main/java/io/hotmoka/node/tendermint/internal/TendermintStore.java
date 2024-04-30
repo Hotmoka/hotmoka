@@ -54,7 +54,7 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
      * @param nodeInternal an object that can be used to send post requests to Tendermint
      */
     TendermintStore(Path dir, TendermintNodeInternal nodeInternal) {
-    	super(dir, 0L); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
+    	super(dir); // 0L since this blockchain enjoys deterministic finality: we will never checkout an old state
 
     	this.nodeInternal = nodeInternal;
 

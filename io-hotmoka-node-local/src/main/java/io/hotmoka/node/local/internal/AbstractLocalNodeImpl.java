@@ -895,6 +895,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
+	protected void setStore(Store<?> store) {
+		this.store = (S) store; // TODO
+	}
+
 	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,
 	 * for instance by adding the request to some mempool or queue of requests to be executed.

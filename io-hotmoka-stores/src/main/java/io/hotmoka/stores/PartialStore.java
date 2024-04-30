@@ -78,7 +78,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * (which corresponds to a blockchain that never swaps to a previous
 	 * state, because it has deterministic finality).
 	 */
-	private final long checkableDepth;
+	//private final long checkableDepth;
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
@@ -141,12 +141,12 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
 	 */
-    protected PartialStore(Path dir, long checkableDepth) {
-    	this(checkableDepth, new Roots(dir));
+    protected PartialStore(Path dir) {
+    	this(new Roots(dir));
     }
 
-    protected PartialStore(long checkableDepth, Roots roots) {
-    	this.checkableDepth = checkableDepth;
+    protected PartialStore(Roots roots) {
+    	//this.checkableDepth = checkableDepth;
     	this.env = roots.env;
 
     	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
@@ -205,7 +205,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     	super(toClone);
 
     	this.env = toClone.env;
-    	this.checkableDepth = toClone.checkableDepth;
+    	//this.checkableDepth = toClone.checkableDepth;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
 
@@ -222,7 +222,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     	super(toClone);
 
     	this.env = toClone.env;
-    	this.checkableDepth = toClone.checkableDepth;
+    	//this.checkableDepth = toClone.checkableDepth;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
 
@@ -304,9 +304,19 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
 	 */
-	public final void beginTransaction() {
+	public Transaction beginTransaction() {
 		synchronized (lock) {
-			beginTransactionInternal();
+			txn = env.beginTransaction();
+
+			try {
+				trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+				trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
+
+			return txn;
 		}
 	}
 
@@ -318,7 +328,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
-	public final void endTransaction() {
+	public final T endTransaction() {
 		try {
 			synchronized (lock) {
 				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
@@ -335,6 +345,8 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 					logger.info("transaction's commit failed");
 
 				checkoutAt(mergeRootsOfTries());
+
+				return mkClone();
 			}
 		}
 		catch (StoreException | TrieException e) {
@@ -350,26 +362,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	public long getNumberOfCommits() {
 		return env.computeInReadonlyTransaction // TODO: recheck
 			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getNumberOfCommits()));
-	}
-
-	/**
-	 * Starts a transaction. Instance updates during the transaction are saved
-	 * in the supporting database if the transaction will later be committed.
-	 * 
-	 * @return the transaction
-	 */
-	protected Transaction beginTransactionInternal() {
-		txn = env.beginTransaction();
-
-		try {
-			trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
-			trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
-		}
-		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
-		}
-
-		return txn;
 	}
 
 	@Override
@@ -402,7 +394,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @param commitNumber the number of the commit
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected void garbageCollect(long commitNumber) throws StoreException {
+	/*protected void garbageCollect(long commitNumber) throws StoreException {
 		try {
 			trieOfResponses.garbageCollect(commitNumber);
 			trieOfInfo.garbageCollect(commitNumber);
@@ -410,7 +402,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 		catch (TrieException e) {
 			throw new StoreException(e);
 		}
-	}
+	}*/
 
 	/**
 	 * Resets the store to the given root. This is just the concatenation of the roots
@@ -418,15 +410,17 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * 
 	 * @param root the root to reset to
 	 */
-	protected void checkoutAt(byte[] root) {
-		setRootsTo(root);
-		var rootAsBI = ByteIterable.fromBytes(root);
-		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+	public void checkoutAt(byte[] root) {
+		synchronized (lock) {
+			setRootsTo(root);
+			var rootAsBI = ByteIterable.fromBytes(root);
+			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+		}
 	}
 
 	/**
 	 * Determines if the store is between a {@link #beginTransactionInternal()} and a
-	 * {@link #commitTransaction()}.
+	 * {@link #endTransaction()}.
 	 * 
 	 * @return true if and only if that condition holds
 	 */

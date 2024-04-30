@@ -92,12 +92,12 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected PartialStoreWithHistories(Path dir, long checkableDepth) {
-		this(checkableDepth, new Roots(dir));
+	protected PartialStoreWithHistories(Path dir) {
+		this(new Roots(dir));
 	}
 
-	protected PartialStoreWithHistories(long checkableDepth, Roots roots) {
-		super(checkableDepth, roots);
+	protected PartialStoreWithHistories(Roots roots) {
+		super(roots);
 
 		Optional<byte[]> hashesOfRoots = roots.get();
 
@@ -168,20 +168,22 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 	}
 
 	@Override
-	protected Transaction beginTransactionInternal() {
-		Transaction txn = super.beginTransactionInternal();
+	public Transaction beginTransaction() {
+		synchronized (lock) {
+			Transaction txn = super.beginTransaction();
 
-		try {
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
-		}
-		catch (TrieException e) {
-			throw new RuntimeException(e);
-		}
+			try {
+				trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e);
+			}
 
-		return txn;
+			return txn;
+		}
 	}
 
-	@Override
+	/*@Override
 	protected void garbageCollect(long commitNumber) throws StoreException {
 		super.garbageCollect(commitNumber);
 
@@ -191,14 +193,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		catch (TrieException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	@Override
-	public void checkoutAt(byte[] root) {
-		synchronized (lock) {
-			super.checkoutAt(root);
-		}
-	}
+	}*/
 
 	@Override
 	protected T setHistory(StorageReference object, Stream<TransactionReference> history) {

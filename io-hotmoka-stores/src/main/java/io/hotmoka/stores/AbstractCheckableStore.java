@@ -128,12 +128,12 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	 *                       number if all commits must be checkable (hence garbage-collection
 	 *                       is disabled)
      */
-	protected AbstractCheckableStore(Path dir, long checkableDepth) {
-		this(checkableDepth, new Roots(dir));
+	protected AbstractCheckableStore(Path dir) {
+		this(new Roots(dir));
 	}
 
-	protected AbstractCheckableStore(long checkableDepth, Roots roots) {
-		super(checkableDepth, roots);
+	protected AbstractCheckableStore(Roots roots) {
+		super(roots);
 
 		var storeOfErrors = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
@@ -269,22 +269,24 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	}
 
 	@Override
-	protected Transaction beginTransactionInternal() {
-		Transaction txn = super.beginTransactionInternal();
+	public Transaction beginTransaction() {
+		synchronized (lock) {
+			Transaction txn = super.beginTransaction();
 
-		try {
-			trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
-			trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
-		}
-		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
-		}
+			try {
+				trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
+				trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+				trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
+			}
+			catch (TrieException e) {
+				throw new RuntimeException(e); // TODO
+			}
 
-		return txn;
+			return txn;
+		}
 	}
 
-	@Override
+	/*@Override
 	protected void garbageCollect(long commitNumber) throws StoreException {
 		super.garbageCollect(commitNumber);
 
@@ -296,14 +298,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 		catch (TrieException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	@Override
-	public void checkoutAt(byte[] root) {
-		synchronized (lock) {
-			super.checkoutAt(root);
-		}
-	}
+	}*/
 
 	@Override
 	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
