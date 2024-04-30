@@ -37,14 +37,10 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 	 * @param store the supporting key/value store
 	 * @param txn the transaction where updates are reported
 	 * @param root the root of the trie to check out; use empty to create the empty trie
-	 * @param numberOfCommits the current number of commits already executed on the store; this trie
-	 *                        will record which data must be garbage collected (eventually)
-	 *                        as result of the store updates performed during that commit; you can pass
-	 *                        -1L if the trie is used only for reading
 	 */
-	public TrieOfErrors(KeyValueStore store, Optional<byte[]> root, long numberOfCommits) throws TrieException {
+	public TrieOfErrors(KeyValueStore store, Optional<byte[]> root) throws TrieException {
 		super(store, root, HashingAlgorithms.identity32().getHasher(TransactionReference::getHash),
-			sha256(), String::getBytes, String::new, numberOfCommits);
+			sha256(), String::getBytes, String::new, -1L);
 	}
 
 	private TrieOfErrors(TrieOfErrors cloned, byte[] root) {

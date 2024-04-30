@@ -259,7 +259,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, -1L).get(reference)));
+    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses).get(reference)));
     	}
 	}
 
@@ -280,7 +280,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () ->
-					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getManifest())));
+					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getManifest())));
 			}
 		}
 		catch (ExodusException | TrieException e) {
@@ -349,7 +349,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 */
 	public long getNumberOfCommits() {
 		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, -1L).getNumberOfCommits()));
+			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getNumberOfCommits()));
 	}
 
 	/**
@@ -360,11 +360,10 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 */
 	protected Transaction beginTransactionInternal() {
 		txn = env.beginTransaction();
-		long numberOfCommits = getNumberOfCommits();
 
 		try {
-			trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses, numberOfCommits);
-			trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo, numberOfCommits);
+			trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+			trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

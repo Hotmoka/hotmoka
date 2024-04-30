@@ -214,7 +214,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
     	synchronized (lock) {
     		try {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, -1L).get(reference))));
+					(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors).get(reference))));
 			}
     		catch (TrieException e) {
     			throw new StoreException(e);
@@ -226,7 +226,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, -1L).get(reference)));
+				(UncheckFunction.uncheck(txn -> new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests).get(reference)));
 		}
 	}
 
@@ -235,7 +235,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -273,10 +273,9 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 		Transaction txn = super.beginTransactionInternal();
 
 		try {
-			long numberOfCommits = getNumberOfCommits();
-			trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors, numberOfCommits);
-			trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests, numberOfCommits);
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, numberOfCommits);
+			trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
+			trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e); // TODO

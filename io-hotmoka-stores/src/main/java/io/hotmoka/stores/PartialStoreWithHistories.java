@@ -147,7 +147,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, -1L).get(object))).orElse(Stream.empty()));
+					(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -172,7 +172,7 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 		Transaction txn = super.beginTransactionInternal();
 
 		try {
-			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories, getNumberOfCommits());
+			trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
 		}
 		catch (TrieException e) {
 			throw new RuntimeException(e);

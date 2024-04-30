@@ -182,8 +182,8 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	}
 
 	@Override
-	public void garbageCollect(long commitNumber) throws TrieException {
-		long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
+	public final void garbageCollect(long commitNumber) throws TrieException {
+		/*long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
 
 		// there is nothing to remove when numberOfGarbageKeys == 0, since even the
 		// garbage collection support data is empty
@@ -201,6 +201,7 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 
 			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
 		}
+		*/
 	}
 
 	/**
@@ -424,9 +425,9 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 		 * @throws TrieException if this trie is not able to complete the operation correctly
 		 */
 		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
-			long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
-			setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
-			setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
+			//long numberOfGarbageKeys = getNumberOfGarbageKeys(numberOfCommits);
+			//setGarbageKey(numberOfCommits, numberOfGarbageKeys, key);
+			//setNumberOfGarbageKeys(numberOfCommits, numberOfGarbageKeys + 1);
 		}
 	}
 
