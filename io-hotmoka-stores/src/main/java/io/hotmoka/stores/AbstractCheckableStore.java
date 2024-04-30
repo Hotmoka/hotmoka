@@ -25,7 +25,6 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.patricia.api.TrieException;
@@ -97,7 +96,7 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	/**
      * The trie of the errors.
      */
-	private TrieOfErrors trieOfErrors;
+	protected TrieOfErrors trieOfErrors;
 
 	/**
      * The trie of the requests.
@@ -256,19 +255,6 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	}
 
 	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		try {
-			synchronized (lock) {
-				trieOfRequests = trieOfRequests.put(reference, request);
-				trieOfErrors = trieOfErrors.put(reference, errorMessage);
-			}
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
 	public Transaction beginTransaction() {
 		synchronized (lock) {
 			Transaction txn = super.beginTransaction();
@@ -301,12 +287,22 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 	}*/
 
 	@Override
-	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		T result = super.setResponse(reference, request, response);
-	
-		// we also store the request
+	protected T setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		try {
+			T result = getThis();
 			result.trieOfRequests = result.trieOfRequests.put(reference, request);
+			return result.mkClone();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	protected T setError(TransactionReference reference, String error) throws StoreException {
+		try {
+			T result = getThis();
+			result.trieOfErrors = result.trieOfErrors.put(reference, error);
 			return result.mkClone();
 		}
 		catch (TrieException e) {

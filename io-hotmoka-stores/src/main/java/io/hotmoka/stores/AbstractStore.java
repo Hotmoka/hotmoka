@@ -75,7 +75,8 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	@Override
 	public final T push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
-			T result = setResponse(reference, request, response);
+			T result = setRequest(reference, request);
+			result = result.setResponse(reference, response);
 
 			if (response instanceof TransactionResponseWithUpdates trwu) {
 				result = result.expandHistory(reference, trwu);
@@ -99,9 +100,17 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	}
 
 	@Override
+	public final T push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
+		synchronized (lock) {
+			T result = setRequest(reference, request);
+			return result.setError(reference, errorMessage);
+		}
+	}
+
+	@Override
 	public final T replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
-			return setResponse(reference, request, response);
+			return setResponse(reference, response);
 		}
 	}
 
@@ -128,14 +137,31 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	}
 
 	/**
-	 * Writes in store the given request and response for the given transaction reference.
+	 * Writes in store the given request for the given transaction reference.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @param request the request
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	protected abstract T setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException;
+
+	/**
+	 * Writes in store the given response for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
 	 * @param response the response
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+	protected abstract T setResponse(TransactionReference reference, TransactionResponse response) throws StoreException;
+
+	/**
+	 * Writes in store the given error for the given transaction reference.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @param error the error
+	 * @throws StoreException if this store is not able to complete the operation correctly
+	 */
+	protected abstract T setError(TransactionReference reference, String error) throws StoreException;
 
 	/**
 	 * Sets the history of the given object, that is,

@@ -125,18 +125,16 @@ class DiskStore extends AbstractStore<DiskStore> {
 
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		synchronized (lock) {
-    		try {
-    			Path response = getPathFor(reference, "response");
-    			try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
-    				return Optional.of(TransactionResponses.from(context));
-    			}
-    		}
-    		catch (IOException e) {
-    			return Optional.empty();
+    	try {
+    		Path response = getPathFor(reference, "response");
+    		try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
+    			return Optional.of(TransactionResponses.from(context));
     		}
     	}
-	}
+    	catch (IOException e) {
+    		return Optional.empty();
+    	}
+    }
 
 	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
@@ -193,22 +191,38 @@ class DiskStore extends AbstractStore<DiskStore> {
 	}
 
 	@Override
-	protected DiskStore setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	protected DiskStore setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		try {
 			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
 			Path requestPath = getPathFor(reference, "request");
 			Path parent = requestPath.getParent();
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
-
-			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
+	
 			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
-
+	
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
+	
+			return this;
+		}
+		catch (IOException e) {
+			throw new StoreException(e);
+		}
+	}
 
-			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(getPathFor(reference, "response")))) {
+	@Override
+	protected DiskStore setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
+		try {
+			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
+			Path responsePath = getPathFor(reference, "response");
+			Path parent = responsePath.getParent();
+			Files.createDirectories(parent);
+
+			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
+
+			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(responsePath))) {
 				response.into(context);
 			}
 
@@ -217,6 +231,12 @@ class DiskStore extends AbstractStore<DiskStore> {
 		catch (IOException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	@Override
+	protected DiskStore setError(TransactionReference reference, String error) {
+		errors.put(reference, error);
+		return this;
 	}
 
 	@Override
@@ -229,28 +249,6 @@ class DiskStore extends AbstractStore<DiskStore> {
 	protected DiskStore setManifest(StorageReference manifest) {
 		this.manifest.set(manifest);
 		return this;
-	}
-
-	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		try {
-			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
-			Path requestPath = getPathFor(reference, "request");
-			Path parent = requestPath.getParent();
-			ensureDeleted(parent);
-			Files.createDirectories(parent);
-
-			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
-
-			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
-				request.into(context);
-			}
-
-			errors.put(reference, errorMessage);
-		}
-		catch (IOException e) {
-			throw new StoreException(e);
-		}
 	}
 
 	/**

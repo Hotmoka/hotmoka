@@ -129,9 +129,10 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param errorMessage the error message
+	 * @return the store resulting after the push
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
+	T push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
 
 	/**
 	 * Pushes into the store the result of executing a successful Hotmoka request.
@@ -140,7 +141,7 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * @param reference the reference of the request
 	 * @param request the request of the transaction
 	 * @param response the response of the transaction
-	 * throws StoreException if the store is not able to complete the operation correctly
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	T replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 }

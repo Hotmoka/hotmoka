@@ -25,7 +25,6 @@ import java.util.logging.Logger;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -367,7 +366,7 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	}
 
 	@Override
-	protected T setResponse(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	protected T setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
 		try {
 			TrieOfResponses newTrieOfResponses = trieOfResponses.put(reference, response);
 			this.trieOfResponses = newTrieOfResponses;

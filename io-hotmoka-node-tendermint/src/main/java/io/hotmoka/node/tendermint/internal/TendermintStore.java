@@ -99,11 +99,6 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 		return nodeInternal.getPoster().getRequest(reference.getHash());
 	}
 
-	@Override
-	public void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) {
-		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
-	}
-
 	/**
 	 * Yields the hash of this store. It is computed from the roots of its tries.
 	 * 
@@ -161,5 +156,17 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 	@Override
 	protected TendermintStore mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo) {
 		return new TendermintStore(this, rootOfResponses, rootOfInfo);
+	}
+
+	@Override
+	protected TendermintStore setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+		// nothing to do, since Tendermint keeps requests inside its blockchain
+		return this;
+	}
+
+	@Override
+	protected TendermintStore setError(TransactionReference reference, String error) throws StoreException {
+		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
+		return this;
 	}
 }
