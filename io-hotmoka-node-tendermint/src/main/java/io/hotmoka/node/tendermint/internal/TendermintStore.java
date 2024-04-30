@@ -140,16 +140,6 @@ class TendermintStore extends PartialStoreWithHistories<TendermintStore> {
 		return bytes;
 	}
 
-	/**
-	 * Commits the current transaction and checks it out, so that it becomes
-	 * the current view of the world of this store.
-	 */
-	final void commitTransactionAndCheckout() {
-		synchronized (lock) {
-			checkoutAt(commitTransaction());
-		}
-	}
-
 	@Override
 	protected TendermintStore getThis() {
 		return this;

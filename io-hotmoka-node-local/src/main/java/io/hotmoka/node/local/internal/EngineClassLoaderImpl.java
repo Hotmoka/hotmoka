@@ -663,7 +663,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
+	public final void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
 		reverification.replace();
 	}
 

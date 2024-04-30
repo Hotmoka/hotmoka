@@ -213,10 +213,6 @@ public abstract class PartialStoreWithHistories<T extends PartialStoreWithHistor
 
 	@Override
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		// this can be null if this is called before any new transaction has been executed over this store
-		if (trieOfHistories == null)
-			return super.mergeRootsOfTries();
-
 		byte[] superMerge = super.mergeRootsOfTries();
 		var result = new byte[superMerge.length + 32];
 		System.arraycopy(superMerge, 0, result, 0, superMerge.length);

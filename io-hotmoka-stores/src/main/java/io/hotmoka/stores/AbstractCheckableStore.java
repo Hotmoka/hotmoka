@@ -332,10 +332,6 @@ public abstract class AbstractCheckableStore<T extends AbstractCheckableStore<T>
 
 	@Override
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		// this can be null if this is called before any new transaction has been executed over this store
-		if (trieOfErrors == null)
-			return super.mergeRootsOfTries();
-
 		byte[] superMerge = super.mergeRootsOfTries();
 		byte[] result = new byte[superMerge.length + 96];
 		System.arraycopy(superMerge, 0, result, 0, superMerge.length);

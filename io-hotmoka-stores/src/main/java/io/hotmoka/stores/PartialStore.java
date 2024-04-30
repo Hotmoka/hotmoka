@@ -318,23 +318,23 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
 	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
 	 */
-	public byte[] commitTransaction() {
+	public final void endTransaction() {
 		try {
 			synchronized (lock) {
 				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
-				long newCommitNumber = trieOfInfo.getNumberOfCommits();
+				//long newCommitNumber = trieOfInfo.getNumberOfCommits();
 
 				// a negative number means that garbage-collection is disabled
-				if (checkableDepth >= 0L) {
+				/*if (checkableDepth >= 0L) {
 					long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
 					if (commitToGarbageCollect >= 0L)
 						garbageCollect(commitToGarbageCollect);
-				}
+				}*/
 
 				if (!txn.commit())
 					logger.info("transaction's commit failed");
 
-				return mergeRootsOfTries();
+				checkoutAt(mergeRootsOfTries());
 			}
 		}
 		catch (StoreException | TrieException e) {
@@ -425,16 +425,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	}
 
 	/**
-	 * Yields the Xodus transaction active between {@link #beginTransactionInternal()} and
-	 * {@link #commitTransaction()}. This is where store updates must be written.
-	 * 
-	 * @return the transaction
-	 */
-	protected final Transaction getCurrentTransaction() {
-		return txn;
-	}
-
-	/**
 	 * Determines if the store is between a {@link #beginTransactionInternal()} and a
 	 * {@link #commitTransaction()}.
 	 * 
@@ -467,10 +457,6 @@ public abstract class PartialStore<T extends PartialStore<T>> extends AbstractSt
 	 * @return the concatenation
 	 */
 	protected byte[] mergeRootsOfTries() throws StoreException {
-		// this can be null if this is called before any new transaction has been executed over this store
-		if (trieOfResponses == null)
-			return env.computeInReadonlyTransaction(txn -> storeOfInfo.get(txn, ROOT).getBytes());
-
 		var result = new byte[64];
 		System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
 		System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);

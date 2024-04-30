@@ -260,7 +260,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
 
 	private void commitTransactionAndCheckout() {
-		store.commitTransactionAndCheckout();
+		store.endTransaction();
 		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
 		responsesWithEventsToNotify.clear();
 	}
