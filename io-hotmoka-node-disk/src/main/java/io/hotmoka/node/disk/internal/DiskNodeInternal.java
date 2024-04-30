@@ -20,6 +20,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The view of the disk node that is used in the implementation of the module.
@@ -67,4 +68,8 @@ public interface DiskNodeInternal {
 	 *         the code of the validators contract failed
 	 */
 	boolean rewardValidators(String behaving, String misbehaving);
+
+	DiskStore getStore();
+
+	void setNow(StoreTransaction<DiskStore> transaction);
 }

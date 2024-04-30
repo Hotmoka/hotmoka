@@ -25,6 +25,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The view of the Tendermint node that is used in the implementation of the module.
@@ -113,5 +114,5 @@ public interface TendermintNodeInternal {
 	 * 
 	 * @param now the time
 	 */
-	void setNow(long now);
+	void setNow(StoreTransaction<?> transaction, long now);
 }

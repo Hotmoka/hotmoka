@@ -386,11 +386,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 		}
 	}
 
-	/**
-	 * Starts a transaction. Instance updates during the transaction are saved
-	 * in the supporting database if the transaction will later be committed.
-	 */
-	public Transaction beginTransaction() {
+	@Override
+	public StoreTransaction<T> beginTransaction() {
 		synchronized (lock) {
 			txn = env.beginTransaction();
 
@@ -405,9 +402,11 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 				throw new RuntimeException(e); // TODO
 			}
 
-			return txn;
+			return mkTransaction();
 		}
 	}
+
+	protected abstract StoreTransaction<T> mkTransaction();
 
 	/**
 	 * Commits to the database all data written from the last call to {@link #beginTransactionInternal()}.

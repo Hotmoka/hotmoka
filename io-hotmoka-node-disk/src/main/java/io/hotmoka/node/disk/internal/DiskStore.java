@@ -41,6 +41,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
@@ -178,6 +179,11 @@ class DiskStore extends AbstractStore<DiskStore> {
 		catch (IOException e) {
 			return Optional.empty();
 		}
+	}
+
+	@Override
+	public StoreTransaction<DiskStore> beginTransaction() {
+		return new DiskStoreTransaction(this, lock);
 	}
 
 	@Override

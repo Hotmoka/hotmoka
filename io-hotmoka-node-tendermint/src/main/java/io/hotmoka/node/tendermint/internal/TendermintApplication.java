@@ -33,6 +33,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
 import tendermint.abci.Types.RequestBeginBlock;
@@ -78,6 +79,11 @@ class TendermintApplication extends ABCI {
 	 * that has been executed.
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
+
+	/**
+	 * The current transaction, if any.
+	 */
+	private volatile StoreTransaction<TendermintStore> transaction;
 
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.
@@ -219,8 +225,8 @@ class TendermintApplication extends ABCI {
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	long now = timeNow(request);
 
-    	node.getStore().beginTransaction();
-    	node.setNow(now);
+    	transaction = node.getStore().beginTransaction();
+    	node.setNow(transaction, now);
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
 

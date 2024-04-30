@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,
@@ -122,6 +123,8 @@ class Mempool {
 	private void deliver() {
 		long counter = 0;
 		long transactionsPerBlock = node.getConfig().getTransactionsPerBlock();
+		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction();
+		node.setNow(transaction);
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -131,8 +134,11 @@ class Mempool {
 					node.deliverTransaction(current);
 					counter = (counter + 1) % transactionsPerBlock;
 					// the last transaction of a block is for rewarding the validators and updating the gas price
-					if (counter == transactionsPerBlock - 1 && node.rewardValidators("", ""))
-						counter = 0;
+					if (counter == transactionsPerBlock - 1 && node.rewardValidators("", "")) {
+						counter = 0L;
+						transaction = node.getStore().beginTransaction();
+						node.setNow(transaction);
+					}
 				}
 	            catch (Throwable t) {
 	            	logger.log(Level.WARNING, "Failed to deliver transaction request", t);

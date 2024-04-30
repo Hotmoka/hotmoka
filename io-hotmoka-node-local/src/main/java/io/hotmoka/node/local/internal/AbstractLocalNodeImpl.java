@@ -118,6 +118,7 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
 import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -336,6 +337,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the time
 	 */
 	protected abstract long getNow();
+
+	/**
+	 * Yields the currently executing transaction.
+	 * 
+	 * @return the currently executing transaction
+	 */
+	protected abstract StoreTransaction<?> getTransaction();
 
 	/**
 	 * Determines if this node has not been closed yet.
@@ -686,18 +694,18 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				return response;
 			}
 			catch (TransactionRejectedException e) {
-				store.push(reference, request, trimmedMessage(e));
+				store = store.push(reference, request, trimmedMessage(e));
 				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
 				LOGGER.log(Level.INFO, "transaction rejected", e);
 				throw e;
 			}
 			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
-				store.push(reference, request, trimmedMessage(e));
+				store = store.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 				throw new RuntimeException(e);
 			}
 			catch (RuntimeException e) {
-				store.push(reference, request, trimmedMessage(e));
+				store = store.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
 				throw e;
 			}

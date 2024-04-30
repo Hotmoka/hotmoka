@@ -32,6 +32,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * An implementation of a node that stores transactions in a directory
@@ -47,6 +48,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	 * The mempool where transaction requests are stored and eventually executed.
 	 */
 	private final Mempool mempool;
+
+	private volatile StoreTransaction<DiskStore> transaction;
 
 	/**
 	 * Builds a brand new blockchain in disk memory.
@@ -87,6 +90,11 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	@Override
 	protected long getNow() {
 		return System.currentTimeMillis();
+	}
+
+	@Override
+	protected StoreTransaction<?> getTransaction() {
+		return transaction;
 	}
 
 	@Override
@@ -137,6 +145,16 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 		@Override
 		public boolean rewardValidators(String behaving, String misbehaving) {
 			return DiskNodeImpl.this.rewardValidators(behaving, misbehaving);
+		}
+
+		@Override
+		public DiskStore getStore() {
+			return store;
+		}
+
+		@Override
+		public void setNow(StoreTransaction<DiskStore> transaction) {
+			DiskNodeImpl.this.transaction = transaction;
 		}
 	}
 }

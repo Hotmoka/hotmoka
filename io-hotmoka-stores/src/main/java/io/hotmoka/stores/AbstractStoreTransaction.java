@@ -36,49 +36,30 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * Shared implementation of the store of a node. It keeps information about the state of the objects created
- * by the requests executed by the node.
+ * The store of a node. It keeps information about the state of the objects created
+ * by the requests executed by the node. A store is external to the node and, typically, only
+ * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
+ * be used concurrently for executing more requests.
  */
 @ThreadSafe
-public abstract class AbstractStore<T extends AbstractStore<T>> implements Store<T> {
+public abstract class AbstractStoreTransaction<T extends Store<T>> implements StoreTransaction<T> {
+	protected T store;
+	private final Object lock;
+	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 
-	/**
-	 * The lock for modifications of the store.
-	 */
-	protected final Object lock;
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractStore.class.getName());
-
-	/**
-	 * Builds the store for a node.
-	 */
-	protected AbstractStore() {
-		this.lock = new Object();
+	protected AbstractStoreTransaction(T store, Object lock) {
+		this.store = store;
+		this.lock = lock;
 	}
-
-	/**
-	 * Creates a clone of the given store.
-	 * 
-	 * @param toClone the store to clone
-	 */
-	protected AbstractStore(AbstractStore<T> toClone) {
-		this.lock = toClone.lock;
-	}
-
-	protected abstract T mkClone();
-
-	protected abstract T getThis();
 
 	@Override
-	public void close() {}
-
-	public final T push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		synchronized (lock) {
-			T result = setRequest(reference, request);
-			result = result.setResponse(reference, response);
+			setRequest(reference, request);
+			setResponse(reference, response);
 
 			if (response instanceof TransactionResponseWithUpdates trwu) {
-				result = result.expandHistory(reference, trwu);
+				expandHistory(reference, trwu);
 
 				if (response instanceof GameteCreationTransactionResponse gctr)
 					LOGGER.info(gctr.getGamete() + ": created as gamete");
@@ -86,29 +67,28 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 			else if (response instanceof InitializationTransactionResponse) {
 				if (request instanceof InitializationTransactionRequest itr) {
 					StorageReference manifest = itr.getManifest();
-					result = result.setManifest(manifest);
+					setManifest(manifest);
 					LOGGER.info(manifest + ": set as manifest");
 					LOGGER.info("the node has been initialized");
 				}
 				else
 					throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
 			}
-
-			return result;
-		}
-	}
-
-	public final T push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		synchronized (lock) {
-			T result = setRequest(reference, request);
-			return result.setError(reference, errorMessage);
 		}
 	}
 
 	@Override
-	public final T replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
 		synchronized (lock) {
-			return setResponse(reference, response);
+			setRequest(reference, request);
+			setError(reference, errorMessage);
+		}
+	}
+
+	@Override
+	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+		synchronized (lock) {
+			setResponse(reference, response);
 		}
 	}
 
@@ -119,7 +99,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param response the response
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected final T expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
+	protected final void expandHistory(TransactionReference reference, TransactionResponseWithUpdates response) throws StoreException {
 		// we collect the storage references that have been updated in the response; for each of them,
 		// we fetch the list of the transaction references that affected them in the past, we add the new transaction reference
 		// in front of such lists and store back the updated lists, replacing the old ones
@@ -127,11 +107,8 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 			.map(Update::getObject)
 			.distinct().toArray(StorageReference[]::new);
 	
-		T result = getThis();
 		for (StorageReference object: modifiedObjects)
-			result = result.setHistory(object, simplifiedHistory(object, reference, response.getUpdates()));
-	
-		return result;
+			setHistory(object, simplifiedHistory(object, reference, response.getUpdates()));
 	}
 
 	/**
@@ -141,7 +118,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param request the request
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract T setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException;
+	protected abstract void setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException;
 
 	/**
 	 * Writes in store the given response for the given transaction reference.
@@ -150,7 +127,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param response the response
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract T setResponse(TransactionReference reference, TransactionResponse response) throws StoreException;
+	protected abstract void setResponse(TransactionReference reference, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Writes in store the given error for the given transaction reference.
@@ -159,7 +136,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param error the error
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract T setError(TransactionReference reference, String error) throws StoreException;
+	protected abstract void setError(TransactionReference reference, String error) throws StoreException;
 
 	/**
 	 * Sets the history of the given object, that is,
@@ -172,7 +149,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 *                from newest transactions to oldest; hence the last transaction is
 	 *                that when the object has been created
 	 */
-	protected abstract T setHistory(StorageReference object, Stream<TransactionReference> history);
+	protected abstract void setHistory(StorageReference object, Stream<TransactionReference> history);
 
 	/**
 	 * Mark the node as initialized. This happens for initialization requests.
@@ -180,7 +157,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param manifest the manifest to put in the node
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
-	protected abstract T setManifest(StorageReference manifest) throws StoreException;
+	protected abstract void setManifest(StorageReference manifest) throws StoreException;
 
 	/**
 	 * Adds the given transaction reference to the history of the given object and yields the simplified
@@ -195,7 +172,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
 	 */
 	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
-		Stream<TransactionReference> old = getHistoryUncommitted(object);
+		Stream<TransactionReference> old = getHistory(object);
 
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
@@ -225,7 +202,7 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
 	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
-		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference);
+		Optional<TransactionResponse> maybeResponse = getResponse(reference);
 
 		if (maybeResponse.isEmpty())
 			throw new StoreException("The history contains a reference to a transaction not in store");

@@ -69,6 +69,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.tendermint.abci.Server;
 
 /**
@@ -106,6 +107,11 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * The time to use for the currently executing transaction.
 	 */
 	private volatile long now;
+
+	/**
+	 * The current store transaction.
+	 */
+	private volatile StoreTransaction<?> transaction;
 
 	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -403,8 +409,9 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public void setNow(long now) {
+		public void setNow(StoreTransaction<?> transaction, long now) {
 			TendermintNodeImpl.this.now = now;
+			TendermintNodeImpl.this.transaction = transaction;
 		}
 	}
 
@@ -558,5 +565,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
 			copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
+	}
+
+	@Override
+	protected StoreTransaction<?> getTransaction() {
+		return transaction;
 	}
 }

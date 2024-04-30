@@ -34,7 +34,7 @@ import io.hotmoka.stores.StoreException;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @ThreadSafe
-class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
+public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 
 	/**
 	 * An object that can be used to send post requests to Tendermint
@@ -156,5 +156,10 @@ class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	protected TendermintStore setError(TransactionReference reference, String error) throws StoreException {
 		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
 		return this;
+	}
+
+	@Override
+	protected TendermintStoreTransaction mkTransaction() {
+		return new TendermintStoreTransaction(this, lock);
 	}
 }
