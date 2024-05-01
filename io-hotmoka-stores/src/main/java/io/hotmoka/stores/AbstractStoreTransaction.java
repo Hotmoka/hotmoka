@@ -24,7 +24,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
@@ -41,58 +40,48 @@ import io.hotmoka.node.api.values.StorageReference;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-@ThreadSafe
 public abstract class AbstractStoreTransaction<T extends Store<T>> implements StoreTransaction<T> {
-	private final Object lock;
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 
-	protected AbstractStoreTransaction(Object lock) {
-		this.lock = lock;
-	}
+	protected AbstractStoreTransaction() {}
 
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		synchronized (lock) {
-			if (response instanceof TransactionResponseWithUpdates trwu) {
-				setRequest(reference, request);
-				setResponse(reference, response);
-				expandHistory(reference, trwu);
+		if (response instanceof TransactionResponseWithUpdates trwu) {
+			setRequest(reference, request);
+			setResponse(reference, response);
+			expandHistory(reference, trwu);
 
-				if (response instanceof GameteCreationTransactionResponse gctr)
-					LOGGER.info(gctr.getGamete() + ": created as gamete");
-			}
-			else if (response instanceof InitializationTransactionResponse) {
-				if (request instanceof InitializationTransactionRequest itr) {
-					setRequest(reference, request);
-					setResponse(reference, response);
-					StorageReference manifest = itr.getManifest();
-					setManifest(manifest);
-					LOGGER.info(manifest + ": set as manifest");
-					LOGGER.info("the node has been initialized");
-				}
-				else
-					throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
-			}
-			else {
+			if (response instanceof GameteCreationTransactionResponse gctr)
+				LOGGER.info(gctr.getGamete() + ": created as gamete");
+		}
+		else if (response instanceof InitializationTransactionResponse) {
+			if (request instanceof InitializationTransactionRequest itr) {
 				setRequest(reference, request);
 				setResponse(reference, response);
+				StorageReference manifest = itr.getManifest();
+				setManifest(manifest);
+				LOGGER.info(manifest + ": set as manifest");
+				LOGGER.info("the node has been initialized");
 			}
+			else
+				throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
+		}
+		else {
+			setRequest(reference, request);
+			setResponse(reference, response);
 		}
 	}
 
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		synchronized (lock) {
-			setRequest(reference, request);
-			setError(reference, errorMessage);
-		}
+		setRequest(reference, request);
+		setError(reference, errorMessage);
 	}
 
 	@Override
 	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		synchronized (lock) {
-			setResponse(reference, response);
-		}
+		setResponse(reference, response);
 	}
 
 	/**

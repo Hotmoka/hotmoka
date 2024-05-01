@@ -200,54 +200,44 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     }
 
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone) {
-    	super(toClone);
-
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
     	this.storeOfErrors = toClone.storeOfErrors;
-		this.storeOfHistories = toClone.storeOfHistories;
-		this.storeOfRequests = toClone.storeOfRequests;
-
-    	synchronized (toClone.lock) {
-    		this.rootOfResponses = toClone.rootOfResponses;
-    		this.rootOfInfo = toClone.rootOfInfo;
-    		this.rootOfErrors = toClone.rootOfErrors;
-			this.rootOfHistories = toClone.rootOfHistories;
-			this.rootOfRequests = toClone.rootOfRequests;
-			this.txn = toClone.txn;
-		}
+    	this.storeOfHistories = toClone.storeOfHistories;
+    	this.storeOfRequests = toClone.storeOfRequests;
+    	this.rootOfResponses = toClone.rootOfResponses;
+    	this.rootOfInfo = toClone.rootOfInfo;
+    	this.rootOfErrors = toClone.rootOfErrors;
+    	this.rootOfHistories = toClone.rootOfHistories;
+    	this.rootOfRequests = toClone.rootOfRequests;
+    	this.txn = toClone.txn;
     }
 
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-    	super(toClone);
-
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
     	this.storeOfErrors = toClone.storeOfErrors;
-		this.storeOfHistories = toClone.storeOfHistories;
-		this.storeOfRequests = toClone.storeOfRequests;
-
-    	synchronized (toClone.lock) {
-    		this.rootOfResponses = rootOfResponses;
-    		this.rootOfInfo = rootOfInfo;
-    		this.rootOfErrors = rootOfErrors;
-			this.rootOfHistories = rootOfHistories;
-			this.rootOfRequests = rootOfRequests;
-			this.txn = toClone.txn;
-		}
+    	this.storeOfHistories = toClone.storeOfHistories;
+    	this.storeOfRequests = toClone.storeOfRequests;
+    	this.rootOfResponses = rootOfResponses;
+    	this.rootOfInfo = rootOfInfo;
+    	this.rootOfErrors = rootOfErrors;
+    	this.rootOfHistories = rootOfHistories;
+    	this.rootOfRequests = rootOfRequests;
+    	this.txn = toClone.txn;
     }
 
     protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
     public void close() {
-    	if (txn != null && !txn.isFinished()) {
+    	/*if (txn != null && !txn.isFinished()) {
     		// store closed with yet uncommitted transactions: we abort them
     		LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
-    	}
+    	}*/
 
     	try {
     		env.close();
@@ -261,19 +251,15 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	synchronized (lock) {
-    		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)));
-    	}
+    	return env.computeInReadonlyTransaction // TODO: recheck
+    		(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)));
 	}
 
 	@Override
 	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
-			synchronized (lock) {
-				return CheckSupplier.check(TrieException.class, () ->
-					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())));
-			}
+			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+				(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
@@ -282,34 +268,28 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 
 	@Override
 	public Optional<String> getError(TransactionReference reference) throws StoreException {
-    	synchronized (lock) {
-    		try {
-				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+		try {
+			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
 					(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference))));
-			}
-    		catch (TrieException e) {
-    			throw new StoreException(e);
-			}
-    	}
+		}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		synchronized (lock) {
-			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)));
-		}
+		return env.computeInReadonlyTransaction // TODO: recheck
+			(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)));
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
 		try {
-			synchronized (lock) {
-				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-						(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))).orElse(Stream.empty()));
-			}
+			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))).orElse(Stream.empty()));
 		}
-		catch (TrieException e) {
+		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
 		}
 	}

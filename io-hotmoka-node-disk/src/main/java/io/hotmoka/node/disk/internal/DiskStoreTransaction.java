@@ -14,9 +14,7 @@ import io.hotmoka.stores.AbstractStoreTransaction;
 import io.hotmoka.stores.StoreException;
 
 public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
-
 	private final DiskStore store;
-
 	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();
 	private final ConcurrentMap<TransactionReference, TransactionResponse> responses = new ConcurrentHashMap<>();
 
@@ -37,9 +35,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	 */
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
-	public DiskStoreTransaction(DiskStore store, Object lock) {
-		super(lock);
-
+	public DiskStoreTransaction(DiskStore store) {
 		this.store = store;
 	}
 

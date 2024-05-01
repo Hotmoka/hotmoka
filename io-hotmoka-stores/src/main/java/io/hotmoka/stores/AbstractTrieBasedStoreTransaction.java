@@ -52,9 +52,7 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
      */
 	private volatile TrieOfRequests trieOfRequests;
 
-	protected AbstractTrieBasedStoreTransaction(T store, Object lock, Transaction txn) throws StoreException {
-		super(lock);
-
+	protected AbstractTrieBasedStoreTransaction(T store, Transaction txn) throws StoreException {
 		this.txn = txn;
 		this.store = store;
 		this.trieOfResponses = store.mkTrieOfResponses(txn);

@@ -96,8 +96,6 @@ class DiskStore extends AbstractStore<DiskStore> {
 	 * @param toClone the store to clone
 	 */
     private DiskStore(DiskStore toClone) {
-    	super(toClone);
-
     	this.dir = toClone.dir;
     	this.histories = toClone.histories;
     	this.errors = toClone.errors;
@@ -157,7 +155,7 @@ class DiskStore extends AbstractStore<DiskStore> {
 
 	@Override
 	public StoreTransaction<DiskStore> beginTransaction() {
-		return new DiskStoreTransaction(this, lock);
+		return new DiskStoreTransaction(this);
 	}
 
 	@Override

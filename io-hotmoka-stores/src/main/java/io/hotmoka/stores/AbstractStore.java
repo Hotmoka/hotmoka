@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -26,25 +26,9 @@ import io.hotmoka.annotations.ThreadSafe;
 public abstract class AbstractStore<T extends AbstractStore<T>> implements Store<T> {
 
 	/**
-	 * The lock for modifications of the store.
-	 */
-	protected final Object lock;
-
-	/**
 	 * Builds the store for a node.
 	 */
-	protected AbstractStore() {
-		this.lock = new Object();
-	}
-
-	/**
-	 * Creates a clone of the given store.
-	 * 
-	 * @param toClone the store to clone
-	 */
-	protected AbstractStore(AbstractStore<T> toClone) {
-		this.lock = toClone.lock;
-	}
+	protected AbstractStore() {}
 
 	protected abstract T mkClone();
 

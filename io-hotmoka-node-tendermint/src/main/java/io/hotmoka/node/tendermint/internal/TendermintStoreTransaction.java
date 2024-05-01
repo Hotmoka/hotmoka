@@ -8,8 +8,8 @@ import io.hotmoka.xodus.env.Transaction;
 
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore> {
 
-	protected TendermintStoreTransaction(TendermintStore store, Object lock, Transaction txn) throws StoreException {
-		super(store, lock, txn);
+	protected TendermintStoreTransaction(TendermintStore store, Transaction txn) throws StoreException {
+		super(store, txn);
 	}
 
 	@Override

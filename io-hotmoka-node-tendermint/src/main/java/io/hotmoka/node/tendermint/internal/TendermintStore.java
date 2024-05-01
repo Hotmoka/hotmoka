@@ -100,14 +100,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	 */
 	byte[] getHash() {
 		try {
-			synchronized (lock) {
-				return isEmpty() ?
-						new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
-							// we do not use the info part of the hash, so that the hash
-							// remains stable when the responses and the histories are stable,
-							// although the info part has changed for the update of the number of commits
-							hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
-			}
+			return isEmpty() ?
+					new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
+						// we do not use the info part of the hash, so that the hash
+						// remains stable when the responses and the histories are stable,
+						// although the info part has changed for the update of the number of commits
+						hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO
@@ -149,6 +147,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 
 	@Override
 	protected TendermintStoreTransaction mkTransaction(Transaction txn) throws StoreException {
-		return new TendermintStoreTransaction(this, lock, txn);
+		return new TendermintStoreTransaction(this, txn);
 	}
 }
