@@ -55,11 +55,6 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 	}
 
 	@Override
-	public TrieOfRequests with(KeyValueStore store) throws TrieException {
-		return new TrieOfRequests(this, store);
-	}
-
-	@Override
 	public TrieOfRequests checkoutAt(byte[] root) {
 		return new TrieOfRequests(this, root);
 	}

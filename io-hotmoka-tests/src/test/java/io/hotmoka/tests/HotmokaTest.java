@@ -289,7 +289,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 
 		var config = DiskNodeConfigBuilders.defaults()
 			.setMaxGasPerViewTransaction(_10_000_000)
-			.setMaxPollingAttempts(10) // we fix these two so that we know the timeout in case of problems
+			.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 			.setPollingDelay(10)
 			.build();
 

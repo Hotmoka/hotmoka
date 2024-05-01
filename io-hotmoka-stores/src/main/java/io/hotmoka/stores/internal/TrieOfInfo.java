@@ -61,11 +61,6 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 		return new TrieOfInfo(this, root);
 	}
 
-	@Override
-	public TrieOfInfo with(KeyValueStore store) throws TrieException {
-		return new TrieOfInfo(this, store);
-	}
-
 	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();

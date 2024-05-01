@@ -62,21 +62,4 @@ public interface PatriciaTrie<Key, Value, T extends PatriciaTrie<Key, Value, T>>
 	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
 	 */
 	T checkoutAt(byte[] root) throws TrieException;
-
-	/**
-	 * Yields an independent clone of this trie, but for the supporting store, that is set to the provided value.
-	 * 
-	 * @param store the store to use in the cloned trie
-	 * @return the resulting, cloned trie
-	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
-	 */
-	T with(KeyValueStore store) throws TrieException;
-
-	/**
-	 * Garbage-collects all keys that have been updated during the commit with the given number.
-	 * 
-	 * @param commitNumber the number of the commit to garbage collect
-	 * @throws TrieException if this Patricia trie is not able to complete the operation correctly
-	 */
-	void garbageCollect(long commitNumber) throws TrieException;
 }

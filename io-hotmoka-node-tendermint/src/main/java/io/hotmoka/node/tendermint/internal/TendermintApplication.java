@@ -33,6 +33,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
@@ -225,7 +226,13 @@ class TendermintApplication extends ABCI {
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	long now = timeNow(request);
 
-    	transaction = node.getStore().beginTransaction();
+    	try {
+    		transaction = node.getStore().beginTransaction();
+    	}
+    	catch (StoreException e) {
+    		throw new RuntimeException(e); // TODO
+    	}
+
     	node.setNow(transaction, now);
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
@@ -284,10 +291,15 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseCommit commit(RequestCommit request) {
-		TendermintStore store = node.getStore();
-    	node.commitTransactionAndCheckout();
-    	// hash of the store, used for consensus
-    	byte[] hash = store.getHash();
+		try {
+			node.commitTransactionAndCheckout();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+
+		// hash of the store, used for consensus
+    	byte[] hash = node.getStore().getHash();
     	logger.info("Committed state with hash = " + Hex.toHexString(hash).toUpperCase());
     	return ResponseCommit.newBuilder()
        		.setData(ByteString.copyFrom(hash))

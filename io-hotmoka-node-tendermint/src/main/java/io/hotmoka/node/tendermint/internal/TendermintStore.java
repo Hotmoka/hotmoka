@@ -28,6 +28,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.stores.AbstractTrieBasedStore;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -99,14 +100,14 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	 */
 	byte[] getHash() {
 		try {
-		synchronized (lock) {
-			return isEmpty() ?
-				new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
-				// we do not use the info part of the hash, so that the hash
-				// remains stable when the responses and the histories are stable,
-				// although the info part has changed for the update of the number of commits
-				hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
-		}
+			synchronized (lock) {
+				return isEmpty() ?
+						new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
+							// we do not use the info part of the hash, so that the hash
+							// remains stable when the responses and the histories are stable,
+							// although the info part has changed for the update of the number of commits
+							hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
+			}
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO
@@ -124,7 +125,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	 * @throws TrieException 
 	 */
 	private byte[] mergeRootsOfTriesWithoutInfo() throws StoreException {
-		byte[] bytes = mergeRootsOfTries();
+		byte[] bytes = getStateId();
 		for (int pos = 32; pos < 64; pos++)
 			bytes[pos] = 0;
 
@@ -147,19 +148,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	}
 
 	@Override
-	protected TendermintStore setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		// nothing to do, since Tendermint keeps requests inside its blockchain
-		return this;
-	}
-
-	@Override
-	protected TendermintStore setError(TransactionReference reference, String error) throws StoreException {
-		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
-		return this;
-	}
-
-	@Override
-	protected TendermintStoreTransaction mkTransaction() {
-		return new TendermintStoreTransaction(this, lock);
+	protected TendermintStoreTransaction mkTransaction(Transaction txn) throws StoreException {
+		return new TendermintStoreTransaction(this, lock, txn);
 	}
 }

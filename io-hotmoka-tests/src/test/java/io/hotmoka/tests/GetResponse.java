@@ -45,7 +45,7 @@ import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
- * A test for {@link io.hotmoka.node.api.Node#getResponse(io.hotmoka.beans.api.transactions.TransactionReference)}.
+ * A test for {@link io.hotmoka.node.api.Node#getResponseUncommited(io.hotmoka.beans.api.transactions.TransactionReference)}.
  */
 class GetResponse extends HotmokaTest {
 	private static final ConstructorSignature ABSTRACT_FAIL_IMPL_CONSTRUCTOR = ConstructorSignatures.of(StorageTypes.classNamed("io.hotmoka.examples.abstractfail.AbstractFailImpl"), StorageTypes.INT);

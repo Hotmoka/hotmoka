@@ -7,59 +7,161 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.patricia.api.TrieException;
+import io.hotmoka.stores.internal.TrieOfErrors;
+import io.hotmoka.stores.internal.TrieOfHistories;
+import io.hotmoka.stores.internal.TrieOfInfo;
+import io.hotmoka.stores.internal.TrieOfRequests;
+import io.hotmoka.stores.internal.TrieOfResponses;
+import io.hotmoka.xodus.env.Transaction;
 
 public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBasedStore<T>> extends AbstractStoreTransaction<T> {
 
-	protected AbstractTrieBasedStoreTransaction(T store, Object lock) {
-		super(store, lock);
+	/**
+	 * The Xodus transaction where the updates get recorded.
+	 */
+	private final Transaction txn;
+
+	/**
+	 * The store from which this transaction was started.
+	 */
+	private final T store;
+
+	/**
+	 * The trie of the responses.
+	 */
+	private volatile TrieOfResponses trieOfResponses;
+
+	/**
+	 * The trie for the miscellaneous information.
+	 */
+	private volatile TrieOfInfo trieOfInfo;
+
+	/**
+     * The trie of the errors.
+     */
+	private volatile TrieOfErrors trieOfErrors;
+
+	/**
+	 * The trie of histories.
+	 */
+	private volatile TrieOfHistories trieOfHistories;
+
+	/**
+     * The trie of the requests.
+     */
+	private volatile TrieOfRequests trieOfRequests;
+
+	protected AbstractTrieBasedStoreTransaction(T store, Object lock, Transaction txn) throws StoreException {
+		super(lock);
+
+		this.txn = txn;
+		this.store = store;
+		this.trieOfResponses = store.mkTrieOfResponses(txn);
+		this.trieOfInfo = store.mkTrieOfInfo(txn);
+		this.trieOfErrors = store.mkTrieOfErrors(txn);
+		this.trieOfHistories = store.mkTrieOfHistories(txn);
+		this.trieOfRequests = store.mkTrieOfRequests(txn);
 	}
 
 	@Override
-	public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		System.out.println("response");
-		return store.getResponseUncommitted(reference);
+	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException{
+		try {
+			return trieOfResponses.get(reference);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
-		System.out.println("history");
-		new Exception().printStackTrace();
-		return store.getHistoryUncommitted(object);
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+		try {
+			return trieOfHistories.get(object).orElse(Stream.empty()); // TODO
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() throws StoreException {
-		System.out.println("manifest");
-		return store.getManifestUncommitted();
+	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
+		try {
+			return trieOfInfo.getManifest();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		store = store.setRequest(reference, request);
+		try {
+			trieOfRequests = trieOfRequests.put(reference, request);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	protected void setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
-		store = store.setResponse(reference, response);
+		try {
+			trieOfResponses = trieOfResponses.put(reference, response);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	protected void setError(TransactionReference reference, String error) throws StoreException {
-		store = store.setError(reference, error);
+		try {
+			trieOfErrors = trieOfErrors.put(reference, error);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		store = store.setHistory(object, history);
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) throws StoreException {
+		try {
+			trieOfHistories = trieOfHistories.put(object, history);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	protected void setManifest(StorageReference manifest) throws StoreException {
-		store = store.setManifest(manifest);
+		try {
+			trieOfInfo = trieOfInfo.setManifest(manifest);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}			
 	}
 	
 	@Override
-	public T commit() {
-		return store;
+	public T commit() throws StoreException {
+		try {
+			trieOfInfo = trieOfInfo.increaseNumberOfCommits();
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+
+		if (!txn.commit())
+			throw new StoreException("Cannot commit the Xodus transaction");
+
+		return store.mkClone(
+			Optional.of(trieOfResponses.getRoot()),
+			Optional.of(trieOfInfo.getRoot()),
+			Optional.of(trieOfErrors.getRoot()),
+			Optional.of(trieOfHistories.getRoot()),
+			Optional.of(trieOfRequests.getRoot())
+		);
 	}
 }

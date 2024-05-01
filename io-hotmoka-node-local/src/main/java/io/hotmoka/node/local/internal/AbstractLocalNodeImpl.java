@@ -343,7 +343,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * 
 	 * @return the currently executing transaction
 	 */
-	protected abstract StoreTransaction<?> getTransaction();
+	public abstract StoreTransaction<?> getTransaction();
 
 	/**
 	 * Determines if this node has not been closed yet.
@@ -683,7 +683,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				synchronized (deliverTransactionLock) {
 					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 					response = responseBuilder.getResponse();
-					store = store.push(reference, request, response);
+					var transaction = getTransaction();
+					transaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
 					scheduleForNotificationOfEvents(response);
 					takeNoteForNextReward(request, response);
@@ -694,18 +695,21 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				return response;
 			}
 			catch (TransactionRejectedException e) {
-				store = store.push(reference, request, trimmedMessage(e));
+				var transaction = getTransaction();
+				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
 				LOGGER.log(Level.INFO, "transaction rejected", e);
 				throw e;
 			}
 			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
-				store = store.push(reference, request, trimmedMessage(e));
+				var transaction = getTransaction();
+				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 				throw new RuntimeException(e);
 			}
 			catch (RuntimeException e) {
-				store = store.push(reference, request, trimmedMessage(e));
+				var transaction = getTransaction();
+				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
 				throw e;
 			}
@@ -739,7 +743,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return false;
 
 		try {
-			Optional<StorageReference> manifest = store.getManifestUncommitted();
+			Optional<StorageReference> manifest = getTransaction().getManifestUncommitted();
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
@@ -924,6 +928,53 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param response the response that contains events
 	 */
 	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
+
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	private Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
+		var transaction = getTransaction();
+		if (transaction != null)
+			return transaction.getResponseUncommitted(reference);
+		else
+			return store.getResponse(reference);
+	}
+
+	/**
+	 * Yields the history of the given object, that is, the references to the transactions
+	 * that can be used to reconstruct the current values of its fields.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 * @throws StoreException if the store is not able to perform the operation
+	 */
+	private Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+		var transaction = getTransaction();
+		if (transaction != null)
+			return transaction.getHistoryUncommitted(object);
+		else
+			return store.getHistory(object);
+	}
+
+	/**
+	 * Yields the manifest installed when the node is initialized.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @return the manifest
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	private Optional<StorageReference> getManifestUncommitted() throws StoreException {
+		var transaction = getTransaction();
+		if (transaction != null)
+			return transaction.getManifestUncommitted();
+		else
+			return store.getManifest();
+	}
 
 	/**
 	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
@@ -1151,13 +1202,44 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return store;
 		}
 
-		public void setStore(Store<?> store) {
-			AbstractLocalNodeImpl.this.store = (S) store; // TODO
-		}
-
 		@Override
 		public StoreUtility getStoreUtilities() {
 			return storeUtilities;
+		}
+
+		/**
+		 * Yields the response of the transaction having the given reference.
+		 * This considers also updates inside this transaction, that have not yet been committed.
+		 * 
+		 * @param reference the reference of the transaction
+		 * @return the response, if any
+		 */
+		public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
+			return AbstractLocalNodeImpl.this.getResponseUncommitted(reference);
+		}
+
+		/**
+		 * Yields the history of the given object, that is, the references to the transactions
+		 * that can be used to reconstruct the current values of its fields.
+		 * This considers also updates inside this transaction, that have not yet been committed.
+		 * 
+		 * @param object the reference of the object
+		 * @return the history. Yields an empty stream if there is no history for {@code object}
+		 * @throws StoreException if the store is not able to perform the operation
+		 */
+		public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+			return AbstractLocalNodeImpl.this.getHistoryUncommitted(object);
+		}
+
+		/**
+		 * Yields the manifest installed when the node is initialized.
+		 * This considers also updates inside this transaction, that have not yet been committed.
+		 * 
+		 * @return the manifest
+		 * @throws StoreException if the store is not able to complete the operation correctly
+		 */
+		public Optional<StorageReference> getManifestUncommitted() throws StoreException {
+			return AbstractLocalNodeImpl.this.getManifestUncommitted();
 		}
 
 		@Override
@@ -1193,6 +1275,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		@Override
 		public long getNow() {
 			return AbstractLocalNodeImpl.this.getNow();
+		}
+
+		@Override
+		public StoreTransaction<?> getTransaction() {
+			return AbstractLocalNodeImpl.this.getTransaction();
 		}
 	}
 }

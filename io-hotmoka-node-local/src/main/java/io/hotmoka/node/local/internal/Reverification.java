@@ -113,7 +113,8 @@ public class Reverification {
 			var reference = entry.getKey();
 
 			try {
-				node.setStore(node.getStore().replace(reference, node.getRequest(reference), entry.getValue()));
+				var transaction = node.getTransaction();
+				transaction.replace(reference, node.getRequest(reference), entry.getValue());
 			}
 			catch (StoreException | UnknownReferenceException e) {
 				throw new NodeException(e);

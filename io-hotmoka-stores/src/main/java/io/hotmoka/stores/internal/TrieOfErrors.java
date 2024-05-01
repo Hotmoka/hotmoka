@@ -62,11 +62,6 @@ public class TrieOfErrors extends AbstractPatriciaTrie<TransactionReference, Str
 		return new TrieOfErrors(this, root);
 	}
 
-	@Override
-	public TrieOfErrors with(KeyValueStore store) {
-		return new TrieOfErrors(this, store);
-	}
-
 	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();

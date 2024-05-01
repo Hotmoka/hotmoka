@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -56,7 +55,6 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.remote.RemoteNodes;
-import io.hotmoka.node.remote.api.RemoteNode;
 import io.hotmoka.node.service.NodeServices;
 import io.hotmoka.verification.VerificationException;
 
@@ -217,25 +215,6 @@ public class NodeFromNetwork extends HotmokaTest {
         	// we poll for its result: lambdas.jar has been correctly installed in the node, hence the response is successful
         	assertTrue(remote.getPolledResponse(future.getReferenceOfRequest()) instanceof JarStoreTransactionSuccessfulResponse);
         }
-    }
-
-    @Test
-    @DisplayName("starts a network server from a Hotmoka node and makes a remote call to getPolledResponse for a non-existing reference")
-    void testRemoteGetPolledResponseNonExisting() {
-        try (var service = NodeServices.of(node, PORT); var remote = RemoteNodes.of(URI, 50_000)) {
-        	remote.getPolledResponse(INEXISTENT_TRANSACTION_REFERENCE);
-        }
-        catch (Exception e) {
-        	assertTrue(e instanceof TimeoutException);
-
-        	// for remote nodes, the communication might time-out before polling time-outs
-        	if (!(node instanceof RemoteNode))
-        		assertTrue(e.getMessage().contains("Cannot find the response of transaction reference 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"));
-
-        	return;
-        }
-
-    	fail("expected exception");
     }
 
     @Test

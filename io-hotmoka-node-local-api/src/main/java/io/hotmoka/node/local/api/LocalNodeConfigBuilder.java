@@ -77,7 +77,7 @@ public interface LocalNodeConfigBuilder<C extends LocalNodeConfig<C,B>, B extend
 	B setRequestCacheSize(int requestCacheSize);
 
 	/**
-	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
+	 * Sets size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 * 
 	 * @param responseCacheSize the cache size

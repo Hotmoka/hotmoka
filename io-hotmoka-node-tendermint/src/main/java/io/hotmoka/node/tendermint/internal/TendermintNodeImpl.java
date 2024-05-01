@@ -169,7 +169,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 		try {
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
-			TendermintConfigFile tendermintConfigFile = new TendermintConfigFile(config);
+			var tendermintConfigFile = new TendermintConfigFile(config);
 			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
 			this.abci.start();
 			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
@@ -265,8 +265,9 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
 
-	private void commitTransactionAndCheckout() {
-		setStore(store.endTransaction());
+	private void commitTransactionAndCheckout() throws StoreException {
+		setStore(transaction.commit());
+		store.moveRootBranchToThis();
 		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
 		responsesWithEventsToNotify.clear();
 	}
@@ -399,7 +400,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public void commitTransactionAndCheckout() {
+		public void commitTransactionAndCheckout() throws StoreException {
 			TendermintNodeImpl.this.commitTransactionAndCheckout();
 		}
 
@@ -568,7 +569,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected StoreTransaction<?> getTransaction() {
+	public StoreTransaction<?> getTransaction() {
 		return transaction;
 	}
 }

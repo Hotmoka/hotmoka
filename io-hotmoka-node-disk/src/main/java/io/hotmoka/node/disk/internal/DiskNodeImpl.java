@@ -84,7 +84,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 
 	@Override
 	protected DiskStore mkStore() {
-		return new DiskStore(getLocalConfig().getDir(), getLocalConfig().getTransactionsPerBlock());
+		return new DiskStore(getLocalConfig().getDir());
 	}
 
 	@Override
@@ -93,7 +93,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	}
 
 	@Override
-	protected StoreTransaction<?> getTransaction() {
+	public StoreTransaction<?> getTransaction() {
 		return transaction;
 	}
 

@@ -40,6 +40,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.UncheckSupplier;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
@@ -192,7 +193,7 @@ public class NodeCachesImpl implements NodeCache {
 			StorageReference validators = getValidators().get();
 			StorageReference versions = getVersions().get();
 			TransactionReference takamakaCode = node.getStoreUtilities().getTakamakaCodeUncommitted().get();
-			StorageReference manifest = node.getStore().getManifestUncommitted().get();
+			StorageReference manifest = node.getManifestUncommitted().get();
 	
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
@@ -345,7 +346,7 @@ public class NodeCachesImpl implements NodeCache {
 
 	@Override
 	public final Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		return getResponse(reference).or(() -> node.getStore().getResponseUncommitted(reference));
+		return getResponse(reference).or(UncheckSupplier.uncheck(() -> node.getResponseUncommitted(reference))); // TODO: recheck
 	}
 
 	@Override
@@ -460,7 +461,7 @@ public class NodeCachesImpl implements NodeCache {
 
 	private void recomputeGasPrice() {
 		try {
-			Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
+			Optional<StorageReference> manifest = node.getManifestUncommitted();
 			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
@@ -474,7 +475,7 @@ public class NodeCachesImpl implements NodeCache {
 
 	private void recomputeInflation() {
 		try {
-			Optional<StorageReference> manifest = node.getStore().getManifestUncommitted();
+			Optional<StorageReference> manifest = node.getManifestUncommitted();
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
@@ -504,7 +505,7 @@ public class NodeCachesImpl implements NodeCache {
 		try {
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference manifest = node.getStore().getManifestUncommitted().get();
+				StorageReference manifest = node.getManifestUncommitted().get();
 				StorageReference gasStation = getGasStation().get();
 				StorageReference versions = getVersions().get();
 				StorageReference validators = getValidators().get();
@@ -531,7 +532,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * @throws StoreException 
 	 */
 	private boolean isInitializedUncommitted() throws StoreException {
-		return node.getStore().getManifestUncommitted().isPresent();
+		return node.getManifestUncommitted().isPresent();
 	}
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {

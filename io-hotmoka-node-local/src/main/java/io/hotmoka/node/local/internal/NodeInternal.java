@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
+import java.util.stream.Stream;
 
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -37,6 +38,8 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
+import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The methods of a Hotmoka node that are used inside the internal
@@ -74,7 +77,7 @@ public interface NodeInternal {
 	 */
 	Store<?> getStore();
 
-	void setStore(Store<?> store);
+	StoreTransaction<?> getTransaction();
 
 	/**
 	 * Yields an object that provides methods for reconstructing data from the store of this node.
@@ -134,6 +137,34 @@ public interface NodeInternal {
 	 */
 	ClassTag getClassTag(StorageReference object) throws UnknownReferenceException, NodeException;
 
+	/**
+	 * Yields the response of the transaction having the given reference.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @param reference the reference of the transaction
+	 * @return the response, if any
+	 */
+	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException;
+
+	/**
+	 * Yields the history of the given object, that is, the references to the transactions
+	 * that can be used to reconstruct the current values of its fields.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @param object the reference of the object
+	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 * @throws StoreException if the store is not able to perform the operation
+	 */
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException;
+
+	/**
+	 * Yields the manifest installed when the node is initialized.
+	 * This considers also updates inside this transaction, that have not yet been committed.
+	 * 
+	 * @return the manifest
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 	/**
 	 * Runs an instance {@code @@View} method of an object already in this node's store.
 	 * The node's store is not expanded, since the execution of the method has no side-effects.

@@ -85,12 +85,6 @@
       <version>${hotmoka.version}</version>
       <scope>test</scope>
     </dependency>
-    <dependency>
-	  <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-examples</artifactId>
-      <version>${hotmoka.version}</version>
-      <scope>runtime</scope>
-	</dependency>
 	<dependency>
       <groupId>org.jboss.shrinkwrap.resolver</groupId>
       <artifactId>shrinkwrap-resolver-api-maven</artifactId>

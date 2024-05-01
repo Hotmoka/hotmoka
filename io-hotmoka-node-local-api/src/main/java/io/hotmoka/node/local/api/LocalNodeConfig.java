@@ -66,10 +66,10 @@ public interface LocalNodeConfig<C extends LocalNodeConfig<C,B>, B extends Local
 	int getRequestCacheSize();
 
 	/**
-	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
+	 * Yields the size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 * 
-	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method
+	 * @return the size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method
 	 */
 	int getResponseCacheSize();
 

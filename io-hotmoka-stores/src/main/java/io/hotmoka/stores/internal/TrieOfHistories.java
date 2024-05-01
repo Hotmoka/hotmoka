@@ -97,9 +97,4 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 	public TrieOfHistories checkoutAt(byte[] root) {
 		return new TrieOfHistories(this, root);
 	}
-
-	@Override
-	public TrieOfHistories with(KeyValueStore store) throws TrieException {
-		return new TrieOfHistories(this, store);
-	}
 }

@@ -65,7 +65,7 @@ public abstract class LocalNodeConfigImpl<C extends LocalNodeConfig<C,B>, B exte
 	public final int requestCacheSize;
 
 	/**
-	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getResponse(TransactionReference)} method.
+	 * The size of the cache for the {@link io.hotmoka.node.api.Node#getResponseUncommited(TransactionReference)} method.
 	 * It defaults to 1,000.
 	 */
 	public final int responseCacheSize;

@@ -99,52 +99,27 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	/**
 	 * The root of the trie of the responses. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfResponses;
+	private final Optional<byte[]> rootOfResponses;
 
 	/**
 	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfInfo;
+	private final Optional<byte[]> rootOfInfo;
 
 	/**
 	 * The root of the trie of the errors. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfErrors = Optional.empty();
+	private final Optional<byte[]> rootOfErrors;
 
 	/**
 	 * The root of the trie of the requests. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfRequests = Optional.empty();
+	private final Optional<byte[]> rootOfRequests;
 
 	/**
 	 * The root of the trie of histories. It is empty if the trie is empty.
 	 */
-	private Optional<byte[]> rootOfHistories = Optional.empty();
-
-	/**
-	 * The trie of the responses.
-	 */
-	private TrieOfResponses trieOfResponses;
-
-	/**
-	 * The trie for the miscellaneous information.
-	 */
-	private TrieOfInfo trieOfInfo;
-
-	/**
-     * The trie of the errors.
-     */
-	protected TrieOfErrors trieOfErrors;
-
-	/**
-     * The trie of the requests.
-     */
-	protected TrieOfRequests trieOfRequests;
-
-	/**
-	 * The trie of histories.
-	 */
-	private TrieOfHistories trieOfHistories;
+	private final Optional<byte[]> rootOfHistories;
 
 	/**
 	 * The key used inside {@link #storeOfInfo} to keep the root.
@@ -159,10 +134,9 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedStore.class.getName());
 
 	/**
-	 * Creates a store. Its roots are not yet initialized. Hence, after this constructor,
-	 * a call to {@link #setRootsTo(Optional)} should occur, to set the roots of the store.
+	 * Creates a store. Its roots are initialized as in the Xodus store, if present.
 	 * 
- 	 * @param dir the path where the database of the store gets created
+ 	 * @param dir the path where the database of the store is kept
 	 */
     protected AbstractTrieBasedStore(Path dir) {
     	this.env = new Environment(dir + "/store");
@@ -241,11 +215,6 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     		this.rootOfErrors = toClone.rootOfErrors;
 			this.rootOfHistories = toClone.rootOfHistories;
 			this.rootOfRequests = toClone.rootOfRequests;
-    		this.trieOfResponses = toClone.trieOfResponses;
-    		this.trieOfInfo = toClone.trieOfInfo;
-			this.trieOfErrors = toClone.trieOfErrors;
-			this.trieOfHistories = toClone.trieOfHistories;
-			this.trieOfRequests = toClone.trieOfRequests;
 			this.txn = toClone.txn;
 		}
     }
@@ -266,11 +235,6 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     		this.rootOfErrors = rootOfErrors;
 			this.rootOfHistories = rootOfHistories;
 			this.rootOfRequests = rootOfRequests;
-    		this.trieOfResponses = toClone.trieOfResponses;
-    		this.trieOfInfo = toClone.trieOfInfo;
-			this.trieOfErrors = toClone.trieOfErrors;
-			this.trieOfHistories = toClone.trieOfHistories;
-			this.trieOfRequests = toClone.trieOfRequests;
 			this.txn = toClone.txn;
 		}
     }
@@ -279,7 +243,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 
     @Override
     public void close() {
-    	if (duringTransaction()) {
+    	if (txn != null && !txn.isFinished()) {
     		// store closed with yet uncommitted transactions: we abort them
     		LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
     		txn.abort();
@@ -299,20 +263,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	synchronized (lock) {
     		return env.computeInReadonlyTransaction // TODO: recheck
-    			(UncheckFunction.uncheck(txn -> new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses).get(reference)));
+    			(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)));
     	}
-	}
-
-	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		synchronized (lock) {
-			try {
-				return duringTransaction() ? trieOfResponses.get(reference) : getResponse(reference);
-			}
-			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
-			}
-		}
 	}
 
 	@Override
@@ -320,22 +272,10 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () ->
-					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getManifest())));
+					env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())));
 			}
 		}
 		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
-		try {
-			synchronized (lock) {
-				return duringTransaction() ? trieOfInfo.getManifest() : getManifest();
-			}
-		}
-		catch (TrieException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -345,7 +285,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	synchronized (lock) {
     		try {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors).get(reference))));
+					(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference))));
 			}
     		catch (TrieException e) {
     			throw new StoreException(e);
@@ -357,7 +297,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		synchronized (lock) {
 			return env.computeInReadonlyTransaction // TODO: recheck
-				(UncheckFunction.uncheck(txn -> new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests).get(reference)));
+				(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)));
 		}
 	}
 
@@ -366,7 +306,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 		try {
 			synchronized (lock) {
 				return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-						(UncheckFunction.uncheck(txn -> new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories).get(object))).orElse(Stream.empty()));
+						(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))).orElse(Stream.empty()));
 			}
 		}
 		catch (TrieException e) {
@@ -375,73 +315,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
-		synchronized (lock) {
-			try {
-				return duringTransaction() ? trieOfHistories.get(object).orElse(Stream.empty()) : getHistory(object);
-			}
-			catch (TrieException e) {
-				throw new StoreException(e);
-			}
-		}
-	}
-
-	@Override
-	public StoreTransaction<T> beginTransaction() {
-		synchronized (lock) {
-			txn = env.beginTransaction();
-
-			try {
-				trieOfResponses = new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
-				trieOfInfo = new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
-				trieOfErrors = new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
-				trieOfRequests = new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
-				trieOfHistories = new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
-			}
-			catch (TrieException e) {
-				throw new RuntimeException(e); // TODO
-			}
-
-			return mkTransaction();
-		}
-	}
-
-	protected abstract StoreTransaction<T> mkTransaction();
-
-	/**
-	 * Commits to the database all data written from the last call to {@link #beginTransactionInternal()}.
-	 * This does not change the view of the store, since its roots are not updated,
-	 * unless the hash returned by this method gets later checked out to update the roots.
-	 * 
-	 * @return the hash of the store resulting at the end of all updates performed during the transaction;
-	 *         if this gets checked out, the view of the store becomes that at the end of the transaction
-	 */
-	public final T endTransaction() {
-		try {
-			synchronized (lock) {
-				trieOfInfo = trieOfInfo.increaseNumberOfCommits();
-				//long newCommitNumber = trieOfInfo.getNumberOfCommits();
-
-				// a negative number means that garbage-collection is disabled
-				/*if (checkableDepth >= 0L) {
-					long commitToGarbageCollect = newCommitNumber - 1 - checkableDepth;
-					if (commitToGarbageCollect >= 0L)
-						garbageCollect(commitToGarbageCollect);
-				}*/
-
-				if (!txn.commit())
-					LOGGER.info("transaction's commit failed");
-
-				T result = mkClone();
-				result.setRootsTo(result.mergeRootsOfTries());
-				result.moveRootBranchToThis();
-
-				return result;
-			}
-		}
-		catch (StoreException | TrieException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	public StoreTransaction<T> beginTransaction() throws StoreException {
+		return mkTransaction(env.beginTransaction());
 	}
 
 	/**
@@ -451,87 +326,12 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	 */
 	public long getNumberOfCommits() {
 		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo).getNumberOfCommits()));
+			(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits()));
 	}
 
 	public byte[] getStateId() throws StoreException {
 		return mergeRootsOfTries();
 	}
-
-	@Override
-	protected T setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
-		try {
-			TrieOfResponses newTrieOfResponses = trieOfResponses.put(reference, response);
-			this.trieOfResponses = newTrieOfResponses;
-			return mkClone(); // TODO Optional.of(newTrieOfResponses.getRoot()), rootOfInfo);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected T setManifest(StorageReference manifest) throws StoreException {
-		try {
-			TrieOfInfo newTrieOfInfo = trieOfInfo.setManifest(manifest);
-			this.trieOfInfo = newTrieOfInfo;
-			return mkClone(); //rootOfResponses, Optional.of(newTrieOfInfo.getRoot()));
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected T setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		try {
-			T result = getThis();
-			result.trieOfRequests = result.trieOfRequests.put(reference, request);
-			return result.mkClone();
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected T setError(TransactionReference reference, String error) throws StoreException {
-		try {
-			T result = getThis();
-			result.trieOfErrors = result.trieOfErrors.put(reference, error);
-			return result.mkClone();
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected T setHistory(StorageReference object, Stream<TransactionReference> history) {
-		try {
-			trieOfHistories = trieOfHistories.put(object, history);
-			return mkClone();
-		}
-		catch (TrieException e) {
-			throw new RuntimeException(e); // TODO
-		}
-	}
-
-	/**
-	 * Garbage-collects all keys updated during the given commit.
-	 * 
-	 * @param commitNumber the number of the commit
-	 * @throws StoreException if this store is not able to complete the operation correctly
-	 */
-	/*protected void garbageCollect(long commitNumber) throws StoreException {
-		try {
-			trieOfResponses.garbageCollect(commitNumber);
-			trieOfInfo.garbageCollect(commitNumber);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}*/
 
 	/**
 	 * Resets the store to the given root. This is just the concatenation of the roots
@@ -539,55 +339,71 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	 * 
 	 * @param root the root to reset to
 	 */
-	public void checkoutAt(byte[] root) {
-		synchronized (lock) {
-			setRootsTo(root);
-		}
+	public T checkoutAt(byte[] root) {
+		var bytesOfRootOfResponses = new byte[32];
+		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
+		var bytesOfRootOfInfo = new byte[32];
+		System.arraycopy(root, 32, bytesOfRootOfInfo, 0, 32);
+		var bytesOfRootOfErrors = new byte[32];
+		System.arraycopy(root, 64, bytesOfRootOfErrors, 0, 32);
+		var bytesOfRootOfRequests = new byte[32];
+		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
+		var bytesOfRootOfHistories = new byte[32];
+		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
+	
+		return mkClone(Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 	}
 
 	public void moveRootBranchToThis() throws StoreException {
-		synchronized (lock) {
-			byte[] root = mergeRootsOfTries();
-			var rootAsBI = ByteIterable.fromBytes(root);
-			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+		var rootAsBI = ByteIterable.fromBytes(mergeRootsOfTries());
+		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+	}
+
+	protected abstract StoreTransaction<T> mkTransaction(Transaction txn) throws StoreException;
+
+	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
+		try {
+			return new TrieOfResponses(new KeyValueStoreOnXodus(storeOfResponses, txn), rootOfResponses);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
 		}
 	}
 
-	/**
-	 * Determines if the store is between a {@link #beginTransactionInternal()} and a
-	 * {@link #endTransaction()}.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected final boolean duringTransaction() {
-		return txn != null && !txn.isFinished();
+	protected TrieOfInfo mkTrieOfInfo(Transaction txn) throws StoreException {
+		try {
+			return new TrieOfInfo(new KeyValueStoreOnXodus(storeOfInfo, txn), rootOfInfo);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
-	/**
-	 * Sets the roots of this store to the given (merged) root.
-	 * 
-	 * @param root the merged root; this is empty if the store is empty and has consequently no root yet
-	 */
-	protected void setRootsTo(byte[] root) {
-		var bytesOfRootOfResponses = new byte[32];
-		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
-		rootOfResponses = Optional.of(bytesOfRootOfResponses);
+	protected TrieOfErrors mkTrieOfErrors(Transaction txn) throws StoreException {
+		try {
+			return new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
 
-		var bytesOfRootOfInfo = new byte[32];
-		System.arraycopy(root, 32, bytesOfRootOfInfo, 0, 32);
-		rootOfInfo = Optional.of(bytesOfRootOfInfo);
+	protected TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException {
+		try {
+			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
+	}
 
-		var bytesOfRootOfErrors = new byte[32];
-		System.arraycopy(root, 64, bytesOfRootOfErrors, 0, 32);
-		rootOfErrors = Optional.of(bytesOfRootOfErrors);
-
-		var bytesOfRootOfRequests = new byte[32];
-		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
-		rootOfRequests = Optional.of(bytesOfRootOfRequests);
-
-		var bytesOfRootOfHistories = new byte[32];
-		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
-		rootOfHistories = Optional.of(bytesOfRootOfHistories);
+	protected TrieOfHistories mkTrieOfHistories(Transaction txn) throws StoreException {
+		try {
+			return new TrieOfHistories(new KeyValueStoreOnXodus(storeOfHistories, txn), rootOfHistories);
+		}
+		catch (TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	/**
@@ -597,13 +413,13 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	 * 
 	 * @return the concatenation
 	 */
-	protected byte[] mergeRootsOfTries() throws StoreException {
+	private byte[] mergeRootsOfTries() throws StoreException {
 		var result = new byte[160];
-		System.arraycopy(trieOfResponses.getRoot(), 0, result, 0, 32);
-		System.arraycopy(trieOfInfo.getRoot(), 0, result, 32, 32);
-		System.arraycopy(trieOfErrors.getRoot(), 0, result, 64, 32);
-		System.arraycopy(trieOfRequests.getRoot(), 0, result, 96, 32);
-		System.arraycopy(trieOfHistories.getRoot(), 0, result, 128, 32);
+		System.arraycopy(rootOfResponses.get(), 0, result, 0, 32);
+		System.arraycopy(rootOfInfo.get(), 0, result, 32, 32);
+		System.arraycopy(rootOfErrors.get(), 0, result, 64, 32);
+		System.arraycopy(rootOfRequests.get(), 0, result, 96, 32);
+		System.arraycopy(rootOfHistories.get(), 0, result, 128, 32);
 
 		return result;
 	}

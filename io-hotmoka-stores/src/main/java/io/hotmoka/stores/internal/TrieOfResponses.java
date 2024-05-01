@@ -92,11 +92,6 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 	}
 
 	@Override
-	public TrieOfResponses with(KeyValueStore store) throws TrieException {
-		return new TrieOfResponses(this, store);
-	}
-
-	@Override
 	public TrieOfResponses checkoutAt(byte[] root) {
 		return new TrieOfResponses(this, root);
 	}

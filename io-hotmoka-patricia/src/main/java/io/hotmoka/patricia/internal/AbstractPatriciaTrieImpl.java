@@ -20,7 +20,6 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Optional;
 
@@ -179,29 +178,6 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 	@Override
 	public final byte[] getRoot() {
 		return root.clone();
-	}
-
-	@Override
-	public final void garbageCollect(long commitNumber) throws TrieException {
-		/*long numberOfGarbageKeys = getNumberOfGarbageKeys(commitNumber);
-
-		// there is nothing to remove when numberOfGarbageKeys == 0, since even the
-		// garbage collection support data is empty
-		if (numberOfGarbageKeys > 0) {
-			try {
-				for (long num = 0; num < numberOfGarbageKeys; num++)
-					store.remove(getGarbageKey(commitNumber, num));
-			}
-			catch (UnknownKeyException e) {
-				throw new TrieException("This trie refers to a garbage key that does not exist in the trie itself", e);
-			}
-			catch (KeyValueStoreException e) {
-				throw new TrieException(e);
-			}
-
-			removeGarbageCollectionData(commitNumber, numberOfGarbageKeys);
-		}
-		*/
 	}
 
 	/**
@@ -752,110 +728,5 @@ public abstract class AbstractPatriciaTrieImpl<Key, Value, T extends PatriciaTri
 		protected void markAsGarbageCollectable(byte[] key) throws TrieException {
 			// we disable garbage collection for the empty nodes, since they are not kept in store
 		}
-	}
-
-	/**
-	 * Yields the number of keys that could be garbage collected for the given number of commit.
-	 * 
-	 * @param commitNumber the number of commit
-	 * @return the number of keys
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	private long getNumberOfGarbageKeys(long commitNumber) throws TrieException {
-	    try {
-	    	return bytesToLong(store.get(twoLongsToBytes(commitNumber, 0L)));
-	    }
-	    catch (UnknownKeyException e) {
-	    	return 0L;
-	    }
-	    catch (KeyValueStoreException e) {
-	    	throw new TrieException(e);
-		}
-	}
-
-	/**
-	 * Sets the number of keys that could be garbage collected for the
-	 * given number of commit.
-	 * 
-	 * @param commitNumber the number of commit
-	 * @param newNumberOfGarbageKeys the new number of garbage keys to set
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	private void setNumberOfGarbageKeys(long commitNumber, long newNumberOfGarbageKeys) throws TrieException {
-		try {
-			store.put(twoLongsToBytes(numberOfCommits, 0L), longToBytes(newNumberOfGarbageKeys));
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
-	}
-
-	/**
-	 * Yields the given key that could be garbage-collected
-	 * because it has been updated during the given number of commit.
-	 * 
-	 * @param numberOfCommit the number of commit
-	 * @param keyNumber the progressive number of the key
-	 * @return the key
-	 */
-	private byte[] getGarbageKey(long commitNumber, long keyNumber) throws TrieException {
-		try {
-			return store.get(twoLongsToBytes(commitNumber, keyNumber + 1));
-		}
-		catch (UnknownKeyException | KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
-	}
-
-	/**
-	 * Sets a key that can be garbage-collected, because it has been updated during
-	 * the given number of commit.
-	 * 
-	 * @param commitNumber the number of commit
-	 * @param keyNumber the progressive number of the key updated during the commit
-	 * @param key the updated key
-	 * @throws TrieException if this trie is not able to complete the operation correctly
-	 */
-	private void setGarbageKey(long commitNumber, long keyNumber, byte[] key) throws TrieException {
-		try {
-			store.put(twoLongsToBytes(commitNumber, keyNumber + 1), key);
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
-	}
-
-	private void removeGarbageCollectionData(long commitNumber, long numberOfGarbageKeys) throws TrieException {
-		try {
-			// the 0th is the counter of the keys, the subsequent are the keys; hence the <=
-			for (long num = 0; num <= numberOfGarbageKeys; num++)
-				store.remove(twoLongsToBytes(commitNumber, num));
-		}
-		catch (UnknownKeyException e) {
-			throw new TrieException("This trie refers to a key to garbage collect that cannot be found in the trie itself", e);
-		}
-		catch (KeyValueStoreException e) {
-			throw new TrieException(e);
-		}
-	}
-
-	private static byte[] longToBytes(long l) {
-		var buffer = ByteBuffer.wrap(new byte[Long.BYTES]);
-	    buffer.putLong(l);
-	    return buffer.array();
-	}
-
-	private static byte[] twoLongsToBytes(long l1, long l2) {
-		var buffer = ByteBuffer.wrap(new byte[Long.BYTES * 2]);
-	    buffer.putLong(l1);
-	    buffer.putLong(l2);
-	    return buffer.array();
-	}
-
-	private static long bytesToLong(byte[] bytes) {
-	    var buffer = ByteBuffer.allocate(Long.BYTES);
-	    buffer.put(bytes);
-	    buffer.flip();
-	    return buffer.getLong();
 	}
 }

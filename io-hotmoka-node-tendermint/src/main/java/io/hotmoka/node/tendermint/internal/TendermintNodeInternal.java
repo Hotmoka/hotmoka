@@ -25,6 +25,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 
 /**
@@ -90,7 +91,7 @@ public interface TendermintNodeInternal {
 	/**
 	 * Commits the current transaction in the database of the state.
 	 */
-	void commitTransactionAndCheckout();
+	void commitTransactionAndCheckout() throws StoreException;
 
 	/**
 	 * Rewards the validators with the cost of the gas consumed by the

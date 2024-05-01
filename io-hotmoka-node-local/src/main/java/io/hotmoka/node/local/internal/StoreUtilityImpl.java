@@ -87,14 +87,14 @@ public class StoreUtilityImpl implements StoreUtility {
 
 	@Override
 	public Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		return getStore().getManifestUncommitted()
+		return node.getManifestUncommitted()
 			.map(this::getClassTagUncommitted)
 			.map(ClassTag::getJar);
 	}
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
-		return getStore().getManifestUncommitted();
+		return node.getManifestUncommitted();
 	}
 
 	@Override
@@ -187,7 +187,7 @@ public class StoreUtilityImpl implements StoreUtility {
 		Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
 		NodeCache caches = node.getCaches();
 
-		return getStore().getHistoryUncommitted(object)
+		return node.getHistoryUncommitted(object)
 				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
 				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
 						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
@@ -196,7 +196,7 @@ public class StoreUtilityImpl implements StoreUtility {
 
 	@Override
 	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
-		return getStore().getHistoryUncommitted(object)
+		return node.getHistoryUncommitted(object)
 			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)

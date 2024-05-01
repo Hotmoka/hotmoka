@@ -36,29 +36,32 @@ public interface StoreTransaction<T extends Store<T>> {
 
 	/**
 	 * Yields the response of the transaction having the given reference.
+	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response, if any
 	 */
-	Optional<TransactionResponse> getResponse(TransactionReference reference);
+	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException;
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
 	 * that can be used to reconstruct the current values of its fields.
+	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 
 	 * @param object the reference of the object
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Stream<TransactionReference> getHistory(StorageReference object) throws StoreException;
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.
+	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 
 	 * @return the manifest
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	Optional<StorageReference> getManifest() throws StoreException;
+	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
 	/**
 	 * Pushes the result of executing a successful Hotmoka request.
@@ -97,5 +100,5 @@ public interface StoreTransaction<T extends Store<T>> {
 	 */
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
-	T commit();
+	T commit() throws StoreException;
 }

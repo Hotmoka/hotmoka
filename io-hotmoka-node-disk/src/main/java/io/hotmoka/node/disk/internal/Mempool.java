@@ -18,6 +18,7 @@ package io.hotmoka.node.disk.internal;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -128,24 +129,33 @@ class Mempool {
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
-				TransactionRequest<?> current = checkedMempool.take();
-
-				try {
+				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
+				if (current == null) {
+					if (counter > 0)
+						node.rewardValidators("", "");
+					transaction.commit();
+					transaction = node.getStore().beginTransaction();
+					node.setNow(transaction);
+					counter = 0;
+				}
+				else {
 					node.deliverTransaction(current);
-					counter = (counter + 1) % transactionsPerBlock;
+					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
 					// the last transaction of a block is for rewarding the validators and updating the gas price
-					if (counter == transactionsPerBlock - 1 && node.rewardValidators("", "")) {
-						counter = 0L;
+					if (counter == transactionsPerBlock - 1) {
+						node.rewardValidators("", "");
+						transaction.commit();
 						transaction = node.getStore().beginTransaction();
 						node.setNow(transaction);
+						counter = 0;
 					}
 				}
-	            catch (Throwable t) {
-	            	logger.log(Level.WARNING, "Failed to deliver transaction request", t);
-	    		}
 			}
 			catch (InterruptedException e) {
 				return;
+			}
+			catch (Throwable t) {
+				logger.log(Level.WARNING, "Failed to deliver transaction request", t);
 			}
 		}
 	}

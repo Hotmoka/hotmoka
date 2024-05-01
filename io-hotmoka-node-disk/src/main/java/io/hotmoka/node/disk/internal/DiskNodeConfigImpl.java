@@ -86,7 +86,7 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 		/**
 		 * The number of transactions that fit inside a block.
 		 */
-		private long transactionsPerBlock = 5;
+		private long transactionsPerBlock = 10;
 
 		/**
 		 * Creates a builder with default values for the properties.

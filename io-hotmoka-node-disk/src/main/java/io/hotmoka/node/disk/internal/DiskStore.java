@@ -68,43 +68,26 @@ class DiskStore extends AbstractStore<DiskStore> {
 	 */
 	private final AtomicReference<StorageReference> manifest;
 
-	/**
-	 * The number of transactions added to the store. This is used to associate
-	 * each transaction to its progressive number.
-	 */
-	private final AtomicInteger transactionsCount;
-
-	/**
-	 * A map from the transactions added to the store to their progressive number.
-	 * This is needed in order to give a nice presentation of transactions, inside a
-	 * directory for its block.
-	 */
-	private final ConcurrentMap<TransactionReference, Integer> progressive;
+	private final ConcurrentMap<TransactionReference, Path> paths = new ConcurrentHashMap<>();
 
 	/**
 	 * The path where the database of the store gets created.
 	 */
 	private final Path dir;
 
-	/**
-	 * The number of transactions that fit inside a block.
-	 */
-	private final long transactionsPerBlock;
+	private final AtomicInteger blockNumber;
 
 	/**
      * Creates a state for a node.
      * 
 	 * @param dir the path where the database of the store gets created
-     * @param transactionsPerBlock the number of transactions that fit inside a block
      */
-    DiskStore(Path dir, long transactionsPerBlock) {
+    DiskStore(Path dir) {
     	this.dir = dir;
-    	this.transactionsPerBlock = transactionsPerBlock;
     	this.histories = new ConcurrentHashMap<>();
     	this.errors = new ConcurrentHashMap<>();
-    	this.progressive = new ConcurrentHashMap<>();
     	this.manifest = new AtomicReference<>();
-    	this.transactionsCount = new AtomicInteger();
+    	this.blockNumber = new AtomicInteger(0);
     }
 
     /**
@@ -116,18 +99,20 @@ class DiskStore extends AbstractStore<DiskStore> {
     	super(toClone);
 
     	this.dir = toClone.dir;
-    	this.transactionsPerBlock = toClone.transactionsPerBlock;
     	this.histories = toClone.histories;
     	this.errors = toClone.errors;
-    	this.progressive = toClone.progressive;
     	this.manifest = toClone.manifest;
-    	this.transactionsCount = toClone.transactionsCount;
+    	this.blockNumber = toClone.blockNumber;
     }
 
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	try {
-    		Path response = getPathFor(reference, "response");
+    		Path path = paths.get(reference);
+    		if (path == null)
+    			return Optional.empty();
+
+    		Path response = path.resolve("response");
     		try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
     			return Optional.of(TransactionResponses.from(context));
     		}
@@ -136,11 +121,6 @@ class DiskStore extends AbstractStore<DiskStore> {
     		return Optional.empty();
     	}
     }
-
-	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		return getResponse(reference);
-	}
 
 	@Override
 	public Optional<String> getError(TransactionReference reference) {
@@ -154,24 +134,18 @@ class DiskStore extends AbstractStore<DiskStore> {
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) {
-		return getHistory(object);
-	}
-
-	@Override
 	public Optional<StorageReference> getManifest() {
 		return Optional.ofNullable(manifest.get());
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() {
-		return getManifest();
-	}
-
-	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		try {
-			Path response = getPathFor(reference, "request");
+			Path path = paths.get(reference);
+			if (path == null)
+				return Optional.empty();
+
+			Path response = path.resolve("request");
 			try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
 				return Optional.of(TransactionRequests.from(context));
 			}
@@ -196,65 +170,52 @@ class DiskStore extends AbstractStore<DiskStore> {
 		return new DiskStore(this);
 	}
 
-	@Override
-	protected DiskStore setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+	protected void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
 		try {
-			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
-			Path requestPath = getPathFor(reference, "request");
+			Path requestPath = getPathFor(progressive, reference, "request");
 			Path parent = requestPath.getParent();
+			paths.put(reference, parent);
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
 	
-			Files.writeString(getPathFor(reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
+			Files.writeString(getPathFor(progressive, reference, "request.txt"), request.toString(), StandardCharsets.UTF_8);
 	
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(requestPath))) {
 				request.into(context);
 			}
-	
-			return this;
 		}
 		catch (IOException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	@Override
-	protected DiskStore setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
+	protected void setResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
 		try {
-			progressive.computeIfAbsent(reference, _reference -> transactionsCount.getAndIncrement());
-			Path responsePath = getPathFor(reference, "response");
+			Path responsePath = getPathFor(progressive, reference, "response");
 			Path parent = responsePath.getParent();
 			Files.createDirectories(parent);
 
-			Files.writeString(getPathFor(reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
+			Files.writeString(getPathFor(progressive, reference, "response.txt"), response.toString(), StandardCharsets.UTF_8);
 
 			try (var context = NodeMarshallingContexts.of(Files.newOutputStream(responsePath))) {
 				response.into(context);
 			}
-
-			return this;
 		}
 		catch (IOException e) {
 			throw new StoreException(e);
 		}
 	}
 
-	@Override
-	protected DiskStore setError(TransactionReference reference, String error) {
+	protected void setError(TransactionReference reference, String error) {
 		errors.put(reference, error);
-		return this;
 	}
 
-	@Override
-	protected DiskStore setHistory(StorageReference object, Stream<TransactionReference> history) {
+	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
 		histories.put(object, history.toArray(TransactionReference[]::new));
-		return this;
 	}
 
-	@Override
-	protected DiskStore setManifest(StorageReference manifest) {
+	protected void setManifest(StorageReference manifest) {
 		this.manifest.set(manifest);
-		return this;
 	}
 
 	/**
@@ -265,12 +226,8 @@ class DiskStore extends AbstractStore<DiskStore> {
 	 * @return the resulting path
 	 * @throws FileNotFoundException if the reference is unknown
 	 */
-	private Path getPathFor(TransactionReference reference, String name) throws FileNotFoundException {
-		Integer progressive = this.progressive.get(reference);
-		if (progressive == null)
-			throw new FileNotFoundException("Unknown transaction reference " + reference);
-
-		return dir.resolve("b" + progressive / transactionsPerBlock).resolve(progressive % transactionsPerBlock + "-" + reference).resolve(name);
+	private Path getPathFor(int progressive, TransactionReference reference, String name) throws FileNotFoundException {
+		return dir.resolve("b" + blockNumber.get()).resolve(progressive + "-" + reference).resolve(name);
 	}
 
 	/**
@@ -285,5 +242,9 @@ class DiskStore extends AbstractStore<DiskStore> {
 				.sorted(Comparator.reverseOrder())
 				.map(Path::toFile)
 				.forEach(File::delete);
+	}
+
+	void increaseBlockNumber() {
+		blockNumber.getAndIncrement();
 	}
 }
