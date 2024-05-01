@@ -14,7 +14,6 @@ import io.hotmoka.stores.AbstractStoreTransaction;
 import io.hotmoka.stores.StoreException;
 
 public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
-	private final DiskStore store;
 	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();
 	private final ConcurrentMap<TransactionReference, TransactionResponse> responses = new ConcurrentHashMap<>();
 
@@ -36,7 +35,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
 	public DiskStoreTransaction(DiskStore store) {
-		this.store = store;
+		super(store);
 	}
 
 	@Override
@@ -45,7 +44,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 		if (uncommittedResponse != null)
 			return Optional.of(uncommittedResponse);
 		else
-			return store.getResponse(reference);
+			return getStore().getResponse(reference);
 	}
 
 	@Override
@@ -54,7 +53,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 		if (uncommittedHistory != null)
 			return Stream.of(uncommittedHistory);
 		else
-			return store.getHistory(object);
+			return getStore().getHistory(object);
 	}
 
 	@Override
@@ -63,11 +62,13 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 		if (uncommittedManifest != null)
 			return Optional.of(uncommittedManifest);
 		else
-			return store.getManifest();
+			return getStore().getManifest();
 	}
 
 	@Override
 	public DiskStore commit() throws StoreException {
+		var store = getStore();
+
 		// we report all the updates occurred during this transaction into the store
 		var manifest = this.manifest.get();
 		if (manifest != null)

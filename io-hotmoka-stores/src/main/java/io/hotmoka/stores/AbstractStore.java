@@ -30,10 +30,6 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 */
 	protected AbstractStore() {}
 
-	protected abstract T mkClone();
-
-	protected abstract T getThis();
-
 	@Override
 	public void close() {}
 }

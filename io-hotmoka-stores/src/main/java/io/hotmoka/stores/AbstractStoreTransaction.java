@@ -42,8 +42,15 @@ import io.hotmoka.node.api.values.StorageReference;
  */
 public abstract class AbstractStoreTransaction<T extends Store<T>> implements StoreTransaction<T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
+	private final T store;
 
-	protected AbstractStoreTransaction() {}
+	protected AbstractStoreTransaction(T store) {
+		this.store = store;
+	}
+
+	protected final T getStore() {
+		return store;
+	}
 
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {

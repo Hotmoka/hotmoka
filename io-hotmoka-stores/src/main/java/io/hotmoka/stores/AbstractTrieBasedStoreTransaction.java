@@ -23,11 +23,6 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 	private final Transaction txn;
 
 	/**
-	 * The store from which this transaction was started.
-	 */
-	private final T store;
-
-	/**
 	 * The trie of the responses.
 	 */
 	private volatile TrieOfResponses trieOfResponses;
@@ -53,8 +48,9 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 	private volatile TrieOfRequests trieOfRequests;
 
 	protected AbstractTrieBasedStoreTransaction(T store, Transaction txn) throws StoreException {
+		super(store);
+
 		this.txn = txn;
-		this.store = store;
 		this.trieOfResponses = store.mkTrieOfResponses(txn);
 		this.trieOfInfo = store.mkTrieOfInfo(txn);
 		this.trieOfErrors = store.mkTrieOfErrors(txn);
@@ -154,7 +150,7 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 		if (!txn.commit())
 			throw new StoreException("Cannot commit the Xodus transaction");
 
-		return store.mkClone(
+		return getStore().mkClone(
 			Optional.of(trieOfResponses.getRoot()),
 			Optional.of(trieOfInfo.getRoot()),
 			Optional.of(trieOfErrors.getRoot()),

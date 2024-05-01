@@ -67,13 +67,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
     	}
     }
 
-    private TendermintStore(TendermintStore toClone) {
-    	super(toClone);
- 
-    	this.nodeInternal = toClone.nodeInternal;
-    	this.hasherOfHashes = toClone.hasherOfHashes;
-    }
-
     private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
@@ -128,16 +121,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 			bytes[pos] = 0;
 
 		return bytes;
-	}
-
-	@Override
-	protected TendermintStore getThis() {
-		return this;
-	}
-
-	@Override
-	protected TendermintStore mkClone() {
-		return new TendermintStore(this);
 	}
 
 	@Override

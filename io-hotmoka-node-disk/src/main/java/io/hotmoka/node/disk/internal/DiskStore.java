@@ -90,19 +90,6 @@ class DiskStore extends AbstractStore<DiskStore> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    /**
-	 * Creates a clone of the given store.
-	 * 
-	 * @param toClone the store to clone
-	 */
-    private DiskStore(DiskStore toClone) {
-    	this.dir = toClone.dir;
-    	this.histories = toClone.histories;
-    	this.errors = toClone.errors;
-    	this.manifest = toClone.manifest;
-    	this.blockNumber = toClone.blockNumber;
-    }
-
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
     	try {
@@ -156,16 +143,6 @@ class DiskStore extends AbstractStore<DiskStore> {
 	@Override
 	public StoreTransaction<DiskStore> beginTransaction() {
 		return new DiskStoreTransaction(this);
-	}
-
-	@Override
-	protected DiskStore getThis() {
-		return this;
-	}
-
-	@Override
-	protected DiskStore mkClone() {
-		return new DiskStore(this);
 	}
 
 	protected void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
