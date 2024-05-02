@@ -115,7 +115,6 @@ import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilde
 import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
-import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
@@ -127,7 +126,7 @@ import io.hotmoka.stores.StoreTransaction;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends AbstractStore<S>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends Store<S>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
 	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
@@ -370,6 +369,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				S store = this.store;
 				if (store != null)
 					store.close();
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
 			}
 			finally {
 				// we give five seconds

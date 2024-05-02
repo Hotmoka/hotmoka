@@ -84,4 +84,7 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * in the supporting database if the transaction will later be committed.
 	 */
 	StoreTransaction<T> beginTransaction() throws StoreException;
+
+	@Override
+	void close() throws StoreException, InterruptedException;
 }

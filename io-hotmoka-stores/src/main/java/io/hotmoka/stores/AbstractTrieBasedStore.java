@@ -62,7 +62,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @ThreadSafe
-public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>> extends AbstractStore<T> {
+public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>> implements Store<T> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -245,8 +245,6 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	catch (ExodusException e) {
     		LOGGER.log(Level.WARNING, "failed to close environment", e);
     	}
-
-    	super.close();
     }
 
     @Override

@@ -39,7 +39,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.stores.AbstractStore;
+import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 
@@ -49,7 +49,7 @@ import io.hotmoka.stores.StoreTransaction;
  * while the histories are kept in RAM.
  */
 @ThreadSafe
-class DiskStore extends AbstractStore<DiskStore> {
+class DiskStore implements Store<DiskStore> {
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -221,5 +221,9 @@ class DiskStore extends AbstractStore<DiskStore> {
 
 	void increaseBlockNumber() {
 		blockNumber.getAndIncrement();
+	}
+
+	@Override
+	public void close() {
 	}
 }
