@@ -104,11 +104,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	private final boolean isWindows;
 
 	/**
-	 * The time to use for the currently executing transaction.
-	 */
-	private volatile long now;
-
-	/**
 	 * The current store transaction.
 	 */
 	private volatile StoreTransaction<?> transaction;

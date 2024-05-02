@@ -186,7 +186,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	/**
 	 * The caches of the node.
 	 */
-	protected final NodeCache caches;
+	public final NodeCache caches;
 
 	/**
 	 * The store of the node.
@@ -253,11 +253,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	private volatile BigInteger numberOfTransactionsSinceLastReward;
 
 	/**
-	 * The view of this node with methods used by the implementation of this module.
-	 */
-	final NodeInternal internal = new NodeInternalImpl();
-
-	/**
 	 * The amount of gas allowed for the execution of the reward method of the validators
 	 * at each committed block.
 	 */
@@ -297,8 +292,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			throw new RuntimeException("Unexpected exception", e);
 		}
 
-		this.storeUtilities = new StoreUtilityImpl(internal);
-		this.caches = new NodeCachesImpl(internal, consensus);
+		this.storeUtilities = new StoreUtilityImpl(this);
+		this.caches = new NodeCachesImpl(this, consensus, config.getRequestCacheSize(), config.getResponseCacheSize());
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
@@ -380,6 +375,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		try (var scope = mkScope()) {
 			return caches.getConsensusParams();
 		}
+	}
+
+	public LocalNodeConfig<?,?> getLocalNodeConfig() {
+		return config;
+	}
+
+	public GasCostModel getGasCostModel() {
+		return gasCostModel;
 	}
 
 	@Override
@@ -567,7 +570,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
+				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, transaction, this).getResponse());
 			}
 			
 			transaction.abort();
@@ -587,7 +590,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
+				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, this).getResponse());
 			}
 
 			transaction.abort();
@@ -798,13 +801,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
 				// to the node the chance of suspending the generation of new blocks
-				if (!(response instanceof TransactionResponseWithUpdates) || ((TransactionResponseWithUpdates) response).getUpdates().count() > 1L)
+				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
 					response = deliverTransaction(request);
 
-				if (response instanceof MethodCallTransactionFailedResponse) {
-					MethodCallTransactionFailedResponse responseAsFailed = (MethodCallTransactionFailedResponse) response;
+				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
 					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				}
 				else {
 					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumedSinceLastReward);
 					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coinsSinceLastReward);
@@ -903,19 +904,19 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 */
 	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request, StoreTransaction<?> transaction) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, internal);
+			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, this);
 		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, transaction, internal);
+			return new GameteCreationResponseBuilder(reference, gctr, transaction, this);
     	else if (request instanceof JarStoreTransactionRequest jstr)
-    		return new JarStoreResponseBuilder(reference, jstr, transaction, internal);
+    		return new JarStoreResponseBuilder(reference, jstr, transaction, this);
     	else if (request instanceof ConstructorCallTransactionRequest cctr)
-    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, internal);
+    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, this);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, internal);
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, this);
     	else if (request instanceof StaticMethodCallTransactionRequest smctr)
-    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, internal);
+    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, this);
     	else if (request instanceof InitializationTransactionRequest itr)
-    		return new InitializationResponseBuilder(reference, itr, transaction, internal);
+    		return new InitializationResponseBuilder(reference, itr, transaction, this);
     	else
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
@@ -949,7 +950,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param reference the reference of the transaction
 	 * @return the response, if any
 	 */
-	private Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
+	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
 		var transaction = getTransaction();
 		if (transaction != null)
 			return transaction.getResponseUncommitted(reference);
@@ -966,7 +967,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	private Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
 		var transaction = getTransaction();
 		if (transaction != null)
 			return transaction.getHistoryUncommitted(object);
@@ -981,12 +982,24 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the manifest
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	private Optional<StorageReference> getManifestUncommitted() throws StoreException {
+	Optional<StorageReference> getManifestUncommitted() throws StoreException {
 		var transaction = getTransaction();
 		if (transaction != null)
 			return transaction.getManifestUncommitted();
 		else
 			return store.getManifest();
+	}
+
+	public StoreUtility getStoreUtilities() {
+		return storeUtilities;
+	}
+
+	public <T> Future<T> submit(Callable<T> task) {
+		return executors.submit(task);
+	}
+
+	S getStore() {
+		return store;
 	}
 
 	/**
@@ -1187,102 +1200,5 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				throw new RuntimeException(e);
 			}
 		}));
-	}
-
-	/**
-	 * The view of the node with the methods that are useful inside this module.
-	 * This avoids to export such methods as public elsewhere.
-	 */
-	private class NodeInternalImpl implements NodeInternal {
-
-		@Override
-		public LocalNodeConfig<?,?> getConfig() {
-			return config;
-		}
-
-		@Override
-		public NodeCache getCaches() {
-			return caches;
-		}
-
-		@Override
-		public GasCostModel getGasCostModel() {
-			return gasCostModel;
-		}
-
-		@Override
-		public Store<?> getStore() {
-			return store;
-		}
-
-		@Override
-		public StoreUtility getStoreUtilities() {
-			return storeUtilities;
-		}
-
-		/**
-		 * Yields the response of the transaction having the given reference.
-		 * This considers also updates inside this transaction, that have not yet been committed.
-		 * 
-		 * @param reference the reference of the transaction
-		 * @return the response, if any
-		 */
-		public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
-			return AbstractLocalNodeImpl.this.getResponseUncommitted(reference);
-		}
-
-		/**
-		 * Yields the history of the given object, that is, the references to the transactions
-		 * that can be used to reconstruct the current values of its fields.
-		 * This considers also updates inside this transaction, that have not yet been committed.
-		 * 
-		 * @param object the reference of the object
-		 * @return the history. Yields an empty stream if there is no history for {@code object}
-		 * @throws StoreException if the store is not able to perform the operation
-		 */
-		public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
-			return AbstractLocalNodeImpl.this.getHistoryUncommitted(object);
-		}
-
-		/**
-		 * Yields the manifest installed when the node is initialized.
-		 * This considers also updates inside this transaction, that have not yet been committed.
-		 * 
-		 * @return the manifest
-		 * @throws StoreException if the store is not able to complete the operation correctly
-		 */
-		public Optional<StorageReference> getManifestUncommitted() throws StoreException {
-			return AbstractLocalNodeImpl.this.getManifestUncommitted();
-		}
-
-		@Override
-		public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
-			return AbstractLocalNodeImpl.this.getRequest(reference);
-		}
-
-		@Override
-		public TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
-			return AbstractLocalNodeImpl.this.getResponse(reference);
-		}
-
-		@Override
-		public ClassTag getClassTag(StorageReference object) throws NodeException, UnknownReferenceException {
-			return AbstractLocalNodeImpl.this.getClassTag(object);
-		}
-
-		@Override
-		public Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-			return AbstractLocalNodeImpl.this.runInstanceMethodCallTransaction(request);
-		}
-
-		@Override
-		public <T> Future<T> submit(Callable<T> task) {
-			return executors.submit(task);
-		}
-
-		@Override
-		public void submit(Runnable task) {
-			executors.submit(task);
-		}
 	}
 }

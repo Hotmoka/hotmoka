@@ -31,7 +31,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.StoreTransaction;
 
 /**
@@ -47,13 +47,13 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		super(reference, request, transaction, node);
 	}
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return node.getCaches().getClassLoader(request.getClasspath());
+		return node.caches.getClassLoader(request.getClasspath());
 	}
 
 	@Override

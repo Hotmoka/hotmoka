@@ -75,7 +75,7 @@ import io.hotmoka.stores.StoreException;
 public class NodeCachesImpl implements NodeCache {
 	protected final static Logger logger = Logger.getLogger(NodeCachesImpl.class.getName());
 
-	private final NodeInternal node;
+	private final AbstractLocalNodeImpl<?,?> node;
 
 	/**
 	 * The cache for the requests.
@@ -147,10 +147,10 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(NodeInternal node, ConsensusConfig<?,?> consensus) {
+	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus, int requestCacheSize, int responseCacheSize) {
 		this.node = node;
-		this.requests = new LRUCache<>(100, node.getConfig().getRequestCacheSize());
-		this.responses = new LRUCache<>(100, node.getConfig().getResponseCacheSize());
+		this.requests = new LRUCache<>(100, requestCacheSize);
+		this.responses = new LRUCache<>(100, responseCacheSize);
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();
@@ -503,8 +503,8 @@ public class NodeCachesImpl implements NodeCache {
 
 		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
 		try {
-			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
+				Stream<StorageReference> events = trwe.getEvents();
 				StorageReference manifest = node.getManifestUncommitted().get();
 				StorageReference gasStation = getGasStation().get();
 				StorageReference versions = getVersions().get();

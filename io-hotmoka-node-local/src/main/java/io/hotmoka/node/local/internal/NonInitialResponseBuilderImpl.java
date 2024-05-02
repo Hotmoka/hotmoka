@@ -75,7 +75,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		super(reference, request, transaction, node);
 
 		try {
@@ -106,7 +106,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return node.getCaches().getClassLoader(request.getClasspath());
+		return node.caches.getClassLoader(request.getClasspath());
 	}
 
 	/**
@@ -240,7 +240,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void signatureMustBeValid() throws Exception {
 		// if the node is not initialized yet, the signature is not checked
 		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()
-				&& !node.getCaches().signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
+				&& !node.caches.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
 
@@ -305,7 +305,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
 		if (isView())
-			maxGas = node.getConfig().getMaxGasPerViewTransaction();
+			maxGas = node.getLocalNodeConfig().getMaxGasPerViewTransaction();
 		else
 			maxGas = consensus.getMaxGasPerTransaction();
 
@@ -322,7 +322,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// before initialization, the gas price is not yet available
 		try {
 			if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
-				BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
+				BigInteger currentGasPrice = node.caches.getGasPrice().get();
 				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
 					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
 			}
@@ -431,7 +431,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void init() throws NodeException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			this.deserializedPayer = deserializedPayer();
-			this.deserializedValidators = node.getCaches().getValidators().map(deserializer::deserialize);
+			this.deserializedValidators = node.caches.getValidators().map(deserializer::deserialize);
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());

@@ -38,7 +38,7 @@ import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
-import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.node.local.internal.Serializer;
 import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.whitelisting.Dummy;
@@ -65,7 +65,7 @@ public abstract class CodeCallResponseBuilder
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		super(reference, request, transaction, node);
 
 		try {

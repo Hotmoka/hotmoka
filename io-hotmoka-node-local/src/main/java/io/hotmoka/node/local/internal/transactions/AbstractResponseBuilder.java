@@ -43,9 +43,9 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.node.local.internal.Deserializer;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
-import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.StorageTypeToClass;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.stores.StoreException;
@@ -63,7 +63,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final NodeInternal node;
+	public final AbstractLocalNodeImpl<?,?> node;
 
 	public final StoreTransaction<?> transaction;
 
@@ -101,13 +101,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		try {
 			this.transaction = transaction;
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
-			this.consensus = node.getCaches().getConsensusParams();
+			this.consensus = node.caches.getConsensusParams();
 			this.classLoader = mkClassLoader();
 			this.storageTypeToClass = new StorageTypeToClass(this);
 		}

@@ -40,7 +40,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 import io.takamaka.code.constants.Constants;
@@ -59,7 +59,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		super(reference, request, transaction, node);
 
 		try {
@@ -94,7 +94,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean callerIsGameteOfTheNode() {
 		try {
-			return node.getCaches().getGamete().filter(request.getCaller()::equals).isPresent();
+			return node.caches.getGamete().filter(request.getCaller()::equals).isPresent();
 		}
 		catch (NodeException e) {
 			LOGGER.log(Level.SEVERE, "", e);

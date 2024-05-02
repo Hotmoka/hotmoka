@@ -54,7 +54,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	/**
 	 * The node whose store is accessed.
 	 */
-	private final NodeInternal node;
+	private final AbstractLocalNodeImpl<?, ?> node;
 
 	/**
 	 * The store that is accessed.
@@ -66,7 +66,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	 * 
 	 * @param node the node whose store is accessed
 	 */
-	public StoreUtilityImpl(NodeInternal node) {
+	public StoreUtilityImpl(AbstractLocalNodeImpl<?, ?> node) {
 		this.node = node;
 	}
 
@@ -80,7 +80,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	 * @param node the node for which the store utilities are being built
 	 * @param store the store accessed by the store utilities
 	 */
-	public StoreUtilityImpl(NodeInternal node, Store<?> store) {
+	public StoreUtilityImpl(AbstractLocalNodeImpl<?, ?> node, Store<?> store) {
 		this.node = node;
 		this.store = store;
 	}
@@ -165,7 +165,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	@Override
 	public ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
 		// we go straight to the transaction that created the object
-		return node.getCaches().getResponseUncommitted(reference.getTransaction())
+		return node.caches.getResponseUncommitted(reference.getTransaction())
 			.filter(response -> response instanceof TransactionResponseWithUpdates)
 			.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
 				.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
@@ -185,7 +185,7 @@ public class StoreUtilityImpl implements StoreUtility {
 	@Override
 	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
 		Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
-		NodeCache caches = node.getCaches();
+		NodeCache caches = node.caches;
 
 		return node.getHistoryUncommitted(object)
 				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
@@ -277,16 +277,16 @@ public class StoreUtilityImpl implements StoreUtility {
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
-		TransactionResponse response = node.getCaches().getResponseUncommitted(transaction)
+		TransactionResponse response = node.caches.getResponseUncommitted(transaction)
 			.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + transaction));
 	
-		if (!(response instanceof TransactionResponseWithUpdates))
+		if (response instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates()
+					.filter(update -> update instanceof UpdateOfField)
+					.map(update -> (UpdateOfField) update)
+					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+					.findFirst();
+		else
 			throw new RuntimeException("Transaction reference " + transaction + " does not contain updates");
-
-		return ((TransactionResponseWithUpdates) response).getUpdates()
-			.filter(update -> update instanceof UpdateOfField)
-			.map(update -> (UpdateOfField) update)
-			.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-			.findFirst();
 	}
 }

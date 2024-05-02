@@ -64,7 +64,7 @@ public class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final NodeInternal node;
+	private final AbstractLocalNodeImpl<?,?> node;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -85,7 +85,7 @@ public class Reverification {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, NodeInternal node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNodeImpl<?,?> node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		this.node = node;
 		this.consensus = consensus;
 
@@ -263,7 +263,7 @@ public class Reverification {
 	 * @throws NoSuchElementException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = node.getCaches().getResponseUncommitted(reference)
+		TransactionResponse response = node.caches.getResponseUncommitted(reference)
 			.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + reference));
 		
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
