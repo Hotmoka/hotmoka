@@ -39,6 +39,11 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	}
 
 	@Override
+	public long getNow() {
+		return System.currentTimeMillis();
+	}
+
+	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		var uncommittedResponse = responses.get(reference);
 		if (uncommittedResponse != null)

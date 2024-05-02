@@ -39,7 +39,6 @@ import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The methods of a Hotmoka node that are used inside the internal
@@ -77,22 +76,12 @@ public interface NodeInternal {
 	 */
 	Store<?> getStore();
 
-	StoreTransaction<?> getTransaction();
-
 	/**
 	 * Yields an object that provides methods for reconstructing data from the store of this node.
 	 * 
 	 * @return the store utilities
 	 */
 	StoreUtility getStoreUtilities();
-
-	/**
-	 * The time to use for the currently executing transaction, as returned
-	 * by {@link java.lang.System#currentTimeMillis()}.
-	 * 
-	 * @return the time
-	 */
-	long getNow();
 
 	/**
 	 * Yields the request that generated the transaction with the given reference.

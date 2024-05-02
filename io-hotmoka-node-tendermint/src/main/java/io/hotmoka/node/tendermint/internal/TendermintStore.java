@@ -129,7 +129,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	}
 
 	@Override
-	protected TendermintStoreTransaction mkTransaction(Transaction txn) throws StoreException {
-		return new TendermintStoreTransaction(this, txn);
+	protected TendermintStoreTransaction mkTransaction(Transaction txn, long now) throws StoreException {
+		return new TendermintStoreTransaction(this, txn, now);
 	}
 }

@@ -276,8 +276,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	}
 
 	@Override
-	public StoreTransaction<T> beginTransaction() throws StoreException {
-		return mkTransaction(env.beginTransaction());
+	public StoreTransaction<T> beginTransaction(long now) throws StoreException {
+		return mkTransaction(env.beginTransaction(), now);
 	}
 
 	/**
@@ -320,7 +320,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
 
-	protected abstract StoreTransaction<T> mkTransaction(Transaction txn) throws StoreException;
+	protected abstract StoreTransaction<T> mkTransaction(Transaction txn, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

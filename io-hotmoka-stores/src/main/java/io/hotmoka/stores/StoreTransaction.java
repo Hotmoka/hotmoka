@@ -35,6 +35,13 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface StoreTransaction<T extends Store<T>> {
 
 	/**
+	 * Yields the time to use as now for the executions performed inside this transaction.
+	 * 
+	 * @return the time, in milliseconds from the UNIX epoch time
+	 */
+	long getNow();
+
+	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 

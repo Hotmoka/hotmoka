@@ -88,11 +88,6 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	}
 
 	@Override
-	protected long getNow() {
-		return System.currentTimeMillis();
-	}
-
-	@Override
 	public StoreTransaction<?> getTransaction() {
 		return transaction;
 	}

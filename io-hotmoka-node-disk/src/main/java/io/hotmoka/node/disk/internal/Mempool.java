@@ -124,7 +124,7 @@ class Mempool {
 	private void deliver() {
 		long counter = 0;
 		long transactionsPerBlock = node.getConfig().getTransactionsPerBlock();
-		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction();
+		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 		node.setNow(transaction);
 
 		while (!Thread.currentThread().isInterrupted()) {
@@ -134,7 +134,7 @@ class Mempool {
 					if (counter > 0)
 						node.rewardValidators("", "");
 					transaction.commit();
-					transaction = node.getStore().beginTransaction();
+					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					node.setNow(transaction);
 					counter = 0;
 				}
@@ -143,9 +143,10 @@ class Mempool {
 					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
 					// the last transaction of a block is for rewarding the validators and updating the gas price
 					if (counter == transactionsPerBlock - 1) {
-						node.rewardValidators("", "");
+						if (counter > 0)
+							node.rewardValidators("", "");
 						transaction.commit();
-						transaction = node.getStore().beginTransaction();
+						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 						node.setNow(transaction);
 						counter = 0;
 					}

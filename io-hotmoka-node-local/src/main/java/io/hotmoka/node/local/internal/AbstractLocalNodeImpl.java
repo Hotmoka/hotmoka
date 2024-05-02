@@ -331,13 +331,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	protected abstract S mkStore();
 
 	/**
-	 * Yields the time to use for the currently executing transaction.
-	 * 
-	 * @return the time
-	 */
-	protected abstract long getNow();
-
-	/**
 	 * Yields the currently executing transaction.
 	 * 
 	 * @return the currently executing transaction
@@ -571,7 +564,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 			Optional<StorageValue> result;
 
-			var transaction = store.beginTransaction();
+			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
 				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
@@ -591,7 +584,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			Optional<StorageValue> result;
 
-			var transaction = store.beginTransaction();
+			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
 				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
@@ -638,7 +631,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
-			var transaction = store.beginTransaction();
+			var transaction = store.beginTransaction(System.currentTimeMillis());
 			responseBuilderFor(reference, request, transaction);
 			LOGGER.info(reference + ": checking success");
 			transaction.abort();
@@ -1290,16 +1283,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		@Override
 		public void submit(Runnable task) {
 			executors.submit(task);
-		}
-
-		@Override
-		public long getNow() {
-			return AbstractLocalNodeImpl.this.getNow();
-		}
-
-		@Override
-		public StoreTransaction<?> getTransaction() {
-			return AbstractLocalNodeImpl.this.getTransaction();
 		}
 	}
 }

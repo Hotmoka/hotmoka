@@ -83,7 +83,7 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
 	 */
-	StoreTransaction<T> beginTransaction() throws StoreException;
+	StoreTransaction<T> beginTransaction(long now) throws StoreException;
 
 	@Override
 	void close() throws StoreException, InterruptedException;

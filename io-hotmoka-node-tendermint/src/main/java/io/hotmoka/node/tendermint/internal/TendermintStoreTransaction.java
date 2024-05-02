@@ -8,8 +8,15 @@ import io.hotmoka.xodus.env.Transaction;
 
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore> {
 
-	protected TendermintStoreTransaction(TendermintStore store, Transaction txn) throws StoreException {
+	/**
+	 * The time for the execution performed inside this transaction.
+	 */
+	private final long now;
+
+	protected TendermintStoreTransaction(TendermintStore store, Transaction txn, long now) throws StoreException {
 		super(store, txn);
+
+		this.now = now;
 	}
 
 	@Override
@@ -20,5 +27,10 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	@Override
 	protected void setError(TransactionReference reference, String error) throws StoreException {
 		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
+	}
+
+	@Override
+	public long getNow() {
+		return now;
 	}
 }

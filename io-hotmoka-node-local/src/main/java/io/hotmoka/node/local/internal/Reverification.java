@@ -43,6 +43,7 @@ import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
@@ -108,12 +109,11 @@ public class Reverification {
 	 * 
 	 * @throws NodeException if this node is not able to complete the operation correctly
 	 */
-	public void replace() throws NodeException {
+	public void replace(StoreTransaction<?> transaction) throws NodeException {
 		for (var entry: reverified.entrySet()) {
 			var reference = entry.getKey();
 
 			try {
-				var transaction = node.getTransaction();
 				transaction.replace(reference, node.getRequest(reference), entry.getValue());
 			}
 			catch (StoreException | UnknownReferenceException e) {
@@ -181,7 +181,7 @@ public class Reverification {
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
-			throw new IllegalArgumentException("too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
+			throw new IllegalArgumentException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
 
 		var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 

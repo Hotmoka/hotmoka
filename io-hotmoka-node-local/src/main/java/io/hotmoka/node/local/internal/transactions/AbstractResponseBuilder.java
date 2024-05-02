@@ -128,7 +128,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 	@Override
 	public final void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
-		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
+		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses(transaction);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, node.getStoreUtilities());
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
-				this.now = node.getNow();
+				this.now = transaction.getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);

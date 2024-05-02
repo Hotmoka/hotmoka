@@ -172,6 +172,5 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 		catch (ExodusException e) {
 			throw new StoreException(e);
 		}
-		//}
 	}
 }

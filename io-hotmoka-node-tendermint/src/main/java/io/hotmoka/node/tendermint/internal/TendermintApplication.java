@@ -224,16 +224,14 @@ class TendermintApplication extends ABCI {
 	protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
-    	long now = timeOfBlock(request);
-
     	try {
-    		transaction = node.getStore().beginTransaction();
+    		transaction = node.getStore().beginTransaction(timeOfBlock(request));
     	}
     	catch (StoreException e) {
     		throw new RuntimeException(e); // TODO
     	}
 
-    	node.setNow(transaction, now);
+    	node.setNow(transaction);
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
 

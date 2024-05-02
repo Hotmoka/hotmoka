@@ -49,6 +49,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -663,8 +664,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public final void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
-		reverification.replace();
+	public final void replaceReverifiedResponses(StoreTransaction<?> transaction) throws NoSuchElementException, UnknownReferenceException, NodeException {
+		reverification.replace(transaction);
 	}
 
 	@Override

@@ -236,11 +236,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected long getNow() {
-		return now;
-	}
-
-	@Override
 	protected void postRequest(TransactionRequest<?> request) {
 		poster.postRequest(request);
 	}
@@ -410,8 +405,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 
 		@Override
-		public void setNow(StoreTransaction<?> transaction, long now) {
-			TendermintNodeImpl.this.now = now;
+		public void setNow(StoreTransaction<?> transaction) {
 			TendermintNodeImpl.this.transaction = transaction;
 		}
 	}

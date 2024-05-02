@@ -115,5 +115,5 @@ public interface TendermintNodeInternal {
 	 * 
 	 * @param now the time
 	 */
-	void setNow(StoreTransaction<?> transaction, long now);
+	void setNow(StoreTransaction<?> transaction);
 }

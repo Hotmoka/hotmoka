@@ -141,7 +141,7 @@ class DiskStore implements Store<DiskStore> {
 	}
 
 	@Override
-	public StoreTransaction<DiskStore> beginTransaction() {
+	public StoreTransaction<DiskStore> beginTransaction(long now) {
 		return new DiskStoreTransaction(this);
 	}
 
