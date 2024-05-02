@@ -626,7 +626,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param request the request
 	 * @throws TransactionRejectedException if the request is not valid
 	 */
-	protected final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		var reference = TransactionReferences.of(hasher.hash(request));
@@ -687,7 +687,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
-	protected final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		long start = System.currentTimeMillis();
 
 		var reference = TransactionReferences.of(hasher.hash(request));
@@ -753,7 +753,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 *         performed because the manifest is not yet installed or because
 	 *         the code of the validators contract failed
 	 */
-	protected final boolean rewardValidators(String behaving, String misbehaving) {
+	public final boolean rewardValidators(String behaving, String misbehaving) {
 		// the node might not have completed its initialization yet
 		if (caches.getConsensusParams() == null)
 			return false;
@@ -998,7 +998,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		return executors.submit(task);
 	}
 
-	S getStore() {
+	public S getStore() {
 		return store;
 	}
 

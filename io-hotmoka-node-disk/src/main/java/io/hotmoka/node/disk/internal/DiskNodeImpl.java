@@ -23,11 +23,9 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
@@ -49,7 +47,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	 */
 	private final Mempool mempool;
 
-	private volatile StoreTransaction<DiskStore> transaction;
+	public volatile StoreTransaction<DiskStore> transaction;
 
 	/**
 	 * Builds a brand new blockchain in disk memory.
@@ -61,7 +59,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 		super(config, consensus);
 
 		try {
-			this.mempool = new Mempool(new DiskNodeInternalImpl());
+			this.mempool = new Mempool(this, (int) config.getTransactionsPerBlock()); // TODO: make this option int
 		}
 		catch (RuntimeException e) {
 			LOGGER.log(Level.SEVERE, "failed to create the memory blockchain", e);
@@ -118,38 +116,5 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
 		// immediate notification, since there is no commit
 		notifyEventsOf(response);
-	}
-
-	private class DiskNodeInternalImpl implements DiskNodeInternal {
-
-		@Override
-		public DiskNodeConfig getConfig() {
-			return config;
-		}
-
-		@Override
-		public void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			DiskNodeImpl.this.checkTransaction(request);
-		}
-
-		@Override
-		public TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			return DiskNodeImpl.this.deliverTransaction(request);
-		}
-
-		@Override
-		public boolean rewardValidators(String behaving, String misbehaving) {
-			return DiskNodeImpl.this.rewardValidators(behaving, misbehaving);
-		}
-
-		@Override
-		public DiskStore getStore() {
-			return store;
-		}
-
-		@Override
-		public void setNow(StoreTransaction<DiskStore> transaction) {
-			DiskNodeImpl.this.transaction = transaction;
-		}
 	}
 }

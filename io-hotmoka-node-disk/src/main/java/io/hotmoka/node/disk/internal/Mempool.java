@@ -47,7 +47,7 @@ class Mempool {
 	/**
 	 * The node for which requests are executed.
 	 */
-	private final DiskNodeInternal node;
+	private final DiskNodeImpl node;
 
 	/**
 	 * The thread that checks requests when they are submitted.
@@ -59,13 +59,16 @@ class Mempool {
 	 */
 	private final Thread deliverer;
 
+	private final int transactionsPerBlock;
+
 	/**
 	 * Builds a mempool.
 	 * 
 	 * @param node the node for which the mempool works
 	 */
-	Mempool(DiskNodeInternal node) {
+	Mempool(DiskNodeImpl node, int transactionsPerBlock) {
 		this.node = node;
+		this.transactionsPerBlock = transactionsPerBlock;
 		this.checker = new Thread(this::check);
 		this.checker.start();
 		this.deliverer = new Thread(this::deliver);
@@ -122,10 +125,9 @@ class Mempool {
 	 * The body of the thread that executes requests. Its pops a request from the checked mempool and executes it.
 	 */
 	private void deliver() {
-		long counter = 0;
-		long transactionsPerBlock = node.getConfig().getTransactionsPerBlock();
+		int counter = 0;
 		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-		node.setNow(transaction);
+		node.transaction = transaction;
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -135,7 +137,7 @@ class Mempool {
 						node.rewardValidators("", "");
 					transaction.commit();
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-					node.setNow(transaction);
+					node.transaction = transaction;
 					counter = 0;
 				}
 				else {
@@ -147,7 +149,7 @@ class Mempool {
 							node.rewardValidators("", "");
 						transaction.commit();
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-						node.setNow(transaction);
+						node.transaction = transaction;
 						counter = 0;
 					}
 				}
