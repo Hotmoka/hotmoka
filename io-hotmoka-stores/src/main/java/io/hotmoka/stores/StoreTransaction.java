@@ -101,4 +101,6 @@ public interface StoreTransaction<T extends Store<T>> {
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	T commit() throws StoreException;
+
+	void abort() throws StoreException;
 }

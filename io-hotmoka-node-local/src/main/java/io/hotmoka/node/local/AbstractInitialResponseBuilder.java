@@ -22,6 +22,7 @@ import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.internal.InitialResponseBuilderImpl;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * Partial implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -40,8 +41,8 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node);
+	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, transaction, node);
 	}
 
 	/**

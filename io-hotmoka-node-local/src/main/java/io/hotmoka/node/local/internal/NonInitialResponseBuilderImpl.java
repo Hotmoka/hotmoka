@@ -52,6 +52,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -74,8 +75,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node);
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, transaction, node);
 
 		try {
 			this.gasCostModel = node.getGasCostModel();

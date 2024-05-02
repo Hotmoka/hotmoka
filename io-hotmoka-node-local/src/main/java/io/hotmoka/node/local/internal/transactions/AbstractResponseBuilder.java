@@ -49,6 +49,7 @@ import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.node.local.internal.StorageTypeToClass;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.VerificationException;
 
 /**
@@ -63,6 +64,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * The HotMoka node that is creating the response.
 	 */
 	public final NodeInternal node;
+
+	public final StoreTransaction<?> transaction;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -94,11 +97,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
+	 * @param transaction the transaction where the updates to the store get accumulated
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, NodeInternal node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
 		try {
+			this.transaction = transaction;
 			this.request = request;
 			this.reference = reference;
 			this.node = node;

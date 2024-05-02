@@ -571,9 +571,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 			Optional<StorageValue> result;
 
+			var transaction = store.beginTransaction();
+
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, internal).getResponse());
+				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
 			}
+			
+			transaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -587,9 +591,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			Optional<StorageValue> result;
 
+			var transaction = store.beginTransaction();
+
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, internal).getResponse());
+				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, internal).getResponse());
 			}
+
+			transaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -630,8 +638,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
-			responseBuilderFor(reference, request);
+			var transaction = store.beginTransaction();
+			responseBuilderFor(reference, request, transaction);
 			LOGGER.info(reference + ": checking success");
+			transaction.abort();
 		}
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
@@ -643,6 +653,16 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			LOGGER.info(reference + ": checking failed: " + trimmedMessage(e));
 			LOGGER.log(Level.INFO, "transaction rejected", e);
 			throw e;
+		}
+		catch (StoreException e) { // TODO: probably becomes NodeException
+			// we wake up who was waiting for the outcome of the request
+			signalSemaphore(reference);
+			// we do not store the error message, since a failed checkTransaction
+			// means that nobody is paying for this and we cannot expand the store;
+			// we just take note of the failure to avoid polling for the response
+			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
+			throw new RuntimeException(e);
 		}
 		catch (RuntimeException e) {
 			// we wake up who was waiting for the outcome of the request
@@ -677,14 +697,15 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
+			var transaction = getTransaction();
+
 			try {
 				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
 
 				TransactionResponse response;
 
 				synchronized (deliverTransactionLock) {
-					var transaction = getTransaction();
-					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request, transaction);
 					response = responseBuilder.getResponse();
 					transaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
@@ -697,20 +718,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				return response;
 			}
 			catch (TransactionRejectedException e) {
-				var transaction = getTransaction();
 				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
 				LOGGER.log(Level.INFO, "transaction rejected", e);
 				throw e;
 			}
 			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
-				var transaction = getTransaction();
 				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 				throw new RuntimeException(e);
 			}
 			catch (RuntimeException e) {
-				var transaction = getTransaction();
 				transaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
 				throw e;
@@ -782,7 +800,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request, getTransaction());
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -890,21 +908,21 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
-		if (request instanceof JarStoreInitialTransactionRequest)
-			return new JarStoreInitialResponseBuilder(reference, (JarStoreInitialTransactionRequest) request, internal);
-		else if (request instanceof GameteCreationTransactionRequest)
-			return new GameteCreationResponseBuilder(reference, (GameteCreationTransactionRequest) request, internal);
-    	else if (request instanceof JarStoreTransactionRequest)
-    		return new JarStoreResponseBuilder(reference, (JarStoreTransactionRequest) request, internal);
-    	else if (request instanceof ConstructorCallTransactionRequest)
-    		return new ConstructorCallResponseBuilder(reference, (ConstructorCallTransactionRequest) request, internal);
+	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request, StoreTransaction<?> transaction) throws TransactionRejectedException {
+		if (request instanceof JarStoreInitialTransactionRequest jsitr)
+			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, internal);
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return new GameteCreationResponseBuilder(reference, gctr, transaction, internal);
+    	else if (request instanceof JarStoreTransactionRequest jstr)
+    		return new JarStoreResponseBuilder(reference, jstr, transaction, internal);
+    	else if (request instanceof ConstructorCallTransactionRequest cctr)
+    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, internal);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, internal);
-    	else if (request instanceof StaticMethodCallTransactionRequest)
-    		return new StaticMethodCallResponseBuilder(reference, (StaticMethodCallTransactionRequest) request, internal);
-    	else if (request instanceof InitializationTransactionRequest)
-    		return new InitializationResponseBuilder(reference, (InitializationTransactionRequest) request, internal);
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, internal);
+    	else if (request instanceof StaticMethodCallTransactionRequest smctr)
+    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, internal);
+    	else if (request instanceof InitializationTransactionRequest itr)
+    		return new InitializationResponseBuilder(reference, itr, transaction, internal);
     	else
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}

@@ -13,6 +13,7 @@ import io.hotmoka.stores.internal.TrieOfHistories;
 import io.hotmoka.stores.internal.TrieOfInfo;
 import io.hotmoka.stores.internal.TrieOfRequests;
 import io.hotmoka.stores.internal.TrieOfResponses;
+import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 
 public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBasedStore<T>> extends AbstractStoreTransaction<T> {
@@ -157,5 +158,20 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 			Optional.of(trieOfHistories.getRoot()),
 			Optional.of(trieOfRequests.getRoot())
 		);
+	}
+
+	@Override
+	public void abort() throws StoreException {
+		//if (!txn.isFinished()) {
+			// store closed with yet uncommitted transactions: we abort them
+			//LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
+
+		try {
+			txn.abort();
+		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
+		}
+		//}
 	}
 }

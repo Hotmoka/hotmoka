@@ -32,6 +32,7 @@ import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The creator of a response for a transaction that creates a gamete.
@@ -46,8 +47,8 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node);
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, transaction, node);
 	}
 
 	@Override

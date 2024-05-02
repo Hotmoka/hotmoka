@@ -32,6 +32,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.NodeInternal;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 
@@ -48,8 +49,8 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node);
+	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, transaction, node);
 	}
 
 	@Override

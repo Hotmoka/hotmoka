@@ -19,8 +19,6 @@ package io.hotmoka.stores;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
@@ -67,7 +65,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	/**
 	 * The Xodus environment that holds the store.
 	 */
-	protected final Environment env;
+	private final Environment env;
 
 	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the responses to the requests.
@@ -125,13 +123,6 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	 * The key used inside {@link #storeOfInfo} to keep the root.
 	 */
 	private final static ByteIterable ROOT = ByteIterable.fromBytes("root".getBytes());
-
-	/**
-	 * The transaction that accumulates all changes to commit.
-	 */
-	private Transaction txn;
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractTrieBasedStore.class.getName());
 
 	/**
 	 * Creates a store. Its roots are initialized as in the Xodus store, if present.
@@ -211,7 +202,6 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	this.rootOfErrors = toClone.rootOfErrors;
     	this.rootOfHistories = toClone.rootOfHistories;
     	this.rootOfRequests = toClone.rootOfRequests;
-    	this.txn = toClone.txn;
     }
 
     protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
@@ -226,24 +216,17 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	this.rootOfErrors = rootOfErrors;
     	this.rootOfHistories = rootOfHistories;
     	this.rootOfRequests = rootOfRequests;
-    	this.txn = toClone.txn;
     }
 
     protected abstract T mkClone(Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
-    public void close() {
-    	/*if (txn != null && !txn.isFinished()) {
-    		// store closed with yet uncommitted transactions: we abort them
-    		LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
-    		txn.abort();
-    	}*/
-
+    public void close() throws StoreException {
     	try {
     		env.close();
     	}
     	catch (ExodusException e) {
-    		LOGGER.log(Level.WARNING, "failed to close environment", e);
+    		throw new StoreException(e);
     	}
     }
 

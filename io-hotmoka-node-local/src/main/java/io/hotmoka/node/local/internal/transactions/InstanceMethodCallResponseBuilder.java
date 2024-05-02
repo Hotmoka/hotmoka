@@ -42,6 +42,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.internal.NodeInternal;
 import io.hotmoka.stores.StoreException;
+import io.hotmoka.stores.StoreTransaction;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -58,8 +59,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, NodeInternal node) throws TransactionRejectedException {
-		super(reference, request, node);
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> transaction, NodeInternal node) throws TransactionRejectedException {
+		super(reference, request, transaction, node);
 
 		try {
 			// calls to @View methods are allowed to receive non-exported values

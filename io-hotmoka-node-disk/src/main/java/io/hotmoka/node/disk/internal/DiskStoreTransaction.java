@@ -95,6 +95,10 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	}
 
 	@Override
+	public void abort() {
+	}
+
+	@Override
 	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) {
 		requests.put(reference, request);
 	}
