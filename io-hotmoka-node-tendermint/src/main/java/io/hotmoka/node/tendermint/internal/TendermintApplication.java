@@ -99,7 +99,7 @@ class TendermintApplication extends ABCI {
     	return Hex.toHexString(validator.getAddress().toByteArray()).toUpperCase();
     }
 
-    private static long timeNow(RequestBeginBlock request) {
+    private static long timeOfBlock(RequestBeginBlock request) {
     	var time = request.getHeader().getTime();
     	return time.getSeconds() * 1_000L + time.getNanos() / 1_000_000L;
     }
@@ -224,7 +224,7 @@ class TendermintApplication extends ABCI {
 	protected ResponseBeginBlock beginBlock(RequestBeginBlock request) {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
-    	long now = timeNow(request);
+    	long now = timeOfBlock(request);
 
     	try {
     		transaction = node.getStore().beginTransaction();

@@ -266,6 +266,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		isUsingTendermint = true;
 
 		var config = TendermintNodeConfigBuilders.defaults()
+			.setDir(Files.createTempDirectory("hotmoka-chain"))
 			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.build();
@@ -283,11 +284,12 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException, InvalidKeyException {
+	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException, InvalidKeyException, IOException {
 		var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
 		HotmokaTest.consensus = consensus;
 
 		var config = DiskNodeConfigBuilders.defaults()
+			.setDir(Files.createTempDirectory("hotmoka-chain"))
 			.setMaxGasPerViewTransaction(_10_000_000)
 			.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
 			.setPollingDelay(10)

@@ -683,9 +683,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				TransactionResponse response;
 
 				synchronized (deliverTransactionLock) {
+					var transaction = getTransaction();
 					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
 					response = responseBuilder.getResponse();
-					var transaction = getTransaction();
 					transaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
 					scheduleForNotificationOfEvents(response);
