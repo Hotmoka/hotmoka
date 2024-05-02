@@ -70,7 +70,7 @@ public class StoreUtilityImpl implements StoreUtility {
 		this.node = node;
 	}
 
-	private Store<?> getStore() {
+	public Store<?> getStore() {
 		return store != null ? store : node.getStore();
 	}
 

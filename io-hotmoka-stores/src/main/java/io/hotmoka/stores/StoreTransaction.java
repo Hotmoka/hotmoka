@@ -16,13 +16,18 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.math.BigInteger;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.ClassTag;
+import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
 
 /**
@@ -34,13 +39,15 @@ import io.hotmoka.node.api.values.StorageReference;
 @ThreadSafe
 public interface StoreTransaction<T extends Store<T>> {
 
+	Store<?> getStore();
 	/**
-	 * Yields the time to use as now for the executions performed inside this transaction.
+	 * Yields the time to use as current time for the requests executed performed inside this transaction.
 	 * 
 	 * @return the time, in milliseconds from the UNIX epoch time
 	 */
 	long getNow();
 
+	boolean isJustStore();
 	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.
@@ -69,6 +76,42 @@ public interface StoreTransaction<T extends Store<T>> {
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	Optional<StorageReference> getManifestUncommitted() throws StoreException;
+
+	Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException;
+
+	boolean nodeIsInitializedUncommitted() throws StoreException;
+
+	Optional<StorageReference> getGasStationUncommitted() throws StoreException;
+
+	Optional<StorageReference> getValidatorsUncommitted() throws StoreException;
+
+	Optional<StorageReference> getGameteUncommitted() throws StoreException;
+
+	Optional<StorageReference> getVersionsUncommitted() throws StoreException;
+
+	BigInteger getBalanceUncommitted(StorageReference contract);
+
+	BigInteger getRedBalanceUncommitted(StorageReference contract);
+
+	BigInteger getCurrentSupplyUncommitted(StorageReference validators);
+
+	String getPublicKeyUncommitted(StorageReference account);
+
+	StorageReference getCreatorUncommitted(StorageReference event);
+
+	BigInteger getNonceUncommitted(StorageReference account);
+
+	BigInteger getTotalBalanceUncommitted(StorageReference contract);
+
+	String getClassNameUncommitted(StorageReference reference);
+
+	ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException;
+
+	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException;
+
+	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException;
+
+	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 
 	/**
 	 * Pushes the result of executing a successful Hotmoka request.

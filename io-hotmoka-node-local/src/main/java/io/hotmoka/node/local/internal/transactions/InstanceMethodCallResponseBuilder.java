@@ -257,7 +257,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			try {
-				Optional<StorageReference> manifest = node.getStoreUtilities().getManifestUncommitted();
+				Optional<StorageReference> manifest = storeTransaction.getManifestUncommitted();
 				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
 					Optional<StorageValue> firstArg = request.actuals().findFirst();
 					if (firstArg.isPresent()) {
@@ -283,7 +283,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] addExtraActualsForFromContract() {
 			int al = deserializedActuals.length;
-			Object[] result = new Object[al + 2];
+			var result = new Object[al + 2];
 			System.arraycopy(deserializedActuals, 0, result, 0, al);
 			result[al] = getDeserializedCaller();
 			result[al + 1] = null; // Dummy is not used

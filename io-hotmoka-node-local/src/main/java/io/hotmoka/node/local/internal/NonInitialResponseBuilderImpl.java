@@ -239,7 +239,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void signatureMustBeValid() throws Exception {
 		// if the node is not initialized yet, the signature is not checked
-		if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()
+		if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()
 				&& !node.caches.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
 			throw new TransactionRejectedException("invalid request signature");
 	}
@@ -253,7 +253,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// unsigned transactions do not check the chain identifier;
 		// if the node is not initialized yet, the chain id is not checked
 		try {
-			if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted()) {
+			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()) {
 				String chainIdOfNode = consensus.getChainId();
 				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
 				if (!chainIdOfNode.equals(chainId))
@@ -273,8 +273,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
 		// calls to @View methods do not check the nonce
 		if (!isView()) {
-			BigInteger expected = node.getStoreUtilities().getNonceUncommitted(request.getCaller());
-
+			BigInteger expected = storeTransaction.getNonceUncommitted(request.getCaller());
 			if (!expected.equals(request.getNonce()))
 				throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 					+ " but the account " + request.getCaller() + " contains " + expected);
@@ -321,7 +320,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
 		try {
-			if (transactionIsSigned() && node.getStoreUtilities().nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
+			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
 				BigInteger currentGasPrice = node.caches.getGasPrice().get();
 				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
 					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
@@ -340,7 +339,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
 		BigInteger cost = costOf(request.getGasLimit());
-		BigInteger totalBalance = node.getStoreUtilities().getTotalBalanceUncommitted(getPayerFromRequest());
+		BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(getPayerFromRequest());
 
 		if (totalBalance.subtract(cost).signum() < 0)
 			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.getGasLimit() + " units of gas");

@@ -27,6 +27,7 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -38,6 +39,7 @@ import io.hotmoka.stores.StoreException;
  */
 public interface StoreUtility {
 
+	Store<?> getStore();
 	/**
 	 * Determines if the node is initialized, that is, its manifest has been set,
 	 * although possibly not yet committed.

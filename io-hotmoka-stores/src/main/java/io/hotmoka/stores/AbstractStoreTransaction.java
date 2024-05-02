@@ -16,23 +16,33 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
+import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
+import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StringValue;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -44,51 +54,200 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final T store;
 
+	/**
+	 * This lock ensures that the various components of this transaction are always aligned.
+	 * For instance, histories refer to responses in store. Subclasses must take care
+	 * of synchronizing on this object when they read components of this transaction, so that
+	 * they are provided in a consistent state.
+	 */
+	private final Object lock = new Object();
+
 	protected AbstractStoreTransaction(T store) {
 		this.store = store;
 	}
 
-	protected final T getStore() {
+	public final T getStore() {
 		return store;
+	}
+
+	protected final Object getLock() {
+		return lock;
 	}
 
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		if (response instanceof TransactionResponseWithUpdates trwu) {
-			setRequest(reference, request);
-			setResponse(reference, response);
-			expandHistory(reference, trwu);
-
-			if (response instanceof GameteCreationTransactionResponse gctr)
-				LOGGER.info(gctr.getGamete() + ": created as gamete");
-		}
-		else if (response instanceof InitializationTransactionResponse) {
-			if (request instanceof InitializationTransactionRequest itr) {
+		synchronized (lock) {
+			if (response instanceof TransactionResponseWithUpdates trwu) {
 				setRequest(reference, request);
 				setResponse(reference, response);
-				StorageReference manifest = itr.getManifest();
-				setManifest(manifest);
-				LOGGER.info(manifest + ": set as manifest");
-				LOGGER.info("the node has been initialized");
+				expandHistory(reference, trwu);
+
+				if (response instanceof GameteCreationTransactionResponse gctr)
+					LOGGER.info(gctr.getGamete() + ": created as gamete");
 			}
-			else
-				throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
-		}
-		else {
-			setRequest(reference, request);
-			setResponse(reference, response);
+			else if (response instanceof InitializationTransactionResponse) {
+				if (request instanceof InitializationTransactionRequest itr) {
+					setRequest(reference, request);
+					setResponse(reference, response);
+					StorageReference manifest = itr.getManifest();
+					setManifest(manifest);
+					LOGGER.info(manifest + ": set as manifest");
+					LOGGER.info("the node has been initialized");
+				}
+				else
+					throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
+			}
+			else {
+				setRequest(reference, request);
+				setResponse(reference, response);
+			}
 		}
 	}
 
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		setRequest(reference, request);
-		setError(reference, errorMessage);
+		synchronized (lock) {
+			setRequest(reference, request);
+			setError(reference, errorMessage);
+		}
 	}
 
 	@Override
 	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		setResponse(reference, response);
+		synchronized (lock) {
+			setResponse(reference, response);
+		}
+	}
+
+	@Override
+	public final Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
+		synchronized (lock) {
+			return getManifestUncommitted()
+					.map(this::getClassTagUncommitted)
+					.map(ClassTag::getJar);
+		}
+	}
+
+	@Override
+	public final boolean nodeIsInitializedUncommitted() throws StoreException {
+		return getManifestUncommitted().isPresent();
+	}
+
+	@Override
+	public final Optional<StorageReference> getGasStationUncommitted() throws StoreException {
+		synchronized (lock) {
+			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
+		}
+	}
+
+	@Override
+	public final Optional<StorageReference> getValidatorsUncommitted() throws StoreException {
+		synchronized (lock) {
+			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
+		}
+	}
+
+	@Override
+	public final Optional<StorageReference> getGameteUncommitted() throws StoreException {
+		synchronized (lock) {
+			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
+		}
+	}
+
+	@Override
+	public final Optional<StorageReference> getVersionsUncommitted() throws StoreException {
+		synchronized (lock) {
+			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
+		}
+	}
+
+	@Override
+	public final BigInteger getBalanceUncommitted(StorageReference contract) {
+		return getBigIntegerFieldUncommitted(contract, FieldSignatures.BALANCE_FIELD);
+	}
+
+	@Override
+	public final BigInteger getRedBalanceUncommitted(StorageReference contract) {
+		return getBigIntegerFieldUncommitted(contract, FieldSignatures.RED_BALANCE_FIELD);
+	}
+
+	@Override
+	public final BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
+		return getBigIntegerFieldUncommitted(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
+	}
+
+	@Override
+	public final String getPublicKeyUncommitted(StorageReference account) {
+		return getStringFieldUncommitted(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
+	}
+
+	@Override
+	public final StorageReference getCreatorUncommitted(StorageReference event) {
+		return getReferenceFieldUncommitted(event, FieldSignatures.EVENT_CREATOR_FIELD);
+	}
+
+	@Override
+	public final BigInteger getNonceUncommitted(StorageReference account) {
+		return getBigIntegerFieldUncommitted(account, FieldSignatures.EOA_NONCE_FIELD);
+	}
+
+	@Override
+	public final BigInteger getTotalBalanceUncommitted(StorageReference contract) {
+		return getBalanceUncommitted(contract).add(getRedBalanceUncommitted(contract));
+	}
+
+	@Override
+	public final String getClassNameUncommitted(StorageReference reference) {
+		return getClassTagUncommitted(reference).getClazz().getName();
+	}
+
+	@Override
+	public final ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
+		// we go straight to the transaction that created the object
+		try {
+			synchronized (lock) {
+				return getResponseUncommitted(reference.getTransaction()) // TODO: cache it?
+						.filter(response -> response instanceof TransactionResponseWithUpdates)
+						.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
+								.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+								.map(update -> (ClassTag) update)
+								.findFirst())
+						.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
+			}
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+
+	@Override
+	public final Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
+		var fieldsAlreadySeen = new HashSet<FieldSignature>();
+
+		synchronized (lock) {
+			return getHistoryUncommitted(object)
+					.flatMap(UncheckFunction.uncheck(transaction -> enforceHasUpdates(getResponseUncommitted(transaction).get()).getUpdates())) // TODO: cache it? recheck
+					.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
+							fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+					.map(update -> (UpdateOfField) update);
+		}
+	}
+
+	@Override
+	public final Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
+		synchronized (lock) {
+			return getHistoryUncommitted(object)
+					.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
+					.filter(Optional::isPresent)
+					.map(Optional::get)
+					.findFirst();
+		}
+	}
+
+	@Override
+	public final Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
+		// accesses directly the transaction that created the object
+		return getLastUpdateUncommitted(object, field, object.getTransaction());
 	}
 
 	/**
@@ -138,6 +297,68 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	 * @throws StoreException if this store is not able to complete the operation correctly
 	 */
 	protected abstract void setManifest(StorageReference manifest) throws StoreException;
+
+	private static TransactionResponseWithUpdates enforceHasUpdates(TransactionResponse response) { // TODO: remove?
+		if (response instanceof TransactionResponseWithUpdates trwu)
+			return trwu;
+		else
+			throw new RuntimeException("Transaction " + response + " does not contain updates");
+	}
+
+	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+
+	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+
+	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
+		try {
+			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
+
+	/**
+	 * Yields the update to the given field of the object at the given reference, generated during a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param transaction the reference to the transaction
+	 * @return the update, if any. If the field of {@code object} was not modified during
+	 *         the {@code transaction}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
+		try {
+			TransactionResponse response = getResponseUncommitted(transaction)
+					.orElseThrow(() -> new StoreException("Unknown transaction reference " + transaction));
+
+			if (response instanceof TransactionResponseWithUpdates trwu)
+				return trwu.getUpdates()
+						.filter(update -> update instanceof UpdateOfField)
+						.map(update -> (UpdateOfField) update)
+						.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+						.findFirst();
+			else
+				throw new StoreException("Transaction reference " + transaction + " does not contain updates");
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
+	}
 
 	/**
 	 * Process the updates contained in the given response, expanding the history of the affected objects.

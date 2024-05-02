@@ -509,7 +509,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	public StoreTransaction<?> getTransaction() {
+	public StoreTransaction<?> getStoreTransaction() {
 		return transaction;
 	}
 }

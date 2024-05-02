@@ -330,7 +330,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * 
 	 * @return the currently executing transaction
 	 */
-	public abstract StoreTransaction<?> getTransaction();
+	public abstract StoreTransaction<?> getStoreTransaction();
 
 	/**
 	 * Determines if this node has not been closed yet.
@@ -693,7 +693,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
-			var transaction = getTransaction();
+			var storeTransaction = getStoreTransaction();
 
 			try {
 				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
@@ -701,9 +701,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				TransactionResponse response;
 
 				synchronized (deliverTransactionLock) {
-					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request, transaction);
+					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request, storeTransaction);
 					response = responseBuilder.getResponse();
-					transaction.push(reference, request, response);
+					storeTransaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
 					scheduleForNotificationOfEvents(response);
 					takeNoteForNextReward(request, response);
@@ -714,18 +714,18 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				return response;
 			}
 			catch (TransactionRejectedException e) {
-				transaction.push(reference, request, trimmedMessage(e));
+				storeTransaction.push(reference, request, trimmedMessage(e));
 				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
 				LOGGER.log(Level.INFO, "transaction rejected", e);
 				throw e;
 			}
 			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
-				transaction.push(reference, request, trimmedMessage(e));
+				storeTransaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 				throw new RuntimeException(e);
 			}
 			catch (RuntimeException e) {
-				transaction.push(reference, request, trimmedMessage(e));
+				storeTransaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
 				throw e;
 			}
@@ -759,7 +759,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return false;
 
 		try {
-			Optional<StorageReference> manifest = getTransaction().getManifestUncommitted();
+			Optional<StorageReference> manifest = getStoreTransaction().getManifestUncommitted();
 			if (manifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
@@ -796,7 +796,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request, getTransaction());
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request, getStoreTransaction());
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -920,7 +920,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
-	protected void setStore(Store<?> store) {
+	public void setStore(Store<?> store) {
 		this.store = (S) store; // TODO
 	}
 
@@ -950,7 +950,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
-		var transaction = getTransaction();
+		var transaction = getStoreTransaction();
 		if (transaction != null)
 			return transaction.getResponseUncommitted(reference);
 		else
@@ -967,7 +967,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
 	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
-		var transaction = getTransaction();
+		var transaction = getStoreTransaction();
 		if (transaction != null)
 			return transaction.getHistoryUncommitted(object);
 		else
@@ -982,7 +982,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	Optional<StorageReference> getManifestUncommitted() throws StoreException {
-		var transaction = getTransaction();
+		var transaction = getStoreTransaction();
 		if (transaction != null)
 			return transaction.getManifestUncommitted();
 		else
@@ -1142,11 +1142,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	private void scheduleForNotificationOfEvents(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithEvents) {
-			var responseWithEvents = (TransactionResponseWithEvents) response;
-			if (responseWithEvents.getEvents().count() > 0L)
-				scheduleForNotificationOfEvents(responseWithEvents);
-		}
+		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().count() > 0L)
+			scheduleForNotificationOfEvents(responseWithEvents);
 	}
 
 	/**

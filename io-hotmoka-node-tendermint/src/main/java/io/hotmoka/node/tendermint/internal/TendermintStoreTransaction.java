@@ -33,4 +33,10 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	public long getNow() {
 		return now;
 	}
+
+	@Override
+	public boolean isJustStore() {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

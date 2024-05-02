@@ -65,7 +65,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 */
 	public final AbstractLocalNodeImpl<?,?> node;
 
-	public final StoreTransaction<?> transaction;
+	public final StoreTransaction<?> storeTransaction;
 
 	/**
 	 * The object that translates storage types into their run-time class tag.
@@ -97,13 +97,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
-	 * @param transaction the transaction where the updates to the store get accumulated
+	 * @param storeTransaction the transaction where the updates to the store get accumulated
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		try {
-			this.transaction = transaction;
+			this.storeTransaction = storeTransaction;
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
@@ -128,7 +128,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 	@Override
 	public final void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
-		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses(transaction);
+		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses(storeTransaction);
 	}
 
 	/**
@@ -149,7 +149,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @return the wrapped or original exception
 	 */
 	protected static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
-		return t instanceof TransactionRejectedException ? (TransactionRejectedException) t : new TransactionRejectedException(t);
+		return t instanceof TransactionRejectedException tre ? tre : new TransactionRejectedException(t);
 	}
 
 	/**
@@ -184,7 +184,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this, node.getStoreUtilities());
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
-				this.now = transaction.getNow();
+				this.now = storeTransaction.getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
@@ -282,7 +282,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
 			try {
-				UpdateOfField update = node.getStoreUtilities().getLastUpdateToFieldUncommitted(object, field)
+				UpdateOfField update = storeTransaction.getLastUpdateToFieldUncommitted(object, field)
 						.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
 				return deserializer.deserialize(update.getValue());
 			}
@@ -301,7 +301,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
-			UpdateOfField update = node.getStoreUtilities().getLastUpdateToFinalFieldUncommitted(object, field)
+			UpdateOfField update = storeTransaction.getLastUpdateToFinalFieldUncommitted(object, field)
 				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
 
 			return deserializer.deserialize(update.getValue());
