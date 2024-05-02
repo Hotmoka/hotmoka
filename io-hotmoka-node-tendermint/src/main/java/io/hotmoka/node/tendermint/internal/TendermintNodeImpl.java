@@ -106,7 +106,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	/**
 	 * The current store transaction.
 	 */
-	private volatile StoreTransaction<?> transaction;
+	public volatile StoreTransaction<?> transaction;
 
 	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -123,7 +123,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
 			initWorkingDirectoryOfTendermintProcess(config);
 			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
+			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this));
 			this.abci.start();
 			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
@@ -165,7 +165,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		try {
 			this.isWindows = System.getProperty("os.name").startsWith("Windows");
 			var tendermintConfigFile = new TendermintConfigFile(config);
-			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(new TendermintBlockchainInternalImpl()));
+			this.abci = new Server(tendermintConfigFile.abciPort, new TendermintApplication(this));
 			this.abci.start();
 			LOGGER.info("ABCI started at port " + tendermintConfigFile.abciPort);
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
@@ -225,9 +225,13 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		return config;
 	}
 
+	public TendermintPoster getPoster() {
+		return poster;
+	}
+
 	@Override
 	protected TendermintStore mkStore() {
-		return new TendermintStore(config.getDir(), new TendermintBlockchainInternalImpl());
+		return new TendermintStore(config.getDir(), this);
 	}
 
 	@Override
@@ -255,7 +259,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
 
-	private void commitTransactionAndCheckout() throws StoreException {
+	void commitTransactionAndCheckout() throws StoreException {
 		setStore(transaction.commit());
 		store.moveRootBranchToThis();
 		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
@@ -271,7 +275,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 
-	private Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
@@ -350,59 +354,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
-	}
-
-	private class TendermintBlockchainInternalImpl implements TendermintNodeInternal {
-
-		@Override
-		public TendermintNodeConfig getConfig() {
-			return config;
-		}
-
-		@Override
-		public TendermintStore getStore() {
-			return store;
-		}
-
-		@Override
-		public TendermintPoster getPoster() {
-			return poster;
-		}
-
-		@Override
-		public String trimmedMessage(Throwable t) {
-			return TendermintNodeImpl.this.trimmedMessage(t);
-		}
-
-		@Override
-		public void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			TendermintNodeImpl.this.checkTransaction(request);
-		}
-
-		@Override
-		public TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-			return TendermintNodeImpl.this.deliverTransaction(request);
-		}
-
-		@Override
-		public Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
-			return TendermintNodeImpl.this.getTendermintValidatorsInStore();
-		}
-
-		@Override
-		public void commitTransactionAndCheckout() throws StoreException {
-			TendermintNodeImpl.this.commitTransactionAndCheckout();
-		}
-
-		@Override
-		public boolean rewardValidators(String behaving, String misbehaving) {
-			return TendermintNodeImpl.this.rewardValidators(behaving, misbehaving);
-		}
-
-		@Override
-		public void setNow(StoreTransaction<?> transaction) {
-			TendermintNodeImpl.this.transaction = transaction;
-		}
 	}
 
 	/**

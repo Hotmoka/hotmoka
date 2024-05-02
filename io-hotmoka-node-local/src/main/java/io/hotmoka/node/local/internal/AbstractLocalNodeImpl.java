@@ -832,14 +832,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param t the throwable whose error message is processed
 	 * @return the resulting message
 	 */
-	protected final String trimmedMessage(Throwable t) {
+	public final String trimmedMessage(Throwable t) {
 		String message = t.getMessage();
 		int length = message.length();
-	
-		long maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
+		int maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
 	
 		if (length > maxErrorLength)
-			return message.substring(0, (int) maxErrorLength) + "...";
+			return message.substring(0, maxErrorLength) + "...";
 		else
 			return message;
 	}

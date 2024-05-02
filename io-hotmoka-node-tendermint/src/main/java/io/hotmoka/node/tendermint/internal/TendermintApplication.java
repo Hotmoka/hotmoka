@@ -73,7 +73,7 @@ class TendermintApplication extends ABCI {
 	/**
 	 * The Tendermint blockchain.
 	 */
-	private final TendermintNodeInternal node;
+	private final TendermintNodeImpl node;
 
 	/**
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
@@ -91,7 +91,7 @@ class TendermintApplication extends ABCI {
      * 
      * @param node the node whose transactions are executed
      */
-    TendermintApplication(TendermintNodeInternal node) {
+    TendermintApplication(TendermintNodeImpl node) {
     	this.node = node;
     }
 
@@ -231,7 +231,7 @@ class TendermintApplication extends ABCI {
     		throw new RuntimeException(e); // TODO
     	}
 
-    	node.setNow(transaction);
+    	node.transaction = transaction;
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
 

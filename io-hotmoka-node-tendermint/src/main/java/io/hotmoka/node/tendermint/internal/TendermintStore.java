@@ -40,7 +40,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 	/**
 	 * An object that can be used to send post requests to Tendermint
 	 */
-	private final TendermintNodeInternal nodeInternal;
+	private final TendermintNodeImpl node;
 
 	/**
 	 * The hasher used to merge the hashes of the many tries.
@@ -52,12 +52,12 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
      * It is initialized to the view of the last checked out root.
      * 
 	 * @param dir the path where the database of the store gets created
-     * @param nodeInternal an object that can be used to send post requests to Tendermint
+     * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(Path dir, TendermintNodeInternal nodeInternal) {
+    TendermintStore(Path dir, TendermintNodeImpl node) {
     	super(dir);
 
-    	this.nodeInternal = nodeInternal;
+    	this.node = node;
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -70,20 +70,20 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
     private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
-    	this.nodeInternal = toClone.nodeInternal;
+    	this.node = toClone.node;
     	this.hasherOfHashes = toClone.hasherOfHashes;
 	}
 
 	@Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
-    	return nodeInternal.getPoster().getErrorMessage(reference.getHash());
+    	return node.getPoster().getErrorMessage(reference.getHash());
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		// requests are held inside the Tendermint blockchain
-		return nodeInternal.getPoster().getRequest(reference.getHash());
+		return node.getPoster().getRequest(reference.getHash());
 	}
 
 	/**
