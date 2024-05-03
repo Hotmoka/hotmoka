@@ -19,7 +19,6 @@ package io.hotmoka.node.local.internal;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.LinkedList;
@@ -52,7 +51,6 @@ import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
-import io.hotmoka.stores.UnsupportedVerificationVersionException;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -105,8 +103,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
+	protected EngineClassLoader mkClassLoader() throws NodeException, TransactionRejectedException {
+		try {
+			return storeTransaction.getClassLoader(request.getClasspath(), consensus);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	/**

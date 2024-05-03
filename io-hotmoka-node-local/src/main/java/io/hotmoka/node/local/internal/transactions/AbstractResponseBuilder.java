@@ -132,7 +132,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException ;
+	protected abstract EngineClassLoader mkClassLoader() throws NodeException, TransactionRejectedException;
 
 	/**
 	 * Wraps the given throwable in a {@link io.hotmoka.node.api.TransactionException}, if it not

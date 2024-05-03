@@ -30,10 +30,10 @@ import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GenericJarStoreTransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.responses.JarStoreTransactionFailedResponse;
@@ -76,13 +76,9 @@ public class Reverification {
 	 * @param transactions the transactions
 	 * @param node the node
 	 * @param consensus the consensus parameters to use for reverification
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be found
-	 * @throws UnsupportedVerificationVersionException if the verification version is not available
-	 * @throws IOException if there was an I/O error while accessing some jar
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * @throws StoreException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.storeTransaction = storeTransaction;
 		this.consensus = consensus;
 
@@ -132,15 +128,11 @@ public class Reverification {
 	 * @param transaction the transaction
 	 * @return the responses of the requests that have tried to install classpath and all its dependencies;
 	 *         this can either be made of successful responses only or it can contain a single failed response only
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not available
-	 * @throws IOException if there was an I/O error while accessing some jar
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * @throws StoreException 
 	 */
-	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	private List<GenericJarStoreTransactionResponse> reverify(TransactionReference transaction, AtomicInteger counter) throws StoreException {
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
-			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
+			throw new StoreException("Too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
 		TransactionResponseWithInstrumentedJar response = getResponseWithInstrumentedJarAtUncommitted(transaction);
 		List<GenericJarStoreTransactionResponse> reverifiedDependencies = reverifiedDependenciesOf(response, counter);
@@ -159,50 +151,50 @@ public class Reverification {
 			return union(reverifiedDependencies, updateVersion(response, transaction));
 	}
 	
-	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, UnknownReferenceException, NodeException {
-		// we get the original jar that classpath had requested to install; this cast will always
-		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		GenericJarStoreTransactionRequest<?> jarStoreRequestOfTransaction;
+	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws StoreException {
+		// we get the original jar that classpath had requested to install
+		Optional<TransactionRequest<?>> maybeRequest = storeTransaction.getStore().getRequest(transaction);
+		if (maybeRequest.isEmpty())
+			throw new StoreException("The jar under reverification cannot be found in store");
 
-		try {
-			jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) storeTransaction.getStore().getRequest(transaction).get();
+		// this check should always succeed if the implementation of the node is correct, since we checked already that the response installed a jar
+		if (maybeRequest.get() instanceof GenericJarStoreTransactionRequest<?> gjstr) {
+			// we build the classpath for the classloader: it includes the jar...
+			byte[] jar = gjstr.getJar();
+			var jars = new ArrayList<byte[]>();
+			jars.add(jar);
+
+			// ... and the instrumented jars of its dependencies: since we have already considered the case
+			// when a dependency is failed, we can conclude that they must all have an instrumented jar
+			reverifiedDependencies.stream()
+				.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
+				.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
+				.forEachOrdered(jars::add);
+
+			// consensus might be null if the node is restarting, during the recomputation of its consensus itself
+			if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
+				throw new StoreException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
+
+			try {
+				var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
+				return VerifiedJars.of(jar, tcl, gjstr instanceof InitialTransactionRequest, consensus != null && consensus.skipsVerification());
+			}
+			catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {
+				throw new StoreException("Unsupported verification versin " + e.verificationVerification);
+			}
+			catch (ClassNotFoundException | IOException e) {
+				throw new StoreException(e);
+			}
 		}
-		catch (NoSuchElementException e) {
-			throw new UnknownReferenceException(e);
-		}
-
-		// we build the classpath for the classloader: it includes the jar...
-		byte[] jar = jarStoreRequestOfTransaction.getJar();
-		var jars = new ArrayList<byte[]>();
-		jars.add(jar);
-
-		// ... and the instrumented jars of its dependencies: since we have already considered the case
-		// when a dependency is failed, we can conclude that they must all have an instrumented jar
-		reverifiedDependencies.stream()
-			.map(dependency -> (TransactionResponseWithInstrumentedJar) dependency)
-			.map(TransactionResponseWithInstrumentedJar::getInstrumentedJar)
-			.forEachOrdered(jars::add);
-
-		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
-		if (consensus != null && jars.stream().mapToLong(bytes -> bytes.length).sum() > consensus.getMaxCumulativeSizeOfDependencies())
-			throw new IllegalArgumentException("Too large cumulative size of dependencies in classpath: max is " + consensus.getMaxCumulativeSizeOfDependencies() + " bytes");
-
-		var tcl = TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
-
-		try {
-			return VerifiedJars.of(jar, tcl, jarStoreRequestOfTransaction instanceof InitialTransactionRequest,
-				consensus != null && consensus.skipsVerification());
-		}
-		catch (io.hotmoka.verification.UnsupportedVerificationVersionException e) {
-			throw new UnsupportedVerificationVersionException(e.verificationVerification);
-		}
+		else
+			throw new StoreException("The transaction that installed the jar under reverification did not really install a jar");
 	}
 
 	private boolean needsReverification(TransactionResponseWithInstrumentedJar response) {
 		return response.getVerificationVersion() != consensus.getVerificationVersion();
 	}
 
-	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	private List<GenericJarStoreTransactionResponse> reverifiedDependenciesOf(TransactionResponseWithInstrumentedJar response, AtomicInteger counter) throws StoreException {
 		var reverifiedDependencies = new ArrayList<GenericJarStoreTransactionResponse>();
 		for (var dependency: response.getDependencies().toArray(TransactionReference[]::new))
 			reverifiedDependencies.addAll(reverify(dependency, counter));
@@ -264,20 +256,15 @@ public class Reverification {
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
-	 * @throws NoSuchElementException if the transaction does not exist in the store, or did not generate a response with instrumented jar
+	 * @throws StoreException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		try {
-			TransactionResponse response = storeTransaction.getResponseUncommitted(reference)
-					.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + reference));
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws StoreException {
+		TransactionResponse response = storeTransaction.getResponseUncommitted(reference)
+			.orElseThrow(() -> new StoreException("Unknown transaction reference " + reference + " under reverification"));
 
-			if (response instanceof TransactionResponseWithInstrumentedJar trwij)
-				return trwij;
-			else
-				throw new NoSuchElementException("The transaction " + reference + " did not install a jar in store");
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e);
-		}
+		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
+			return trwij;
+		else
+			throw new StoreException("The transaction " + reference + " under reverification did not install a jar in store");
 	}
 }

@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -24,8 +23,6 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -165,11 +162,9 @@ public interface StoreTransaction<T extends Store<T>> {
 	 * 
 	 * @param classpath the class path that must be used by the class loader
 	 * @return the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
-	 * @throws IOException if there was an I/O error while accessing some jar
+	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException;
+	EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException;
 
 	T commit() throws StoreException;
 

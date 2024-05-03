@@ -164,13 +164,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param dependencies the dependencies
 	 * @param node the node for which the class loader is created
 	 * @param consensus the consensus parameters to use for reverification
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not available
-	 * @throws IOException if there was an I/O error while accessing some jar
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * @throws ClassNotFoundException if some class of the dependencies cannot be found
+	 * @throws StoreException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException, ClassNotFoundException {
 		try {
 			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
@@ -210,11 +207,8 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			this.balanceField = contract.getDeclaredField("balance");
 			this.balanceField.setAccessible(true); // it was private
 		}
-		catch (IllegalArgumentException e) {
-			throw e;
-		}
 		catch (NoSuchMethodException | NoSuchFieldException e) {
-			throw new RuntimeException("unexpected class change", e);
+			throw new StoreException("Unexpected class change", e);
 		}
 	}
 

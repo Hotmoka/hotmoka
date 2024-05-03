@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -39,8 +38,6 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -256,13 +253,20 @@ public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> imple
 	}
 
 	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		var classLoader = store.classLoaders.get(classpath);
-		if (classLoader != null)
-			return classLoader;
+	public final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
+		try {
+			var classLoader = store.classLoaders.get(classpath);
+			if (classLoader != null)
+				return classLoader;
 
-		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
-		return store.classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
+			var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
+			return store.classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
+		}
+		catch (ClassNotFoundException e) {
+			// since the class loader is created from transactions that are already in the store,
+			// they should be consistent and never miss a dependent class
+			throw new StoreException(e);
+		}
 	}
 
 	private boolean verifiesSignatureUncommitted(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException {

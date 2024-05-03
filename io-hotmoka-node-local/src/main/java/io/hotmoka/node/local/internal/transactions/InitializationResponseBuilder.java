@@ -16,21 +16,17 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal.transactions;
 
-import java.io.IOException;
-import java.util.NoSuchElementException;
-
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.stores.EngineClassLoader;
+import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
-import io.hotmoka.stores.UnsupportedVerificationVersionException;
 
 /**
  * The creator of a response for a transaction that initializes a node.
@@ -62,7 +58,12 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return storeTransaction.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
+	protected EngineClassLoader mkClassLoader() throws NodeException {
+		try {
+			return storeTransaction.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 }
