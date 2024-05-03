@@ -247,12 +247,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
-	void commitTransactionAndCheckout() throws StoreException {
-		setStore(transaction.commit());
-		store.moveRootBranchToThis();
-		transaction.notifyAllEvents(this::notifyEvent);
-	}
-
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
 	private static final ClassType storageMapView = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
 	private static final MethodSignature SIZE = MethodSignatures.ofNonVoid(storageMapView, "size", StorageTypes.INT);

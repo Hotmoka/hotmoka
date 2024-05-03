@@ -75,8 +75,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, node);
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
@@ -169,26 +169,30 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * This depends on the run-time class of the caller of the request.
 	 * 
 	 * @return the signature algorithm
-	 * @throws NoSuchAlgorithmException if the needed signature algorithm is not available
-	 * @throws ClassNotFoundException if the class of the caller cannot be found
 	 * @throws NodeException 
-	 * @throws NoSuchElementException 
-	 * @throws UnknownReferenceException 
 	 */
-	private SignatureAlgorithm determineSignatureAlgorithm() throws NoSuchAlgorithmException, ClassNotFoundException, NodeException, UnknownReferenceException {
-		ClassTag classTag = node.getClassTag(request.getCaller());
-		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
+	private SignatureAlgorithm determineSignatureAlgorithm() throws NodeException, TransactionRejectedException {
+		try {
+			ClassTag classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
-		if (classLoader.getAccountED25519().isAssignableFrom(clazz))
-			return SignatureAlgorithms.ed25519();
-		else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
-			return SignatureAlgorithms.sha256dsa();
-		else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla1();
-		else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
-			return SignatureAlgorithms.qtesla3();
-		else
-			return consensus.getSignatureForRequests();
+			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
+				return SignatureAlgorithms.ed25519();
+			else if (classLoader.getAccountSHA256DSA().isAssignableFrom(clazz))
+				return SignatureAlgorithms.sha256dsa();
+			else if (classLoader.getAccountQTESLA1().isAssignableFrom(clazz))
+				return SignatureAlgorithms.qtesla1();
+			else if (classLoader.getAccountQTESLA3().isAssignableFrom(clazz))
+				return SignatureAlgorithms.qtesla3();
+			else
+				return consensus.getSignatureForRequests();
+		}
+		catch (NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
+		catch (ClassNotFoundException e) {
+			throw new TransactionRejectedException(e);
+		}
 	}
 
 	/**
@@ -235,13 +239,18 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	/**
 	 * Checks that the request is signed with the private key of its caller.
 	 * 
-	 * @throws Exception if the signature of the request could not be checked
+	 * @throws NodeException if the signature of the request could not be checked
 	 */
-	private void signatureMustBeValid() throws Exception {
-		// if the node is not initialized yet, the signature is not checked
-		if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()
-				&& !node.caches.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
-			throw new TransactionRejectedException("invalid request signature");
+	private void signatureMustBeValid() throws NodeException, TransactionRejectedException {
+		try {
+			// if the node is not initialized yet, the signature is not checked
+			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()
+					&& !storeTransaction.signatureIsValidUncommitted((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
+				throw new TransactionRejectedException("invalid request signature");
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	/**

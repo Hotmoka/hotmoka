@@ -22,6 +22,8 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
+import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -151,6 +153,8 @@ public interface StoreTransaction<T extends Store<T>> {
 	void scheduleEventsForNotificationAfterCommit(TransactionResponse response);
 
 	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier);
+
+	boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException;
 
 	T commit() throws StoreException;
 

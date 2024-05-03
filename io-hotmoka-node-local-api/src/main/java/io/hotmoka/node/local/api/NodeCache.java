@@ -21,12 +21,9 @@ import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
@@ -50,18 +47,6 @@ public interface NodeCache {
 	 * Reconstructs the consensus parameters from information in the manifest.
 	 */
 	void recomputeConsensus();
-
-	/**
-	 * Yields the request that generated the transaction with the given reference.
-	 * If the node has some form of commit, then this method can only succeed
-	 * when the transaction has been definitely committed in the node.
-	 * Nodes are allowed to keep in store all, some or none of the requests
-	 * that they received during their lifetime.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the request, if any
-	 */
-	Optional<TransactionRequest<?>> getRequest(TransactionReference reference);
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
@@ -97,17 +82,6 @@ public interface NodeCache {
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
 	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException;
-
-	/**
-	 * Checks that the given request is signed with the private key of its caller.
-	 * It uses a cache to remember the last signatures already checked.
-	 * 
-	 * @param request the request
-	 * @param signatureAlgorithm the algorithm that must have been used for signing the request
-	 * @return true if and only if the signature of {@code request} is valid
-	 * @throws Exception if the signature of the request could not be checked
-	 */
-	boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws Exception;
 
 	/**
 	 * Yields the consensus parameters of the node.

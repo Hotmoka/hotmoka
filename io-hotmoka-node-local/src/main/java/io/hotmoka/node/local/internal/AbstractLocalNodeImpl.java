@@ -118,6 +118,7 @@ import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilde
 import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
+import io.hotmoka.stores.LRUCache;
 import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
@@ -290,7 +291,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 
 		this.storeUtilities = new StoreUtilityImpl(this);
-		this.caches = new NodeCachesImpl(this, consensus, config.getRequestCacheSize(), config.getResponseCacheSize());
+		this.caches = new NodeCachesImpl(this, consensus, config.getResponseCacheSize());
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
@@ -439,7 +440,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			Objects.requireNonNull(reference);
 
 			try {
-				return caches.getRequest(reference).orElseThrow(() -> new UnknownReferenceException(reference));
+				return store.getRequest(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 			}
 			catch (RuntimeException e) {
 				LOGGER.log(Level.WARNING, "unexpected exception", e);
@@ -882,7 +883,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
-		if (caches.getResponse(reference).isPresent())
+		if (store.getResponse(reference).isPresent())
 			throw new TransactionRejectedException("repeated request");
 	
 		createSemaphore(reference);

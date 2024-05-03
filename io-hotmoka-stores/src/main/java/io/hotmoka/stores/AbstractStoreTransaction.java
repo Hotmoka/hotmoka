@@ -17,6 +17,10 @@ limitations under the License.
 package io.hotmoka.stores;
 
 import java.math.BigInteger;
+import java.security.InvalidKeyException;
+import java.security.PublicKey;
+import java.security.SignatureException;
+import java.security.spec.InvalidKeySpecException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -29,9 +33,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.crypto.Base64;
+import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
@@ -61,6 +69,13 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
+
+	/**
+	 * Cached recent requests that have had their signature checked.
+	 * This avoids repeated signature checking in {@link AbstractLocalNode#checkTransaction(TransactionRequest)}
+	 * and {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
+	 */
+	private final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures = new LRUCache<>(100, 1000);
 
 	protected AbstractStoreTransaction(T store) {
 		this.store = store;
@@ -236,6 +251,36 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 		responsesWithEventsToNotify.stream()
 			.flatMap(TransactionResponseWithEvents::getEvents)
 			.forEachOrdered(event -> notifier.accept(getCreatorUncommitted(event), event));
+	}
+
+	@Override
+	public final boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException {
+		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignatureUncommitted(signatureAlgorithm, request));
+	}
+
+	private boolean verifiesSignatureUncommitted(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException {
+		try {
+			return signature.getVerifier(getPublicKeyUncommitted(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
+		}
+		catch (InvalidKeyException | SignatureException | Base64ConversionException | InvalidKeySpecException e) {
+			LOGGER.info("the public key of " + request.getCaller() + " could not be verified: " + e.getMessage());
+			return false;
+		}
+	}
+
+	/**
+	 * Yields the public key of the given externally owned account.
+	 * 
+	 * @param reference the account
+	 * @param signatureAlgorithm the signing algorithm used for the request
+	 * @return the public key
+	 * @throws Base64ConversionException 
+	 * @throws InvalidKeySpecException 
+	 */
+	private PublicKey getPublicKeyUncommitted(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws Base64ConversionException, InvalidKeySpecException {
+		String publicKeyEncodedBase64 = getPublicKeyUncommitted(reference);
+		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
+		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
 
 	/**

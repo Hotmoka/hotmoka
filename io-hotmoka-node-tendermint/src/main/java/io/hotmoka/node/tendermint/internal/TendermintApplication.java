@@ -290,7 +290,10 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseCommit commit(RequestCommit request) {
 		try {
-			node.commitTransactionAndCheckout();
+			var newStore = transaction.commit();
+			node.setStore(newStore);
+			newStore.moveRootBranchToThis();
+			transaction.notifyAllEvents(node::notifyEvent);
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO

@@ -21,11 +21,8 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -39,7 +36,6 @@ import java.util.stream.Stream;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckSupplier;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -51,8 +47,6 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
@@ -64,10 +58,10 @@ import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.stores.LRUCache;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -79,21 +73,9 @@ public class NodeCachesImpl implements NodeCache {
 	private final AbstractLocalNodeImpl<?,?> node;
 
 	/**
-	 * The cache for the requests.
-	 */
-	private final LRUCache<TransactionReference, TransactionRequest<?>> requests;
-
-	/**
 	 * The cache for the committed responses.
 	 */
 	private final LRUCache<TransactionReference, TransactionResponse> responses;
-
-	/**
-	 * Cached recent requests that have had their signature checked.
-	 * This avoids repeated signature checking in {@link AbstractLocalNode#checkTransaction(TransactionRequest)}
-	 * and {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
-	 */
-	private final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures;
 
 	/**
 	 * The cache for the class loaders.
@@ -148,11 +130,9 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus, int requestCacheSize, int responseCacheSize) {
+	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus, int responseCacheSize) {
 		this.node = node;
-		this.requests = new LRUCache<>(100, requestCacheSize);
 		this.responses = new LRUCache<>(100, responseCacheSize);
-		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.validators = Optional.empty();
 		this.versions = Optional.empty();
 		this.gasStation = Optional.empty();
@@ -342,11 +322,6 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return requests.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getRequest(_reference));
-	}
-
-	@Override
 	public final Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return responses.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getResponse(_reference));
 	}
@@ -364,15 +339,6 @@ public class NodeCachesImpl implements NodeCache {
 
 		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), node, true, consensus);
 		return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
-	}
-
-	@Override
-	public final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws Exception {
-		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignature(signatureAlgorithm, request));
-	}
-
-	private boolean verifiesSignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws GeneralSecurityException, Base64ConversionException {
-		return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
 	}
 
 	@Override
@@ -446,24 +412,6 @@ public class NodeCachesImpl implements NodeCache {
 			recomputeInflation();
 
 		return Optional.ofNullable(inflation);
-	}
-
-	/**
-	 * Yields the public key of the given externally owned account.
-	 * 
-	 * @param reference the account
-	 * @param signatureAlgorithm the signing algorithm used for the request
-	 * @return the public key
-	 * @throws NoSuchAlgorithmException if the signing algorithm is unknown
-	 * @throws NoSuchProviderException if the signing provider is unknown
-	 * @throws InvalidKeySpecException if the key specification is invalid
-	 * @throws Base64ConversionException if the public key of the account is not legally Base64 encoded
-	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeySpecException, Base64ConversionException {
-		// we go straight to the transaction that created the object
-		String publicKeyEncodedBase64 = node.getStoreUtilities().getPublicKeyUncommitted(reference);
-		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
-		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
 
 	private void recomputeGasPrice() {
