@@ -337,7 +337,7 @@ public class NodeCachesImpl implements NodeCache {
 		if (classLoader != null)
 			return classLoader;
 
-		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), node, true, consensus);
+		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), node, consensus);
 		return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
 	}
 
@@ -508,8 +508,8 @@ public class NodeCachesImpl implements NodeCache {
 
 		try {
 			// we check if there are events of type GasPriceUpdate triggered by the gas station
-			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
+				Stream<StorageReference> events = trwe.getEvents();
 				StorageReference gasStation = getGasStationUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->

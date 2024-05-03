@@ -157,40 +157,38 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 */
 	private final Reverification reverification;
 	
+	private final static int CLASS_END_LENGTH = ".class".length();
+
 	/**
 	 * Builds the class loader for the given jar and its dependencies.
 	 * 
 	 * @param jar the jar; this might be null, in which case the class loader includes the dependencies only
 	 * @param dependencies the dependencies
 	 * @param node the node for which the class loader is created
-	 * @param reverify true if and only if the class loader must reverify jars installed in the store of the node
-	 *                 that, at the time of installation, were verified with a version of the verification module older than the current one
-	 * @param consensus the consensus parameters to use for reverification, if that is required
+	 * @param consensus the consensus parameters to use for reverification
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNodeImpl<?,?> node, boolean reverify, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNodeImpl<?,?> node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		try {
 			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
 
 			// consensus might be null just after restarting a node, during the recomputation of the same consensus
 			// from the store (see AbstractLocalNode.getConsensusParams())
-			this.reverification = reverify && consensus != null ?
+			this.reverification = consensus != null ?
 				new Reverification(dependenciesAsList.stream(), node, consensus)
 				:
-				// if reverification is not required, we build an empty reverification object, for no dependencies
+				// if reverification is not possible, we build an empty reverification object, for no dependencies
 				new Reverification(Stream.empty(), node, consensus);
 
 			List<byte[]> jars = new ArrayList<>();
 			ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
 			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, node, jars, transactionsOfJars);
-
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
-
 			Class<?> contract = getContract(), storage = getStorage();
 			this.fromContract = storage.getDeclaredMethod("fromContract", contract);
 			this.fromContract.setAccessible(true); // it was private
@@ -252,8 +250,6 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		return TakamakaClassLoaders.of(jars.stream(), consensus != null ? consensus.getVerificationVersion() : 0);
 	}
-
-	private final static int CLASS_END_LENGTH = ".class".length();
 
 	/**
 	 * Checks that there are no split packages across jars and takes note of the transaction
