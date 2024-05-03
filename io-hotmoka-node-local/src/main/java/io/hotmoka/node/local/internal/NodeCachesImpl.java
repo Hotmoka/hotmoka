@@ -196,9 +196,9 @@ public class NodeCachesImpl implements NodeCache {
 	@Override
 	public final void recomputeConsensus() {
 		try {
-			StorageReference gasStation = getGasStation().get();
-			StorageReference validators = getValidators().get();
-			StorageReference versions = getVersions().get();
+			StorageReference gasStation = getGasStationUncommitted().get();
+			StorageReference validators = getValidatorsUncommitted().get();
+			StorageReference versions = getVersionsUncommitted().get();
 			TransactionReference takamakaCode = getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getManifestUncommitted().get();
 	
@@ -394,7 +394,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<StorageReference> getValidators() throws NodeException {
+	public final Optional<StorageReference> getValidatorsUncommitted() throws NodeException {
 		try {
 			if (validators.isEmpty())
 				validators = node.getStoreUtilities().getValidatorsUncommitted();
@@ -407,7 +407,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<StorageReference> getVersions() throws NodeException {
+	public final Optional<StorageReference> getVersionsUncommitted() throws NodeException {
 		try {
 			if (versions.isEmpty())
 				versions = node.getStoreUtilities().getVersionsUncommitted();
@@ -420,7 +420,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<StorageReference> getGasStation() throws NodeException {
+	public final Optional<StorageReference> getGasStationUncommitted() throws NodeException {
 		try {
 			if (gasStation.isEmpty())
 				gasStation = node.getStoreUtilities().getGasStationUncommitted();
@@ -472,7 +472,7 @@ public class NodeCachesImpl implements NodeCache {
 			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_GAS_PRICE, getGasStation().get()))
+					MethodSignatures.GET_GAS_PRICE, getGasStationUncommitted().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
@@ -486,7 +486,7 @@ public class NodeCachesImpl implements NodeCache {
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))
+					MethodSignatures.GET_CURRENT_INFLATION, getValidatorsUncommitted().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
@@ -513,9 +513,9 @@ public class NodeCachesImpl implements NodeCache {
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
 				Stream<StorageReference> events = trwe.getEvents();
 				StorageReference manifest = node.getManifestUncommitted().get();
-				StorageReference gasStation = getGasStation().get();
-				StorageReference versions = getVersions().get();
-				StorageReference validators = getValidators().get();
+				StorageReference gasStation = getGasStationUncommitted().get();
+				StorageReference versions = getVersionsUncommitted().get();
+				StorageReference validators = getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
@@ -562,7 +562,7 @@ public class NodeCachesImpl implements NodeCache {
 			// we check if there are events of type GasPriceUpdate triggered by the gas station
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference gasStation = getGasStation().get();
+				StorageReference gasStation = getGasStationUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
@@ -594,7 +594,7 @@ public class NodeCachesImpl implements NodeCache {
 			// we check if there are events of type InflationUpdate triggered by the validators object
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference validators = getValidators().get();
+				StorageReference validators = getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))

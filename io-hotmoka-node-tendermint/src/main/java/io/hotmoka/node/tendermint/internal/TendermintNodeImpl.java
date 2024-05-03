@@ -104,7 +104,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	/**
 	 * The current store transaction.
 	 */
-	public volatile StoreTransaction<?> transaction;
+	public volatile StoreTransaction<TendermintStore> transaction;
 
 	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -275,7 +275,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			return Optional.empty();
 		}
 
-		StorageReference validators = caches.getValidators().get(); // the manifest is already set
+		StorageReference validators = caches.getValidatorsUncommitted().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -323,7 +323,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		try {
 			if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference validators = caches.getValidators().get();
+				StorageReference validators = caches.getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
@@ -496,7 +496,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	public StoreTransaction<?> getStoreTransaction() {
+	public StoreTransaction<TendermintStore> getStoreTransaction() {
 		return transaction;
 	}
 }

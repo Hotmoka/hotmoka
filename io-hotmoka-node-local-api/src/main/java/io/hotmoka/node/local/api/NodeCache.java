@@ -134,7 +134,7 @@ public interface NodeCache {
 	 * @return the reference to the contract, if the node is already initialized
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getValidators() throws NodeException;
+	Optional<StorageReference> getValidatorsUncommitted() throws NodeException;
 
 	/**
 	 * Yields the reference to the objects that keeps track of the
@@ -143,7 +143,7 @@ public interface NodeCache {
 	 * @return the reference to the object, if the node is already initialized
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getVersions() throws NodeException;
+	Optional<StorageReference> getVersionsUncommitted() throws NodeException;
 
 	/**
 	 * Yields the reference to the contract that keeps track of the gas cost.
@@ -151,7 +151,7 @@ public interface NodeCache {
 	 * @return the reference to the contract, if the node is already initialized
 	 * @throws NodeException if the node is not able to complete the operation
 	 */
-	Optional<StorageReference> getGasStation() throws NodeException;
+	Optional<StorageReference> getGasStationUncommitted() throws NodeException;
 
 	/**
 	 * Yields the current gas price of the node.

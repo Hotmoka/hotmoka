@@ -430,7 +430,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void init() throws NodeException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			this.deserializedPayer = deserializedPayer();
-			this.deserializedValidators = node.caches.getValidators().map(deserializer::deserialize);
+			this.deserializedValidators = node.caches.getValidatorsUncommitted().map(deserializer::deserialize);
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());

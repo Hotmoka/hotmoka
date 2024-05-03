@@ -327,7 +327,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * 
 	 * @return the currently executing transaction
 	 */
-	public abstract StoreTransaction<?> getStoreTransaction();
+	public abstract StoreTransaction<S> getStoreTransaction();
 
 	/**
 	 * Determines if this node has not been closed yet.
@@ -790,7 +790,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
-				StorageReference validators = caches.getValidators().get(); // ok, since the manifest is present
+				StorageReference validators = caches.getValidatorsUncommitted().get(); // ok, since the manifest is present
 				TransactionReference takamakaCode = getTakamakaCode();
 
 				// we determine how many coins have been minted during the last reward:
@@ -931,8 +931,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
-	public void setStore(Store<?> store) {
-		this.store = (S) store; // TODO
+	public final void setStore(S store) {
+		this.store = store; // TODO
 	}
 
 	/**

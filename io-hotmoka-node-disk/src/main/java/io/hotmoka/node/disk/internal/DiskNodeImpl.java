@@ -85,7 +85,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	}
 
 	@Override
-	public StoreTransaction<?> getStoreTransaction() {
+	public StoreTransaction<DiskStore> getStoreTransaction() {
 		return transaction;
 	}
 
