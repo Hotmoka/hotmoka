@@ -40,12 +40,15 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.ClassType;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
@@ -351,6 +354,30 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
 	
 		return (TransactionResponseWithInstrumentedJar) response;
+	}
+
+	@Override
+	public Class<?> loadClass(StorageType type) throws ClassNotFoundException {
+		if (type == StorageTypes.BOOLEAN)
+			return boolean.class;
+		else if (type == StorageTypes.BYTE)
+			return byte.class;
+		else if (type == StorageTypes.CHAR)
+			return char.class;
+		else if (type == StorageTypes.SHORT)
+			return short.class;
+		else if (type == StorageTypes.INT)
+			return int.class;
+		else if (type == StorageTypes.LONG)
+			return long.class;
+		else if (type == StorageTypes.FLOAT)
+			return float.class;
+		else if (type == StorageTypes.DOUBLE)
+			return double.class;
+		else if (type instanceof ClassType ct)
+			return loadClass(ct.getName());
+		else
+			throw new IllegalArgumentException("Unexpected storage type");
 	}
 
 	@Override

@@ -56,28 +56,28 @@ public class Serializer {
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (isStorage(object))
 			return builder.classLoader.getStorageReferenceOf(object);
-		else if (object instanceof BigInteger)
-			return StorageValues.bigIntegerOf((BigInteger) object);
-		else if (object instanceof Boolean)
-			return StorageValues.booleanOf((Boolean) object);
-		else if (object instanceof Byte)
-			return StorageValues.byteOf((Byte) object);
-		else if (object instanceof Character)
-			return StorageValues.charOf((Character) object);
-		else if (object instanceof Double)
-			return StorageValues.doubleOf((Double) object);
-		else if (object instanceof Float)
-			return StorageValues.floatOf((Float) object);
-		else if (object instanceof Integer)
-			return StorageValues.intOf((Integer) object);
-		else if (object instanceof Long)
-			return StorageValues.longOf((Long) object);
-		else if (object instanceof Short)
-			return StorageValues.shortOf((Short) object);
-		else if (object instanceof String)
-			return StorageValues.stringOf((String) object);
-		else if (object instanceof Enum<?>)
-			return StorageValues.enumElementOf(object.getClass().getName(), ((Enum<?>) object).name());
+		else if (object instanceof BigInteger bi)
+			return StorageValues.bigIntegerOf(bi);
+		else if (object instanceof Boolean b)
+			return StorageValues.booleanOf(b);
+		else if (object instanceof Byte b)
+			return StorageValues.byteOf(b);
+		else if (object instanceof Character c)
+			return StorageValues.charOf(c);
+		else if (object instanceof Double d)
+			return StorageValues.doubleOf(d);
+		else if (object instanceof Float f)
+			return StorageValues.floatOf(f);
+		else if (object instanceof Integer i)
+			return StorageValues.intOf(i);
+		else if (object instanceof Long l)
+			return StorageValues.longOf(l);
+		else if (object instanceof Short s)
+			return StorageValues.shortOf(s);
+		else if (object instanceof String s)
+			return StorageValues.stringOf(s);
+		else if (object instanceof Enum<?> e)
+			return StorageValues.enumElementOf(e.getClass().getName(), e.name());
 		else if (object == null)
 			return StorageValues.NULL;
 		else

@@ -21,6 +21,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 
@@ -119,4 +120,14 @@ public interface EngineClassLoader extends TakamakaClassLoader {
 	 * @param amount the amount to add (if positive) or remove (if negative)
 	 */
 	void increaseCurrentSupply(Object validators, BigInteger amount);
+
+	/**
+	 * Yields the class object that represents the given storage type in the Java language,
+	 * for the current transaction.
+	 * 
+	 * @param type the storage type
+	 * @return the class object, if any
+	 * @throws ClassNotFoundException if some class type cannot be found
+	 */
+	Class<?> loadClass(StorageType type) throws ClassNotFoundException;
 }

@@ -46,7 +46,6 @@ import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.node.local.internal.Deserializer;
 import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
-import io.hotmoka.node.local.internal.StorageTypeToClass;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
@@ -66,11 +65,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	public final AbstractLocalNodeImpl<?,?> node;
 
 	public final StoreTransaction<?> storeTransaction;
-
-	/**
-	 * The object that translates storage types into their run-time class tag.
-	 */
-	public final StorageTypeToClass storageTypeToClass;
 
 	/**
 	 * The class loader used for the transaction.
@@ -109,7 +103,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.node = node;
 			this.consensus = node.caches.getConsensusParams();
 			this.classLoader = mkClassLoader();
-			this.storageTypeToClass = new StorageTypeToClass(this);
 		}
 		catch (Throwable t) {
 			throw wrapAsTransactionRejectedException(t);
@@ -182,7 +175,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.deserializer = new Deserializer(AbstractResponseBuilder.this, node.getStoreUtilities());
+				this.deserializer = new Deserializer(AbstractResponseBuilder.this);
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
 				this.now = storeTransaction.getNow();
 			}

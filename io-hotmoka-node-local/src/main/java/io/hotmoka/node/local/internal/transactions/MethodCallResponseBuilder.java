@@ -71,7 +71,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 */
 	protected final Method getMethod() throws ClassNotFoundException, NoSuchMethodException {
 		MethodSignature method = request.getStaticTarget();
-		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? storageTypeToClass.toClass(nvms.getReturnType()) : void.class;
+		Class<?> returnType = method instanceof NonVoidMethodSignature nvms ? classLoader.loadClass(nvms.getReturnType()) : void.class;
 		Class<?>[] argTypes = formalsAsClass();
 	
 		return classLoader.resolveMethod(method.getDefiningClass().getName(), method.getMethodName(), argTypes, returnType)

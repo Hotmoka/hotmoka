@@ -49,8 +49,8 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.whitelisting.Dummy;
 
 /**
@@ -59,14 +59,9 @@ import io.hotmoka.whitelisting.Dummy;
 public class Deserializer {
 
 	/**
-	 * The store utilities of the node.
+	 * The transaction for which deserialization is performed.
 	 */
-	private final StoreUtility storeUtilities;
-
-	/**
-	 * The object that translates storage types into their run-time class tag.
-	 */
-	private final StorageTypeToClass storageTypeToClass;
+	private final StoreTransaction<?> storeTransaction;
 
 	/**
 	 * The class loader that can be used to load classes.
@@ -128,11 +123,9 @@ public class Deserializer {
 	 * Builds an object that translates storage values into RAM values.
 	 * 
 	 * @param builder the response builder for which deserialization is performed
-	 * @param storeUtilities the store utilities of the node
 	 */
-	public Deserializer(AbstractResponseBuilder<?,?> builder, StoreUtility storeUtilities) {
-		this.storeUtilities = storeUtilities;
-		this.storageTypeToClass = builder.storageTypeToClass;
+	public Deserializer(AbstractResponseBuilder<?,?> builder) {
+		this.storeTransaction = builder.storeTransaction;
 		this.classLoader = builder.classLoader;
 	}
 
@@ -216,12 +209,12 @@ public class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			ClassTag classTag = storeUtilities.getClassTagUncommitted(reference);
-			storeUtilities.getEagerFieldsUncommitted(reference)
+			ClassTag classTag = storeTransaction.getClassTagUncommitted(reference);
+			storeTransaction.getEagerFieldsUncommitted(reference)
 				.sorted(updateComparator)
 				.forEachOrdered(update -> {
 					try {
-						formals.add(storageTypeToClass.toClass(update.getField().getType()));
+						formals.add(classLoader.loadClass(update.getField().getType()));
 						actuals.add(deserialize(update.getValue()));
 					}
 					catch (ClassNotFoundException e) {
