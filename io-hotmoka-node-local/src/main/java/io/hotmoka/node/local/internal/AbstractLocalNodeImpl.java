@@ -27,10 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -51,6 +53,8 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.closeables.AbstractAutoCloseableWithLockAndOnCloseHandlers;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.GasCostModels;
 import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.ClosedNodeException;
@@ -457,7 +461,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			Objects.requireNonNull(reference);
 
 			try {
-				Optional<TransactionResponse> response = caches.getResponse(reference);
+				Optional<TransactionResponse> response = store.getResponse(reference);
 				if (response.isPresent())
 					return response.get();
 
@@ -505,7 +509,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				if (isNotCommitted(reference.getTransaction()))
 					throw new UnknownReferenceException(reference);
 
-				return storeUtilities.getStateCommitted(reference);
+				return getStateCommitted(reference);
 			}
 			catch (NoSuchElementException e) {
 				throw new UnknownReferenceException(reference);
@@ -518,6 +522,35 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				throw e;
 			}
 		}
+	}
+
+	private Stream<Update> getStateCommitted(StorageReference object) throws StoreException {
+		Stream<TransactionReference> history = store.getHistory(object);
+		var updates = new HashSet<Update>();
+		CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(object, transaction, updates))));
+		return updates.stream();
+	}
+
+	/**
+	 * Adds, to the given set, the updates of the fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
+	 * 
+	 * @param object the reference of the object
+	 * @param transaction the reference to the transaction
+	 * @param updates the set where they must be added
+	 * @throws StoreException 
+	 */
+	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) throws StoreException {
+		Optional<TransactionResponse> maybeResponse = store.getResponse(transaction);
+		if (maybeResponse.isEmpty())
+			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is missing from the store");
+
+		if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+			trwu.getUpdates()
+				.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
+				.forEach(updates::add);
+		else
+			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
 	}
 
 	@Override
@@ -871,7 +904,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
-		if (caches.getResponseUncommitted(reference).isPresent())
+		if (caches.getResponse(reference).isPresent())
 			throw new TransactionRejectedException("repeated request");
 	
 		createSemaphore(reference);

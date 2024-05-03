@@ -17,31 +17,20 @@ limitations under the License.
 package io.hotmoka.node.local.internal;
 
 import java.math.BigInteger;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import io.hotmoka.node.FieldSignatures;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
-import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.StoreUtility;
-import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -49,17 +38,10 @@ import io.hotmoka.stores.StoreException;
  */
 public class StoreUtilityImpl implements StoreUtility {
 
-	private final static Logger logger = Logger.getLogger(StoreUtilityImpl.class.getName());
-
 	/**
 	 * The node whose store is accessed.
 	 */
 	private final AbstractLocalNodeImpl<?, ?> node;
-
-	/**
-	 * The store that is accessed.
-	 */
-	private Store<?> store;
 
 	/**
 	 * Builds an object that provides utility methods on the store of a node.
@@ -70,66 +52,29 @@ public class StoreUtilityImpl implements StoreUtility {
 		this.node = node;
 	}
 
-	public Store<?> getStore() {
-		return store != null ? store : node.getStore();
-	}
-
-	/**
-	 * Builds an object that provides utility methods on the given store.
-	 * 
-	 * @param node the node for which the store utilities are being built
-	 * @param store the store accessed by the store utilities
-	 */
-	public StoreUtilityImpl(AbstractLocalNodeImpl<?, ?> node, Store<?> store) {
-		this.node = node;
-		this.store = store;
-	}
-
-	@Override
-	public Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		return node.getManifestUncommitted()
-			.map(this::getClassTagUncommitted)
-			.map(ClassTag::getJar);
-	}
-
-	@Override
-	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
-		return node.getManifestUncommitted();
-	}
-
 	@Override
 	public boolean nodeIsInitializedUncommitted() throws StoreException {
-		return getManifestUncommitted().isPresent();
+		return node.getManifestUncommitted().isPresent();
 	}
 
 	@Override
 	public Optional<StorageReference> getGasStationUncommitted() throws StoreException {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
+		return node.getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getValidatorsUncommitted() throws StoreException {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
+		return node.getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getGameteUncommitted() throws StoreException {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
+		return node.getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
 	}
 
 	@Override
 	public Optional<StorageReference> getVersionsUncommitted() throws StoreException {
-		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
-	}
-
-	@Override
-	public BigInteger getBalanceUncommitted(StorageReference contract) {
-		return getBigIntegerFieldUncommitted(contract, FieldSignatures.BALANCE_FIELD);
-	}
-
-	@Override
-	public BigInteger getRedBalanceUncommitted(StorageReference contract) {
-		return getBigIntegerFieldUncommitted(contract, FieldSignatures.RED_BALANCE_FIELD);
+		return node.getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 
 	@Override
@@ -153,11 +98,6 @@ public class StoreUtilityImpl implements StoreUtility {
 	}
 
 	@Override
-	public BigInteger getTotalBalanceUncommitted(StorageReference contract) {
-		return getBalanceUncommitted(contract).add(getRedBalanceUncommitted(contract));
-	}
-
-	@Override
 	public String getClassNameUncommitted(StorageReference reference) {
 		return getClassTagUncommitted(reference).getClazz().getName();
 	}
@@ -174,69 +114,12 @@ public class StoreUtilityImpl implements StoreUtility {
 			.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
 	}
 
-	@Override
-	public Stream<Update> getStateCommitted(StorageReference object) throws StoreException {
-		Stream<TransactionReference> history = getStore().getHistory(object);
-		var updates = new HashSet<Update>();
-		history.forEachOrdered(transaction -> addUpdatesCommitted(object, transaction, updates));
-		return updates.stream();
-	}
-
-	@Override
-	public Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
-		Set<FieldSignature> fieldsAlreadySeen = new HashSet<>();
-		NodeCache caches = node.caches;
-
-		return node.getHistoryUncommitted(object)
-				.flatMap(transaction -> enforceHasUpdates(caches.getResponseUncommitted(transaction).get()).getUpdates())
-				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
-						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
-				.map(update -> (UpdateOfField) update);
-	}
-
-	@Override
-	public Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
+	private Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
 		return node.getHistoryUncommitted(object)
 			.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
 			.filter(Optional::isPresent)
 			.map(Optional::get)
 			.findFirst();
-	}
-
-	@Override
-	public Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
-		// accesses directly the transaction that created the object
-		return getLastUpdateUncommitted(object, field, object.getTransaction());
-	}
-
-	private static TransactionResponseWithUpdates enforceHasUpdates(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithUpdates)
-			return (TransactionResponseWithUpdates) response;
-		else
-			throw new RuntimeException("Transaction " + response + " does not contain updates");
-	}
-
-	/**
-	 * Adds, to the given set, the updates of the fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 */
-	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) {
-		try {
-			if (node.getResponse(transaction) instanceof TransactionResponseWithUpdates trwu)
-				trwu.getUpdates()
-					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
-					.forEach(updates::add);
-			else
-				throw new RuntimeException("Storage reference " + transaction + " does not contain updates");
-		}
-		catch (TransactionRejectedException | UnknownReferenceException | NodeException e) {
-			logger.log(Level.WARNING, "unexpected exception", e);
-			throw new RuntimeException(e);
-		}
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {

@@ -248,7 +248,7 @@ public class Reverification {
 				currentResponseAsNonInitial.getGasConsumedForRAM(), currentResponseAsNonInitial.getGasConsumedForStorage());
 		}
 
-		reverified.put(transaction, (TransactionResponse) replacement);
+		reverified.put(transaction, replacement);
 
 		return replacement;
 	}

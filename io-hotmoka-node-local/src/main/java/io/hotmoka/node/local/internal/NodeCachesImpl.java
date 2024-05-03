@@ -57,6 +57,7 @@ import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.IntValue;
@@ -186,13 +187,19 @@ public class NodeCachesImpl implements NodeCache {
 		}
 	}
 
+	private Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
+		return node.getManifestUncommitted()
+			.map(node.getStoreUtilities()::getClassTagUncommitted)
+			.map(ClassTag::getJar);
+	}
+
 	@Override
 	public final void recomputeConsensus() {
 		try {
 			StorageReference gasStation = getGasStation().get();
 			StorageReference validators = getValidators().get();
 			StorageReference versions = getVersions().get();
-			TransactionReference takamakaCode = node.getStoreUtilities().getTakamakaCodeUncommitted().get();
+			TransactionReference takamakaCode = getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getManifestUncommitted().get();
 	
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -464,7 +471,7 @@ public class NodeCachesImpl implements NodeCache {
 			Optional<StorageReference> manifest = node.getManifestUncommitted();
 			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
+					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
 					MethodSignatures.GET_GAS_PRICE, getGasStation().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))).getValue();
 		}
@@ -478,7 +485,7 @@ public class NodeCachesImpl implements NodeCache {
 			Optional<StorageReference> manifest = node.getManifestUncommitted();
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, node.getStoreUtilities().getTakamakaCodeUncommitted().get(),
+					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
 					MethodSignatures.GET_CURRENT_INFLATION, getValidators().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))).getValue();
 		}

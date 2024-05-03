@@ -19,15 +19,9 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.stream.Stream;
 
-import io.hotmoka.node.api.signatures.FieldSignature;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
-import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;
 
 /**
@@ -39,7 +33,6 @@ import io.hotmoka.stores.StoreException;
  */
 public interface StoreUtility {
 
-	Store<?> getStore();
 	/**
 	 * Determines if the node is initialized, that is, its manifest has been set,
 	 * although possibly not yet committed.
@@ -48,23 +41,6 @@ public interface StoreUtility {
 	 * @throws StoreException if the store is not able to complete the operation
 	 */
 	boolean nodeIsInitializedUncommitted() throws StoreException;
-
-	/**
-	 * Yields the reference to the transaction, possibly not yet committed,
-	 * that has installed the Takamaka base classes in the store of the node.
-	 * 
-	 * @return the reference, if any
-	 * @throws StoreException if the store is not able to complete the operation
-	 */
-	Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException;
-
-	/**
-	 * Yields the manifest of the node, if the latter is already initialized.
-	 * 
-	 * @return the manifest, if any
-	 * @throws StoreException if the store is not able to complete the operation
-	 */
-	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
 	/**
 	 * Yields the gas station inside the manifest of the node, if the latter is already initialized.
@@ -97,30 +73,6 @@ public interface StoreUtility {
 	 * @throws StoreException if the store is not able to complete the operation
 	 */
 	Optional<StorageReference> getGameteUncommitted() throws StoreException;
-
-	/**
-	 * Yields the (green) balance of the given (normal or red/green) contract.
-	 * 
-	 * @param contract the contract
-	 * @return the balance
-	 */
-	BigInteger getBalanceUncommitted(StorageReference contract);
-
-	/**
-	 * Yields the red balance of the given red/green contract.
-	 * 
-	 * @param contract the contract
-	 * @return the red balance
-	 */
-	BigInteger getRedBalanceUncommitted(StorageReference contract);
-
-	/**
-	 * Yields the total balance of the given contract (green plus red, if any).
-	 * 
-	 * @param contract the contract
-	 * @return the total balance
-	 */
-	BigInteger getTotalBalanceUncommitted(StorageReference contract);
 
 	/**
 	 * Yields the Base64-encoded public key of the given account.
@@ -170,47 +122,4 @@ public interface StoreUtility {
 	 * @throws NoSuchElementException if {@code object} does not exist
 	 */
 	ClassTag getClassTagUncommitted(StorageReference object) throws NoSuchElementException;
-
-	/**
-	 * Yields the uncommitted eager fields of the given object, that is, their last updates, possibly still uncommitted.
-	 * 
-	 * @param object the reference to the object
-	 * @return the last updates to the eager fields of {@code object}
-	 */
-	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException;
-
-	/**
-	 * Yields the committed state of the given object, that is, the last updates committed for its fields.
-	 * 
-	 * @param object the reference to the object
-	 * @return the state
-	 */
-	Stream<Update> getStateCommitted(StorageReference object) throws StoreException; // TODO: is this really committed?
-
-	/**
-	 * Yields the most recent update to the given field
-	 * of the object with the given storage reference.
-	 * If this node has some form of commit, this last update might
-	 * not necessarily be already committed.
-	 * 
-	 * @param object the storage reference of the object
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 */
-	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException;
-
-	/**
-	 * Yields the most recent update for the given {@code final} field
-	 * of the object with the given storage reference.
-	 * If this node has some form of commit, the last update might
-	 * not necessarily be already committed.
-	 * Its implementation can be identical to
-	 * that of {@link #getLastUpdateToFieldUncommitted(StorageReference, FieldSignature)},
-	 * or instead exploit the fact that the field is {@code final}, for an optimized look-up.
-	 * 
-	 * @param object the storage reference
-	 * @param field the field whose update is being looked for
-	 * @return the update, if any
-	 */
-	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 }
