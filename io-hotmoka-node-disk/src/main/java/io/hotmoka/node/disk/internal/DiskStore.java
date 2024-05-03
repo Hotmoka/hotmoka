@@ -37,7 +37,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.stores.Store;
+import io.hotmoka.stores.AbstractStore;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 
@@ -47,7 +47,7 @@ import io.hotmoka.stores.StoreTransaction;
  * while the histories are kept in RAM.
  */
 @Immutable
-class DiskStore implements Store<DiskStore> {
+class DiskStore extends AbstractStore<DiskStore> {
 
 	/**
 	 * The path where the database of the store gets created.
@@ -95,6 +95,8 @@ class DiskStore implements Store<DiskStore> {
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
+
+    	super(toClone);
 
     	this.dir = toClone.dir;
     	this.requests = new ConcurrentHashMap<>(toClone.requests);

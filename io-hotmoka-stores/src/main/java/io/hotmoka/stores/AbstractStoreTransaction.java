@@ -16,6 +16,7 @@ limitations under the License.
 
 package io.hotmoka.stores;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -38,6 +39,9 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -61,7 +65,7 @@ import io.hotmoka.node.api.values.StringValue;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransaction<T extends Store<T>> implements StoreTransaction<T> {
+public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> implements StoreTransaction<T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final T store;
 
@@ -69,13 +73,6 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
-
-	/**
-	 * Cached recent requests that have had their signature checked.
-	 * This avoids repeated signature checking in {@link AbstractLocalNode#checkTransaction(TransactionRequest)}
-	 * and {@link AbstractLocalNode#deliverTransaction(TransactionRequest)}.
-	 */
-	private final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures = new LRUCache<>(100, 1000);
 
 	protected AbstractStoreTransaction(T store) {
 		this.store = store;
@@ -255,7 +252,17 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 
 	@Override
 	public final boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException {
-		return checkedSignatures.computeIfAbsent(request, _request -> verifiesSignatureUncommitted(signatureAlgorithm, request));
+		return store.checkedSignatures.computeIfAbsent(request, _request -> verifiesSignatureUncommitted(signatureAlgorithm, request));
+	}
+
+	@Override
+	public final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+		var classLoader = store.classLoaders.get(classpath);
+		if (classLoader != null)
+			return classLoader;
+
+		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
+		return store.classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
 	}
 
 	private boolean verifiesSignatureUncommitted(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException {

@@ -104,7 +104,6 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -118,6 +117,7 @@ import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilde
 import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
+import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.LRUCache;
 import io.hotmoka.stores.Store;
 import io.hotmoka.stores.StoreException;

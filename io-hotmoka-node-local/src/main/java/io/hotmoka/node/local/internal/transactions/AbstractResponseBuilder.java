@@ -40,15 +40,15 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.node.local.internal.Deserializer;
-import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
+import io.hotmoka.stores.EngineClassLoader;
+import io.hotmoka.stores.EngineClassLoaderImpl;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.stores.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 
 /**

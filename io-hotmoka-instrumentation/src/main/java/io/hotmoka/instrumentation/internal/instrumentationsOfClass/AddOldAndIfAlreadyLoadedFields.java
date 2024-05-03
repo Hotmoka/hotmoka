@@ -23,7 +23,7 @@ import org.apache.bcel.generic.BasicType;
 import org.apache.bcel.generic.FieldGen;
 import org.apache.bcel.generic.Type;
 
-import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.instrumentation.internal.InstrumentationConstants;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl;
 import io.hotmoka.instrumentation.internal.InstrumentedClassImpl.Builder.ClassLevelInstrumentation;

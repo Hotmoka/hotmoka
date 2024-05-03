@@ -28,11 +28,11 @@ import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
+import io.hotmoka.stores.EngineClassLoader;
+import io.hotmoka.stores.EngineClassLoaderImpl;
 import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.stores.UnsupportedVerificationVersionException;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
 
@@ -57,7 +57,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
-		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), node, consensus);
+		return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), storeTransaction, consensus);
 	}
 
 	@Override

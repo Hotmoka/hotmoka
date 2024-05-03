@@ -27,10 +27,10 @@ import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
+import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.stores.UnsupportedVerificationVersionException;
 
 /**
  * The creator of a response for a transaction that initializes a node.
@@ -63,6 +63,6 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return node.caches.getClassLoader(request.getClasspath()); // currently not used for this transaction
+		return storeTransaction.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
 	}
 }

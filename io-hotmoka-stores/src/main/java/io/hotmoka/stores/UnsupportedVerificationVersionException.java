@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.api;
+package io.hotmoka.stores;
 
 /**
  * An exception thrown when the verification version of the node

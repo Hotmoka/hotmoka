@@ -29,10 +29,10 @@ import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
+import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.stores.UnsupportedVerificationVersionException;
 
 /**
  * The creator of a response for a transaction that creates a gamete.
@@ -53,7 +53,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return node.caches.getClassLoader(request.getClasspath());
+		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
 	}
 
 	@Override

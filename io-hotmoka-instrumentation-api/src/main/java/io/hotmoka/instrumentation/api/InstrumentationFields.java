@@ -14,14 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.instrumentation;
+package io.hotmoka.instrumentation.api;
 
 import static io.hotmoka.verification.api.VerifiedClass.FORBIDDEN_PREFIX;
 
 /**
  * Constants about fields used for instrumentation of Takamaka classes.
  */
-public final class InstrumentationFields {
+public abstract class InstrumentationFields {
 
 	private InstrumentationFields() {}
 

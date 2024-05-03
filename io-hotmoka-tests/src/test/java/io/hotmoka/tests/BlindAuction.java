@@ -126,10 +126,10 @@ class BlindAuction extends HotmokaTest {
 		var random = new Random();
 		for (int i = 1; i <= NUM_BIDS; i++) {
 			int player = 1 + random.nextInt(3);
-			BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
-			BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+			var deposit = BigInteger.valueOf(random.nextInt(1000));
+			var value = BigInteger.valueOf(random.nextInt(1000));
 			boolean fake = random.nextBoolean();
-			byte[] salt = new byte[32];
+			var salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 			addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
@@ -146,8 +146,8 @@ class BlindAuction extends HotmokaTest {
 			var random = new Random();
 			for (int i = 1; i <= NUM_BIDS; i++) {
 				int player = 1 + random.nextInt(3);
-				BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
-				BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+				var deposit = BigInteger.valueOf(random.nextInt(1000));
+				var value = BigInteger.valueOf(random.nextInt(1000));
 				boolean fake = random.nextBoolean();
 				var salt = new byte[32];
 				random.nextBytes(salt);

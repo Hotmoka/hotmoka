@@ -16,17 +16,15 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.stores.EngineClassLoader;
 
 /**
  * The cache of a local node.
@@ -50,18 +48,6 @@ public interface NodeCache {
 
 	/**
 	 * Yields the response generated for the request for the given transaction.
-	 * If this node has some form of commit, then this method can only succeed
-	 * when the transaction has been definitely committed in the node.
-	 * Nodes are allowed to keep in store all, some or none of the responses
-	 * that they computed during their lifetime.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response, if any
-	 */
-	Optional<TransactionResponse> getResponse(TransactionReference reference);
-
-	/**
-	 * Yields the response generated for the request for the given transaction.
 	 * If this node has some form of commit, then this method succeeds
 	 * also if the transaction has not been committed yet in the node.
 	 * Nodes are allowed to keep in store all, some or none of the responses
@@ -71,17 +57,6 @@ public interface NodeCache {
 	 * @return the response, if any
 	 */
 	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
-
-	/**
-	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
-	 * 
-	 * @param classpath the class path that must be used by the class loader
-	 * @return the class loader
-	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
-	 * @throws UnsupportedVerificationVersionException if the verification version is not supported
-	 * @throws IOException if there was an I/O error while accessing some jar
-	 */
-	EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException;
 
 	/**
 	 * Yields the consensus parameters of the node.

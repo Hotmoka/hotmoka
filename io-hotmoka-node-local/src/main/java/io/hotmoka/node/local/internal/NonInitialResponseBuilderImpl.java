@@ -48,11 +48,11 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.stores.UnsupportedVerificationVersionException;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -106,7 +106,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		return node.caches.getClassLoader(request.getClasspath());
+		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
 	}
 
 	/**

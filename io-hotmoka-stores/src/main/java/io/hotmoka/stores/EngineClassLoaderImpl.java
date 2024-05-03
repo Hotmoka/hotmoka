@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.stores;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -39,7 +39,8 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.exceptions.UncheckSupplier;
+import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -50,9 +51,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -172,21 +170,16 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, AbstractLocalNodeImpl<?,?> node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
 		try {
-			List<TransactionReference> dependenciesAsList = dependencies.collect(Collectors.toList());
+			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
-			// consensus might be null just after restarting a node, during the recomputation of the same consensus
-			// from the store (see AbstractLocalNode.getConsensusParams())
-			this.reverification = consensus != null ?
-				new Reverification(dependenciesAsList.stream(), node, consensus)
-				:
-				// if reverification is not possible, we build an empty reverification object, for no dependencies
-				new Reverification(Stream.empty(), node, consensus);
-
-			List<byte[]> jars = new ArrayList<>();
-			ArrayList<TransactionReference> transactionsOfJars = new ArrayList<>();
-			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, node, jars, transactionsOfJars);
+			// consensus might be null just after restarting a node, during the recomputation of the same consensus from the store;
+			// if reverification is not possible, we build an empty reverification object, for no dependencies
+			this.reverification = new Reverification(consensus != null ? dependenciesAsList.stream() : Stream.empty(), storeTransaction, consensus);
+			var jars = new ArrayList<byte[]>();
+			var transactionsOfJars = new ArrayList<TransactionReference>();
+			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, storeTransaction, jars, transactionsOfJars);
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 			Class<?> contract = getContract(), storage = getStorage();
@@ -235,7 +228,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the class loader
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, AbstractLocalNodeImpl<?,?> node, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, StoreTransaction<?> storeTransaction, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -244,7 +237,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		dependencies.forEachOrdered(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, node, counter));
+		dependencies.forEachOrdered(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, storeTransaction, counter));
 		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
@@ -311,15 +304,15 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractLocalNodeImpl<?,?> node, AtomicInteger counter) {
+	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, StoreTransaction<?> storeTransaction, AtomicInteger counter) {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, node);
+		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, storeTransaction);
 
 		// we consider its dependencies before as well, recursively
-		responseWithInstrumentedJar.getDependencies().forEachOrdered(dependency -> addJars(dependency, consensus, jars, jarTransactions, node, counter));
+		responseWithInstrumentedJar.getDependencies().forEachOrdered(dependency -> addJars(dependency, consensus, jars, jarTransactions, storeTransaction, counter));
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
@@ -339,17 +332,17 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the response
 	 * @throws IllegalArgumentException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractLocalNodeImpl<?,?> node) {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, StoreTransaction<?> storeTransaction) {
 		// first we check if the response has been reverified and we use the reverified version
 		TransactionResponse response = reverification.getReverifiedResponse(reference)
-			// otherwise the response has not been reverified
-			.or(() -> node.caches.getResponseUncommitted(reference))
-			.orElseThrow(() -> new IllegalArgumentException("unknown transaction reference " + reference));
-		
-		if (!(response instanceof TransactionResponseWithInstrumentedJar))
+				// otherwise the response has not been reverified
+				.or(UncheckSupplier.uncheck(() -> storeTransaction.getResponseUncommitted(reference))) // TODO: recheck
+				.orElseThrow(() -> new IllegalArgumentException("unknown transaction reference " + reference));
+
+		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
+			return trwij;
+		else
 			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
-	
-		return (TransactionResponseWithInstrumentedJar) response;
 	}
 
 	@Override
@@ -688,7 +681,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws NoSuchElementException 
 	 */
 	public final void replaceReverifiedResponses(StoreTransaction<?> transaction) throws NoSuchElementException, UnknownReferenceException, NodeException {
-		reverification.replace(transaction);
+		reverification.replace();
 	}
 
 	@Override

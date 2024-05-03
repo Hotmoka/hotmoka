@@ -16,6 +16,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
 	  <groupId>it.univr.bcel</groupId>
   	  <artifactId>it-univr-bcel</artifactId>
       <version>1.2.1</version>

@@ -28,7 +28,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import io.hotmoka.instrumentation.InstrumentationFields;
+import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.StorageTypes;
@@ -36,8 +36,8 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.stores.EngineClassLoader;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.

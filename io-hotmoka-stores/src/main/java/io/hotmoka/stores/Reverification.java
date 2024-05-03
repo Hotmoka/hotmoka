@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.stores;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -41,9 +41,6 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
@@ -64,7 +61,7 @@ public class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final AbstractLocalNodeImpl<?,?> node;
+	private final StoreTransaction<?> storeTransaction;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -85,8 +82,8 @@ public class Reverification {
 	 * @throws NodeException 
 	 * @throws NoSuchElementException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, AbstractLocalNodeImpl<?,?> node, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		this.node = node;
+	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
+		this.storeTransaction = storeTransaction;
 		this.consensus = consensus;
 
 		var counter = new AtomicInteger();
@@ -109,14 +106,14 @@ public class Reverification {
 	 * 
 	 * @throws NodeException if this node is not able to complete the operation correctly
 	 */
-	public void replace(StoreTransaction<?> transaction) throws NodeException {
+	public void replace() throws NodeException {
 		for (var entry: reverified.entrySet()) {
 			var reference = entry.getKey();
 
 			try {
-				transaction.replace(reference, node.getRequest(reference), entry.getValue());
+				storeTransaction.replace(reference, storeTransaction.getStore().getRequest(reference).get(), entry.getValue());
 			}
-			catch (StoreException | UnknownReferenceException e) {
+			catch (StoreException | NoSuchElementException e) {
 				throw new NodeException(e);
 			}
 
@@ -165,7 +162,14 @@ public class Reverification {
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, UnknownReferenceException, NodeException {
 		// we get the original jar that classpath had requested to install; this cast will always
 		// succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		var jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) node.getRequest(transaction);
+		GenericJarStoreTransactionRequest<?> jarStoreRequestOfTransaction;
+
+		try {
+			jarStoreRequestOfTransaction = (GenericJarStoreTransactionRequest<?>) storeTransaction.getStore().getRequest(transaction).get();
+		}
+		catch (NoSuchElementException e) {
+			throw new UnknownReferenceException(e);
+		}
 
 		// we build the classpath for the classloader: it includes the jar...
 		byte[] jar = jarStoreRequestOfTransaction.getJar();
@@ -263,12 +267,17 @@ public class Reverification {
 	 * @throws NoSuchElementException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws NoSuchElementException {
-		TransactionResponse response = node.caches.getResponseUncommitted(reference)
-			.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + reference));
-		
-		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
-			return trwij;
-		else
-			throw new NoSuchElementException("The transaction " + reference + " did not install a jar in store");
+		try {
+			TransactionResponse response = storeTransaction.getResponseUncommitted(reference)
+					.orElseThrow(() -> new RuntimeException("Unknown transaction reference " + reference));
+
+			if (response instanceof TransactionResponseWithInstrumentedJar trwij)
+				return trwij;
+			else
+				throw new NoSuchElementException("The transaction " + reference + " did not install a jar in store");
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

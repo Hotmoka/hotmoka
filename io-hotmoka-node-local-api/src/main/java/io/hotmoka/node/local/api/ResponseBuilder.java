@@ -23,6 +23,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.stores.EngineClassLoader;
 
 /**
  * The creator of a response from a request. It executes a transaction from the request and builds the corresponding response.

@@ -39,6 +39,16 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-verification</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-instrumentation-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.xodus</groupId>
       <artifactId>io-hotmoka-xodus</artifactId>
       <version>${io.hotmoka.xodus.version}</version>

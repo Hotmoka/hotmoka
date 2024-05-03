@@ -19,14 +19,12 @@ package io.hotmoka.node.local.internal;
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
@@ -45,7 +43,6 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -58,9 +55,8 @@ import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
-import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
+import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.LRUCache;
 import io.hotmoka.stores.StoreException;
 
@@ -321,24 +317,13 @@ public class NodeCachesImpl implements NodeCache {
 		}
 	}
 
-	@Override
-	public final Optional<TransactionResponse> getResponse(TransactionReference reference) {
+	private Optional<TransactionResponse> getResponse(TransactionReference reference) {
 		return responses.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getResponse(_reference));
 	}
 
 	@Override
 	public final Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
 		return getResponse(reference).or(UncheckSupplier.uncheck(() -> node.getResponseUncommitted(reference))); // TODO: recheck
-	}
-
-	@Override
-	public final EngineClassLoader getClassLoader(TransactionReference classpath) throws ClassNotFoundException, UnsupportedVerificationVersionException, IOException, NoSuchElementException, UnknownReferenceException, NodeException {
-		var classLoader = classLoaders.get(classpath);
-		if (classLoader != null)
-			return classLoader;
-
-		var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), node, consensus);
-		return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
 	}
 
 	@Override
