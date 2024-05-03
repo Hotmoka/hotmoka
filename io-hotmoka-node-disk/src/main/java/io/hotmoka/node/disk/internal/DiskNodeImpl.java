@@ -26,7 +26,6 @@ import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
@@ -110,11 +109,5 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
 		mempool.add(request);
-	}
-
-	@Override
-	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
-		// immediate notification, since there is no commit
-		notifyEventsOf(response);
 	}
 }

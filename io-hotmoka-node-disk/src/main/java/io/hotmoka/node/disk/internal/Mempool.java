@@ -136,6 +136,7 @@ class Mempool {
 					if (counter > 0)
 						node.rewardValidators("", "");
 					node.setStore(transaction.commit());
+					transaction.notifyAllEvents(node::notifyEvent);
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					node.transaction = transaction;
 					counter = 0;
@@ -148,6 +149,7 @@ class Mempool {
 						if (counter > 0)
 							node.rewardValidators("", "");
 						node.setStore(transaction.commit());
+						transaction.notifyAllEvents(node::notifyEvent);
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 						node.transaction = transaction;
 						counter = 0;

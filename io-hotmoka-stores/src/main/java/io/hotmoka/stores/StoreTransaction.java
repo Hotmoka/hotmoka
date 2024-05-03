@@ -19,6 +19,7 @@ package io.hotmoka.stores;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -146,6 +147,10 @@ public interface StoreTransaction<T extends Store<T>> {
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+
+	void scheduleEventsForNotificationAfterCommit(TransactionResponse response);
+
+	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier);
 
 	T commit() throws StoreException;
 

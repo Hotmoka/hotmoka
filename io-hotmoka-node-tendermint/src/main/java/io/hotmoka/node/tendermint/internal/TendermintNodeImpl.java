@@ -30,9 +30,7 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -249,21 +247,10 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
-	@Override
-	protected void scheduleForNotificationOfEvents(TransactionResponseWithEvents response) {
-		responsesWithEventsToNotify.add(response);
-	}
-
-	/**
-	 * The transactions containing events that must be notified at the next commit.
-	 */
-	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = new HashSet<>();
-
 	void commitTransactionAndCheckout() throws StoreException {
 		setStore(transaction.commit());
 		store.moveRootBranchToThis();
-		responsesWithEventsToNotify.forEach(this::notifyEventsOf);
-		responsesWithEventsToNotify.clear();
+		transaction.notifyAllEvents(this::notifyEvent);
 	}
 
 	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);

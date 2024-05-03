@@ -98,7 +98,6 @@ import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
@@ -161,15 +160,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		return subscriptions.subscribeToEvents(creator, handler);
 	}
 
-	/**
-	 * Notifies the given event to all event handlers for the given creator.
-	 * 
-	 * @param creator the creator of the event
-	 * @param event the event to notify
-	 */
-	protected final void notifyEvent(StorageReference creator, StorageReference event) {
+	public void notifyEvent(StorageReference creator, StorageReference event) {
 		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(event + ": notified as event with creator " + creator);
+		LOGGER.info(event + ": notified as event with creator " + creator);		
 	}
 
 	/**
@@ -738,7 +731,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					response = responseBuilder.getResponse();
 					storeTransaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
-					scheduleForNotificationOfEvents(response);
+					storeTransaction.scheduleEventsForNotificationAfterCommit(response);
 					takeNoteForNextReward(request, response);
 					invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 				}
@@ -877,21 +870,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	/**
-	 * Notifies all events contained in the given response.
-	 * 
-	 * @param response the response that contains the events
-	 */
-	protected final void notifyEventsOf(TransactionResponseWithEvents response) {
-		try {
-			response.getEvents().forEachOrdered(event -> notifyEvent(storeUtilities.getCreatorUncommitted(event), event));
-		}
-		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "unexpected exception", e);
-			throw e;
-		}	
-	}
-
-	/**
 	 * Posts the given request. It does some preliminary preparation then calls
 	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
 	 * logic of this post.
@@ -964,16 +942,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @param request the request
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request);
-
-	/**
-	 * Schedules the events in the given response for notification to all their subscribers.
-	 * This might call {@link #notifyEventsOf(TransactionResponseWithEvents)} immediately
-	 * or might delay its call to the next commit, if there is a notion of commit.
-	 * In this way, one can guarantee that events are notified only when they have been committed.
-	 * 
-	 * @param response the response that contains events
-	 */
-	protected abstract void scheduleForNotificationOfEvents(TransactionResponseWithEvents response);
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -1172,11 +1140,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 					 .divide(_100_000_000);
 
 		return gas;
-	}
-
-	private void scheduleForNotificationOfEvents(TransactionResponse response) {
-		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().count() > 0L)
-			scheduleForNotificationOfEvents(responseWithEvents);
 	}
 
 	/**

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiConsumer;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,6 +36,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
+import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -53,6 +56,11 @@ import io.hotmoka.node.api.values.StringValue;
 public abstract class AbstractStoreTransaction<T extends Store<T>> implements StoreTransaction<T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final T store;
+
+	/**
+	 * The transactions containing events that must be notified at commit-time.
+	 */
+	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
 
 	protected AbstractStoreTransaction(T store) {
 		this.store = store;
@@ -215,6 +223,19 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	public final Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
 		// accesses directly the transaction that created the object
 		return getLastUpdateUncommitted(object, field, object.getTransaction());
+	}
+
+	@Override
+	public final void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
+		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().findAny().isPresent())
+			responsesWithEventsToNotify.add(responseWithEvents);
+	}
+
+	@Override
+	public final void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) {
+		responsesWithEventsToNotify.stream()
+			.flatMap(TransactionResponseWithEvents::getEvents)
+			.forEachOrdered(event -> notifier.accept(getCreatorUncommitted(event), event));
 	}
 
 	/**
