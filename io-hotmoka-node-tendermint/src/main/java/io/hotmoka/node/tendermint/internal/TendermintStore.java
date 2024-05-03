@@ -21,7 +21,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Function;
 
-import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -34,7 +34,7 @@ import io.hotmoka.xodus.env.Transaction;
  * A partial trie-based store. Errors and requests are recovered by asking
  * Tendermint, since it keeps such information inside its blocks.
  */
-@ThreadSafe
+@Immutable
 public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
 
 	/**

@@ -149,7 +149,7 @@ class BlindAuction extends HotmokaTest {
 				BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
 				BigInteger value = BigInteger.valueOf(random.nextInt(1000));
 				boolean fake = random.nextBoolean();
-				byte[] salt = new byte[32];
+				var salt = new byte[32];
 				random.nextBytes(salt);
 				StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 				addInstanceVoidMethodCallTransaction(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), BID, auction.get(), StorageValues.bigIntegerOf(deposit), bytes32);
@@ -176,7 +176,7 @@ class BlindAuction extends HotmokaTest {
 			this.salt = salt;
 		}
 
-		private StorageReference intoBlockchain() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
+		private StorageReference intoStore() throws TransactionException, CodeExecutionException, TransactionRejectedException, InvalidKeyException, SignatureException, NodeException, TimeoutException, InterruptedException {
 			return addConstructorCallTransaction
         		(privateKey(player), account(player), _100_000, BigInteger.ONE, jar(), CONSTRUCTOR_REVEALED_BID, StorageValues.bigIntegerOf(value), StorageValues.booleanOf(fake), bytes32);
 		}
@@ -209,10 +209,10 @@ class BlindAuction extends HotmokaTest {
 		int i = 1;
 		while (i <= NUM_BIDS) {
 			int player = 1 + random.nextInt(3);
-			BigInteger deposit = BigInteger.valueOf(random.nextInt(1000));
-			BigInteger value = BigInteger.valueOf(random.nextInt(1000));
+			var deposit = BigInteger.valueOf(random.nextInt(1000));
+			var value = BigInteger.valueOf(random.nextInt(1000));
 			boolean fake = random.nextBoolean();
-			byte[] salt = new byte[32];
+			var salt = new byte[32];
 			random.nextBytes(salt);
 			StorageReference bytes32 = codeAsBytes32(player, value, fake, salt);
 
@@ -240,7 +240,7 @@ class BlindAuction extends HotmokaTest {
 
 		List<StorageReference> bidsInStore = new ArrayList<>();
 		for (BidToReveal bid: bids)
-			bidsInStore.add(bid.intoBlockchain());
+			bidsInStore.add(bid.intoStore());
 
 		Iterator<BidToReveal> it = bids.iterator();
 		for (StorageReference bidInStore: bidsInStore) {

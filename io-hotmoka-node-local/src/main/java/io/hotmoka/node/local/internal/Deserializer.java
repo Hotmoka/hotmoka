@@ -143,37 +143,35 @@ public class Deserializer {
 	 * @return the RAM image of {@code value}
 	 */
 	public Object deserialize(StorageValue value) {
-		if (value instanceof StorageReference)
+		if (value instanceof StorageReference sr)
 			// we use a cache to provide the same value if the same reference gets deserialized twice
-			return cache.computeIfAbsent((StorageReference) value, this::createStorageObject);
-		else if (value instanceof IntValue)
-			return ((IntValue) value).getValue();
-		else if (value instanceof BooleanValue)
-			return ((BooleanValue) value).getValue();
-		else if (value instanceof LongValue)
-			return ((LongValue) value).getValue();
+			return cache.computeIfAbsent(sr, this::createStorageObject);
+		else if (value instanceof IntValue iv)
+			return iv.getValue();
+		else if (value instanceof BooleanValue bv)
+			return bv.getValue();
+		else if (value instanceof LongValue lv)
+			return lv.getValue();
 		else if (value instanceof NullValue)
 			return null;
-		else if (value instanceof ByteValue)
-			return ((ByteValue) value).getValue();
-		else if (value instanceof ShortValue)
-			return ((ShortValue) value).getValue();
-		else if (value instanceof CharValue)
-			return ((CharValue) value).getValue();
-		else if (value instanceof FloatValue)
-			return ((FloatValue) value).getValue();
-		else if (value instanceof DoubleValue)
-			return ((DoubleValue) value).getValue();
-		else if (value instanceof StringValue)
+		else if (value instanceof ByteValue bv)
+			return bv.getValue();
+		else if (value instanceof ShortValue sv)
+			return sv.getValue();
+		else if (value instanceof CharValue cv)
+			return cv.getValue();
+		else if (value instanceof FloatValue fv)
+			return fv.getValue();
+		else if (value instanceof DoubleValue dv)
+			return dv.getValue();
+		else if (value instanceof StringValue sv)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed:
 			// two parameters of an entry are never alias when they come from outside the node
-			return new String(((StringValue) value).getValue());
-		else if (value instanceof BigIntegerValue)
+			return new String(sv.getValue());
+		else if (value instanceof BigIntegerValue biv)
 			// we clone the value, so that the alias behavior of values coming from outside the node is fixed
-			return new BigInteger(value.toString());
-		else if (value instanceof EnumValue) {
-			EnumValue ev = (EnumValue) value;
-
+			return new BigInteger(biv.getValue().toByteArray());
+		else if (value instanceof EnumValue ev) {
 			try {
 				// below, we cannot use:
 				// return Enum.valueOf((Class<? extends Enum>) classLoader.loadClass(ev.enumClassName), ev.name);
@@ -186,7 +184,7 @@ public class Deserializer {
 					.filter(field -> field.getType() == enumClass)
 					.findFirst();
 
-				Field field = fieldOfElement.orElseThrow(() -> new DeserializationError("cannot find enum constant " + ev.getName()));
+				Field field = fieldOfElement.orElseThrow(() -> new DeserializationError("Cannot find enum constant " + ev.getName()));
 				// the field is public, but the class might not be public
 				field.setAccessible(true);
 

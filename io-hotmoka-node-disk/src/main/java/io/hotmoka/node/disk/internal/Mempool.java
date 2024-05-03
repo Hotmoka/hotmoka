@@ -135,7 +135,7 @@ class Mempool {
 				if (current == null) {
 					if (counter > 0)
 						node.rewardValidators("", "");
-					transaction.commit();
+					node.setStore(transaction.commit());
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					node.transaction = transaction;
 					counter = 0;
@@ -147,7 +147,7 @@ class Mempool {
 					if (counter == transactionsPerBlock - 1) {
 						if (counter > 0)
 							node.rewardValidators("", "");
-						transaction.commit();
+						node.setStore(transaction.commit());
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 						node.transaction = transaction;
 						counter = 0;

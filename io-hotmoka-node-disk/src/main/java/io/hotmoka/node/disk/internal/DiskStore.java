@@ -23,6 +23,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -30,11 +31,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.NodeMarshallingContexts;
-import io.hotmoka.node.NodeUnmarshallingContexts;
-import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -48,8 +46,15 @@ import io.hotmoka.stores.StoreTransaction;
  * everything immediately into files. It keeps responses into persistent memory,
  * while the histories are kept in RAM.
  */
-@ThreadSafe
+@Immutable
 class DiskStore implements Store<DiskStore> {
+
+	/**
+	 * The path where the database of the store gets created.
+	 */
+	private final Path dir;
+	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests;
+	private final ConcurrentMap<TransactionReference, TransactionResponse> responses;
 
 	/**
 	 * The histories of the objects created in blockchain. In a real implementation, this must
@@ -68,13 +73,6 @@ class DiskStore implements Store<DiskStore> {
 	 */
 	private final AtomicReference<StorageReference> manifest;
 
-	private final ConcurrentMap<TransactionReference, Path> paths = new ConcurrentHashMap<>();
-
-	/**
-	 * The path where the database of the store gets created.
-	 */
-	private final Path dir;
-
 	private final AtomicInteger blockNumber;
 
 	/**
@@ -84,27 +82,49 @@ class DiskStore implements Store<DiskStore> {
      */
     DiskStore(Path dir) {
     	this.dir = dir;
+    	this.requests = new ConcurrentHashMap<>();
+    	this.responses = new ConcurrentHashMap<>();
     	this.histories = new ConcurrentHashMap<>();
     	this.errors = new ConcurrentHashMap<>();
     	this.manifest = new AtomicReference<>();
     	this.blockNumber = new AtomicInteger(0);
     }
 
+    DiskStore(DiskStore toClone, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    		Map<TransactionReference, TransactionResponse> addedResponses,
+    		Map<StorageReference, TransactionReference[]> addedHistories,
+    		Map<TransactionReference, String> addedErrors,
+    		Optional<StorageReference> addedManifest) throws StoreException {
+
+    	this.dir = toClone.dir;
+    	this.requests = new ConcurrentHashMap<>(toClone.requests);
+    	this.responses = new ConcurrentHashMap<>(toClone.responses);
+    	this.histories = new ConcurrentHashMap<>(toClone.histories);
+    	this.errors = new ConcurrentHashMap<>(toClone.errors);
+    	this.manifest = new AtomicReference<>(toClone.manifest.get());
+    	this.blockNumber = new AtomicInteger(addedRequests.isEmpty() ? toClone.blockNumber.get() : toClone.blockNumber.get() + 1);
+
+    	addedManifest.ifPresent(manifest::set);
+
+		for (var entry: addedErrors.entrySet())
+			errors.put(entry.getKey(), entry.getValue());
+
+		int progressive = 0;
+		for (var entry: addedRequests.entrySet()) {
+			setRequest(progressive++, entry.getKey(), entry.getValue());
+		}
+
+		progressive = 0;
+		for (var entry: addedResponses.entrySet())
+			setResponse(progressive++, entry.getKey(), entry.getValue());
+
+		for (var entry: addedHistories.entrySet())
+			histories.put(entry.getKey(), entry.getValue());
+    }
+
     @Override
     public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	try {
-    		Path path = paths.get(reference);
-    		if (path == null)
-    			return Optional.empty();
-
-    		Path response = path.resolve("response");
-    		try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
-    			return Optional.of(TransactionResponses.from(context));
-    		}
-    	}
-    	catch (IOException e) {
-    		return Optional.empty();
-    	}
+    	return Optional.ofNullable(responses.get(reference));
     }
 
 	@Override
@@ -125,19 +145,7 @@ class DiskStore implements Store<DiskStore> {
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		try {
-			Path path = paths.get(reference);
-			if (path == null)
-				return Optional.empty();
-
-			Path response = path.resolve("request");
-			try (var context = NodeUnmarshallingContexts.of(Files.newInputStream(response))) {
-				return Optional.of(TransactionRequests.from(context));
-			}
-		}
-		catch (IOException e) {
-			return Optional.empty();
-		}
+		return Optional.ofNullable(requests.get(reference));
 	}
 
 	@Override
@@ -145,11 +153,12 @@ class DiskStore implements Store<DiskStore> {
 		return new DiskStoreTransaction(this);
 	}
 
-	protected void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {
+		requests.put(reference, request);
+
 		try {
 			Path requestPath = getPathFor(progressive, reference, "request");
 			Path parent = requestPath.getParent();
-			paths.put(reference, parent);
 			ensureDeleted(parent);
 			Files.createDirectories(parent);
 	
@@ -164,7 +173,9 @@ class DiskStore implements Store<DiskStore> {
 		}
 	}
 
-	protected void setResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
+	private void setResponse(int progressive, TransactionReference reference, TransactionResponse response) throws StoreException {
+		responses.put(reference, response);
+
 		try {
 			Path responsePath = getPathFor(progressive, reference, "response");
 			Path parent = responsePath.getParent();
@@ -179,18 +190,6 @@ class DiskStore implements Store<DiskStore> {
 		catch (IOException e) {
 			throw new StoreException(e);
 		}
-	}
-
-	protected void setError(TransactionReference reference, String error) {
-		errors.put(reference, error);
-	}
-
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) {
-		histories.put(object, history.toArray(TransactionReference[]::new));
-	}
-
-	protected void setManifest(StorageReference manifest) {
-		this.manifest.set(manifest);
 	}
 
 	/**
@@ -219,11 +218,6 @@ class DiskStore implements Store<DiskStore> {
 				.forEach(File::delete);
 	}
 
-	void increaseBlockNumber() {
-		blockNumber.getAndIncrement();
-	}
-
 	@Override
-	public void close() {
-	}
+	public void close() {}
 }

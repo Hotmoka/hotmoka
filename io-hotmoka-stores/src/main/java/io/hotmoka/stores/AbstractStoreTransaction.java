@@ -54,78 +54,59 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final T store;
 
-	/**
-	 * This lock ensures that the various components of this transaction are always aligned.
-	 * For instance, histories refer to responses in store. Subclasses must take care
-	 * of synchronizing on this object when they read components of this transaction, so that
-	 * they are provided in a consistent state.
-	 */
-	private final Object lock = new Object();
-
 	protected AbstractStoreTransaction(T store) {
 		this.store = store;
 	}
 
+	@Override
 	public final T getStore() {
 		return store;
 	}
 
-	protected final Object getLock() {
-		return lock;
-	}
-
 	@Override
 	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		synchronized (lock) {
-			if (response instanceof TransactionResponseWithUpdates trwu) {
-				setRequest(reference, request);
-				setResponse(reference, response);
-				expandHistory(reference, trwu);
-
-				if (response instanceof GameteCreationTransactionResponse gctr)
-					LOGGER.info(gctr.getGamete() + ": created as gamete");
-			}
-			else if (response instanceof InitializationTransactionResponse) {
-				if (request instanceof InitializationTransactionRequest itr) {
-					setRequest(reference, request);
-					setResponse(reference, response);
-					StorageReference manifest = itr.getManifest();
-					setManifest(manifest);
-					LOGGER.info(manifest + ": set as manifest");
-					LOGGER.info("the node has been initialized");
-				}
-				else
-					throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
-			}
-			else {
-				setRequest(reference, request);
-				setResponse(reference, response);
-			}
-		}
-	}
-
-	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		synchronized (lock) {
+		if (response instanceof TransactionResponseWithUpdates trwu) {
 			setRequest(reference, request);
-			setError(reference, errorMessage);
-		}
-	}
+			setResponse(reference, response);
+			expandHistory(reference, trwu);
 
-	@Override
-	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		synchronized (lock) {
+			if (response instanceof GameteCreationTransactionResponse gctr)
+				LOGGER.info(gctr.getGamete() + ": created as gamete");
+		}
+		else if (response instanceof InitializationTransactionResponse) {
+			if (request instanceof InitializationTransactionRequest itr) {
+				setRequest(reference, request);
+				setResponse(reference, response);
+				StorageReference manifest = itr.getManifest();
+				setManifest(manifest);
+				LOGGER.info(manifest + ": set as manifest");
+				LOGGER.info("the node has been initialized");
+			}
+			else
+				throw new StoreException("Trying to initialize the node with a request of class " + request.getClass().getSimpleName());
+		}
+		else {
+			setRequest(reference, request);
 			setResponse(reference, response);
 		}
 	}
 
 	@Override
+	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
+		setRequest(reference, request);
+		setError(reference, errorMessage);
+	}
+
+	@Override
+	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+		setResponse(reference, response);
+	}
+
+	@Override
 	public final Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		synchronized (lock) {
-			return getManifestUncommitted()
-					.map(this::getClassTagUncommitted)
-					.map(ClassTag::getJar);
-		}
+		return getManifestUncommitted()
+				.map(this::getClassTagUncommitted)
+				.map(ClassTag::getJar);
 	}
 
 	@Override
@@ -135,30 +116,22 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 
 	@Override
 	public final Optional<StorageReference> getGasStationUncommitted() throws StoreException {
-		synchronized (lock) {
-			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
-		}
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
 	}
 
 	@Override
 	public final Optional<StorageReference> getValidatorsUncommitted() throws StoreException {
-		synchronized (lock) {
-			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
-		}
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VALIDATORS_FIELD));
 	}
 
 	@Override
 	public final Optional<StorageReference> getGameteUncommitted() throws StoreException {
-		synchronized (lock) {
-			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
-		}
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
 	}
 
 	@Override
 	public final Optional<StorageReference> getVersionsUncommitted() throws StoreException {
-		synchronized (lock) {
-			return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
-		}
+		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 
 	@Override
@@ -205,15 +178,13 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	public final ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
 		// we go straight to the transaction that created the object
 		try {
-			synchronized (lock) {
-				return getResponseUncommitted(reference.getTransaction()) // TODO: cache it?
-						.filter(response -> response instanceof TransactionResponseWithUpdates)
-						.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
-								.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
-								.map(update -> (ClassTag) update)
-								.findFirst())
-						.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
-			}
+			return getResponseUncommitted(reference.getTransaction()) // TODO: cache it?
+					.filter(response -> response instanceof TransactionResponseWithUpdates)
+					.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
+							.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+							.map(update -> (ClassTag) update)
+							.findFirst())
+					.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO
@@ -224,24 +195,20 @@ public abstract class AbstractStoreTransaction<T extends Store<T>> implements St
 	public final Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
-		synchronized (lock) {
-			return getHistoryUncommitted(object)
-					.flatMap(UncheckFunction.uncheck(transaction -> enforceHasUpdates(getResponseUncommitted(transaction).get()).getUpdates())) // TODO: cache it? recheck
-					.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
-							fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
-					.map(update -> (UpdateOfField) update);
-		}
+		return getHistoryUncommitted(object)
+				.flatMap(UncheckFunction.uncheck(transaction -> enforceHasUpdates(getResponseUncommitted(transaction).get()).getUpdates())) // TODO: cache it? recheck
+				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
+						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+				.map(update -> (UpdateOfField) update);
 	}
 
 	@Override
 	public final Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
-		synchronized (lock) {
-			return getHistoryUncommitted(object)
-					.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
-					.filter(Optional::isPresent)
-					.map(Optional::get)
-					.findFirst();
-		}
+		return getHistoryUncommitted(object)
+				.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.findFirst();
 	}
 
 	@Override

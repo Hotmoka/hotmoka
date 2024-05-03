@@ -21,7 +21,6 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -36,7 +35,6 @@ import io.hotmoka.node.api.values.StorageReference;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-@ThreadSafe
 public interface StoreTransaction<T extends Store<T>> {
 
 	Store<?> getStore();
@@ -47,7 +45,6 @@ public interface StoreTransaction<T extends Store<T>> {
 	 */
 	long getNow();
 
-	boolean isJustStore();
 	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.

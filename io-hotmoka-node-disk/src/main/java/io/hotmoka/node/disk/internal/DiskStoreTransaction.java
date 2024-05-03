@@ -44,80 +44,43 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	}
 
 	public boolean isJustStore() {
-		synchronized (getLock()) {
-			return requests.isEmpty() && responses.isEmpty() && histories.isEmpty();
-		}
+		return requests.isEmpty() && responses.isEmpty() && histories.isEmpty();
 	}
 
 	@Override
 	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		synchronized (getLock()) {
-			var uncommittedResponse = responses.get(reference);
-			if (uncommittedResponse != null)
-				return Optional.of(uncommittedResponse);
-			else
-				return getStore().getResponse(reference);
-		}
+		var uncommittedResponse = responses.get(reference);
+		if (uncommittedResponse != null)
+			return Optional.of(uncommittedResponse);
+		else
+			return getStore().getResponse(reference);
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
-		synchronized (getLock()) {
-			var uncommittedHistory = histories.get(object);
-			if (uncommittedHistory != null)
-				return Stream.of(uncommittedHistory);
-			else
-				return getStore().getHistory(object);
-		}
+		var uncommittedHistory = histories.get(object);
+		if (uncommittedHistory != null)
+			return Stream.of(uncommittedHistory);
+		else
+			return getStore().getHistory(object);
 	}
 
 	@Override
 	public Optional<StorageReference> getManifestUncommitted() {
-		synchronized (getLock()) {
-			var uncommittedManifest = manifest.get();
-			if (uncommittedManifest != null)
-				return Optional.of(uncommittedManifest);
-			else
-				return getStore().getManifest();
-		}
+		var uncommittedManifest = manifest.get();
+		if (uncommittedManifest != null)
+			return Optional.of(uncommittedManifest);
+		else
+			return getStore().getManifest();
 	}
 
 	@Override
 	public DiskStore commit() throws StoreException {
-		var store = getStore();
-
-		synchronized (getLock()) {
-			// we report all the updates occurred during this transaction into the store
-			var manifest = this.manifest.get();
-			if (manifest != null)
-				store.setManifest(manifest);
-
-			for (var entry: errors.entrySet())
-				store.setError(entry.getKey(), entry.getValue());
-
-			int progressive = 0;
-			for (var entry: requests.entrySet())
-				store.setRequest(progressive++, entry.getKey(), entry.getValue());
-
-			progressive = 0;
-			for (var entry: responses.entrySet())
-				store.setResponse(progressive++, entry.getKey(), entry.getValue());
-
-			// it's important to write the histories at the end, so that there are no
-			// dangling references in the histories (ie, references to responses not yet in store)
-			for (var entry: histories.entrySet())
-				store.setHistory(entry.getKey(), Stream.of(entry.getValue()));
-
-			if (progressive > 0)
-				store.increaseBlockNumber();
-		}
-
-		return store;
+		return new DiskStore(getStore(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
 	}
 
 	@Override
-	public void abort() {
-	}
+	public void abort() {}
 
 	@Override
 	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) {

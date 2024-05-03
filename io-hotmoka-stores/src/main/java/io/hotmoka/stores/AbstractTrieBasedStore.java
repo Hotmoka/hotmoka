@@ -21,7 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
-import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -59,7 +59,7 @@ import io.hotmoka.xodus.env.Transaction;
  * 
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
-@ThreadSafe
+@Immutable
 public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>> implements Store<T> {
 
 	/**
