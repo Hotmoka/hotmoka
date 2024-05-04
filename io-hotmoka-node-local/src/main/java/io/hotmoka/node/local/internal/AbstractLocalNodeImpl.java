@@ -106,7 +106,6 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.StoreUtility;
 import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
@@ -178,11 +177,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	public final Hasher<TransactionRequest<?>> getHasher() {
 		return hasher;
 	}
-
-	/**
-	 * An object that provides utility methods on {@link #store}.
-	 */
-	protected final StoreUtility storeUtilities;
 
 	/**
 	 * The caches of the node.
@@ -290,8 +284,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			throw new RuntimeException("Unexpected exception", e);
 		}
 
-		this.storeUtilities = new StoreUtilityImpl(this);
-		this.caches = new NodeCachesImpl(this, consensus, config.getResponseCacheSize());
+		this.caches = new NodeCachesImpl(this, consensus);
 		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
@@ -482,22 +475,22 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
-	public Optional<String> getRecentCheckTransactionErrorFor(TransactionReference reference) {
-		return Optional.ofNullable(recentCheckTransactionErrors.get(reference));
-	}
-
 	@Override
 	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 
-			if (isNotCommitted(reference.getTransaction()))
+			var maybeResponse = store.getResponse(reference.getTransaction());
+			if (maybeResponse.isEmpty())
 				throw new UnknownReferenceException(reference);
-
-			return storeUtilities.getClassTagUncommitted(reference);
-		}
-		catch (NoSuchElementException e) {
-			throw new UnknownReferenceException(reference);
+			else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+				return trwu.getUpdates()
+					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+					.map(update -> (ClassTag) update)
+					.findFirst()
+					.orElseThrow(() -> new NodeException("Object " + reference + " has not class tag in store"));
+			else
+				throw new NodeException("The creation of object " + reference + " does not contain updates");
 		}
 	}
 
@@ -506,10 +499,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			try {
-				if (isNotCommitted(reference.getTransaction()))
+				if (isNotCommitted(reference.getTransaction())) // TODO: remove after making history optional
 					throw new UnknownReferenceException(reference);
 
-				return getStateCommitted(reference);
+				Stream<TransactionReference> history = store.getHistory(reference);
+				var updates = new HashSet<Update>();
+				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(reference, transaction, updates))));
+				return updates.stream();
 			}
 			catch (NoSuchElementException e) {
 				throw new UnknownReferenceException(reference);
@@ -524,11 +520,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
-	private Stream<Update> getStateCommitted(StorageReference object) throws StoreException {
-		Stream<TransactionReference> history = store.getHistory(object);
-		var updates = new HashSet<Update>();
-		CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(object, transaction, updates))));
-		return updates.stream();
+	private Optional<String> getRecentCheckTransactionErrorFor(TransactionReference reference) {
+		return Optional.ofNullable(recentCheckTransactionErrors.get(reference));
 	}
 
 	/**
@@ -790,10 +783,12 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		try {
 			Optional<StorageReference> manifest = getStoreTransaction().getManifestUncommitted();
 			if (manifest.isPresent()) {
+				var storeTransaction = getStoreTransaction();
+
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference caller = manifest.get();
-				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
-				StorageReference validators = caches.getValidatorsUncommitted().get(); // ok, since the manifest is present
+				BigInteger nonce = storeTransaction.getNonceUncommitted(caller);
+				StorageReference validators = storeTransaction.getValidatorsUncommitted().get(); // ok, since the manifest is present
 				TransactionReference takamakaCode = validators.getTransaction(); // TODO: refer to getTakamakaCodeUncommitted() of the store transaction later
 
 				// we determine how many coins have been minted during the last reward:
@@ -804,7 +799,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				// as final supply: in that case we truncate the minted coins so that the current
 				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
 				// or from above (negative inflation)
-				BigInteger currentSupply = storeUtilities.getCurrentSupplyUncommitted(validators);
+				BigInteger currentSupply = storeTransaction.getCurrentSupplyUncommitted(validators);
 				if (minted.signum() > 0) {
 					BigInteger finalSupply = caches.getConsensusParams().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
@@ -991,10 +986,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			return transaction.getManifestUncommitted();
 		else
 			return store.getManifest();
-	}
-
-	public StoreUtility getStoreUtilities() {
-		return storeUtilities;
 	}
 
 	public <T> Future<T> submit(Callable<T> task) {

@@ -104,7 +104,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	/**
 	 * The current store transaction.
 	 */
-	public volatile StoreTransaction<TendermintStore> transaction;
+	public volatile StoreTransaction<TendermintStore> storeTransaction;
 
 	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -256,7 +256,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	private volatile TendermintValidator[] tendermintValidatorsCached;
 
-	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, StoreException {
 		if (tendermintValidatorsCached != null)
 			return Optional.of(tendermintValidatorsCached);
 
@@ -269,7 +269,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			return Optional.empty();
 		}
 
-		StorageReference validators = caches.getValidatorsUncommitted().get(); // the manifest is already set
+		StorageReference validators = storeTransaction.getValidatorsUncommitted().get(); // the manifest is already set
 		TransactionReference takamakaCode = getTakamakaCode();
 
 		var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -295,7 +295,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 				(manifest, _50_000, takamakaCode, GET, shares, validator))
 				.orElseThrow(() -> new NodeException(GET + " should not return void"))).getValue().longValue();
 
-			String publicKey = storeUtilities.getPublicKeyUncommitted(validator);
+			String publicKey = storeTransaction.getPublicKeyUncommitted(validator);
 
 			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
 		}
@@ -315,18 +315,18 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 */
 	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		try {
-			if (storeUtilities.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference validators = caches.getValidatorsUncommitted().get();
+			if (storeTransaction.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
+				Stream<StorageReference> events = trwe.getEvents();
+				StorageReference validators = storeTransaction.getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
-					.map(storeUtilities::getCreatorUncommitted)
+					.map(storeTransaction::getCreatorUncommitted)
 					.anyMatch(validators::equals)
 				);
 			}
 		}
-		catch (StoreException | NodeException e) {
+		catch (StoreException e) {
 			LOGGER.log(Level.SEVERE, "", e);
 		}
 
@@ -334,7 +334,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isValidatorsUpdateEvent(storeUtilities.getClassNameUncommitted(event));
+		return classLoader.isValidatorsUpdateEvent(storeTransaction.getClassNameUncommitted(event));
 	}
 
 	/**
@@ -491,6 +491,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	public StoreTransaction<TendermintStore> getStoreTransaction() {
-		return transaction;
+		return storeTransaction;
 	}
 }

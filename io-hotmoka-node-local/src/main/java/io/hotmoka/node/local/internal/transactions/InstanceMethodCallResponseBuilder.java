@@ -94,9 +94,9 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean callerIsGameteOfTheNode() {
 		try {
-			return node.caches.getGamete().filter(request.getCaller()::equals).isPresent();
+			return storeTransaction.getGameteUncommitted().filter(request.getCaller()::equals).isPresent();
 		}
-		catch (NodeException e) {
+		catch (StoreException e) {
 			LOGGER.log(Level.SEVERE, "", e);
 			return false;
 		}

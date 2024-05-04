@@ -249,7 +249,7 @@ class TendermintApplication extends ABCI {
     		throw new RuntimeException(e); // TODO
     	}
 
-    	node.transaction = transaction;
+    	node.storeTransaction = transaction;
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     	node.rewardValidators(behaving, misbehaving);
 
@@ -307,7 +307,7 @@ class TendermintApplication extends ABCI {
     				}
     			}
     		}
-    		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchElementException | NodeException e) {
+    		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchElementException | StoreException | NodeException e) {
     			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}

@@ -19,11 +19,8 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.util.Optional;
 
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.stores.EngineClassLoader;
 
 /**
@@ -47,60 +44,11 @@ public interface NodeCache {
 	void recomputeConsensus();
 
 	/**
-	 * Yields the response generated for the request for the given transaction.
-	 * If this node has some form of commit, then this method succeeds
-	 * also if the transaction has not been committed yet in the node.
-	 * Nodes are allowed to keep in store all, some or none of the responses
-	 * that they computed during their lifetime.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response, if any
-	 */
-	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference);
-
-	/**
 	 * Yields the consensus parameters of the node.
 	 * 
 	 * @return the consensus parameters
 	 */
 	ConsensusConfig<?,?> getConsensusParams();
-
-	/**
-	 * Yields the reference to the gamete account of the node.
-	 * This method uses a cache to avoid repeated computations.
-	 * 
-	 * @return the reference to the gamete account, if the node is already initialized
-	 * @throws NodeException if the node is not able to complete the operation
-	 */
-	Optional<StorageReference> getGamete() throws NodeException;
-
-	/**
-	 * Yields the reference to the contract that collects the validators of the node.
-	 * After each transaction that consumes gas, the price of the gas is sent to this
-	 * contract, that can later redistribute the reward to all validators.
-	 * This method uses a cache to avoid repeated computations.
-	 * 
-	 * @return the reference to the contract, if the node is already initialized
-	 * @throws NodeException if the node is not able to complete the operation
-	 */
-	Optional<StorageReference> getValidatorsUncommitted() throws NodeException;
-
-	/**
-	 * Yields the reference to the objects that keeps track of the
-	 * versions of the modules of the node.
-	 * 
-	 * @return the reference to the object, if the node is already initialized
-	 * @throws NodeException if the node is not able to complete the operation
-	 */
-	Optional<StorageReference> getVersionsUncommitted() throws NodeException;
-
-	/**
-	 * Yields the reference to the contract that keeps track of the gas cost.
-	 * 
-	 * @return the reference to the contract, if the node is already initialized
-	 * @throws NodeException if the node is not able to complete the operation
-	 */
-	Optional<StorageReference> getGasStationUncommitted() throws NodeException;
 
 	/**
 	 * Yields the current gas price of the node.

@@ -25,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +33,6 @@ import java.util.stream.Stream;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
-import io.hotmoka.exceptions.UncheckSupplier;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionRequests;
@@ -48,7 +46,6 @@ import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.BooleanValue;
 import io.hotmoka.node.api.values.IntValue;
@@ -69,11 +66,6 @@ public class NodeCachesImpl implements NodeCache {
 	private final AbstractLocalNodeImpl<?,?> node;
 
 	/**
-	 * The cache for the committed responses.
-	 */
-	private final LRUCache<TransactionReference, TransactionResponse> responses;
-
-	/**
 	 * The cache for the class loaders.
 	 */
 	private final LRUCache<TransactionReference, EngineClassLoader> classLoaders = new LRUCache<>(100, 1000);
@@ -82,28 +74,6 @@ public class NodeCachesImpl implements NodeCache {
 	 * The consensus parameters of the node.
 	 */
 	private volatile ConsensusConfig<?,?> consensus;
-
-	/**
-	 * The reference to the gamete account of the node.
-	 */
-	private volatile Optional<StorageReference> gamete;
-
-	/**
-	 * The reference to the contract that manages the validators of the node.
-	 * After each transaction that consumes gas, this contract receives the
-	 * price of the gas, that can later be redistributed to the validators.
-	 */
-	private volatile Optional<StorageReference> validators;
-
-	/**
-	 * The reference to the object that manages the versions of the modules of the node.
-	 */
-	private volatile Optional<StorageReference> versions;
-
-	/**
-	 * The reference to the object that computes the cost of the gas.
-	 */
-	private volatile Optional<StorageReference> gasStation;
 
 	/**
 	 * A cache for the current gas price. It gets reset if it changes.
@@ -126,13 +96,8 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus, int responseCacheSize) {
+	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus) {
 		this.node = node;
-		this.responses = new LRUCache<>(100, responseCacheSize);
-		this.validators = Optional.empty();
-		this.versions = Optional.empty();
-		this.gasStation = Optional.empty();
-		this.gamete = Optional.empty();
 		this.consensus = consensus;
 	}
 
@@ -163,19 +128,13 @@ public class NodeCachesImpl implements NodeCache {
 		}
 	}
 
-	private Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		return node.getManifestUncommitted()
-			.map(node.getStoreUtilities()::getClassTagUncommitted)
-			.map(ClassTag::getJar);
-	}
-
 	@Override
 	public final void recomputeConsensus() {
 		try {
-			StorageReference gasStation = getGasStationUncommitted().get();
-			StorageReference validators = getValidatorsUncommitted().get();
-			StorageReference versions = getVersionsUncommitted().get();
-			TransactionReference takamakaCode = getTakamakaCodeUncommitted().get();
+			StorageReference gasStation = node.getStoreTransaction().getGasStationUncommitted().get();
+			StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
+			StorageReference versions = node.getStoreTransaction().getVersionsUncommitted().get();
+			TransactionReference takamakaCode = node.getStoreTransaction().getTakamakaCodeUncommitted().get();
 			StorageReference manifest = node.getManifestUncommitted().get();
 	
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
@@ -317,70 +276,9 @@ public class NodeCachesImpl implements NodeCache {
 		}
 	}
 
-	private Optional<TransactionResponse> getResponse(TransactionReference reference) {
-		return responses.computeIfAbsentOptional(Objects.requireNonNull(reference), _reference -> node.getStore().getResponse(_reference));
-	}
-
-	@Override
-	public final Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
-		return getResponse(reference).or(UncheckSupplier.uncheck(() -> node.getResponseUncommitted(reference))); // TODO: recheck
-	}
-
 	@Override
 	public final ConsensusConfig<?,?> getConsensusParams() {
 		return consensus;
-	}
-
-	@Override
-	public final Optional<StorageReference> getGamete() throws NodeException {
-		try {
-			if (gamete.isEmpty())
-				gamete = node.getStoreUtilities().getGameteUncommitted();
-
-			return gamete;
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
-	public final Optional<StorageReference> getValidatorsUncommitted() throws NodeException {
-		try {
-			if (validators.isEmpty())
-				validators = node.getStoreUtilities().getValidatorsUncommitted();
-
-			return validators;
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
-	public final Optional<StorageReference> getVersionsUncommitted() throws NodeException {
-		try {
-			if (versions.isEmpty())
-				versions = node.getStoreUtilities().getVersionsUncommitted();
-
-			return versions;
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	@Override
-	public final Optional<StorageReference> getGasStationUncommitted() throws NodeException {
-		try {
-			if (gasStation.isEmpty())
-				gasStation = node.getStoreUtilities().getGasStationUncommitted();
-
-			return gasStation;
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
 	}
 
 	@Override
@@ -401,11 +299,11 @@ public class NodeCachesImpl implements NodeCache {
 
 	private void recomputeGasPrice() {
 		try {
-			Optional<StorageReference> manifest = node.getManifestUncommitted();
+			Optional<StorageReference> manifest = node.getStoreTransaction().getManifestUncommitted();
 			if (manifest.isPresent())
 				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_GAS_PRICE, getGasStationUncommitted().get()))
+					(manifest.get(), _100_000, node.getStoreTransaction().getTakamakaCodeUncommitted().get(),
+					MethodSignatures.GET_GAS_PRICE, node.getStoreTransaction().getGasStationUncommitted().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
@@ -418,8 +316,8 @@ public class NodeCachesImpl implements NodeCache {
 			Optional<StorageReference> manifest = node.getManifestUncommitted();
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_CURRENT_INFLATION, getValidatorsUncommitted().get()))
+					(manifest.get(), _100_000, node.getStoreTransaction().getTakamakaCodeUncommitted().get(),
+					MethodSignatures.GET_CURRENT_INFLATION, node.getStoreTransaction().getValidatorsUncommitted().get()))
 					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))).getValue();
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
@@ -445,19 +343,19 @@ public class NodeCachesImpl implements NodeCache {
 		try {
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
 				Stream<StorageReference> events = trwe.getEvents();
-				StorageReference manifest = node.getManifestUncommitted().get();
-				StorageReference gasStation = getGasStationUncommitted().get();
-				StorageReference versions = getVersionsUncommitted().get();
-				StorageReference validators = getValidatorsUncommitted().get();
+				StorageReference manifest = node.getStoreTransaction().getManifestUncommitted().get();
+				StorageReference gasStation = node.getStoreTransaction().getGasStationUncommitted().get();
+				StorageReference versions = node.getStoreTransaction().getVersionsUncommitted().get();
+				StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 				events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
-					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.map(node.getStoreTransaction()::getCreatorUncommitted)
 					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
 				);
 			}
 		}
-		catch (StoreException | NodeException e) {
+		catch (StoreException e) {
 			logger.log(Level.SEVERE, "cannot check the consensus parameters", e);
 		}
 
@@ -476,7 +374,7 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isConsensusUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
+		return classLoader.isConsensusUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
 	}
 
 	/**
@@ -495,16 +393,16 @@ public class NodeCachesImpl implements NodeCache {
 			// we check if there are events of type GasPriceUpdate triggered by the gas station
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
 				Stream<StorageReference> events = trwe.getEvents();
-				StorageReference gasStation = getGasStationUncommitted().get();
+				StorageReference gasStation = node.getStoreTransaction().getGasStationUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
-					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.map(node.getStoreTransaction()::getCreatorUncommitted)
 					.anyMatch(gasStation::equals)
 				);
 			}
 		}
-		catch (StoreException | NodeException e) {
+		catch (StoreException e) {
 			logger.log(Level.SEVERE, "cannot check the gas price", e);
 		}
 
@@ -527,16 +425,16 @@ public class NodeCachesImpl implements NodeCache {
 			// we check if there are events of type InflationUpdate triggered by the validators object
 			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
 				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
-				StorageReference validators = getValidatorsUncommitted().get();
+				StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
 					events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
-					.map(node.getStoreUtilities()::getCreatorUncommitted)
+					.map(node.getStoreTransaction()::getCreatorUncommitted)
 					.anyMatch(validators::equals)
 				);
 			}
 		}
-		catch (StoreException | NodeException e) {
+		catch (StoreException e) {
 			logger.log(Level.SEVERE, "cannot check the inflation", e);
 		}
 
@@ -544,10 +442,10 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isGasPriceUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
+		return classLoader.isGasPriceUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
 	}
 
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isInflationUpdateEvent(node.getStoreUtilities().getClassNameUncommitted(event));
+		return classLoader.isInflationUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
 	}
 }

@@ -107,9 +107,14 @@ public abstract class CodeCallResponseBuilder
 	 * @throws UnknownReferenceException 
 	 */
 	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
-		var clazz = node.getClassTag(reference).getClazz();
-		if (!classLoader.isExported(clazz.getName()))
-			throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);
+		try {
+			var clazz = storeTransaction.getClassTagUncommitted(reference).getClazz();
+			if (!classLoader.isExported(clazz.getName()))
+				throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);
+		}
+		catch (NoSuchElementException e) {
+			throw new UnknownReferenceException(e);
+		}
 	}
 
 	/**

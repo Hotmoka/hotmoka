@@ -208,10 +208,15 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws UnknownReferenceException 
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
-		ClassTag classTag = node.getClassTag(request.getCaller());
-		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
-		if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-			throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+		try {
+			ClassTag classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
+			if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
+				throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+		}
+		catch (NoSuchElementException e) {
+			throw new UnknownReferenceException(e);
+		}
 	}
 
 	/**
@@ -233,7 +238,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			return;
 	
 		// otherwise we check
-		ClassTag classTag = node.getClassTag(payer);
+		ClassTag classTag = storeTransaction.getClassTagUncommitted(payer);
 		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 		if (!classLoader.getContract().isAssignableFrom(clazz))
 			throw new TransactionRejectedException("the payer of a request must be a contract");
@@ -442,7 +447,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		protected final void init() throws NodeException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
 			this.deserializedPayer = deserializedPayer();
-			this.deserializedValidators = node.caches.getValidatorsUncommitted().map(deserializer::deserialize);
+
+			try {
+				this.deserializedValidators = storeTransaction.getValidatorsUncommitted().map(deserializer::deserialize);
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
 
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
