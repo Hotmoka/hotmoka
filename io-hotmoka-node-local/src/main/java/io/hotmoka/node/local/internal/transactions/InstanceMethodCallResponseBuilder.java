@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -31,6 +32,7 @@ import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -59,8 +61,20 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		this(reference, request, storeTransaction, consensus, consensus.getMaxGasPerTransaction(), node);
+	}
+
+	/**
+	 * Creates the builder of the response.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request of the transaction
+	 * @param node the node that is running the transaction
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	protected InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, maxGasAllowed, node);
 
 		try {
 			// calls to @View methods are allowed to receive non-exported values
@@ -79,12 +93,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	@Override
 	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException {
 		return new ResponseCreator().create();
-	}
-
-	@Override
-	protected StorageReference getPayerFromRequest() {
-		// calls to instance methods might be self charged, in which case the receiver is paying
-		return request.getCaller();
 	}
 
 	@Override

@@ -28,6 +28,7 @@ import java.util.stream.Stream;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
@@ -50,8 +51,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, maxGasAllowed, node);
 	}
 
 	@Override

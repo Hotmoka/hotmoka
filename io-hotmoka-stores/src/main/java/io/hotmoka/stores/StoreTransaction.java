@@ -114,6 +114,12 @@ public interface StoreTransaction<T extends Store<T>> {
 
 	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 
+	StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field);
+
+	BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field);
+
+	String getStringFieldUncommitted(StorageReference object, FieldSignature field);
+
 	/**
 	 * Pushes the result of executing a successful Hotmoka request.
 	 * This method assumes that the given request was not already present in the store.

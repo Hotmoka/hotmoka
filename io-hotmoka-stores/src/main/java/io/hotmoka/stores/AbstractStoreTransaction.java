@@ -349,7 +349,8 @@ public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> imple
 			throw new RuntimeException("Transaction " + response + " does not contain updates");
 	}
 
-	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
+	@Override
+	public StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
 		}
@@ -358,7 +359,8 @@ public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> imple
 		}
 	}
 
-	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
+	@Override
+	public BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 		}
@@ -367,7 +369,8 @@ public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> imple
 		}
 	}
 
-	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
+	@Override
+	public String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 		}

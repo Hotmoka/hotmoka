@@ -22,6 +22,7 @@ import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -48,8 +49,8 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, node);
 	}
 
 	@Override

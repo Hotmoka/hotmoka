@@ -22,6 +22,7 @@ import java.util.stream.Stream;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -44,8 +45,8 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, node);
 	}
 
 	@Override

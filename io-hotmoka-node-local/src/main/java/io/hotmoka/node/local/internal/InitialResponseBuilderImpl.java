@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -42,8 +43,8 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, node);
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, node);
 
 		try {
 			if (storeTransaction.nodeIsInitializedUncommitted())

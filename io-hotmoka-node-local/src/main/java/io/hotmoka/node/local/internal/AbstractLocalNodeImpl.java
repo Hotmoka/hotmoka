@@ -593,13 +593,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 			Optional<StorageValue> result;
 
-			var transaction = store.beginTransaction(System.currentTimeMillis());
+			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, transaction, this).getResponse());
+				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction, caches.getConsensusParams(), getLocalNodeConfig().getMaxGasPerViewTransaction(), this).getResponse());
 			}
 			
-			transaction.abort();
+			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -616,7 +616,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, this).getResponse());
+				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, caches.getConsensusParams(), getLocalNodeConfig().getMaxGasPerViewTransaction(), this).getResponse());
 			}
 
 			transaction.abort();
@@ -912,19 +912,19 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 */
 	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request, StoreTransaction<?> transaction) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, this);
+			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, caches.getConsensusParams(), this);
 		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, transaction, this);
+			return new GameteCreationResponseBuilder(reference, gctr, transaction, caches.getConsensusParams(), this);
     	else if (request instanceof JarStoreTransactionRequest jstr)
-    		return new JarStoreResponseBuilder(reference, jstr, transaction, this);
+    		return new JarStoreResponseBuilder(reference, jstr, transaction, caches.getConsensusParams(), this);
     	else if (request instanceof ConstructorCallTransactionRequest cctr)
-    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, this);
+    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, caches.getConsensusParams(), caches.getConsensusParams().getMaxGasPerTransaction(), this);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, this);
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, caches.getConsensusParams(), this);
     	else if (request instanceof StaticMethodCallTransactionRequest smctr)
-    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, this);
+    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, caches.getConsensusParams(), this);
     	else if (request instanceof InitializationTransactionRequest itr)
-    		return new InitializationResponseBuilder(reference, itr, transaction, this);
+    		return new InitializationResponseBuilder(reference, itr, transaction, caches.getConsensusParams(), this);
     	else
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
@@ -1103,8 +1103,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		if (!(request instanceof SystemTransactionRequest)) {
 			numberOfTransactionsSinceLastReward = numberOfTransactionsSinceLastReward.add(ONE);
 
-			if (response instanceof NonInitialTransactionResponse) {
-				var responseAsNonInitial = (NonInitialTransactionResponse) response;
+			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
 				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
 						.add(responseAsNonInitial.getGasConsumedForStorage())
 						.add(responseAsNonInitial.getGasConsumedForRAM());
@@ -1112,8 +1111,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				gasConsumedSinceLastReward = gasConsumedSinceLastReward.add(gasConsumedButPenalty);
 
 				BigInteger gasConsumedTotal = gasConsumedButPenalty;
-				if (response instanceof FailedTransactionResponse)
-					gasConsumedTotal = gasConsumedTotal.add(((FailedTransactionResponse) response).getGasConsumedForPenalty());
+				if (response instanceof FailedTransactionResponse ftr)
+					gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
 
 				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
 				BigInteger reward = gasConsumedTotal.multiply(gasPrice);

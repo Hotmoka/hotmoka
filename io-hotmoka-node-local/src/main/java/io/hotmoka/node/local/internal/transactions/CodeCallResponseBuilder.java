@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,6 +32,7 @@ import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.CodeExecutionTransactionRequest;
 import io.hotmoka.node.api.responses.CodeExecutionTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -65,8 +67,8 @@ public abstract class CodeCallResponseBuilder
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, maxGasAllowed, node);
 
 		try {
 			// calls to @View methods are allowed to receive non-exported values

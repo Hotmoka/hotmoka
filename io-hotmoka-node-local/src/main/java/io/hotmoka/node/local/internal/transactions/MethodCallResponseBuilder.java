@@ -26,6 +26,7 @@ import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.SideEffectsInViewMethodException;
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.MethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
@@ -49,8 +50,8 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, node);
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, maxGasAllowed, node);
 	}
 
 	@Override

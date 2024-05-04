@@ -38,6 +38,7 @@ import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
@@ -46,7 +47,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.stores.EngineClassLoader;
 import io.hotmoka.stores.StoreException;
@@ -71,16 +71,17 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
 	 * @param node the node that is creating the response
+	 * @param maxGasAllowedForTransaction the maximal gas allowed for this transaction. If the gas limit of the request is larger
+	 *                                    than this, then the transaction will be rejected
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, node);
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+		super(reference, request, storeTransaction, consensus, node);
 
 		try {
 			this.gasCostModel = node.getGasCostModel();
 			callerMustBeExternallyOwnedAccount();
-			payerMustBeContract();
-			gasLimitIsInsideBounds();
+			gasLimitIsInsideBounds(maxGasAllowedForTransaction);
 			requestPromisesEnoughGas();
 			gasPriceIsLargeEnough();
 			requestMustHaveCorrectChainId();
@@ -126,29 +127,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		result = result.add(classLoader.getLengthsOfJars().mapToObj(gasCostModel::ramCostForLoadingJar).reduce(ZERO, BigInteger::add));
 	
 		return result;
-	}
-
-	/**
-	 * Determine if the response can be executed without checking if the offered gas price is at least
-	 * as large as the current gas price. Normally, this only occurs if the consensus
-	 * specifies to ignore the gas price. But this might also be the case for specific calls,
-	 * such as those for creating accounts in the account ledger or for minting and burning coins,
-	 * if the consensus allows it.
-	 * 
-	 * @return true if the gas price must be ignored
-	 */
-	protected boolean ignoreGasPrice() {
-		return consensus.ignoresGasPrice();
-	}
-
-	/**
-	 * Extracts the payer from the request. Normally, this is its caller,
-	 * but subclasses might redefine.
-	 * 
-	 * @return the payer
-	 */
-	protected StorageReference getPayerFromRequest() {
-		return request.getCaller();
 	}
 
 	/**
@@ -220,31 +198,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	/**
-	 * Checks if the payer is a contract or subclass.
-	 *
-	 * @throws TransactionRejectedException if the payer is not a contract
-	 * @throws ClassNotFoundException if the class of the payer cannot be determined
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
-	 * @throws UnknownReferenceException 
-	 */
-	private void payerMustBeContract() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
-		StorageReference payer = getPayerFromRequest();
-	
-		if (payer.equals(request.getCaller()))
-			// if the payer coincides with the caller, as it is normally the case,
-			// then there is nothing to check, since we know that the caller
-			// is an externally owned account, hence a contract
-			return;
-	
-		// otherwise we check
-		ClassTag classTag = storeTransaction.getClassTagUncommitted(payer);
-		Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
-		if (!classLoader.getContract().isAssignableFrom(clazz))
-			throw new TransactionRejectedException("the payer of a request must be a contract");
-	}
-
-	/**
 	 * Checks that the request is signed with the private key of its caller.
 	 * 
 	 * @throws NodeException if the signature of the request could not be checked
@@ -313,20 +266,11 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the gas is outside these bounds
 	 */
-	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
+	private void gasLimitIsInsideBounds(BigInteger maxGasAllowedForTransaction) throws TransactionRejectedException {
 		if (request.getGasLimit().compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("the gas limit cannot be negative");
-
-		BigInteger maxGas;
-
-		// view requests have a fixed maximum gas, overriding what is specified in the consensus parameters
-		if (isView())
-			maxGas = node.getLocalNodeConfig().getMaxGasPerViewTransaction();
-		else
-			maxGas = consensus.getMaxGasPerTransaction();
-
-		if (request.getGasLimit().compareTo(maxGas) > 0)
-			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGas + ")");
+		else if (request.getGasLimit().compareTo(maxGasAllowedForTransaction) > 0)
+			throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGasAllowedForTransaction + ")");
 	}
 
 	/**
@@ -337,7 +281,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		// before initialization, the gas price is not yet available
 		try {
-			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted() && !ignoreGasPrice()) {
+			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted() && !consensus.ignoresGasPrice()) {
 				BigInteger currentGasPrice = node.caches.getGasPrice().get();
 				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
 					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
@@ -356,7 +300,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
 		BigInteger cost = costOf(request.getGasLimit());
-		BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(getPayerFromRequest());
+		BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(request.getCaller());
 
 		if (totalBalance.subtract(cost).signum() < 0)
 			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.getGasLimit() + " units of gas");

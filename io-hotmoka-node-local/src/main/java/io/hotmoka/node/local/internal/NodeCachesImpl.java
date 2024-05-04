@@ -370,7 +370,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * @throws StoreException 
 	 */
 	private boolean isInitializedUncommitted() throws StoreException {
-		return node.getManifestUncommitted().isPresent();
+		return node.getStoreTransaction().getManifestUncommitted().isPresent();
 	}
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
@@ -423,14 +423,13 @@ public class NodeCachesImpl implements NodeCache {
 
 		try {
 			// we check if there are events of type InflationUpdate triggered by the validators object
-			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents) {
-				Stream<StorageReference> events = ((TransactionResponseWithEvents) response).getEvents();
+			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
 				StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
 
 				return check(ClassNotFoundException.class, () ->
-					events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
-					.map(node.getStoreTransaction()::getCreatorUncommitted)
-					.anyMatch(validators::equals)
+					trwe.getEvents().filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
+						.map(node.getStoreTransaction()::getCreatorUncommitted)
+						.anyMatch(validators::equals)
 				);
 			}
 		}

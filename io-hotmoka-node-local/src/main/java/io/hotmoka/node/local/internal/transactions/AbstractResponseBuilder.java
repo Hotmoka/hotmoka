@@ -95,13 +95,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
 		try {
 			this.storeTransaction = storeTransaction;
 			this.request = request;
 			this.reference = reference;
 			this.node = node;
-			this.consensus = node.caches.getConsensusParams();
+			this.consensus = consensus;
 			this.classLoader = mkClassLoader();
 		}
 		catch (Throwable t) {
@@ -164,11 +164,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		protected final UpdatesExtractorFromRAM updatesExtractor;
 
 		/**
-		 * The time of execution of the transaction.
-		 */
-		private final long now;
-
-		/**
 		 * The counter for the next storage object created during the transaction.
 		 */
 		private BigInteger nextProgressive = BigInteger.ZERO;
@@ -177,7 +172,6 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			try {
 				this.deserializer = new Deserializer(AbstractResponseBuilder.this);
 				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
-				this.now = storeTransaction.getNow();
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
@@ -214,7 +208,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 		 */
 		public final long now() {
-			return now;
+			return storeTransaction.getNow();
 		}
 
 		/**
