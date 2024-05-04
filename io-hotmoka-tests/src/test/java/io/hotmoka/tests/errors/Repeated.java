@@ -99,7 +99,9 @@ class Repeated extends HotmokaTest {
 			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))).getValue();
 		assertEquals(BigInteger.valueOf(999900000), balance);
 
-		// we run the original request now, that will pass since the nonce is correct this time
+		// we a similar request now, that will pass since the nonce is correct this time: we need to change for instance the gas limit
+		// otherwise this second request will be rejected, being considered as a repeated transaction
+		request = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000.add(ONE), ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 		TransactionReference reference = node.addJarStoreTransaction(request);
 
 		// getResponse() agrees

@@ -16,14 +16,18 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.stores.StoreTransaction;
 
 /**
@@ -58,6 +62,8 @@ class Mempool {
 	 * The thread the execution requests that have already been checked.
 	 */
 	private final Thread deliverer;
+
+	private final Set<TransactionReference> completed = ConcurrentHashMap.newKeySet();
 
 	private final int transactionsPerBlock;
 
@@ -109,9 +115,14 @@ class Mempool {
 					}
 				}
 				catch (TransactionRejectedException e) {
-					// already logged
+					synchronized (completed) {
+						completed.add(TransactionReferences.of(node.getHasher().hash(current)));
+					}
 				}
 	            catch (Throwable t) {
+	            	synchronized (completed) {
+	            		completed.add(TransactionReferences.of(node.getHasher().hash(current)));
+	            	}
 	            	logger.log(Level.WARNING, "Failed to check transaction request", t);
 	    		}
 			}
@@ -136,19 +147,38 @@ class Mempool {
 					if (counter > 0)
 						node.rewardValidators("", "");
 					node.setStore(transaction.commit());
+
+					synchronized (completed) {
+						node.signalOutcomeIsReady(completed.stream());
+						completed.clear();
+					}
+
 					transaction.notifyAllEvents(node::notifyEvent);
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					node.transaction = transaction;
 					counter = 0;
 				}
 				else {
-					node.deliverTransaction(current);
+					try {
+						node.deliverTransaction(current);
+					}
+					finally {
+						synchronized (completed) {
+							completed.add(TransactionReferences.of(node.getHasher().hash(current)));
+						}
+					}
+
 					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
 					// the last transaction of a block is for rewarding the validators and updating the gas price
 					if (counter == transactionsPerBlock - 1) {
 						if (counter > 0)
 							node.rewardValidators("", "");
 						node.setStore(transaction.commit());
+
+						synchronized (completed) {
+							node.signalOutcomeIsReady(completed.stream());
+						}
+
 						transaction.notifyAllEvents(node::notifyEvent);
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 						node.transaction = transaction;

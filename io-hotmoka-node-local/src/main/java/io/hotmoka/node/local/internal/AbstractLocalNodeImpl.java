@@ -43,7 +43,6 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -176,6 +175,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 */
 	private final Hasher<TransactionRequest<?>> hasher;
 
+	public final Hasher<TransactionRequest<?>> getHasher() {
+		return hasher;
+	}
+
 	/**
 	 * An object that provides utility methods on {@link #store}.
 	 */
@@ -198,7 +201,14 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 	/**
 	 * A map that provides a semaphore for each currently executing transaction.
-	 * It is used to block threads waiting for the outcome of transactions.
+	 * It is released when the check transaction fails or when the deliver transaction terminates.
+	 * It is used to know when to start polling for the response of a request.
+	 * Without waiting for that moment, polling might start too early, which results
+	 * either in timeouts (the polled response does not arrive because delivering
+	 * is very slow) or in delayed answers (the transaction has been delivered,
+	 * but the polling process has increased the polling time interval so much that
+	 * it waits for extra time because checking for the delivered transaction).
+	 * See how this works inside {@link #getPolledResponse(TransactionReference)}.
 	 */
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
 
@@ -206,16 +216,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * An executor for short background tasks.
 	 */
 	private final ExecutorService executors;
-
-	/**
-	 * The time spent for checking requests.
-	 */
-	private final AtomicLong checkTime;
-
-	/**
-	 * The time spent for delivering transactions.
-	 */
-	private final AtomicLong deliverTime;
 
 	/**
 	 * Cached error messages of requests that failed their {@link AbstractLocalNodeImpl#checkTransaction(TransactionRequest)}.
@@ -299,8 +299,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		this.numberOfTransactionsSinceLastReward = ZERO;
 		this.executors = Executors.newCachedThreadPool();
 		this.semaphores = new ConcurrentHashMap<>();
-		this.checkTime = new AtomicLong();
-		this.deliverTime = new AtomicLong();
 		this.closed = new AtomicBoolean();
 
 		if (deleteDir) {
@@ -362,8 +360,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			finally {
 				// we give five seconds
 				executors.awaitTermination(5, TimeUnit.SECONDS);
-				LOGGER.info("time spent checking requests: " + checkTime + "ms");
-				LOGGER.info("time spent delivering requests: " + deliverTime + "ms");
 			}
 		}
 	}
@@ -407,14 +403,21 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
+	public void signalOutcomeIsReady(Stream<TransactionReference> references) {
+		references.forEach(this::signalSemaphore);
+	}
+
 	@Override
 	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			Semaphore semaphore = semaphores.get(reference);
 			if (semaphore != null)
+				// if we are polling for the outcome of a request sent to this same node, it is better
+				// to wait until it is delivered (or its checking fails) and start polling only after:
+				// this optimizes the time of waiting
 				semaphore.acquire();
-	
+
 			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
 				try {
 					// we enforce that both request and response are available
@@ -463,10 +466,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				// in that case, the node contains the error message in its store; afterwards
 				// we check if the request did not pass its checkTransaction():
 				// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
-				String error = store.getError(reference).orElseGet(() -> recentCheckTransactionErrors.get(reference));
-
-				if (error != null)
-					throw new TransactionRejectedException(error);
+				Optional<String> error = store.getError(reference).or(() -> getRecentCheckTransactionErrorFor(reference));
+				if (error.isPresent())
+					throw new TransactionRejectedException(error.get());
 				else
 					throw new UnknownReferenceException(reference);
 			}
@@ -478,6 +480,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				throw new NodeException(e);
 			}
 		}
+	}
+
+	public Optional<String> getRecentCheckTransactionErrorFor(TransactionReference reference) {
+		return Optional.ofNullable(recentCheckTransactionErrors.get(reference));
 	}
 
 	@Override
@@ -557,7 +563,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	}
 
 	@Override
-	public void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
+	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
 		wrapInCaseOfExceptionSimple(() -> getPolledResponse(post(request))); // result unused
 	}
 
@@ -654,32 +660,33 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws TransactionRejectedException if the request is not valid
 	 */
 	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-		long start = System.currentTimeMillis();
-
 		var reference = TransactionReferences.of(hasher.hash(request));
-		recentCheckTransactionErrors.put(reference, null);
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
+
+			var previousError = recentCheckTransactionErrors.get(reference);
+			if (previousError != null)
+				throw new TransactionRejectedException(previousError);
+
 			var transaction = store.beginTransaction(System.currentTimeMillis());
 			responseBuilderFor(reference, request, transaction);
-			LOGGER.info(reference + ": checking success");
 			transaction.abort();
+			LOGGER.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
 			// we wake up who was waiting for the outcome of the request
-			signalSemaphore(reference);
+			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
 			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
-			LOGGER.info(reference + ": checking failed: " + trimmedMessage(e));
-			LOGGER.log(Level.INFO, "transaction rejected", e);
+			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
 		catch (StoreException e) { // TODO: probably becomes NodeException
 			// we wake up who was waiting for the outcome of the request
-			signalSemaphore(reference);
+			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
@@ -689,16 +696,13 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 		catch (RuntimeException e) {
 			// we wake up who was waiting for the outcome of the request
-			signalSemaphore(reference);
+			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
 			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
 			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw e;
-		}
-		finally {
-			checkTime.addAndGet(System.currentTimeMillis() - start);
 		}
 	}
 
@@ -715,8 +719,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * @throws TransactionRejectedException if the response cannot be built
 	 */
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-		long start = System.currentTimeMillis();
-
 		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
@@ -761,8 +763,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 			throw new RuntimeException(e); // TODO
 		}
 		finally {
-			signalSemaphore(reference);
-			deliverTime.addAndGet(System.currentTimeMillis() - start);
+			// we wake up who was waiting for the outcome of the request
+			//signalSemaphore(reference); // TODO: this should be signaled when the store transaction containing the request has been committed
 		}
 	}
 
@@ -792,7 +794,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeUtilities.getNonceUncommitted(caller);
 				StorageReference validators = caches.getValidatorsUncommitted().get(); // ok, since the manifest is present
-				TransactionReference takamakaCode = getTakamakaCode();
+				TransactionReference takamakaCode = validators.getTransaction(); // TODO: refer to getTakamakaCodeUncommitted() of the store transaction later
 
 				// we determine how many coins have been minted during the last reward:
 				// it is the price of the gas distributed minus the same price without inflation
@@ -1091,7 +1093,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 */
 	private boolean isNotCommitted(TransactionReference transaction) throws NodeException {
 		try {
-			getResponse(transaction);
+			getResponse(transaction); // TODO: can you refer to the store instead?
 			return false;
 		}
 		catch (TransactionRejectedException | UnknownReferenceException e) {
@@ -1147,10 +1149,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 * Creates a semaphore for those who will wait for the result of the given request.
 	 * 
 	 * @param reference the reference of the transaction for the request
+	 * @throws TransactionRejectedException 
 	 */
-	private void createSemaphore(TransactionReference reference) {
+	private void createSemaphore(TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
-			throw new IllegalStateException("repeated request");
+			throw new TransactionRejectedException("Repeated request");
 	}
 
 	/**

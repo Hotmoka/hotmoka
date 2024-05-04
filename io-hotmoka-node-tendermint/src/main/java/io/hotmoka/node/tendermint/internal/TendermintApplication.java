@@ -20,6 +20,8 @@ import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -28,11 +30,13 @@ import com.google.protobuf.ByteString;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
+import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.stores.StoreException;
 import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.tendermint.abci.ABCI;
@@ -80,6 +84,8 @@ class TendermintApplication extends ABCI {
 	 * that has been executed.
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
+
+	private final Set<TransactionReference> completed = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The current transaction, if any.
@@ -209,7 +215,19 @@ class TendermintApplication extends ABCI {
         ResponseCheckTx.Builder responseBuilder = ResponseCheckTx.newBuilder();
 
         try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
-        	node.checkTransaction(TransactionRequests.from(context));
+        	var hotmokaRequest = TransactionRequests.from(context);
+
+        	try {
+        		node.checkTransaction(hotmokaRequest);
+        	}
+        	catch (Throwable t) {
+        		synchronized (completed) {
+        			completed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
+        		}
+
+        		throw t;
+        	}
+
         	responseBuilder.setCode(0);
         }
         catch (Throwable t) {
@@ -248,7 +266,17 @@ class TendermintApplication extends ABCI {
         ResponseDeliverTx.Builder responseBuilder = ResponseDeliverTx.newBuilder();
 
         try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(tx.toByteArray()))) {
-        	node.deliverTransaction(TransactionRequests.from(context));
+        	var hotmokaRequest = TransactionRequests.from(context);
+
+        	try {
+        		node.deliverTransaction(hotmokaRequest);
+        	}
+        	finally {
+        		synchronized (completed) {
+        			completed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
+        		}
+        	}
+
         	responseBuilder.setCode(0);
         }
         catch (Throwable t) {
@@ -293,6 +321,15 @@ class TendermintApplication extends ABCI {
 			var newStore = transaction.commit();
 			node.setStore(newStore);
 			newStore.moveRootBranchToThis();
+
+			Stream<TransactionReference> toSignal;
+
+			synchronized (completed) {
+				toSignal = completed.stream();
+				completed.clear();
+			}
+
+			node.signalOutcomeIsReady(toSignal);
 			transaction.notifyAllEvents(node::notifyEvent);
 		}
 		catch (StoreException e) {
