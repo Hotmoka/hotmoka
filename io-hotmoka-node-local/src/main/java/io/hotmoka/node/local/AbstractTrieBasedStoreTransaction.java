@@ -17,7 +17,7 @@ import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 
-public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBasedStore<T>> extends AbstractStoreTransaction<T> {
+public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBasedStore<T, ?>> extends AbstractStoreTransaction<T> {
 
 	/**
 	 * The Xodus transaction where the updates get recorded.

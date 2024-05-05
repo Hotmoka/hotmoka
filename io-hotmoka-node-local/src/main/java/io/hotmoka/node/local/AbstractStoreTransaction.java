@@ -65,7 +65,7 @@ import io.hotmoka.node.local.api.StoreTransaction;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransaction<T extends AbstractStore<T>> implements StoreTransaction<T> {
+public abstract class AbstractStoreTransaction<T extends AbstractStore<T, ?>> implements StoreTransaction<T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final T store;
 

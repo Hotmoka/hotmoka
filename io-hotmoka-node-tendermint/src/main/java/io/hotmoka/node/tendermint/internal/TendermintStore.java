@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.function.Function;
@@ -35,12 +34,7 @@ import io.hotmoka.xodus.env.Transaction;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @Immutable
-public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
-
-	/**
-	 * An object that can be used to send post requests to Tendermint
-	 */
-	private final TendermintNodeImpl node;
+public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, TendermintNodeImpl> {
 
 	/**
 	 * The hasher used to merge the hashes of the many tries.
@@ -51,13 +45,10 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
-	 * @param dir the path where the database of the store gets created
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(Path dir, TendermintNodeImpl node) {
-    	super(dir);
-
-    	this.node = node;
+    TendermintStore(TendermintNodeImpl node) {
+    	super(node);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -70,20 +61,19 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
     private TendermintStore(TendermintStore toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
-    	this.node = toClone.node;
     	this.hasherOfHashes = toClone.hasherOfHashes;
 	}
 
 	@Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
-    	return node.getPoster().getErrorMessage(reference.getHash());
+    	return getNode().getPoster().getErrorMessage(reference.getHash());
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		// requests are held inside the Tendermint blockchain
-		return node.getPoster().getRequest(reference.getHash());
+		return getNode().getPoster().getRequest(reference.getHash());
 	}
 
 	/**

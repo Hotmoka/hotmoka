@@ -47,7 +47,7 @@ import io.hotmoka.node.local.api.StoreTransaction;
  * while the histories are kept in RAM.
  */
 @Immutable
-class DiskStore extends AbstractStore<DiskStore> {
+class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 
 	/**
 	 * The path where the database of the store gets created.
@@ -80,8 +80,10 @@ class DiskStore extends AbstractStore<DiskStore> {
      * 
 	 * @param dir the path where the database of the store gets created
      */
-    DiskStore(Path dir) {
-    	this.dir = dir;
+    DiskStore(DiskNodeImpl node) {
+    	super(node);
+
+    	this.dir = node.getLocalConfig().getDir();
     	this.requests = new ConcurrentHashMap<>();
     	this.responses = new ConcurrentHashMap<>();
     	this.histories = new ConcurrentHashMap<>();

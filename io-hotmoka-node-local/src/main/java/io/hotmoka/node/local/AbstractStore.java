@@ -21,14 +21,14 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.Store;
 
-public abstract class AbstractStore<T extends AbstractStore<T>> implements Store<T> {
+public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends AbstractLocalNode<?, T>> implements Store<T> {
 
 	/**
 	 * Cached recent requests that have had their signature checked.
 	 * This can be shared across distinct stores since valid signatures
 	 * remain valid over time.
 	 */
-	final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures;
+	final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures; // TODO: possibly store by reference
 
 	/**
 	 * The cache for the class loaders. This can be shared across distinct stores since
@@ -36,13 +36,24 @@ public abstract class AbstractStore<T extends AbstractStore<T>> implements Store
 	 */
 	final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
-	protected AbstractStore() {
+	/**
+	 * The node having this store.
+	 */
+	private final N node;
+
+	protected AbstractStore(N node) {
+		this.node = node;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
 	}
 
-	protected AbstractStore(AbstractStore<T> toClone) {
+	protected AbstractStore(AbstractStore<T, N> toClone) {
+		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
+	}
+
+	protected final N getNode() {
+		return node;
 	}
 }

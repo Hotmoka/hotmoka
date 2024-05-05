@@ -229,7 +229,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 
 	@Override
 	protected TendermintStore mkStore() {
-		return new TendermintStore(config.getDir(), this);
+		return new TendermintStore(this);
 	}
 
 	@Override

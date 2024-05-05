@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -62,7 +61,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>> extends AbstractStore<T> {
+public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T, N>, N extends AbstractLocalNode<?, T>> extends AbstractStore<T, N> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -131,8 +130,10 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(Path dir) {
-    	this.env = new Environment(dir + "/store");
+    protected AbstractTrieBasedStore(N node) {
+    	super(node);
+
+    	this.env = new Environment(node.getLocalNodeConfig().getDir() + "/store");
 
 		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var roots = new AtomicReference<Optional<byte[]>>();
@@ -192,7 +193,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	}
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone) {
     	super(toClone);
 
     	this.env = toClone.env;
@@ -208,7 +209,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T>
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone);
 
     	this.env = toClone.env;
