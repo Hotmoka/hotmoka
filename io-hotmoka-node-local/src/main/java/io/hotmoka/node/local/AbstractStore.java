@@ -14,10 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.stores;
+package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.Store;
 
 public abstract class AbstractStore<T extends AbstractStore<T>> implements Store<T> {
 

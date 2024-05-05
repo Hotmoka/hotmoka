@@ -26,8 +26,8 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.AbstractTrieBasedStore;
-import io.hotmoka.stores.StoreException;
+import io.hotmoka.node.local.AbstractTrieBasedStore;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.env.Transaction;
 
 /**

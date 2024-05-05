@@ -25,7 +25,6 @@ module io.hotmoka.node.disk {
 	requires transitive io.hotmoka.node.local.api;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.node.local;
-	requires io.hotmoka.stores;
 	requires toml4j;
 	requires java.logging;
 }

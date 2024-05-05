@@ -36,8 +36,8 @@ import io.hotmoka.node.Updates;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.stores.EngineClassLoader;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.

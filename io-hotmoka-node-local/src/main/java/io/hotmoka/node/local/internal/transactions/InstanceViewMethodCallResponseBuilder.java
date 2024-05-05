@@ -22,8 +22,8 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The builder of the response for a transaction that executes an instance method of Takamaka code

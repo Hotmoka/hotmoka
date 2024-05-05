@@ -22,6 +22,5 @@ module io.hotmoka.node.local.api {
 
 	requires transitive io.hotmoka.node.api;
 	requires io.hotmoka.annotations;
-	requires io.hotmoka.stores; // TODO: this should be io.hotmoka.stores.api
 	requires io.hotmoka.verification.api;
 }

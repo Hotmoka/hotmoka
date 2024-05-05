@@ -32,8 +32,8 @@ import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.stores.StoreTransaction;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.stores.internal;
+package io.hotmoka.node.local.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;

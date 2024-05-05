@@ -36,18 +36,23 @@
       <version>${io.hotmoka.annotations.version}</version>
     </dependency>
     <dependency>
+      <groupId>io.hotmoka.xodus</groupId>
+      <artifactId>io-hotmoka-xodus</artifactId>
+      <version>${io.hotmoka.xodus.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.crypto</groupId>
       <artifactId>io-hotmoka-crypto</artifactId>
       <version>${io.hotmoka.crypto.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-stores</artifactId>
+      <artifactId>io-hotmoka-whitelisting</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-whitelisting</artifactId>
+      <artifactId>io-hotmoka-patricia</artifactId>
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>

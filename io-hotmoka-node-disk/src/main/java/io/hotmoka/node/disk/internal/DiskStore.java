@@ -37,9 +37,9 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.stores.AbstractStore;
-import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.node.local.AbstractStore;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes

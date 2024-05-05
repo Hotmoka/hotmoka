@@ -28,8 +28,8 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.stores.StoreTransaction;
 import io.takamaka.code.constants.Constants;
 
 /**

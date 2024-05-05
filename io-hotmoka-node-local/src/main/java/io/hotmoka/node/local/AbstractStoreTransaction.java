@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.stores;
+package io.hotmoka.node.local;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -55,6 +55,9 @@ import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * The store of a node. It keeps information about the state of the objects created

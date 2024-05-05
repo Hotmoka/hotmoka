@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.stores;
+package io.hotmoka.node.local;
 
 import java.nio.file.Path;
 import java.util.Optional;
@@ -28,13 +28,15 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
+import io.hotmoka.node.local.internal.KeyValueStoreOnXodus;
+import io.hotmoka.node.local.internal.TrieOfErrors;
+import io.hotmoka.node.local.internal.TrieOfHistories;
+import io.hotmoka.node.local.internal.TrieOfInfo;
+import io.hotmoka.node.local.internal.TrieOfRequests;
+import io.hotmoka.node.local.internal.TrieOfResponses;
 import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.stores.internal.KeyValueStoreOnXodus;
-import io.hotmoka.stores.internal.TrieOfErrors;
-import io.hotmoka.stores.internal.TrieOfHistories;
-import io.hotmoka.stores.internal.TrieOfInfo;
-import io.hotmoka.stores.internal.TrieOfRequests;
-import io.hotmoka.stores.internal.TrieOfResponses;
 import io.hotmoka.xodus.ByteIterable;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Environment;

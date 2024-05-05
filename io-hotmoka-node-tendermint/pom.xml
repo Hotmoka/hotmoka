@@ -36,9 +36,9 @@
       <version>${hotmoka.version}</version>
     </dependency>
     <dependency>
-      <groupId>io.hotmoka</groupId>
-      <artifactId>io-hotmoka-stores</artifactId>
-      <version>${hotmoka.version}</version>
+      <groupId>io.hotmoka.xodus</groupId>
+      <artifactId>io-hotmoka-xodus</artifactId>
+      <version>${io.hotmoka.xodus.version}</version>
     </dependency>
     <dependency>
       <groupId>io.hotmoka</groupId>

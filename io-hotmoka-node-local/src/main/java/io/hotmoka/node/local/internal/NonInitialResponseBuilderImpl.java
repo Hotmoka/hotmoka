@@ -47,10 +47,10 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.stores.EngineClassLoader;
-import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,

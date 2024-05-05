@@ -1,0 +1,1430 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-whitelisting-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-whitelisting-api/pom.xml, line 7, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-whitelisting:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-whitelisting/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-verification-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-verification-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-verification-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-verification:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-verification:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-verification/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-instrumentation-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-instrumentation-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-instrumentation:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-instrumentation/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-local-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-local-api/pom.xml, line 7, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-local:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-local:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-local/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-helpers-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-helpers-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-helpers:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-helpers:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-helpers/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-service-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-service-api/pom.xml, line 17, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-service:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-service:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-service/pom.xml, line 10, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-remote-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-remote-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-remote-api/pom.xml, line 17, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-remote:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-remote:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-remote/pom.xml, line 17, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-patricia-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-patricia-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-patricia:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-patricia:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-patricia/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-moka:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-moka:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-moka/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-disk-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-disk-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-disk-api/pom.xml, line 7, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-disk:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-disk:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-disk/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-tendermint-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-tendermint-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-tendermint-api/pom.xml, line 7, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-tendermint-abci:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-tendermint-abci:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-tendermint-abci/pom.xml, line 12, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-tendermint:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-tendermint:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-tendermint/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-messages-api:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-messages-api/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-node-messages:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-node-messages:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-node-messages/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-examples:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-examples:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-examples/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 'build.plugins.plugin.version' for org.apache.maven.plugins:maven-jar-plugin is missing. @ io.hotmoka:io-hotmoka-examples:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-examples/pom.xml, line 64, column 15
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] Some problems were encountered while building the effective model for io.hotmoka:io-hotmoka-tests:jar:1.5.0
+[[1;33mWARNING[m] 'version' contains an expression but should be a constant. @ io.hotmoka:io-hotmoka-tests:${hotmoka.version}, /home/spoto/Gits/hotmoka/io-hotmoka-tests/pom.xml, line 8, column 12
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] It is highly recommended to fix these problems because they threaten the stability of your build.
+[[1;33mWARNING[m] 
+[[1;33mWARNING[m] For this reason, future Maven versions might no longer support building such malformed projects.
+[[1;33mWARNING[m] 
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1mReactor Build Order:[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] Hotmoka                                                            [pom]
+[[1;34mINFO[m] io-hotmoka-whitelisting-api                                        [jar]
+[[1;34mINFO[m] io-hotmoka-whitelisting                                            [jar]
+[[1;34mINFO[m] io-hotmoka-verification-api                                        [jar]
+[[1;34mINFO[m] io-hotmoka-verification                                            [jar]
+[[1;34mINFO[m] io-hotmoka-instrumentation-api                                     [jar]
+[[1;34mINFO[m] io-hotmoka-instrumentation                                         [jar]
+[[1;34mINFO[m] io-hotmoka-node-api                                                [jar]
+[[1;34mINFO[m] io-hotmoka-node                                                    [jar]
+[[1;34mINFO[m] io-hotmoka-node-local-api                                          [jar]
+[[1;34mINFO[m] io-hotmoka-patricia-api                                            [jar]
+[[1;34mINFO[m] io-hotmoka-patricia                                                [jar]
+[[1;34mINFO[m] io-hotmoka-node-local                                              [jar]
+[[1;34mINFO[m] io-hotmoka-helpers-api                                             [jar]
+[[1;34mINFO[m] io-hotmoka-helpers                                                 [jar]
+[[1;34mINFO[m] io-hotmoka-node-service-api                                        [jar]
+[[1;34mINFO[m] io-hotmoka-node-messages-api                                       [jar]
+[[1;34mINFO[m] io-hotmoka-node-messages                                           [jar]
+[[1;34mINFO[m] io-hotmoka-node-service                                            [jar]
+[[1;34mINFO[m] io-hotmoka-node-remote-api                                         [jar]
+[[1;34mINFO[m] io-hotmoka-node-remote                                             [jar]
+[[1;34mINFO[m] io-hotmoka-node-tendermint-api                                     [jar]
+[[1;34mINFO[m] io-hotmoka-node-tendermint-abci                                    [jar]
+[[1;34mINFO[m] io-hotmoka-node-tendermint                                         [jar]
+[[1;34mINFO[m] io-hotmoka-node-disk-api                                           [jar]
+[[1;34mINFO[m] io-hotmoka-node-disk                                               [jar]
+[[1;34mINFO[m] io-hotmoka-moka                                                    [jar]
+[[1;34mINFO[m] io-hotmoka-examples                                                [jar]
+[[1;34mINFO[m] io-hotmoka-tests                                                   [jar]
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------------< [0;36mio.hotmoka:hotmoka[0;1m >-------------------------[m
+[[1;34mINFO[m] [1mBuilding Hotmoka parent                                           [1/29][m
+[[1;34mINFO[m] [1m--------------------------------[ pom ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mhotmoka[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:hotmoka:pom:parent
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-whitelisting-api[0;1m >---------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-whitelisting-api 1.5.0                        [2/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-whitelisting-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-whitelisting[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-whitelisting 1.5.0                            [3/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-whitelisting[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-verification-api[0;1m >---------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-verification-api 1.5.0                        [4/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-verification-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-verification-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |  \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-verification[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-verification 1.5.0                            [5/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-verification[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-verification:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |     \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:jar:3.3.0:test
+[[1;34mINFO[m] |  \- org.apache.maven:maven-model:jar:3.9.3:test
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  |  \- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:jar:3.3.0:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima:context:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:embedded-maven:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:standalone-static:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- eu.maveniverse.maven.mima.runtime:standalone-shared:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- org.apache.maven.resolver:maven-resolver-named-locks:jar:1.9.13:test
+[[1;34mINFO[m] |  |  \- commons-codec:commons-codec:jar:1.16.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-classworlds:jar:2.7.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-component-annotations:jar:2.1.0:test
+[[1;34mINFO[m] |  +- org.eclipse.sisu:org.eclipse.sisu.plexus:jar:0.3.5:test
+[[1;34mINFO[m] |  |  +- javax.annotation:javax.annotation-api:jar:1.2:test
+[[1;34mINFO[m] |  |  \- org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.5:test
+[[1;34mINFO[m] |  +- com.google.inject:guice:jar:5.1.0:test
+[[1;34mINFO[m] |  |  +- javax.inject:javax.inject:jar:1:test
+[[1;34mINFO[m] |  |  \- aopalliance:aopalliance:jar:1.0:test
+[[1;34mINFO[m] |  +- com.google.guava:guava:jar:31.1-jre:test
+[[1;34mINFO[m] |  +- com.google.guava:failureaccess:jar:1.0.1:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-resolver-provider:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-model-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  |  +- org.apache.maven:maven-artifact:jar:3.9.3:test
+[[1;34mINFO[m] |  |  \- org.apache.maven:maven-builder-support:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-repository-metadata:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-api:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-impl:jar:1.9.13:test
+[[1;34mINFO[m] |  |  \- org.slf4j:slf4j-api:jar:1.7.36:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-spi:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-util:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-connector-basic:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-file:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-http:jar:1.9.13:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:test
+[[1;34mINFO[m] |  |  \- org.slf4j:jcl-over-slf4j:jar:1.7.36:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.26:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-utils:jar:3.5.1:test
+[[1;34mINFO[m] |  \- org.codehaus.plexus:plexus-sec-dispatcher:jar:2.0:test
+[[1;34mINFO[m] |     \- org.codehaus.plexus:plexus-cipher:jar:2.0:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------< [0;36mio.hotmoka:io-hotmoka-instrumentation-api[0;1m >--------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-instrumentation-api 1.5.0                     [6/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-instrumentation-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |     \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-instrumentation[0;1m >----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-instrumentation 1.5.0                         [7/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-instrumentation[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] |  \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |     \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:jar:3.3.0:test
+[[1;34mINFO[m] |  \- org.apache.maven:maven-model:jar:3.9.3:test
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  |  \- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:jar:3.3.0:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima:context:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:embedded-maven:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:standalone-static:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- eu.maveniverse.maven.mima.runtime:standalone-shared:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- org.apache.maven.resolver:maven-resolver-named-locks:jar:1.9.13:test
+[[1;34mINFO[m] |  |  \- commons-codec:commons-codec:jar:1.16.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-classworlds:jar:2.7.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-component-annotations:jar:2.1.0:test
+[[1;34mINFO[m] |  +- org.eclipse.sisu:org.eclipse.sisu.plexus:jar:0.3.5:test
+[[1;34mINFO[m] |  |  +- javax.annotation:javax.annotation-api:jar:1.2:test
+[[1;34mINFO[m] |  |  \- org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.5:test
+[[1;34mINFO[m] |  +- com.google.inject:guice:jar:5.1.0:test
+[[1;34mINFO[m] |  |  +- javax.inject:javax.inject:jar:1:test
+[[1;34mINFO[m] |  |  \- aopalliance:aopalliance:jar:1.0:test
+[[1;34mINFO[m] |  +- com.google.guava:guava:jar:31.1-jre:test
+[[1;34mINFO[m] |  +- com.google.guava:failureaccess:jar:1.0.1:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-resolver-provider:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-model-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  |  +- org.apache.maven:maven-artifact:jar:3.9.3:test
+[[1;34mINFO[m] |  |  \- org.apache.maven:maven-builder-support:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-repository-metadata:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-api:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-impl:jar:1.9.13:test
+[[1;34mINFO[m] |  |  \- org.slf4j:slf4j-api:jar:1.7.36:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-spi:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-util:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-connector-basic:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-file:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-http:jar:1.9.13:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:test
+[[1;34mINFO[m] |  |  \- org.slf4j:jcl-over-slf4j:jar:1.7.36:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.26:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-utils:jar:3.5.1:test
+[[1;34mINFO[m] |  \- org.codehaus.plexus:plexus-sec-dispatcher:jar:2.0:test
+[[1;34mINFO[m] |     \- org.codehaus.plexus:plexus-cipher:jar:2.0:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------< [0;36mio.hotmoka:io-hotmoka-node-api[0;1m >-------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-api 1.5.0                                [8/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------------< [0;36mio.hotmoka:io-hotmoka-node[0;1m >---------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node 1.5.0                                    [9/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m----------------< [0;36mio.hotmoka:io-hotmoka-node-local-api[0;1m >----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-local-api 1.5.0                         [10/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-local-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |     \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-patricia-api[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-patricia-api 1.5.0                           [11/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-patricia-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------< [0;36mio.hotmoka:io-hotmoka-patricia[0;1m >-------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-patricia 1.5.0                               [12/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-patricia[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-patricia:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m------------------< [0;36mio.hotmoka:io-hotmoka-node-local[0;1m >------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-local 1.5.0                             [13/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-local[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-local:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.xodus:io-hotmoka-xodus:jar:1.4.4:compile
+[[1;34mINFO[m] |  +- org.jetbrains.xodus:xodus-environment:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains:annotations:jar:13.0:compile
+[[1;34mINFO[m] |  |  |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.xodus:xodus-compress:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  \- org.jetbrains.xodus:xodus-openAPI:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |     \- org.jetbrains.xodus:xodus-utils:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  +- org.apache.commons:commons-compress:jar:1.21:runtime
+[[1;34mINFO[m] |  |  \- io.github.microutils:kotlin-logging:jar:1.7.9:runtime
+[[1;34mINFO[m] |  \- org.slf4j:slf4j-api:jar:2.0.7:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-patricia:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |     \- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |        \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] +- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-helpers-api[0;1m >------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-helpers-api 1.5.0                            [14/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-helpers-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |     \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------< [0;36mio.hotmoka:io-hotmoka-helpers[0;1m >--------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-helpers 1.5.0                                [15/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-helpers[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-helpers:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] |  \- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-node-service-api[0;1m >---------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-service-api 1.5.0                       [16/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-service-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:provided
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:provided
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:provided
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:provided
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--------------< [0;36mio.hotmoka:io-hotmoka-node-messages-api[0;1m >---------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-messages-api 1.5.0                      [17/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-messages-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m----------------< [0;36mio.hotmoka:io-hotmoka-node-messages[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-messages 1.5.0                          [18/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-messages[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-messages:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:provided
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:provided
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-node-service[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-service 1.5.0                           [19/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-service[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-service:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-messages:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] |  \- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-server:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-server-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- jakarta.websocket:jakarta.websocket-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- org.glassfish.tyrus:tyrus-container-grizzly-server:jar:2.1.3:compile
+[[1;34mINFO[m] |     +- org.glassfish.grizzly:grizzly-framework:jar:4.0.0:compile
+[[1;34mINFO[m] |     +- org.glassfish.grizzly:grizzly-http-server:jar:4.0.0:compile
+[[1;34mINFO[m] |     |  \- org.glassfish.grizzly:grizzly-http:jar:4.0.0:compile
+[[1;34mINFO[m] |     +- org.glassfish.tyrus:tyrus-server:jar:2.1.3:compile
+[[1;34mINFO[m] |     |  +- jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.0:compile
+[[1;34mINFO[m] |     |  |  \- jakarta.activation:jakarta.activation-api:jar:2.1.0:compile
+[[1;34mINFO[m] |     |  \- org.glassfish.tyrus:tyrus-client:jar:2.1.3:compile
+[[1;34mINFO[m] |     \- org.glassfish.tyrus:tyrus-container-grizzly-client:jar:2.1.3:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- org.glassfish.tyrus:tyrus-core:jar:2.1.3:provided
+[[1;34mINFO[m] |  \- org.glassfish.tyrus:tyrus-spi:jar:2.1.3:provided
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-node-remote-api[0;1m >----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-remote-api 1.5.0                        [20/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-remote-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-remote-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-client-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-----------------< [0;36mio.hotmoka:io-hotmoka-node-remote[0;1m >------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-remote 1.5.0                            [21/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-remote[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-remote:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-remote-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-client-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-messages:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-client:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- org.glassfish.tyrus:tyrus-client:jar:2.1.3:compile
+[[1;34mINFO[m] |  |  \- org.glassfish.tyrus:tyrus-core:jar:2.1.3:compile
+[[1;34mINFO[m] |  |     \- org.glassfish.tyrus:tyrus-spi:jar:2.1.3:compile
+[[1;34mINFO[m] |  |        \- jakarta.websocket:jakarta.websocket-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- org.glassfish.tyrus:tyrus-container-grizzly-client:jar:2.1.3:runtime
+[[1;34mINFO[m] |     +- org.glassfish.grizzly:grizzly-framework:jar:4.0.0:runtime
+[[1;34mINFO[m] |     \- org.glassfish.grizzly:grizzly-http-server:jar:4.0.0:runtime
+[[1;34mINFO[m] |        \- org.glassfish.grizzly:grizzly-http:jar:4.0.0:runtime
+[[1;34mINFO[m] +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------< [0;36mio.hotmoka:io-hotmoka-node-tendermint-api[0;1m >--------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-tendermint-api 1.5.0                    [22/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-tendermint-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-tendermint-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------< [0;36mio.hotmoka:io-hotmoka-node-tendermint-abci[0;1m >-------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-tendermint-abci 1.5.0                   [23/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-tendermint-abci[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-tendermint-abci:jar:1.5.0
+[[1;34mINFO[m] +- io.grpc:grpc-protobuf:jar:1.54.2:compile
+[[1;34mINFO[m] |  +- io.grpc:grpc-api:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  \- io.grpc:grpc-context:jar:1.54.2:compile
+[[1;34mINFO[m] |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
+[[1;34mINFO[m] |  +- com.google.protobuf:protobuf-java:jar:3.21.7:compile
+[[1;34mINFO[m] |  +- com.google.api.grpc:proto-google-common-protos:jar:2.9.0:compile
+[[1;34mINFO[m] |  +- io.grpc:grpc-protobuf-lite:jar:1.54.2:compile
+[[1;34mINFO[m] |  \- com.google.guava:guava:jar:31.1-android:compile
+[[1;34mINFO[m] |     +- com.google.guava:failureaccess:jar:1.0.1:compile
+[[1;34mINFO[m] |     +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+[[1;34mINFO[m] |     +- org.checkerframework:checker-qual:jar:3.12.0:compile
+[[1;34mINFO[m] |     \- com.google.j2objc:j2objc-annotations:jar:1.3:compile
+[[1;34mINFO[m] +- io.grpc:grpc-stub:jar:1.54.2:compile
+[[1;34mINFO[m] |  \- com.google.errorprone:error_prone_annotations:jar:2.18.0:compile
+[[1;34mINFO[m] +- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- io.grpc:grpc-netty-shaded:jar:1.54.2:runtime
+[[1;34mINFO[m] |  +- io.perfmark:perfmark-api:jar:0.25.0:runtime
+[[1;34mINFO[m] |  \- io.grpc:grpc-core:jar:1.54.2:runtime (version selected from constraint [1.54.2,1.54.2])
+[[1;34mINFO[m] |     +- com.google.android:annotations:jar:4.1.1.4:runtime
+[[1;34mINFO[m] |     \- org.codehaus.mojo:animal-sniffer-annotations:jar:1.21:runtime
+[[1;34mINFO[m] +- javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[[1;34mINFO[m] +- org.apache.tomcat:annotations-api:jar:6.0.53:provided
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------< [0;36mio.hotmoka:io-hotmoka-node-tendermint[0;1m >----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-tendermint 1.5.0                        [24/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-tendermint[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-tendermint:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-tendermint-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-tendermint-abci:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.grpc:grpc-protobuf:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-api:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  \- io.grpc:grpc-context:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
+[[1;34mINFO[m] |  |  +- com.google.api.grpc:proto-google-common-protos:jar:2.9.0:compile
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-protobuf-lite:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  \- com.google.guava:guava:jar:31.1-android:compile
+[[1;34mINFO[m] |  |     +- com.google.guava:failureaccess:jar:1.0.1:compile
+[[1;34mINFO[m] |  |     +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+[[1;34mINFO[m] |  |     +- org.checkerframework:checker-qual:jar:3.12.0:compile
+[[1;34mINFO[m] |  |     \- com.google.j2objc:j2objc-annotations:jar:1.3:compile
+[[1;34mINFO[m] |  +- io.grpc:grpc-stub:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  \- com.google.errorprone:error_prone_annotations:jar:2.18.0:compile
+[[1;34mINFO[m] |  +- io.grpc:grpc-netty-shaded:jar:1.54.2:runtime
+[[1;34mINFO[m] |  |  +- io.perfmark:perfmark-api:jar:0.25.0:runtime
+[[1;34mINFO[m] |  |  \- io.grpc:grpc-core:jar:1.54.2:runtime (version selected from constraint [1.54.2,1.54.2])
+[[1;34mINFO[m] |  |     +- com.google.android:annotations:jar:4.1.1.4:runtime
+[[1;34mINFO[m] |  |     \- org.codehaus.mojo:animal-sniffer-annotations:jar:1.21:runtime
+[[1;34mINFO[m] |  \- javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-helpers:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  |     \- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |        \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |     \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] +- io.hotmoka.xodus:io-hotmoka-xodus:jar:1.4.4:compile
+[[1;34mINFO[m] |  +- org.jetbrains.xodus:xodus-environment:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains:annotations:jar:13.0:compile
+[[1;34mINFO[m] |  |  |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.xodus:xodus-compress:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  \- org.jetbrains.xodus:xodus-openAPI:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |     \- org.jetbrains.xodus:xodus-utils:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  +- org.apache.commons:commons-compress:jar:1.21:runtime
+[[1;34mINFO[m] |  |  \- io.github.microutils:kotlin-logging:jar:1.7.9:runtime
+[[1;34mINFO[m] |  \- org.slf4j:slf4j-api:jar:2.0.7:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-patricia:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] +- com.google.protobuf:protobuf-java:jar:3.21.7:compile
+[[1;34mINFO[m] +- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m----------------< [0;36mio.hotmoka:io-hotmoka-node-disk-api[0;1m >-----------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-disk-api 1.5.0                          [25/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-disk-api[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-disk-api:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m------------------< [0;36mio.hotmoka:io-hotmoka-node-disk[0;1m >-------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-node-disk 1.5.0                              [26/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-node-disk[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-node-disk:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-disk-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |     |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |     \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |        \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |           \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.xodus:io-hotmoka-xodus:jar:1.4.4:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.xodus:xodus-environment:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  |  +- org.jetbrains:annotations:jar:13.0:compile
+[[1;34mINFO[m] |  |  |  |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains.xodus:xodus-compress:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  |  \- org.jetbrains.xodus:xodus-openAPI:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  |     \- org.jetbrains.xodus:xodus-utils:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  +- org.apache.commons:commons-compress:jar:1.21:runtime
+[[1;34mINFO[m] |  |  |  \- io.github.microutils:kotlin-logging:jar:1.7.9:runtime
+[[1;34mINFO[m] |  |  \- org.slf4j:slf4j-api:jar:2.0.7:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-patricia:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |  |     \- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |        \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:compile
+[[1;34mINFO[m] |     \- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------------< [0;36mio.hotmoka:io-hotmoka-moka[0;1m >---------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-moka 1.5.0                                   [27/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:3.3.0:tree[m [1m(default-cli)[m @ [36mio-hotmoka-moka[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-moka:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:compile
+[[1;34mINFO[m] |  \- it.univr.bcel:it-univr-bcel:jar:1.2.1:compile
+[[1;34mINFO[m] |     \- org.apache.bcel:bcel:jar:6.7.0:compile
+[[1;34mINFO[m] |        \- org.apache.commons:commons-lang3:jar:3.12.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-tendermint:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-tendermint-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-tendermint-abci:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-protobuf:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  +- io.grpc:grpc-api:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  |  \- io.grpc:grpc-context:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  +- com.google.code.findbugs:jsr305:jar:3.0.2:compile
+[[1;34mINFO[m] |  |  |  +- com.google.api.grpc:proto-google-common-protos:jar:2.9.0:compile
+[[1;34mINFO[m] |  |  |  +- io.grpc:grpc-protobuf-lite:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  \- com.google.guava:guava:jar:31.1-android:compile
+[[1;34mINFO[m] |  |  |     +- com.google.guava:failureaccess:jar:1.0.1:compile
+[[1;34mINFO[m] |  |  |     +- com.google.guava:listenablefuture:jar:9999.0-empty-to-avoid-conflict-with-guava:compile
+[[1;34mINFO[m] |  |  |     +- org.checkerframework:checker-qual:jar:3.12.0:compile
+[[1;34mINFO[m] |  |  |     \- com.google.j2objc:j2objc-annotations:jar:1.3:compile
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-stub:jar:1.54.2:compile
+[[1;34mINFO[m] |  |  |  \- com.google.errorprone:error_prone_annotations:jar:2.18.0:compile
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-netty-shaded:jar:1.54.2:runtime
+[[1;34mINFO[m] |  |  |  +- io.perfmark:perfmark-api:jar:0.25.0:runtime
+[[1;34mINFO[m] |  |  |  \- io.grpc:grpc-core:jar:1.54.2:runtime
+[[1;34mINFO[m] |  |  |     +- com.google.android:annotations:jar:4.1.1.4:runtime
+[[1;34mINFO[m] |  |  |     \- org.codehaus.mojo:animal-sniffer-annotations:jar:1.21:runtime
+[[1;34mINFO[m] |  |  \- javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[[1;34mINFO[m] |  +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.xodus:io-hotmoka-xodus:jar:1.4.4:compile
+[[1;34mINFO[m] |  |  +- org.jetbrains.xodus:xodus-environment:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  |  +- org.jetbrains:annotations:jar:13.0:compile
+[[1;34mINFO[m] |  |  |  |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.6.10:compile
+[[1;34mINFO[m] |  |  |  +- org.jetbrains.xodus:xodus-compress:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  |  \- org.jetbrains.xodus:xodus-openAPI:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  |     \- org.jetbrains.xodus:xodus-utils:jar:2.0.1:compile
+[[1;34mINFO[m] |  |  |  +- org.apache.commons:commons-compress:jar:1.21:runtime
+[[1;34mINFO[m] |  |  |  \- io.github.microutils:kotlin-logging:jar:1.7.9:runtime
+[[1;34mINFO[m] |  |  \- org.slf4j:slf4j-api:jar:2.0.7:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  +- com.google.protobuf:protobuf-java:jar:3.21.7:compile
+[[1;34mINFO[m] |  +- com.google.code.gson:gson:jar:2.8.9:compile
+[[1;34mINFO[m] |  \- io.hotmoka:toml4j:jar:0.7.3:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-disk:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-node-disk-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-service:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-messages:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-server:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  +- io.hotmoka.websockets:io-hotmoka-websockets-server-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  |  +- jakarta.websocket:jakarta.websocket-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  |  \- org.glassfish.tyrus:tyrus-container-grizzly-server:jar:2.1.3:compile
+[[1;34mINFO[m] |  |     +- org.glassfish.grizzly:grizzly-framework:jar:4.0.0:compile
+[[1;34mINFO[m] |  |     +- org.glassfish.grizzly:grizzly-http-server:jar:4.0.0:compile
+[[1;34mINFO[m] |  |     |  \- org.glassfish.grizzly:grizzly-http:jar:4.0.0:compile
+[[1;34mINFO[m] |  |     \- org.glassfish.tyrus:tyrus-server:jar:2.1.3:compile
+[[1;34mINFO[m] |  |        \- jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.0:compile
+[[1;34mINFO[m] |  |           \- jakarta.activation:jakarta.activation-api:jar:2.1.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:compile
+[[1;34mINFO[m] |     \- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-remote:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-remote-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-client:jar:1.4.2:compile
+[[1;34mINFO[m] |     +- org.glassfish.tyrus:tyrus-client:jar:2.1.3:compile
+[[1;34mINFO[m] |     |  \- org.glassfish.tyrus:tyrus-core:jar:2.1.3:compile
+[[1;34mINFO[m] |     |     \- org.glassfish.tyrus:tyrus-spi:jar:2.1.3:compile
+[[1;34mINFO[m] |     \- org.glassfish.tyrus:tyrus-container-grizzly-client:jar:2.1.3:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:compile
+[[1;34mINFO[m] |  |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:compile
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-patricia:jar:1.5.0:compile
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:compile
+[[1;34mINFO[m] |  \- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-helpers:jar:1.5.0:compile
+[[1;34mINFO[m] +- io.hotmoka.cli:io-hotmoka-cli:jar:1.2.0:compile
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-client-api:jar:1.4.2:compile
+[[1;34mINFO[m] |  \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:compile
+[[1;34mINFO[m] +- info.picocli:picocli:jar:4.7.2:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m-------------------< [0;36mio.hotmoka:io-hotmoka-examples[0;1m >-------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-examples 1.5.0                               [28/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-examples[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-examples:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code:jar:1.3.0:compile
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--------------------< [0;36mio.hotmoka:io-hotmoka-tests[0;1m >---------------------[m
+[[1;34mINFO[m] [1mBuilding io-hotmoka-tests 1.5.0                                  [29/29][m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-dependency-plugin:2.8:tree[m [1m(default-cli)[m @ [36mio-hotmoka-tests[0;1m ---[m
+[[1;34mINFO[m] io.hotmoka:io-hotmoka-tests:jar:1.5.0
+[[1;34mINFO[m] +- io.hotmoka:io-takamaka-code-constants:jar:1.3.0:compile
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-whitelisting:jar:1.5.0:test
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-whitelisting-api:jar:1.5.0:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-verification:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-verification-api:jar:1.5.0:test
+[[1;34mINFO[m] |  |  \- org.apache.bcel:bcel:jar:6.7.0:test
+[[1;34mINFO[m] |  |     \- org.apache.commons:commons-lang3:jar:3.12.0:test
+[[1;34mINFO[m] |  \- io.hotmoka.exceptions:io-hotmoka-exceptions:jar:1.4.1:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-instrumentation:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-instrumentation-api:jar:1.5.0:test
+[[1;34mINFO[m] |  \- it.univr.bcel:it-univr-bcel:jar:1.2.1:test
+[[1;34mINFO[m] +- io.hotmoka.crypto:io-hotmoka-crypto:jar:1.4.1:test
+[[1;34mINFO[m] |  +- io.hotmoka.crypto:io-hotmoka-crypto-api:jar:1.4.1:test
+[[1;34mINFO[m] |  \- org.bouncycastle:bcprov-jdk15on:jar:1.70:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-api:jar:1.5.0:test
+[[1;34mINFO[m] |  |  \- io.hotmoka.marshalling:io-hotmoka-marshalling-api:jar:1.4.2:test
+[[1;34mINFO[m] |  +- io.hotmoka.annotations:io-hotmoka-annotations:jar:1.4.1:test
+[[1;34mINFO[m] |  +- io.hotmoka.marshalling:io-hotmoka-marshalling:jar:1.4.2:test
+[[1;34mINFO[m] |  +- io.hotmoka.websockets:io-hotmoka-websockets-beans:jar:1.4.2:test
+[[1;34mINFO[m] |  |  \- io.hotmoka.websockets:io-hotmoka-websockets-beans-api:jar:1.4.2:test
+[[1;34mINFO[m] |  |     \- jakarta.websocket:jakarta.websocket-client-api:jar:2.1.0:test
+[[1;34mINFO[m] |  \- io.hotmoka:toml4j:jar:0.7.3:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-local-api:jar:1.5.0:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-helpers:jar:1.5.0:test
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-helpers-api:jar:1.5.0:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-disk:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-disk-api:jar:1.5.0:test
+[[1;34mINFO[m] |  \- io.hotmoka:io-hotmoka-node-local:jar:1.5.0:test
+[[1;34mINFO[m] |     +- io.hotmoka:io-hotmoka-patricia:jar:1.5.0:test
+[[1;34mINFO[m] |     |  \- io.hotmoka:io-hotmoka-patricia-api:jar:1.5.0:test
+[[1;34mINFO[m] |     \- io.hotmoka.closeables:io-hotmoka-closeables:jar:1.4.1:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-tendermint:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-tendermint-api:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-tendermint-abci:jar:1.5.0:test
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-protobuf:jar:1.54.2:test
+[[1;34mINFO[m] |  |  |  +- io.grpc:grpc-api:jar:1.54.2:test
+[[1;34mINFO[m] |  |  |  |  \- io.grpc:grpc-context:jar:1.54.2:test
+[[1;34mINFO[m] |  |  |  +- com.google.code.findbugs:jsr305:jar:3.0.2:test
+[[1;34mINFO[m] |  |  |  +- com.google.api.grpc:proto-google-common-protos:jar:2.9.0:test
+[[1;34mINFO[m] |  |  |  \- io.grpc:grpc-protobuf-lite:jar:1.54.2:test
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-stub:jar:1.54.2:test
+[[1;34mINFO[m] |  |  |  \- com.google.errorprone:error_prone_annotations:jar:2.18.0:test
+[[1;34mINFO[m] |  |  +- io.grpc:grpc-netty-shaded:jar:1.54.2:test
+[[1;34mINFO[m] |  |  |  +- io.perfmark:perfmark-api:jar:0.25.0:test
+[[1;34mINFO[m] |  |  |  \- io.grpc:grpc-core:jar:1.54.2:test (version selected from constraint [1.54.2,1.54.2])
+[[1;34mINFO[m] |  |  |     +- com.google.android:annotations:jar:4.1.1.4:test
+[[1;34mINFO[m] |  |  |     \- org.codehaus.mojo:animal-sniffer-annotations:jar:1.21:test
+[[1;34mINFO[m] |  |  \- javax.annotation:javax.annotation-api:jar:1.3.2:test
+[[1;34mINFO[m] |  +- io.hotmoka.xodus:io-hotmoka-xodus:jar:1.4.4:test
+[[1;34mINFO[m] |  |  \- org.jetbrains.xodus:xodus-environment:jar:2.0.1:test
+[[1;34mINFO[m] |  |     +- org.jetbrains.kotlin:kotlin-stdlib:jar:1.6.10:test
+[[1;34mINFO[m] |  |     |  +- org.jetbrains:annotations:jar:13.0:test
+[[1;34mINFO[m] |  |     |  \- org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.6.10:test
+[[1;34mINFO[m] |  |     +- org.jetbrains.xodus:xodus-compress:jar:2.0.1:test
+[[1;34mINFO[m] |  |     |  \- org.jetbrains.xodus:xodus-openAPI:jar:2.0.1:test
+[[1;34mINFO[m] |  |     |     \- org.jetbrains.xodus:xodus-utils:jar:2.0.1:test
+[[1;34mINFO[m] |  |     +- org.apache.commons:commons-compress:jar:1.21:test
+[[1;34mINFO[m] |  |     \- io.github.microutils:kotlin-logging:jar:1.7.9:test
+[[1;34mINFO[m] |  +- com.google.protobuf:protobuf-java:jar:3.21.7:test
+[[1;34mINFO[m] |  \- com.google.code.gson:gson:jar:2.8.9:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-service:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-service-api:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-messages:jar:1.5.0:test
+[[1;34mINFO[m] |  |  \- io.hotmoka:io-hotmoka-node-messages-api:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka.closeables:io-hotmoka-closeables-api:jar:1.4.1:test
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-server:jar:1.4.2:test
+[[1;34mINFO[m] |     +- io.hotmoka.websockets:io-hotmoka-websockets-server-api:jar:1.4.2:test
+[[1;34mINFO[m] |     +- jakarta.websocket:jakarta.websocket-api:jar:2.1.0:test
+[[1;34mINFO[m] |     \- org.glassfish.tyrus:tyrus-container-grizzly-server:jar:2.1.3:test
+[[1;34mINFO[m] |        +- org.glassfish.grizzly:grizzly-framework:jar:4.0.0:test
+[[1;34mINFO[m] |        +- org.glassfish.grizzly:grizzly-http-server:jar:4.0.0:test
+[[1;34mINFO[m] |        |  \- org.glassfish.grizzly:grizzly-http:jar:4.0.0:test
+[[1;34mINFO[m] |        \- org.glassfish.tyrus:tyrus-server:jar:2.1.3:test
+[[1;34mINFO[m] |           \- jakarta.xml.bind:jakarta.xml.bind-api:jar:4.0.0:test
+[[1;34mINFO[m] |              \- jakarta.activation:jakarta.activation-api:jar:2.1.0:test
+[[1;34mINFO[m] +- io.hotmoka:io-hotmoka-node-remote:jar:1.5.0:test
+[[1;34mINFO[m] |  +- io.hotmoka:io-hotmoka-node-remote-api:jar:1.5.0:test
+[[1;34mINFO[m] |  |  \- io.hotmoka.websockets:io-hotmoka-websockets-client-api:jar:1.4.2:test
+[[1;34mINFO[m] |  \- io.hotmoka.websockets:io-hotmoka-websockets-client:jar:1.4.2:test
+[[1;34mINFO[m] |     +- org.glassfish.tyrus:tyrus-client:jar:2.1.3:test
+[[1;34mINFO[m] |     |  \- org.glassfish.tyrus:tyrus-core:jar:2.1.3:test
+[[1;34mINFO[m] |     |     \- org.glassfish.tyrus:tyrus-spi:jar:2.1.3:test
+[[1;34mINFO[m] |     \- org.glassfish.tyrus:tyrus-container-grizzly-client:jar:2.1.3:test
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-api:jar:3.3.0:test
+[[1;34mINFO[m] |  \- org.apache.maven:maven-model:jar:3.9.3:test
+[[1;34mINFO[m] +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-impl-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  +- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi-maven:jar:3.3.0:test
+[[1;34mINFO[m] |  |  \- org.jboss.shrinkwrap.resolver:shrinkwrap-resolver-spi:jar:3.3.0:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima:context:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:embedded-maven:jar:2.3.2:test
+[[1;34mINFO[m] |  +- eu.maveniverse.maven.mima.runtime:standalone-static:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- eu.maveniverse.maven.mima.runtime:standalone-shared:jar:2.3.2:test
+[[1;34mINFO[m] |  |  +- org.apache.maven.resolver:maven-resolver-named-locks:jar:1.9.13:test
+[[1;34mINFO[m] |  |  \- commons-codec:commons-codec:jar:1.16.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-classworlds:jar:2.7.0:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-component-annotations:jar:2.1.0:test
+[[1;34mINFO[m] |  +- org.eclipse.sisu:org.eclipse.sisu.plexus:jar:0.3.5:test
+[[1;34mINFO[m] |  |  \- org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.5:test
+[[1;34mINFO[m] |  +- com.google.inject:guice:jar:5.1.0:test
+[[1;34mINFO[m] |  |  +- javax.inject:javax.inject:jar:1:test
+[[1;34mINFO[m] |  |  \- aopalliance:aopalliance:jar:1.0:test
+[[1;34mINFO[m] |  +- com.google.guava:guava:jar:31.1-jre:test
+[[1;34mINFO[m] |  +- com.google.guava:failureaccess:jar:1.0.1:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-resolver-provider:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-model-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  |  +- org.apache.maven:maven-artifact:jar:3.9.3:test
+[[1;34mINFO[m] |  |  \- org.apache.maven:maven-builder-support:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-repository-metadata:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven:maven-settings-builder:jar:3.9.3:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-api:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-impl:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-spi:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-util:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-connector-basic:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-file:jar:1.9.13:test
+[[1;34mINFO[m] |  +- org.apache.maven.resolver:maven-resolver-transport-http:jar:1.9.13:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpclient:jar:4.5.14:test
+[[1;34mINFO[m] |  |  +- org.apache.httpcomponents:httpcore:jar:4.4.16:test
+[[1;34mINFO[m] |  |  \- org.slf4j:jcl-over-slf4j:jar:1.7.36:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-interpolation:jar:1.26:test
+[[1;34mINFO[m] |  +- org.codehaus.plexus:plexus-utils:jar:3.5.1:test
+[[1;34mINFO[m] |  \- org.codehaus.plexus:plexus-sec-dispatcher:jar:2.0:test
+[[1;34mINFO[m] |     \- org.codehaus.plexus:plexus-cipher:jar:2.0:test
+[[1;34mINFO[m] +- org.slf4j:slf4j-nop:jar:2.0.7:test
+[[1;34mINFO[m] |  \- org.slf4j:slf4j-api:jar:2.0.7:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter-engine:jar:5.9.2:test
+[[1;34mINFO[m] |  +- org.junit.platform:junit-platform-engine:jar:1.9.2:test
+[[1;34mINFO[m] |  |  +- org.opentest4j:opentest4j:jar:1.2.0:test
+[[1;34mINFO[m] |  |  \- org.junit.platform:junit-platform-commons:jar:1.9.2:test
+[[1;34mINFO[m] |  +- org.junit.jupiter:junit-jupiter-api:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.apiguardian:apiguardian-api:jar:1.1.2:test
+[[1;34mINFO[m] +- org.junit.jupiter:junit-jupiter:jar:5.9.2:test
+[[1;34mINFO[m] |  \- org.junit.jupiter:junit-jupiter-params:jar:5.9.2:test
+[[1;34mINFO[m] +- org.mockito:mockito-core:jar:5.3.0:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy:jar:1.14.4:test
+[[1;34mINFO[m] |  +- net.bytebuddy:byte-buddy-agent:jar:1.14.4:test
+[[1;34mINFO[m] |  \- org.objenesis:objenesis:jar:3.3:test
+[[1;34mINFO[m] \- io.hotmoka.testing:io-hotmoka-testing:jar:1.4.1:test
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1mReactor Summary:[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] Hotmoka parent ..................................... [1;32mSUCCESS[m [  1.043 s]
+[[1;34mINFO[m] io-hotmoka-whitelisting-api 1.5.0 .................. [1;32mSUCCESS[m [  0.022 s]
+[[1;34mINFO[m] io-hotmoka-whitelisting 1.5.0 ...................... [1;32mSUCCESS[m [  0.022 s]
+[[1;34mINFO[m] io-hotmoka-verification-api 1.5.0 .................. [1;32mSUCCESS[m [  0.035 s]
+[[1;34mINFO[m] io-hotmoka-verification 1.5.0 ...................... [1;32mSUCCESS[m [  0.303 s]
+[[1;34mINFO[m] io-hotmoka-instrumentation-api 1.5.0 ............... [1;32mSUCCESS[m [  0.011 s]
+[[1;34mINFO[m] io-hotmoka-instrumentation 1.5.0 ................... [1;32mSUCCESS[m [  0.032 s]
+[[1;34mINFO[m] io-hotmoka-node-api 1.5.0 .......................... [1;32mSUCCESS[m [  0.012 s]
+[[1;34mINFO[m] io-hotmoka-node 1.5.0 .............................. [1;32mSUCCESS[m [  0.020 s]
+[[1;34mINFO[m] io-hotmoka-node-local-api 1.5.0 .................... [1;32mSUCCESS[m [  0.009 s]
+[[1;34mINFO[m] io-hotmoka-patricia-api 1.5.0 ...................... [1;32mSUCCESS[m [  0.009 s]
+[[1;34mINFO[m] io-hotmoka-patricia 1.5.0 .......................... [1;32mSUCCESS[m [  0.012 s]
+[[1;34mINFO[m] io-hotmoka-node-local 1.5.0 ........................ [1;32mSUCCESS[m [  0.053 s]
+[[1;34mINFO[m] io-hotmoka-helpers-api 1.5.0 ....................... [1;32mSUCCESS[m [  0.018 s]
+[[1;34mINFO[m] io-hotmoka-helpers 1.5.0 ........................... [1;32mSUCCESS[m [  0.020 s]
+[[1;34mINFO[m] io-hotmoka-node-service-api 1.5.0 .................. [1;32mSUCCESS[m [  0.016 s]
+[[1;34mINFO[m] io-hotmoka-node-messages-api 1.5.0 ................. [1;32mSUCCESS[m [  0.012 s]
+[[1;34mINFO[m] io-hotmoka-node-messages 1.5.0 ..................... [1;32mSUCCESS[m [  0.010 s]
+[[1;34mINFO[m] io-hotmoka-node-service 1.5.0 ...................... [1;32mSUCCESS[m [  0.043 s]
+[[1;34mINFO[m] io-hotmoka-node-remote-api 1.5.0 ................... [1;32mSUCCESS[m [  0.012 s]
+[[1;34mINFO[m] io-hotmoka-node-remote 1.5.0 ....................... [1;32mSUCCESS[m [  0.019 s]
+[[1;34mINFO[m] io-hotmoka-node-tendermint-api 1.5.0 ............... [1;32mSUCCESS[m [  0.020 s]
+[[1;34mINFO[m] io-hotmoka-node-tendermint-abci 1.5.0 .............. [1;32mSUCCESS[m [  0.137 s]
+[[1;34mINFO[m] io-hotmoka-node-tendermint 1.5.0 ................... [1;32mSUCCESS[m [  0.050 s]
+[[1;34mINFO[m] io-hotmoka-node-disk-api 1.5.0 ..................... [1;32mSUCCESS[m [  0.007 s]
+[[1;34mINFO[m] io-hotmoka-node-disk 1.5.0 ......................... [1;32mSUCCESS[m [  0.037 s]
+[[1;34mINFO[m] io-hotmoka-moka 1.5.0 .............................. [1;32mSUCCESS[m [  0.822 s]
+[[1;34mINFO[m] io-hotmoka-examples 1.5.0 .......................... [1;32mSUCCESS[m [  0.014 s]
+[[1;34mINFO[m] io-hotmoka-tests 1.5.0 ............................. [1;32mSUCCESS[m [  0.062 s]
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;32mBUILD SUCCESS[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  3.733 s
+[[1;34mINFO[m] Finished at: 2024-05-05T12:52:35+02:00
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m

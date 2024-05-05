@@ -19,8 +19,8 @@ package io.hotmoka.node.local;
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.LocalNodeConfig;
+import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.stores.Store;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.

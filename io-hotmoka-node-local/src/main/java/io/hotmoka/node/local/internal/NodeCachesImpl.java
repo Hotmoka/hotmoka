@@ -52,10 +52,10 @@ import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.NodeCache;
-import io.hotmoka.stores.EngineClassLoader;
-import io.hotmoka.stores.LRUCache;
-import io.hotmoka.stores.StoreException;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * An implementation of the caches of a local node.

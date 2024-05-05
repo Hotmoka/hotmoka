@@ -2,8 +2,8 @@ package io.hotmoka.node.tendermint.internal;
 
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.AbstractTrieBasedStoreTransaction;
-import io.hotmoka.stores.StoreException;
+import io.hotmoka.node.local.AbstractTrieBasedStoreTransaction;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.env.Transaction;
 
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore> {

@@ -63,11 +63,11 @@ import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.stores.EngineClassLoader;
-import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.tendermint.abci.Server;
 
 /**

@@ -29,7 +29,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.disk.api.DiskNode;
 import io.hotmoka.node.disk.api.DiskNodeConfig;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * An implementation of a node that stores transactions in a directory

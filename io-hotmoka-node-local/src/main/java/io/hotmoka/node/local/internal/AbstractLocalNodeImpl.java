@@ -103,9 +103,14 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
+import io.hotmoka.node.local.api.Store;
+import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
@@ -115,11 +120,6 @@ import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilde
 import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
-import io.hotmoka.stores.EngineClassLoader;
-import io.hotmoka.stores.LRUCache;
-import io.hotmoka.stores.Store;
-import io.hotmoka.stores.StoreException;
-import io.hotmoka.stores.StoreTransaction;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -364,11 +364,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
-	public LocalNodeConfig<?,?> getLocalNodeConfig() {
+	public final LocalNodeConfig<?,?> getLocalNodeConfig() {
 		return config;
 	}
 
-	public GasCostModel getGasCostModel() {
+	public final GasCostModel getGasCostModel() {
 		return gasCostModel;
 	}
 

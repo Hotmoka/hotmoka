@@ -10,8 +10,8 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.stores.AbstractStoreTransaction;
-import io.hotmoka.stores.StoreException;
+import io.hotmoka.node.local.AbstractStoreTransaction;
+import io.hotmoka.node.local.api.StoreException;
 
 public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();

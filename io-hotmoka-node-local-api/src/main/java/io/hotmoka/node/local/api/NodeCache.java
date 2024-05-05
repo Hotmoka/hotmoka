@@ -21,7 +21,6 @@ import java.util.Optional;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.stores.EngineClassLoader;
 
 /**
  * The cache of a local node.

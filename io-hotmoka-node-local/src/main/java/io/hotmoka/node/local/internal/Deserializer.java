@@ -48,9 +48,9 @@ import io.hotmoka.node.api.values.ShortValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
+import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
-import io.hotmoka.stores.EngineClassLoader;
-import io.hotmoka.stores.StoreTransaction;
 import io.hotmoka.whitelisting.Dummy;
 
 /**

@@ -28,7 +28,7 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.stores.StoreTransaction;
+import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,
