@@ -38,9 +38,16 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
+import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
+import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
@@ -56,8 +63,16 @@ import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
+import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.InstanceMethodCallResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -81,6 +96,26 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	@Override
 	public final S getStore() {
 		return store;
+	}
+
+	@Override
+	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
+		if (request instanceof JarStoreInitialTransactionRequest jsitr)
+			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return new GameteCreationResponseBuilder(reference, gctr, this);
+    	else if (request instanceof JarStoreTransactionRequest jstr)
+    		return new JarStoreResponseBuilder(reference, jstr, this);
+    	else if (request instanceof ConstructorCallTransactionRequest cctr)
+    		return new ConstructorCallResponseBuilder(reference, cctr, this);
+    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
+    	else if (request instanceof StaticMethodCallTransactionRequest smctr)
+    		return new StaticMethodCallResponseBuilder(reference, smctr, this);
+    	else if (request instanceof InitializationTransactionRequest itr)
+    		return new InitializationResponseBuilder(reference, itr, this);
+    	else
+    		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	@Override

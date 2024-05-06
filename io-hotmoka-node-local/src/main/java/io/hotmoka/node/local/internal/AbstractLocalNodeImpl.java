@@ -76,7 +76,6 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
@@ -111,14 +110,7 @@ import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.InstanceMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 
 /**
@@ -667,9 +659,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			if (previousError != null)
 				throw new TransactionRejectedException(previousError);
 
-			var transaction = store.beginTransaction(System.currentTimeMillis());
-			responseBuilderFor(reference, request, transaction);
-			transaction.abort();
+			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
+			storeTransaction.responseBuilderFor(reference, request);
+			storeTransaction.abort();
 			LOGGER.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
@@ -728,7 +720,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				TransactionResponse response;
 
 				synchronized (deliverTransactionLock) {
-					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request, storeTransaction);
+					ResponseBuilder<?,?> responseBuilder = storeTransaction.responseBuilderFor(reference, request);
 					response = responseBuilder.getResponse();
 					storeTransaction.push(reference, request, response);
 					responseBuilder.replaceReverifiedResponses();
@@ -825,7 +817,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
 				checkTransaction(request);
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request, getStoreTransaction());
+				ResponseBuilder<?,?> responseBuilder = getStoreTransaction().responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -903,35 +895,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 		caches.invalidateIfNeeded(response, classLoader);
-	}
-
-	/**
-	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request
-	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request, StoreTransaction<?> transaction) throws TransactionRejectedException {
-		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction);
-		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, transaction);
-    	else if (request instanceof JarStoreTransactionRequest jstr)
-    		return new JarStoreResponseBuilder(reference, jstr, transaction);
-    	else if (request instanceof ConstructorCallTransactionRequest cctr)
-    		return new ConstructorCallResponseBuilder(reference, cctr, transaction);
-    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction);
-    	else if (request instanceof StaticMethodCallTransactionRequest smctr)
-    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction);
-    	else if (request instanceof InitializationTransactionRequest itr)
-    		return new InitializationResponseBuilder(reference, itr, transaction);
-    	else
-    		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	public final void setStore(S store) {

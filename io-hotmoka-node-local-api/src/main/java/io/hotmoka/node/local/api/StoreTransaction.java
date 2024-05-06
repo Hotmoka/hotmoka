@@ -23,6 +23,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -125,6 +126,18 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field);
 
 	String getStringFieldUncommitted(StorageReference object, FieldSignature field);
+
+	/**
+	 * Yields the builder of a response for a request of a transaction.
+	 * This method can be redefined in subclasses in order to accomodate
+	 * new kinds of transactions, specific to a node.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException;
 
 	/**
 	 * Pushes the result of executing a successful Hotmoka request.
