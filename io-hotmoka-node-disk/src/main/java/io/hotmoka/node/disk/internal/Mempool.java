@@ -109,7 +109,7 @@ class Mempool {
 				TransactionRequest<?> current = mempool.take();
 
 				try {
-					node.checkTransaction(current);
+					node.checkRequest(current);
 					if (!checkedMempool.offer(current)) {
 						deliverer.interrupt();
 						throw new IllegalStateException("mempool overflow");

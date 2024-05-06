@@ -215,7 +215,7 @@ class TendermintApplication extends ABCI {
         	var hotmokaRequest = TransactionRequests.from(context);
 
         	try {
-        		node.checkTransaction(hotmokaRequest);
+        		node.checkRequest(hotmokaRequest);
         	}
         	catch (Throwable t) {
         		node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(hotmokaRequest))));

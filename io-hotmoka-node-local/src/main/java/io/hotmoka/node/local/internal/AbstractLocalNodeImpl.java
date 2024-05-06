@@ -101,13 +101,14 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
+import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
-import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
@@ -120,7 +121,7 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,S>, C extends LocalNodeConfig<?,?>, S extends Store<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, C extends LocalNodeConfig<?,?>, S extends AbstractStore<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
 	 * The version of Hotmoka used by the nodes.
@@ -205,12 +206,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private final ExecutorService executors;
 
 	/**
-	 * Cached error messages of requests that failed their {@link AbstractLocalNodeImpl#checkTransaction(TransactionRequest)}.
+	 * Cached error messages of requests that failed their {@link AbstractLocalNodeImpl#checkRequest(TransactionRequest)}.
 	 * This is useful to avoid polling for the outcome of recent requests whose
-	 * {@link #checkTransaction(TransactionRequest)} failed, hence never
+	 * {@link #checkRequest(TransactionRequest)} failed, hence never
 	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<TransactionReference, String> recentCheckTransactionErrors;
+	private final LRUCache<TransactionReference, String> recentCheckRequestErrors;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -278,7 +279,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 
 		this.caches = new NodeCachesImpl(this, consensus);
-		this.recentCheckTransactionErrors = new LRUCache<>(100, 1000);
+		this.recentCheckRequestErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
 		this.coinsSinceLastRewardWithoutInflation = ZERO;
@@ -453,10 +454,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 					return response.get();
 
 				// we check if the request passed its checkTransaction but failed its deliverTransaction:
-				// in that case, the node contains the error message in its store; afterwards
+				// in that case, the node contains the error message in its store; otherwise,
 				// we check if the request did not pass its checkTransaction():
 				// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
-				Optional<String> error = store.getError(reference).or(() -> getRecentCheckTransactionErrorFor(reference));
+				Optional<String> error = store.getError(reference).or(() -> getRecentCheckRequestErrorFor(reference));
 				if (error.isPresent())
 					throw new TransactionRejectedException(error.get());
 				else
@@ -517,12 +518,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		}
 	}
 
-	private Optional<String> getRecentCheckTransactionErrorFor(TransactionReference reference) {
-		return Optional.ofNullable(recentCheckTransactionErrors.get(reference));
+	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
+		return Optional.ofNullable(recentCheckRequestErrors.get(reference));
 	}
 
-	private void storeCheckTransactionError(TransactionReference reference, Throwable e) {
-		recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+	private void storeCheckRequestError(TransactionReference reference, Throwable e) {
+		recentCheckRequestErrors.put(reference, trimmedMessage(e));
 	}
 
 	/**
@@ -537,9 +538,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) throws StoreException {
 		Optional<TransactionResponse> maybeResponse = store.getResponse(transaction);
 		if (maybeResponse.isEmpty())
-			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is missing from the store");
-
-		if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is not in the store");
+		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
 			trwu.getUpdates()
 				.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
 				.forEach(updates::add);
@@ -653,9 +653,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 * @param request the request
 	 * @throws TransactionRejectedException if the request is not valid
 	 */
-	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final void checkRequest(TransactionRequest<?> request) throws TransactionRejectedException {
 		var reference = TransactionReferences.of(hasher.hash(request));
-		getRecentCheckTransactionErrorFor(reference).ifPresent(TransactionRejectedException::new);
+		Optional<String> error = getRecentCheckRequestErrorFor(reference);
+		if (error.isPresent())
+			throw new TransactionRejectedException(error.get());
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
@@ -667,26 +669,20 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			LOGGER.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
-			// we do not store the error message, since a failed checkTransaction
-			// means that nobody is paying for this and we cannot expand the store;
+			// we do not write the error message in the store, since a failed check request
+			// means that nobody is paying for it and therefore we do not want to expand the store;
 			// we just take note of the failure to avoid polling for the response
-			storeCheckTransactionError(reference, e);
+			storeCheckRequestError(reference, e);
 			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
 		catch (StoreException e) { // TODO: probably becomes NodeException
-			// we do not store the error message, since a failed checkTransaction
-			// means that nobody is paying for this and we cannot expand the store;
-			// we just take note of the failure to avoid polling for the response
-			storeCheckTransactionError(reference, e);
+			storeCheckRequestError(reference, e);
 			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw new RuntimeException(e);
 		}
 		catch (RuntimeException e) {
-			// we do not store the error message, since a failed checkTransaction
-			// means that nobody is paying for this and we cannot expand the store;
-			// we just take note of the failure to avoid polling for the response
-			storeCheckTransactionError(reference, e);
+			storeCheckRequestError(reference, e);
 			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw e;
 		}
