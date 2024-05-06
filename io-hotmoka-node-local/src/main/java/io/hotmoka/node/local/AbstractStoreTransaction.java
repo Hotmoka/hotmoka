@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,7 +39,9 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -155,6 +158,61 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	@Override
 	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		setResponse(reference, response);
+	}
+
+	/**
+	 * A lock for the {@link #deliverTransaction(TransactionRequest)} body.
+	 */
+	private final Object deliverTransactionLock = new Object();
+
+	/**
+	 * Builds a response for the given request and adds it to the store of the node.
+	 * 
+	 * @param request the request
+	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
+	 * @throws TransactionRejectedException if the response cannot be built
+	 */
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request, TransactionReference reference) throws TransactionRejectedException {
+		//var reference = TransactionReferences.of(hasher.hash(request));
+
+		try {
+			try {
+				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+
+				TransactionResponse response;
+
+				synchronized (deliverTransactionLock) {
+					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+					response = responseBuilder.getResponse();
+					push(reference, request, response);
+					responseBuilder.replaceReverifiedResponses();
+					scheduleEventsForNotificationAfterCommit(response);
+					//takeNoteForNextReward(request, response);
+					//invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+				}
+
+				LOGGER.info(reference + ": delivering success");
+				return response;
+			}
+			catch (TransactionRejectedException e) {
+				push(reference, request, store.getNode().trimmedMessage(e));
+				LOGGER.info(reference + ": delivering failed: " + store.getNode().trimmedMessage(e));
+				LOGGER.log(Level.INFO, "transaction rejected", e);
+				throw e;
+			}
+			catch (//ClassNotFoundException |
+					NodeException | UnknownReferenceException e) {
+				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
+				throw new RuntimeException(e);
+			}
+			catch (RuntimeException e) {
+				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
+				throw e;
+			}
+		}
+		catch (StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	@Override

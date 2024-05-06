@@ -135,7 +135,7 @@ public class NodeCachesImpl implements NodeCache {
 			StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
 			StorageReference versions = node.getStoreTransaction().getVersionsUncommitted().get();
 			TransactionReference takamakaCode = node.getStoreTransaction().getTakamakaCodeUncommitted().get();
-			StorageReference manifest = node.getManifestUncommitted().get();
+			StorageReference manifest = node.getStoreTransaction().getManifestUncommitted().get();
 	
 			String genesisTime = ((StringValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 				(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
@@ -313,7 +313,7 @@ public class NodeCachesImpl implements NodeCache {
 
 	private void recomputeInflation() {
 		try {
-			Optional<StorageReference> manifest = node.getManifestUncommitted();
+			Optional<StorageReference> manifest = node.getStoreTransaction().getManifestUncommitted();
 			if (manifest.isPresent())
 				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(manifest.get(), _100_000, node.getStoreTransaction().getTakamakaCodeUncommitted().get(),

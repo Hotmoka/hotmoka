@@ -407,7 +407,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				// if we are polling for the outcome of a request sent to this same node, it is better
 				// to wait until it is delivered (or its checking fails) and start polling only after:
 				// this optimizes the time of waiting
-				semaphore.acquire();
+				semaphore.acquire(); // TODO: possibly introduce a timeout here
 
 			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
 				try {
@@ -497,7 +497,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			try {
-				if (isNotCommitted(reference.getTransaction())) // TODO: remove after making history optional
+				if (store.getResponse(reference.getTransaction()).isEmpty()) // TODO: remove after making history optional
 					throw new UnknownReferenceException(reference);
 
 				Stream<TransactionReference> history = store.getHistory(reference);
@@ -518,133 +518,104 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
-		return Optional.ofNullable(recentCheckRequestErrors.get(reference));
+	@Override
+	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
+		TransactionReference reference = post(request);
+		getPolledResponse(reference);
+		return reference;
 	}
 
-	private void storeCheckRequestError(TransactionReference reference, Throwable e) {
-		recentCheckRequestErrors.put(reference, trimmedMessage(e));
+	@Override
+	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+		getPolledResponse(post(request)); // result unused
 	}
 
-	/**
-	 * Adds, to the given set, the updates of the fields of the object at the given reference,
-	 * occurred during the execution of a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
-	 * @param updates the set where they must be added
-	 * @throws StoreException 
-	 */
-	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) throws StoreException {
-		Optional<TransactionResponse> maybeResponse = store.getResponse(transaction);
-		if (maybeResponse.isEmpty())
-			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is not in the store");
-		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
-			trwu.getUpdates()
-				.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
-				.forEach(updates::add);
+	@Override
+	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
+		var response = getPolledResponse(post(request));
+		if (response instanceof GameteCreationTransactionResponse gctr)
+			return gctr.getGamete();
 		else
-			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
+			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of a gamete creation request");
 	}
 
 	@Override
-	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> {
-			TransactionReference reference = post(request);
-			getPolledResponse(reference);
-			return reference;
-		});
+	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
+		return postJarStoreTransaction(request).get();
 	}
 
 	@Override
-	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException {
-		wrapInCaseOfExceptionSimple(() -> getPolledResponse(post(request))); // result unused
+	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException, NodeException, TimeoutException {
+		return postConstructorCallTransaction(request).get();
 	}
 
 	@Override
-	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> ((GameteCreationTransactionResponse) getPolledResponse(post(request))).getGamete());
+	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+		return postInstanceMethodCallTransaction(request).get();
 	}
 
 	@Override
-	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException {
-		return wrapInCaseOfExceptionMedium(() -> postJarStoreTransaction(request).get());
+	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
+		return postStaticMethodCallTransaction(request).get();
 	}
 
 	@Override
-	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> postConstructorCallTransaction(request).get());
-	}
-
-	@Override
-	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> postInstanceMethodCallTransaction(request).get());
-	}
-
-	@Override
-	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> postStaticMethodCallTransaction(request).get());
-	}
-
-	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+		try {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 
 			Optional<StorageValue> result;
 
 			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
-
-			synchronized (deliverTransactionLock) {
-				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction).getResponse());
-			}
-			
+			result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction).getResponse());
 			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
-		});
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return wrapInCaseOfExceptionFull(() -> {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
+		try {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			Optional<StorageValue> result;
 
 			var transaction = store.beginTransaction(System.currentTimeMillis());
-
-			synchronized (deliverTransactionLock) {
-				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction).getResponse());
-			}
-
+			result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction).getResponse());
 			transaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
-		});
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
 	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> JarFutures.of(post(request), this));
+		return JarFutures.of(post(request), this);
 	}
 
 	@Override
 	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofConstructor(post(request), this));
+		return CodeFutures.ofConstructor(post(request), this);
 	}
 
 	@Override
 	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofMethod(post(request), this));
+		return CodeFutures.ofMethod(post(request), this);
 	}
 
 	@Override
 	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return wrapInCaseOfExceptionSimple(() -> CodeFutures.ofMethod(post(request), this));
+		return CodeFutures.ofMethod(post(request), this);
 	}
 
 	/**
@@ -652,12 +623,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @param request the request
 	 * @throws TransactionRejectedException if the request is not valid
+	 * @throws NodeException 
 	 */
-	public final void checkRequest(TransactionRequest<?> request) throws TransactionRejectedException {
+	public final void checkRequest(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
 		var reference = TransactionReferences.of(hasher.hash(request));
-		Optional<String> error = getRecentCheckRequestErrorFor(reference);
-		if (error.isPresent())
-			throw new TransactionRejectedException(error.get());
+		if (getRecentCheckRequestErrorFor(reference).isPresent())
+			throw new TransactionRejectedException("Repeated request " + reference);
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
@@ -671,27 +642,17 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		catch (TransactionRejectedException e) {
 			// we do not write the error message in the store, since a failed check request
 			// means that nobody is paying for it and therefore we do not want to expand the store;
-			// we just take note of the failure to avoid polling for the response
+			// we just take note of the failure
 			storeCheckRequestError(reference, e);
 			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
-		catch (StoreException e) { // TODO: probably becomes NodeException
+		catch (StoreException e) {
 			storeCheckRequestError(reference, e);
-			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
-			throw new RuntimeException(e);
-		}
-		catch (RuntimeException e) {
-			storeCheckRequestError(reference, e);
-			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
-			throw e;
+			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception: " + e.getMessage());
+			throw new NodeException(e);
 		}
 	}
-
-	/**
-	 * A lock for the {@link #deliverTransaction(TransactionRequest)} body.
-	 */
-	private final Object deliverTransactionLock = new Object();
 
 	/**
 	 * Builds a response for the given request and adds it to the store of the node.
@@ -709,17 +670,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			try {
 				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
 
-				TransactionResponse response;
-
-				synchronized (deliverTransactionLock) {
-					ResponseBuilder<?,?> responseBuilder = storeTransaction.responseBuilderFor(reference, request);
-					response = responseBuilder.getResponse();
-					storeTransaction.push(reference, request, response);
-					responseBuilder.replaceReverifiedResponses();
-					storeTransaction.scheduleEventsForNotificationAfterCommit(response);
-					takeNoteForNextReward(request, response);
-					invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
-				}
+				ResponseBuilder<?,?> responseBuilder = storeTransaction.responseBuilderFor(reference, request);
+				TransactionResponse response = responseBuilder.getResponse();
+				storeTransaction.push(reference, request, response);
+				responseBuilder.replaceReverifiedResponses();
+				storeTransaction.scheduleEventsForNotificationAfterCommit(response);
+				takeNoteForNextReward(request, response);
+				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 
 				LOGGER.info(reference + ": delivering success");
 				return response;
@@ -743,10 +700,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO
-		}
-		finally {
-			// we wake up who was waiting for the outcome of the request
-			//signalSemaphore(reference); // TODO: this should be signaled when the store transaction containing the request has been committed
 		}
 	}
 
@@ -848,11 +801,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		String message = t.getMessage();
 		int length = message.length();
 		int maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
-	
-		if (length > maxErrorLength)
-			return message.substring(0, maxErrorLength) + "...";
-		else
-			return message;
+		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
 	/**
@@ -869,7 +818,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
 		if (store.getResponse(reference).isPresent())
-			throw new TransactionRejectedException("repeated request");
+			throw new TransactionRejectedException("Repeated request " + reference);
 	
 		createSemaphore(reference);
 		postRequest(request);
@@ -892,6 +841,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		this.store = store; // TODO
 	}
 
+	@Override
 	public NodeCache getCaches() {
 		return caches;
 	}
@@ -904,123 +854,38 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request);
 
-	/**
-	 * Yields the response of the transaction having the given reference.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response, if any
-	 */
-	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException {
-		var transaction = getStoreTransaction();
-		if (transaction != null)
-			return transaction.getResponseUncommitted(reference);
-		else
-			return store.getResponse(reference);
-	}
-
-	/**
-	 * Yields the history of the given object, that is, the references to the transactions
-	 * that can be used to reconstruct the current values of its fields.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @param object the reference of the object
-	 * @return the history. Yields an empty stream if there is no history for {@code object}
-	 * @throws StoreException if the store is not able to perform the operation
-	 */
-	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
-		var transaction = getStoreTransaction();
-		if (transaction != null)
-			return transaction.getHistoryUncommitted(object);
-		else
-			return store.getHistory(object);
-	}
-
-	/**
-	 * Yields the manifest installed when the node is initialized.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @return the manifest
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	Optional<StorageReference> getManifestUncommitted() throws StoreException {
-		var transaction = getStoreTransaction();
-		if (transaction != null)
-			return transaction.getManifestUncommitted();
-		else
-			return store.getManifest();
-	}
-
+	@Override
 	public <T> Future<T> submit(Callable<T> task) {
 		return executors.submit(task);
 	}
 
-	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
-	 * if it is not a {@link TransactionException} nor a {@link CodeExecutionException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 * @throws TransactionException if the callable throws this
-	 * @throws CodeExecutionException if the callable throws this
-	 */
-	private static <T> T wrapInCaseOfExceptionFull(Callable<T> what) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException | CodeExecutionException | TransactionException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "unexpected exception", t);
-			throw new TransactionRejectedException(t);
-		}
+	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
+		return Optional.ofNullable(recentCheckRequestErrors.get(reference));
+	}
+
+	private void storeCheckRequestError(TransactionReference reference, Throwable e) {
+		recentCheckRequestErrors.put(reference, trimmedMessage(e));
 	}
 
 	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException},
-	 * if it is not a {@link TransactionException}.
+	 * Adds, to the given set, the updates of the fields of the object at the given reference,
+	 * occurred during the execution of a given transaction.
 	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 * @throws TransactionException if the callable throws this
+	 * @param object the reference of the object
+	 * @param transaction the reference to the transaction
+	 * @param updates the set where they must be added
+	 * @throws StoreException 
 	 */
-	private static <T> T wrapInCaseOfExceptionMedium(Callable<T> what) throws TransactionRejectedException, TransactionException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException | TransactionException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "unexpected exception", t);
-			throw new TransactionRejectedException(t);
-		}
-	}
-
-	/**
-	 * Runs a callable and wraps any exception into an {@link TransactionRejectedException}.
-	 * 
-	 * @param <T> the return type of the callable
-	 * @param what the callable
-	 * @return the return value of the callable
-	 * @throws TransactionRejectedException the wrapped exception
-	 */
-	private static <T> T wrapInCaseOfExceptionSimple(Callable<T> what) throws TransactionRejectedException {
-		try {
-			return what.call();
-		}
-		catch (TransactionRejectedException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "Unexpected exception", t);
-			throw new TransactionRejectedException(t);
-		}
+	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) throws StoreException {
+		Optional<TransactionResponse> maybeResponse = store.getResponse(transaction);
+		if (maybeResponse.isEmpty())
+			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is not in the store");
+		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+			trwu.getUpdates()
+				.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
+				.forEach(updates::add);
+		else
+			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
 	}
 
 	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
@@ -1032,23 +897,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
 		else
 			return Optional.empty(); // void methods return no value
-	}
-
-	/**
-	 * Determines if the given transaction has not been committed yet.
-	 * 
-	 * @param transaction the transaction
-	 * @return true if and only if that condition holds
-	 * @throws NodeException if the node is not able to complete the operation
-	 */
-	private boolean isNotCommitted(TransactionReference transaction) throws NodeException {
-		try {
-			getResponse(transaction); // TODO: can you refer to the store instead?
-			return false;
-		}
-		catch (TransactionRejectedException | UnknownReferenceException e) {
-			return true;
-		}
 	}
 
 	/**
@@ -1102,7 +950,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 */
 	private void createSemaphore(TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
-			throw new TransactionRejectedException("Repeated request");
+			throw new TransactionRejectedException("Repeated request " + reference);
 	}
 
 	/**

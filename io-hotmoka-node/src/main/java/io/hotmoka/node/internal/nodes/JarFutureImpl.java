@@ -59,15 +59,14 @@ public class JarFutureImpl implements JarFuture {
 
 	@Override
 	public TransactionReference get() throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
-		try {
-			return cachedGet != null ? cachedGet : (cachedGet = getOutcome((JarStoreTransactionResponse) node.getPolledResponse(reference)));
-		}
-		catch (TransactionRejectedException | TransactionException | NodeException | TimeoutException | InterruptedException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw new TransactionRejectedException(t);
-		}
+		if (cachedGet != null)
+			return cachedGet;
+
+		var response = node.getPolledResponse(reference);
+		if (response instanceof JarStoreTransactionResponse jstr)
+			return cachedGet = getOutcome(jstr);
+		else
+			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the jar store request " + reference);
 	}
 
 	private TransactionReference getOutcome(JarStoreTransactionResponse response) throws TransactionException {

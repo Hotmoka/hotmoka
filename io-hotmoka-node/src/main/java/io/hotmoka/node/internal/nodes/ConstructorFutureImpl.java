@@ -63,15 +63,14 @@ public class ConstructorFutureImpl implements ConstructorFuture {
 
 	@Override
 	public StorageReference get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		try {
-			return cachedGet != null ? cachedGet : (cachedGet = getOutcome((ConstructorCallTransactionResponse) node.getPolledResponse(reference)));
-		}
-		catch (TransactionRejectedException | CodeExecutionException | TransactionException | NodeException | TimeoutException | InterruptedException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw new TransactionRejectedException(t);
-		}
+		if (cachedGet != null)
+			return cachedGet;
+
+		var response = node.getPolledResponse(reference);
+		if (response instanceof ConstructorCallTransactionResponse cctr)
+			return cachedGet = getOutcome(cctr);
+		else
+			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the constructor call request " + reference);
 	}
 
 	private StorageReference getOutcome(ConstructorCallTransactionResponse response) throws CodeExecutionException, TransactionException {

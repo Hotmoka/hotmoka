@@ -64,15 +64,14 @@ public class MethodFutureImpl implements MethodFuture {
 
 	@Override
 	public Optional<StorageValue> get() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		try {
-			return Optional.ofNullable(cachedGet != null ? cachedGet : (cachedGet = getOutcome((MethodCallTransactionResponse) node.getPolledResponse(reference))));
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NodeException | TimeoutException | InterruptedException e) {
-			throw e;
-		}
-		catch (Throwable t) {
-			throw new TransactionRejectedException(t);
-		}
+		if (cachedGet != null)
+			return Optional.of(cachedGet);
+
+		var response = node.getPolledResponse(reference);
+		if (response instanceof MethodCallTransactionResponse mctr)
+			return Optional.ofNullable(cachedGet = getOutcome(mctr));
+		else
+			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of the method call request " + reference);
 	}
 
 	private final StorageValue getOutcome(MethodCallTransactionResponse response) throws TransactionRejectedException, TransactionException, CodeExecutionException {
