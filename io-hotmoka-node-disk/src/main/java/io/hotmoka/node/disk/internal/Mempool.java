@@ -23,6 +23,7 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -63,7 +64,7 @@ class Mempool {
 	 */
 	private final Thread deliverer;
 
-	private final Set<TransactionReference> completed = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionReference> includedInBlock = ConcurrentHashMap.newKeySet();
 
 	private final int transactionsPerBlock;
 
@@ -115,14 +116,10 @@ class Mempool {
 					}
 				}
 				catch (TransactionRejectedException e) {
-					synchronized (completed) {
-						completed.add(TransactionReferences.of(node.getHasher().hash(current)));
-					}
+					node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(current))));
 				}
 	            catch (Throwable t) {
-	            	synchronized (completed) {
-	            		completed.add(TransactionReferences.of(node.getHasher().hash(current)));
-	            	}
+	            	node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(current))));
 	            	logger.log(Level.WARNING, "Failed to check transaction request", t);
 	    		}
 			}
@@ -147,12 +144,8 @@ class Mempool {
 					if (counter > 0)
 						node.rewardValidators("", "");
 					node.setStore(transaction.commit());
-
-					synchronized (completed) {
-						node.signalOutcomeIsReady(completed.stream());
-						completed.clear();
-					}
-
+					node.signalOutcomeIsReady(includedInBlock.stream());
+					includedInBlock.clear();
 					transaction.notifyAllEvents(node::notifyEvent);
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					node.transaction = transaction;
@@ -163,9 +156,7 @@ class Mempool {
 						node.deliverTransaction(current);
 					}
 					finally {
-						synchronized (completed) {
-							completed.add(TransactionReferences.of(node.getHasher().hash(current)));
-						}
+						includedInBlock.add(TransactionReferences.of(node.getHasher().hash(current)));
 					}
 
 					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
@@ -174,11 +165,8 @@ class Mempool {
 						if (counter > 0)
 							node.rewardValidators("", "");
 						node.setStore(transaction.commit());
-
-						synchronized (completed) {
-							node.signalOutcomeIsReady(completed.stream());
-						}
-
+						node.signalOutcomeIsReady(includedInBlock.stream());
+						includedInBlock.clear();
 						transaction.notifyAllEvents(node::notifyEvent);
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 						node.transaction = transaction;

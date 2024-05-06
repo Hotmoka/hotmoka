@@ -109,7 +109,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
     	else if (request instanceof ConstructorCallTransactionRequest cctr)
     		return new ConstructorCallResponseBuilder(reference, cctr, this);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
+			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
     	else if (request instanceof StaticMethodCallTransactionRequest smctr)
     		return new StaticMethodCallResponseBuilder(reference, smctr, this);
     	else if (request instanceof InitializationTransactionRequest itr)

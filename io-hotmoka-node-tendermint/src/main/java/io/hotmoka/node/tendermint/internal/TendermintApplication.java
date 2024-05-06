@@ -80,7 +80,7 @@ class TendermintApplication extends ABCI {
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
-	private final Set<TransactionReference> completed = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionReference> includedInBlock = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The current transaction, if any.
@@ -218,10 +218,7 @@ class TendermintApplication extends ABCI {
         		node.checkTransaction(hotmokaRequest);
         	}
         	catch (Throwable t) {
-        		synchronized (completed) {
-        			completed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
-        		}
-
+        		node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(hotmokaRequest))));
         		throw t;
         	}
 
@@ -269,9 +266,7 @@ class TendermintApplication extends ABCI {
         		node.deliverTransaction(hotmokaRequest);
         	}
         	finally {
-        		synchronized (completed) {
-        			completed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
-        		}
+        		includedInBlock.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
         	}
 
         	responseBuilder.setCode(0);
@@ -318,15 +313,8 @@ class TendermintApplication extends ABCI {
 			var newStore = transaction.commit();
 			node.setStore(newStore);
 			newStore.moveRootBranchToThis();
-
-			Stream<TransactionReference> toSignal;
-
-			synchronized (completed) {
-				toSignal = completed.stream();
-				completed.clear();
-			}
-
-			node.signalOutcomeIsReady(toSignal);
+			node.signalOutcomeIsReady(includedInBlock.stream());
+			includedInBlock.clear();
 			transaction.notifyAllEvents(node::notifyEvent);
 		}
 		catch (StoreException e) {

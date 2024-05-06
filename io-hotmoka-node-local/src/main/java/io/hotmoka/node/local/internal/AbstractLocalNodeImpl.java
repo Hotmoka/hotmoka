@@ -521,6 +521,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 		return Optional.ofNullable(recentCheckTransactionErrors.get(reference));
 	}
 
+	private void storeCheckTransactionError(TransactionReference reference, Throwable e) {
+		recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+	}
+
 	/**
 	 * Adds, to the given set, the updates of the fields of the object at the given reference,
 	 * occurred during the execution of a given transaction.
@@ -651,46 +655,38 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
 		var reference = TransactionReferences.of(hasher.hash(request));
+		getRecentCheckTransactionErrorFor(reference).ifPresent(TransactionRejectedException::new);
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
 
-			var previousError = recentCheckTransactionErrors.get(reference);
-			if (previousError != null)
-				throw new TransactionRejectedException(previousError);
-
 			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
 			storeTransaction.responseBuilderFor(reference, request);
 			storeTransaction.abort();
+
 			LOGGER.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {
-			// we wake up who was waiting for the outcome of the request
-			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+			storeCheckTransactionError(reference, e);
 			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e));
 			throw e;
 		}
 		catch (StoreException e) { // TODO: probably becomes NodeException
-			// we wake up who was waiting for the outcome of the request
-			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+			storeCheckTransactionError(reference, e);
 			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw new RuntimeException(e);
 		}
 		catch (RuntimeException e) {
-			// we wake up who was waiting for the outcome of the request
-			//signalSemaphore(reference);
 			// we do not store the error message, since a failed checkTransaction
 			// means that nobody is paying for this and we cannot expand the store;
 			// we just take note of the failure to avoid polling for the response
-			recentCheckTransactionErrors.put(reference, trimmedMessage(e));
+			storeCheckTransactionError(reference, e);
 			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception", e);
 			throw e;
 		}
@@ -786,7 +782,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 				StorageReference caller = manifest.get();
 				BigInteger nonce = storeTransaction.getNonceUncommitted(caller);
 				StorageReference validators = storeTransaction.getValidatorsUncommitted().get(); // ok, since the manifest is present
-				TransactionReference takamakaCode = validators.getTransaction(); // TODO: refer to getTakamakaCodeUncommitted() of the store transaction later
+				TransactionReference takamakaCode = getStoreTransaction().getTakamakaCodeUncommitted().get();
 
 				// we determine how many coins have been minted during the last reward:
 				// it is the price of the gas distributed minus the same price without inflation
@@ -816,7 +812,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
 
-				checkTransaction(request);
 				ResponseBuilder<?,?> responseBuilder = getStoreTransaction().responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
