@@ -16,16 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
-import java.math.BigInteger;
-
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.node.local.internal.NonInitialResponseBuilderImpl;
+import io.hotmoka.node.local.internal.transactions.NonInitialResponseBuilderImpl;
 
 /**
  * Partial implementation of the creator of the response for a non-initial transaction.
@@ -45,8 +41,8 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, consensus, maxGasAllowedForTransaction, node);
+	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+		super(reference, request, storeTransaction);
 	}
 
 	/**

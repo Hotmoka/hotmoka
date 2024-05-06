@@ -17,13 +17,11 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
-import io.hotmoka.node.local.internal.InitialResponseBuilderImpl;
+import io.hotmoka.node.local.internal.transactions.InitialResponseBuilderImpl;
 
 /**
  * Partial implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -42,8 +40,8 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
-		super(reference, request, transaction, consensus, node);
+	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction) throws TransactionRejectedException {
+		super(reference, request, transaction);
 	}
 
 	/**

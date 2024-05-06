@@ -69,7 +69,6 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
 import io.hotmoka.node.api.MethodFuture;
-import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.Subscription;
 import io.hotmoka.node.api.SubscriptionsManager;
@@ -105,6 +104,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -128,7 +128,8 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,S>, C extends LocalNodeConfig<?,?>, S extends Store<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
+public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,S>, C extends LocalNodeConfig<?,?>, S extends Store<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+
 	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
@@ -600,7 +601,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction, caches.getConsensusParams(), getLocalNodeConfig().getMaxGasPerViewTransaction(), this).getResponse());
+				result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction).getResponse());
 			}
 			
 			storeTransaction.abort();
@@ -620,7 +621,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 			var transaction = store.beginTransaction(System.currentTimeMillis());
 
 			synchronized (deliverTransactionLock) {
-				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction, caches.getConsensusParams(), getLocalNodeConfig().getMaxGasPerViewTransaction(), this).getResponse());
+				result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction).getResponse());
 			}
 
 			transaction.abort();
@@ -916,25 +917,29 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,
 	 */
 	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request, StoreTransaction<?> transaction) throws TransactionRejectedException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction, caches.getConsensusParams(), this);
+			return new JarStoreInitialResponseBuilder(reference, jsitr, transaction);
 		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, transaction, caches.getConsensusParams(), this);
+			return new GameteCreationResponseBuilder(reference, gctr, transaction);
     	else if (request instanceof JarStoreTransactionRequest jstr)
-    		return new JarStoreResponseBuilder(reference, jstr, transaction, caches.getConsensusParams(), this);
+    		return new JarStoreResponseBuilder(reference, jstr, transaction);
     	else if (request instanceof ConstructorCallTransactionRequest cctr)
-    		return new ConstructorCallResponseBuilder(reference, cctr, transaction, caches.getConsensusParams(), caches.getConsensusParams().getMaxGasPerTransaction(), this);
+    		return new ConstructorCallResponseBuilder(reference, cctr, transaction);
     	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction, caches.getConsensusParams(), this);
+    		return new InstanceMethodCallResponseBuilder(reference, aimctr, transaction);
     	else if (request instanceof StaticMethodCallTransactionRequest smctr)
-    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction, caches.getConsensusParams(), this);
+    		return new StaticMethodCallResponseBuilder(reference, smctr, transaction);
     	else if (request instanceof InitializationTransactionRequest itr)
-    		return new InitializationResponseBuilder(reference, itr, transaction, caches.getConsensusParams(), this);
+    		return new InitializationResponseBuilder(reference, itr, transaction);
     	else
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	public final void setStore(S store) {
 		this.store = store; // TODO
+	}
+
+	public NodeCache getCaches() {
+		return caches;
 	}
 
 	/**

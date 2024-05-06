@@ -19,17 +19,14 @@ package io.hotmoka.node.local.internal.transactions;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.math.BigInteger;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -45,20 +42,8 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, consensus, maxGasAllowedForTransaction, node);
-	}
-
-	/**
-	 * Creates the builder of the response.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request of the transaction
-	 * @param node the node that is running the transaction
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, consensus, consensus.getMaxGasPerTransaction(), node);
+	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+		super(reference, request, storeTransaction);
 	}
 
 	@Override

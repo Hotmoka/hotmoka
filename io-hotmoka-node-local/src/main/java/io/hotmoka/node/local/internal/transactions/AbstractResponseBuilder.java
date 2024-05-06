@@ -42,11 +42,11 @@ import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.EngineClassLoaderImpl;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
 import io.hotmoka.node.local.internal.Deserializer;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.verification.VerificationException;
@@ -62,7 +62,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final AbstractLocalNodeImpl<?,?,?> node;
+	public final LocalNode<?> node;
 
 	public final StoreTransaction<?> storeTransaction;
 
@@ -92,16 +92,15 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request for which the response is being built
 	 * @param storeTransaction the transaction where the updates to the store get accumulated
-	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
 		try {
 			this.storeTransaction = storeTransaction;
 			this.request = request;
 			this.reference = reference;
-			this.node = node;
-			this.consensus = consensus;
+			this.node = storeTransaction.getStore().getNode();
+			this.consensus = node.getCaches().getConsensusParams();
 			this.classLoader = mkClassLoader();
 		}
 		catch (Throwable t) {

@@ -14,18 +14,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.transactions;
 
 import java.math.BigInteger;
 import java.util.concurrent.Callable;
 
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
 /**
  * Implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -40,11 +38,10 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * 
 	 * @param reference the reference to the transaction that is building the response
 	 * @param request the request of the transaction
-	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
-		super(reference, request, storeTransaction, consensus, node);
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+		super(reference, request, storeTransaction);
 
 		try {
 			if (storeTransaction.nodeIsInitializedUncommitted())

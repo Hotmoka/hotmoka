@@ -16,14 +16,12 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import io.hotmoka.node.api.Node;
-
 /**
  * A store that can be checked out, that is, its view of the world can be moved
  * back and forth in time. Different moments of the store are identifies by state
  * identifiers, that can be checked out when needed.
  */
-public interface CheckableStore<S extends CheckableStore<S, N>, N extends Node> extends Store<S,N> {
+public interface CheckableStore<S extends CheckableStore<S, N>, N extends LocalNode<?>> extends Store<S,N> {
 
 	/**
 	 * Yields a unique identifier for the current state of this store.
