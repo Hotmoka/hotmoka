@@ -16,6 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
+import java.math.BigInteger;
+import java.util.Optional;
+
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -41,16 +44,32 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 */
 	private final N node;
 
+	/**
+	 * The current gas price in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The gas price might be missing if the
+	 * node is not initialized yet.
+	 */
+	final Optional<BigInteger> gasPrice;
+
 	protected AbstractStore(N node) {
 		this.node = node;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
+		this.gasPrice = Optional.empty();
 	}
 
 	protected AbstractStore(AbstractStore<T, N> toClone) {
 		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
+		this.gasPrice = toClone.gasPrice;
+	}
+
+	protected AbstractStore(AbstractStore<T, N> toClone, Optional<BigInteger> gasPrice) {
+		this.node = toClone.node;
+		this.checkedSignatures = toClone.checkedSignatures;
+		this.classLoaders = toClone.classLoaders;
+		this.gasPrice = gasPrice;
 	}
 
 	@Override

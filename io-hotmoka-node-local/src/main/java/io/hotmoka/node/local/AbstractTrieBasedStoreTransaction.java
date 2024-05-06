@@ -153,6 +153,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 			throw new StoreException("Cannot commit the Xodus transaction");
 
 		return getStore().mkClone(
+			getGasPrice(),
 			Optional.of(trieOfResponses.getRoot()),
 			Optional.of(trieOfInfo.getRoot()),
 			Optional.of(trieOfErrors.getRoot()),

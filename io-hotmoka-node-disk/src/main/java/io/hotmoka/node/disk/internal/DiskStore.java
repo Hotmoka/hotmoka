@@ -19,6 +19,7 @@ package io.hotmoka.node.disk.internal;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -92,13 +93,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    DiskStore(DiskStore toClone, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    DiskStore(DiskStore toClone, Optional<BigInteger> gasPrice, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone);
+    	super(toClone, gasPrice);
 
     	this.dir = toClone.dir;
     	this.requests = new ConcurrentHashMap<>(toClone.requests);

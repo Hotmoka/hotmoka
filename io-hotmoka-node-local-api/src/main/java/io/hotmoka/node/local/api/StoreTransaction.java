@@ -1,5 +1,5 @@
 /*
-Copyright 2021 Fausto Spoto
+Copyright 2024 Fausto Spoto
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -23,9 +23,13 @@ import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
@@ -33,6 +37,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -50,11 +55,19 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	S getStore();
 
 	/**
-	 * Yields the time to use as current time for the requests executed performed inside this transaction.
+	 * Yields the time to use as current time for the requests executed inside this transaction.
 	 * 
 	 * @return the time, in milliseconds from the UNIX epoch time
 	 */
 	long getNow();
+
+	/**
+	 * Yields the current gas price at the end of this transaction.
+	 * This might be missing if the node is not initialized yet.
+	 * 
+	 * @return the current gas price at the end of this transaction
+	 */
+	Optional<BigInteger> getGasPrice() throws StoreException;
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -126,6 +139,10 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field);
 
 	String getStringFieldUncommitted(StorageReference object, FieldSignature field);
+
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
 	 * Yields the builder of a response for a request of a transaction.

@@ -89,10 +89,7 @@ import io.hotmoka.node.api.requests.SystemTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
@@ -111,8 +108,6 @@ import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
-import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -568,7 +563,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			Optional<StorageValue> result;
 
 			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
-			result = getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, storeTransaction).getResponse());
+			result = storeTransaction.runInstanceMethodCallTransaction(request, reference);
 			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
@@ -586,9 +581,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			Optional<StorageValue> result;
 
-			var transaction = store.beginTransaction(System.currentTimeMillis());
-			result = getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, transaction).getResponse());
-			transaction.abort();
+			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
+			result = storeTransaction.runStaticMethodCallTransaction(request, reference);
+			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -886,17 +881,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				.forEach(updates::add);
 		else
 			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
-	}
-
-	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
-		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
-			return Optional.of(mctsr.getResult());
-		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
-			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
-		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
-			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
-		else
-			return Optional.empty(); // void methods return no value
 	}
 
 	/**

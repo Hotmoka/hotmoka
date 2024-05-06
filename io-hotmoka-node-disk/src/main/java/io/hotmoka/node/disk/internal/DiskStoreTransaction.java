@@ -76,7 +76,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 
 	@Override
 	public DiskStore commit() throws StoreException {
-		return new DiskStore(getStore(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
+		return new DiskStore(getStore(), getGasPrice(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
 	}
 
 	@Override

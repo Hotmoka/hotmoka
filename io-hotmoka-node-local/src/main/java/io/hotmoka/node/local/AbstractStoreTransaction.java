@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
+import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
+
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.PublicKey;
@@ -39,7 +41,11 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -47,6 +53,7 @@ import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
+import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -54,6 +61,10 @@ import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
+import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
+import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
+import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
+import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
@@ -64,6 +75,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -73,9 +85,11 @@ import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilde
 import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InstanceMethodCallResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.InstanceViewMethodCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.JarStoreInitialResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.JarStoreResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.StaticMethodCallResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseBuilder;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -88,17 +102,87 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private final S store;
 
 	/**
+	 * The current gas price in this store transaction. This information could be recovered from the store
+	 * transaction itself, but this field is used for caching. The gas price might be missing if the
+	 * node is not initialized yet.
+	 */
+	private volatile Optional<BigInteger> gasPrice;
+
+	/**
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
 
+	/**
+	 * Enough gas for a simple get method.
+	 */
+	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
+
 	protected AbstractStoreTransaction(S store) {
 		this.store = store;
+		this.gasPrice = store.gasPrice;
 	}
 
 	@Override
 	public final S getStore() {
 		return store;
+	}
+
+	@Override
+	public final Optional<BigInteger> getGasPrice() throws StoreException {
+		if (gasPrice.isEmpty())
+			recomputeGasPrice();
+
+		return gasPrice;
+	}
+
+	private void recomputeGasPrice() throws StoreException {
+		try {
+			Optional<StorageReference> manifest = getManifestUncommitted();
+			if (manifest.isPresent()) {
+				LOGGER.info("updating the gas price cache");
+				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
+				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
+					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"));
+
+				if (result instanceof BigIntegerValue biv) {
+					BigInteger newGasPrice = biv.getValue();
+					gasPrice = Optional.of(newGasPrice);
+					LOGGER.info("the gas price cache has been updated to " + newGasPrice);
+				}
+				else
+					throw new StoreException(GET_GAS_PRICE + " should return a BigInteger, not a " + result.getClass().getName());
+			}
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
+	}
+
+	@Override
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
+	}
+
+	private Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getStore().getNode().getHasher().hash(request)));
+	}
+
+	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
+		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
+			return Optional.of(mctsr.getResult());
+		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
+			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
+		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
+			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
+		else
+			return Optional.empty(); // void methods return no value
 	}
 
 	@Override
