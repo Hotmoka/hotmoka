@@ -61,7 +61,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T, N>, N extends AbstractLocalNode<?, T>> extends AbstractStore<T, N> {
+public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T, N>, N extends AbstractLocalNode<N, ?, T>> extends AbstractStore<T, N> {
 
 	/**
 	 * The Xodus environment that holds the store.

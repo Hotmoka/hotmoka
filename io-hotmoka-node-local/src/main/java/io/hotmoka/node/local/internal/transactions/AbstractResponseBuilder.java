@@ -62,7 +62,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final AbstractLocalNodeImpl<?,?> node;
+	public final AbstractLocalNodeImpl<?,?,?> node;
 
 	public final StoreTransaction<?> storeTransaction;
 
@@ -95,7 +95,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		try {
 			this.storeTransaction = storeTransaction;
 			this.request = request;

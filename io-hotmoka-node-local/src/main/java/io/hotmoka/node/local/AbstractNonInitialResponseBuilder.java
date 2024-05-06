@@ -45,7 +45,7 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, maxGasAllowedForTransaction, node);
 	}
 

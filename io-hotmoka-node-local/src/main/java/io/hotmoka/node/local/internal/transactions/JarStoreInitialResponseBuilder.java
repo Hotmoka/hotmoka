@@ -49,7 +49,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, node);
 	}
 

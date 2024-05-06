@@ -50,7 +50,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowed, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, maxGasAllowed, node);
 	}
 

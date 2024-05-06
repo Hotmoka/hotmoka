@@ -63,7 +63,7 @@ import io.hotmoka.node.local.api.StoreException;
 public class NodeCachesImpl implements NodeCache {
 	protected final static Logger logger = Logger.getLogger(NodeCachesImpl.class.getName());
 
-	private final AbstractLocalNodeImpl<?,?> node;
+	private final AbstractLocalNodeImpl<?,?,?> node;
 
 	/**
 	 * The cache for the class loaders.
@@ -96,7 +96,7 @@ public class NodeCachesImpl implements NodeCache {
 	 * @param node the node
 	 * @param consensus the consensus parameters of the node
 	 */
-	public NodeCachesImpl(AbstractLocalNodeImpl<?, ?> node, ConsensusConfig<?,?> consensus) {
+	public NodeCachesImpl(AbstractLocalNodeImpl<?,?, ?> node, ConsensusConfig<?,?> consensus) {
 		this.node = node;
 		this.consensus = consensus;
 	}

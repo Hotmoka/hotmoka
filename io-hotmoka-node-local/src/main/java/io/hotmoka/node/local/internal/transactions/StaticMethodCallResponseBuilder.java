@@ -45,7 +45,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, maxGasAllowedForTransaction, node);
 	}
 
@@ -57,7 +57,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, consensus.getMaxGasPerTransaction(), node);
 	}
 

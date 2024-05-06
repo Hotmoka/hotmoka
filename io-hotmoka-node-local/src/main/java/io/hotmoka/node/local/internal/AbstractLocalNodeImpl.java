@@ -128,7 +128,7 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S extends Store<S>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
+public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNodeImpl<N,C,S>, C extends LocalNodeConfig<?,?>, S extends Store<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements Node {
 	/**
 	 * The version of Hotmoka used by the nodes.
 	 */
@@ -314,6 +314,10 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 	 */
 	protected abstract S mkStore();
 
+	public final S getStore() {
+		return store;
+	}
+
 	/**
 	 * Yields the currently executing transaction.
 	 * 
@@ -364,7 +368,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 		}
 	}
 
-	public final LocalNodeConfig<?,?> getLocalNodeConfig() {
+	public final C getLocalNodeConfig() {
 		return config;
 	}
 
@@ -990,10 +994,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<?,?>, S ex
 
 	public <T> Future<T> submit(Callable<T> task) {
 		return executors.submit(task);
-	}
-
-	public S getStore() {
-		return store;
 	}
 
 	/**

@@ -75,7 +75,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 *                                    than this, then the transaction will be rejected
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?> node) throws TransactionRejectedException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus, BigInteger maxGasAllowedForTransaction, AbstractLocalNodeImpl<?,?,?> node) throws TransactionRejectedException {
 		super(reference, request, storeTransaction, consensus, node);
 
 		try {

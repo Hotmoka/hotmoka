@@ -21,7 +21,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.Store;
 
-public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends AbstractLocalNode<?, T>> implements Store<T> {
+public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends AbstractLocalNode<N, ?, T>> implements Store<T, N> {
 
 	/**
 	 * Cached recent requests that have had their signature checked.
@@ -37,7 +37,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	/**
-	 * The node having this store.
+	 * The node for which this store has been created.
 	 */
 	private final N node;
 
@@ -53,7 +53,8 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 		this.classLoaders = toClone.classLoaders;
 	}
 
-	protected final N getNode() {
+	@Override
+	public final N getNode() {
 		return node;
 	}
 }

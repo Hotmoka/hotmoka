@@ -39,9 +39,15 @@ import io.hotmoka.node.api.values.StorageReference;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public interface StoreTransaction<T extends Store<T>> {
+public interface StoreTransaction<S extends Store<S, ?>> {
 
-	Store<?> getStore();
+	/**
+	 * Yields the store from which this transaction begun.
+	 * 
+	 * @return the store from which this transaction begun
+	 */
+	S getStore();
+
 	/**
 	 * Yields the time to use as current time for the requests executed performed inside this transaction.
 	 * 
@@ -172,7 +178,7 @@ public interface StoreTransaction<T extends Store<T>> {
 	 */
 	EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException;
 
-	T commit() throws StoreException;
+	S commit() throws StoreException;
 
 	void abort() throws StoreException;
 }

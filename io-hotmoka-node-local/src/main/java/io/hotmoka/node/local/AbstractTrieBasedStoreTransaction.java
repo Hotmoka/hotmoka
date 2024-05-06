@@ -17,7 +17,7 @@ import io.hotmoka.patricia.api.TrieException;
 import io.hotmoka.xodus.ExodusException;
 import io.hotmoka.xodus.env.Transaction;
 
-public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBasedStore<T, ?>> extends AbstractStoreTransaction<T> {
+public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBasedStore<S, ?>> extends AbstractStoreTransaction<S> {
 
 	/**
 	 * The Xodus transaction where the updates get recorded.
@@ -49,7 +49,7 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
      */
 	private volatile TrieOfRequests trieOfRequests;
 
-	protected AbstractTrieBasedStoreTransaction(T store, Transaction txn) throws StoreException {
+	protected AbstractTrieBasedStoreTransaction(S store, Transaction txn) throws StoreException {
 		super(store);
 
 		this.txn = txn;
@@ -141,7 +141,7 @@ public abstract class AbstractTrieBasedStoreTransaction<T extends AbstractTrieBa
 	}
 	
 	@Override
-	public T commit() throws StoreException {
+	public S commit() throws StoreException {
 		try {
 			trieOfInfo = trieOfInfo.increaseNumberOfCommits();
 		}

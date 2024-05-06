@@ -75,11 +75,6 @@ class TendermintApplication extends ABCI {
 	private final static Logger logger = Logger.getLogger(TendermintApplication.class.getName());
 
 	/**
-	 * The Tendermint blockchain.
-	 */
-	private final TendermintNodeImpl node;
-
-	/**
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
 	 * that has been executed.
 	 */
@@ -91,6 +86,8 @@ class TendermintApplication extends ABCI {
 	 * The current transaction, if any.
 	 */
 	private volatile StoreTransaction<TendermintStore> transaction;
+
+	private final TendermintNodeImpl node;
 
 	/**
      * Builds the Tendermint ABCI interface that executes Takamaka transactions.

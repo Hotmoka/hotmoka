@@ -38,7 +38,7 @@ import io.hotmoka.node.local.api.StoreTransaction;
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> implements DiskNode {
+public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig, DiskStore> implements DiskNode {
 	private final static Logger LOGGER = Logger.getLogger(DiskNodeImpl.class.getName());
 
 	/**

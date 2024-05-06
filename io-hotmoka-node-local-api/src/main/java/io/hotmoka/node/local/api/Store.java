@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -32,7 +33,14 @@ import io.hotmoka.node.api.values.StorageReference;
  * be used concurrently for executing more requests.
  */
 @ThreadSafe
-public interface Store<T extends Store<T>> extends AutoCloseable {
+public interface Store<S extends Store<S, N>, N extends Node> extends AutoCloseable {
+
+	/**
+	 * Yields the node for which this store has been created.
+	 * 
+	 * @return the node for which this store has been created
+	 */
+	N getNode();
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -83,7 +91,7 @@ public interface Store<T extends Store<T>> extends AutoCloseable {
 	 * Starts a transaction. Instance updates during the transaction are saved
 	 * in the supporting database if the transaction will later be committed.
 	 */
-	StoreTransaction<T> beginTransaction(long now) throws StoreException;
+	StoreTransaction<S> beginTransaction(long now) throws StoreException;
 
 	@Override
 	void close() throws StoreException, InterruptedException;
