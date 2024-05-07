@@ -19,6 +19,7 @@ package io.hotmoka.node.tendermint.internal;
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
@@ -59,8 +60,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	}
     }
 
-    private TendermintStore(TendermintStore toClone, Optional<BigInteger> gasPrice, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-    	super(toClone, gasPrice, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
+    private TendermintStore(TendermintStore toClone, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
 	}
@@ -115,8 +116,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-    protected TendermintStore mkClone(Optional<BigInteger> gasPrice, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-		return new TendermintStore(this, gasPrice, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
+    protected TendermintStore mkClone(Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+		return new TendermintStore(this, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 	}
 
 	@Override

@@ -25,7 +25,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -76,11 +75,6 @@ public class NodeCachesImpl implements NodeCache {
 	private volatile ConsensusConfig<?,?> consensus;
 
 	/**
-	 * A cache for the current inflation. It gets reset if it changes.
-	 */
-	private volatile Long inflation;
-
-	/**
 	 * Enough gas for a simple get method.
 	 */
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
@@ -106,13 +100,6 @@ public class NodeCachesImpl implements NodeCache {
 			classLoaders.clear();
 			if (versionBefore != consensus.getVerificationVersion())
 				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
-		}
-
-		if (inflationMightHaveChanged(response, classLoader)) {
-			Long inflationBefore = inflation;
-			logger.info("recomputing the inflation cache since it has changed");
-			recomputeInflation();
-			logger.info("the inflation cache has been recomputed and changed from " + inflationBefore + " to " + inflation);
 		}
 	}
 
@@ -269,28 +256,6 @@ public class NodeCachesImpl implements NodeCache {
 		return consensus;
 	}
 
-	@Override
-	public final Optional<Long> getCurrentInflation() {
-		if (inflation == null)
-			recomputeInflation();
-
-		return Optional.ofNullable(inflation);
-	}
-
-	private void recomputeInflation() {
-		try {
-			Optional<StorageReference> manifest = node.getStoreTransaction().getManifestUncommitted();
-			if (manifest.isPresent())
-				inflation = ((LongValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, node.getStoreTransaction().getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_CURRENT_INFLATION, node.getStoreTransaction().getValidatorsUncommitted().get()))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_CURRENT_INFLATION + " should not return void"))).getValue();
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
-			throw new RuntimeException("could not determine the current inflation", e);
-		}
-	}
-
 	/**
 	 * Determines if the given response might change the value of some consensus parameters.
 	 * 
@@ -341,40 +306,5 @@ public class NodeCachesImpl implements NodeCache {
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
 		return classLoader.isConsensusUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
-	}
-
-	/**
-	 * Determines if the given response might change the current inflation.
-	 * 
-	 * @param response the response
-	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the current inflation
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-	 */
-	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-
-		try {
-			// we check if there are events of type InflationUpdate triggered by the validators object
-			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
-				StorageReference validators = node.getStoreTransaction().getValidatorsUncommitted().get();
-
-				return check(ClassNotFoundException.class, () ->
-					trwe.getEvents().filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
-						.map(node.getStoreTransaction()::getCreatorUncommitted)
-						.anyMatch(validators::equals)
-				);
-			}
-		}
-		catch (StoreException e) {
-			logger.log(Level.SEVERE, "cannot check the inflation", e);
-		}
-
-		return false;
-	}
-
-	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isInflationUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
 	}
 }

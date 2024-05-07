@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import java.math.BigInteger;
-import java.util.Optional;
-
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
 
@@ -48,11 +45,4 @@ public interface NodeCache {
 	 * @return the consensus parameters
 	 */
 	ConsensusConfig<?,?> getConsensusParams();
-
-	/**
-	 * Yields the current inflation of the node.
-	 * 
-	 * @return the current inflation of the node, if the node is already initialized
-	 */
-	Optional<Long> getCurrentInflation();
 }

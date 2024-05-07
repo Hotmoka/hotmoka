@@ -31,6 +31,7 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -890,8 +891,9 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @param request the request of the transaction
 	 * @param response the response computed for {@code request}
+	 * @throws StoreException 
 	 */
-	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) {
+	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		if (!(request instanceof SystemTransactionRequest)) {
 			numberOfTransactionsSinceLastReward = numberOfTransactionsSinceLastReward.add(ONE);
 
@@ -917,11 +919,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	private BigInteger addInflation(BigInteger gas) {
-		Optional<Long> currentInflation = caches.getCurrentInflation();
+	private BigInteger addInflation(BigInteger gas) throws StoreException {
+		OptionalLong currentInflation = getStoreTransaction().getCurrentInflation();
 
 		if (currentInflation.isPresent())
-			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.get())))
+			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
 					 .divide(_100_000_000);
 
 		return gas;

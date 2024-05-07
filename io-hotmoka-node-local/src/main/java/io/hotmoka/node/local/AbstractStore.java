@@ -18,6 +18,7 @@ package io.hotmoka.node.local;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.OptionalLong;
 
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -51,11 +52,19 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 */
 	final Optional<BigInteger> gasPrice;
 
+	/**
+	 * The current inflation in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The inflation might be missing if the
+	 * node is not initialized yet.
+	 */
+	final OptionalLong inflation;
+
 	protected AbstractStore(N node) {
 		this.node = node;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
 		this.gasPrice = Optional.empty();
+		this.inflation = OptionalLong.empty();
 	}
 
 	protected AbstractStore(AbstractStore<T, N> toClone) {
@@ -63,13 +72,15 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
 		this.gasPrice = toClone.gasPrice;
+		this.inflation = toClone.inflation;
 	}
 
-	protected AbstractStore(AbstractStore<T, N> toClone, Optional<BigInteger> gasPrice) {
+	protected AbstractStore(AbstractStore<T, N> toClone, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
 		this.gasPrice = gasPrice;
+		this.inflation = inflation;
 	}
 
 	@Override

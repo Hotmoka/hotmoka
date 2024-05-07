@@ -18,6 +18,7 @@ package io.hotmoka.node.local;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -210,8 +211,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<BigInteger> gasPrice, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-    	super(toClone, gasPrice);
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, gasPrice, inflation);
 
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
@@ -226,7 +227,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = rootOfRequests;
     }
 
-    protected abstract T mkClone(Optional<BigInteger> gasPrice, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
+    protected abstract T mkClone(Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
     public void close() throws StoreException {
@@ -320,7 +321,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 		var bytesOfRootOfHistories = new byte[32];
 		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
 	
-		return mkClone(Optional.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+		return mkClone(Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 	}
 
 	public void moveRootBranchToThis() throws StoreException {

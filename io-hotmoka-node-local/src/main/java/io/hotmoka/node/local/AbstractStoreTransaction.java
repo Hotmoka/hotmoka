@@ -18,6 +18,7 @@ package io.hotmoka.node.local;
 
 import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
+import static io.hotmoka.node.MethodSignatures.GET_CURRENT_INFLATION;
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 
 import java.math.BigInteger;
@@ -30,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
@@ -76,6 +78,7 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
@@ -111,6 +114,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private volatile Optional<BigInteger> gasPrice;
 
 	/**
+	 * The current inflation in this store transaction. This information could be recovered from the store
+	 * transaction itself, but this field is used for caching. The inflation might be missing if the
+	 * node is not initialized yet.
+	 */
+	private volatile OptionalLong inflation;
+
+	/**
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
@@ -123,6 +133,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	protected AbstractStoreTransaction(S store) {
 		this.store = store;
 		this.gasPrice = store.gasPrice;
+		this.inflation = store.inflation;
 	}
 
 	@Override
@@ -131,7 +142,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public final Optional<BigInteger> getGasPrice() throws StoreException {
+	public final Optional<BigInteger> getGasPriceUncommitted() throws StoreException {
 		if (gasPrice.isEmpty())
 			recomputeGasPrice();
 
@@ -162,6 +173,37 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
+	public OptionalLong getCurrentInflation() throws StoreException {
+		if (inflation.isEmpty())
+			recomputeInflation();
+
+		return inflation;
+	}
+
+	private void recomputeInflation() throws StoreException {
+		try {
+			Optional<StorageReference> manifest = getManifestUncommitted();
+			if (manifest.isPresent()) {
+				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are is not set"));
+				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
+					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"));
+
+				if (result instanceof LongValue lv) {
+					long newInflation = lv.getValue();
+					inflation = OptionalLong.of(newInflation);
+					LOGGER.info("the inflation cache has been updated to " + newInflation);
+				}
+				else
+					throw new StoreException(GET_CURRENT_INFLATION + " should return a long, not a " + result.getClass().getName());
+			}
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
 	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		/*if (consensusParametersMightHaveChanged(response, classLoader)) {
 			long versionBefore = consensus.getVerificationVersion();
@@ -178,12 +220,10 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			gasPrice = Optional.empty();
 		}
 
-		/*if (inflationMightHaveChanged(response, classLoader)) {
-			Long inflationBefore = inflation;
-			logger.info("recomputing the inflation cache since it has changed");
-			recomputeInflation();
-			logger.info("the inflation cache has been recomputed and changed from " + inflationBefore + " to " + inflation);
-		}*/
+		if (inflationMightHaveChanged(response, classLoader)) {
+			LOGGER.info("the inflation might have changed: deleting its cache");
+			inflation = OptionalLong.empty();
+		}
 	}
 
 	/**
@@ -218,6 +258,44 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isGasPriceUpdateEvent(getClassNameUncommitted(event));
+		}
+		catch (ClassNotFoundException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	/**
+	 * Determines if the given response might change the current inflation.
+	 * 
+	 * @param response the response
+	 * @param classLoader the class loader used to build the response
+	 * @return true if the response changes the current inflation
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 */
+	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+		else if (response instanceof TransactionResponseWithEvents trwe) {
+			Optional<StorageReference> maybeValidators = getValidatorsUncommitted();
+
+			if (maybeValidators.isPresent()) {
+				var validators = maybeValidators.get();
+				Stream<StorageReference> events = trwe.getEvents();
+
+				return check(StoreException.class, () ->
+					events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
+					.map(this::getCreatorUncommitted)
+					.anyMatch(validators::equals)
+				);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+		try {
+			return classLoader.isInflationUpdateEvent(getClassNameUncommitted(event));
 		}
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);

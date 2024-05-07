@@ -26,6 +26,7 @@ import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -93,13 +94,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    DiskStore(DiskStore toClone, Optional<BigInteger> gasPrice, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    DiskStore(DiskStore toClone, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, gasPrice);
+    	super(toClone, gasPrice, inflation);
 
     	this.dir = toClone.dir;
     	this.requests = new ConcurrentHashMap<>(toClone.requests);

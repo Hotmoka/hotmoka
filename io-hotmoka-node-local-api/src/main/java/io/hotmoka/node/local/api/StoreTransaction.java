@@ -19,6 +19,7 @@ package io.hotmoka.node.local.api;
 import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -67,7 +68,14 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 * 
 	 * @return the current gas price at the end of this transaction
 	 */
-	Optional<BigInteger> getGasPrice() throws StoreException;
+	Optional<BigInteger> getGasPriceUncommitted() throws StoreException;
+
+	/**
+	 * Yields the current inflation of the node.
+	 * 
+	 * @return the current inflation of the node, if the node is already initialized
+	 */
+	OptionalLong getCurrentInflation() throws StoreException;
 
 	/**
 	 * Yields the response of the transaction having the given reference.
