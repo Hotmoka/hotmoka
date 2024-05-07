@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -82,8 +83,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
      * 
 	 * @param dir the path where the database of the store gets created
      */
-    DiskStore(DiskNodeImpl node) {
-    	super(node);
+    DiskStore(DiskNodeImpl node, Optional<ConsensusConfig<?,?>> consensus) {
+    	super(node, consensus);
 
     	this.dir = node.getLocalConfig().getDir();
     	this.requests = new ConcurrentHashMap<>();
@@ -94,13 +95,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    DiskStore(DiskStore toClone, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    DiskStore(DiskStore toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, gasPrice, inflation);
+    	super(toClone, consensus, gasPrice, inflation);
 
     	this.dir = toClone.dir;
     	this.requests = new ConcurrentHashMap<>(toClone.requests);

@@ -25,6 +25,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -132,8 +133,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(N node) {
-    	super(node);
+    protected AbstractTrieBasedStore(N node, Optional<ConsensusConfig<?,?>> consensus) {
+    	super(node, consensus);
 
     	this.env = new Environment(node.getLocalNodeConfig().getDir() + "/store");
 
@@ -211,8 +212,8 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-    	super(toClone, gasPrice, inflation);
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, consensus, gasPrice, inflation);
 
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
@@ -227,7 +228,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = rootOfRequests;
     }
 
-    protected abstract T mkClone(Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
+    protected abstract T mkClone(Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
     public void close() throws StoreException {
@@ -321,7 +322,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 		var bytesOfRootOfHistories = new byte[32];
 		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
 	
-		return mkClone(Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+		return mkClone(Optional.empty(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 	}
 
 	public void moveRootBranchToThis() throws StoreException {

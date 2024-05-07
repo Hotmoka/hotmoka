@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -46,6 +47,13 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	private final N node;
 
 	/**
+	 * The current consensus configuration in this store. This information could be recovered from the store
+	 * itself, but this field is used for caching. The consensus configuration might be missing if the
+	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
+	 */
+	final Optional<ConsensusConfig<?,?>> consensus;
+
+	/**
 	 * The current gas price in this store. This information could be recovered from the store
 	 * itself, but this field is used for caching. The gas price might be missing if the
 	 * node is not initialized yet.
@@ -59,10 +67,11 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 */
 	final OptionalLong inflation;
 
-	protected AbstractStore(N node) {
+	protected AbstractStore(N node, Optional<ConsensusConfig<?,?>> consensus) {
 		this.node = node;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
+		this.consensus = consensus;
 		this.gasPrice = Optional.empty();
 		this.inflation = OptionalLong.empty();
 	}
@@ -71,14 +80,16 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
+		this.consensus = toClone.consensus;
 		this.gasPrice = toClone.gasPrice;
 		this.inflation = toClone.inflation;
 	}
 
-	protected AbstractStore(AbstractStore<T, N> toClone, Optional<BigInteger> gasPrice, OptionalLong inflation) {
+	protected AbstractStore(AbstractStore<T, N> toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
+		this.consensus = consensus;
 		this.gasPrice = gasPrice;
 		this.inflation = inflation;
 	}

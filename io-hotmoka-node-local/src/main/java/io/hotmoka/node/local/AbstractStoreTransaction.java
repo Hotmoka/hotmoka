@@ -23,9 +23,12 @@ import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -42,11 +45,15 @@ import java.util.stream.Stream;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
+import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
+import io.hotmoka.node.MethodSignatures;
+import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
@@ -78,6 +85,8 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.BigIntegerValue;
+import io.hotmoka.node.api.values.BooleanValue;
+import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.LongValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
@@ -121,6 +130,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private volatile OptionalLong inflation;
 
 	/**
+	 * The current consensus configuration in this store transaction. This information could be recovered from
+	 * the store transaction itself, but this field is used for caching. This information might be
+	 * missing after a store check out to a specific root, after which the cache has not been recomputed yet.
+	 */
+	private volatile Optional<ConsensusConfig<?,?>> consensus;
+
+	/**
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
@@ -134,6 +150,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		this.store = store;
 		this.gasPrice = store.gasPrice;
 		this.inflation = store.inflation;
+		this.consensus = store.consensus;
 	}
 
 	@Override
@@ -173,7 +190,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public OptionalLong getCurrentInflation() throws StoreException {
+	public OptionalLong getInflationUncommitted() throws StoreException {
 		if (inflation.isEmpty())
 			recomputeInflation();
 
@@ -185,7 +202,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			Optional<StorageReference> manifest = getManifestUncommitted();
 			if (manifest.isPresent()) {
 				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are is not set"));
+				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
 					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"));
 
@@ -204,16 +221,174 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
-		/*if (consensusParametersMightHaveChanged(response, classLoader)) {
-			long versionBefore = consensus.getVerificationVersion();
-			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
+	public ConsensusConfig<?,?> getConfigUncommitted() throws StoreException {
+		if (inflation.isEmpty())
 			recomputeConsensus();
-			logger.info("the consensus cache has been recomputed");
-			classLoaders.clear();
-			if (versionBefore != consensus.getVerificationVersion())
-				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
-		}*/
+
+		return consensus.get();
+	}
+
+	private void recomputeConsensus() throws StoreException {
+		try {
+			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			if (maybeManifest.isPresent()) {
+				StorageReference manifest = maybeManifest.get();
+				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
+				StorageReference versions = getVersionsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
+
+				String genesisTime = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: check casts
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_GENESIS_TIME, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_GENESIS_TIME + " should not return void"))).getValue();
+
+				String chainId = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_CHAIN_ID, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_CHAIN_ID + " should not return void"))).getValue();
+
+				StorageReference gamete = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_GAMETE, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_GAMETE + " should not return void"));
+
+				String publicKeyOfGamete = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.PUBLIC_KEY, gamete))
+						.orElseThrow(() -> new StoreException(MethodSignatures.PUBLIC_KEY + " should not return void"))).getValue();
+
+				int maxErrorLength = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_ERROR_LENGTH, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_ERROR_LENGTH + " should not return void"))).getValue();
+
+				int maxDependencies = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_DEPENDENCIES, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_DEPENDENCIES + " should not return void"))).getValue();
+
+				long maxCumulativeSizeOfDependencies = ((LongValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_CUMULATIVE_SIZE_OF_DEPENDENCIES + " should not return void"))).getValue();
+
+				boolean allowsFaucet = ((BooleanValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.ALLOWS_UNSIGNED_FAUCET, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.ALLOWS_UNSIGNED_FAUCET + " should not return void"))).getValue();
+
+				boolean skipsVerification = ((BooleanValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.SKIPS_VERIFICATION, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.SKIPS_VERIFICATION + " should not return void"))).getValue();
+
+				String signature = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_SIGNATURE, manifest))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_SIGNATURE + " should not return void"))).getValue();
+
+				BigInteger ticketForNewPoll = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_TICKET_FOR_NEW_POLL, validators))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_TICKET_FOR_NEW_POLL + " should not return void"))).getValue();
+
+				BigInteger initialGasPrice = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_GAS_PRICE, gasStation))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_GAS_PRICE + " should not return void"))).getValue();
+
+				BigInteger maxGasPerTransaction = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_MAX_GAS_PER_TRANSACTION, gasStation))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_MAX_GAS_PER_TRANSACTION + " should not return void"))).getValue();
+
+				boolean ignoresGasPrice = ((BooleanValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.IGNORES_GAS_PRICE, gasStation))
+						.orElseThrow(() -> new StoreException(MethodSignatures.IGNORES_GAS_PRICE + " should not return void"))).getValue();
+
+				BigInteger targetGasAtReward = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_TARGET_GAS_AT_REWARD, gasStation))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_TARGET_GAS_AT_REWARD + " should not return void"))).getValue();
+
+				long oblivion = ((LongValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_OBLIVION, gasStation))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_OBLIVION + " should not return void"))).getValue();
+
+				long initialInflation = ((LongValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_INFLATION, validators))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_INFLATION + " should not return void"))).getValue();
+
+				long verificationVersion = ((LongValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_VERIFICATION_VERSION, versions))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_VERIFICATION_VERSION + " should not return void"))).getValue();
+
+				BigInteger initialSupply = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_SUPPLY, validators))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_SUPPLY + " should not return void"))).getValue();
+
+				BigInteger initialRedSupply = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_INITIAL_RED_SUPPLY, validators))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_INITIAL_RED_SUPPLY + " should not return void"))).getValue();
+
+				BigInteger finalSupply = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, MethodSignatures.GET_FINAL_SUPPLY, validators))
+						.orElseThrow(() -> new StoreException(MethodSignatures.GET_FINAL_SUPPLY + " should not return void"))).getValue();
+
+				var method1 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
+				int buyerSurcharge = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, method1, validators))
+						.orElseThrow(() -> new StoreException(method1 + " should not return void"))).getValue();
+
+				var method2 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
+				int slashingForMisbehaving = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, method2, validators))
+						.orElseThrow(() -> new StoreException(method2 + " should not return void"))).getValue();
+
+				var method3 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
+				int slashingForNotBehaving = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, method3, validators))
+						.orElseThrow(() -> new StoreException(method3 + " should not return void"))).getValue();
+
+				var method4 = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
+				int percentStaked = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _100_000, takamakaCode, method4, validators))
+						.orElseThrow(() -> new StoreException(method4 + " should not return void"))).getValue();
+
+				var signatureAlgorithm = SignatureAlgorithms.of(signature);
+
+				consensus = Optional.of(ValidatorsConsensusConfigBuilders.defaults()
+						.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
+						.setChainId(chainId)
+						.setMaxGasPerTransaction(maxGasPerTransaction)
+						.ignoreGasPrice(ignoresGasPrice)
+						.setSignatureForRequests(signatureAlgorithm)
+						.setInitialGasPrice(initialGasPrice)
+						.setTargetGasAtReward(targetGasAtReward)
+						.setOblivion(oblivion)
+						.setInitialInflation(initialInflation)
+						.setMaxErrorLength(maxErrorLength)
+						.setMaxDependencies(maxDependencies)
+						.setMaxCumulativeSizeOfDependencies(maxCumulativeSizeOfDependencies)
+						.allowUnsignedFaucet(allowsFaucet)
+						.skipVerification(skipsVerification)
+						.setVerificationVersion(verificationVersion)
+						.setTicketForNewPoll(ticketForNewPoll)
+						.setInitialSupply(initialSupply)
+						.setFinalSupply(finalSupply)
+						.setInitialRedSupply(initialRedSupply)
+						.setPublicKeyOfGamete(signatureAlgorithm.publicKeyFromEncoding(Base64.fromBase64String(publicKeyOfGamete)))
+						.setPercentStaked(percentStaked)
+						.setBuyerSurcharge(buyerSurcharge)
+						.setSlashingForMisbehaving(slashingForMisbehaving)
+						.setSlashingForNotBehaving(slashingForNotBehaving)
+						.build());
+				
+				System.out.println("resetting to " + consensus);
+			}
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | Base64ConversionException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (consensusParametersMightHaveChanged(response, classLoader)) {
+			LOGGER.info("the consensus parameters might have changed: deleting their cache");
+			consensus = Optional.empty();
+			System.out.println("setting to " + consensus);
+			//classLoaders.clear(); // TODO
+			//if (versionBefore != consensus.getVerificationVersion())
+				//logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
+		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
 			LOGGER.info("the gas price might have changed: deleting its cache");
@@ -223,6 +398,49 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		if (inflationMightHaveChanged(response, classLoader)) {
 			LOGGER.info("the inflation might have changed: deleting its cache");
 			inflation = OptionalLong.empty();
+		}
+	}
+
+	/*
+	 * Determines if the given response might change the value of some consensus parameter.
+	 * 
+	 * @param response the response
+	 * @param classLoader the class loader used to build the response
+	 * @return true if the response changes the value of some consensus parameters; otherwise,
+	 *         it is more efficient to return false, since true might trigger a recomputation
+	 *         of the consensus parameters' cache
+	 */
+	private boolean consensusParametersMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
+			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+
+			if (maybeManifest.isPresent()) {
+				var manifest = maybeManifest.get();
+				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				StorageReference versions = getVersionsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
+				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but gas station is not set"));
+				Stream<StorageReference> events = trwe.getEvents();
+
+				return check(StoreException.class, () ->
+					events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
+					.map(this::getCreatorUncommitted)
+					.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions))
+				);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+		try {
+			return classLoader.isConsensusUpdateEvent(getClassNameUncommitted(event));
+		}
+		catch (ClassNotFoundException e) {
+			throw new StoreException(e);
 		}
 	}
 
@@ -237,7 +455,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
-		else if (response instanceof TransactionResponseWithEvents trwe) {
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
 			Optional<StorageReference> maybeGasStation = getGasStationUncommitted();
 
 			if (maybeGasStation.isPresent()) {
@@ -275,7 +493,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private boolean inflationMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (response instanceof InitializationTransactionResponse)
 			return true;
-		else if (response instanceof TransactionResponseWithEvents trwe) {
+		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
 			Optional<StorageReference> maybeValidators = getValidatorsUncommitted();
 
 			if (maybeValidators.isPresent()) {

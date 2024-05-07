@@ -75,7 +75,14 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 * 
 	 * @return the current inflation of the node, if the node is already initialized
 	 */
-	OptionalLong getCurrentInflation() throws StoreException;
+	OptionalLong getInflationUncommitted() throws StoreException;
+
+	/**
+	 * Yields the current consensus configuration of the node.
+	 * 
+	 * @return the current consensus configuration of the node
+	 */
+	ConsensusConfig<?,?> getConfigUncommitted() throws StoreException;
 
 	/**
 	 * Yields the response of the transaction having the given reference.

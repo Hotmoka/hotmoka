@@ -50,6 +50,7 @@ import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -228,8 +229,8 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	}
 
 	@Override
-	protected TendermintStore mkStore() {
-		return new TendermintStore(this);
+	protected TendermintStore mkStore(Optional<ConsensusConfig<?,?>> consensus) {
+		return new TendermintStore(this, consensus);
 	}
 
 	@Override

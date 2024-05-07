@@ -249,7 +249,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * @param consensus the consensus parameters at the beginning of the life of the node
 	 */
 	protected AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus) {
-		this(config, consensus, true);
+		this(config, Optional.of(consensus), true);
 	}
 
 	/**
@@ -259,10 +259,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * @param config the configuration of the node
 	 */
 	protected AbstractLocalNodeImpl(C config) {
-		this(config, null, false);
+		this(config, Optional.empty(), false);
 	}
 
-	private AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus, boolean deleteDir) {
+	private AbstractLocalNodeImpl(C config, Optional<ConsensusConfig<?,?>> consensus, boolean deleteDir) {
 		super(ClosedNodeException::new);
 
 		this.config = config;
@@ -274,7 +274,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			throw new RuntimeException("Unexpected exception", e);
 		}
 
-		this.caches = new NodeCachesImpl(this, consensus);
+		this.caches = new NodeCachesImpl(this, consensus.orElse(null));
 		this.recentCheckRequestErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
@@ -293,7 +293,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			}
 		}
 
-		this.store = mkStore();
+		this.store = mkStore(consensus);
 		addShutdownHook();
 	}
 
@@ -302,7 +302,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore();
+	protected abstract S mkStore(Optional<ConsensusConfig<?,?>> config);
 
 	public final S getStore() {
 		return store;
@@ -920,7 +920,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	private BigInteger addInflation(BigInteger gas) throws StoreException {
-		OptionalLong currentInflation = getStoreTransaction().getCurrentInflation();
+		OptionalLong currentInflation = getStoreTransaction().getInflationUncommitted();
 
 		if (currentInflation.isPresent())
 			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
