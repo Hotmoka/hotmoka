@@ -51,7 +51,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 * itself, but this field is used for caching. The consensus configuration might be missing if the
 	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
 	 */
-	final Optional<ConsensusConfig<?,?>> consensus;
+	final ConsensusConfig<?,?> consensus;
 
 	/**
 	 * The current gas price in this store. This information could be recovered from the store
@@ -67,7 +67,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 */
 	final OptionalLong inflation;
 
-	protected AbstractStore(N node, Optional<ConsensusConfig<?,?>> consensus) {
+	protected AbstractStore(N node, ConsensusConfig<?,?> consensus) {
 		this.node = node;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
@@ -85,7 +85,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 		this.inflation = toClone.inflation;
 	}
 
-	protected AbstractStore(AbstractStore<T, N> toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
+	protected AbstractStore(AbstractStore<T, N> toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.node = toClone.node;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
@@ -97,5 +97,9 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	@Override
 	public final N getNode() {
 		return node;
+	}
+
+	public ConsensusConfig<?,?> getConfig() {
+		return consensus;
 	}
 }

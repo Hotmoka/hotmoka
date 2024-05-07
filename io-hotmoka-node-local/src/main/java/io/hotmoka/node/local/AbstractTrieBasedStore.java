@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import java.math.BigInteger;
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -25,6 +26,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -64,7 +66,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T, N>, N extends AbstractLocalNode<N, ?, T>> extends AbstractStore<T, N> {
+public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, N>, N extends AbstractLocalNode<N, ?, S>> extends AbstractStore<S, N> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -133,7 +135,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(N node, Optional<ConsensusConfig<?,?>> consensus) {
+    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus) {
     	super(node, consensus);
 
     	this.env = new Environment(node.getLocalNodeConfig().getDir() + "/store");
@@ -196,7 +198,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	}
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, N> toClone) {
     	super(toClone);
 
     	this.env = toClone.env;
@@ -212,7 +214,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<T, N> toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, N> toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, consensus, gasPrice, inflation);
 
     	this.env = toClone.env;
@@ -228,7 +230,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
     	this.rootOfRequests = rootOfRequests;
     }
 
-    protected abstract T mkClone(Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
+    protected abstract S mkClone(ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     @Override
     public void close() throws StoreException {
@@ -286,7 +288,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 	}
 
 	@Override
-	public StoreTransaction<T> beginTransaction(long now) throws StoreException {
+	public StoreTransaction<S> beginTransaction(long now) throws StoreException {
 		return mkTransaction(env.beginTransaction(), now);
 	}
 
@@ -310,7 +312,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 	 * 
 	 * @param root the root to reset to
 	 */
-	public T checkoutAt(byte[] root) {
+	public S checkoutAt(byte[] root) {
 		var bytesOfRootOfResponses = new byte[32];
 		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
 		var bytesOfRootOfInfo = new byte[32];
@@ -321,8 +323,18 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
 		var bytesOfRootOfHistories = new byte[32];
 		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
-	
-		return mkClone(Optional.empty(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+
+		try {
+			S temp = mkClone(ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
+			storeTransaction.invalidateConsensusCache();
+			ConsensusConfig<?,?> consensus = storeTransaction.getConfigUncommitted();
+			storeTransaction.abort();
+			return mkClone(consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+		}
+		catch (NoSuchAlgorithmException | StoreException e) {
+			throw new RuntimeException(e); // TODO
+		}
 	}
 
 	public void moveRootBranchToThis() throws StoreException {
@@ -330,7 +342,7 @@ public abstract class AbstractTrieBasedStore<T extends AbstractTrieBasedStore<T,
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
 
-	protected abstract StoreTransaction<T> mkTransaction(Transaction txn, long now) throws StoreException;
+	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

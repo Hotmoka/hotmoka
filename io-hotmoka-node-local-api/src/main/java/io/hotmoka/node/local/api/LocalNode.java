@@ -34,5 +34,4 @@ public interface LocalNode<C extends LocalNodeConfig<?,?>> extends Node {
 	C getLocalNodeConfig();
 	GasCostModel getGasCostModel();
 	<T> Future<T> submit(Callable<T> task);
-	NodeCache getCaches();
 }

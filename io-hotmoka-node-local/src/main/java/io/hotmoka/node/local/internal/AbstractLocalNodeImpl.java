@@ -66,6 +66,7 @@ import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;
+import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.ConstructorFuture;
 import io.hotmoka.node.api.JarFuture;
@@ -105,7 +106,6 @@ import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.api.NodeCache;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
@@ -167,11 +167,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	public final Hasher<TransactionRequest<?>> getHasher() {
 		return hasher;
 	}
-
-	/**
-	 * The caches of the node.
-	 */
-	public final NodeCache caches;
 
 	/**
 	 * The store of the node.
@@ -274,7 +269,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			throw new RuntimeException("Unexpected exception", e);
 		}
 
-		this.caches = new NodeCachesImpl(this, consensus.orElse(null));
 		this.recentCheckRequestErrors = new LRUCache<>(100, 1000);
 		this.gasConsumedSinceLastReward = ZERO;
 		this.coinsSinceLastReward = ZERO;
@@ -293,7 +287,21 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			}
 		}
 
-		this.store = mkStore(consensus);
+		if (consensus.isEmpty()) {
+			try {
+				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build());
+				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
+				storeTransaction.invalidateConsensusCache();
+				consensus = Optional.of(storeTransaction.getConfigUncommitted());
+				storeTransaction.abort();
+			}
+			catch (NoSuchAlgorithmException | StoreException e) {
+				throw new RuntimeException(e); // TODO
+			}
+		}
+
+		this.store = mkStore(consensus.get());
+
 		addShutdownHook();
 	}
 
@@ -302,7 +310,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(Optional<ConsensusConfig<?,?>> config);
+	protected abstract S mkStore(ConsensusConfig<?,?> config);
 
 	public final S getStore() {
 		return store;
@@ -354,7 +362,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	@Override
 	public final ConsensusConfig<?,?> getConfig() throws NodeException {
 		try (var scope = mkScope()) {
-			return caches.getConsensusParams();
+			return store.getConfig();
 		}
 	}
 
@@ -715,10 +723,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 *         the code of the validators contract failed
 	 */
 	public final boolean rewardValidators(String behaving, String misbehaving) {
-		// the node might not have completed its initialization yet
-		if (caches.getConsensusParams() == null)
-			return false;
-
 		try {
 			Optional<StorageReference> manifest = getStoreTransaction().getManifestUncommitted();
 			if (manifest.isPresent()) {
@@ -740,13 +744,13 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				// or from above (negative inflation)
 				BigInteger currentSupply = storeTransaction.getCurrentSupplyUncommitted(validators);
 				if (minted.signum() > 0) {
-					BigInteger finalSupply = caches.getConsensusParams().getFinalSupply();
+					BigInteger finalSupply = storeTransaction.getConfigUncommitted().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() < 0)
 						minted = minted.add(extra);
 				}
 				else if (minted.signum() < 0) {
-					BigInteger finalSupply = caches.getConsensusParams().getFinalSupply();
+					BigInteger finalSupply = storeTransaction.getConfigUncommitted().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() > 0)
 						minted = minted.add(extra);
@@ -797,7 +801,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	public final String trimmedMessage(Throwable t) {
 		String message = t.getMessage();
 		int length = message.length();
-		int maxErrorLength = caches.getConsensusParams().getMaxErrorLength();
+		int maxErrorLength = store.getConfig().getMaxErrorLength(); // TODO: uncommitted?
 		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
@@ -831,16 +835,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		caches.invalidateIfNeeded(response, classLoader);
 	}
 
 	public final void setStore(S store) {
 		this.store = store; // TODO
-	}
-
-	@Override
-	public NodeCache getCaches() {
-		return caches;
 	}
 
 	/**

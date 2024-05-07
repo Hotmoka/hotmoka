@@ -168,6 +168,8 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 */
 	void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException;
 
+	void invalidateConsensusCache() throws StoreException;
+
 	/**
 	 * Yields the builder of a response for a request of a transaction.
 	 * This method can be redefined in subclasses in order to accomodate

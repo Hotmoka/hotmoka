@@ -100,7 +100,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.request = request;
 			this.reference = reference;
 			this.node = storeTransaction.getStore().getNode();
-			this.consensus = node.getCaches().getConsensusParams();
+			this.consensus = storeTransaction.getConfigUncommitted();
 			this.classLoader = mkClassLoader();
 		}
 		catch (Throwable t) {

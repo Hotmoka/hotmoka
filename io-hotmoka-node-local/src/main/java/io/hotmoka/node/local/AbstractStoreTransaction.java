@@ -38,7 +38,6 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,10 +54,8 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -134,7 +131,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	 * the store transaction itself, but this field is used for caching. This information might be
 	 * missing after a store check out to a specific root, after which the cache has not been recomputed yet.
 	 */
-	private volatile Optional<ConsensusConfig<?,?>> consensus;
+	private volatile ConsensusConfig<?,?> consensus;
 
 	/**
 	 * The transactions containing events that must be notified at commit-time.
@@ -222,10 +219,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	@Override
 	public ConsensusConfig<?,?> getConfigUncommitted() throws StoreException {
-		if (inflation.isEmpty())
-			recomputeConsensus();
-
-		return consensus.get();
+		return consensus;
 	}
 
 	private void recomputeConsensus() throws StoreException {
@@ -344,7 +338,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 				var signatureAlgorithm = SignatureAlgorithms.of(signature);
 
-				consensus = Optional.of(ValidatorsConsensusConfigBuilders.defaults()
+				consensus = ValidatorsConsensusConfigBuilders.defaults()
 						.setGenesisTime(LocalDateTime.parse(genesisTime, DateTimeFormatter.ISO_DATE_TIME))
 						.setChainId(chainId)
 						.setMaxGasPerTransaction(maxGasPerTransaction)
@@ -369,9 +363,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 						.setBuyerSurcharge(buyerSurcharge)
 						.setSlashingForMisbehaving(slashingForMisbehaving)
 						.setSlashingForNotBehaving(slashingForNotBehaving)
-						.build());
-				
-				System.out.println("resetting to " + consensus);
+						.build();
 			}
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchAlgorithmException | InvalidKeyException | InvalidKeySpecException | Base64ConversionException e) {
@@ -382,9 +374,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	@Override
 	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			LOGGER.info("the consensus parameters might have changed: deleting their cache");
-			consensus = Optional.empty();
-			System.out.println("setting to " + consensus);
+			LOGGER.info("the consensus parameters might have changed: recomputing their cache");
+			recomputeConsensus();
 			//classLoaders.clear(); // TODO
 			//if (versionBefore != consensus.getVerificationVersion())
 				//logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
@@ -399,6 +390,11 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			LOGGER.info("the inflation might have changed: deleting its cache");
 			inflation = OptionalLong.empty();
 		}
+	}
+
+	public void invalidateConsensusCache() throws StoreException {
+		LOGGER.info("the consensus parameters have been reset");
+		recomputeConsensus();
 	}
 
 	/*
@@ -602,61 +598,6 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	@Override
 	public final void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		setResponse(reference, response);
-	}
-
-	/**
-	 * A lock for the {@link #deliverTransaction(TransactionRequest)} body.
-	 */
-	private final Object deliverTransactionLock = new Object();
-
-	/**
-	 * Builds a response for the given request and adds it to the store of the node.
-	 * 
-	 * @param request the request
-	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
-	 * @throws TransactionRejectedException if the response cannot be built
-	 */
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request, TransactionReference reference) throws TransactionRejectedException {
-		//var reference = TransactionReferences.of(hasher.hash(request));
-
-		try {
-			try {
-				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
-
-				TransactionResponse response;
-
-				synchronized (deliverTransactionLock) {
-					ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-					response = responseBuilder.getResponse();
-					push(reference, request, response);
-					responseBuilder.replaceReverifiedResponses();
-					scheduleEventsForNotificationAfterCommit(response);
-					//takeNoteForNextReward(request, response);
-					//invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
-				}
-
-				LOGGER.info(reference + ": delivering success");
-				return response;
-			}
-			catch (TransactionRejectedException e) {
-				push(reference, request, store.getNode().trimmedMessage(e));
-				LOGGER.info(reference + ": delivering failed: " + store.getNode().trimmedMessage(e));
-				LOGGER.log(Level.INFO, "transaction rejected", e);
-				throw e;
-			}
-			catch (//ClassNotFoundException |
-					NodeException | UnknownReferenceException e) {
-				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-				throw new RuntimeException(e);
-			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
-				throw e;
-			}
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
 	}
 
 	@Override

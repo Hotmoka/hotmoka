@@ -83,7 +83,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
      * 
 	 * @param dir the path where the database of the store gets created
      */
-    DiskStore(DiskNodeImpl node, Optional<ConsensusConfig<?,?>> consensus) {
+    DiskStore(DiskNodeImpl node, ConsensusConfig<?,?> consensus) {
     	super(node, consensus);
 
     	this.dir = node.getLocalConfig().getDir();
@@ -95,7 +95,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    DiskStore(DiskStore toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    DiskStore(DiskStore toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,

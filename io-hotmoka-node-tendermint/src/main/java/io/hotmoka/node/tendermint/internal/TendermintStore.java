@@ -50,7 +50,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
      * 
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(TendermintNodeImpl node, Optional<ConsensusConfig<?,?>> consensus) {
+    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus) {
     	super(node, consensus);
 
     	try {
@@ -61,7 +61,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	}
     }
 
-    private TendermintStore(TendermintStore toClone, Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    private TendermintStore(TendermintStore toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
@@ -117,7 +117,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-    protected TendermintStore mkClone(Optional<ConsensusConfig<?,?>> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected TendermintStore mkClone(ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
 		return new TendermintStore(this, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 	}
 

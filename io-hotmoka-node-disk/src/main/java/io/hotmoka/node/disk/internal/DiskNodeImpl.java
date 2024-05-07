@@ -16,7 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,7 +80,7 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkStore(Optional<ConsensusConfig<?,?>> consensus) {
+	protected DiskStore mkStore(ConsensusConfig<?,?> consensus) {
 		return new DiskStore(this, consensus);
 	}
 

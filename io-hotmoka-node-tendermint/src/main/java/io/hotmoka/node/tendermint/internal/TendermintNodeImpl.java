@@ -170,7 +170,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 			this.poster = new TendermintPoster(config, tendermintConfigFile.tendermintPort);
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
-			caches.recomputeConsensus();
 		}
 		catch (TimeoutException | InterruptedException e) {
 			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
@@ -229,7 +228,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	}
 
 	@Override
-	protected TendermintStore mkStore(Optional<ConsensusConfig<?,?>> consensus) {
+	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus) {
 		return new TendermintStore(this, consensus);
 	}
 
