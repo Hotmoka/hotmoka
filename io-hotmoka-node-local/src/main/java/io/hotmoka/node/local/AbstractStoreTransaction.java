@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.local;
 
+import static io.hotmoka.exceptions.CheckSupplier.check;
+import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 
 import java.math.BigInteger;
@@ -140,7 +142,6 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		try {
 			Optional<StorageReference> manifest = getManifestUncommitted();
 			if (manifest.isPresent()) {
-				LOGGER.info("updating the gas price cache");
 				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
 				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
@@ -156,6 +157,69 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			}
 		}
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		/*if (consensusParametersMightHaveChanged(response, classLoader)) {
+			long versionBefore = consensus.getVerificationVersion();
+			logger.info("recomputing the consensus cache since the information in the manifest might have changed");
+			recomputeConsensus();
+			logger.info("the consensus cache has been recomputed");
+			classLoaders.clear();
+			if (versionBefore != consensus.getVerificationVersion())
+				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
+		}*/
+
+		if (gasPriceMightHaveChanged(response, classLoader)) {
+			LOGGER.info("the gas price might have changed: deleting its cache");
+			gasPrice = Optional.empty();
+		}
+
+		/*if (inflationMightHaveChanged(response, classLoader)) {
+			Long inflationBefore = inflation;
+			logger.info("recomputing the inflation cache since it has changed");
+			recomputeInflation();
+			logger.info("the inflation cache has been recomputed and changed from " + inflationBefore + " to " + inflation);
+		}*/
+	}
+
+	/**
+	 * Determines if the given response might change the gas price.
+	 * 
+	 * @param response the response
+	 * @param classLoader the class loader used to build the response
+	 * @return true if the response changes the gas price
+	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
+	 */
+	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+		if (response instanceof InitializationTransactionResponse)
+			return true;
+		else if (response instanceof TransactionResponseWithEvents trwe) {
+			Optional<StorageReference> maybeGasStation = getGasStationUncommitted();
+
+			if (maybeGasStation.isPresent()) {
+				var gasStation = maybeGasStation.get();
+				Stream<StorageReference> events = trwe.getEvents();
+
+				return check(StoreException.class, () ->
+					events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
+					.map(this::getCreatorUncommitted)
+					.anyMatch(gasStation::equals)
+				);
+			}
+		}
+
+		return false;
+	}
+
+	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
+		try {
+			return classLoader.isGasPriceUpdateEvent(getClassNameUncommitted(event));
+		}
+		catch (ClassNotFoundException e) {
 			throw new StoreException(e);
 		}
 	}

@@ -671,6 +671,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				responseBuilder.replaceReverifiedResponses();
 				storeTransaction.scheduleEventsForNotificationAfterCommit(response);
 				takeNoteForNextReward(request, response);
+				storeTransaction.invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 
 				LOGGER.info(reference + ": delivering success");

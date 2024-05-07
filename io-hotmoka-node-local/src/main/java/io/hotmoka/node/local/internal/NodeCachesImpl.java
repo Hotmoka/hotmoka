@@ -76,11 +76,6 @@ public class NodeCachesImpl implements NodeCache {
 	private volatile ConsensusConfig<?,?> consensus;
 
 	/**
-	 * A cache for the current gas price. It gets reset if it changes.
-	 */
-	private volatile BigInteger gasPrice;
-
-	/**
 	 * A cache for the current inflation. It gets reset if it changes.
 	 */
 	private volatile Long inflation;
@@ -111,13 +106,6 @@ public class NodeCachesImpl implements NodeCache {
 			classLoaders.clear();
 			if (versionBefore != consensus.getVerificationVersion())
 				logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
-		}
-
-		if (gasPriceMightHaveChanged(response, classLoader)) {
-			BigInteger gasPriceBefore = gasPrice;
-			logger.info("recomputing the gas price cache since it has changed");
-			recomputeGasPrice();
-			logger.info("the gas price cache has been recomputed and changed from " + gasPriceBefore + " to " + gasPrice);
 		}
 
 		if (inflationMightHaveChanged(response, classLoader)) {
@@ -282,33 +270,11 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	@Override
-	public final Optional<BigInteger> getGasPrice() {
-		if (gasPrice == null)
-			recomputeGasPrice();
-
-		return Optional.ofNullable(gasPrice);
-	}
-
-	@Override
 	public final Optional<Long> getCurrentInflation() {
 		if (inflation == null)
 			recomputeInflation();
 
 		return Optional.ofNullable(inflation);
-	}
-
-	private void recomputeGasPrice() {
-		try {
-			Optional<StorageReference> manifest = node.getStoreTransaction().getManifestUncommitted();
-			if (manifest.isPresent())
-				gasPrice = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest.get(), _100_000, node.getStoreTransaction().getTakamakaCodeUncommitted().get(),
-					MethodSignatures.GET_GAS_PRICE, node.getStoreTransaction().getGasStationUncommitted().get()))
-					.orElseThrow(() -> new NodeException(MethodSignatures.GET_GAS_PRICE + " should not return void"))).getValue();
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | StoreException | NodeException e) {
-			throw new RuntimeException("could not determine the gas price", e);
-		}
 	}
 
 	private void recomputeInflation() {
@@ -378,38 +344,6 @@ public class NodeCachesImpl implements NodeCache {
 	}
 
 	/**
-	 * Determines if the given response might change the gas price.
-	 * 
-	 * @param response the response
-	 * @param classLoader the class loader used to build the response
-	 * @return true if the response changes the gas price
-	 * @throws ClassNotFoundException if some class of the Takamaka program cannot be loaded
-	 */
-	private boolean gasPriceMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		if (response instanceof InitializationTransactionResponse)
-			return true;
-
-		try {
-			// we check if there are events of type GasPriceUpdate triggered by the gas station
-			if (isInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
-				Stream<StorageReference> events = trwe.getEvents();
-				StorageReference gasStation = node.getStoreTransaction().getGasStationUncommitted().get();
-
-				return check(ClassNotFoundException.class, () ->
-					events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
-					.map(node.getStoreTransaction()::getCreatorUncommitted)
-					.anyMatch(gasStation::equals)
-				);
-			}
-		}
-		catch (StoreException e) {
-			logger.log(Level.SEVERE, "cannot check the gas price", e);
-		}
-
-		return false;
-	}
-
-	/**
 	 * Determines if the given response might change the current inflation.
 	 * 
 	 * @param response the response
@@ -438,10 +372,6 @@ public class NodeCachesImpl implements NodeCache {
 		}
 
 		return false;
-	}
-
-	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isGasPriceUpdateEvent(node.getStoreTransaction().getClassNameUncommitted(event));
 	}
 
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {

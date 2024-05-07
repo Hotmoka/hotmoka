@@ -284,7 +284,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// before initialization, the gas price is not yet available
 		try {
 			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted() && !consensus.ignoresGasPrice()) {
-				BigInteger currentGasPrice = node.getCaches().getGasPrice().get();
+				BigInteger currentGasPrice = storeTransaction.getGasPrice().get();
 				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
 					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
 			}

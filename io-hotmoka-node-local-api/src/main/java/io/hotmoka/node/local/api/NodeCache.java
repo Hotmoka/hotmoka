@@ -50,13 +50,6 @@ public interface NodeCache {
 	ConsensusConfig<?,?> getConsensusParams();
 
 	/**
-	 * Yields the current gas price of the node.
-	 * 
-	 * @return the current gas price of the node, if the node is already initialized
-	 */
-	Optional<BigInteger> getGasPrice();
-
-	/**
 	 * Yields the current inflation of the node.
 	 * 
 	 * @return the current inflation of the node, if the node is already initialized

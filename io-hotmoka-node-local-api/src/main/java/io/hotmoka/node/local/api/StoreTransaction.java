@@ -145,6 +145,15 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
+	 * Invalidates the caches, if needed, after the addition of the given response into store.
+	 * 
+	 * @param response the store
+	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
+	 */
+	void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException;
+
+	/**
 	 * Yields the builder of a response for a request of a transaction.
 	 * This method can be redefined in subclasses in order to accomodate
 	 * new kinds of transactions, specific to a node.
