@@ -117,19 +117,9 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 
 	boolean nodeIsInitializedUncommitted() throws StoreException;
 
-	Optional<StorageReference> getGasStationUncommitted() throws StoreException;
-
 	Optional<StorageReference> getValidatorsUncommitted() throws StoreException;
 
 	Optional<StorageReference> getGameteUncommitted() throws StoreException;
-
-	Optional<StorageReference> getVersionsUncommitted() throws StoreException;
-
-	BigInteger getBalanceUncommitted(StorageReference contract);
-
-	BigInteger getRedBalanceUncommitted(StorageReference contract);
-
-	BigInteger getCurrentSupplyUncommitted(StorageReference validators);
 
 	String getPublicKeyUncommitted(StorageReference account);
 
@@ -149,24 +139,9 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 
 	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
 
-	StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field);
-
-	BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field);
-
-	String getStringFieldUncommitted(StorageReference object, FieldSignature field);
-
 	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
-
-	/**
-	 * Takes note that a new transaction has been delivered. This transaction is not a {@code @@View} transaction.
-	 * 
-	 * @param request the request of the transaction
-	 * @param response the response computed for {@code request}
-	 * @throws StoreException if the operation could not be successfully completed
-	 */
-	void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
 	/**
 	 * Rewards the validators with the cost of the gas consumed for the execution of the
@@ -178,15 +153,6 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 *                    misbehaved and must be punished
 	 */
 	void rewardValidators(String behaving, String misbehaving) throws StoreException;
-
-	/**
-	 * Invalidates the caches, if needed, after the addition of the given response into store.
-	 * 
-	 * @param response the store
-	 * @param classLoader the class loader of the transaction that computed {@code response}
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
-	 */
-	void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException;
 
 	void invalidateConsensusCache() throws StoreException;
 
@@ -212,32 +178,6 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
 	/**
-	 * Pushes the result of executing a successful Hotmoka request.
-	 * This method assumes that the given request was not already present in the store.
-	 * This method yields a store where the push is visible. Checkable stores remain
-	 * unchanged after a call to this method, while non-checkable stores might be
-	 * modified and coincide with the result of the method.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param response the response of the transaction
-	 * @return the store resulting after the push
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
-
-	/**
-	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param errorMessage the error message
-	 * @return the store resulting after the push
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException;
-
-	/**
 	 * Pushes into the store the result of executing a successful Hotmoka request.
 	 * This method assumes that the given request was already present in the store.
 	 * 
@@ -247,8 +187,6 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
-
-	void scheduleEventsForNotificationAfterCommit(TransactionResponse response);
 
 	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier);
 

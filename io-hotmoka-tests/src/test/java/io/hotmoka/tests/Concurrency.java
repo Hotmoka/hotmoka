@@ -100,8 +100,8 @@ class Concurrency extends HotmokaTest {
 				}
 			}
 			catch (TransactionRejectedException e) {
-				// eventually, the paying account "num" might have not enough gas to pay for a transaction
-				if (e.getMessage().startsWith("the payer has not enough funds to buy 50000 units of gas")) {
+				// eventually, the paying account "num" might not have enough gas to pay for a transaction
+				if (e.getMessage().startsWith("The payer has not enough funds to buy 50000 units of gas")) {
 					return;
 				}
 				else {
@@ -110,7 +110,7 @@ class Concurrency extends HotmokaTest {
 				}
 			}
 			catch (TransactionException e) {
-				// eventually, the paying account "num" might have not enough balance to pay the other account
+				// eventually, the paying account "num" might not have enough balance to pay the other account
 				if (e.getMessage().startsWith("io.takamaka.code.lang.InsufficientFundsError")) {
 					return;
 				}

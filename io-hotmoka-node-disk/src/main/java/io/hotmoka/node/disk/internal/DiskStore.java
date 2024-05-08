@@ -42,8 +42,9 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
+import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * The store of the memory blockchain. It is not transactional and just writes
@@ -96,13 +97,14 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
     	this.blockNumber = new AtomicInteger(0);
     }
 
-    DiskStore(DiskStore toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+    DiskStore(DiskStore toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
+    		ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
     		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
 
-    	super(toClone, consensus, gasPrice, inflation);
+    	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
 
     	this.dir = toClone.dir;
     	this.requests = new ConcurrentHashMap<>(toClone.requests);
@@ -157,7 +159,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 	}
 
 	@Override
-	public StoreTransaction<DiskStore> beginTransaction(long now) {
+	public DiskStoreTransaction beginTransaction(long now) {
 		return new DiskStoreTransaction(this);
 	}
 

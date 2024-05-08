@@ -20,26 +20,24 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.Store;
 
+@Immutable
 public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends AbstractLocalNode<N, ?, T>> implements Store<T, N> {
 
 	/**
-	 * Cached recent requests that have had their signature checked.
-	 * This can be shared across distinct stores since valid signatures
-	 * remain valid over time.
+	 * Cached recent transactions whose requests that have had their signature checked.
 	 */
-	final LRUCache<SignedTransactionRequest<?>, Boolean> checkedSignatures; // TODO: possibly store by reference
+	final LRUCache<TransactionReference, Boolean> checkedSignatures;
 
 	/**
-	 * The cache for the class loaders. This can be shared across distinct stores since
-	 * jars installed in store remain valid over time.
+	 * Cached class loaders for each classpath.
 	 */
 	final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
@@ -91,11 +89,11 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 		this.inflation = toClone.inflation;
 	}
 
-	protected AbstractStore(AbstractStore<T, N> toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
+	protected AbstractStore(AbstractStore<T, N> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.node = toClone.node;
 		this.hasher = toClone.hasher;
-		this.checkedSignatures = toClone.checkedSignatures;
-		this.classLoaders = toClone.classLoaders;
+		this.checkedSignatures = checkedSignatures; //new LRUCache<>(checkedSignatures);
+		this.classLoaders = classLoaders; //new LRUCache<>(classLoaders); // TODO: clone
 		this.consensus = consensus;
 		this.gasPrice = gasPrice;
 		this.inflation = inflation;

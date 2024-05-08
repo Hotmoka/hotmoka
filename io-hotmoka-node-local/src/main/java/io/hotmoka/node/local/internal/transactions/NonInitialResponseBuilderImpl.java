@@ -264,14 +264,14 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
 		if (request.getGasLimit().compareTo(ZERO) < 0)
-			throw new TransactionRejectedException("the gas limit cannot be negative");
+			throw new TransactionRejectedException("The gas limit cannot be negative");
 		else {
 			// view transactions have a maximum allowed gas that can vary between nodes,
 			// while non-view transactions must abide to a consensus-wide maximum, since they
 			// expand the store of the nodes
 			BigInteger maxGasAllowedForTransaction = isView() ? node.getLocalConfig().getMaxGasPerViewTransaction() : consensus.getMaxGasPerTransaction();
 			if (request.getGasLimit().compareTo(maxGasAllowedForTransaction) > 0)
-				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGasAllowedForTransaction + ")");
+				throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGasAllowedForTransaction + ")");
 		}
 	}
 
@@ -281,12 +281,12 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws TransactionRejectedException if the gas price is smaller than the current gas price of the node
 	 */
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
-		// before initialization, the gas price is not yet available
 		try {
-			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted() && !consensus.ignoresGasPrice()) {
-				BigInteger currentGasPrice = storeTransaction.getGasPriceUncommitted().get();
-				if (request.getGasPrice().compareTo(currentGasPrice) < 0)
-					throw new TransactionRejectedException("the gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + currentGasPrice + ")");
+			if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
+				Optional<BigInteger> maybeGasPrice = storeTransaction.getGasPriceUncommitted();
+				// before initialization, the gas price is not yet available
+				if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
+					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")");
 			}
 		}
 		catch (StoreException e) {
@@ -305,7 +305,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(request.getCaller());
 
 		if (totalBalance.subtract(cost).signum() < 0)
-			throw new TransactionRejectedException("the payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
+			throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
 	}
 
 	/**

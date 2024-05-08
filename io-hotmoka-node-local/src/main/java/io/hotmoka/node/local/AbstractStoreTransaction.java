@@ -102,6 +102,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
+import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.transactions.ConstructorCallResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.GameteCreationResponseBuilder;
 import io.hotmoka.node.local.internal.transactions.InitializationResponseBuilder;
@@ -121,6 +122,10 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
 public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> implements StoreTransaction<S> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final S store;
+
+	private volatile LRUCache<TransactionReference, Boolean> checkedSignatures;
+
+	private volatile LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	/**
 	 * The current gas price in this store transaction. This information could be recovered from the store
@@ -179,6 +184,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	protected AbstractStoreTransaction(S store) {
 		this.store = store;
+		this.checkedSignatures = store.checkedSignatures; //new LRUCache<>(store.checkedSignatures);
+		this.classLoaders = store.classLoaders; //new LRUCache<>(store.classLoaders); // TODO: clone
 		this.gasPrice = store.gasPrice;
 		this.inflation = store.inflation;
 		this.consensus = store.consensus;
@@ -254,6 +261,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {
+		return checkedSignatures;
+	}
+
+	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
+		return classLoaders;
 	}
 
 	@Override
@@ -410,13 +425,20 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
-	@Override
-	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	/**
+	 * Invalidates the caches, if needed, after the addition of the given response into store.
+	 * 
+	 * @param response the store
+	 * @param classLoader the class loader of the transaction that computed {@code response}
+	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
+	 */
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			LOGGER.info("the consensus parameters might have changed: recomputing their cache");
 			long versionBefore = consensus.getVerificationVersion();
 			recomputeConsensus();
-			//classLoaders.clear(); // TODO
+			classLoaders = new LRUCache<>(100, 1000);
+
 			if (versionBefore != consensus.getVerificationVersion())
 				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
 		}
@@ -582,8 +604,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			return Optional.empty(); // void methods return no value
 	}
 
-	@Override
-	public void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	/**
+	 * Takes note that a new transaction has been delivered. This transaction is not a {@code @@View} transaction.
+	 * 
+	 * @param request the request of the transaction
+	 * @param response the response computed for {@code request}
+	 * @throws StoreException if the operation could not be successfully completed
+	 */
+	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		if (!(request instanceof SystemTransactionRequest)) {
 			numberOfRequests = numberOfRequests.add(ONE);
 
@@ -743,8 +771,20 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
-	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+	/**
+	 * Pushes the result of executing a successful Hotmoka request.
+	 * This method assumes that the given request was not already present in the store.
+	 * This method yields a store where the push is visible. Checkable stores remain
+	 * unchanged after a call to this method, while non-checkable stores might be
+	 * modified and coincide with the result of the method.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param response the response of the transaction
+	 * @return the store resulting after the push
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	private void push(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		if (response instanceof TransactionResponseWithUpdates trwu) {
 			setRequest(reference, request);
 			setResponse(reference, response);
@@ -771,8 +811,16 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
-	@Override
-	public final void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
+	/**
+	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
+	 * 
+	 * @param reference the reference of the request
+	 * @param request the request of the transaction
+	 * @param errorMessage the error message
+	 * @return the store resulting after the push
+	 * @throws StoreException if the store is not able to complete the operation correctly
+	 */
+	private void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
 		setRequest(reference, request);
 		setError(reference, errorMessage);
 	}
@@ -794,8 +842,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		return getManifestUncommitted().isPresent();
 	}
 
-	@Override
-	public final Optional<StorageReference> getGasStationUncommitted() throws StoreException {
+	private Optional<StorageReference> getGasStationUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAS_STATION_FIELD));
 	}
 
@@ -809,23 +856,19 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_GAMETE_FIELD));
 	}
 
-	@Override
-	public final Optional<StorageReference> getVersionsUncommitted() throws StoreException {
+	private Optional<StorageReference> getVersionsUncommitted() throws StoreException {
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 
-	@Override
-	public final BigInteger getBalanceUncommitted(StorageReference contract) {
+	private BigInteger getBalanceUncommitted(StorageReference contract) {
 		return getBigIntegerFieldUncommitted(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
-	@Override
-	public final BigInteger getRedBalanceUncommitted(StorageReference contract) {
+	private BigInteger getRedBalanceUncommitted(StorageReference contract) {
 		return getBigIntegerFieldUncommitted(contract, FieldSignatures.RED_BALANCE_FIELD);
 	}
 
-	@Override
-	public final BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
+	private BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
 		return getBigIntegerFieldUncommitted(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
@@ -877,8 +920,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 		return getHistoryUncommitted(object)
 				.flatMap(UncheckFunction.uncheck(transaction -> enforceHasUpdates(getResponseUncommitted(transaction).get()).getUpdates())) // TODO: cache it? recheck
-				.filter(update -> update.isEager() && update instanceof UpdateOfField && update.getObject().equals(object) &&
-						fieldsAlreadySeen.add(((UpdateOfField) update).getField()))
+				.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
 				.map(update -> (UpdateOfField) update);
 	}
 
@@ -897,8 +939,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		return getLastUpdateUncommitted(object, field, object.getTransaction());
 	}
 
-	@Override
-	public final void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
+	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().findAny().isPresent())
 			responsesWithEventsToNotify.add(responseWithEvents);
 	}
@@ -910,20 +951,25 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			.forEachOrdered(event -> notifier.accept(getCreatorUncommitted(event), event));
 	}
 
+	//private static long total, verified;
+
 	@Override
 	public final boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException {
-		return store.checkedSignatures.computeIfAbsent(request, _request -> verifiesSignatureUncommitted(signatureAlgorithm, request));
+		//return verifySignatureUncommitted(signatureAlgorithm, request);
+		//total++;
+		var reference = TransactionReferences.of(hasher.hash(request));
+		return checkedSignatures.computeIfAbsent(reference, _reference -> verifySignatureUncommitted(signatureAlgorithm, request));
 	}
 
 	@Override
 	public final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
 		try {
-			var classLoader = store.classLoaders.get(classpath);
+			var classLoader = classLoaders.get(classpath);
 			if (classLoader != null)
 				return classLoader;
 
 			var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
-			return store.classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
+			return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
 		}
 		catch (ClassNotFoundException e) {
 			// since the class loader is created from transactions that are already in the store,
@@ -932,7 +978,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
-	private boolean verifiesSignatureUncommitted(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException {
+	private boolean verifySignatureUncommitted(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException {
+		//verified++;
+		//System.out.printf("%.2f\n", verified * 100.0 / total);
 		try {
 			return signature.getVerifier(getPublicKeyUncommitted(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
 		}
@@ -1012,8 +1060,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			throw new RuntimeException("Transaction " + response + " does not contain updates");
 	}
 
-	@Override
-	public StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
+	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
 		}
@@ -1022,8 +1069,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
-	@Override
-	public BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
+	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 		}
@@ -1032,8 +1078,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
-	@Override
-	public String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
+	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
 			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
 		}

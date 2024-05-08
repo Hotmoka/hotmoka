@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 
 /**
@@ -83,6 +84,8 @@ public final class LRUCache<K, V> {
 	 */
 	private Node<K, V> head, tail;
 
+	private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+
 	public LRUCache(int maxCapacity) {
 		this(16, maxCapacity);
 	}
@@ -90,6 +93,30 @@ public final class LRUCache<K, V> {
 	public LRUCache(int initialCapacity, int maxCapacity) {
 		this.maxCapacity = maxCapacity;
 		this.map = new HashMap<>(Math.min(initialCapacity, maxCapacity));
+	}
+
+	public LRUCache(LRUCache<K,V> toClone) {
+		toClone.lock.readLock().lock();
+		try {
+			this.maxCapacity = toClone.maxCapacity;
+			this.map = new HashMap<>(toClone.map.size());
+
+			for (var entry: toClone.map.entrySet())
+				put(entry.getKey(), entry.getValue().value); // TODO: is it possible to inherit the LRU information in the copy?
+		}
+		finally {
+			toClone.lock.readLock().unlock();
+		}
+	}
+
+	public int size() {
+		lock.readLock().lock();
+		try {
+			return map.size();
+		}
+		finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	/**
@@ -132,22 +159,28 @@ public final class LRUCache<K, V> {
 	 * @param key the key to bind
 	 * @param value the value to bind to the {@code key}
 	 */
-	public synchronized void put(K key, V value) {
-		if (map.containsKey(key)) {
-			Node<K, V> node = map.get(key);
-			node.value = value;
-			removeNode(node);
-			offerNode(node);
-		}
-		else {
-			if (map.size() == maxCapacity) {
-				map.remove(head.key);
-				removeNode(head);
+	public void put(K key, V value) {
+		lock.writeLock().lock();
+		try {
+			if (map.containsKey(key)) {
+				Node<K, V> node = map.get(key);
+				node.value = value;
+				removeNode(node);
+				offerNode(node);
 			}
+			else {
+				if (map.size() == maxCapacity) {
+					map.remove(head.key);
+					removeNode(head);
+				}
 
-			Node<K, V> node = new Node<>(key, value);
-			offerNode(node);
-			map.put(key, node);
+				Node<K, V> node = new Node<>(key, value);
+				offerNode(node);
+				map.put(key, node);
+			}
+		}
+		finally {
+			lock.writeLock().unlock();
 		}
 	}
 
@@ -159,23 +192,36 @@ public final class LRUCache<K, V> {
 	 * @param key the key to access
 	 * @return the value bound to the {@code key}
 	 */
-	public synchronized V get(K key) {
-		Node<K, V> node = map.get(key);
-		if (node == null)
-			return null;
+	public V get(K key) {
+		lock.readLock().lock();
 
-		removeNode(node);
-		offerNode(node);
+		try {
+			Node<K, V> node = map.get(key);
+			if (node == null)
+				return null;
 
-		return node.value;
+			removeNode(node);
+			offerNode(node);
+
+			return node.value;
+		}
+		finally {
+			lock.readLock().unlock();
+		}
 	}
 
 	/**
 	 * Clears this cache.
 	 */
 	public synchronized void clear() {
-		map.clear();
-		head = tail = null;
+		lock.writeLock().lock();
+		try {
+			map.clear();
+			head = tail = null;
+		}
+		finally {
+			lock.writeLock().unlock();
+		}
 	}
 
 	public interface ValueSupplier<K,V,E extends Exception> {

@@ -123,7 +123,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	}
 
 	@Override
-	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
+	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		super.invalidateCachesIfNeeded(response, classLoader);
 	
 		if (validatorsMightHaveChanged(response, classLoader)) {
