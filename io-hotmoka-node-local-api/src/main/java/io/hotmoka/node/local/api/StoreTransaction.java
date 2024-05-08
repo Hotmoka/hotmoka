@@ -160,6 +160,26 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
 	/**
+	 * Takes note that a new transaction has been delivered. This transaction is not a {@code @@View} transaction.
+	 * 
+	 * @param request the request of the transaction
+	 * @param response the response computed for {@code request}
+	 * @throws StoreException if the operation could not be successfully completed
+	 */
+	void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException;
+
+	/**
+	 * Rewards the validators with the cost of the gas consumed for the execution of the
+	 * requests in this store transaction.
+	 * 
+	 * @param behaving the space-separated sequence of identifiers of the
+	 *                 validators that behaved correctly and will be rewarded
+	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
+	 *                    misbehaved and must be punished
+	 */
+	void rewardValidators(String behaving, String misbehaving) throws StoreException;
+
+	/**
 	 * Invalidates the caches, if needed, after the addition of the given response into store.
 	 * 
 	 * @param response the store

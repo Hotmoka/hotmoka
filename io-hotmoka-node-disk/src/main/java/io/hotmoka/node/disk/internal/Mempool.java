@@ -142,7 +142,7 @@ class Mempool {
 				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
 				if (current == null) {
 					if (counter > 0)
-						node.rewardValidators("", "");
+						transaction.rewardValidators("", "");
 					node.setStore(transaction.commit());
 					node.signalOutcomeIsReady(includedInBlock.stream());
 					includedInBlock.clear();
@@ -163,7 +163,7 @@ class Mempool {
 					// the last transaction of a block is for rewarding the validators and updating the gas price
 					if (counter == transactionsPerBlock - 1) {
 						if (counter > 0)
-							node.rewardValidators("", "");
+							transaction.rewardValidators("", "");
 						node.setStore(transaction.commit());
 						node.signalOutcomeIsReady(includedInBlock.stream());
 						includedInBlock.clear();

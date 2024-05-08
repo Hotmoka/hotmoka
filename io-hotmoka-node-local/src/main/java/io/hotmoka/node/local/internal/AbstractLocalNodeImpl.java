@@ -16,13 +16,9 @@ limitations under the License.
 
 package io.hotmoka.node.local.internal;
 
-import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.math.BigInteger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
@@ -31,7 +27,6 @@ import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.OptionalLong;
 import java.util.Properties;
 import java.util.Set;
 import java.util.concurrent.Callable;
@@ -60,11 +55,8 @@ import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
-import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.SubscriptionsManagers;
 import io.hotmoka.node.TransactionReferences;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.UninitializedNodeException;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -82,17 +74,11 @@ import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.InstanceSystemMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
-import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.SystemTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -209,34 +195,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	private final AtomicBoolean closed;
 
 	/**
-	 * The gas consumed for CPU execution, RAM or storage since the last reward of the validators.
-	 */
-	private volatile BigInteger gasConsumedSinceLastReward;
-
-	/**
-	 * The reward to send to the validators at the next reward.
-	 */
-	private volatile BigInteger coinsSinceLastReward;
-
-	/**
-	 * The reward to send to the validators at the next reward, without considering the inflation.
-	 */
-	private volatile BigInteger coinsSinceLastRewardWithoutInflation;
-
-	/**
-	 * The number of transactions executed since the last reward.
-	 */
-	private volatile BigInteger numberOfTransactionsSinceLastReward;
-
-	/**
-	 * The amount of gas allowed for the execution of the reward method of the validators
-	 * at each committed block.
-	 */
-	private final static BigInteger GAS_FOR_REWARD = BigInteger.valueOf(100_000L);
-
-	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
-
-	/**
 	 * Builds a node with a brand new, empty store.
 	 * 
 	 * @param config the configuration of the node
@@ -269,10 +227,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 
 		this.recentCheckRequestErrors = new LRUCache<>(100, 1000);
-		this.gasConsumedSinceLastReward = ZERO;
-		this.coinsSinceLastReward = ZERO;
-		this.coinsSinceLastRewardWithoutInflation = ZERO;
-		this.numberOfTransactionsSinceLastReward = ZERO;
 		this.executors = Executors.newCachedThreadPool();
 		this.semaphores = new ConcurrentHashMap<>();
 		this.closed = new AtomicBoolean();
@@ -678,7 +632,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				storeTransaction.push(reference, request, response);
 				responseBuilder.replaceReverifiedResponses();
 				storeTransaction.scheduleEventsForNotificationAfterCommit(response);
-				takeNoteForNextReward(request, response);
+				storeTransaction.takeNoteForNextReward(request, response);
 				storeTransaction.invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 
 				LOGGER.info(reference + ": delivering success");
@@ -704,90 +658,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		catch (StoreException e) {
 			throw new RuntimeException(e); // TODO
 		}
-	}
-
-	/**
-	 * Rewards the validators with the cost of the gas consumed by the
-	 * transactions in the last block. This is meaningful only if the
-	 * node has some form of commit.
-	 * 
-	 * @param behaving the space-separated sequence of identifiers of the
-	 *                 validators that behaved correctly during the creation
-	 *                 of the last block
-	 * @param misbehaving the space-separated sequence of the identifiers that
-	 *                    misbehaved during the creation of the last block
-	 * @return true if and only if rewarding was performed; rewarding might not be
-	 *         performed because the manifest is not yet installed or because
-	 *         the code of the validators contract failed
-	 */
-	public final boolean rewardValidators(String behaving, String misbehaving) {
-		try {
-			Optional<StorageReference> manifest = getStoreTransaction().getManifestUncommitted();
-			if (manifest.isPresent()) {
-				var storeTransaction = getStoreTransaction();
-
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference caller = manifest.get();
-				BigInteger nonce = storeTransaction.getNonceUncommitted(caller);
-				StorageReference validators = storeTransaction.getValidatorsUncommitted().get(); // ok, since the manifest is present
-				TransactionReference takamakaCode = getStoreTransaction().getTakamakaCodeUncommitted().get();
-
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = coinsSinceLastReward.subtract(coinsSinceLastRewardWithoutInflation);
-
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = storeTransaction.getCurrentSupplyUncommitted(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = storeTransaction.getConfigUncommitted().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = storeTransaction.getConfigUncommitted().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
-
-				InstanceSystemMethodCallTransactionRequest request = TransactionRequests.instanceSystemMethodCall
-					(caller, nonce, GAS_FOR_REWARD, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-					StorageValues.bigIntegerOf(coinsSinceLastReward), StorageValues.bigIntegerOf(minted),
-					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-					StorageValues.bigIntegerOf(gasConsumedSinceLastReward), StorageValues.bigIntegerOf(numberOfTransactionsSinceLastReward));
-
-				ResponseBuilder<?,?> responseBuilder = getStoreTransaction().responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
-				TransactionResponse response = responseBuilder.getResponse();
-				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
-				// the store with the transaction, so that the state stabilizes, which might give
-				// to the node the chance of suspending the generation of new blocks
-				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-					response = deliverTransaction(request);
-
-				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else {
-					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumedSinceLastReward);
-					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coinsSinceLastReward);
-					LOGGER.info("units of coin minted since the previous reward: " + minted);
-					gasConsumedSinceLastReward = ZERO;
-					coinsSinceLastReward = ZERO;
-					coinsSinceLastRewardWithoutInflation = ZERO;
-					numberOfTransactionsSinceLastReward = ZERO;
-
-					return true;
-				}
-			}
-		}
-		catch (Exception e) {
-			LOGGER.log(Level.WARNING, "could not reward the validators", e);
-		}
-
-		return false;
 	}
 
 	/**
@@ -869,50 +739,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				.forEach(updates::add);
 		else
 			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
-	}
-
-	/**
-	 * Takes note that a new transaction has been delivered. This transaction is
-	 * not a {@code @@View} transaction.
-	 * 
-	 * @param request the request of the transaction
-	 * @param response the response computed for {@code request}
-	 * @throws StoreException 
-	 */
-	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
-		if (!(request instanceof SystemTransactionRequest)) {
-			numberOfTransactionsSinceLastReward = numberOfTransactionsSinceLastReward.add(ONE);
-
-			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
-				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
-						.add(responseAsNonInitial.getGasConsumedForStorage())
-						.add(responseAsNonInitial.getGasConsumedForRAM());
-
-				gasConsumedSinceLastReward = gasConsumedSinceLastReward.add(gasConsumedButPenalty);
-
-				BigInteger gasConsumedTotal = gasConsumedButPenalty;
-				if (response instanceof FailedTransactionResponse ftr)
-					gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
-
-				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
-				BigInteger reward = gasConsumedTotal.multiply(gasPrice);
-				coinsSinceLastRewardWithoutInflation = coinsSinceLastRewardWithoutInflation.add(reward);
-
-				gasConsumedTotal = addInflation(gasConsumedTotal);
-				reward = gasConsumedTotal.multiply(gasPrice);
-				coinsSinceLastReward = coinsSinceLastReward.add(reward);
-			}
-		}
-	}
-
-	private BigInteger addInflation(BigInteger gas) throws StoreException {
-		OptionalLong currentInflation = getStoreTransaction().getInflationUncommitted();
-
-		if (currentInflation.isPresent())
-			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
-					 .divide(_100_000_000);
-
-		return gas;
 	}
 
 	/**

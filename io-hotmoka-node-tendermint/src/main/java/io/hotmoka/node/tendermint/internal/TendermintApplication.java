@@ -241,7 +241,13 @@ class TendermintApplication extends ABCI {
 
     	node.storeTransaction = transaction;
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
-    	node.rewardValidators(behaving, misbehaving);
+
+    	try {
+    		transaction.rewardValidators(behaving, misbehaving);
+    	}
+    	catch (StoreException e) {
+    		throw new RuntimeException(e); // TODO
+    	}
 
     	// the ABCI might start too early, before the Tendermint process is up
         if (node.getPoster() != null && validatorsAtPreviousBlock == null)

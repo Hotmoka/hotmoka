@@ -20,6 +20,7 @@ import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import static io.hotmoka.node.MethodSignatures.GET_CURRENT_INFLATION;
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
+import static java.math.BigInteger.ONE;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -38,6 +39,7 @@ import java.util.OptionalLong;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiConsumer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -50,6 +52,7 @@ import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
@@ -64,15 +67,19 @@ import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
+import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
+import io.hotmoka.node.api.requests.SystemTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
+import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
@@ -134,6 +141,26 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	private volatile ConsensusConfig<?,?> consensus;
 
 	/**
+	 * The gas consumed for CPU execution, RAM or storage in this transaction.
+	 */
+	private volatile BigInteger gasConsumed;
+
+	/**
+	 * The reward to send to the validators, accumulated during this transaction.
+	 */
+	private volatile BigInteger coins;
+
+	/**
+	 * The reward to send to the validators, accumulated during this transaction, without considering the inflation.
+	 */
+	private volatile BigInteger coinsWithoutInflation;
+
+	/**
+	 * The number of Hotmoka requests executed during this transaction.
+	 */
+	private volatile BigInteger numberOfRequests;
+
+	/**
 	 * The transactions containing events that must be notified at commit-time.
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
@@ -143,11 +170,17 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	 */
 	private final static BigInteger _100_000 = BigInteger.valueOf(100_000L);
 
+	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
+
 	protected AbstractStoreTransaction(S store) {
 		this.store = store;
 		this.gasPrice = store.gasPrice;
 		this.inflation = store.inflation;
 		this.consensus = store.consensus;
+		this.gasConsumed = BigInteger.ZERO;
+		this.coins = BigInteger.ZERO;
+		this.coinsWithoutInflation = BigInteger.ZERO;
+		this.numberOfRequests = BigInteger.ZERO;
 	}
 
 	@Override
@@ -541,6 +574,105 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
 		else
 			return Optional.empty(); // void methods return no value
+	}
+
+	@Override
+	public void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
+		if (!(request instanceof SystemTransactionRequest)) {
+			numberOfRequests = numberOfRequests.add(ONE);
+
+			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
+				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
+						.add(responseAsNonInitial.getGasConsumedForStorage())
+						.add(responseAsNonInitial.getGasConsumedForRAM());
+
+				gasConsumed = gasConsumed.add(gasConsumedButPenalty);
+
+				BigInteger gasConsumedTotal = gasConsumedButPenalty;
+				if (response instanceof FailedTransactionResponse ftr)
+					gasConsumedTotal = gasConsumedTotal.add(ftr.getGasConsumedForPenalty());
+
+				BigInteger gasPrice = ((NonInitialTransactionRequest<?>) request).getGasPrice();
+				BigInteger reward = gasConsumedTotal.multiply(gasPrice);
+				coinsWithoutInflation = coinsWithoutInflation.add(reward);
+
+				gasConsumedTotal = addInflation(gasConsumedTotal);
+				reward = gasConsumedTotal.multiply(gasPrice);
+				coins = coins.add(reward);
+			}
+		}
+	}
+
+	private BigInteger addInflation(BigInteger gas) throws StoreException {
+		OptionalLong currentInflation = getInflationUncommitted();
+
+		if (currentInflation.isPresent())
+			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
+					 .divide(_100_000_000);
+
+		return gas;
+	}
+
+	@Override
+	public void rewardValidators(String behaving, String misbehaving) throws StoreException {
+		try {
+			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			if (maybeManifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference manifest = maybeManifest.get();
+				BigInteger nonce = getNonceUncommitted(manifest);
+				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+
+				// we determine how many coins have been minted during the last reward:
+				// it is the price of the gas distributed minus the same price without inflation
+				BigInteger minted = coins.subtract(coinsWithoutInflation);
+
+				// it might happen that the last distribution goes beyond the limit imposed
+				// as final supply: in that case we truncate the minted coins so that the current
+				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
+				// or from above (negative inflation)
+				BigInteger currentSupply = getCurrentSupplyUncommitted(validators);
+				if (minted.signum() > 0) {
+					BigInteger finalSupply = getConfigUncommitted().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() < 0)
+						minted = minted.add(extra);
+				}
+				else if (minted.signum() < 0) {
+					BigInteger finalSupply = getConfigUncommitted().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() > 0)
+						minted = minted.add(extra);
+				}
+
+				var request = TransactionRequests.instanceSystemMethodCall
+					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
+					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
+					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(numberOfRequests));
+
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(store.getNode().getHasher().hash(request)), request);
+				TransactionResponse response = responseBuilder.getResponse();
+				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
+				// the store with the transaction, so that the state stabilizes, which might give
+				// to the node the chance of suspending the generation of new blocks
+				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
+					response = store.getNode().deliverTransaction(request);
+
+				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+				else {
+					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coins);
+					LOGGER.info("units of coin minted since the previous reward: " + minted);
+				}
+			}
+		}
+		catch (TransactionRejectedException e) {
+			LOGGER.log(Level.WARNING, "could not reward the validators", e);
+			throw new StoreException("Could not reward the validators", e);
+		}
 	}
 
 	@Override
