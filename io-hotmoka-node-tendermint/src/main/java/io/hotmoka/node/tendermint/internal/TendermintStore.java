@@ -50,8 +50,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
      * 
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus) {
-    	super(node, consensus);
+    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+    	super(node, consensus, hasher);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());

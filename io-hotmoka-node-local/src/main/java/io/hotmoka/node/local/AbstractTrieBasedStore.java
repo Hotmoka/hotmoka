@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
@@ -135,10 +136,10 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus) {
-    	super(node, consensus);
+    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+    	super(node, consensus, hasher);
 
-    	this.env = new Environment(node.getLocalNodeConfig().getDir() + "/store");
+    	this.env = new Environment(node.getLocalConfig().getDir() + "/store");
 
 		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var roots = new AtomicReference<Optional<byte[]>>();

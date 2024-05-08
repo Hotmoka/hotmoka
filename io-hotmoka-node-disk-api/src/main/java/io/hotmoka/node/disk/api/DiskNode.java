@@ -27,11 +27,4 @@ import io.hotmoka.node.api.Node;
  */
 @ThreadSafe
 public interface DiskNode extends Node {
-
-	/**
-	 * Yields the configuration of the node.
-	 * 
-	 * @return the configuration
-	 */
-	DiskNodeConfig getLocalConfig();
 }

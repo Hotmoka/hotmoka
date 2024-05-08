@@ -47,6 +47,7 @@ import java.util.stream.Stream;
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
@@ -167,6 +168,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	 */
 	private final Set<TransactionResponseWithEvents> responsesWithEventsToNotify = ConcurrentHashMap.newKeySet();
 
+	private final Hasher<TransactionRequest<?>> hasher;
+
 	/**
 	 * Enough gas for a simple get method.
 	 */
@@ -179,6 +182,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		this.gasPrice = store.gasPrice;
 		this.inflation = store.inflation;
 		this.consensus = store.consensus;
+		this.hasher = store.hasher;
 		this.gasConsumed = BigInteger.ZERO;
 		this.coins = BigInteger.ZERO;
 		this.coinsWithoutInflation = BigInteger.ZERO;
@@ -564,7 +568,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getStore().getNode().getHasher().hash(request)));
+		return runInstanceMethodCallTransaction(request, TransactionReferences.of(hasher.hash(request)));
 	}
 
 	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
@@ -654,7 +658,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(numberOfRequests));
 
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(store.getNode().getHasher().hash(request)), request);
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
 				TransactionResponse response = responseBuilder.getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
@@ -697,15 +701,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
-	/**
-	 * Builds a response for the given request and adds it to the store of the node.
-	 * 
-	 * @param request the request
-	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
-	 * @throws TransactionRejectedException if the response cannot be built
-	 */
+	@Override
 	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		var reference = TransactionReferences.of(store.getNode().getHasher().hash(request));
+		var reference = TransactionReferences.of(hasher.hash(request));
 
 		try {
 			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');

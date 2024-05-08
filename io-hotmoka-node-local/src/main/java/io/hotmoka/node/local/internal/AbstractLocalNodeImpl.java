@@ -127,34 +127,20 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 */
 	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
 
-	@Override
-	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
-		return subscriptions.subscribeToEvents(creator, handler);
-	}
-
-	public void notifyEvent(StorageReference creator, StorageReference event) {
-		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(event + ": notified as event with creator " + creator);		
-	}
-
 	/**
 	 * The configuration of the node.
 	 */
-	protected final C config;
+	private final C config;
 
 	/**
 	 * The hasher for transaction requests.
 	 */
 	private final Hasher<TransactionRequest<?>> hasher;
 
-	public final Hasher<TransactionRequest<?>> getHasher() {
-		return hasher;
-	}
-
 	/**
 	 * The store of the node.
 	 */
-	protected S store;
+	private S store;
 
 	/**
 	 * The gas model of the node.
@@ -232,14 +218,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
 
 			if (consensus.isEmpty()) {
-				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build());
+				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build(), hasher);
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
 				consensus = Optional.of(storeTransaction.getConfigUncommitted());
 				storeTransaction.abort();
 			}
 
-			this.store = mkStore(consensus.get());
+			this.store = mkStore(consensus.get(), hasher);
 
 			addShutdownHook(); // move down to the concrete classes
 		}
@@ -253,7 +239,17 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(ConsensusConfig<?,?> config);
+	protected abstract S mkStore(ConsensusConfig<?,?> config, Hasher<TransactionRequest<?>> hasher);
+
+	@Override
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
+		return subscriptions.subscribeToEvents(creator, handler);
+	}
+
+	public void notifyEvent(StorageReference creator, StorageReference event) {
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(event + ": notified as event with creator " + creator);		
+	}
 
 	public final S getStore() {
 		return store;
@@ -302,10 +298,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	public final C getLocalNodeConfig() {
+	@Override
+	public final C getLocalConfig() {
 		return config;
 	}
 
+	@Override
 	public final GasCostModel getGasCostModel() {
 		return gasCostModel;
 	}
@@ -334,8 +332,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	public void signalOutcomeIsReady(Stream<TransactionReference> references) {
-		references.forEach(this::signalSemaphore);
+	public void signalOutcomeIsReady(Stream<TransactionRequest<?>> requests) {
+		requests.map(hasher::hash).map(TransactionReferences::of).forEach(this::signalSemaphore);
 	}
 
 	@Override

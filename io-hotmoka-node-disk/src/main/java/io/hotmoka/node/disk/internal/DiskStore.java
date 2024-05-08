@@ -34,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeMarshallingContexts;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -83,8 +84,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
      * 
 	 * @param dir the path where the database of the store gets created
      */
-    DiskStore(DiskNodeImpl node, ConsensusConfig<?,?> consensus) {
-    	super(node, consensus);
+    DiskStore(DiskNodeImpl node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+    	super(node, consensus, hasher);
 
     	this.dir = node.getLocalConfig().getDir();
     	this.requests = new ConcurrentHashMap<>();

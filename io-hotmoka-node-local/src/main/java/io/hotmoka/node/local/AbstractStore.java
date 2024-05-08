@@ -20,8 +20,10 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.Store;
@@ -67,8 +69,11 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 	 */
 	final OptionalLong inflation;
 
-	protected AbstractStore(N node, ConsensusConfig<?,?> consensus) {
+	final Hasher<TransactionRequest<?>> hasher;
+
+	protected AbstractStore(N node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
 		this.node = node;
+		this.hasher = hasher;
 		this.checkedSignatures = new LRUCache<>(100, 1000);
 		this.classLoaders = new LRUCache<>(100, 1000);
 		this.consensus = consensus;
@@ -78,6 +83,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 
 	protected AbstractStore(AbstractStore<T, N> toClone) {
 		this.node = toClone.node;
+		this.hasher = toClone.hasher;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
 		this.consensus = toClone.consensus;
@@ -87,6 +93,7 @@ public abstract class AbstractStore<T extends AbstractStore<T, N>, N extends Abs
 
 	protected AbstractStore(AbstractStore<T, N> toClone, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.node = toClone.node;
+		this.hasher = toClone.hasher;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
 		this.consensus = consensus;

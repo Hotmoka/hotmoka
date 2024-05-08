@@ -30,10 +30,9 @@ import com.google.protobuf.ByteString;
 
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
-import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
@@ -76,7 +75,7 @@ class TendermintApplication extends ABCI {
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
-	private final Set<TransactionReference> processed = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionRequest<?>> processed = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The current transaction, if any.
@@ -214,7 +213,7 @@ class TendermintApplication extends ABCI {
         		node.checkRequest(hotmokaRequest);
         	}
         	catch (Throwable t) {
-        		node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(hotmokaRequest))));
+        		node.signalOutcomeIsReady(Stream.of(hotmokaRequest));
         		throw t;
         	}
 
@@ -267,7 +266,7 @@ class TendermintApplication extends ABCI {
         		transaction.deliverTransaction(hotmokaRequest);
         	}
         	finally { // TODO: in case of RejectedTransactoinException we could signal for whom is waiting
-        		processed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
+        		processed.add(hotmokaRequest);
         	}
 
         	responseBuilder.setCode(0);

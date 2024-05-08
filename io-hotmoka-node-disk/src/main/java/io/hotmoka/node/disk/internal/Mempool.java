@@ -25,10 +25,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
-import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
@@ -37,7 +36,8 @@ import io.hotmoka.node.local.api.StoreTransaction;
  */
 class Mempool {
 	public final static int MAX_CAPACITY = 200_000;
-	private final static Logger logger = Logger.getLogger(Mempool.class.getName());
+
+	private final static Logger LOGGER = Logger.getLogger(Mempool.class.getName());
 
 	/**
 	 * The queue of requests to check.
@@ -64,16 +64,16 @@ class Mempool {
 	 */
 	private final Thread deliverer;
 
-	private final Set<TransactionReference> processed = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionRequest<?>> processed = ConcurrentHashMap.newKeySet();
 
 	private final int transactionsPerBlock;
-
+	
 	/**
 	 * Builds a mempool.
 	 * 
 	 * @param node the node for which the mempool works
 	 */
-	Mempool(DiskNodeImpl node, int transactionsPerBlock) {
+	Mempool(DiskNodeImpl node, int transactionsPerBlock) throws NodeException {
 		this.node = node;
 		this.transactionsPerBlock = transactionsPerBlock;
 		this.checker = new Thread(this::check);
@@ -116,11 +116,11 @@ class Mempool {
 					}
 				}
 				catch (TransactionRejectedException e) {
-					node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(current))));
+					node.signalOutcomeIsReady(Stream.of(current));
 				}
 	            catch (Throwable t) {
-	            	node.signalOutcomeIsReady(Stream.of(TransactionReferences.of(node.getHasher().hash(current))));
-	            	logger.log(Level.WARNING, "Failed to check transaction request", t);
+	            	node.signalOutcomeIsReady(Stream.of(current));
+	            	LOGGER.log(Level.WARNING, "Failed to check transaction request", t);
 	    		}
 			}
 			catch (InterruptedException e) {
@@ -154,10 +154,10 @@ class Mempool {
 						transaction.deliverTransaction(current);
 					}
 					finally {
-						processed.add(TransactionReferences.of(node.getHasher().hash(current)));
+						processed.add(current);
 					}
 
-					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
+					counter = (counter + 1) % transactionsPerBlock;
 					// the last transaction of a block is for rewarding the validators and updating the gas price
 					if (counter == transactionsPerBlock - 1) {
 						if (counter > 0)
@@ -172,10 +172,11 @@ class Mempool {
 				}
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				return;
 			}
 			catch (Throwable t) {
-				logger.log(Level.WARNING, "Failed to deliver transaction request", t);
+				LOGGER.log(Level.WARNING, "Failed to deliver transaction request", t);
 			}
 		}
 	}

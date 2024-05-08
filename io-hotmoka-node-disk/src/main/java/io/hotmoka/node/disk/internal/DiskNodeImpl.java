@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.disk.internal;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
@@ -55,13 +56,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	public DiskNodeConfig getLocalConfig() {
-		return config;
-	}
-
-	@Override
-	protected DiskStore mkStore(ConsensusConfig<?,?> consensus) {
-		return new DiskStore(this, consensus);
+	protected DiskStore mkStore(ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+		return new DiskStore(this, consensus, hasher);
 	}
 
 	@Override

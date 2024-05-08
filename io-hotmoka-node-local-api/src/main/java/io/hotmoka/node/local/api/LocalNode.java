@@ -31,7 +31,7 @@ import io.hotmoka.node.api.Node;
  */
 @ThreadSafe
 public interface LocalNode<C extends LocalNodeConfig<?,?>> extends Node {
-	C getLocalNodeConfig();
+	C getLocalConfig();
 	GasCostModel getGasCostModel();
 	<T> Future<T> submit(Callable<T> task);
 }

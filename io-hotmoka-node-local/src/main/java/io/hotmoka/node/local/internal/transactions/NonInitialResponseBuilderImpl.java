@@ -269,7 +269,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			// view transactions have a maximum allowed gas that can vary between nodes,
 			// while non-view transactions must abide to a consensus-wide maximum, since they
 			// expand the store of the nodes
-			BigInteger maxGasAllowedForTransaction = isView() ? node.getLocalNodeConfig().getMaxGasPerViewTransaction() : consensus.getMaxGasPerTransaction();
+			BigInteger maxGasAllowedForTransaction = isView() ? node.getLocalConfig().getMaxGasPerViewTransaction() : consensus.getMaxGasPerTransaction();
 			if (request.getGasLimit().compareTo(maxGasAllowedForTransaction) > 0)
 				throw new TransactionRejectedException("the gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGasAllowedForTransaction + ")");
 		}

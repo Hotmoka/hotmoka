@@ -35,6 +35,7 @@ import java.util.stream.Stream;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -193,18 +194,13 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 		}
 	}
 
-	@Override
-	public TendermintNodeConfig getLocalConfig() {
-		return config;
-	}
-
 	public TendermintPoster getPoster() {
 		return poster;
 	}
 
 	@Override
-	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus) {
-		return new TendermintStore(this, consensus);
+	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+		return new TendermintStore(this, consensus, hasher);
 	}
 
 	@Override
