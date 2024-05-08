@@ -50,7 +50,6 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 import io.hotmoka.whitelisting.Dummy;
 
 /**
@@ -124,9 +123,9 @@ public class Deserializer {
 	 * 
 	 * @param builder the response builder for which deserialization is performed
 	 */
-	public Deserializer(AbstractResponseBuilder<?,?> builder) {
-		this.storeTransaction = builder.storeTransaction;
-		this.classLoader = builder.classLoader;
+	public Deserializer(StoreTransaction<?> storeTransaction, EngineClassLoader classLoader) {
+		this.storeTransaction = storeTransaction;
+		this.classLoader = classLoader;
 	}
 
 	/**

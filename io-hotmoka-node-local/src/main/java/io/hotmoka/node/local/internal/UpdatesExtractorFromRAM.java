@@ -37,7 +37,6 @@ import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
 
 /**
  * An extractor of the updates to the state reachable, in RAM, from some storage objects.
@@ -46,18 +45,13 @@ import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
  */
 public class UpdatesExtractorFromRAM {
 
-	/**
-	 * The builder of the transaction for which this extractor works.
-	 */
-	private final AbstractResponseBuilder<?,?> builder;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * Builds an extractor of the updates to the state reachable from some storage objects.
-	 * 
-	 * @param builder the builder of the transaction for which the extraction is performed
 	 */
-	public UpdatesExtractorFromRAM(AbstractResponseBuilder<?,?> builder) {
-		this.builder = builder;
+	public UpdatesExtractorFromRAM(EngineClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 
 	/**
@@ -76,11 +70,6 @@ public class UpdatesExtractorFromRAM {
 	 * Internal scope for extracting the updates to some objects.
 	 */
 	private class Processor {
-
-		/**
-		 * The class loader for the transaction that uses this extractor.
-		 */
-		private final EngineClassLoader classLoader;
 
 		/**
 		 * The set of objects to process. This gets expanded as soon as new objects are found to be reachable.
@@ -105,7 +94,6 @@ public class UpdatesExtractorFromRAM {
 		 *                for the objects recursively reachable from them)
 		 */
 		private Processor(Stream<Object> objects) {
-			this.classLoader = builder.classLoader;
 			this.workingSet = objects
 				.filter(object -> seen.add(classLoader.getStorageReferenceOf(object)))
 				.collect(Collectors.toList());

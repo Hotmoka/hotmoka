@@ -62,14 +62,14 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	/**
 	 * The HotMoka node that is creating the response.
 	 */
-	public final LocalNode<?> node;
+	protected final LocalNode<?> node;
 
-	public final StoreTransaction<?> storeTransaction;
+	protected final StoreTransaction<?> storeTransaction;
 
 	/**
 	 * The class loader used for the transaction.
 	 */
-	public final EngineClassLoader classLoader;
+	protected final EngineClassLoader classLoader;
 
 	/**
 	 * The request of the transaction.
@@ -169,8 +169,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.deserializer = new Deserializer(AbstractResponseBuilder.this);
-				this.updatesExtractor = new UpdatesExtractorFromRAM(AbstractResponseBuilder.this);
+				this.deserializer = new Deserializer(storeTransaction, classLoader);
+				this.updatesExtractor = new UpdatesExtractorFromRAM(classLoader);
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);

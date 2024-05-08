@@ -20,7 +20,7 @@ import java.math.BigInteger;
 
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -28,18 +28,15 @@ import io.takamaka.code.constants.Constants;
  */
 public class Serializer {
 
-	/**
-	 * The builder of the transaction for which serialization is performed.
-	 */
-	private final AbstractResponseBuilder<?,?> builder;
+	private final EngineClassLoader classLoader;
 
 	/**
 	 * Builds an object that translates RAM values into storage values.
 	 * 
 	 * @param builder the builder of the transaction for which serialization is performed
 	 */
-	public Serializer(AbstractResponseBuilder<?,?> builder) {
-		this.builder = builder;
+	public Serializer(EngineClassLoader classLoader) {
+		this.classLoader = classLoader;
 	}
 
 	/**
@@ -55,7 +52,7 @@ public class Serializer {
 	 */
 	public StorageValue serialize(Object object) throws IllegalArgumentException {
 		if (isStorage(object))
-			return builder.classLoader.getStorageReferenceOf(object);
+			return classLoader.getStorageReferenceOf(object);
 		else if (object instanceof BigInteger bi)
 			return StorageValues.bigIntegerOf(bi);
 		else if (object instanceof Boolean b)
@@ -86,6 +83,6 @@ public class Serializer {
 	}
 
 	private boolean isStorage(Object object) {
-		return object != null && builder.classLoader.getStorage().isAssignableFrom(object.getClass());
+		return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
 	}
 }

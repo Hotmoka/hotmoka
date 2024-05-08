@@ -203,7 +203,7 @@ public abstract class CodeCallResponseBuilder
 
 		protected ResponseCreator() throws TransactionRejectedException {
 			try {
-				this.serializer = new Serializer(CodeCallResponseBuilder.this);
+				this.serializer = new Serializer(classLoader);
 			}
 			catch (Throwable t) {
 				throw new TransactionRejectedException(t);
