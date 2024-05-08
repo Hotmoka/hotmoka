@@ -74,7 +74,7 @@ class BlindAuction extends HotmokaTest {
 	/**
 	 * The reveal time of the experiments (in millisecond).
 	 */
-	private static int REVEAL_TIME = 15_000; // TODO: put it back to 8 seconds if possible for the DiskNode
+	private static int REVEAL_TIME = 8_000; // TODO: put it back to 8 seconds if possible for the DiskNode
 
 	private static final ClassType BLIND_AUCTION = StorageTypes.classNamed("io.hotmoka.examples.auction.BlindAuction");
 

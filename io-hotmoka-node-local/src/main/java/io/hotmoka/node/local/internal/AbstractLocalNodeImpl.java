@@ -24,7 +24,6 @@ import java.nio.file.Path;
 import java.security.NoSuchAlgorithmException;
 import java.util.Comparator;
 import java.util.HashSet;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
@@ -103,26 +102,6 @@ import io.hotmoka.node.local.api.StoreException;
 public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, C extends LocalNodeConfig<?,?>, S extends AbstractStore<S, N>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
-	 * The version of Hotmoka used by the nodes.
-	 */
-	public final static String HOTMOKA_VERSION;
-
-	static {
-		// we access the Maven properties from the pom.xml file of the project
-		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.local.maven.properties")) {
-			Objects.requireNonNull(is, "Cannot find io.hotmoka.node.local.maven.properties");
-			var mavenProperties = new Properties();
-			mavenProperties.load(is);
-			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
-		}
-		catch (IOException e) {
-			throw new ExceptionInInitializerError(e);
-		}
-	}
-
-	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
-
-	/**
 	 * The manager of the subscriptions to the events occurring in this node.
 	 */
 	private final SubscriptionsManager subscriptions = SubscriptionsManagers.mk();
@@ -138,24 +117,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	private final Hasher<TransactionRequest<?>> hasher;
 
 	/**
-	 * The store of the node.
-	 */
-	private S store;
-
-	/**
-	 * The gas model of the node.
-	 */
-	private final GasCostModel gasCostModel = GasCostModels.standard();
-
-	/**
 	 * A map that provides a semaphore for each currently executing transaction.
 	 * It is released when the check transaction fails or when the deliver transaction terminates.
 	 * It is used to know when to start polling for the response of a request.
 	 * Without waiting for that moment, polling might start too early, which results
 	 * either in timeouts (the polled response does not arrive because delivering
 	 * is very slow) or in delayed answers (the transaction has been delivered,
-	 * but the polling process has increased the polling time interval so much that
-	 * it waits for extra time because checking for the delivered transaction).
+	 * but the polling process had increased the polling time interval so much that
+	 * it waits for extra time before checking for the delivered transaction).
 	 * See how this works inside {@link #getPolledResponse(TransactionReference)}.
 	 */
 	private final ConcurrentMap<TransactionReference, Semaphore> semaphores;
@@ -177,6 +146,31 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
 	 */
 	private final AtomicBoolean closed;
+
+	/**
+	 * The store of this node.
+	 */
+	private volatile S store;
+
+	/**
+	 * The version of Hotmoka used by the nodes.
+	 */
+	public final static String HOTMOKA_VERSION;
+
+	static {
+		// we access the Maven properties from the pom.xml file of the project
+		try (InputStream is = AbstractLocalNodeImpl.class.getModule().getResourceAsStream("io.hotmoka.node.local.maven.properties")) {
+			Objects.requireNonNull(is, "Cannot find io.hotmoka.node.local.maven.properties");
+			var mavenProperties = new Properties();
+			mavenProperties.load(is);
+			HOTMOKA_VERSION = mavenProperties.getProperty("hotmoka.version");
+		}
+		catch (IOException e) {
+			throw new ExceptionInInitializerError(e);
+		}
+	}
+
+	private final static Logger LOGGER = Logger.getLogger(AbstractLocalNodeImpl.class.getName());
 
 	/**
 	 * Builds a node with a brand new, empty store.
@@ -305,7 +299,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 
 	@Override
 	public final GasCostModel getGasCostModel() {
-		return gasCostModel;
+		return GasCostModels.standard();
 	}
 
 	@Override
@@ -339,8 +333,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	@Override
 	public final TransactionResponse getPolledResponse(TransactionReference reference) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
 		try (var scope = mkScope()) {
-			Objects.requireNonNull(reference);
-			Semaphore semaphore = semaphores.get(reference);
+			Semaphore semaphore = semaphores.get(Objects.requireNonNull(reference));
 			if (semaphore != null)
 				// if we are polling for the outcome of a request sent to this same node, it is better
 				// to wait until it is delivered (or its checking fails) and start polling only after:
@@ -349,35 +342,21 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 
 			for (long attempt = 1, delay = config.getPollingDelay(); attempt <= Math.max(1L, config.getMaxPollingAttempts()); attempt++, delay = delay * 110 / 100)
 				try {
-					// we enforce that both request and response are available
-					TransactionResponse response = getResponse(reference);
-					getRequest(reference);
-					return response;
+					return getResponse(reference);
 				}
 				catch (UnknownReferenceException e) {
+					// the response is not available yet: we wait a bit
 					Thread.sleep(delay);
 				}
 
 			throw new TimeoutException("Cannot find the response of transaction reference " + reference + ": tried " + config.getMaxPollingAttempts() + " times");
-		}
-		catch (RuntimeException e) {
-			LOGGER.log(Level.WARNING, "Unexpected exception", e);
-			throw e;
 		}
 	}
 
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
-			Objects.requireNonNull(reference);
-
-			try {
-				return store.getRequest(reference).orElseThrow(() -> new UnknownReferenceException(reference));
-			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.WARNING, "unexpected exception", e);
-				throw e;
-			}
+			return store.getRequest(Objects.requireNonNull(reference)).orElseThrow(() -> new UnknownReferenceException(reference));
 		}
 	}
 
@@ -391,19 +370,15 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				if (response.isPresent())
 					return response.get();
 
-				// we check if the request passed its checkTransaction but failed its deliverTransaction:
+				// we check if the request has been executed but ended with a TransactionException:
 				// in that case, the node contains the error message in its store; otherwise,
-				// we check if the request did not pass its checkTransaction():
+				// we check if the request has been rejected with a TransactionRejectedException:
 				// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
 				Optional<String> error = store.getError(reference).or(() -> getRecentCheckRequestErrorFor(reference));
 				if (error.isPresent())
 					throw new TransactionRejectedException(error.get());
 				else
 					throw new UnknownReferenceException(reference);
-			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.WARNING, "Unexpected exception", e);
-				throw e;
 			}
 			catch (StoreException e) {
 				throw new NodeException(e);
@@ -424,7 +399,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
 					.findFirst()
-					.orElseThrow(() -> new NodeException("Object " + reference + " has not class tag in store"));
+					.orElseThrow(() -> new NodeException("Object " + reference + " has no class tag in store"));
 			else
 				throw new NodeException("The creation of object " + reference + " does not contain updates");
 		}
@@ -443,15 +418,8 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(reference, transaction, updates))));
 				return updates.stream();
 			}
-			catch (NoSuchElementException e) {
-				throw new UnknownReferenceException(reference);
-			}
 			catch (StoreException e) {
 				throw new NodeException(e);
-			}
-			catch (RuntimeException e) {
-				LOGGER.log(Level.WARNING, "Unexpected exception", e);
-				throw e;
 			}
 		}
 	}
@@ -586,8 +554,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			throw e;
 		}
 		catch (StoreException e) {
-			storeCheckRequestError(reference, e);
-			LOGGER.log(Level.WARNING, reference + ": checking failed with unexpected exception: " + e.getMessage());
 			throw new NodeException(e);
 		}
 	}
@@ -613,7 +579,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * @return the reference of the request
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	protected final TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
+	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 	
@@ -627,7 +593,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	public final void setStore(S store) {
-		this.store = store; // TODO
+		this.store = store;
 	}
 
 	/**
@@ -711,7 +677,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	/**
 	 * Adds a shutdown hook that shuts down the blockchain orderly if the JVM terminates.
 	 */
-	private void addShutdownHook() {
+	private void addShutdownHook() { // TODO: do we really need it? It seems that is never called
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 			try {
 				close();
