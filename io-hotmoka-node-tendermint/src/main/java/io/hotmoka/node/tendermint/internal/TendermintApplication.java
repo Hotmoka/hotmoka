@@ -76,7 +76,7 @@ class TendermintApplication extends ABCI {
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
 
-	private final Set<TransactionReference> includedInBlock = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionReference> processed = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The current transaction, if any.
@@ -181,8 +181,8 @@ class TendermintApplication extends ABCI {
      * @param t the throwable whose error message is processed
      * @return the resulting message
      */
-    private ByteString trimmedMessage(Throwable t) {
-		return ByteString.copyFromUtf8(node.trimmedMessage(t));
+    private ByteString trimmedMessage(Throwable t, int maxErrorLength) {
+		return ByteString.copyFromUtf8(node.trimmedMessage(t, maxErrorLength));
     }
 
 	@Override
@@ -222,7 +222,7 @@ class TendermintApplication extends ABCI {
         }
         catch (Throwable t) {
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setData(trimmedMessage(t));
+        	responseBuilder.setData(trimmedMessage(t, node.getStore().getConfig().getMaxErrorLength()));
 		}
 
         return responseBuilder.build();
@@ -239,7 +239,6 @@ class TendermintApplication extends ABCI {
     		throw new RuntimeException(e); // TODO
     	}
 
-    	node.storeTransaction = transaction;
     	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
 
     	try {
@@ -265,17 +264,17 @@ class TendermintApplication extends ABCI {
         	var hotmokaRequest = TransactionRequests.from(context);
 
         	try {
-        		node.deliverTransaction(hotmokaRequest);
+        		transaction.deliverTransaction(hotmokaRequest);
         	}
-        	finally {
-        		includedInBlock.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
+        	finally { // TODO: in case of RejectedTransactoinException we could signal for whom is waiting
+        		processed.add(TransactionReferences.of(node.getHasher().hash(hotmokaRequest)));
         	}
 
         	responseBuilder.setCode(0);
         }
         catch (Throwable t) {
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setData(trimmedMessage(t));
+        	responseBuilder.setData(trimmedMessage(t, transaction.getConfigUncommitted().getMaxErrorLength()));
         }
 
         return responseBuilder.build();
@@ -315,8 +314,8 @@ class TendermintApplication extends ABCI {
 			var newStore = transaction.commit();
 			node.setStore(newStore);
 			newStore.moveRootBranchToThis();
-			node.signalOutcomeIsReady(includedInBlock.stream());
-			includedInBlock.clear();
+			node.signalOutcomeIsReady(processed.stream());
+			processed.clear();
 			transaction.notifyAllEvents(node::notifyEvent);
 		}
 		catch (StoreException e) {

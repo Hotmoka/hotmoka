@@ -79,11 +79,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	private final boolean isWindows;
 
 	/**
-	 * The current store transaction.
-	 */
-	public volatile TendermintStoreTransaction storeTransaction;
-
-	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
 	 * and connects it to an ABCI application for handling its transactions.
 	 * 
@@ -363,10 +358,5 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
 			copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
-	}
-
-	@Override
-	public TendermintStoreTransaction getStoreTransaction() {
-		return storeTransaction;
 	}
 }

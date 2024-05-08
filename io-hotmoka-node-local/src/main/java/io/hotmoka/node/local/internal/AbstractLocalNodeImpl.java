@@ -91,9 +91,7 @@ import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -187,7 +185,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * {@link #checkRequest(TransactionRequest)} failed, hence never
 	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<TransactionReference, String> recentCheckRequestErrors;
+	private final LRUCache<TransactionReference, String> recentlyRejectedRequestsErrors;
 
 	/**
 	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
@@ -226,7 +224,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			throw new RuntimeException("Unexpected exception", e);
 		}
 
-		this.recentCheckRequestErrors = new LRUCache<>(100, 1000);
+		this.recentlyRejectedRequestsErrors = new LRUCache<>(100, 1000);
 		this.executors = Executors.newCachedThreadPool();
 		this.semaphores = new ConcurrentHashMap<>();
 		this.closed = new AtomicBoolean();
@@ -268,13 +266,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	public final S getStore() {
 		return store;
 	}
-
-	/**
-	 * Yields the currently executing transaction.
-	 * 
-	 * @return the currently executing transaction
-	 */
-	public abstract StoreTransaction<S> getStoreTransaction();
 
 	/**
 	 * Determines if this node has not been closed yet.
@@ -601,7 +592,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			// means that nobody is paying for it and therefore we do not want to expand the store;
 			// we just take note of the failure
 			storeCheckRequestError(reference, e);
-			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e));
+			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e, store.getConfig().getMaxErrorLength()));
 			throw e;
 		}
 		catch (StoreException e) {
@@ -612,64 +603,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	/**
-	 * Builds a response for the given request and adds it to the store of the node.
-	 * 
-	 * @param request the request
-	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
-	 * @throws TransactionRejectedException if the response cannot be built
-	 */
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException {
-		var reference = TransactionReferences.of(hasher.hash(request));
-
-		try {
-			var storeTransaction = getStoreTransaction();
-
-			try {
-				LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
-
-				ResponseBuilder<?,?> responseBuilder = storeTransaction.responseBuilderFor(reference, request);
-				TransactionResponse response = responseBuilder.getResponse();
-				storeTransaction.push(reference, request, response);
-				responseBuilder.replaceReverifiedResponses();
-				storeTransaction.scheduleEventsForNotificationAfterCommit(response);
-				storeTransaction.takeNoteForNextReward(request, response);
-				storeTransaction.invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
-
-				LOGGER.info(reference + ": delivering success");
-				return response;
-			}
-			catch (TransactionRejectedException e) {
-				storeTransaction.push(reference, request, trimmedMessage(e));
-				LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
-				LOGGER.log(Level.INFO, "transaction rejected", e);
-				throw e;
-			}
-			catch (NodeException | UnknownReferenceException e) {
-				storeTransaction.push(reference, request, trimmedMessage(e));
-				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-				throw new RuntimeException(e);
-			}
-			catch (RuntimeException e) {
-				storeTransaction.push(reference, request, trimmedMessage(e));
-				LOGGER.log(Level.WARNING, reference + ": delivering failed with unexpected exception", e);
-				throw e;
-			}
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
-	}
-
-	/**
 	 * Yields the error message trimmed to a maximal length, to avoid overflow.
 	 *
 	 * @param t the throwable whose error message is processed
 	 * @return the resulting message
 	 */
-	public final String trimmedMessage(Throwable t) {
+	public final String trimmedMessage(Throwable t, int maxErrorLength) {
 		String message = t.getMessage();
 		int length = message.length();
-		int maxErrorLength = store.getConfig().getMaxErrorLength(); // TODO: uncommitted?
 		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
@@ -713,11 +654,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
-		return Optional.ofNullable(recentCheckRequestErrors.get(reference));
+		return Optional.ofNullable(recentlyRejectedRequestsErrors.get(reference));
 	}
 
 	private void storeCheckRequestError(TransactionReference reference, Throwable e) {
-		recentCheckRequestErrors.put(reference, trimmedMessage(e));
+		recentlyRejectedRequestsErrors.put(reference, trimmedMessage(e, store.getConfig().getMaxErrorLength()));
 	}
 
 	/**

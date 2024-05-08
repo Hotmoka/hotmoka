@@ -39,7 +39,7 @@ public interface CodeFuture<V> {
      *
      * @return the computed result of the transaction; this is empty only for calls to void methods
      * @throws TransactionRejectedException if the transaction could not be executed and the store of the node remained unchanged
-     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user code in blockchain,
+     * @throws CodeExecutionException if the transaction could be executed but led to an exception in the user Takamaka code,
      *                                that is allowed to be thrown by the constructor
      * @throws TransactionException if the transaction could be executed and the store of the node has been expanded with a failed transaction
 	 * @throws NodeException if the node is not able to perform the operation

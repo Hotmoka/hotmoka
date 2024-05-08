@@ -64,7 +64,7 @@ class Mempool {
 	 */
 	private final Thread deliverer;
 
-	private final Set<TransactionReference> includedInBlock = ConcurrentHashMap.newKeySet();
+	private final Set<TransactionReference> processed = ConcurrentHashMap.newKeySet();
 
 	private final int transactionsPerBlock;
 
@@ -135,7 +135,6 @@ class Mempool {
 	private void deliver() {
 		int counter = 0;
 		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-		node.transaction = transaction;
 
 		while (!Thread.currentThread().isInterrupted()) {
 			try {
@@ -144,19 +143,18 @@ class Mempool {
 					if (counter > 0)
 						transaction.rewardValidators("", "");
 					node.setStore(transaction.commit());
-					node.signalOutcomeIsReady(includedInBlock.stream());
-					includedInBlock.clear();
+					node.signalOutcomeIsReady(processed.stream());
+					processed.clear();
 					transaction.notifyAllEvents(node::notifyEvent);
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-					node.transaction = transaction;
 					counter = 0;
 				}
 				else {
 					try {
-						node.deliverTransaction(current);
+						transaction.deliverTransaction(current);
 					}
 					finally {
-						includedInBlock.add(TransactionReferences.of(node.getHasher().hash(current)));
+						processed.add(TransactionReferences.of(node.getHasher().hash(current)));
 					}
 
 					counter = (counter + 1) % transactionsPerBlock; // TODO: transactionsPerBlock should be int
@@ -165,11 +163,10 @@ class Mempool {
 						if (counter > 0)
 							transaction.rewardValidators("", "");
 						node.setStore(transaction.commit());
-						node.signalOutcomeIsReady(includedInBlock.stream());
-						includedInBlock.clear();
+						node.signalOutcomeIsReady(processed.stream());
+						processed.clear();
 						transaction.notifyAllEvents(node::notifyEvent);
 						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-						node.transaction = transaction;
 						counter = 0;
 					}
 				}

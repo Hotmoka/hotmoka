@@ -57,8 +57,10 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
@@ -251,7 +253,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfigUncommitted() throws StoreException {
+	public final ConsensusConfig<?,?> getConfigUncommitted() {
 		return consensus;
 	}
 
@@ -658,7 +660,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 				// the store with the transaction, so that the state stabilizes, which might give
 				// to the node the chance of suspending the generation of new blocks
 				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-					response = store.getNode().deliverTransaction(request);
+					response = deliverTransaction(request);
 
 				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
 					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
@@ -693,6 +695,54 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
     		return new InitializationResponseBuilder(reference, itr, this);
     	else
     		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
+	}
+
+	/**
+	 * Builds a response for the given request and adds it to the store of the node.
+	 * 
+	 * @param request the request
+	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
+	 * @throws TransactionRejectedException if the response cannot be built
+	 */
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+		var reference = TransactionReferences.of(store.getNode().getHasher().hash(request));
+
+		try {
+			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+
+			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+			TransactionResponse response = responseBuilder.getResponse();
+			push(reference, request, response);
+			responseBuilder.replaceReverifiedResponses();
+			scheduleEventsForNotificationAfterCommit(response);
+			takeNoteForNextReward(request, response);
+			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+
+			LOGGER.info(reference + ": delivering success");
+			return response;
+		}
+		catch (TransactionRejectedException e) {
+			push(reference, request, trimmedMessage(e));
+			LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
+			throw e;
+		}
+		catch (NodeException | UnknownReferenceException e) { // TODO: these should disappear
+			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
+			throw new StoreException(e);
+		}
+	}
+
+	/**
+	 * Yields the error message trimmed to a maximal length, to avoid overflow.
+	 *
+	 * @param t the throwable whose error message is processed
+	 * @return the resulting message
+	 */
+	private String trimmedMessage(Throwable t) {
+		String message = t.getMessage();
+		int length = message.length();
+		int maxErrorLength = consensus.getMaxErrorLength();
+		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
 	@Override

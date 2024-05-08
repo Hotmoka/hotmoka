@@ -203,6 +203,15 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException;
 
 	/**
+	 * Builds a response for the given request and adds it to the store of the node.
+	 * 
+	 * @param request the request
+	 * @return the response; if this node has a notion of commit, this response is typically still uncommitted
+	 * @throws TransactionRejectedException if the response cannot be built
+	 */
+	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
+
+	/**
 	 * Pushes the result of executing a successful Hotmoka request.
 	 * This method assumes that the given request was not already present in the store.
 	 * This method yields a store where the push is visible. Checkable stores remain
