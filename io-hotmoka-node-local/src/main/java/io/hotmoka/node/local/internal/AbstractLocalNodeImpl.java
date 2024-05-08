@@ -197,9 +197,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
+	 * @throws NodeException 
 	 */
-	protected AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus) {
-		this(config, Optional.of(consensus), true);
+	protected AbstractLocalNodeImpl(C config, ConsensusConfig<?,?> consensus) throws NodeException {
+		this(config, Optional.of(consensus));
 	}
 
 	/**
@@ -207,53 +208,44 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * of an already initialized node, whose consensus parameters are recovered from its manifest.
 	 * 
 	 * @param config the configuration of the node
+	 * @throws NodeException 
 	 */
-	protected AbstractLocalNodeImpl(C config) {
-		this(config, Optional.empty(), false);
+	protected AbstractLocalNodeImpl(C config) throws NodeException {
+		this(config, Optional.empty());
 	}
 
-	private AbstractLocalNodeImpl(C config, Optional<ConsensusConfig<?,?>> consensus, boolean deleteDir) {
+	private AbstractLocalNodeImpl(C config, Optional<ConsensusConfig<?,?>> consensus) throws NodeException {
 		super(ClosedNodeException::new);
 
-		this.config = config;
-
 		try {
+			this.config = config;
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-		}
-		catch (NoSuchAlgorithmException e) {
-			throw new RuntimeException("Unexpected exception", e);
-		}
+			this.recentlyRejectedRequestsErrors = new LRUCache<>(100, 1000);
+			this.semaphores = new ConcurrentHashMap<>();
+			this.closed = new AtomicBoolean();
 
-		this.recentlyRejectedRequestsErrors = new LRUCache<>(100, 1000);
-		this.executors = Executors.newCachedThreadPool();
-		this.semaphores = new ConcurrentHashMap<>();
-		this.closed = new AtomicBoolean();
-
-		if (deleteDir) {
-			try {
+			if (consensus.isPresent()) {
 				deleteRecursively(config.getDir());  // cleans the directory where the node's data live
 				Files.createDirectories(config.getDir());
 			}
-			catch (IOException e) {
-			}
-		}
 
-		if (consensus.isEmpty()) {
-			try {
+			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
+
+			if (consensus.isEmpty()) {
 				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build());
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
 				consensus = Optional.of(storeTransaction.getConfigUncommitted());
 				storeTransaction.abort();
 			}
-			catch (NoSuchAlgorithmException | StoreException e) {
-				throw new RuntimeException(e); // TODO
-			}
+
+			this.store = mkStore(consensus.get());
+
+			addShutdownHook(); // move down to the concrete classes
 		}
-
-		this.store = mkStore(consensus.get());
-
-		addShutdownHook();
+		catch (NoSuchAlgorithmException | IOException | StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	/**
@@ -726,11 +718,11 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			try {
 				close();
 			}
-			catch (RuntimeException e) {
-				throw e;
+			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 			}
-			catch (Exception e) {
-				throw new RuntimeException(e);
+			catch (NodeException e) {
+				LOGGER.log(Level.SEVERE, "The shutdown hook of the node failed", e);
 			}
 		}));
 	}

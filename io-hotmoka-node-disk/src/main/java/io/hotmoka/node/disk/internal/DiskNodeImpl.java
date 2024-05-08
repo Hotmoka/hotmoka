@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
@@ -38,7 +35,6 @@ import io.hotmoka.node.local.AbstractLocalNode;
  */
 @ThreadSafe
 public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig, DiskStore> implements DiskNode {
-	private final static Logger LOGGER = Logger.getLogger(DiskNodeImpl.class.getName());
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
@@ -50,25 +46,12 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the blockchain
+	 * @throws NodeException 
 	 */
-	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) {
+	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException {
 		super(config, consensus);
 
-		try {
-			this.mempool = new Mempool(this, (int) config.getTransactionsPerBlock()); // TODO: make this option int
-		}
-		catch (RuntimeException e) {
-			LOGGER.log(Level.SEVERE, "failed to create the memory blockchain", e);
-
-			try {
-				close();
-			}
-			catch (Exception e1) {
-				LOGGER.log(Level.SEVERE, "cannot close the blockchain", e1);
-			}
-
-			throw e;
-		}
+		this.mempool = new Mempool(this, (int) config.getTransactionsPerBlock()); // TODO: make this option int
 	}
 
 	@Override

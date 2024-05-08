@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.local;
 
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.internal.AbstractLocalNodeImpl;
@@ -36,8 +37,9 @@ public abstract class AbstractLocalNode<N extends AbstractLocalNode<N,C,S>, C ex
 	 * 
 	 * @param config the configuration of the node
 	 * @param consensus the consensus parameters at the beginning of the life of the node
+	 * @throws NodeException 
 	 */
-	protected AbstractLocalNode(C config, ConsensusConfig<?,?> consensus) {
+	protected AbstractLocalNode(C config, ConsensusConfig<?,?> consensus) throws NodeException {
 		super(config, consensus);
 	}
 
@@ -46,8 +48,9 @@ public abstract class AbstractLocalNode<N extends AbstractLocalNode<N,C,S>, C ex
 	 * of an already initialized node, whose consensus parameters are recovered from its manifest.
 	 * 
 	 * @param config the configuration of the node
+	 * @throws NodeException 
 	 */
-	protected AbstractLocalNode(C config) {
+	protected AbstractLocalNode(C config) throws NodeException {
 		super(config);
 	}
 }

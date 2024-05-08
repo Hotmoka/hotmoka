@@ -259,43 +259,58 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkTendermintBlockchain() throws IOException, NoSuchAlgorithmException, InvalidKeyException {
-		var consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
-		HotmokaTest.consensus = consensus;
+	private static Node mkTendermintBlockchain() throws NodeException, InterruptedException {
+		try {
+			var consensus = fillConsensusConfig(ValidatorsConsensusConfigBuilders.defaults()).build();
+			HotmokaTest.consensus = consensus;
 
-		isUsingTendermint = true;
+			isUsingTendermint = true;
 
-		var config = TendermintNodeConfigBuilders.defaults()
-			.setDir(Files.createTempDirectory("hotmoka-chain"))
-			.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
-			.setMaxGasPerViewTransaction(_10_000_000)
-			.build();
+			var config = TendermintNodeConfigBuilders.defaults()
+					.setDir(Files.createTempDirectory("hotmoka-chain"))
+					.setTendermintConfigurationToClone(Paths.get("tendermint_config"))
+					.setMaxGasPerViewTransaction(_10_000_000)
+					.build();
 
-		return TendermintNodes.init(config, consensus);
+			return TendermintNodes.init(config, consensus);
+		}
+		catch (IOException | NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
 	}
 
-	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NoSuchAlgorithmException, InvalidKeyException {
-		return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
-			.allowUnsignedFaucet(true) // good for testing
-			.ignoreGasPrice(true) // good for testing
-			.setInitialSupply(Coin.level7(10000000)) // enough for all tests
-			.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
-			.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
+	private static <B extends ConsensusConfigBuilder<?,B>> B fillConsensusConfig(ConsensusConfigBuilder<?,B> builder) throws NodeException {
+		try {
+			return builder.setSignatureForRequests(SignatureAlgorithms.ed25519det()) // good for testing
+					.allowUnsignedFaucet(true) // good for testing
+					.ignoreGasPrice(true) // good for testing
+					.setInitialSupply(Coin.level7(10000000)) // enough for all tests
+					.setInitialRedSupply(Coin.level7(10000000)) // enough for all tests
+					.setPublicKeyOfGamete(consensus.getPublicKeyOfGamete());
+		}
+		catch (NoSuchAlgorithmException | InvalidKeyException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@SuppressWarnings("unused")
-	private static Node mkDiskBlockchain() throws NoSuchAlgorithmException, InvalidKeyException, IOException {
-		var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
-		HotmokaTest.consensus = consensus;
+	private static Node mkDiskBlockchain() throws NodeException {
+		try {
+			var consensus = fillConsensusConfig(ConsensusConfigBuilders.defaults()).build();
+			HotmokaTest.consensus = consensus;
 
-		var config = DiskNodeConfigBuilders.defaults()
-			.setDir(Files.createTempDirectory("hotmoka-chain"))
-			.setMaxGasPerViewTransaction(_10_000_000)
-			.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
-			.setPollingDelay(10)
-			.build();
+			var config = DiskNodeConfigBuilders.defaults()
+					.setDir(Files.createTempDirectory("hotmoka-chain"))
+					.setMaxGasPerViewTransaction(_10_000_000)
+					.setMaxPollingAttempts(100) // we fix these two so that we know the timeout in case of problems
+					.setPollingDelay(10)
+					.build();
 
-		return DiskNodes.init(config, consensus);
+			return DiskNodes.init(config, consensus);
+		}
+		catch (IOException | NoSuchAlgorithmException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@SuppressWarnings("unused")

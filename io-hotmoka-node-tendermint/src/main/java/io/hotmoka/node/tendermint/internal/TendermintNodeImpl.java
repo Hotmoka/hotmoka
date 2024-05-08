@@ -24,7 +24,6 @@ import java.io.UncheckedIOException;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeoutException;
@@ -85,8 +84,9 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	 * @param config the configuration of the blockchain
 	 * @param consensus the consensus parameters of the node
 	 * @throws IOException 
+	 * @throws NodeException 
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
 		super(config, consensus);
 
 		try {
@@ -100,15 +100,14 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
-		catch (NoSuchFileException e) {
-			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed", e);
+		catch (IOException e) {
 			tryClose();
-			throw e;
+			throw new NodeException(e);
 		}
-		catch (TimeoutException | InterruptedException e) {
+		catch (TimeoutException e) {
 			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
-			throw new RuntimeException("unexpected exception", e);
+			throw new NodeException("the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 		}
 	}
 
@@ -128,8 +127,9 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @throws IOException 
+	 * @throws NodeException 
 	 */
-	public TendermintNodeImpl(TendermintNodeConfig config) throws IOException {
+	public TendermintNodeImpl(TendermintNodeConfig config) throws NodeException, InterruptedException {
 		super(config);
 
 		try {
@@ -142,10 +142,14 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 			this.tendermint = new Tendermint(config);
 			LOGGER.info("Tendermint started at port " + tendermintConfigFile.tendermintPort);
 		}
-		catch (TimeoutException | InterruptedException e) {
+		catch (IOException e) {
+			tryClose();
+			throw new NodeException(e);
+		}
+		catch (TimeoutException e) {
 			LOGGER.log(Level.SEVERE, "the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 			tryClose();
-			throw new RuntimeException(e);
+			throw new NodeException("the creation of the Tendermint blockchain failed. Is Tendermint installed?", e);
 		}
 	}
 

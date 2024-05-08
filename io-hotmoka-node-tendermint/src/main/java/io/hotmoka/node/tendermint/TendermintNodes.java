@@ -16,9 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint;
 
-import java.io.IOException;
-
 import io.hotmoka.annotations.ThreadSafe;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
@@ -42,9 +41,10 @@ public abstract class TendermintNodes {
 	 *                  existing network, these must be the parameters at the beginning of the
 	 *                  history of the network
 	 * @return the Tendermint node
-	 * @throws IOException if an I/O error occurs
+	 * @throws InterruptedException 
+	 * @throws NodeException 
 	 */
-	public static TendermintNode init(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws IOException {
+	public static TendermintNode init(TendermintNodeConfig config, ValidatorsConsensusConfig<?,?> consensus) throws NodeException, InterruptedException {
 		return new TendermintNodeImpl(config, consensus);
 	}
 
@@ -56,9 +56,10 @@ public abstract class TendermintNodes {
 	 * 
 	 * @param config the configuration of the blockchain
 	 * @return the Tendermint node
-	 * @throws IOException if an I/O error occurs
+	 * @throws InterruptedException 
+	 * @throws NodeException 
 	 */
-	public static TendermintNode resume(TendermintNodeConfig config) throws IOException {
+	public static TendermintNode resume(TendermintNodeConfig config) throws NodeException, InterruptedException {
 		return new TendermintNodeImpl(config);
 	}
 }
