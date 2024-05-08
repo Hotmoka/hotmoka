@@ -32,13 +32,9 @@ import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
 import tendermint.abci.Types.RequestBeginBlock;
@@ -85,7 +81,7 @@ class TendermintApplication extends ABCI {
 	/**
 	 * The current transaction, if any.
 	 */
-	private volatile StoreTransaction<TendermintStore> transaction;
+	private volatile TendermintStoreTransaction transaction;
 
 	private final TendermintNodeImpl node;
 
@@ -237,7 +233,7 @@ class TendermintApplication extends ABCI {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	try {
-    		transaction = node.getStore().beginTransaction(timeOfBlock(request));
+    		transaction = (TendermintStoreTransaction) node.getStore().beginTransaction(timeOfBlock(request)); // TODO: improve generic types and avoid cast
     	}
     	catch (StoreException e) {
     		throw new RuntimeException(e); // TODO
@@ -286,7 +282,7 @@ class TendermintApplication extends ABCI {
 
     	if (currentValidators != null) {
     		try {
-    			Optional<TendermintValidator[]> validatorsInStore = node.getTendermintValidatorsInStore();
+    			Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidatorsUncommitted();
     			if (validatorsInStore.isPresent()) {
     				TendermintValidator[] nextValidators = validatorsInStore.get();
     				if (nextValidators.length == 0)
@@ -299,7 +295,7 @@ class TendermintApplication extends ABCI {
     				}
     			}
     		}
-    		catch (TransactionRejectedException | TransactionException | CodeExecutionException | NoSuchElementException | StoreException | NodeException e) {
+    		catch (NoSuchElementException | StoreException e) {
     			throw new RuntimeException("could not determine the new validators set", e);
     		}
     	}

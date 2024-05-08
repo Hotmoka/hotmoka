@@ -16,15 +16,11 @@ limitations under the License.
 
 package io.hotmoka.node.tendermint.internal;
 
-import static io.hotmoka.exceptions.CheckSupplier.check;
-import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.math.BigInteger;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.nio.file.Files;
@@ -40,33 +36,13 @@ import java.util.stream.Stream;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.NodeInfos;
-import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.TransactionRequests;
-import io.hotmoka.node.UninitializedNodeException;
-import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.TransactionException;
-import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.responses.TransactionResponse;
-import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
-import io.hotmoka.node.api.signatures.MethodSignature;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.types.ClassType;
-import io.hotmoka.node.api.values.BigIntegerValue;
-import io.hotmoka.node.api.values.IntValue;
-import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.AbstractLocalNode;
-import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.Server;
@@ -105,7 +81,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	/**
 	 * The current store transaction.
 	 */
-	public volatile StoreTransaction<TendermintStore> storeTransaction;
+	public volatile TendermintStoreTransaction storeTransaction;
 
 	/**
 	 * Builds a brand new Tendermint blockchain. This constructor spawns the Tendermint process on localhost
@@ -235,106 +211,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	@Override
 	protected void postRequest(TransactionRequest<?> request) {
 		poster.postRequest(request);
-	}
-
-	@Override
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		super.invalidateCachesIfNeeded(response, classLoader);
-	
-		if (validatorsMightHaveChanged(response, classLoader)) {
-			tendermintValidatorsCached = null;
-			LOGGER.info("the validators set has been invalidated since their information might have changed");
-		}
-	}
-
-	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final ClassType storageMapView = StorageTypes.classNamed("io.takamaka.code.util.StorageMapView");
-	private static final MethodSignature SIZE = MethodSignatures.ofNonVoid(storageMapView, "size", StorageTypes.INT);
-	private static final MethodSignature GET_SHARES = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getShares", storageMapView);
-	private static final MethodSignature SELECT = MethodSignatures.ofNonVoid(storageMapView, "select", StorageTypes.OBJECT, StorageTypes.INT);
-	private static final MethodSignature GET = MethodSignatures.ofNonVoid(storageMapView, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
-
-	private volatile TendermintValidator[] tendermintValidatorsCached;
-
-	Optional<TendermintValidator[]> getTendermintValidatorsInStore() throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, StoreException {
-		if (tendermintValidatorsCached != null)
-			return Optional.of(tendermintValidatorsCached);
-
-		StorageReference manifest;
-
-		try {
-			manifest = getManifest();
-		}
-		catch (UninitializedNodeException e) {
-			return Optional.empty();
-		}
-
-		StorageReference validators = storeTransaction.getValidatorsUncommitted().get(); // the manifest is already set
-		TransactionReference takamakaCode = getTakamakaCode();
-
-		var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _50_000, takamakaCode, GET_SHARES, validators))
-			.orElseThrow(() -> new NodeException(GET_SHARES + " should not return void"));
-
-		int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-			(manifest, _50_000, takamakaCode, SIZE, shares))
-			.orElseThrow(() -> new NodeException(SIZE + " should not return void"))).getValue();
-
-		var result = new TendermintValidator[numOfValidators];
-
-		for (int num = 0; num < numOfValidators; num++) {
-			var validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)))
-				.orElseThrow(() -> new NodeException(SELECT + " should not return void"));
-
-			String id = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
-				.orElseThrow(() -> new NodeException(MethodSignatures.ID + " should not return void"))).getValue();
-
-			long power = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-				(manifest, _50_000, takamakaCode, GET, shares, validator))
-				.orElseThrow(() -> new NodeException(GET + " should not return void"))).getValue().longValue();
-
-			String publicKey = storeTransaction.getPublicKeyUncommitted(validator);
-
-			result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
-		}
-
-		tendermintValidatorsCached = result;
-
-		return Optional.of(result);
-	}
-
-	/**
-	 * Determines if the given response generated events of type ValidatorsUpdate triggered by validators.
-	 * 
-	 * @param response the response
-	 * @param classLoader the class loader used for the transaction
-	 * @return true if and only if that condition holds
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka program
-	 */
-	private boolean validatorsMightHaveChanged(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
-		try {
-			if (storeTransaction.nodeIsInitializedUncommitted() && response instanceof TransactionResponseWithEvents trwe) {
-				Stream<StorageReference> events = trwe.getEvents();
-				StorageReference validators = storeTransaction.getValidatorsUncommitted().get();
-
-				return check(ClassNotFoundException.class, () ->
-					events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
-					.map(storeTransaction::getCreatorUncommitted)
-					.anyMatch(validators::equals)
-				);
-			}
-		}
-		catch (StoreException e) {
-			LOGGER.log(Level.SEVERE, "", e);
-		}
-
-		return false;
-	}
-
-	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws ClassNotFoundException {
-		return classLoader.isValidatorsUpdateEvent(storeTransaction.getClassNameUncommitted(event));
 	}
 
 	/**
@@ -490,7 +366,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	}
 
 	@Override
-	public StoreTransaction<TendermintStore> getStoreTransaction() {
+	public TendermintStoreTransaction getStoreTransaction() {
 		return storeTransaction;
 	}
 }

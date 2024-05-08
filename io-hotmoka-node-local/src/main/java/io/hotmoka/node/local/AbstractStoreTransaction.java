@@ -187,7 +187,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public OptionalLong getInflationUncommitted() throws StoreException {
+	public final OptionalLong getInflationUncommitted() throws StoreException {
 		if (inflation.isEmpty())
 			recomputeInflation();
 
@@ -218,7 +218,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	}
 
 	@Override
-	public ConsensusConfig<?,?> getConfigUncommitted() throws StoreException {
+	public final ConsensusConfig<?,?> getConfigUncommitted() throws StoreException {
 		return consensus;
 	}
 
@@ -375,10 +375,11 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	public void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
 			LOGGER.info("the consensus parameters might have changed: recomputing their cache");
+			long versionBefore = consensus.getVerificationVersion();
 			recomputeConsensus();
 			//classLoaders.clear(); // TODO
-			//if (versionBefore != consensus.getVerificationVersion())
-				//logger.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
+			if (versionBefore != consensus.getVerificationVersion())
+				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
@@ -392,6 +393,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		}
 	}
 
+	@Override
 	public void invalidateConsensusCache() throws StoreException {
 		LOGGER.info("the consensus parameters have been reset");
 		recomputeConsensus();
@@ -526,7 +528,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
 	}
 
-	private Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(getStore().getNode().getHasher().hash(request)));
 	}
 

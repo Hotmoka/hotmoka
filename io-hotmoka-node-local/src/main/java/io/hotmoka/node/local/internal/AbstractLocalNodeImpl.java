@@ -103,7 +103,6 @@ import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractLocalNode;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
-import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.ResponseBuilder;
@@ -681,7 +680,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				storeTransaction.scheduleEventsForNotificationAfterCommit(response);
 				takeNoteForNextReward(request, response);
 				storeTransaction.invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
-				invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
 
 				LOGGER.info(reference + ": delivering success");
 				return response;
@@ -692,7 +690,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 				LOGGER.log(Level.INFO, "transaction rejected", e);
 				throw e;
 			}
-			catch (ClassNotFoundException | NodeException | UnknownReferenceException e) {
+			catch (NodeException | UnknownReferenceException e) {
 				storeTransaction.push(reference, request, trimmedMessage(e));
 				LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
 				throw new RuntimeException(e);
@@ -825,16 +823,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		postRequest(request);
 	
 		return reference;
-	}
-
-	/**
-	 * Invalidates the caches, if needed, after the addition of the given response into store.
-	 * 
-	 * @param response the store
-	 * @param classLoader the class loader of the transaction that computed {@code response}
-	 * @throws ClassNotFoundException if some class cannot be found in the Takamaka code
-	 */
-	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws ClassNotFoundException {
 	}
 
 	public final void setStore(S store) {
