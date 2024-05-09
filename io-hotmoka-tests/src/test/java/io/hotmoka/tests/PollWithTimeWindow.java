@@ -129,7 +129,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// Tendermint is slower
-		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 1000L;
+		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
 		long duration = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 5000L;
 		long expired = start + duration + 100L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, duration);
@@ -164,7 +164,7 @@ class PollWithTimeWindow extends HotmokaTest {
 		StorageReference simpleSharedEntity = addSimpleSharedEntity(ONE, ONE, ONE, ONE);
 		StorageReference action = addAction();
 		// the Tendermint blockchain is slower
-		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 1000L;
+		long start = isUsingTendermint() || node instanceof RemoteNode ? 10_000L : 2000L;
 		StorageReference poll = addPollWithTimeWindow(simpleSharedEntity, action, start, 10_000L);
 		long now = System.currentTimeMillis();
 
