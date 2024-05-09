@@ -21,7 +21,7 @@ package io.hotmoka.node.local.api;
  * back and forth in time. Different moments of the store are identifies by state
  * identifiers, that can be checked out when needed.
  */
-public interface CheckableStore<S extends CheckableStore<S, N>, N extends LocalNode<?>> extends Store<S,N> {
+public interface CheckableStore<S extends CheckableStore<S>> extends Store<S> {
 
 	/**
 	 * Yields a unique identifier for the current state of this store.

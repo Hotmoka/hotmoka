@@ -122,7 +122,7 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> implements StoreTransaction<S> {
+public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> implements StoreTransaction<S> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final S store;
 

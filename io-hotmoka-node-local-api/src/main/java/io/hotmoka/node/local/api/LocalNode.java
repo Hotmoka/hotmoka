@@ -27,6 +27,6 @@ import io.hotmoka.node.api.NodeException;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public interface LocalNode<C extends LocalNodeConfig<?,?>> extends Node {
+public interface LocalNode<C extends LocalNodeConfig<C,?>> extends Node {
 	C getLocalConfig() throws NodeException;
 }

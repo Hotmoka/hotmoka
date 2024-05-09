@@ -54,7 +54,7 @@ import io.hotmoka.node.local.api.StoreException;
  * while the histories are kept in RAM.
  */
 @Immutable
-class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
+class DiskStore extends AbstractStore<DiskStore> {
 
 	/**
 	 * The path where the database of the store gets created.

@@ -55,7 +55,7 @@ import io.hotmoka.tendermint.abci.Server;
  * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, TendermintNodeConfig, TendermintStore> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 

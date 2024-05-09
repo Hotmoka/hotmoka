@@ -48,7 +48,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public interface StoreTransaction<S extends Store<S, ?>> {
+public interface StoreTransaction<S extends Store<S>> {
 
 	/**
 	 * Yields the store from which this transaction begun.

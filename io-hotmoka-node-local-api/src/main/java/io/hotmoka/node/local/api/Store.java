@@ -32,7 +32,7 @@ import io.hotmoka.node.api.values.StorageReference;
  * be used concurrently for executing more requests.
  */
 @ThreadSafe
-public interface Store<S extends Store<S, N>, N extends LocalNode<?>> extends AutoCloseable {
+public interface Store<S extends Store<S>> extends AutoCloseable {
 
 	/**
 	 * Yields the response of the transaction having the given reference.

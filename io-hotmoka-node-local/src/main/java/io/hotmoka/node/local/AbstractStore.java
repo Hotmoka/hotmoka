@@ -33,7 +33,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 
 @Immutable
-public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends AbstractLocalNode<N, ?, S>> implements Store<S, N> {
+public abstract class AbstractStore<S extends AbstractStore<S>> implements Store<S> {
 
 	/**
 	 * Cached recent transactions whose requests that have had their signature checked.
@@ -92,7 +92,7 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 		this.inflation = OptionalLong.empty();
 	}
 
-	protected AbstractStore(AbstractStore<S, N> toClone) {
+	protected AbstractStore(AbstractStore<S> toClone) {
 		this.executors = toClone.executors;
 		this.hasher = toClone.hasher;
 		this.checkedSignatures = toClone.checkedSignatures;
@@ -104,7 +104,7 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 		this.inflation = toClone.inflation;
 	}
 
-	protected AbstractStore(AbstractStore<S, N> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
+	protected AbstractStore(AbstractStore<S> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
 		this.executors = toClone.executors;
 		this.hasher = toClone.hasher;
 		this.checkedSignatures = checkedSignatures; //new LRUCache<>(checkedSignatures);

@@ -70,7 +70,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, N>, N extends AbstractLocalNode<N, ?, S>> extends AbstractStore<S, N> {
+public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>> extends AbstractStore<S> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -202,7 +202,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	}
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, N> toClone) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S> toClone) {
     	super(toClone);
 
     	this.env = toClone.env;
@@ -218,7 +218,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	this.rootOfRequests = toClone.rootOfRequests;
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, N> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
 
     	this.env = toClone.env;
