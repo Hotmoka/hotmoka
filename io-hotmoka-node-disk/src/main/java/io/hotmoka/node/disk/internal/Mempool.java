@@ -118,10 +118,10 @@ class Mempool {
 				catch (TransactionRejectedException e) {
 					node.signalOutcomeIsReady(Stream.of(current));
 				}
-	            catch (Throwable t) {
-	            	node.signalOutcomeIsReady(Stream.of(current));
-	            	LOGGER.log(Level.WARNING, "Failed to check transaction request", t);
-	    		}
+				catch (Throwable t) {
+					node.signalOutcomeIsReady(Stream.of(current));
+					LOGGER.log(Level.WARNING, "Failed to check transaction request", t);
+				}
 			}
 			catch (InterruptedException e) {
 				return;
@@ -133,11 +133,11 @@ class Mempool {
 	 * The body of the thread that executes requests. Its pops a request from the checked mempool and executes it.
 	 */
 	private void deliver() {
-		int counter = 0;
-		StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
+		try {
+			int counter = 0;
+			StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 
-		while (!Thread.currentThread().isInterrupted()) {
-			try {
+			while (!Thread.currentThread().isInterrupted()) {
 				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
 				if (current == null) {
 					if (counter > 0)
@@ -171,13 +171,13 @@ class Mempool {
 					}
 				}
 			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
-			catch (Throwable t) {
-				LOGGER.log(Level.WARNING, "Failed to deliver transaction request", t);
-			}
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return;
+		}
+		catch (Throwable t) {
+			LOGGER.log(Level.WARNING, "Failed to deliver transaction request", t);
 		}
 	}
 }

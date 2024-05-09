@@ -199,8 +199,8 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	}
 
 	@Override
-	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
-		return new TendermintStore(this, consensus, hasher);
+	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+		return new TendermintStore(this, consensus, config, hasher);
 	}
 
 	@Override

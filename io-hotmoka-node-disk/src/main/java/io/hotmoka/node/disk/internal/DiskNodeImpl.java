@@ -56,8 +56,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkStore(ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
-		return new DiskStore(this, consensus, hasher);
+	protected DiskStore mkStore(ConsensusConfig<?,?> consensus, DiskNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+		return new DiskStore(this, config.getDir(), consensus, hasher);
 	}
 
 	@Override

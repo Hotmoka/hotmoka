@@ -18,6 +18,7 @@ package io.hotmoka.node.tendermint.api;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * A node of a blockchain that relies on a Tendermint process.
@@ -30,5 +31,5 @@ public interface TendermintNode extends Node {
 	 * 
 	 * @return the configuration
 	 */
-	TendermintNodeConfig getLocalConfig();
+	TendermintNodeConfig getLocalConfig() throws NodeException;
 }

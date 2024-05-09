@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -34,13 +35,8 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	 */
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
-	public DiskStoreTransaction(DiskStore store) {
-		super(store);
-	}
-
-	@Override
-	public long getNow() {
-		return System.currentTimeMillis();
+	public DiskStoreTransaction(DiskStore store, ConsensusConfig<?,?> consensus, long now) {
+		super(store, consensus, now);
 	}
 
 	public boolean isJustStore() {

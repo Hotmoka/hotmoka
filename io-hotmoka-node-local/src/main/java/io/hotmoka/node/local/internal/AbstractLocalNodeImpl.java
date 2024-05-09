@@ -37,7 +37,6 @@ import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -49,8 +48,6 @@ import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
-import io.hotmoka.instrumentation.GasCostModels;
-import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.CodeFutures;
 import io.hotmoka.node.JarFutures;
@@ -143,11 +140,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	private final LRUCache<TransactionReference, String> recentlyRejectedRequestsErrors;
 
 	/**
-	 * True if this blockchain has been already closed. Used to avoid double-closing in the shutdown hook.
-	 */
-	private final AtomicBoolean closed;
-
-	/**
 	 * The store of this node.
 	 */
 	private volatile S store;
@@ -202,7 +194,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
 			this.recentlyRejectedRequestsErrors = new LRUCache<>(100, 1000);
 			this.semaphores = new ConcurrentHashMap<>();
-			this.closed = new AtomicBoolean();
 
 			if (consensus.isPresent()) {
 				deleteRecursively(config.getDir());  // cleans the directory where the node's data live
@@ -212,14 +203,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
 
 			if (consensus.isEmpty()) {
-				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build(), hasher);
+				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
 				consensus = Optional.of(storeTransaction.getConfigUncommitted());
 				storeTransaction.abort();
 			}
 
-			this.store = mkStore(consensus.get(), hasher);
+			this.store = mkStore(consensus.get(), config, hasher);
 
 			addShutdownHook(); // move down to the concrete classes
 		}
@@ -233,7 +224,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(ConsensusConfig<?,?> config, Hasher<TransactionRequest<?>> hasher);
+	protected abstract S mkStore(ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher);
 
 	@Override
 	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
@@ -247,16 +238,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 
 	public final S getStore() {
 		return store;
-	}
-
-	/**
-	 * Determines if this node has not been closed yet.
-	 * This thread-safe method can be called to avoid double-closing of a node.
-	 * 
-	 * @return true if and only if the node has not been closed yet
-	 */
-	protected final boolean isNotYetClosed() {
-		return !closed.getAndSet(true);
 	}
 
 	@Override
@@ -293,13 +274,10 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	@Override
-	public final C getLocalConfig() {
-		return config;
-	}
-
-	@Override
-	public final GasCostModel getGasCostModel() {
-		return GasCostModels.standard();
+	public final C getLocalConfig() throws NodeException {
+		try (var scope = mkScope()) {
+			return config;
+		}
 	}
 
 	@Override

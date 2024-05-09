@@ -175,6 +175,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	private final Hasher<TransactionRequest<?>> hasher;
 
+	private final long now;
+
 	/**
 	 * Enough gas for a simple get method.
 	 */
@@ -182,13 +184,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
-	protected AbstractStoreTransaction(S store) {
+	protected AbstractStoreTransaction(S store, ConsensusConfig<?,?> consensus, long now) {
 		this.store = store;
+		this.now = now;
 		this.checkedSignatures = store.checkedSignatures; //new LRUCache<>(store.checkedSignatures);
 		this.classLoaders = store.classLoaders; //new LRUCache<>(store.classLoaders); // TODO: clone
 		this.gasPrice = store.gasPrice;
 		this.inflation = store.inflation;
-		this.consensus = store.consensus;
+		this.consensus = consensus;
 		this.hasher = store.hasher;
 		this.gasConsumed = BigInteger.ZERO;
 		this.coins = BigInteger.ZERO;
@@ -199,6 +202,11 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 	@Override
 	public final S getStore() {
 		return store;
+	}
+
+	@Override
+	public final long getNow() {
+		return now;
 	}
 
 	@Override

@@ -34,6 +34,7 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.KeyValueStoreOnXodus;
@@ -137,10 +138,10 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
     	super(node, consensus, hasher);
 
-    	this.env = new Environment(node.getLocalConfig().getDir() + "/store");
+    	this.env = new Environment(config.getDir() + "/store");
 
 		var storeOfInfo = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var roots = new AtomicReference<Optional<byte[]>>();
@@ -290,8 +291,8 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	}
 
 	@Override
-	public StoreTransaction<S> beginTransaction(long now) throws StoreException {
-		return mkTransaction(env.beginTransaction(), now);
+	protected StoreTransaction<S> beginTransaction(ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return mkTransaction(env.beginTransaction(), consensus, now);
 	}
 
 	/**
@@ -344,7 +345,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
 
-	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, long now) throws StoreException;
+	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

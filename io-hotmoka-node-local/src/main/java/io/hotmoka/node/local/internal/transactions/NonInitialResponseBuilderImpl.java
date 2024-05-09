@@ -75,7 +75,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		super(reference, request, storeTransaction);
 
 		try {
-			this.gasCostModel = storeTransaction.getStore().getNode().getGasCostModel();
+			this.gasCostModel = consensus.getGasCostModel();
 			callerMustBeExternallyOwnedAccount();
 			gasLimitIsInsideBounds();
 			requestPromisesEnoughGas();
@@ -265,14 +265,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
 		if (request.getGasLimit().compareTo(ZERO) < 0)
 			throw new TransactionRejectedException("The gas limit cannot be negative");
-		else {
-			// view transactions have a maximum allowed gas that can vary between nodes,
-			// while non-view transactions must abide to a consensus-wide maximum, since they
-			// expand the store of the nodes
-			BigInteger maxGasAllowedForTransaction = isView() ? node.getLocalConfig().getMaxGasPerViewTransaction() : consensus.getMaxGasPerTransaction();
-			if (request.getGasLimit().compareTo(maxGasAllowedForTransaction) > 0)
-				throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + maxGasAllowedForTransaction + ")");
-		}
+		else if (request.getGasLimit().compareTo(consensus.getMaxGasPerTransaction()) > 0)
+			throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")");
 	}
 
 	/**

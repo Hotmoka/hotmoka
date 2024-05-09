@@ -36,6 +36,8 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.Entropies;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.instrumentation.GasCostModels;
+import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.ConsensusConfigBuilder;
 
@@ -430,6 +432,10 @@ public abstract class ConsensusConfigImpl<C extends ConsensusConfig<C,B>, B exte
 	@Override
 	public SignatureAlgorithm getSignatureForRequests() {
 		return signatureForRequests;
+	}
+
+	public GasCostModel getGasCostModel() {
+		return GasCostModels.standard();
 	}
 
 	/**

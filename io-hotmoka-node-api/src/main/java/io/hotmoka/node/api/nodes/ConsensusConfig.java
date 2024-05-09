@@ -22,6 +22,7 @@ import java.time.LocalDateTime;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.instrumentation.api.GasCostModel;
 
 /**
  * A specification of the consensus parameters of a Hotmoka node. This information
@@ -195,6 +196,13 @@ public interface ConsensusConfig<C extends ConsensusConfig<C,B>, B extends Conse
 	 * @return the signature algorithm
 	 */
 	SignatureAlgorithm getSignatureForRequests();
+
+	/**
+	 * Yields the gas cost model used for the instrumentation of the jars installed in the node.
+	 * 
+	 * @return the gas cost model
+	 */
+	GasCostModel getGasCostModel();
 
 	/**
 	 * Yields a TOML representation of this configuration.

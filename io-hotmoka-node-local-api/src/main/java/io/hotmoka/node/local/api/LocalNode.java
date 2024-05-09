@@ -20,8 +20,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.instrumentation.api.GasCostModel;
 import io.hotmoka.node.api.Node;
+import io.hotmoka.node.api.NodeException;
 
 /**
  * Partial implementation of a local (ie., non-remote) node.
@@ -31,7 +31,6 @@ import io.hotmoka.node.api.Node;
  */
 @ThreadSafe
 public interface LocalNode<C extends LocalNodeConfig<?,?>> extends Node {
-	C getLocalConfig();
-	GasCostModel getGasCostModel();
+	C getLocalConfig() throws NodeException;
 	<T> Future<T> submit(Callable<T> task);
 }

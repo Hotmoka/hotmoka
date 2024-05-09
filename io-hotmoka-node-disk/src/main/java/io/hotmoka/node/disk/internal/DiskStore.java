@@ -83,12 +83,12 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 	/**
      * Creates a state for a node.
      * 
-	 * @param dir the path where the database of the store gets created
+	 * @param dir the path where the database of the store will be persisted
      */
-    DiskStore(DiskNodeImpl node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
+    DiskStore(DiskNodeImpl node, Path dir, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
     	super(node, consensus, hasher);
 
-    	this.dir = node.getLocalConfig().getDir();
+    	this.dir = dir;
     	this.requests = new ConcurrentHashMap<>();
     	this.responses = new ConcurrentHashMap<>();
     	this.histories = new ConcurrentHashMap<>();
@@ -159,8 +159,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 	}
 
 	@Override
-	public DiskStoreTransaction beginTransaction(long now) {
-		return new DiskStoreTransaction(this);
+	protected DiskStoreTransaction beginTransaction(ConsensusConfig<?,?> consensus, long now) {
+		return new DiskStoreTransaction(this, consensus, now);
 	}
 
 	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {

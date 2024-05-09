@@ -30,6 +30,7 @@ module io.hotmoka.node.api {
 
 	requires transitive io.hotmoka.marshalling.api;
 	requires transitive io.hotmoka.crypto.api;
+	requires transitive io.hotmoka.instrumentation.api;
 	requires io.hotmoka.annotations;
 	requires io.hotmoka.closeables.api;
 }

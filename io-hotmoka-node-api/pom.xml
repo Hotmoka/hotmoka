@@ -16,6 +16,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>io.hotmoka</groupId>
+      <artifactId>io-hotmoka-instrumentation-api</artifactId>
+      <version>${hotmoka.version}</version>
+    </dependency>
+    <dependency>
       <groupId>io.hotmoka.annotations</groupId>
       <artifactId>io-hotmoka-annotations</artifactId>
       <version>${io.hotmoka.annotations.version}</version>

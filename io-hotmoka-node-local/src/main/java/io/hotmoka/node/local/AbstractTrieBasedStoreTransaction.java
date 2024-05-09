@@ -3,6 +3,7 @@ package io.hotmoka.node.local;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -49,8 +50,8 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
      */
 	private volatile TrieOfRequests trieOfRequests;
 
-	protected AbstractTrieBasedStoreTransaction(S store, Transaction txn) throws StoreException {
-		super(store);
+	protected AbstractTrieBasedStoreTransaction(S store, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
+		super(store, consensus, now);
 
 		this.txn = txn;
 		this.trieOfResponses = store.mkTrieOfResponses(txn);

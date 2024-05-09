@@ -92,6 +92,14 @@ public interface Store<S extends Store<S, N>, N extends LocalNode<?>> extends Au
 	 */
 	StoreTransaction<S> beginTransaction(long now) throws StoreException;
 
+	/**
+	 * Starts a view transaction. It assumes the time of the transaction to be the
+	 * current time UTC and the maximal gas allowed for the transaction to be
+	 * that given in the local configuration of the node:
+	 * {@link LocalNodeConfig#getMaxGasPerViewTransaction()}.
+	 */
+	StoreTransaction<S> beginViewTransaction() throws StoreException;
+
 	@Override
 	void close() throws StoreException, InterruptedException;
 }

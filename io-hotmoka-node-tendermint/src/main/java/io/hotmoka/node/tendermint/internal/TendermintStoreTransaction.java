@@ -15,6 +15,7 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -33,11 +34,6 @@ import io.hotmoka.xodus.env.Transaction;
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore> {
 
 	/**
-	 * The time for the execution performed inside this transaction.
-	 */
-	private final long now;
-
-	/**
 	 * The current validators set in this store transaction. This information could be recovered from the store
 	 * transaction itself, but this field is used for caching. The validators set might be missing if the
 	 * node is not initialized yet.
@@ -46,10 +42,8 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransaction.class.getName());
 
-	protected TendermintStoreTransaction(TendermintStore store, Transaction txn, long now) throws StoreException {
-		super(store, txn);
-
-		this.now = now;
+	protected TendermintStoreTransaction(TendermintStore store, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
+		super(store, consensus, now, txn);
 	}
 
 	@Override
@@ -60,11 +54,6 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	@Override
 	protected void setError(TransactionReference reference, String error) throws StoreException {
 		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
-	}
-
-	@Override
-	public long getNow() {
-		return now;
 	}
 
 	public final Optional<TendermintValidator[]> getTendermintValidatorsUncommitted() throws StoreException {

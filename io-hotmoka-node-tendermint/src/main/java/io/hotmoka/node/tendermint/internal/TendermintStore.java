@@ -32,6 +32,7 @@ import io.hotmoka.node.local.AbstractTrieBasedStore;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.xodus.env.Transaction;
 
 /**
@@ -52,8 +53,8 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
      * 
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
-    	super(node, consensus, hasher);
+    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+    	super(node, consensus, config, hasher);
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -124,7 +125,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransaction mkTransaction(Transaction txn, long now) throws StoreException {
-		return new TendermintStoreTransaction(this, txn, now);
+	protected TendermintStoreTransaction mkTransaction(Transaction txn, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransaction(this, consensus, now, txn);
 	}
 }
