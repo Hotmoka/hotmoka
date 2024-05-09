@@ -102,6 +102,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
@@ -731,7 +732,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 				}
 			}
 		}
-		catch (TransactionRejectedException e) {
+		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException e) {
 			LOGGER.log(Level.WARNING, "could not reward the validators", e);
 			throw new StoreException("Could not reward the validators", e);
 		}
@@ -895,15 +896,15 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		return getManifestUncommitted().map(_manifest -> getReferenceFieldUncommitted(_manifest, FieldSignatures.MANIFEST_VERSIONS_FIELD));		
 	}
 
-	private BigInteger getBalanceUncommitted(StorageReference contract) {
+	private BigInteger getBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerFieldUncommitted(contract, FieldSignatures.BALANCE_FIELD);
 	}
 
-	private BigInteger getRedBalanceUncommitted(StorageReference contract) {
+	private BigInteger getRedBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerFieldUncommitted(contract, FieldSignatures.RED_BALANCE_FIELD);
 	}
 
-	private BigInteger getCurrentSupplyUncommitted(StorageReference validators) {
+	private BigInteger getCurrentSupplyUncommitted(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerFieldUncommitted(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
 
@@ -918,12 +919,12 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final BigInteger getNonceUncommitted(StorageReference account) {
+	public final BigInteger getNonceUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerFieldUncommitted(account, FieldSignatures.EOA_NONCE_FIELD);
 	}
 
 	@Override
-	public final BigInteger getTotalBalanceUncommitted(StorageReference contract) {
+	public final BigInteger getTotalBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBalanceUncommitted(contract).add(getRedBalanceUncommitted(contract));
 	}
 
@@ -949,7 +950,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException {
+	public final Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws UnknownReferenceException, StoreException {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
 		return getHistoryUncommitted(object)
@@ -959,18 +960,20 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException {
-		return getHistoryUncommitted(object)
-				.map(transaction -> getLastUpdateUncommitted(object, field, transaction))
+	public final UpdateOfField getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		Stream<TransactionReference> history = getHistoryUncommitted(object);
+
+		return CheckSupplier.check(StoreException.class, () -> history.map(UncheckFunction.uncheck(transaction -> getLastUpdateMustExistUncommitted(object, field, transaction)))
 				.filter(Optional::isPresent)
 				.map(Optional::get)
-				.findFirst();
+				.findFirst())
+				.orElseThrow(() -> new FieldNotFoundException(field));
 	}
 
 	@Override
-	public final Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) {
+	public final UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		// accesses directly the transaction that created the object
-		return getLastUpdateUncommitted(object, field, object.getTransaction());
+		return getLastUpdateUncommitted(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
 	}
 
 	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
@@ -1099,27 +1102,26 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
-			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).get().getValue();
+			return (StorageReference) getLastUpdateToFieldUncommitted(object, field).getValue();
 		}
-		catch (StoreException e) {
+		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 			throw new RuntimeException(e); // TODO
 		}
 	}
 
-	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) {
-		try {
-			return ((BigIntegerValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		StorageValue value = getLastUpdateToFieldUncommitted(object, field).getValue();
+		if (value instanceof BigIntegerValue biv)
+			return biv.getValue();
+		else
+			throw new FieldNotFoundException(field);
 	}
 
 	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) {
 		try {
-			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).get().getValue()).getValue();
+			return ((StringValue) getLastUpdateToFieldUncommitted(object, field).getValue()).getValue();
 		}
-		catch (StoreException e) {
+		catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 			throw new RuntimeException(e); // TODO
 		}
 	}
@@ -1129,27 +1131,40 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * 
 	 * @param object the reference of the object
 	 * @param field the field of the object
-	 * @param transaction the reference to the transaction
+	 * @param reference the reference to the transaction
 	 * @return the update, if any. If the field of {@code object} was not modified during
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
-	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference transaction) {
-		try {
-			TransactionResponse response = getResponseUncommitted(transaction)
-					.orElseThrow(() -> new StoreException("Unknown transaction reference " + transaction));
+	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
+		if (getResponseUncommitted(reference).orElseThrow(() -> new UnknownReferenceException(reference)) instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates()
+					.filter(update -> update instanceof UpdateOfField)
+					.map(update -> (UpdateOfField) update)
+					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+					.findFirst();
+		else
+			throw new StoreException("Transaction reference " + reference + " does not contain updates");
+	}
 
-			if (response instanceof TransactionResponseWithUpdates trwu)
-				return trwu.getUpdates()
-						.filter(update -> update instanceof UpdateOfField)
-						.map(update -> (UpdateOfField) update)
-						.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-						.findFirst();
-			else
-				throw new StoreException("Transaction reference " + transaction + " does not contain updates");
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	/**
+	 * Yields the update to the given field of the object at the given reference, generated during a given transaction.
+	 * The object must exist, or otherwise the store is corrupted.
+	 * 
+	 * @param object the reference of the object
+	 * @param field the field of the object
+	 * @param reference the reference to the transaction
+	 * @return the update, if any. If the field of {@code object} was not modified during
+	 *         the {@code reference}, this method returns an empty optional
+	 */
+	private Optional<UpdateOfField> getLastUpdateMustExistUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws StoreException {
+		if (getResponseUncommitted(reference).orElseThrow(() -> new StoreException("Object " + object + " is part of the history but cannot be found in store")) instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates()
+					.filter(update -> update instanceof UpdateOfField)
+					.map(update -> (UpdateOfField) update)
+					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+					.findFirst();
+		else
+			throw new StoreException("Transaction reference " + reference + " does not contain updates");
 	}
 
 	/**
@@ -1184,7 +1199,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * @return the simplified history, with {@code added} in front followed by a subset of {@code old}
 	 */
 	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
-		Stream<TransactionReference> old = getHistoryUncommitted(object);
+		Stream<TransactionReference> old;
+		
+		try {
+			old = getHistoryUncommitted(object);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException(e); // TODO
+		}
 
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update

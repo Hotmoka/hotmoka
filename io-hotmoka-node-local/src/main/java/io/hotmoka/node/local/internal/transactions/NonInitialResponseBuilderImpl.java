@@ -47,6 +47,7 @@ import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 
@@ -184,15 +185,23 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws NoSuchElementException 
 	 * @throws UnknownReferenceException 
 	 */
-	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
+	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, StoreException {
+		ClassTag classTag;
+		
 		try {
-			ClassTag classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+			classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+		}
+		catch (UnknownReferenceException e) {
+			throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store");
+		}
+
+		try {
 			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 			if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-				throw new TransactionRejectedException("the caller of a request must be an externally owned account");
+				throw new TransactionRejectedException("The caller of a request must be an externally owned account");
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+		catch (ClassNotFoundException e) {
+			throw new TransactionRejectedException("The class " + classTag + " of the caller cannot be resolved");
 		}
 	}
 
@@ -238,13 +247,19 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the nonce of the caller is not equal to that in {@code request}
 	 */
-	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException {
+	private void callerAndRequestMustAgreeOnNonce() throws TransactionRejectedException, StoreException {
 		// calls to @View methods do not check the nonce
 		if (!isView()) {
-			BigInteger expected = storeTransaction.getNonceUncommitted(request.getCaller());
-			if (!expected.equals(request.getNonce()))
-				throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
+			try {
+				BigInteger expected = storeTransaction.getNonceUncommitted(request.getCaller());
+				if (!expected.equals(request.getNonce()))
+					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 					+ " but the account " + request.getCaller() + " contains " + expected);
+			}
+			catch (UnknownReferenceException | FieldNotFoundException e) {
+				// we have already verified that the caller is an externally owned account, so this can only be a store corruption problem
+				throw new StoreException(e);
+			}
 		}
 	}
 
@@ -296,12 +311,21 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the payer is not rich enough for that
 	 */
-	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException {
-		BigInteger cost = costOf(request.getGasLimit());
-		BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(request.getCaller());
+	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
+		try {
+			BigInteger cost = costOf(request.getGasLimit());
+			BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(request.getCaller());
 
-		if (totalBalance.subtract(cost).signum() < 0)
-			throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
+			if (totalBalance.subtract(cost).signum() < 0)
+				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
+		}
+		catch (UnknownReferenceException e) {
+			// we have verified that the caller was an account, so this can only be a store corruption problem
+			throw new StoreException(e);
+		}
+		catch (FieldNotFoundException e) {
+			throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field");
+		}
 	}
 
 	/**

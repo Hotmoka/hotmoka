@@ -106,7 +106,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException;
+	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws UnknownReferenceException, StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.
@@ -129,19 +129,19 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 
 	StorageReference getCreatorUncommitted(StorageReference event);
 
-	BigInteger getNonceUncommitted(StorageReference account);
+	BigInteger getNonceUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	BigInteger getTotalBalanceUncommitted(StorageReference contract);
+	BigInteger getTotalBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
 	String getClassNameUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
 
 	ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
 
-	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException;
+	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws UnknownReferenceException, StoreException;
 
-	Optional<UpdateOfField> getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws StoreException;
+	UpdateOfField getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	Optional<UpdateOfField> getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field);
+	UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
 	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 

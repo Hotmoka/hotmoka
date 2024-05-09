@@ -38,9 +38,9 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
@@ -160,14 +160,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
-		protected ResponseCreator() throws TransactionRejectedException {
-			try {
-				this.deserializer = new Deserializer(storeTransaction, classLoader);
-				this.updatesExtractor = new UpdatesExtractorFromRAM(classLoader);
-			}
-			catch (Throwable t) {
-				throw new TransactionRejectedException(t);
-			}
+		protected ResponseCreator() {
+			this.deserializer = new Deserializer(storeTransaction, classLoader);
+			this.updatesExtractor = new UpdatesExtractorFromRAM(classLoader);
 		}
 
 		public final Response create() throws TransactionRejectedException {
@@ -261,11 +256,9 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
 			try {
-				UpdateOfField update = storeTransaction.getLastUpdateToFieldUncommitted(object, field)
-						.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
-				return deserializer.deserialize(update.getValue());
+				return deserializer.deserialize(storeTransaction.getLastUpdateToFieldUncommitted(object, field).getValue());
 			}
-			catch (StoreException e) {
+			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 				throw new DeserializationError(e);
 			}
 		}
@@ -280,10 +273,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the value of the field
 		 */
 		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
-			UpdateOfField update = storeTransaction.getLastUpdateToFinalFieldUncommitted(object, field)
-				.orElseThrow(() -> new DeserializationError("did not find the last update for " + field + " of " + object));
-
-			return deserializer.deserialize(update.getValue());
+			try {
+				return deserializer.deserialize(storeTransaction.getLastUpdateToFinalFieldUncommitted(object, field).getValue());
+			}
+			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
+				throw new DeserializationError(e); // TODO
+			}
 		}
 
 		/**
