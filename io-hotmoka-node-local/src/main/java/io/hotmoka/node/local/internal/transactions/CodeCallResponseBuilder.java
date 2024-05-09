@@ -27,6 +27,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.CheckRunnable;
+import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
@@ -38,6 +40,7 @@ import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.Serializer;
 import io.hotmoka.whitelisting.Dummy;
@@ -64,7 +67,7 @@ public abstract class CodeCallResponseBuilder
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 
 		try {
@@ -86,14 +89,11 @@ public abstract class CodeCallResponseBuilder
 	 * @throws UnknownReferenceException 
 	 * @throws NoSuchElementException 
 	 */
-	private void argumentsAreExported() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
-		List<StorageReference> args = request.actuals()
+	private void argumentsAreExported() throws TransactionRejectedException, StoreException {
+		CheckRunnable.check(TransactionRejectedException.class, StoreException.class, () -> request.actuals()
 			.filter(actual -> actual instanceof StorageReference)
 			.map(actual -> (StorageReference) actual)
-			.collect(Collectors.toList());
-
-		for (var arg: args)
-			enforceExported(arg);
+			.forEachOrdered(UncheckConsumer.uncheck(this::enforceExported)));
 	}
 
 	/**
@@ -101,18 +101,22 @@ public abstract class CodeCallResponseBuilder
 	 * 
 	 * @param reference the transaction reference
 	 * @throws TransactionRejectedException of the type of the object in store is not exported
-	 * @throws ClassNotFoundException if the class tag of {@code reference} cannot be found in the Takamaka program
-	 * @throws NodeException
-	 * @throws UnknownReferenceException 
+	 * @throws StoreException if the class tag of {@code reference} cannot be found in the Takamaka program
 	 */
-	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
+	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
 		try {
 			var clazz = storeTransaction.getClassTagUncommitted(reference).getClazz();
-			if (!classLoader.isExported(clazz.getName()))
-				throw new TransactionRejectedException("cannot pass as argument a value of the non-exported type " + clazz);
+
+			try {
+				if (!classLoader.isExported(clazz.getName()))
+					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz);
+			}
+			catch (ClassNotFoundException e) {
+				throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved");
+			}
 		}
-		catch (NoSuchElementException e) {
-			throw new UnknownReferenceException(e);
+		catch (UnknownReferenceException e) {
+			throw new TransactionRejectedException("Object " + reference + " cannot be found in store");
 		}
 	}
 

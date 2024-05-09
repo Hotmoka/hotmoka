@@ -37,7 +37,6 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.internal.KeyValueStoreOnXodus;
 import io.hotmoka.node.local.internal.TrieOfErrors;
 import io.hotmoka.node.local.internal.TrieOfHistories;
@@ -70,7 +69,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>> extends AbstractStore<S> {
+public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransaction<S, T>> extends AbstractStore<S, T> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -202,23 +201,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
     	}
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S> toClone) {
-    	super(toClone);
-
-    	this.env = toClone.env;
-    	this.storeOfResponses = toClone.storeOfResponses;
-    	this.storeOfInfo = toClone.storeOfInfo;
-    	this.storeOfErrors = toClone.storeOfErrors;
-    	this.storeOfHistories = toClone.storeOfHistories;
-    	this.storeOfRequests = toClone.storeOfRequests;
-    	this.rootOfResponses = toClone.rootOfResponses;
-    	this.rootOfInfo = toClone.rootOfInfo;
-    	this.rootOfErrors = toClone.rootOfErrors;
-    	this.rootOfHistories = toClone.rootOfHistories;
-    	this.rootOfRequests = toClone.rootOfRequests;
-    }
-
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
 
     	this.env = toClone.env;
@@ -255,8 +238,9 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 	@Override
 	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
-			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-				(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())));
+			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())
+			));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
@@ -266,8 +250,9 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 	@Override
 	public Optional<String> getError(TransactionReference reference) throws StoreException {
 		try {
-			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
-					(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference))));
+			return CheckSupplier.check(TrieException.class, StoreException.class, () -> 
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference))
+			));
 		}
 		catch (ExodusException | TrieException e) {
 			throw new StoreException(e);
@@ -275,15 +260,21 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 	}
 
 	@Override
-	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)));
+	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) throws StoreException {
+		try {
+			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference))
+			));
+		}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
 	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException {
 		try {
-			return CheckSupplier.check(TrieException.class, () -> env.computeInReadonlyTransaction
+			return CheckSupplier.check(TrieException.class, StoreException.class, () -> env.computeInReadonlyTransaction
 				(UncheckFunction.uncheck(txn -> mkTrieOfHistories(txn).get(object))).orElse(Stream.empty()));
 		}
 		catch (ExodusException | TrieException e) {
@@ -292,7 +283,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 	}
 
 	@Override
-	protected StoreTransaction<S> beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+	protected T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		return mkTransaction(env.beginTransaction(), executors, consensus, now);
 	}
 
@@ -301,9 +292,15 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 	 * 
 	 * @return the number of commits
 	 */
-	public long getNumberOfCommits() {
-		return env.computeInReadonlyTransaction // TODO: recheck
-			(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits()));
+	public long getNumberOfCommits() throws StoreException {
+		try {
+			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getNumberOfCommits())
+			));
+		}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	public byte[] getStateId() throws StoreException {
@@ -343,10 +340,16 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S>
 
 	public void moveRootBranchToThis() throws StoreException {
 		var rootAsBI = ByteIterable.fromBytes(mergeRootsOfTries());
-		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+
+		try {
+			env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
+		}
+		catch (ExodusException e) {
+			throw new StoreException(e);
+		}
 	}
 
-	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	protected abstract T mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

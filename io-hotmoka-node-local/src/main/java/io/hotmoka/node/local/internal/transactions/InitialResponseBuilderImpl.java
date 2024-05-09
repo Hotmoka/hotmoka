@@ -40,7 +40,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * @param request the request of the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 
 		try {

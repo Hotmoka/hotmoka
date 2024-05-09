@@ -42,7 +42,7 @@ import io.hotmoka.xodus.env.Transaction;
  * Tendermint, since it keeps such information inside its blocks.
  */
 @Immutable
-public class TendermintStore extends AbstractTrieBasedStore<TendermintStore> {
+public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, TendermintStoreTransaction> {
 
 	/**
 	 * The hasher used to merge the hashes of the many tries.

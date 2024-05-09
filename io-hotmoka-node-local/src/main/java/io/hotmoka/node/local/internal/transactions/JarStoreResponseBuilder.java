@@ -49,7 +49,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

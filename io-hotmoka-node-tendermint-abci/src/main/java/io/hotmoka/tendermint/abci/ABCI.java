@@ -24,6 +24,7 @@ limitations under the License.
 package io.hotmoka.tendermint.abci;
 
 import io.grpc.stub.StreamObserver;
+import io.hotmoka.node.api.NodeException;
 import tendermint.abci.ABCIApplicationGrpc;
 import tendermint.abci.Types.RequestBeginBlock;
 import tendermint.abci.Types.RequestCheckTx;
@@ -82,8 +83,13 @@ public abstract class ABCI {
 
 		@Override
 	    public final void info(RequestInfo request, StreamObserver<ResponseInfo> responseObserver) {
-	        responseObserver.onNext(ABCI.this.info(request));
-	        responseObserver.onCompleted();
+			try {
+				responseObserver.onNext(ABCI.this.info(request));
+				responseObserver.onCompleted();
+			}
+			catch (NodeException e) {
+				responseObserver.onError(e); // TODO: do the same for the other methods of the ABCI
+			}
 	    }
 
 		@Override
@@ -150,8 +156,9 @@ public abstract class ABCI {
 	 * 
 	 * @param request the request
 	 * @return the response
+	 * @throws NodeException 
 	 */
-	protected abstract ResponseInfo info(RequestInfo request);
+	protected abstract ResponseInfo info(RequestInfo request) throws NodeException;
 
 	/**
 	 * Executes a preliminary check about the validity of a transaction request.

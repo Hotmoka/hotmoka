@@ -15,7 +15,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStoreTransaction;
 import io.hotmoka.node.local.api.StoreException;
 
-public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
+public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, DiskStoreTransaction> {
 	private final ConcurrentMap<TransactionReference, TransactionRequest<?>> requests = new ConcurrentHashMap<>();
 	private final ConcurrentMap<TransactionReference, TransactionResponse> responses = new ConcurrentHashMap<>();
 
@@ -38,10 +38,6 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 
 	public DiskStoreTransaction(DiskStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		super(store, executors, consensus, now);
-	}
-
-	public boolean isJustStore() {
-		return requests.isEmpty() && responses.isEmpty() && histories.isEmpty();
 	}
 
 	@Override

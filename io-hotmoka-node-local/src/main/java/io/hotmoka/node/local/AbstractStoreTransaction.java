@@ -33,7 +33,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
@@ -52,6 +51,7 @@ import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.crypto.api.SignatureAlgorithm;
+import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
 import io.hotmoka.node.MethodSignatures;
@@ -122,7 +122,7 @@ import io.hotmoka.node.local.internal.transactions.StaticViewMethodCallResponseB
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> implements StoreTransaction<S> {
+public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T extends AbstractStoreTransaction<S, T>> implements StoreTransaction<S, T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransaction.class.getName());
 	private final S store;
 
@@ -278,7 +278,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 	}
 
 	@Override
-	public <T> Future<T> submit(Callable<T> task) {
+	public <X> Future<X> submit(Callable<X> task) {
 		return executors.submit(task);
 	}
 
@@ -517,6 +517,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 		try {
 			return classLoader.isConsensusUpdateEvent(getClassNameUncommitted(event));
 		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Event " + event + " is not an object in store", e);
+		}
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);
 		}
@@ -555,6 +558,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 		try {
 			return classLoader.isGasPriceUpdateEvent(getClassNameUncommitted(event));
 		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Event " + event + " is not an object in store", e);
+		}
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);
 		}
@@ -592,6 +598,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isInflationUpdateEvent(getClassNameUncommitted(event));
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);
@@ -851,9 +860,16 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 
 	@Override
 	public final Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		return getManifestUncommitted()
-				.map(this::getClassTagUncommitted)
-				.map(ClassTag::getJar);
+		var maybeManifest = getManifestUncommitted();
+		if (maybeManifest.isEmpty())
+			return Optional.empty();
+
+		try {
+			return Optional.of(getClassTagUncommitted(maybeManifest.get()).getJar());
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The manifest is set to something that is not an object", e);
+		}
 	}
 
 	@Override
@@ -912,25 +928,24 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 	}
 
 	@Override
-	public final String getClassNameUncommitted(StorageReference reference) {
+	public final String getClassNameUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException {
 		return getClassTagUncommitted(reference).getClazz().getName();
 	}
 
 	@Override
-	public final ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException {
+	public final ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException {
 		// we go straight to the transaction that created the object
-		try {
-			return getResponseUncommitted(reference.getTransaction()) // TODO: cache it?
-					.filter(response -> response instanceof TransactionResponseWithUpdates)
-					.flatMap(response -> ((TransactionResponseWithUpdates) response).getUpdates()
-							.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
-							.map(update -> (ClassTag) update)
-							.findFirst())
-					.orElseThrow(() -> new NoSuchElementException("Object " + reference + " does not exist"));
+		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference.getTransaction());
+		if (maybeResponse.isEmpty())
+			throw new UnknownReferenceException("Object " + reference + " does not exist");
+		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
+			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
+					.map(update -> (ClassTag) update)
+					.findFirst()
+					.orElseThrow(() -> new UnknownReferenceException("Object " + reference + " does not exist"));
 		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
+		else
+			throw new UnknownReferenceException("Transaction reference " + reference + " does not contain updates");
 	}
 
 	@Override
@@ -938,7 +953,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
 		return getHistoryUncommitted(object)
-				.flatMap(UncheckFunction.uncheck(transaction -> enforceHasUpdates(getResponseUncommitted(transaction).get()).getUpdates())) // TODO: cache it? recheck
+				.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(this::getUpdates)))
 				.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
 				.map(update -> (UpdateOfField) update);
 	}
@@ -1072,11 +1087,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S>> imple
 	 */
 	protected abstract void setManifest(StorageReference manifest) throws StoreException;
 
-	private static TransactionResponseWithUpdates enforceHasUpdates(TransactionResponse response) { // TODO: remove?
-		if (response instanceof TransactionResponseWithUpdates trwu)
-			return trwu;
+	private Stream<Update> getUpdates(TransactionReference reference) throws StoreException {
+		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference);
+		if (maybeResponse.isEmpty())
+			throw new StoreException("Transaction " + maybeResponse.get() + " belongs to the histories but is not present in store");
+		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+			return trwu.getUpdates();
 		else
-			throw new RuntimeException("Transaction " + response + " does not contain updates");
+			throw new StoreException("Transaction " + maybeResponse.get() + " belongs to the histories but does not contain updates");
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) {

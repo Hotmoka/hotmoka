@@ -28,9 +28,7 @@ import java.util.stream.Stream;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
@@ -58,7 +56,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 
 		try {
@@ -71,7 +69,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 	}
 
-	private void receiverIsExported() throws TransactionRejectedException, ClassNotFoundException, NodeException, UnknownReferenceException {
+	private void receiverIsExported() throws TransactionRejectedException, StoreException {
 		enforceExported(request.getReceiver());
 	}
 

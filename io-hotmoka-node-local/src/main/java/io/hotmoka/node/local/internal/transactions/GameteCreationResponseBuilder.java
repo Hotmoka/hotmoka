@@ -43,7 +43,7 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

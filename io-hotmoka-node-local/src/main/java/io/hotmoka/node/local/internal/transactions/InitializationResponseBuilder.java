@@ -40,7 +40,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

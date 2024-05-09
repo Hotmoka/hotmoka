@@ -63,7 +63,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 */
 	private final TransactionReference reference;
 
-	protected final StoreTransaction<?> storeTransaction;
+	protected final StoreTransaction<?,?> storeTransaction;
 
 	/**
 	 * The class loader used for the transaction.
@@ -88,7 +88,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param storeTransaction the transaction where the updates to the store get accumulated
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		try {
 			this.storeTransaction = storeTransaction;
 			this.request = request;

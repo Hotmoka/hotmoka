@@ -40,7 +40,7 @@ public abstract class AbstractInitialResponseBuilder<Request extends InitialTran
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> transaction) throws TransactionRejectedException {
+	protected AbstractInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?,?> transaction) throws TransactionRejectedException {
 		super(reference, request, transaction);
 	}
 

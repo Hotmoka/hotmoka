@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import java.math.BigInteger;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.Callable;
@@ -29,6 +28,7 @@ import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
@@ -48,7 +48,7 @@ import io.hotmoka.node.api.values.StorageValue;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public interface StoreTransaction<S extends Store<S>> {
+public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransaction<S,T>> {
 
 	/**
 	 * Yields the store from which this transaction begun.
@@ -86,7 +86,7 @@ public interface StoreTransaction<S extends Store<S>> {
 	 */
 	ConsensusConfig<?,?> getConfigUncommitted() throws StoreException;
 
-	<T> Future<T> submit(Callable<T> task);
+	<X> Future<X> submit(Callable<X> task);
 
 	/**
 	 * Yields the response of the transaction having the given reference.
@@ -133,9 +133,9 @@ public interface StoreTransaction<S extends Store<S>> {
 
 	BigInteger getTotalBalanceUncommitted(StorageReference contract);
 
-	String getClassNameUncommitted(StorageReference reference);
+	String getClassNameUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
 
-	ClassTag getClassTagUncommitted(StorageReference reference) throws NoSuchElementException;
+	ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
 
 	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws StoreException;
 

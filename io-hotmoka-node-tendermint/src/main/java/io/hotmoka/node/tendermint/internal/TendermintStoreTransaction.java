@@ -16,6 +16,7 @@ import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
@@ -32,7 +33,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.env.Transaction;
 
-public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore> {
+public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore, TendermintStoreTransaction> {
 
 	/**
 	 * The current validators set in this store transaction. This information could be recovered from the store
@@ -155,6 +156,9 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
 			return classLoader.isValidatorsUpdateEvent(getClassNameUncommitted(event));
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Event " + event + " is not an object in store", e);
 		}
 		catch (ClassNotFoundException e) {
 			throw new StoreException(e);

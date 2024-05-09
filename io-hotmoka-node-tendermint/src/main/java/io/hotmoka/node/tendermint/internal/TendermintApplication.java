@@ -31,6 +31,7 @@ import com.google.protobuf.ByteString;
 import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.StoreException;
@@ -197,10 +198,15 @@ class TendermintApplication extends ABCI {
 	}
 
 	@Override
-	protected ResponseInfo info(RequestInfo request) {
-		return ResponseInfo.newBuilder()
-	       .setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // hash of the store used for consensus
-	       .setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
+	protected ResponseInfo info(RequestInfo request) throws NodeException {
+		try {
+			return ResponseInfo.newBuilder()
+				.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // hash of the store used for consensus
+				.setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
@@ -214,9 +220,9 @@ class TendermintApplication extends ABCI {
         	try {
         		node.checkRequest(hotmokaRequest);
         	}
-        	catch (Throwable t) {
+        	catch (TransactionRejectedException e) {
         		node.signalOutcomeIsReady(Stream.of(hotmokaRequest));
-        		throw t;
+        		throw e;
         	}
 
         	responseBuilder.setCode(0);
@@ -234,15 +240,8 @@ class TendermintApplication extends ABCI {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	try {
-    		transaction = (TendermintStoreTransaction) node.getStore().beginTransaction(timeOfBlock(request)); // TODO: improve generic types and avoid cast
-    	}
-    	catch (StoreException e) {
-    		throw new RuntimeException(e); // TODO
-    	}
-
-    	logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
-
-    	try {
+    		transaction = node.getStore().beginTransaction(timeOfBlock(request));
+    		logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     		transaction.rewardValidators(behaving, misbehaving);
     	}
     	catch (StoreException e) {

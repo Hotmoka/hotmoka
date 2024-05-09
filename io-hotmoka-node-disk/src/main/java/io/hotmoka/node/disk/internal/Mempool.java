@@ -28,7 +28,6 @@ import java.util.stream.Stream;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,
@@ -135,7 +134,7 @@ class Mempool {
 	private void deliver() {
 		try {
 			int counter = 0;
-			StoreTransaction<DiskStore> transaction = node.getStore().beginTransaction(System.currentTimeMillis());
+			DiskStoreTransaction transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 
 			while (!Thread.currentThread().isInterrupted()) {
 				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);

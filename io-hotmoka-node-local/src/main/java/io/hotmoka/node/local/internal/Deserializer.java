@@ -60,7 +60,7 @@ public class Deserializer {
 	/**
 	 * The transaction for which deserialization is performed.
 	 */
-	private final StoreTransaction<?> storeTransaction;
+	private final StoreTransaction<?,?> storeTransaction;
 
 	/**
 	 * The class loader that can be used to load classes.
@@ -123,7 +123,7 @@ public class Deserializer {
 	 * 
 	 * @param builder the response builder for which deserialization is performed
 	 */
-	public Deserializer(StoreTransaction<?> storeTransaction, EngineClassLoader classLoader) {
+	public Deserializer(StoreTransaction<?,?> storeTransaction, EngineClassLoader classLoader) {
 		this.storeTransaction = storeTransaction;
 		this.classLoader = classLoader;
 	}

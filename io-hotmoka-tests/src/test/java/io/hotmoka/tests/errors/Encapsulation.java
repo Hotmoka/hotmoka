@@ -18,6 +18,8 @@ package io.hotmoka.tests.errors;
 
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.security.InvalidKeyException;
 import java.security.SignatureException;
@@ -95,9 +97,8 @@ class Encapsulation extends HotmokaTest {
 			.get();
 
 		// we call clear() on list2, directly! This will fail since list2 is not exported
-		throwsTransactionRejectedWithCause("cannot pass as argument a value of the non-exported type io.takamaka.code.util.",
-			() -> addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
-			MethodSignatures.ofVoid(Constants.STORAGE_LIST_NAME, "clear"),
-			list2));
+		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () -> addInstanceVoidMethodCallTransaction(privateKey(0), account(0), _100_000, ONE, jar(),
+			MethodSignatures.ofVoid(Constants.STORAGE_LIST_NAME, "clear"), list2));
+		assertTrue(e.getMessage().contains("is not exported"));
 	}
 }

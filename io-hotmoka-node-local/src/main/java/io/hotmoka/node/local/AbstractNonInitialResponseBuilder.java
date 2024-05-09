@@ -41,7 +41,7 @@ public abstract class AbstractNonInitialResponseBuilder<Request extends NonIniti
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?> storeTransaction) throws TransactionRejectedException {
+	protected AbstractNonInitialResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

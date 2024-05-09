@@ -93,7 +93,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, ?>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -295,6 +295,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try (var scope = mkScope()) {
 			return store.getRequest(Objects.requireNonNull(reference)).orElseThrow(() -> new UnknownReferenceException(reference));
 		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override
@@ -339,6 +342,9 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 					.orElseThrow(() -> new NodeException("Object " + reference + " has no class tag in store"));
 			else
 				throw new NodeException("The creation of object " + reference + " does not contain updates");
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
 		}
 	}
 
@@ -590,12 +596,17 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * @return the reference of the request
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException {
+	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
-	
-		if (store.getResponse(reference).isPresent())
-			throw new TransactionRejectedException("Repeated request " + reference);
+
+		try {
+			if (store.getResponse(reference).isPresent())
+				throw new TransactionRejectedException("Repeated request " + reference);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	
 		createSemaphore(reference);
 		postRequest(request);

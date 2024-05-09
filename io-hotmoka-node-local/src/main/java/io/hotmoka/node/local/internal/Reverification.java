@@ -63,7 +63,7 @@ public class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final StoreTransaction<?> storeTransaction;
+	private final StoreTransaction<?,?> storeTransaction;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -80,7 +80,7 @@ public class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
+	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.storeTransaction = storeTransaction;
 		this.consensus = consensus;
 

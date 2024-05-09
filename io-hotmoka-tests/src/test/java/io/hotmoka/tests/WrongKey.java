@@ -17,6 +17,8 @@ limitations under the License.
 package io.hotmoka.tests;
 
 import static io.hotmoka.helpers.Coin.panarea;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.math.BigInteger;
 import java.security.PrivateKey;
@@ -31,6 +33,7 @@ import io.hotmoka.node.ConstructorSignatures;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.values.StorageReference;
 
@@ -54,9 +57,9 @@ class WrongKey extends HotmokaTest {
 		PrivateKey key = privateKey(1);
 		StorageReference caller = account(0);
 
-		throwsTransactionRejectedWithCause("invalid request signature", () ->
+		TransactionRejectedException e = assertThrows(TransactionRejectedException.class, () ->
 			node.addConstructorCallTransaction(TransactionRequests.constructorCall(signature().getSigner(key, SignedTransactionRequest::toByteArrayWithoutSignature), caller, BigInteger.ZERO, chainId,
-				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao")))
-		);
+				_100_000, panarea(1), takamakaCode(), ConstructorSignatures.EOA_CONSTRUCTOR, StorageValues.bigIntegerOf(_50_000), StorageValues.stringOf("ciao"))));
+		assertTrue(e.getMessage().contains("Invalid request signature"));
 	}
 }
