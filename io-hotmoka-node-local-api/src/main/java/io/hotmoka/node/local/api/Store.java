@@ -20,6 +20,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -70,7 +71,7 @@ public interface Store<S extends Store<S, T>, T extends StoreTransaction<S, T>> 
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Stream<TransactionReference> getHistory(StorageReference object) throws StoreException;
+	Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.

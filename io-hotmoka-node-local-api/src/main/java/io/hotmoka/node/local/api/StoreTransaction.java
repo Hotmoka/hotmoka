@@ -125,9 +125,9 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 
 	Optional<StorageReference> getGameteUncommitted() throws StoreException;
 
-	String getPublicKeyUncommitted(StorageReference account);
+	String getPublicKeyUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	StorageReference getCreatorUncommitted(StorageReference event);
+	StorageReference getCreatorUncommitted(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
 	BigInteger getNonceUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
@@ -192,9 +192,9 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	void replace(TransactionReference reference, TransactionRequest<?> request, TransactionResponse response) throws StoreException;
 
-	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier);
+	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 
-	boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException;
+	boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException;
 
 	/**
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.

@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
+import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
@@ -30,6 +31,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransaction;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.xodus.env.Transaction;
 
@@ -108,7 +110,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 				}
 			}
 		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException e) {
 			throw new StoreException(e);
 		}
 	}
@@ -142,11 +144,17 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				Stream<StorageReference> events = trwe.getEvents();
 
-				return check(StoreException.class, () ->
-					events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
-					.map(this::getCreatorUncommitted)
-					.anyMatch(validators::equals)
-				);
+				try {
+					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
+						events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
+						.map(UncheckFunction.uncheck(this::getCreatorUncommitted))
+						.anyMatch(validators::equals));
+				}
+				catch (UnknownReferenceException | FieldNotFoundException e) {
+					// if it was possible to verify that it is an event, then it exists in store and must have a creator
+					// or otherwise the store is corrupted
+					throw new StoreException(e);
+				}
 			}
 		}
 

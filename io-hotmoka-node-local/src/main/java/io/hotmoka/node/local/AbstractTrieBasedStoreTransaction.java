@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -73,9 +74,9 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
-			return trieOfHistories.get(object).orElse(Stream.empty()); // TODO
+			return trieOfHistories.get(object).orElseThrow(() -> new UnknownReferenceException(object));
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);

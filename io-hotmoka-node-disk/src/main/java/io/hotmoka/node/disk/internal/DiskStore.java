@@ -37,6 +37,7 @@ import java.util.stream.Stream;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeMarshallingContexts;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -143,9 +144,13 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) {
+	public Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException {
 		TransactionReference[] history = histories.get(object);
-		return history == null ? Stream.empty() : Stream.of(history);
+		if (history != null)
+			return Stream.of(history);
+		else
+			return Stream.empty();
+		//throw new UnknownReferenceException(object); // TODO
 	}
 
 	@Override

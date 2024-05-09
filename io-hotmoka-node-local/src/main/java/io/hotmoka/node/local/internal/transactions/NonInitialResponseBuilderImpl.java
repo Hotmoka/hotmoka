@@ -149,7 +149,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @return the signature algorithm
 	 * @throws NodeException 
 	 */
-	private SignatureAlgorithm determineSignatureAlgorithm() throws NodeException, TransactionRejectedException {
+	private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
 		try {
 			ClassTag classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
 			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
@@ -168,8 +168,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		catch (UnknownReferenceException e) {
 			throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store");
 		}
-		catch (NoSuchAlgorithmException | StoreException e) {
-			throw new NodeException(e);
+		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
 		}
 		catch (ClassNotFoundException e) {
 			throw new TransactionRejectedException(e);
@@ -210,15 +210,18 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws NodeException if the signature of the request could not be checked
 	 */
-	private void signatureMustBeValid() throws NodeException, TransactionRejectedException {
-		try {
-			// if the node is not initialized yet, the signature is not checked
-			if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()
-					&& !storeTransaction.signatureIsValidUncommitted((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
-				throw new TransactionRejectedException("Invalid request signature");
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
+	private void signatureMustBeValid() throws StoreException, TransactionRejectedException {
+		// if the node is not initialized yet, the signature is not checked
+		if (transactionIsSigned() && storeTransaction.nodeIsInitializedUncommitted()) {
+			try {
+				if (!storeTransaction.signatureIsValidUncommitted((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
+					throw new TransactionRejectedException("Invalid request signature");
+			}
+			catch (UnknownReferenceException | FieldNotFoundException e) {
+				// we have already verified that the caller exists and is an externally owned account:
+				// hence these exceptions now can only mean that the store is corrupted
+				throw new StoreException(e);
+			}
 		}
 	}
 

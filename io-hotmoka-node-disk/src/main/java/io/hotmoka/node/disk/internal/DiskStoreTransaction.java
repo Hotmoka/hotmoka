@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -50,7 +51,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException {
+	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws UnknownReferenceException, StoreException {
 		var uncommittedHistory = histories.get(object);
 		if (uncommittedHistory != null)
 			return Stream.of(uncommittedHistory);
