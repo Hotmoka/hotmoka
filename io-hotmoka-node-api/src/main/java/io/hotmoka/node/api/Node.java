@@ -389,8 +389,9 @@ public interface Node extends AutoCloseable, OnCloseHandlersContainer {
 	 * @param handler a handler that gets executed when an event occurs;
 	 *                for each event, it receives the creator of the event and the event itself
 	 * @return the subscription, that can be used later to stop event handling with {@code handler}
+	 * @throws NodeException if the node is not able to perform the operation
 	 */
-	Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler);
+	Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws NodeException;
 
 	/**
 	 * Closes the node.

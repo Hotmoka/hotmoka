@@ -289,7 +289,7 @@ public class JarsNodeImpl implements JarsNode {
 	}
 
 	@Override
-	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException {
+	public Subscription subscribeToEvents(StorageReference key, BiConsumer<StorageReference, StorageReference> handler) throws UnsupportedOperationException, NodeException {
 		return parent.subscribeToEvents(key, handler);
 	}
 

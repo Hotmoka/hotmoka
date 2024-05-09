@@ -219,50 +219,16 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	/**
-	 * Factory method for creating the store of this node.
-	 * 
-	 * @return the store
-	 */
-	protected abstract S mkStore(ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher);
-
-	@Override
-	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) {
-		return subscriptions.subscribeToEvents(creator, handler);
-	}
-
-	public void notifyEvent(StorageReference creator, StorageReference event) {
-		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(event + ": notified as event with creator " + creator);		
-	}
-
-	public final S getStore() {
-		return store;
-	}
-
 	@Override
 	public final void close() throws InterruptedException, NodeException {
 		if (stopNewCalls())
 			closeResources();
 	}
 
-	protected void closeResources() throws NodeException, InterruptedException {
-		try {
-			executors.shutdownNow();
-		}
-		finally {
-			try {
-				S store = this.store;
-				if (store != null)
-					store.close();
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
-			finally {
-				// we give five seconds
-				executors.awaitTermination(5, TimeUnit.SECONDS);
-			}
+	@Override
+	public final Subscription subscribeToEvents(StorageReference creator, BiConsumer<StorageReference, StorageReference> handler) throws NodeException {
+		try (var scope = mkScope()) {
+			return subscriptions.subscribeToEvents(creator, handler);
 		}
 	}
 
@@ -302,10 +268,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
-	}
-
-	public void signalOutcomeIsReady(Stream<TransactionRequest<?>> requests) {
-		requests.map(hasher::hash).map(TransactionReferences::of).forEach(this::signalSemaphore);
 	}
 
 	@Override
@@ -404,54 +366,68 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 
 	@Override
 	public final TransactionReference addJarStoreInitialTransaction(JarStoreInitialTransactionRequest request) throws TransactionRejectedException, NodeException, TimeoutException, InterruptedException {
-		TransactionReference reference = post(request);
-		getPolledResponse(reference);
-		return reference;
+		try (var scope = mkScope()) {
+			TransactionReference reference = post(request);
+			getPolledResponse(reference);
+			return reference;
+		}
 	}
 
 	@Override
 	public final void addInitializationTransaction(InitializationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
-		getPolledResponse(post(request)); // result unused
+		try (var scope = mkScope()) {
+			getPolledResponse(post(request)); // result unused
+		}
 	}
 
 	@Override
 	public final StorageReference addGameteCreationTransaction(GameteCreationTransactionRequest request) throws TransactionRejectedException, TimeoutException, InterruptedException, NodeException {
-		var response = getPolledResponse(post(request));
-		if (response instanceof GameteCreationTransactionResponse gctr)
-			return gctr.getGamete();
-		else
-			throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of a gamete creation request");
+		try (var scope = mkScope()) {
+			var response = getPolledResponse(post(request));
+			if (response instanceof GameteCreationTransactionResponse gctr)
+				return gctr.getGamete();
+			else
+				throw new NodeException("Wrong type " + response.getClass().getName() + " for the response of a gamete creation request");
+		}
 	}
 
 	@Override
 	public final TransactionReference addJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, TransactionException, NodeException, TimeoutException, InterruptedException {
-		return postJarStoreTransaction(request).get();
+		try (var scope = mkScope()) {
+			return postJarStoreTransaction(request).get();
+		}
 	}
 
 	@Override
 	public final StorageReference addConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, InterruptedException, NodeException, TimeoutException {
-		return postConstructorCallTransaction(request).get();
+		try (var scope = mkScope()) {
+			return postConstructorCallTransaction(request).get();
+		}
 	}
 
 	@Override
 	public final Optional<StorageValue> addInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return postInstanceMethodCallTransaction(request).get();
+		try (var scope = mkScope()) {
+			return postInstanceMethodCallTransaction(request).get();
+		}
 	}
 
 	@Override
 	public final Optional<StorageValue> addStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException, TimeoutException, InterruptedException {
-		return postStaticMethodCallTransaction(request).get();
+		try (var scope = mkScope()) {
+			return postStaticMethodCallTransaction(request).get();
+		}
 	}
 
 	@Override
 	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
-		try {
+		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 
 			Optional<StorageValue> result;
 
-			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
+			var storeTransaction = store.beginViewTransaction();
 			result = storeTransaction.runInstanceMethodCallTransaction(request, reference);
 			storeTransaction.abort();
 
@@ -465,12 +441,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 
 	@Override
 	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, NodeException {
-		try {
+		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
 			Optional<StorageValue> result;
 
-			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
+			var storeTransaction = store.beginViewTransaction();
 			result = storeTransaction.runStaticMethodCallTransaction(request, reference);
 			storeTransaction.abort();
 
@@ -483,23 +459,35 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	}
 
 	@Override
-	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException {
-		return JarFutures.of(post(request), this);
+	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException {
+		try (var scope = mkScope()) {
+			return JarFutures.of(post(request), this);
+		}
 	}
 
 	@Override
-	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException {
-		return CodeFutures.ofConstructor(post(request), this);
+	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+		try (var scope = mkScope()) {
+			return CodeFutures.ofConstructor(post(request), this);
+		}
 	}
 
 	@Override
-	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return CodeFutures.ofMethod(post(request), this);
+	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+		try (var scope = mkScope()) {
+			return CodeFutures.ofMethod(post(request), this);
+		}
 	}
 
 	@Override
-	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException {
-		return CodeFutures.ofMethod(post(request), this);
+	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+		try (var scope = mkScope()) {
+			return CodeFutures.ofMethod(post(request), this);
+		}
+	}
+
+	public void signalOutcomeIsReady(Stream<TransactionRequest<?>> requests) {
+		requests.map(hasher::hash).map(TransactionReferences::of).forEach(this::signalSemaphore);
 	}
 
 	/**
@@ -548,6 +536,59 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
+	public final S getStore() {
+		return store;
+	}
+
+	public final void setStore(S store) {
+		this.store = store;
+	}
+
+	@Override
+	public <T> Future<T> submit(Callable<T> task) {
+		return executors.submit(task);
+	}
+
+	public void notifyEvent(StorageReference creator, StorageReference event) {
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(event + ": notified as event with creator " + creator);		
+	}
+
+	/**
+	 * Factory method for creating the store of this node.
+	 * 
+	 * @return the store
+	 */
+	protected abstract S mkStore(ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher);
+
+	protected void closeResources() throws NodeException, InterruptedException {
+		try {
+			executors.shutdownNow();
+		}
+		finally {
+			try {
+				S store = this.store;
+				if (store != null)
+					store.close();
+			}
+			catch (StoreException e) {
+				throw new NodeException(e);
+			}
+			finally {
+				// we give five seconds
+				executors.awaitTermination(5, TimeUnit.SECONDS);
+			}
+		}
+	}
+
+	/**
+	 * Node-specific implementation to post the given request. Each node should implement this,
+	 * for instance by adding the request to some mempool or queue of requests to be executed.
+	 * 
+	 * @param request the request
+	 */
+	protected abstract void postRequest(TransactionRequest<?> request);
+
 	/**
 	 * Posts the given request. It does some preliminary preparation then calls
 	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
@@ -568,23 +609,6 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		postRequest(request);
 	
 		return reference;
-	}
-
-	public final void setStore(S store) {
-		this.store = store;
-	}
-
-	/**
-	 * Node-specific implementation to post the given request. Each node should implement this,
-	 * for instance by adding the request to some mempool or queue of requests to be executed.
-	 * 
-	 * @param request the request
-	 */
-	protected abstract void postRequest(TransactionRequest<?> request);
-
-	@Override
-	public <T> Future<T> submit(Callable<T> task) {
-		return executors.submit(task);
 	}
 
 	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {

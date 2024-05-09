@@ -160,8 +160,13 @@ public class NodeServiceImpl extends AbstractWebSocketServer implements NodeServ
     	this.node = node;
 		this.logPrefix = "node service(ws://localhost:" + port + "): ";
 
-    	// all events (regardless of their creator) get forwarded to the bound remotes
-    	this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
+		try {
+			// all events (regardless of their creator) get forwarded to the bound remotes
+			this.eventSubscription = node.subscribeToEvents(null, this::publishEvent);
+		}
+		catch (NodeException e) {
+			throw new DeploymentException("Cannot subscribe to the events of the node", e);
+		}
 
     	startContainer("", port,
    			GetNodeInfoEndpoint.config(this), GetConsensusConfigEndpoint.config(this), GetTakamakaCodeEndpoint.config(this),
