@@ -19,14 +19,15 @@ package io.hotmoka.node.local;
 import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
@@ -45,16 +46,13 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 	final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	/**
-	 * The node for which this store has been created.
-	 */
-	private final N node;
-
-	/**
 	 * The current consensus configuration in this store. This information could be recovered from the store
 	 * itself, but this field is used for caching. The consensus configuration might be missing if the
 	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
 	 */
 	final ConsensusConfig<?,?> consensus;
+
+	final BigInteger maxGasPerView;
 
 	/**
 	 * The current consensus configuration in this store, for the execution of view transactions.
@@ -80,27 +78,26 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 
 	final Hasher<TransactionRequest<?>> hasher;
 
-	protected AbstractStore(N node, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
-		try {
-			this.node = node;
-			this.hasher = hasher;
-			this.checkedSignatures = new LRUCache<>(100, 1000);
-			this.classLoaders = new LRUCache<>(100, 1000);
-			this.consensus = consensus;
-			this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
-			this.gasPrice = Optional.empty();
-			this.inflation = OptionalLong.empty();
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
+	private final ExecutorService executors;
+
+	protected AbstractStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
+		this.executors = executors;
+		this.hasher = hasher;
+		this.checkedSignatures = new LRUCache<>(100, 1000);
+		this.classLoaders = new LRUCache<>(100, 1000);
+		this.consensus = consensus;
+		this.maxGasPerView = config.getMaxGasPerViewTransaction();
+		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
+		this.gasPrice = Optional.empty();
+		this.inflation = OptionalLong.empty();
 	}
 
 	protected AbstractStore(AbstractStore<S, N> toClone) {
-		this.node = toClone.node;
+		this.executors = toClone.executors;
 		this.hasher = toClone.hasher;
 		this.checkedSignatures = toClone.checkedSignatures;
 		this.classLoaders = toClone.classLoaders;
+		this.maxGasPerView = toClone.maxGasPerView;
 		this.consensus = toClone.consensus;
 		this.consensusForViews = toClone.consensusForViews;
 		this.gasPrice = toClone.gasPrice;
@@ -108,24 +105,15 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 	}
 
 	protected AbstractStore(AbstractStore<S, N> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation) {
-		try {
-			this.node = toClone.node;
-			this.hasher = toClone.hasher;
-			this.checkedSignatures = checkedSignatures; //new LRUCache<>(checkedSignatures);
-			this.classLoaders = classLoaders; //new LRUCache<>(classLoaders); // TODO: clone
-			this.consensus = consensus;
-			this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(node.getLocalConfig().getMaxGasPerViewTransaction()).build();
-			this.gasPrice = gasPrice;
-			this.inflation = inflation;
-		}
-		catch (NodeException e) {
-			throw new RuntimeException(e); // TODO
-		}
-	}
-
-	@Override
-	public final N getNode() {
-		return node;
+		this.executors = toClone.executors;
+		this.hasher = toClone.hasher;
+		this.checkedSignatures = checkedSignatures; //new LRUCache<>(checkedSignatures);
+		this.classLoaders = classLoaders; //new LRUCache<>(classLoaders); // TODO: clone
+		this.maxGasPerView = toClone.maxGasPerView;
+		this.consensus = consensus;
+		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();
+		this.gasPrice = gasPrice;
+		this.inflation = inflation;
 	}
 
 	public final ConsensusConfig<?,?> getConfig() {
@@ -134,13 +122,13 @@ public abstract class AbstractStore<S extends AbstractStore<S, N>, N extends Abs
 
 	@Override
 	public final StoreTransaction<S> beginTransaction(long now) throws StoreException {
-		return beginTransaction(consensus, now);
+		return beginTransaction(executors, consensus, now);
 	}
 
 	@Override
 	public final StoreTransaction<S> beginViewTransaction() throws StoreException {
-		return beginTransaction(consensusForViews, System.currentTimeMillis());
+		return beginTransaction(executors, consensusForViews, System.currentTimeMillis());
 	}
 
-	protected abstract StoreTransaction<S> beginTransaction(ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	protected abstract StoreTransaction<S> beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 }

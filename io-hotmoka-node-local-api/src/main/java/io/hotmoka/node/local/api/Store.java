@@ -35,13 +35,6 @@ import io.hotmoka.node.api.values.StorageReference;
 public interface Store<S extends Store<S, N>, N extends LocalNode<?>> extends AutoCloseable {
 
 	/**
-	 * Yields the node for which this store has been created.
-	 * 
-	 * @return the node for which this store has been created
-	 */
-	N getNode();
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * 
 	 * @param reference the reference of the transaction

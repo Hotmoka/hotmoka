@@ -28,12 +28,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -203,14 +201,14 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 			this.executors = Executors.newCachedThreadPool(); // TODO. turn off this if construction fails
 
 			if (consensus.isEmpty()) {
-				S temp = mkStore(ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
+				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
 				consensus = Optional.of(storeTransaction.getConfigUncommitted());
 				storeTransaction.abort();
 			}
 
-			this.store = mkStore(consensus.get(), config, hasher);
+			this.store = mkStore(executors, consensus.get(), config, hasher);
 
 			addShutdownHook(); // move down to the concrete classes
 		}
@@ -524,29 +522,12 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 		}
 	}
 
-	/**
-	 * Yields the error message trimmed to a maximal length, to avoid overflow.
-	 *
-	 * @param t the throwable whose error message is processed
-	 * @return the resulting message
-	 */
-	public final String trimmedMessage(Throwable t, int maxErrorLength) {
-		String message = t.getMessage();
-		int length = message.length();
-		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
-	}
-
 	public final S getStore() {
 		return store;
 	}
 
 	public final void setStore(S store) {
 		this.store = store;
-	}
-
-	@Override
-	public <T> Future<T> submit(Callable<T> task) {
-		return executors.submit(task);
 	}
 
 	public void notifyEvent(StorageReference creator, StorageReference event) {
@@ -559,7 +540,7 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * 
 	 * @return the store
 	 */
-	protected abstract S mkStore(ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher);
+	protected abstract S mkStore(ExecutorService executors, ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher);
 
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
@@ -588,6 +569,18 @@ public abstract class AbstractLocalNodeImpl<N extends AbstractLocalNode<N,C,S>, 
 	 * @param request the request
 	 */
 	protected abstract void postRequest(TransactionRequest<?> request);
+
+	/**
+	 * Yields the error message trimmed to a maximal length, to avoid overflow.
+	 *
+	 * @param t the throwable whose error message is processed
+	 * @return the resulting message
+	 */
+	private String trimmedMessage(Throwable t, int maxErrorLength) {
+		String message = t.getMessage();
+		int length = message.length();
+		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
+	}
 
 	/**
 	 * Posts the given request. It does some preliminary preparation then calls

@@ -20,7 +20,9 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -47,14 +49,18 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 */
 	private final Hasher<byte[]> hasherOfHashes;
 
+	private final Supplier<TendermintPoster> poster;
+
 	/**
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(TendermintNodeImpl node, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
-    	super(node, consensus, config, hasher);
+    TendermintStore(Supplier<TendermintPoster> poster, ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+    	super(executors, consensus, config, hasher);
+
+    	this.poster = poster;
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
@@ -68,18 +74,19 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
+    	this.poster = toClone.poster;
 	}
 
 	@Override
 	public Optional<String> getError(TransactionReference reference) {
     	// error messages are held inside the Tendermint blockchain
-    	return getNode().getPoster().getErrorMessage(reference.getHash());
+    	return poster.get().getErrorMessage(reference.getHash());
 	}
 
 	@Override
 	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
 		// requests are held inside the Tendermint blockchain
-		return getNode().getPoster().getRequest(reference.getHash());
+		return poster.get().getRequest(reference.getHash());
 	}
 
 	/**
@@ -125,7 +132,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransaction mkTransaction(Transaction txn, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return new TendermintStoreTransaction(this, consensus, now, txn);
+	protected TendermintStoreTransaction mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransaction(this, executors, consensus, now, txn);
 	}
 }

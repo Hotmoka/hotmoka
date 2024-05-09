@@ -3,6 +3,7 @@ package io.hotmoka.node.disk.internal;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -35,8 +36,8 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore> {
 	 */
 	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
 
-	public DiskStoreTransaction(DiskStore store, ConsensusConfig<?,?> consensus, long now) {
-		super(store, consensus, now);
+	public DiskStoreTransaction(DiskStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+		super(store, executors, consensus, now);
 	}
 
 	public boolean isJustStore() {

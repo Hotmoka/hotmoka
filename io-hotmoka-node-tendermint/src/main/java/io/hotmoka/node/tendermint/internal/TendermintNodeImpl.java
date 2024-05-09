@@ -26,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -199,8 +200,8 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeImpl, Te
 	}
 
 	@Override
-	protected TendermintStore mkStore(ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
-		return new TendermintStore(this, consensus, config, hasher);
+	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+		return new TendermintStore(() -> poster, executors, consensus, config, hasher);
 	}
 
 	@Override

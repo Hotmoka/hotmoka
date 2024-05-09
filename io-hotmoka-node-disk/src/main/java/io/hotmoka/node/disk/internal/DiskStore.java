@@ -29,6 +29,7 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -44,6 +45,7 @@ import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
+import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 
 /**
@@ -82,13 +84,11 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 
 	/**
      * Creates a state for a node.
-     * 
-	 * @param dir the path where the database of the store will be persisted
      */
-    DiskStore(DiskNodeImpl node, Path dir, ConsensusConfig<?,?> consensus, Hasher<TransactionRequest<?>> hasher) {
-    	super(node, consensus, hasher);
+    DiskStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
+    	super(executors, consensus, config, hasher);
 
-    	this.dir = dir;
+    	this.dir = config.getDir();
     	this.requests = new ConcurrentHashMap<>();
     	this.responses = new ConcurrentHashMap<>();
     	this.histories = new ConcurrentHashMap<>();
@@ -159,8 +159,8 @@ class DiskStore extends AbstractStore<DiskStore, DiskNodeImpl> {
 	}
 
 	@Override
-	protected DiskStoreTransaction beginTransaction(ConsensusConfig<?,?> consensus, long now) {
-		return new DiskStoreTransaction(this, consensus, now);
+	protected DiskStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
+		return new DiskStoreTransaction(this, executors, consensus, now);
 	}
 
 	private void setRequest(int progressive, TransactionReference reference, TransactionRequest<?> request) throws StoreException {

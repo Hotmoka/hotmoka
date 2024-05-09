@@ -5,6 +5,7 @@ import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 
 import java.math.BigInteger;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
 
@@ -42,8 +43,8 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransaction.class.getName());
 
-	protected TendermintStoreTransaction(TendermintStore store, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
-		super(store, consensus, now, txn);
+	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
+		super(store, executors, consensus, now, txn);
 	}
 
 	@Override

@@ -181,7 +181,9 @@ class TendermintApplication extends ABCI {
      * @return the resulting message
      */
     private ByteString trimmedMessage(Throwable t, int maxErrorLength) {
-		return ByteString.copyFromUtf8(node.trimmedMessage(t, maxErrorLength));
+    	String message = t.getMessage();
+		int length = message.length();
+		return ByteString.copyFromUtf8(length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "..."));
     }
 
 	@Override

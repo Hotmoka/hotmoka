@@ -16,9 +16,6 @@ limitations under the License.
 
 package io.hotmoka.node.local.api;
 
-import java.util.concurrent.Callable;
-import java.util.concurrent.Future;
-
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.node.api.Node;
 import io.hotmoka.node.api.NodeException;
@@ -32,5 +29,4 @@ import io.hotmoka.node.api.NodeException;
 @ThreadSafe
 public interface LocalNode<C extends LocalNodeConfig<?,?>> extends Node {
 	C getLocalConfig() throws NodeException;
-	<T> Future<T> submit(Callable<T> task);
 }

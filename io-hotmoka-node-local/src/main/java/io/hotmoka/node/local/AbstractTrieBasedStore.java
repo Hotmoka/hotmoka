@@ -20,6 +20,7 @@ import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
@@ -138,8 +139,8 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	 * 
  	 * @param dir the path where the database of the store is kept
 	 */
-    protected AbstractTrieBasedStore(N node, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
-    	super(node, consensus, hasher);
+    protected AbstractTrieBasedStore(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
+    	super(executors, consensus, config, hasher);
 
     	this.env = new Environment(config.getDir() + "/store");
 
@@ -291,8 +292,8 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 	}
 
 	@Override
-	protected StoreTransaction<S> beginTransaction(ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return mkTransaction(env.beginTransaction(), consensus, now);
+	protected StoreTransaction<S> beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return mkTransaction(env.beginTransaction(), executors, consensus, now);
 	}
 
 	/**
@@ -345,7 +346,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 		env.executeInTransaction(txn -> storeOfInfo.put(txn, ROOT, rootAsBI));
 	}
 
-	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, ConsensusConfig<?,?> consensus, long now) throws StoreException;
+	protected abstract StoreTransaction<S> mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

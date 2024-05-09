@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
+import java.util.concurrent.ExecutorService;
+
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.ClosedNodeException;
@@ -56,8 +58,8 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeImpl, DiskNodeConfig
 	}
 
 	@Override
-	protected DiskStore mkStore(ConsensusConfig<?,?> consensus, DiskNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
-		return new DiskStore(this, config.getDir(), consensus, hasher);
+	protected DiskStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, DiskNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+		return new DiskStore(executors, consensus, config, hasher);
 	}
 
 	@Override

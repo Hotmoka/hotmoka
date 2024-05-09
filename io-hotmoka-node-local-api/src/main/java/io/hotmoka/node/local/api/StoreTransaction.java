@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 
@@ -83,6 +85,8 @@ public interface StoreTransaction<S extends Store<S, ?>> {
 	 * @return the current consensus configuration of the node
 	 */
 	ConsensusConfig<?,?> getConfigUncommitted() throws StoreException;
+
+	<T> Future<T> submit(Callable<T> task);
 
 	/**
 	 * Yields the response of the transaction having the given reference.

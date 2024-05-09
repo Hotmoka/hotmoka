@@ -37,7 +37,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -177,6 +180,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	private final long now;
 
+	private final ExecutorService executors;
+
 	/**
 	 * Enough gas for a simple get method.
 	 */
@@ -184,8 +189,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 
 	private final static BigInteger _100_000_000 = BigInteger.valueOf(100_000_000L);
 
-	protected AbstractStoreTransaction(S store, ConsensusConfig<?,?> consensus, long now) {
+	protected AbstractStoreTransaction(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		this.store = store;
+		this.executors = executors;
 		this.now = now;
 		this.checkedSignatures = store.checkedSignatures; //new LRUCache<>(store.checkedSignatures);
 		this.classLoaders = store.classLoaders; //new LRUCache<>(store.classLoaders); // TODO: clone
@@ -269,6 +275,11 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, ?>> im
 		catch (TransactionRejectedException | TransactionException | CodeExecutionException e) {
 			throw new StoreException(e);
 		}
+	}
+
+	@Override
+	public <T> Future<T> submit(Callable<T> task) {
+		return executors.submit(task);
 	}
 
 	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {

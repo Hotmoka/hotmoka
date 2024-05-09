@@ -1,6 +1,7 @@
 package io.hotmoka.node.local;
 
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -50,8 +51,8 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
      */
 	private volatile TrieOfRequests trieOfRequests;
 
-	protected AbstractTrieBasedStoreTransaction(S store, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
-		super(store, consensus, now);
+	protected AbstractTrieBasedStoreTransaction(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
+		super(store, executors, consensus, now);
 
 		this.txn = txn;
 		this.trieOfResponses = store.mkTrieOfResponses(txn);
