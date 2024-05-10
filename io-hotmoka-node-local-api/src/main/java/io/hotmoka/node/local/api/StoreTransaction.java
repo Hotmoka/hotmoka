@@ -86,16 +86,14 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	ConsensusConfig<?,?> getConfigUncommitted() throws StoreException;
 
-	<X> Future<X> submit(Callable<X> task);
-
 	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 
 	 * @param reference the reference of the transaction
-	 * @return the response, if any
+	 * @return the response
 	 */
-	Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException;
+	TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException, StoreException;
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
@@ -118,8 +116,6 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	Optional<StorageReference> getManifestUncommitted() throws StoreException;
 
 	Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException;
-
-	boolean nodeIsInitializedUncommitted() throws StoreException;
 
 	Optional<StorageReference> getValidatorsUncommitted() throws StoreException;
 
@@ -157,6 +153,8 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 *                    misbehaved and must be punished
 	 */
 	void rewardValidators(String behaving, String misbehaving) throws StoreException;
+
+	<X> Future<X> submit(Callable<X> task);
 
 	void invalidateConsensusCache() throws StoreException;
 

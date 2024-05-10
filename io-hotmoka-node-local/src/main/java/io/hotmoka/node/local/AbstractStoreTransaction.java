@@ -890,11 +890,6 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		}
 	}
 
-	@Override
-	public final boolean nodeIsInitializedUncommitted() throws StoreException {
-		return getManifestUncommitted().isPresent();
-	}
-
 	private Optional<StorageReference> getGasStationUncommitted() throws StoreException {
 		var maybeManifest = getManifestUncommitted();
 		if (maybeManifest.isPresent()) {
@@ -1005,10 +1000,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	@Override
 	public final ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException {
 		// we go straight to the transaction that created the object
-		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference.getTransaction());
-		if (maybeResponse.isEmpty())
-			throw new UnknownReferenceException("Object " + reference + " does not exist");
-		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
+		if (getResponseUncommitted(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
 					.findFirst()
@@ -1165,14 +1157,16 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 */
 	protected abstract void setManifest(StorageReference manifest) throws StoreException;
 
-	private Stream<Update> getUpdates(TransactionReference reference) throws StoreException {
-		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference);
-		if (maybeResponse.isEmpty())
-			throw new StoreException("Transaction " + maybeResponse.get() + " belongs to the histories but is not present in store");
-		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
-			return trwu.getUpdates();
-		else
-			throw new StoreException("Transaction " + maybeResponse.get() + " belongs to the histories but does not contain updates");
+	private Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
+		try {
+			if (getResponseUncommitted(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
+				return trwu.getUpdates();
+			else
+				throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but does not contain updates");
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but is not present in store");
+		}
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
@@ -1209,7 +1203,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
-		if (getResponseUncommitted(reference).orElseThrow(() -> new UnknownReferenceException(reference)) instanceof TransactionResponseWithUpdates trwu)
+		if (getResponseUncommitted(reference) instanceof TransactionResponseWithUpdates trwu)
 			return trwu.getUpdates()
 					.filter(update -> update instanceof UpdateOfField)
 					.map(update -> (UpdateOfField) update)
@@ -1230,14 +1224,19 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 *         the {@code reference}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateMustExistUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws StoreException {
-		if (getResponseUncommitted(reference).orElseThrow(() -> new StoreException("Object " + object + " is part of the history but cannot be found in store")) instanceof TransactionResponseWithUpdates trwu)
-			return trwu.getUpdates()
-					.filter(update -> update instanceof UpdateOfField)
-					.map(update -> (UpdateOfField) update)
-					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-					.findFirst();
-		else
-			throw new StoreException("Transaction reference " + reference + " does not contain updates");
+		try {
+			if (getResponseUncommitted(reference) instanceof TransactionResponseWithUpdates trwu)
+				return trwu.getUpdates()
+						.filter(update -> update instanceof UpdateOfField)
+						.map(update -> (UpdateOfField) update)
+						.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
+						.findFirst();
+			else
+				throw new StoreException("Transaction reference " + reference + " does not contain updates");
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Object " + object + " is part of the history but cannot be found in store");
+		}
 	}
 
 	/**
@@ -1265,20 +1264,20 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * of some fields are updated in {@code added} and the useless old history element provided only values
 	 * for the newly updated fields.
 	 * 
-	 * @param object the object whose history is being simplified
+	 * @param objectUpdatedInResponse the object whose history is being simplified
 	 * @param added the transaction reference to add in front of the history of {@code object}
 	 * @param addedUpdates the updates generated in {@code added}
 	 * @return the simplified history, with {@code added} in front followed by a subset of the old history
 	 */
-	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
+	private Stream<TransactionReference> simplifiedHistory(StorageReference objectUpdatedInResponse, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
 		// if the object has been created at the added transaction, that is its history
-		if (object.getTransaction().equals(added))
+		if (objectUpdatedInResponse.getTransaction().equals(added))
 			return Stream.of(added);
 
 		Stream<TransactionReference> old;
 
 		try {
-			old = getHistoryUncommitted(object);
+			old = getHistoryUncommitted(objectUpdatedInResponse);
 		}
 		catch (UnknownReferenceException e) {
 			// the object was created before this transaction: it must have a history or otherwise the store is corrupted
@@ -1287,14 +1286,14 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 		// we trace the set of updates that are already covered by previous transactions, so that
 		// subsequent history elements might become unnecessary, since they do not add any yet uncovered update
-		Set<Update> covered = addedUpdates.filter(update -> update.getObject().equals(object)).collect(Collectors.toSet());
-		var simplified = new ArrayList<TransactionReference>();
+		Set<Update> covered = addedUpdates.filter(update -> update.getObject().equals(objectUpdatedInResponse)).collect(Collectors.toSet());
+		var simplified = new ArrayList<TransactionReference>(10);
 		simplified.add(added);
 	
 		var oldAsArray = old.toArray(TransactionReference[]::new);
 		int lastPos = oldAsArray.length - 1;
 		for (int pos = 0; pos < lastPos; pos++)
-			addIfUncovered(oldAsArray[pos], object, covered, simplified);
+			addIfUncovered(oldAsArray[pos], objectUpdatedInResponse, covered, simplified);
 	
 		// the last is always useful, since it contains at least the class tag of the object
 		if (lastPos >= 0)
@@ -1307,23 +1306,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * Adds the given transaction reference to the history of the given object,
 	 * if it provides updates for fields that have not yet been covered by other updates.
 	 * 
-	 * @param reference the transaction reference
+	 * @param referenceInHistory the transaction reference
 	 * @param object the object
 	 * @param covered the set of updates for the already covered fields
 	 * @param history the history; this might be modified by the method, by prefixing {@code reference} at its front
 	 */
-	private void addIfUncovered(TransactionReference reference, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
-		Optional<TransactionResponse> maybeResponse = getResponseUncommitted(reference);
-
-		if (maybeResponse.isEmpty())
-			throw new StoreException("The history contains a reference to a transaction not in store");
-		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
-			// we check if there is at least an update for a field of the object
-			// that is not yet covered by another update in a previous element of the history
-			if (trwu.getUpdates().filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty) && covered.add(update)).count() > 0)
-				history.add(reference);
-		}
-		else
-			throw new StoreException("The history contains a reference to a transaction without updates");
+	private void addIfUncovered(TransactionReference referenceInHistory, StorageReference object, Set<Update> covered, List<TransactionReference> history) throws StoreException {
+		if (getUpdates(referenceInHistory).filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty) && covered.add(update)).count() > 0)
+			history.add(referenceInHistory);
 	}
 }

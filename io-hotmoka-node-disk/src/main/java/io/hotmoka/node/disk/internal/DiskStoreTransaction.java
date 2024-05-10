@@ -42,12 +42,12 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) {
+	public TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException {
 		var uncommittedResponse = responses.get(reference);
 		if (uncommittedResponse != null)
-			return Optional.of(uncommittedResponse);
+			return uncommittedResponse;
 		else
-			return getStore().getResponse(reference);
+			return getStore().getResponse(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 	}
 
 	@Override

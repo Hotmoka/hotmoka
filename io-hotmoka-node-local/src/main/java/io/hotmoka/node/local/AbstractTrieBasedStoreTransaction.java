@@ -64,9 +64,9 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Optional<TransactionResponse> getResponseUncommitted(TransactionReference reference) throws StoreException{
+	public TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
-			return trieOfResponses.get(reference);
+			return trieOfResponses.get(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 		}
 		catch (TrieException e) {
 			throw new StoreException(e);

@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.GenericJarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
@@ -261,12 +262,14 @@ public class Reverification {
 	 * @throws StoreException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws StoreException {
-		TransactionResponse response = storeTransaction.getResponseUncommitted(reference)
-			.orElseThrow(() -> new StoreException("Unknown transaction reference " + reference + " under reverification"));
-
-		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
-			return trwij;
-		else
-			throw new StoreException("The transaction " + reference + " under reverification did not install a jar in store");
+		try {
+			if (storeTransaction.getResponseUncommitted(reference) instanceof TransactionResponseWithInstrumentedJar trwij)
+				return trwij;
+			else
+				throw new StoreException("The transaction " + reference + " under reverification did not install a jar in store");
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Unknown transaction reference " + reference + " under reverification"); // TODO: is this the right exception?
+		}
 	}
 }
