@@ -1271,12 +1271,17 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * @return the simplified history, with {@code added} in front followed by a subset of the old history
 	 */
 	private Stream<TransactionReference> simplifiedHistory(StorageReference object, TransactionReference added, Stream<Update> addedUpdates) throws StoreException {
+		// if the object has been created at the added transaction, that is its history
+		if (object.getTransaction().equals(added))
+			return Stream.of(added);
+
 		Stream<TransactionReference> old;
-		
+
 		try {
 			old = getHistoryUncommitted(object);
 		}
 		catch (UnknownReferenceException e) {
+			// the object was created before this transaction: it must have a history or otherwise the store is corrupted
 			throw new StoreException("The computed response reports a modified object that is not in store", e);
 		}
 
@@ -1287,13 +1292,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		simplified.add(added);
 	
 		var oldAsArray = old.toArray(TransactionReference[]::new);
-		int length = oldAsArray.length;
-		for (int pos = 0; pos < length - 1; pos++)
+		int lastPos = oldAsArray.length - 1;
+		for (int pos = 0; pos < lastPos; pos++)
 			addIfUncovered(oldAsArray[pos], object, covered, simplified);
 	
 		// the last is always useful, since it contains at least the class tag of the object
-		if (length >= 1)
-			simplified.add(oldAsArray[length - 1]);
+		if (lastPos >= 0)
+			simplified.add(oldAsArray[lastPos]);
 	
 		return simplified.stream();
 	}
@@ -1315,15 +1320,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu) {
 			// we check if there is at least an update for a field of the object
 			// that is not yet covered by another update in a previous element of the history
-			Set<Update> diff = trwu.getUpdates()
-				.filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty))
-				.collect(Collectors.toSet());
-
-			if (!diff.isEmpty()) {
-				// the transaction reference actually adds at least one useful update
+			if (trwu.getUpdates().filter(update -> update.getObject().equals(object) && covered.stream().noneMatch(update::sameProperty) && covered.add(update)).count() > 0)
 				history.add(reference);
-				covered.addAll(diff);
-			}
 		}
 		else
 			throw new StoreException("The history contains a reference to a transaction without updates");

@@ -68,7 +68,7 @@ public interface Store<S extends Store<S, T>, T extends StoreTransaction<S, T>> 
 	 * that can be used to reconstruct the current values of its fields.
 	 * 
 	 * @param object the reference of the object
-	 * @return the history. Yields an empty stream if there is no history for {@code object}
+	 * @return the history
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
 	Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;

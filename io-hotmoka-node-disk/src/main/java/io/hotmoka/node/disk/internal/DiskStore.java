@@ -149,8 +149,7 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 		if (history != null)
 			return Stream.of(history);
 		else
-			return Stream.empty();
-		//throw new UnknownReferenceException(object); // TODO
+			throw new UnknownReferenceException(object);
 	}
 
 	@Override
