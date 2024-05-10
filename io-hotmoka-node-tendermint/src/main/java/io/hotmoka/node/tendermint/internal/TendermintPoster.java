@@ -25,7 +25,6 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -38,10 +37,12 @@ import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.crypto.Hex;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
@@ -105,25 +106,26 @@ public class TendermintPoster {
 	 * @param hash the hash of the transaction to look for
 	 * @return the Hotmoka transaction request
 	 */
-	Optional<TransactionRequest<?>> getRequest(byte[] hash) {
+	TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
-			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
+			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
 			if (response.error != null)
-				// the Tendermint transaction didn't commit successfully
-				return Optional.empty();
+				// the request to Tendermint failed
+				throw new UnknownReferenceException(reference);
 
 			String tx = response.result.tx;
 			if (tx == null)
-				throw new RuntimeException("no Hotmoka request in Tendermint response");
+				throw new StoreException("No Hotmoka request in Tendermint response for transaction " + reference);
 
-			byte[] decoded = Base64.fromBase64String(tx);
-			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(decoded))) {
-				return Optional.of(TransactionRequests.from(context));
+			try (var context = NodeUnmarshallingContexts.of(new ByteArrayInputStream(Base64.fromBase64String(tx)))) {
+				return TransactionRequests.from(context);
 			}
 		}
-		catch (IOException | InterruptedException | TimeoutException | Base64ConversionException e) {
-			logger.log(Level.WARNING, "failed getting transaction at " + Hex.toHexString(hash), e);
-			throw new RuntimeException(e);
+		catch (InterruptedException | TimeoutException e) { // TODO: these must disappear: requests should be kept in store, not asked to Tendermint
+			throw new StoreException("Cannot get the Tendermint request returned for transaction " + reference, e);
+		}
+		catch (IOException | Base64ConversionException e) {
+			throw new StoreException("Cannot parse the Tendermint request returned for transaction " + reference, e);
 		}
 	}
 
@@ -134,28 +136,27 @@ public class TendermintPoster {
 	 * @return the error, if any. If the transaction didn't commit or committed successfully,
 	 *         the result is an empty optional
 	 */
-	Optional<String> getErrorMessage(byte[] hash) {
+	String getErrorMessage(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
-			TendermintTxResponse response = gson.fromJson(tx(hash), TendermintTxResponse.class);
-
+			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
 			if (response.error != null)
-				// the Tendermint transaction didn't commit successfully
-				return Optional.empty();
-			else {
-				// the Tendermint transaction committed successfully
-				TendermintTxResult tx_result = response.result.tx_result;
-				if (tx_result == null)
-					throw new RuntimeException("no result for Tendermint transaction " + hash);
-				else if (tx_result.data != null && !tx_result.data.isEmpty())
-					return Optional.of(new String(Base64.fromBase64String(tx_result.data)));
-				else
-					// there is no Hotmoka error in this transaction
-					return Optional.empty();
-			}
+				// the request to Tendermint failed
+				throw new UnknownReferenceException(reference);
+
+			TendermintTxResult tx_result = response.result.tx_result;
+			if (tx_result == null)
+				throw new StoreException("No result for Tendermint error for transaction " + reference);
+			else if (tx_result.data != null && !tx_result.data.isEmpty())
+				return new String(Base64.fromBase64String(tx_result.data));
+			else
+				// there is no Hotmoka error for this transaction
+				throw new UnknownReferenceException(reference);
 		}
-		catch (InterruptedException | TimeoutException | IOException | Base64ConversionException e) {
-			logger.log(Level.WARNING, "failed getting error message at " + Hex.toHexString(hash), e);
-			throw new RuntimeException(e);
+		catch (InterruptedException | TimeoutException e) { // TODO: these must disappear: errors should be kept in store, not asked to Tendermint
+			throw new StoreException("Cannot get the Tendermint error returned for transaction " + reference, e);
+		}
+		catch (IOException | Base64ConversionException e) {
+			throw new StoreException("Cannot parse the Tendermint error returned for transaction " + reference, e);
 		}
 	}
 

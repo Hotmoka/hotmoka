@@ -293,7 +293,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	@Override
 	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
-			return store.getRequest(Objects.requireNonNull(reference)).orElseThrow(() -> new UnknownReferenceException(reference));
+			return store.getRequest(Objects.requireNonNull(reference));
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -303,26 +303,28 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	@Override
 	public final TransactionResponse getResponse(TransactionReference reference) throws TransactionRejectedException, UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
-			Objects.requireNonNull(reference);
-
 			try {
-				Optional<TransactionResponse> response = store.getResponse(reference);
-				if (response.isPresent())
-					return response.get();
-
-				// we check if the request has been executed but ended with a TransactionException:
-				// in that case, the node contains the error message in its store; otherwise,
-				// we check if the request has been rejected with a TransactionRejectedException:
-				// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
-				Optional<String> error = store.getError(reference).or(() -> getRecentCheckRequestErrorFor(reference));
-				if (error.isPresent())
-					throw new TransactionRejectedException(error.get());
-				else
-					throw new UnknownReferenceException(reference);
+				return store.getResponse(Objects.requireNonNull(reference));
 			}
-			catch (StoreException e) {
-				throw new NodeException(e);
+			catch (UnknownReferenceException e) {
+				try {
+					// we check if the request has been executed but ended with a TransactionException:
+					// in that case, the node contains the error message in its store; otherwise,
+					// we check if the request has been rejected with a TransactionRejectedException:
+					// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
+					throw new TransactionRejectedException(store.getError(reference));
+				}
+				catch (UnknownReferenceException ee) {
+					Optional<String> rejectionError = getRecentCheckRequestErrorFor(reference);
+					if (rejectionError.isPresent())
+						throw new TransactionRejectedException(rejectionError.get());
+					else
+						throw new UnknownReferenceException(reference);
+				}
 			}
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
 		}
 	}
 
@@ -331,10 +333,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 
-			var maybeResponse = store.getResponse(reference.getTransaction());
-			if (maybeResponse.isEmpty())
-				throw new UnknownReferenceException(reference);
-			else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
+			if (store.getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu)
 				return trwu.getUpdates()
 					.filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
@@ -353,9 +352,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try (var scope = mkScope()) {
 			Objects.requireNonNull(reference);
 			try {
-				if (store.getResponse(reference.getTransaction()).isEmpty()) // TODO: remove after making history optional
-					throw new UnknownReferenceException(reference);
-
 				Stream<TransactionReference> history = store.getHistory(reference);
 				var updates = new HashSet<Update>();
 				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(reference, transaction, updates))));
@@ -601,17 +597,19 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
 		try {
-			if (store.getResponse(reference).isPresent())
-				throw new TransactionRejectedException("Repeated request " + reference);
+			store.getResponse(reference);
+			// if the response is found, then no exception is thrown above and the request was repeated
+			throw new TransactionRejectedException("Repeated request " + reference);
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
 		}
-	
-		createSemaphore(reference);
-		postRequest(request);
-	
-		return reference;
+		catch (UnknownReferenceException e) {
+			createSemaphore(reference);
+			postRequest(request);
+
+			return reference;
+		}
 	}
 
 	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
@@ -627,20 +625,22 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * occurred during the execution of a given transaction.
 	 * 
 	 * @param object the reference of the object
-	 * @param transaction the reference to the transaction
+	 * @param referenceInHistory the reference to the transaction
 	 * @param updates the set where they must be added
 	 * @throws StoreException 
 	 */
-	private void addUpdatesCommitted(StorageReference object, TransactionReference transaction, Set<Update> updates) throws StoreException {
-		Optional<TransactionResponse> maybeResponse = store.getResponse(transaction);
-		if (maybeResponse.isEmpty())
-			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it is not in the store");
-		else if (maybeResponse.get() instanceof TransactionResponseWithUpdates trwu)
-			trwu.getUpdates()
-				.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
-				.forEach(updates::add);
-		else
-			throw new StoreException("Storage reference " + transaction + " is part of the history of an object but it did not generate updates");
+	private void addUpdatesCommitted(StorageReference object, TransactionReference referenceInHistory, Set<Update> updates) throws StoreException {
+		try {
+			if (store.getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
+				trwu.getUpdates()
+					.filter(update -> update.getObject().equals(object) && updates.stream().noneMatch(update::sameProperty))
+					.forEach(updates::add);
+			else
+				throw new StoreException("Reference " + referenceInHistory + " is part of the histories but did not generate updates");
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("Reference " + referenceInHistory + " is part of the histories but is not in the store");
+		}
 	}
 
 	/**

@@ -110,10 +110,13 @@ public class Reverification {
 			var reference = entry.getKey();
 
 			try {
-				storeTransaction.replace(reference, storeTransaction.getStore().getRequest(reference).get(), entry.getValue());
+				storeTransaction.replace(reference, storeTransaction.getStore().getRequest(reference), entry.getValue());
 			}
 			catch (StoreException | NoSuchElementException e) {
 				throw new NodeException(e);
+			}
+			catch (UnknownReferenceException e) {
+				throw new NodeException(e); // TODO: is this the right exception?
 			}
 
 			logger.info(reference + ": updated after reverification");
@@ -156,15 +159,20 @@ public class Reverification {
 	
 	private VerifiedJar recomputeVerifiedJarFor(TransactionReference transaction, List<GenericJarStoreTransactionResponse> reverifiedDependencies) throws StoreException {
 		// we get the original jar that classpath had requested to install
-		Optional<TransactionRequest<?>> maybeRequest = storeTransaction.getStore().getRequest(transaction);
-		if (maybeRequest.isEmpty())
-			throw new StoreException("The jar under reverification cannot be found in store");
+		TransactionRequest<?> request;
+		
+		try {
+			request = storeTransaction.getStore().getRequest(transaction);
+		}
+		catch (UnknownReferenceException e) {
+			throw new StoreException("The jar under reverification cannot be found in store"); // TODO: correct exception?
+		}
 
 		// this check should always succeed if the implementation of the node is correct, since we checked already that the response installed a jar
-		if (maybeRequest.get() instanceof GenericJarStoreTransactionRequest<?> gjstr) {
+		if (request instanceof GenericJarStoreTransactionRequest<?> gjstr) {
 			// we build the classpath for the classloader: it includes the jar...
 			byte[] jar = gjstr.getJar();
-			var jars = new ArrayList<byte[]>();
+			var jars = new ArrayList<byte[]>(1 + reverifiedDependencies.size());
 			jars.add(jar);
 
 			// ... and the instrumented jars of its dependencies: since we have already considered the case

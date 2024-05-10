@@ -47,7 +47,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 		if (uncommittedResponse != null)
 			return uncommittedResponse;
 		else
-			return getStore().getResponse(reference).orElseThrow(() -> new UnknownReferenceException(reference));
+			return getStore().getResponse(reference);
 	}
 
 	@Override

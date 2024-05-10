@@ -134,13 +134,21 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
     }
 
     @Override
-    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	return Optional.ofNullable(responses.get(reference));
+    public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
+    	var response = responses.get(reference);
+    	if (response != null)
+    		return response;
+    	else
+    		throw new UnknownReferenceException(reference);
     }
 
 	@Override
-	public Optional<String> getError(TransactionReference reference) {
-		return Optional.ofNullable(errors.get(reference));
+	public String getError(TransactionReference reference) throws UnknownReferenceException {
+		var error = errors.get(reference);
+    	if (error != null)
+    		return error;
+    	else
+    		throw new UnknownReferenceException(reference);
 	}
 
 	@Override
@@ -158,8 +166,12 @@ class DiskStore extends AbstractStore<DiskStore, DiskStoreTransaction> {
 	}
 
 	@Override
-	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
-		return Optional.ofNullable(requests.get(reference));
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException {
+		var request = requests.get(reference);
+    	if (request != null)
+    		return request;
+    	else
+    		throw new UnknownReferenceException(reference);
 	}
 
 	@Override

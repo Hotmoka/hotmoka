@@ -29,6 +29,7 @@ import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -230,9 +231,42 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     }
 
     @Override
-    public Optional<TransactionResponse> getResponse(TransactionReference reference) {
-    	return env.computeInReadonlyTransaction // TODO: recheck
-    		(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)));
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    	try {
+    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+    			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference)))
+    		)
+    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    	}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+    public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+    	try {
+    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+    			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)))
+    		)
+    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    	}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public String getError(TransactionReference reference) throws UnknownReferenceException, StoreException {
+		try {
+    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
+    			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference)))
+    		)
+    		.orElseThrow(() -> new UnknownReferenceException(reference));
+    	}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
@@ -240,30 +274,6 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 		try {
 			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
 				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfInfo(txn).getManifest())
-			));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	public Optional<String> getError(TransactionReference reference) throws StoreException {
-		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () -> 
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference))
-			));
-		}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) throws StoreException {
-		try {
-			return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-				env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfRequests(txn).get(reference))
 			));
 		}
 		catch (ExodusException | TrieException e) {

@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -78,15 +79,15 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	public Optional<String> getError(TransactionReference reference) {
+	public String getError(TransactionReference reference) throws UnknownReferenceException, StoreException {
     	// error messages are held inside the Tendermint blockchain
-    	return poster.get().getErrorMessage(reference.getHash());
+    	return poster.get().getErrorMessage(reference);
 	}
 
 	@Override
-	public Optional<TransactionRequest<?>> getRequest(TransactionReference reference) {
+	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		// requests are held inside the Tendermint blockchain
-		return poster.get().getRequest(reference.getHash());
+		return poster.get().getRequest(reference);
 	}
 
 	/**
