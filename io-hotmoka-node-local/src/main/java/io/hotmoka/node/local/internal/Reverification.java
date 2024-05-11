@@ -110,7 +110,7 @@ public class Reverification {
 			var reference = entry.getKey();
 
 			try {
-				storeTransaction.replace(reference, storeTransaction.getStore().getRequest(reference), entry.getValue());
+				storeTransaction.replace(reference, storeTransaction.getInitialStore().getRequest(reference), entry.getValue());
 			}
 			catch (StoreException | NoSuchElementException e) {
 				throw new NodeException(e);
@@ -162,7 +162,7 @@ public class Reverification {
 		TransactionRequest<?> request;
 		
 		try {
-			request = storeTransaction.getStore().getRequest(transaction);
+			request = storeTransaction.getInitialStore().getRequest(transaction);
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("The jar under reverification cannot be found in store"); // TODO: correct exception?
@@ -271,7 +271,7 @@ public class Reverification {
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws StoreException {
 		try {
-			if (storeTransaction.getResponseUncommitted(reference) instanceof TransactionResponseWithInstrumentedJar trwij)
+			if (storeTransaction.getResponse(reference) instanceof TransactionResponseWithInstrumentedJar trwij)
 				return trwij;
 			else
 				throw new StoreException("The transaction " + reference + " under reverification did not install a jar in store");

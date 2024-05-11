@@ -105,7 +105,7 @@ public abstract class CodeCallResponseBuilder
 	 */
 	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
 		try {
-			var clazz = storeTransaction.getClassTagUncommitted(reference).getClazz();
+			var clazz = storeTransaction.getClassTag(reference).getClazz();
 
 			try {
 				if (!classLoader.isExported(clazz.getName()))

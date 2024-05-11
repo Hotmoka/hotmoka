@@ -42,35 +42,35 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
 		var uncommittedResponse = responses.get(reference);
 		if (uncommittedResponse != null)
 			return uncommittedResponse;
 		else
-			return getStore().getResponse(reference);
+			return getInitialStore().getResponse(reference);
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws UnknownReferenceException, StoreException {
+	public Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
 		var uncommittedHistory = histories.get(object);
 		if (uncommittedHistory != null)
 			return Stream.of(uncommittedHistory);
 		else
-			return getStore().getHistory(object);
+			return getInitialStore().getHistory(object);
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() {
+	public Optional<StorageReference> getManifest() {
 		var uncommittedManifest = manifest.get();
 		if (uncommittedManifest != null)
 			return Optional.of(uncommittedManifest);
 		else
-			return getStore().getManifest();
+			return getInitialStore().getManifest();
 	}
 
 	@Override
-	public DiskStore commit() throws StoreException {
-		return new DiskStore(getStore(), getCheckedSignatures(), getClassLoaders(), getConfigUncommitted(), getGasPriceUncommitted(), getInflationUncommitted(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
+	public DiskStore getFinalStore() throws StoreException {
+		return new DiskStore(getInitialStore(), getCheckedSignatures(), getClassLoaders(), getConfig(), getGasPrice(), getInflation(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
 	}
 
 	@Override

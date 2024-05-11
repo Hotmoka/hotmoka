@@ -340,7 +340,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		else {
 			// otherwise the response has not been reverified
 			try {
-				response = storeTransaction.getResponseUncommitted(reference);
+				response = storeTransaction.getResponse(reference);
 			}
 			catch (UnknownReferenceException e) {
 				throw new IllegalArgumentException("unknown transaction reference " + reference); // TODO

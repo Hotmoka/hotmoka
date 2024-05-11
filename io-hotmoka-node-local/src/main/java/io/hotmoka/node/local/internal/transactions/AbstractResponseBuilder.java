@@ -93,7 +93,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.storeTransaction = storeTransaction;
 			this.request = request;
 			this.reference = reference;
-			this.consensus = storeTransaction.getConfigUncommitted();
+			this.consensus = storeTransaction.getConfig();
 			this.classLoader = mkClassLoader();
 		}
 		catch (Throwable t) {
@@ -256,7 +256,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
 			try {
-				return deserializer.deserialize(storeTransaction.getLastUpdateToFieldUncommitted(object, field).getValue());
+				return deserializer.deserialize(storeTransaction.getLastUpdateToField(object, field).getValue());
 			}
 			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 				throw new DeserializationError(e);
@@ -274,7 +274,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
 			try {
-				return deserializer.deserialize(storeTransaction.getLastUpdateToFinalFieldUncommitted(object, field).getValue());
+				return deserializer.deserialize(storeTransaction.getLastUpdateToFinalField(object, field).getValue());
 			}
 			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 				throw new DeserializationError(e); // TODO

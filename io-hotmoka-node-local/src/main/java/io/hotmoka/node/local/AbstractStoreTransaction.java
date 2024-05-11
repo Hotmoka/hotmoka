@@ -209,7 +209,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final S getStore() {
+	public final S getInitialStore() {
 		return store;
 	}
 
@@ -219,7 +219,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Optional<BigInteger> getGasPriceUncommitted() throws StoreException {
+	public final Optional<BigInteger> getGasPrice() throws StoreException {
 		if (gasPrice.isEmpty())
 			recomputeGasPrice();
 
@@ -228,9 +228,9 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private void recomputeGasPrice() throws StoreException {
 		try {
-			Optional<StorageReference> manifest = getManifestUncommitted();
+			Optional<StorageReference> manifest = getManifest();
 			if (manifest.isPresent()) {
-				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
 				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_GAS_PRICE, gasStation))
 					.orElseThrow(() -> new StoreException(GET_GAS_PRICE + " should not return void"));
@@ -250,7 +250,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final OptionalLong getInflationUncommitted() throws StoreException {
+	public final OptionalLong getInflation() throws StoreException {
 		if (inflation.isEmpty())
 			recomputeInflation();
 
@@ -259,10 +259,10 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private void recomputeInflation() throws StoreException {
 		try {
-			Optional<StorageReference> manifest = getManifestUncommitted();
+			Optional<StorageReference> manifest = getManifest();
 			if (manifest.isPresent()) {
-				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageValue result = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall(manifest.get(), _100_000, takamakaCode, GET_CURRENT_INFLATION, validators))
 					.orElseThrow(() -> new StoreException(GET_CURRENT_INFLATION + " should not return void"));
 
@@ -294,17 +294,17 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final ConsensusConfig<?,?> getConfigUncommitted() {
+	public final ConsensusConfig<?,?> getConfig() {
 		return consensus;
 	}
 
 	private void recomputeConsensus() throws StoreException {
 		try {
-			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
 				StorageReference manifest = maybeManifest.get();
-				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the gas station is not set"));
 				StorageReference versions = getVersionsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
 
@@ -496,11 +496,11 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 			return true;
 		// we check if there are events of type ConsensusUpdate triggered by the manifest, validators, gas station or versions
 		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
-			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			Optional<StorageReference> maybeManifest = getManifest();
 
 			if (maybeManifest.isPresent()) {
 				var manifest = maybeManifest.get();
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				StorageReference versions = getVersionsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the versions are not set"));
 				StorageReference gasStation = getGasStationUncommitted().orElseThrow(() -> new StoreException("The manifest is set but gas station is not set"));
 				Stream<StorageReference> events = trwe.getEvents();
@@ -508,7 +508,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 				try {
 					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 						events.filter(uncheck(event -> isConsensusUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreatorUncommitted))
+						.map(UncheckFunction.uncheck(this::getCreator))
 						.anyMatch(creator -> creator.equals(manifest) || creator.equals(validators) || creator.equals(gasStation) || creator.equals(versions)));
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
@@ -523,7 +523,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private boolean isConsensusUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
-			return classLoader.isConsensusUpdateEvent(getClassNameUncommitted(event));
+			return classLoader.isConsensusUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Event " + event + " is not an object in store", e);
@@ -554,7 +554,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 				try {
 					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 						events.filter(uncheck(event -> isGasPriceUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreatorUncommitted))
+						.map(UncheckFunction.uncheck(this::getCreator))
 						.anyMatch(gasStation::equals));
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
@@ -569,7 +569,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private boolean isGasPriceUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
-			return classLoader.isGasPriceUpdateEvent(getClassNameUncommitted(event));
+			return classLoader.isGasPriceUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Event " + event + " is not an object in store", e);
@@ -591,7 +591,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		if (response instanceof InitializationTransactionResponse)
 			return true;
 		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
-			Optional<StorageReference> maybeValidators = getValidatorsUncommitted();
+			Optional<StorageReference> maybeValidators = getValidators();
 
 			if (maybeValidators.isPresent()) {
 				var validators = maybeValidators.get();
@@ -600,7 +600,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 				try {
 					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 						events.filter(uncheck(event -> isInflationUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreatorUncommitted))
+						.map(UncheckFunction.uncheck(this::getCreator))
 						.anyMatch(validators::equals));
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
@@ -615,7 +615,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private boolean isInflationUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
-			return classLoader.isInflationUpdateEvent(getClassNameUncommitted(event));
+			return classLoader.isInflationUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Event " + event + " is not an object in store", e);
@@ -684,7 +684,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private BigInteger addInflation(BigInteger gas) throws StoreException {
-		OptionalLong currentInflation = getInflationUncommitted();
+		OptionalLong currentInflation = getInflation();
 
 		if (currentInflation.isPresent())
 			gas = gas.multiply(_100_000_000.add(BigInteger.valueOf(currentInflation.getAsLong())))
@@ -696,13 +696,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	@Override
 	public void rewardValidators(String behaving, String misbehaving) throws StoreException {
 		try {
-			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
 				// we use the manifest as caller, since it is an externally-owned account
 				StorageReference manifest = maybeManifest.get();
-				BigInteger nonce = getNonceUncommitted(manifest);
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				BigInteger nonce = getNonce(manifest);
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
 
 				// we determine how many coins have been minted during the last reward:
 				// it is the price of the gas distributed minus the same price without inflation
@@ -714,13 +714,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 				// or from above (negative inflation)
 				BigInteger currentSupply = getCurrentSupplyUncommitted(validators);
 				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfigUncommitted().getFinalSupply();
+					BigInteger finalSupply = getConfig().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() < 0)
 						minted = minted.add(extra);
 				}
 				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfigUncommitted().getFinalSupply();
+					BigInteger finalSupply = getConfig().getFinalSupply();
 					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
 					if (extra.signum() > 0)
 						minted = minted.add(extra);
@@ -877,13 +877,13 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException {
-		var maybeManifest = getManifestUncommitted();
+	public final Optional<TransactionReference> getTakamakaCode() throws StoreException {
+		var maybeManifest = getManifest();
 		if (maybeManifest.isEmpty())
 			return Optional.empty();
 
 		try {
-			return Optional.of(getClassTagUncommitted(maybeManifest.get()).getJar());
+			return Optional.of(getClassTag(maybeManifest.get()).getJar());
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("The manifest is set to something that is not an object", e);
@@ -891,7 +891,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private Optional<StorageReference> getGasStationUncommitted() throws StoreException {
-		var maybeManifest = getManifestUncommitted();
+		var maybeManifest = getManifest();
 		if (maybeManifest.isPresent()) {
 			try {
 				return Optional.of(getReferenceFieldUncommitted(maybeManifest.get(), FieldSignatures.MANIFEST_GAS_STATION_FIELD));
@@ -908,8 +908,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Optional<StorageReference> getValidatorsUncommitted() throws StoreException {
-		var maybeManifest = getManifestUncommitted();
+	public final Optional<StorageReference> getValidators() throws StoreException {
+		var maybeManifest = getManifest();
 		if (maybeManifest.isPresent()) {
 			try {
 				return Optional.of(getReferenceFieldUncommitted(maybeManifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD));
@@ -926,8 +926,8 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Optional<StorageReference> getGameteUncommitted() throws StoreException {
-		var maybeManifest = getManifestUncommitted();
+	public final Optional<StorageReference> getGamete() throws StoreException {
+		var maybeManifest = getManifest();
 		if (maybeManifest.isPresent()) {
 			try {
 				return Optional.of(getReferenceFieldUncommitted(maybeManifest.get(), FieldSignatures.MANIFEST_GAMETE_FIELD));
@@ -944,7 +944,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private Optional<StorageReference> getVersionsUncommitted() throws StoreException {
-		var maybeManifest = getManifestUncommitted();
+		var maybeManifest = getManifest();
 		if (maybeManifest.isPresent()) {
 			try {
 				return Optional.of(getReferenceFieldUncommitted(maybeManifest.get(), FieldSignatures.MANIFEST_VERSIONS_FIELD));
@@ -973,34 +973,34 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final String getPublicKeyUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	public final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getStringFieldUncommitted(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
 	}
 
 	@Override
-	public final StorageReference getCreatorUncommitted(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	public final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceFieldUncommitted(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
 	@Override
-	public final BigInteger getNonceUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	public final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerFieldUncommitted(account, FieldSignatures.EOA_NONCE_FIELD);
 	}
 
 	@Override
-	public final BigInteger getTotalBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	public final BigInteger getTotalBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBalanceUncommitted(contract).add(getRedBalanceUncommitted(contract));
 	}
 
 	@Override
-	public final String getClassNameUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException {
-		return getClassTagUncommitted(reference).getClazz().getName();
+	public final String getClassName(StorageReference reference) throws UnknownReferenceException, StoreException {
+		return getClassTag(reference).getClazz().getName();
 	}
 
 	@Override
-	public final ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException {
+	public final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
 		// we go straight to the transaction that created the object
-		if (getResponseUncommitted(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
+		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
 			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
 					.map(update -> (ClassTag) update)
 					.findFirst()
@@ -1011,18 +1011,18 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws UnknownReferenceException, StoreException {
+	public final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException {
 		var fieldsAlreadySeen = new HashSet<FieldSignature>();
 
-		return getHistoryUncommitted(object)
+		return getHistory(object)
 				.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(this::getUpdates)))
 				.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
 				.map(update -> (UpdateOfField) update);
 	}
 
 	@Override
-	public final UpdateOfField getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		Stream<TransactionReference> history = getHistoryUncommitted(object);
+	public final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+		Stream<TransactionReference> history = getHistory(object);
 
 		return CheckSupplier.check(StoreException.class, () -> history.map(UncheckFunction.uncheck(transaction -> getLastUpdateMustExistUncommitted(object, field, transaction)))
 				.filter(Optional::isPresent)
@@ -1032,7 +1032,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	public final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		// accesses directly the transaction that created the object
 		return getLastUpdateUncommitted(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
 	}
@@ -1048,7 +1048,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 				responsesWithEventsToNotify.stream()
 					.flatMap(TransactionResponseWithEvents::getEvents)
-					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreatorUncommitted(event), event))));
+					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
 		}
 		catch (UnknownReferenceException | FieldNotFoundException e) {
 			// the set of events to notify contains an event that cannot be found in store or that
@@ -1058,7 +1058,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	@Override
-	public final boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
+	public final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 			checkedSignatures.computeIfAbsentNoException(reference, UncheckFunction.uncheck(_reference -> verifySignatureUncommitted(signatureAlgorithm, request))));
@@ -1104,7 +1104,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 * @throws UnknownReferenceException 
 	 */
 	private PublicKey getPublicKeyUncommitted(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException, StoreException {
-		String publicKeyEncodedBase64 = getPublicKeyUncommitted(reference);
+		String publicKeyEncodedBase64 = getPublicKey(reference);
 		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
 		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
 	}
@@ -1159,7 +1159,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 
 	private Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
 		try {
-			if (getResponseUncommitted(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
+			if (getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
 				return trwu.getUpdates();
 			else
 				throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but does not contain updates");
@@ -1170,7 +1170,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private StorageReference getReferenceFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToFieldUncommitted(object, field).getValue();
+		StorageValue value = getLastUpdateToField(object, field).getValue();
 		if (value instanceof StorageReference reference)
 			return reference;
 		else
@@ -1178,7 +1178,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private BigInteger getBigIntegerFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToFieldUncommitted(object, field).getValue();
+		StorageValue value = getLastUpdateToField(object, field).getValue();
 		if (value instanceof BigIntegerValue biv)
 			return biv.getValue();
 		else
@@ -1186,7 +1186,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	}
 
 	private String getStringFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToFieldUncommitted(object, field).getValue();
+		StorageValue value = getLastUpdateToField(object, field).getValue();
 		if (value instanceof StringValue sv)
 			return sv.getValue();
 		else
@@ -1203,7 +1203,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 *         the {@code transaction}, this method returns an empty optional
 	 */
 	private Optional<UpdateOfField> getLastUpdateUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
-		if (getResponseUncommitted(reference) instanceof TransactionResponseWithUpdates trwu)
+		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
 			return trwu.getUpdates()
 					.filter(update -> update instanceof UpdateOfField)
 					.map(update -> (UpdateOfField) update)
@@ -1225,7 +1225,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 	 */
 	private Optional<UpdateOfField> getLastUpdateMustExistUncommitted(StorageReference object, FieldSignature field, TransactionReference reference) throws StoreException {
 		try {
-			if (getResponseUncommitted(reference) instanceof TransactionResponseWithUpdates trwu)
+			if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
 				return trwu.getUpdates()
 						.filter(update -> update instanceof UpdateOfField)
 						.map(update -> (UpdateOfField) update)
@@ -1277,7 +1277,7 @@ public abstract class AbstractStoreTransaction<S extends AbstractStore<S, T>, T 
 		Stream<TransactionReference> old;
 
 		try {
-			old = getHistoryUncommitted(objectUpdatedInResponse);
+			old = getHistory(objectUpdatedInResponse);
 		}
 		catch (UnknownReferenceException e) {
 			// the object was created before this transaction: it must have a history or otherwise the store is corrupted

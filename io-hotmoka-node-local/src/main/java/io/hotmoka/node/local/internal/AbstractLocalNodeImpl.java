@@ -203,7 +203,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
-				consensus = Optional.of(storeTransaction.getConfigUncommitted());
+				consensus = Optional.of(storeTransaction.getConfig());
 				storeTransaction.abort();
 			}
 

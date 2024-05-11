@@ -151,7 +151,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
 		try {
-			ClassTag classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+			ClassTag classTag = storeTransaction.getClassTag(request.getCaller());
 			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
 
 			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
@@ -189,7 +189,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		ClassTag classTag;
 		
 		try {
-			classTag = storeTransaction.getClassTagUncommitted(request.getCaller());
+			classTag = storeTransaction.getClassTag(request.getCaller());
 		}
 		catch (UnknownReferenceException e) {
 			throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store");
@@ -212,9 +212,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void signatureMustBeValid() throws StoreException, TransactionRejectedException {
 		// if the node is not initialized yet, the signature is not checked
-		if (transactionIsSigned() && storeTransaction.getManifestUncommitted().isPresent()) {
+		if (transactionIsSigned() && storeTransaction.getManifest().isPresent()) {
 			try {
-				if (!storeTransaction.signatureIsValidUncommitted((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
+				if (!storeTransaction.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
 					throw new TransactionRejectedException("Invalid request signature");
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
@@ -233,7 +233,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
 		// the chain identifier is not checked for unsigned transactions or if the node is not initialized yet
 		try {
-			if (transactionIsSigned() && storeTransaction.getManifestUncommitted().isPresent()) {
+			if (transactionIsSigned() && storeTransaction.getManifest().isPresent()) {
 				String chainIdOfNode = consensus.getChainId();
 				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
 				if (!chainIdOfNode.equals(chainId))
@@ -254,7 +254,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		// calls to @View methods do not check the nonce
 		if (!isView()) {
 			try {
-				BigInteger expected = storeTransaction.getNonceUncommitted(request.getCaller());
+				BigInteger expected = storeTransaction.getNonce(request.getCaller());
 				if (!expected.equals(request.getNonce()))
 					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
 					+ " but the account " + request.getCaller() + " contains " + expected);
@@ -297,7 +297,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void gasPriceIsLargeEnough() throws TransactionRejectedException {
 		try {
 			if (transactionIsSigned() && !consensus.ignoresGasPrice()) {
-				Optional<BigInteger> maybeGasPrice = storeTransaction.getGasPriceUncommitted();
+				Optional<BigInteger> maybeGasPrice = storeTransaction.getGasPrice();
 				// before initialization, the gas price is not yet available
 				if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
 					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")");
@@ -317,7 +317,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void payerCanPayForAllPromisedGas() throws TransactionRejectedException, StoreException {
 		try {
 			BigInteger cost = costOf(request.getGasLimit());
-			BigInteger totalBalance = storeTransaction.getTotalBalanceUncommitted(request.getCaller());
+			BigInteger totalBalance = storeTransaction.getTotalBalance(request.getCaller());
 
 			if (totalBalance.subtract(cost).signum() < 0)
 				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
@@ -418,7 +418,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			this.deserializedPayer = deserializedPayer();
 
 			try {
-				this.deserializedValidators = storeTransaction.getValidatorsUncommitted().map(deserializer::deserialize);
+				this.deserializedValidators = storeTransaction.getValidators().map(deserializer::deserialize);
 			}
 			catch (StoreException e) {
 				throw new NodeException(e);

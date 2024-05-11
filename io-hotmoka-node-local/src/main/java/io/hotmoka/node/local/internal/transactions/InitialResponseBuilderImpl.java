@@ -44,7 +44,7 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 		super(reference, request, storeTransaction);
 
 		try {
-			if (storeTransaction.getManifestUncommitted().isPresent())
+			if (storeTransaction.getManifest().isPresent())
 				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node");
 		}
 		catch (Throwable t) {

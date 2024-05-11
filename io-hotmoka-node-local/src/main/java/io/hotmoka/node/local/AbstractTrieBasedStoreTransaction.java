@@ -64,7 +64,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
 			return trieOfResponses.get(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 		}
@@ -74,7 +74,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws StoreException, UnknownReferenceException {
+	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
 			return trieOfHistories.get(object).orElseThrow(() -> new UnknownReferenceException(object));
 		}
@@ -84,7 +84,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Optional<StorageReference> getManifestUncommitted() throws StoreException {
+	public Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			return trieOfInfo.getManifest();
 		}
@@ -144,7 +144,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 	
 	@Override
-	public S commit() throws StoreException {
+	public S getFinalStore() throws StoreException {
 		try {
 			trieOfInfo = trieOfInfo.increaseNumberOfCommits();
 		}
@@ -155,12 +155,12 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 		if (!txn.commit())
 			throw new StoreException("Cannot commit the Xodus transaction");
 
-		return getStore().mkClone(
+		return getInitialStore().mkClone(
 			getCheckedSignatures(),
 			getClassLoaders(),
-			getConfigUncommitted(),
-			getGasPriceUncommitted(),
-			getInflationUncommitted(),
+			getConfig(),
+			getGasPrice(),
+			getInflation(),
 			Optional.of(trieOfResponses.getRoot()),
 			Optional.of(trieOfInfo.getRoot()),
 			Optional.of(trieOfErrors.getRoot()),

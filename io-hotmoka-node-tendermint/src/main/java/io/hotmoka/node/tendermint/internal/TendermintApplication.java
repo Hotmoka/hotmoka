@@ -274,7 +274,7 @@ class TendermintApplication extends ABCI {
         }
         catch (Throwable t) {
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setData(trimmedMessage(t, transaction.getConfigUncommitted().getMaxErrorLength()));
+        	responseBuilder.setData(trimmedMessage(t, transaction.getConfig().getMaxErrorLength()));
         }
 
         return responseBuilder.build();
@@ -311,7 +311,7 @@ class TendermintApplication extends ABCI {
 	@Override
 	protected ResponseCommit commit(RequestCommit request) {
 		try {
-			var newStore = transaction.commit();
+			var newStore = transaction.getFinalStore();
 			node.setStore(newStore);
 			newStore.moveRootBranchToThis();
 			node.signalOutcomeIsReady(processed.stream());

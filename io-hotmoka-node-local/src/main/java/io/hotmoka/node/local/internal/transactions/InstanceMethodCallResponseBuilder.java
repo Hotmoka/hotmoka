@@ -85,7 +85,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean callerIsGameteOfTheNode() {
 		try {
-			return storeTransaction.getGameteUncommitted().filter(request.getCaller()::equals).isPresent();
+			return storeTransaction.getGamete().filter(request.getCaller()::equals).isPresent();
 		}
 		catch (StoreException e) {
 			LOGGER.log(Level.SEVERE, "", e);
@@ -248,7 +248,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			try {
-				Optional<StorageReference> manifest = storeTransaction.getManifestUncommitted();
+				Optional<StorageReference> manifest = storeTransaction.getManifest();
 				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
 					Optional<StorageValue> firstArg = request.actuals().findFirst();
 					if (firstArg.isPresent()) {

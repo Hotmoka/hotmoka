@@ -55,7 +55,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * 
 	 * @return the store from which this transaction begun
 	 */
-	S getStore();
+	S getInitialStore();
 
 	/**
 	 * Yields the time to use as current time for the requests executed inside this transaction.
@@ -65,35 +65,13 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	long getNow();
 
 	/**
-	 * Yields the current gas price at the end of this transaction.
-	 * This might be missing if the node is not initialized yet.
-	 * 
-	 * @return the current gas price at the end of this transaction
-	 */
-	Optional<BigInteger> getGasPriceUncommitted() throws StoreException;
-
-	/**
-	 * Yields the current inflation of the node.
-	 * 
-	 * @return the current inflation of the node, if the node is already initialized
-	 */
-	OptionalLong getInflationUncommitted() throws StoreException;
-
-	/**
-	 * Yields the current consensus configuration of the node.
-	 * 
-	 * @return the current consensus configuration of the node
-	 */
-	ConsensusConfig<?,?> getConfigUncommitted() throws StoreException;
-
-	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.
 	 * 
 	 * @param reference the reference of the transaction
 	 * @return the response
 	 */
-	TransactionResponse getResponseUncommitted(TransactionReference reference) throws UnknownReferenceException, StoreException;
+	TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException;
 
 	/**
 	 * Yields the history of the given object, that is, the references to the transactions
@@ -104,7 +82,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @return the history. Yields an empty stream if there is no history for {@code object}
 	 * @throws StoreException if the store is not able to perform the operation
 	 */
-	Stream<TransactionReference> getHistoryUncommitted(StorageReference object) throws UnknownReferenceException, StoreException;
+	Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException;
 
 	/**
 	 * Yields the manifest installed when the node is initialized.
@@ -113,31 +91,53 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @return the manifest
 	 * @throws StoreException if the store is not able to complete the operation correctly
 	 */
-	Optional<StorageReference> getManifestUncommitted() throws StoreException;
+	Optional<StorageReference> getManifest() throws StoreException;
 
-	Optional<TransactionReference> getTakamakaCodeUncommitted() throws StoreException;
+	/**
+	 * Yields the current consensus configuration of the node.
+	 * 
+	 * @return the current consensus configuration of the node
+	 */
+	ConsensusConfig<?,?> getConfig() throws StoreException;
 
-	Optional<StorageReference> getValidatorsUncommitted() throws StoreException;
+	/**
+	 * Yields the current gas price at the end of this transaction.
+	 * This might be missing if the node is not initialized yet.
+	 * 
+	 * @return the current gas price at the end of this transaction
+	 */
+	Optional<BigInteger> getGasPrice() throws StoreException;
 
-	Optional<StorageReference> getGameteUncommitted() throws StoreException;
+	/**
+	 * Yields the current inflation of the node.
+	 * 
+	 * @return the current inflation of the node, if the node is already initialized
+	 */
+	OptionalLong getInflation() throws StoreException;
 
-	String getPublicKeyUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	Optional<TransactionReference> getTakamakaCode() throws StoreException;
 
-	StorageReference getCreatorUncommitted(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	Optional<StorageReference> getValidators() throws StoreException;
 
-	BigInteger getNonceUncommitted(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	Optional<StorageReference> getGamete() throws StoreException;
 
-	BigInteger getTotalBalanceUncommitted(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	String getClassNameUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
+	StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	ClassTag getClassTagUncommitted(StorageReference reference) throws UnknownReferenceException, StoreException;
+	BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	Stream<UpdateOfField> getEagerFieldsUncommitted(StorageReference object) throws UnknownReferenceException, StoreException;
+	BigInteger getTotalBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
-	UpdateOfField getLastUpdateToFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	String getClassName(StorageReference reference) throws UnknownReferenceException, StoreException;
 
-	UpdateOfField getLastUpdateToFinalFieldUncommitted(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+	ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException;
+
+	Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException;
+
+	UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
+
+	UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException;
 
 	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
 
@@ -192,7 +192,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 
 	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 
-	boolean signatureIsValidUncommitted(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException;
+	boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException;
 
 	/**
 	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
@@ -203,7 +203,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException;
 
-	S commit() throws StoreException;
+	S getFinalStore() throws StoreException;
 
 	void abort() throws StoreException;
 }

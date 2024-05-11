@@ -75,11 +75,11 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private void recomputeValidators() throws StoreException {
 		try {
-			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
 				StorageReference manifest = maybeManifest.get();
-				TransactionReference takamakaCode = getTakamakaCodeUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 
 				var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: check casts
 					(manifest, _50_000, takamakaCode, GET_SHARES, validators))
@@ -104,7 +104,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 						(manifest, _50_000, takamakaCode, GET, shares, validator))
 						.orElseThrow(() -> new StoreException(GET + " should not return void"))).getValue().longValue();
 
-					String publicKey = getPublicKeyUncommitted(validator);
+					String publicKey = getPublicKey(validator);
 
 					result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
 				}
@@ -138,16 +138,16 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 			return true;
 		// we check if there are events of type ValidatorsUpdate triggered by the validators
 		else if (response instanceof TransactionResponseWithEvents trwe && trwe.getEvents().findAny().isPresent()) {
-			Optional<StorageReference> maybeManifest = getManifestUncommitted();
+			Optional<StorageReference> maybeManifest = getManifest();
 
 			if (maybeManifest.isPresent()) {
-				StorageReference validators = getValidatorsUncommitted().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
 				Stream<StorageReference> events = trwe.getEvents();
 
 				try {
 					return check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 						events.filter(uncheck(event -> isValidatorsUpdateEvent(event, classLoader)))
-						.map(UncheckFunction.uncheck(this::getCreatorUncommitted))
+						.map(UncheckFunction.uncheck(this::getCreator))
 						.anyMatch(validators::equals));
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
@@ -163,7 +163,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private boolean isValidatorsUpdateEvent(StorageReference event, EngineClassLoader classLoader) throws StoreException {
 		try {
-			return classLoader.isValidatorsUpdateEvent(getClassNameUncommitted(event));
+			return classLoader.isValidatorsUpdateEvent(getClassName(event));
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("Event " + event + " is not an object in store", e);

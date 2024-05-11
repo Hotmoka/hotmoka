@@ -339,7 +339,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
 			S temp = mkClone(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 			storeTransaction.invalidateConsensusCache();
-			ConsensusConfig<?,?> consensus = storeTransaction.getConfigUncommitted();
+			ConsensusConfig<?,?> consensus = storeTransaction.getConfig();
 			storeTransaction.abort();
 			return mkClone(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 		}

@@ -208,8 +208,8 @@ public class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			ClassTag classTag = storeTransaction.getClassTagUncommitted(reference);
-			storeTransaction.getEagerFieldsUncommitted(reference)
+			ClassTag classTag = storeTransaction.getClassTag(reference);
+			storeTransaction.getEagerFields(reference)
 				.sorted(updateComparator)
 				.forEachOrdered(update -> {
 					try {
