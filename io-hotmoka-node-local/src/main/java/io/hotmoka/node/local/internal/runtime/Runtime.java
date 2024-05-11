@@ -25,8 +25,8 @@ import io.hotmoka.node.NonWhiteListedCallException;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.local.api.EngineClassLoader;
-import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.transactions.AbstractResponseBuilder;
+import io.hotmoka.node.local.internal.transactions.EngineClassLoaderImpl;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
 

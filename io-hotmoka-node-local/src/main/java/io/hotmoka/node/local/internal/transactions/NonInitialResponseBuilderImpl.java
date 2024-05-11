@@ -49,7 +49,6 @@ import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * Implementation of the creator of the response for a non-initial transaction. Non-initial transactions consume gas,
@@ -72,7 +71,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 
 		try {

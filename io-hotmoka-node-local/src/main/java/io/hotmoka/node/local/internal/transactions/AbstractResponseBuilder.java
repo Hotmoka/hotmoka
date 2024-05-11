@@ -43,10 +43,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.node.local.internal.Deserializer;
-import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.verification.VerificationException;
 
@@ -63,7 +60,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 */
 	private final TransactionReference reference;
 
-	protected final StoreTransaction<?,?> storeTransaction;
+	protected final AbstractStoreTransactionImpl<?,?> storeTransaction;
 
 	/**
 	 * The class loader used for the transaction.
@@ -88,7 +85,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param storeTransaction the transaction where the updates to the store get accumulated
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		try {
 			this.storeTransaction = storeTransaction;
 			this.request = request;

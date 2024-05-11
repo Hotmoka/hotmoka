@@ -64,7 +64,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	protected TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
 			return trieOfResponses.get(reference).orElseThrow(() -> new UnknownReferenceException(reference));
 		}
@@ -74,7 +74,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
+	protected Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
 		try {
 			return trieOfHistories.get(object).orElseThrow(() -> new UnknownReferenceException(object));
 		}
@@ -84,7 +84,7 @@ public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBa
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() throws StoreException {
+	protected Optional<StorageReference> getManifest() throws StoreException {
 		try {
 			return trieOfInfo.getManifest();
 		}

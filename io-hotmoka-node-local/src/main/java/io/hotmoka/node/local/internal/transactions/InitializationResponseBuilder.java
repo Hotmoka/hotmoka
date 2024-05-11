@@ -25,7 +25,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * The creator of a response for a transaction that initializes a node.
@@ -40,7 +39,7 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

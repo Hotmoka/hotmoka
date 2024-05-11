@@ -14,13 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.transactions;
 
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -43,7 +42,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
 import io.hotmoka.verification.VerifiedJars;
@@ -53,7 +51,7 @@ import io.hotmoka.verification.api.VerifiedJar;
  * A class used to perform a re-verification of jars already stored in the node.
  */
 public class Reverification {
-	protected final static Logger logger = Logger.getLogger(Reverification.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Reverification.class.getName());
 
 	/**
 	 * Responses that have been found to have
@@ -64,7 +62,7 @@ public class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final StoreTransaction<?,?> storeTransaction;
+	private final AbstractStoreTransactionImpl<?,?> storeTransaction;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -81,7 +79,7 @@ public class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, StoreTransaction<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
+	public Reverification(Stream<TransactionReference> transactions, AbstractStoreTransactionImpl<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.storeTransaction = storeTransaction;
 		this.consensus = consensus;
 
@@ -110,16 +108,17 @@ public class Reverification {
 			var reference = entry.getKey();
 
 			try {
-				storeTransaction.replace(reference, storeTransaction.getInitialStore().getRequest(reference), entry.getValue());
+				storeTransaction.getInitialStore().getRequest(reference);
+				storeTransaction.setResponse(reference, entry.getValue());
 			}
-			catch (StoreException | NoSuchElementException e) {
+			catch (StoreException e) {
 				throw new NodeException(e);
 			}
 			catch (UnknownReferenceException e) {
 				throw new NodeException(e); // TODO: is this the right exception?
 			}
 
-			logger.info(reference + ": updated after reverification");
+			LOGGER.info(reference + ": updated after reverification");
 		}
 
 		// we clean the set of reverified responses, to avoid repeated pushing in the future, if

@@ -33,7 +33,6 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.local.api.StoreTransaction;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -49,7 +48,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

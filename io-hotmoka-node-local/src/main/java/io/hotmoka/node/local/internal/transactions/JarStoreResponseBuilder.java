@@ -31,8 +31,6 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
-import io.hotmoka.node.local.internal.EngineClassLoaderImpl;
 import io.hotmoka.verification.VerifiedJars;
 
 /**
@@ -49,7 +47,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	public JarStoreResponseBuilder(TransactionReference reference, JarStoreTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

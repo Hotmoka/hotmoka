@@ -26,7 +26,6 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.takamaka.code.constants.Constants;
 
 /**
@@ -42,7 +41,7 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, StoreTransaction<?,?> storeTransaction) throws TransactionRejectedException {
+	public StaticMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
 		super(reference, request, storeTransaction);
 	}
 

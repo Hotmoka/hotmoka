@@ -42,7 +42,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
+	protected TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
 		var uncommittedResponse = responses.get(reference);
 		if (uncommittedResponse != null)
 			return uncommittedResponse;
@@ -51,7 +51,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
+	protected Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
 		var uncommittedHistory = histories.get(object);
 		if (uncommittedHistory != null)
 			return Stream.of(uncommittedHistory);
@@ -60,7 +60,7 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	}
 
 	@Override
-	public Optional<StorageReference> getManifest() {
+	protected Optional<StorageReference> getManifest() {
 		var uncommittedManifest = manifest.get();
 		if (uncommittedManifest != null)
 			return Optional.of(uncommittedManifest);
