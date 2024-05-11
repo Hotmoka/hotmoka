@@ -4,7 +4,6 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -35,11 +34,19 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 	/**
 	 * The storage reference of the manifest stored inside the node, if any.
 	 */
-	private final AtomicReference<StorageReference> manifest = new AtomicReference<>();
+	private volatile StorageReference manifest;
 
 	public DiskStoreTransaction(DiskStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) {
 		super(store, executors, consensus, now);
 	}
+
+	@Override
+	public DiskStore getFinalStore() throws StoreException {
+		return new DiskStore(getInitialStore(), getCheckedSignatures(), getClassLoaders(), getConfig(), getGasPrice(), getInflation(), requests, responses, histories, errors, Optional.ofNullable(manifest));
+	}
+
+	@Override
+	public void abort() {}
 
 	@Override
 	protected TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException {
@@ -61,20 +68,12 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 
 	@Override
 	protected Optional<StorageReference> getManifest() {
-		var uncommittedManifest = manifest.get();
+		var uncommittedManifest = manifest;
 		if (uncommittedManifest != null)
 			return Optional.of(uncommittedManifest);
 		else
 			return getInitialStore().getManifest();
 	}
-
-	@Override
-	public DiskStore getFinalStore() throws StoreException {
-		return new DiskStore(getInitialStore(), getCheckedSignatures(), getClassLoaders(), getConfig(), getGasPrice(), getInflation(), requests, responses, histories, errors, Optional.ofNullable(manifest.get()));
-	}
-
-	@Override
-	public void abort() {}
 
 	@Override
 	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) {
@@ -98,6 +97,6 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
 
 	@Override
 	protected void setManifest(StorageReference manifest) {
-		this.manifest.set(manifest);
+		this.manifest = manifest;
 	}
 }
