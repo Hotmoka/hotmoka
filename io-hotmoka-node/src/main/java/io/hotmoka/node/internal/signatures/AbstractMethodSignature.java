@@ -346,6 +346,26 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 		(StorageTypes.VALIDATORS, "reward", StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER, StorageTypes.STRING, StorageTypes.STRING, StorageTypes.BIG_INTEGER, StorageTypes.BIG_INTEGER);
 
 	/**
+	 * The method {@code getBuyerSurcharge} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_BUYER_SURCHARGE = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getBuyerSurcharge", StorageTypes.INT);
+
+	/**
+	 * The method {@code getSlashingForMisbehaving} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_MISBEHAVING = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForMisbehaving", StorageTypes.INT);
+
+	/**
+	 * The method {@code getSlashingForNotBehaving} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getSlashingForNotBehaving", StorageTypes.INT);
+
+	/**
+	 * The method {@code getPercentStaked} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_PERCENT_STAKED = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getPercentStaked", StorageTypes.INT);
+	
+	/**
 	 * The method {@code newPoll} of the generic validators contract.
 	 */
 	public final static NonVoidMethodSignature NEW_POLL = MethodSignatures.ofNonVoid(StorageTypes.GENERIC_VALIDATORS, "newPoll", StorageTypes.POLL);

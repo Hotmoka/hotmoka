@@ -423,6 +423,26 @@ public abstract class MethodSignatures {
 	public final static VoidMethodSignature VALIDATORS_REWARD = AbstractMethodSignature.VALIDATORS_REWARD;
 
 	/**
+	 * The method {@code getBuyerSurcharge} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_BUYER_SURCHARGE = AbstractMethodSignature.VALIDATORS_GET_BUYER_SURCHARGE;
+
+	/**
+	 * The method {@code getSlashingForMisbehaving} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_MISBEHAVING = AbstractMethodSignature.VALIDATORS_GET_SLASHING_FOR_MISBEHAVING;
+
+	/**
+	 * The method {@code getSlashingForNotBehaving} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING = AbstractMethodSignature.VALIDATORS_GET_SLASHING_FOR_NOT_BEHAVING;
+
+	/**
+	 * The method {@code getPercentStaked} of the validators contract.
+	 */
+	public final static NonVoidMethodSignature VALIDATORS_GET_PERCENT_STAKED = AbstractMethodSignature.VALIDATORS_GET_PERCENT_STAKED;
+
+	/**
 	 * The method {@code newPoll} of the generic validators contract.
 	 */
 	public final static NonVoidMethodSignature NEW_POLL = AbstractMethodSignature.NEW_POLL;
