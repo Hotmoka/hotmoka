@@ -101,6 +101,4 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 
 	S getFinalStore() throws StoreException;
-
-	void abort() throws StoreException;
 }

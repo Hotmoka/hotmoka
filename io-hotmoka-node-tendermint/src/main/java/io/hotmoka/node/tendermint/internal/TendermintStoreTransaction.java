@@ -19,7 +19,6 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
@@ -33,7 +32,6 @@ import io.hotmoka.node.local.AbstractTrieBasedStoreTransaction;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.xodus.env.Transaction;
 
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore, TendermintStoreTransaction> {
 
@@ -46,18 +44,8 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintStoreTransaction.class.getName());
 
-	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
-		super(store, executors, consensus, now, txn);
-	}
-
-	@Override
-	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		// nothing to do, since Tendermint keeps requests inside its blockchain
-	}
-
-	@Override
-	protected void setError(TransactionReference reference, String error) throws StoreException {
-		// nothing to do, since Tendermint keeps error messages inside the blockchain, in the field "data" of its transactions
+	protected TendermintStoreTransaction(TendermintStore store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		super(store, executors, consensus, now);
 	}
 
 	public final Optional<TendermintValidator[]> getTendermintValidatorsUncommitted() throws StoreException {

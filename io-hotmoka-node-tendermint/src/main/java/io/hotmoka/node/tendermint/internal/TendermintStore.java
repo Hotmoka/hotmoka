@@ -27,7 +27,6 @@ import java.util.function.Supplier;
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.HashingAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -36,7 +35,6 @@ import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
-import io.hotmoka.xodus.env.Transaction;
 
 /**
  * A partial trie-based store. Errors and requests are recovered by asking
@@ -76,18 +74,6 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
     	this.poster = toClone.poster;
-	}
-
-	@Override
-	public String getError(TransactionReference reference) throws UnknownReferenceException, StoreException {
-    	// error messages are held inside the Tendermint blockchain
-    	return poster.get().getErrorMessage(reference);
-	}
-
-	@Override
-	public TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		// requests are held inside the Tendermint blockchain
-		return poster.get().getRequest(reference);
 	}
 
 	/**
@@ -133,7 +119,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	}
 
 	@Override
-	protected TendermintStoreTransaction mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return new TendermintStoreTransaction(this, executors, consensus, now, txn);
+	protected TendermintStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransaction(this, executors, consensus, now);
 	}
 }

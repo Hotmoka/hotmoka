@@ -5,11 +5,10 @@ import java.util.concurrent.ExecutorService;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.transactions.AbstractTrieBasedStoreTransactionImpl;
-import io.hotmoka.xodus.env.Transaction;
 
 public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransaction<S, T>> extends AbstractTrieBasedStoreTransactionImpl<S, T> {
 
-	protected AbstractTrieBasedStoreTransaction(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
-		super(store, executors, consensus, now, txn);
+	protected AbstractTrieBasedStoreTransaction(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		super(store, executors, consensus, now);
 	}
 }

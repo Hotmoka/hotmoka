@@ -18,6 +18,7 @@ package io.hotmoka.node.local.internal.transactions;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
@@ -222,7 +223,19 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 
     protected abstract S mkClone(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
-    @Override
+    protected final S mkClone(
+			LRUCache<TransactionReference, Boolean> checkedSignatures,
+			LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?, ?> consensus,
+			Optional<BigInteger> gasPrice, OptionalLong inflation,
+			Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories, Map<TransactionReference, String> addedErrors,
+			Optional<StorageReference> addedManifest) {
+	
+		return null;
+	}
+
+	@Override
     public void close() throws StoreException {
     	try {
     		env.close();
@@ -294,11 +307,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	@Override
-	protected T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return mkTransaction(env.beginTransaction(), executors, consensus, now);
-	}
-
 	/**
 	 * Yields the number of commits already performed over this store.
 	 * 
@@ -342,7 +350,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 			storeTransaction.invalidateConsensusCache();
 			ConsensusConfig<?,?> consensus = storeTransaction.getConfig();
-			storeTransaction.abort();
 			return mkClone(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 		}
 		catch (NoSuchAlgorithmException | StoreException e) {
@@ -360,8 +367,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			throw new StoreException(e);
 		}
 	}
-
-	protected abstract T mkTransaction(Transaction txn, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
 
 	protected TrieOfResponses mkTrieOfResponses(Transaction txn) throws StoreException {
 		try {

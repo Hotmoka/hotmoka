@@ -1,186 +1,37 @@
 package io.hotmoka.node.local.internal.transactions;
 
+import java.math.BigInteger;
+import java.util.Map;
 import java.util.Optional;
+import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
-import java.util.stream.Stream;
 
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStoreTransaction;
+import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.TrieOfErrors;
-import io.hotmoka.node.local.internal.TrieOfHistories;
-import io.hotmoka.node.local.internal.TrieOfInfo;
-import io.hotmoka.node.local.internal.TrieOfRequests;
-import io.hotmoka.node.local.internal.TrieOfResponses;
-import io.hotmoka.patricia.api.TrieException;
-import io.hotmoka.xodus.ExodusException;
-import io.hotmoka.xodus.env.Transaction;
 
 public abstract class AbstractTrieBasedStoreTransactionImpl<S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransactionImpl<S, T>> extends AbstractStoreTransaction<S, T> {
 
-	/**
-	 * The Xodus transaction where the updates get recorded.
-	 */
-	private final Transaction txn;
-
-	/**
-	 * The trie of the responses.
-	 */
-	private volatile TrieOfResponses trieOfResponses;
-
-	/**
-	 * The trie for the miscellaneous information.
-	 */
-	private volatile TrieOfInfo trieOfInfo;
-
-	/**
-     * The trie of the errors.
-     */
-	private volatile TrieOfErrors trieOfErrors;
-
-	/**
-	 * The trie of histories.
-	 */
-	private volatile TrieOfHistories trieOfHistories;
-
-	/**
-     * The trie of the requests.
-     */
-	private volatile TrieOfRequests trieOfRequests;
-
-	protected AbstractTrieBasedStoreTransactionImpl(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now, Transaction txn) throws StoreException {
+	protected AbstractTrieBasedStoreTransactionImpl(S store, ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
 		super(store, executors, consensus, now);
-
-		this.txn = txn;
-		this.trieOfResponses = store.mkTrieOfResponses(txn);
-		this.trieOfInfo = store.mkTrieOfInfo(txn);
-		this.trieOfErrors = store.mkTrieOfErrors(txn);
-		this.trieOfHistories = store.mkTrieOfHistories(txn);
-		this.trieOfRequests = store.mkTrieOfRequests(txn);
 	}
 
 	@Override
-	protected TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		try {
-			return trieOfResponses.get(reference).orElseThrow(() -> new UnknownReferenceException(reference));
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
+	protected final S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures,
+			LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?, ?> consensus,
+			Optional<BigInteger> gasPrice, OptionalLong inflation,
+			Map<TransactionReference, TransactionRequest<?>> addedRequests,
+			Map<TransactionReference, TransactionResponse> addedResponses,
+			Map<StorageReference, TransactionReference[]> addedHistories,
+			Map<TransactionReference, String> addedErrors,
+			Optional<StorageReference> addedManifest) throws StoreException {
 
-	@Override
-	protected Stream<TransactionReference> getHistory(StorageReference object) throws StoreException, UnknownReferenceException {
-		try {
-			return trieOfHistories.get(object).orElseThrow(() -> new UnknownReferenceException(object));
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected Optional<StorageReference> getManifest() throws StoreException {
-		try {
-			return trieOfInfo.getManifest();
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected void setRequest(TransactionReference reference, TransactionRequest<?> request) throws StoreException {
-		try {
-			trieOfRequests = trieOfRequests.put(reference, request);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected void setResponse(TransactionReference reference, TransactionResponse response) throws StoreException {
-		try {
-			trieOfResponses = trieOfResponses.put(reference, response);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected void setError(TransactionReference reference, String error) throws StoreException {
-		try {
-			trieOfErrors = trieOfErrors.put(reference, error);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected void setHistory(StorageReference object, Stream<TransactionReference> history) throws StoreException {
-		try {
-			trieOfHistories = trieOfHistories.put(object, history);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	protected void setManifest(StorageReference manifest) throws StoreException {
-		try {
-			trieOfInfo = trieOfInfo.setManifest(manifest);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}			
-	}
-	
-	@Override
-	public S getFinalStore() throws StoreException {
-		try {
-			trieOfInfo = trieOfInfo.increaseNumberOfCommits();
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-
-		if (!txn.commit())
-			throw new StoreException("Cannot commit the Xodus transaction");
-
-		return getInitialStore().mkClone(
-			getCheckedSignatures(),
-			getClassLoaders(),
-			getConfig(),
-			getGasPrice(),
-			getInflation(),
-			Optional.of(trieOfResponses.getRoot()),
-			Optional.of(trieOfInfo.getRoot()),
-			Optional.of(trieOfErrors.getRoot()),
-			Optional.of(trieOfHistories.getRoot()),
-			Optional.of(trieOfRequests.getRoot())
-		);
-	}
-
-	@Override
-	public void abort() throws StoreException {
-		//if (!txn.isFinished()) {
-			// store closed with yet uncommitted transactions: we abort them
-			//LOGGER.log(Level.WARNING, "store closed with uncommitted transactions: they are being aborted");
-
-		try {
-			txn.abort();
-		}
-		catch (ExodusException e) {
-			throw new StoreException(e);
-		}
+		return getInitialStore().mkClone(checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedErrors, addedManifest);
 	}
 }

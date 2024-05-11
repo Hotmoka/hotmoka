@@ -204,7 +204,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 				storeTransaction.invalidateConsensusCache();
 				consensus = Optional.of(storeTransaction.getConfig());
-				storeTransaction.abort();
 			}
 
 			this.store = mkStore(executors, consensus.get(), config, hasher);
@@ -428,7 +427,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			var storeTransaction = store.beginViewTransaction();
 			result = storeTransaction.runInstanceMethodCallTransaction(request, reference);
-			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -447,7 +445,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			var storeTransaction = store.beginViewTransaction();
 			result = storeTransaction.runStaticMethodCallTransaction(request, reference);
-			storeTransaction.abort();
 
 			LOGGER.info(reference + ": running success");
 			return result;
@@ -506,7 +503,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
 			storeTransaction.responseBuilderFor(reference, request);
-			storeTransaction.abort();
 
 			LOGGER.info(reference + ": checking success");
 		}
