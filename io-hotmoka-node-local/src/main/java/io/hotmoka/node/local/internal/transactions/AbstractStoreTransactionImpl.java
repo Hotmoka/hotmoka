@@ -209,6 +209,153 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return now;
 	}
 
+	@Override
+	public final ConsensusConfig<?,?> getConfig() {
+		return consensus;
+	}
+
+	@Override
+	public void invalidateConsensusCache() throws StoreException {
+		LOGGER.info("the consensus parameters have been reset");
+		recomputeConsensus();
+	}
+
+	@Override
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
+	}
+
+	@Override
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
+	}
+
+	@Override
+	public void rewardValidators(String behaving, String misbehaving) throws StoreException {
+		try {
+			Optional<StorageReference> maybeManifest = getManifest();
+			if (maybeManifest.isPresent()) {
+				// we use the manifest as caller, since it is an externally-owned account
+				StorageReference manifest = maybeManifest.get();
+				BigInteger nonce = getNonce(manifest);
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+	
+				// we determine how many coins have been minted during the last reward:
+				// it is the price of the gas distributed minus the same price without inflation
+				BigInteger minted = coins.subtract(coinsWithoutInflation);
+	
+				// it might happen that the last distribution goes beyond the limit imposed
+				// as final supply: in that case we truncate the minted coins so that the current
+				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
+				// or from above (negative inflation)
+				BigInteger currentSupply = getCurrentSupply(validators);
+				if (minted.signum() > 0) {
+					BigInteger finalSupply = getConfig().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() < 0)
+						minted = minted.add(extra);
+				}
+				else if (minted.signum() < 0) {
+					BigInteger finalSupply = getConfig().getFinalSupply();
+					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
+					if (extra.signum() > 0)
+						minted = minted.add(extra);
+				}
+	
+				var request = TransactionRequests.instanceSystemMethodCall
+					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
+					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
+					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
+					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(numberOfRequests));
+	
+				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
+				TransactionResponse response = responseBuilder.getResponse();
+				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
+				// the store with the transaction, so that the state stabilizes, which might give
+				// to the node the chance of suspending the generation of new blocks
+				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
+					response = deliverTransaction(request);
+	
+				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
+					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
+				else {
+					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
+					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coins);
+					LOGGER.info("units of coin minted since the previous reward: " + minted);
+				}
+			}
+		}
+		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException e) {
+			LOGGER.log(Level.WARNING, "could not reward the validators", e);
+			throw new StoreException("Could not reward the validators", e);
+		}
+	}
+
+	@Override
+	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
+		if (request instanceof JarStoreInitialTransactionRequest jsitr)
+			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return new GameteCreationResponseBuilder(reference, gctr, this);
+		else if (request instanceof JarStoreTransactionRequest jstr)
+			return new JarStoreResponseBuilder(reference, jstr, this);
+		else if (request instanceof ConstructorCallTransactionRequest cctr)
+			return new ConstructorCallResponseBuilder(reference, cctr, this);
+		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
+			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
+		else if (request instanceof StaticMethodCallTransactionRequest smctr)
+			return new StaticMethodCallResponseBuilder(reference, smctr, this);
+		else if (request instanceof InitializationTransactionRequest itr)
+			return new InitializationResponseBuilder(reference, itr, this);
+		else
+			throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
+	}
+
+	@Override
+	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+		var reference = TransactionReferences.of(hasher.hash(request));
+	
+		try {
+			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
+	
+			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
+			TransactionResponse response = responseBuilder.getResponse();
+			push(reference, request, response);
+			responseBuilder.replaceReverifiedResponses();
+			scheduleEventsForNotificationAfterCommit(response);
+			takeNoteForNextReward(request, response);
+			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
+	
+			LOGGER.info(reference + ": delivering success");
+			return response;
+		}
+		catch (TransactionRejectedException e) {
+			push(reference, request, trimmedMessage(e));
+			LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
+			throw e;
+		}
+		catch (NodeException | UnknownReferenceException e) { // TODO: these should disappear
+			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
+			throw new StoreException(e);
+		}
+	}
+
+	@Override
+	public final void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
+		try {
+			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
+				responsesWithEventsToNotify.stream()
+					.flatMap(TransactionResponseWithEvents::getEvents)
+					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
+		}
+		catch (UnknownReferenceException | FieldNotFoundException e) {
+			// the set of events to notify contains an event that cannot be found in store or that
+			// has no creator field: the delivery method of the store is definitely misbehaving
+			throw new StoreException(e);
+		}
+	}
+
 	/**
 	 * Yields the response of the transaction having the given reference.
 	 * This considers also updates inside this transaction, that have not yet been committed.
@@ -319,11 +466,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 
 	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
 		return classLoaders;
-	}
-
-	@Override
-	public final ConsensusConfig<?,?> getConfig() {
-		return consensus;
 	}
 
 	private void recomputeConsensus() throws StoreException {
@@ -504,12 +646,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	@Override
-	public void invalidateConsensusCache() throws StoreException {
-		LOGGER.info("the consensus parameters have been reset");
-		recomputeConsensus();
-	}
-
 	/*
 	 * Determines if the given response might change the value of some consensus parameter.
 	 * 
@@ -653,17 +789,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
-	}
-
-	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
-		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
-	}
-
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(hasher.hash(request)));
 	}
 
@@ -719,117 +845,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					 .divide(_100_000_000);
 
 		return gas;
-	}
-
-	@Override
-	public void rewardValidators(String behaving, String misbehaving) throws StoreException {
-		try {
-			Optional<StorageReference> maybeManifest = getManifest();
-			if (maybeManifest.isPresent()) {
-				// we use the manifest as caller, since it is an externally-owned account
-				StorageReference manifest = maybeManifest.get();
-				BigInteger nonce = getNonce(manifest);
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-
-				// we determine how many coins have been minted during the last reward:
-				// it is the price of the gas distributed minus the same price without inflation
-				BigInteger minted = coins.subtract(coinsWithoutInflation);
-
-				// it might happen that the last distribution goes beyond the limit imposed
-				// as final supply: in that case we truncate the minted coins so that the current
-				// supply reaches the final supply, exactly; this might occur from below (positive inflation)
-				// or from above (negative inflation)
-				BigInteger currentSupply = getCurrentSupply(validators);
-				if (minted.signum() > 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() < 0)
-						minted = minted.add(extra);
-				}
-				else if (minted.signum() < 0) {
-					BigInteger finalSupply = getConfig().getFinalSupply();
-					BigInteger extra = finalSupply.subtract(currentSupply.add(minted));
-					if (extra.signum() > 0)
-						minted = minted.add(extra);
-				}
-
-				var request = TransactionRequests.instanceSystemMethodCall
-					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
-					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
-					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(numberOfRequests));
-
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
-				TransactionResponse response = responseBuilder.getResponse();
-				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
-				// the store with the transaction, so that the state stabilizes, which might give
-				// to the node the chance of suspending the generation of new blocks
-				if (!(response instanceof TransactionResponseWithUpdates trwu) || trwu.getUpdates().count() > 1L)
-					response = deliverTransaction(request);
-
-				if (response instanceof MethodCallTransactionFailedResponse responseAsFailed)
-					LOGGER.log(Level.WARNING, "could not reward the validators: " + responseAsFailed.getWhere() + ": " + responseAsFailed.getClassNameOfCause() + ": " + responseAsFailed.getMessageOfCause());
-				else {
-					LOGGER.info("units of gas consumed for CPU, RAM or storage since the previous reward: " + gasConsumed);
-					LOGGER.info("units of coin rewarded to the validators for their work since the previous reward: " + coins);
-					LOGGER.info("units of coin minted since the previous reward: " + minted);
-				}
-			}
-		}
-		catch (TransactionRejectedException | FieldNotFoundException | UnknownReferenceException e) {
-			LOGGER.log(Level.WARNING, "could not reward the validators", e);
-			throw new StoreException("Could not reward the validators", e);
-		}
-	}
-
-	@Override
-	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
-		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
-		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, this);
-    	else if (request instanceof JarStoreTransactionRequest jstr)
-    		return new JarStoreResponseBuilder(reference, jstr, this);
-    	else if (request instanceof ConstructorCallTransactionRequest cctr)
-    		return new ConstructorCallResponseBuilder(reference, cctr, this);
-    	else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
-    	else if (request instanceof StaticMethodCallTransactionRequest smctr)
-    		return new StaticMethodCallResponseBuilder(reference, smctr, this);
-    	else if (request instanceof InitializationTransactionRequest itr)
-    		return new InitializationResponseBuilder(reference, itr, this);
-    	else
-    		throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
-	}
-
-	@Override
-	public final TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		var reference = TransactionReferences.of(hasher.hash(request));
-
-		try {
-			LOGGER.info(reference + ": delivering start (" + request.getClass().getSimpleName() + ')');
-
-			ResponseBuilder<?,?> responseBuilder = responseBuilderFor(reference, request);
-			TransactionResponse response = responseBuilder.getResponse();
-			push(reference, request, response);
-			responseBuilder.replaceReverifiedResponses();
-			scheduleEventsForNotificationAfterCommit(response);
-			takeNoteForNextReward(request, response);
-			invalidateCachesIfNeeded(response, responseBuilder.getClassLoader());
-
-			LOGGER.info(reference + ": delivering success");
-			return response;
-		}
-		catch (TransactionRejectedException e) {
-			push(reference, request, trimmedMessage(e));
-			LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
-			throw e;
-		}
-		catch (NodeException | UnknownReferenceException e) { // TODO: these should disappear
-			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-			throw new StoreException(e);
-		}
 	}
 
 	/**
@@ -1033,7 +1048,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 				.map(update -> (UpdateOfField) update);
 	}
 
-	public final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
+	protected final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		Stream<TransactionReference> history = getHistory(object);
 
 		try {
@@ -1056,21 +1071,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().findAny().isPresent())
 			responsesWithEventsToNotify.add(responseWithEvents);
-	}
-
-	@Override
-	public final void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
-		try {
-			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-				responsesWithEventsToNotify.stream()
-					.flatMap(TransactionResponseWithEvents::getEvents)
-					.forEachOrdered(UncheckConsumer.uncheck(event -> notifier.accept(getCreator(event), event))));
-		}
-		catch (UnknownReferenceException | FieldNotFoundException e) {
-			// the set of events to notify contains an event that cannot be found in store or that
-			// has no creator field: the delivery method of the store is definitely misbehaving
-			throw new StoreException(e);
-		}
 	}
 
 	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
