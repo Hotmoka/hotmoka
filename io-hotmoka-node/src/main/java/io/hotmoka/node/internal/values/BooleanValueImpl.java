@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.internal.values;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -81,6 +82,11 @@ public final class BooleanValueImpl extends AbstractStorageValue implements Bool
 			return Boolean.compare(value, bv.getValue());
 		else
 			return super.compareTo(other);
+	}
+
+	@Override
+	public <E extends Exception> boolean asBoolean(Function<StorageValue, ? extends E> exception) {
+		return value;
 	}
 
 	@Override

@@ -32,6 +32,6 @@ public abstract class AbstractTrieBasedStoreTransactionImpl<S extends AbstractTr
 			Map<TransactionReference, String> addedErrors,
 			Optional<StorageReference> addedManifest) throws StoreException {
 
-		return getInitialStore().mkClone(checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedErrors, addedManifest);
+		return getInitialStore().makeNext(checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedErrors, addedManifest);
 	}
 }

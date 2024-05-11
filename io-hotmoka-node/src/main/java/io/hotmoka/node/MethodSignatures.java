@@ -343,6 +343,11 @@ public abstract class MethodSignatures {
 	public final static NonVoidMethodSignature GET_CURRENT_INFLATION = AbstractMethodSignature.GET_CURRENT_INFLATION;
 
 	/**
+	 * The method {@code getShares} of the validators object.
+	 */
+	public final static NonVoidMethodSignature GET_SHARES = AbstractMethodSignature.GET_SHARES;
+
+	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
 	 */
 	public final static NonVoidMethodSignature IGNORES_GAS_PRICE = AbstractMethodSignature.IGNORES_GAS_PRICE;
@@ -446,4 +451,19 @@ public abstract class MethodSignatures {
 	 * The method {@code vote} of a {@code Poll} contract with the share parameter.
 	 */
 	public final static VoidMethodSignature VOTE_WITH_SHARE = AbstractMethodSignature.VOTE_WITH_SHARE;
+
+	/**
+	 * The method {@code size} of a {@code StorageMapView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_SIZE = AbstractMethodSignature.STORAGE_MAP_VIEW_SIZE;
+
+	/**
+	 * The method {@code select} of a {@code StorageMapView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_SELECT = AbstractMethodSignature.STORAGE_MAP_VIEW_SELECT;
+
+	/**
+	 * The method {@code get} of a {@code StorageMapView} contract.
+	 */	
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_GET = AbstractMethodSignature.STORAGE_MAP_VIEW_GET;
 }

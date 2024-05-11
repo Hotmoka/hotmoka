@@ -68,7 +68,7 @@ import tendermint.crypto.Keys.PublicKey;
  */
 class TendermintApplication extends ABCI {
 
-	private final static Logger logger = Logger.getLogger(TendermintApplication.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TendermintApplication.class.getName());
 
 	/**
 	 * The Tendermint validators at the time of the last {@link #beginBlock(RequestBeginBlock, StreamObserver)}
@@ -141,17 +141,17 @@ class TendermintApplication extends ABCI {
 
     private static void removeValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, 0L));
-    	logger.info("removed Tendermint validator with address " + tv.address + " and power " + tv.power);
+    	LOGGER.info("removed Tendermint validator with address " + tv.address + " and power " + tv.power);
     }
 
     private static void addValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
-    	logger.info("added Tendermint validator with address " + tv.address + " and power " + tv.power);
+    	LOGGER.info("added Tendermint validator with address " + tv.address + " and power " + tv.power);
     }
 
     private static void updateValidator(TendermintValidator tv, ResponseEndBlock.Builder builder) {
     	builder.addValidatorUpdates(intoValidatorUpdate(tv, tv.power));
-    	logger.info("updated Tendermint validator with address " + tv.address + " by setting its new power to " + tv.power);
+    	LOGGER.info("updated Tendermint validator with address " + tv.address + " by setting its new power to " + tv.power);
     }
 
     private static ValidatorUpdate intoValidatorUpdate(TendermintValidator validator, long newPower) {
@@ -241,7 +241,7 @@ class TendermintApplication extends ABCI {
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	try {
     		transaction = node.getStore().beginTransaction(timeOfBlock(request));
-    		logger.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
+    		LOGGER.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     		transaction.rewardValidators(behaving, misbehaving);
     	}
     	catch (StoreException e) {
@@ -287,11 +287,11 @@ class TendermintApplication extends ABCI {
 
     	if (currentValidators != null) {
     		try {
-    			Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidatorsUncommitted();
+    			Optional<TendermintValidator[]> validatorsInStore = transaction.getTendermintValidators();
     			if (validatorsInStore.isPresent()) {
     				TendermintValidator[] nextValidators = validatorsInStore.get();
     				if (nextValidators.length == 0)
-    					logger.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
+    					LOGGER.info("refusing to remove all validators; please initialize the node with TendermintInitializedNode");
     				else {
     					removeCurrentValidatorsThatAreNotNextValidators(currentValidators, nextValidators, builder);
     					addNextValidatorsThatAreNotCurrentValidators(currentValidators, nextValidators, builder);
@@ -309,7 +309,7 @@ class TendermintApplication extends ABCI {
 	}
 
 	@Override
-	protected ResponseCommit commit(RequestCommit request) {
+	protected ResponseCommit commit(RequestCommit request) throws NodeException {
 		try {
 			var newStore = transaction.getFinalStore();
 			node.setStore(newStore);
@@ -322,12 +322,17 @@ class TendermintApplication extends ABCI {
 			throw new RuntimeException(e); // TODO
 		}
 
-		// hash of the store, used for consensus
-    	byte[] hash = node.getStore().getHash();
-    	logger.info("Committed state with hash = " + Hex.toHexString(hash).toUpperCase());
-    	return ResponseCommit.newBuilder()
-       		.setData(ByteString.copyFrom(hash))
-       		.build();
+		try {
+			// hash of the store, used for consensus
+			byte[] hash = node.getStore().getHash();
+			LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());
+			return ResponseCommit.newBuilder()
+					.setData(ByteString.copyFrom(hash))
+					.build();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	@Override

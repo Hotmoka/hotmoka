@@ -18,6 +18,7 @@ package io.hotmoka.node.internal.values;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -72,6 +73,11 @@ public final class StringValueImpl extends AbstractStorageValue implements Strin
 			return value.compareTo(sv.getValue());
 		else
 			return super.compareTo(other);
+	}
+
+	@Override
+	public <E extends Exception> String asString(Function<StorageValue, ? extends E> exception) {
+		return value;
 	}
 
 	@Override

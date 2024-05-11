@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -131,6 +132,11 @@ public final class StorageReferenceImpl extends AbstractStorageValue implements 
 			// impossible for a ByteArrayOutputStream
 			throw new RuntimeException("Unexpected exception", e);
 		}
+	}
+
+	@Override
+	public <E extends Exception> StorageReference asReference(Function<StorageValue, ? extends E> exception) {
+		return this;
 	}
 
 	@Override

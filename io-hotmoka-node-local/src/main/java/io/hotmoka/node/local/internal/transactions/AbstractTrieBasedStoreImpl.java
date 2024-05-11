@@ -38,6 +38,7 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.AbstractStore;
 import io.hotmoka.node.local.LRUCache;
+import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
@@ -73,7 +74,7 @@ import io.hotmoka.xodus.env.Transaction;
  * This class is meant to be subclassed by specifying where errors, requests and histories are kept.
  */
 @Immutable
-public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransactionImpl<S, T>> extends AbstractStore<S, T> {
+public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStoreImpl<S, T>, T extends AbstractTrieBasedStoreTransactionImpl<S, T>> extends AbstractStore<S, T> implements CheckableStore<S, T> {
 
 	/**
 	 * The Xodus environment that holds the store.
@@ -221,18 +222,50 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	this.rootOfRequests = rootOfRequests;
     }
 
-    protected abstract S mkClone(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
+    protected abstract S make(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference,
+    		EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation,
+    		Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
-    protected final S mkClone(
+    protected final S makeNext(
 			LRUCache<TransactionReference, Boolean> checkedSignatures,
 			LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?, ?> consensus,
 			Optional<BigInteger> gasPrice, OptionalLong inflation,
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
-			Map<StorageReference, TransactionReference[]> addedHistories, Map<TransactionReference, String> addedErrors,
-			Optional<StorageReference> addedManifest) {
-	
-		return null;
+			Map<StorageReference, TransactionReference[]> addedHistories,
+			Map<TransactionReference, String> addedErrors,
+			Optional<StorageReference> addedManifest) throws StoreException {
+
+    	try {
+    		return CheckSupplier.check(StoreException.class, TrieException.class, () -> env.computeInTransaction(UncheckFunction.uncheck(txn -> {
+				var trieOfRequests = mkTrieOfRequests(txn);
+				for (var entry: addedRequests.entrySet())
+					trieOfRequests.put(entry.getKey(), entry.getValue());
+
+				var trieOfErrors = mkTrieOfErrors(txn);
+				for (var entry: addedErrors.entrySet())
+					trieOfErrors.put(entry.getKey(), entry.getValue());
+
+				var trieOfResponses = mkTrieOfResponses(txn);
+				for (var entry: addedResponses.entrySet())
+					trieOfResponses.put(entry.getKey(), entry.getValue());
+
+				var trieOfHistories = mkTrieOfHistories(txn);
+				for (var entry: addedHistories.entrySet())
+					trieOfHistories.put(entry.getKey(), Stream.of(entry.getValue()));
+
+				var trieOfInfo = mkTrieOfInfo(txn);
+				trieOfInfo.increaseNumberOfCommits();
+				if (addedManifest.isPresent())
+					trieOfInfo.setManifest(addedManifest.get());
+
+				return make(checkedSignatures, classLoaders, consensus, gasPrice, inflation, Optional.of(trieOfResponses.getRoot()),
+					Optional.of(trieOfInfo.getRoot()), Optional.of(trieOfErrors.getRoot()), Optional.of(trieOfHistories.getRoot()), Optional.of(trieOfRequests.getRoot()));
+			})));
+		}
+		catch (ExodusException | TrieException e) {
+			throw new StoreException(e);
+		}
 	}
 
 	@Override
@@ -327,13 +360,8 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		return mergeRootsOfTries();
 	}
 
-	/**
-	 * Resets the store to the given root. This is just the concatenation of the roots
-	 * of the tries in this store. For instance, as returned by a previous {@link #commitTransaction()}.
-	 * 
-	 * @param root the root to reset to
-	 */
-	public S checkoutAt(byte[] root) {
+	@Override
+	public S checkoutAt(byte[] root) throws StoreException {
 		var bytesOfRootOfResponses = new byte[32];
 		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
 		var bytesOfRootOfInfo = new byte[32];
@@ -346,14 +374,14 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
 
 		try {
-			S temp = mkClone(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			S temp = make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 			storeTransaction.invalidateConsensusCache();
 			ConsensusConfig<?,?> consensus = storeTransaction.getConfig();
-			return mkClone(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			return make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 		}
-		catch (NoSuchAlgorithmException | StoreException e) {
-			throw new RuntimeException(e); // TODO
+		catch (NoSuchAlgorithmException e) {
+			throw new StoreException(e);
 		}
 	}
 

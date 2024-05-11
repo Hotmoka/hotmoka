@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.internal.values;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -70,6 +71,11 @@ public final class DoubleValueImpl extends AbstractStorageValue implements Doubl
 			return Double.compare(value, dv.getValue());
 		else
 			return super.compareTo(other);
+	}
+
+	@Override
+	public <E extends Exception> double asDouble(Function<StorageValue, ? extends E> exception) {
+		return value;
 	}
 
 	@Override

@@ -265,6 +265,11 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	public final static NonVoidMethodSignature GET_CURRENT_INFLATION = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getCurrentInflation", StorageTypes.LONG);
 
 	/**
+	 * The method {@code getShares} of the validators object.
+	 */
+	public final static NonVoidMethodSignature GET_SHARES = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getShares", StorageTypes.STORAGE_MAP_VIEW);
+
+	/**
 	 * The method {@code ignoresGasPrice} of the gas station.
 	 */
 	public final static NonVoidMethodSignature IGNORES_GAS_PRICE = MethodSignatures.ofNonVoid(StorageTypes.GAS_STATION, "ignoresGasPrice", StorageTypes.BOOLEAN);
@@ -369,4 +374,19 @@ public abstract class AbstractMethodSignature extends AbstractCodeSignature impl
 	 * The method {@code vote} of the Poll contract with the share parameter.
 	 */
 	public final static VoidMethodSignature VOTE_WITH_SHARE = MethodSignatures.ofVoid(StorageTypes.POLL, "vote", StorageTypes.BIG_INTEGER);
+
+	/**
+	 * The method {@code size} of a storage map view contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_SIZE = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT);
+
+	/**
+	 * The method {@code select} of a {@code StorageMapView} contract.
+	 */
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_SELECT = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT);
+
+	/**
+	 * The method {@code get} of a {@code StorageMapView} contract.
+	 */	
+	public final static NonVoidMethodSignature STORAGE_MAP_VIEW_GET = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
 }

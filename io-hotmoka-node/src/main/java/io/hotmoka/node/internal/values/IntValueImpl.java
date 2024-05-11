@@ -17,6 +17,7 @@ limitations under the License.
 package io.hotmoka.node.internal.values;
 
 import java.io.IOException;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -70,6 +71,11 @@ public final class IntValueImpl extends AbstractStorageValue implements IntValue
 			return Integer.compare(value, iv.getValue());
 		else
 			return super.compareTo(other);
+	}
+
+	@Override
+	public <E extends Exception> int asInt(Function<StorageValue, ? extends E> exception) {
+		return value;
 	}
 
 	@Override

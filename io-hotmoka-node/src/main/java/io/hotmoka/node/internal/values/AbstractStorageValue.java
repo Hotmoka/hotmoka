@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.values;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.math.BigInteger;
+import java.util.function.Function;
 
 import io.hotmoka.marshalling.AbstractMarshallable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -27,6 +28,7 @@ import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.types.ClassType;
 import io.hotmoka.node.api.types.StorageType;
+import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.internal.marshalling.NodeMarshallingContext;
 
@@ -115,6 +117,61 @@ public abstract class AbstractStorageValue extends AbstractMarshallable implemen
 	@Override
 	public int compareTo(StorageValue other) {
 		return getClass().getName().compareTo(other.getClass().getName());
+	}
+
+	@Override
+	public <E extends Exception> BigInteger asBigInteger(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this); // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> boolean asBoolean(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> byte asByte(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> char asChar(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> double asDouble(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> float asFloat(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> int asInt(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> long asLong(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> short asShort(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> StorageReference asReference(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
+	}
+
+	@Override
+	public <E extends Exception> String asString(Function<StorageValue, ? extends E> exception) throws E {
+		throw exception.apply(this);  // subclasses may redefine
 	}
 
 	@Override

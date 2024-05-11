@@ -44,6 +44,7 @@ import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.AbstractLocalNode;
+import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNode;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.tendermint.abci.Server;
@@ -113,15 +114,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
-	private void tryClose() {
-		try {
-			close();
-		}
-		catch (Exception e) {
-			LOGGER.log(Level.SEVERE, "cannot close the blockchain", e);
-		}
-	}
-
 	/**
 	 * Builds a Tendermint blockchain recycling the previous store. The consensus parameters
 	 * are recovered from the manifest in the store. This constructor spawns the Tendermint process on localhost
@@ -156,12 +148,50 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
+	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
+		try (var scope = mkScope()) {
+			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
+		}
+		catch (JsonSyntaxException | IOException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@Override
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
 			closeTendermintAndABCI();
 		}
 		finally {
 			super.closeResources();
+		}
+	}
+
+	@Override
+	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws NodeException {
+		try {
+			return new TendermintStore(executors, consensus, config, hasher);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@Override
+	protected void postRequest(TransactionRequest<?> request) {
+		poster.postRequest(request);
+	}
+
+	protected TendermintPoster getPoster() {
+		return poster;
+	}
+
+	private void tryClose() {
+		try {
+			close();
+		}
+		catch (Exception e) {
+			LOGGER.log(Level.SEVERE, "cannot close the blockchain", e);
 		}
 	}
 
@@ -183,121 +213,6 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			abci.shutdown();
 			abci.awaitTermination();
 		}		
-	}
-
-	@Override
-	public NodeInfo getNodeInfo() throws NodeException, TimeoutException, InterruptedException {
-		try (var scope = mkScope()) {
-			return NodeInfos.of(TendermintNode.class.getName(), HOTMOKA_VERSION, poster.getNodeID());
-		}
-		catch (JsonSyntaxException | IOException e) {
-			throw new NodeException(e);
-		}
-	}
-
-	public TendermintPoster getPoster() {
-		return poster;
-	}
-
-	@Override
-	protected TendermintStore mkStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
-		return new TendermintStore(() -> poster, executors, consensus, config, hasher);
-	}
-
-	@Override
-	protected void postRequest(TransactionRequest<?> request) {
-		poster.postRequest(request);
-	}
-
-	/**
-	 * A proxy object that connects to the Tendermint process, sends requests to it
-	 * and gets responses from it.
-	 */
-	class Tendermint implements AutoCloseable {
-
-		/**
-		 * The Tendermint process;
-		 */
-		private final Process process;
-
-		/**
-		 * Spawns the Tendermint process and creates a proxy to it. It assumes that
-		 * the {@code tendermint} command can be executed from the command path.
-		 * 
-		 * @param config the configuration of the blockchain that is using Tendermint
-		 * @throws IOException if an I/O error occurred
-		 * @throws TimeoutException if Tendermint did not spawn up in the expected time
-		 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
-		 */
-		Tendermint(TendermintNodeConfig config) throws IOException, InterruptedException, TimeoutException {
-			this.process = spawnTendermintProcess(config);
-			waitUntilTendermintProcessIsUp(config);
-
-			LOGGER.info("The Tendermint process is up and running");
-		}
-
-		@Override
-		public void close() throws InterruptedException, IOException {
-			// the following is important under Windows, since the shell script thats starts Tendermint
-			// under Windows spawns it as a subprocess
-			process.descendants().forEach(ProcessHandle::destroy);
-			process.destroy();
-			process.waitFor();
-
-			if (isWindows)
-				// this seems important under Windows
-				try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-					LOGGER.info(br.lines().collect(Collectors.joining()));
-				}
-
-			LOGGER.info("The Tendermint process has been shut down");
-		}
-
-		/**
-		 * Spawns a Tendermint process using the working directory that has been previously initialized.
-		 * 
-		 * @param config the configuration of the node
-		 * @return the Tendermint process
-		 */
-		private Process spawnTendermintProcess(TendermintNodeConfig config) throws IOException {
-			// spawns a process that remains in background
-			Path tendermintHome = config.getDir().resolve("blocks");
-			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
-			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
-		}
-
-		/**
-		 * Waits until the Tendermint process acknowledges a ping.
-		 * 
-		 * @param config the configuration of the node
-		 * @param poster the object that can be used to post to Tendermint
-		 * @throws IOException if it is not possible to connect to the Tendermint process
-		 * @throws TimeoutException if tried many times, but never got a reply
-		 * @throws InterruptedException if interrupted while pinging
-		 */
-		private void waitUntilTendermintProcessIsUp(TendermintNodeConfig config) throws TimeoutException, InterruptedException, IOException {
-			for (long reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
-				try {
-					HttpURLConnection connection = poster.openPostConnectionToTendermint();
-					try (var os = connection.getOutputStream(); var is = connection.getInputStream()) {
-						return;
-					}
-				}
-				catch (ConnectException e) {
-					// take a nap, then try again
-					Thread.sleep(config.getPingDelay());
-				}
-			}
-
-			try {
-				close();
-			}
-			catch (Exception e) {
-				LOGGER.log(Level.SEVERE, "Cannot close the Tendermint process", e);
-			}
-
-			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
-		}
 	}
 
 	private static void copyRecursively(Path src, Path dest) throws IOException {
@@ -359,5 +274,96 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 			// we clone the configuration files inside config.tendermintConfigurationToClone
 			// into the blocks subdirectory of the node directory
 			copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
+	}
+
+	/**
+	 * A proxy object that connects to the Tendermint process, sends requests to it
+	 * and gets responses from it.
+	 */
+	class Tendermint implements AutoCloseable {
+	
+		/**
+		 * The Tendermint process;
+		 */
+		private final Process process;
+	
+		/**
+		 * Spawns the Tendermint process and creates a proxy to it. It assumes that
+		 * the {@code tendermint} command can be executed from the command path.
+		 * 
+		 * @param config the configuration of the blockchain that is using Tendermint
+		 * @throws IOException if an I/O error occurred
+		 * @throws TimeoutException if Tendermint did not spawn up in the expected time
+		 * @throws InterruptedException if the current thread was interrupted while waiting for the Tendermint process to run
+		 */
+		private Tendermint(TendermintNodeConfig config) throws IOException, InterruptedException, TimeoutException {
+			this.process = spawnTendermintProcess(config);
+			waitUntilTendermintProcessIsUp(config);
+	
+			LOGGER.info("the Tendermint process is up and running");
+		}
+	
+		@Override
+		public void close() throws InterruptedException, IOException {
+			// the following is important under Windows, since the shell script thats starts Tendermint
+			// under Windows spawns it as a subprocess
+			process.descendants().forEach(ProcessHandle::destroy);
+			process.destroy();
+			process.waitFor();
+	
+			if (isWindows)
+				// this seems important under Windows
+				try (BufferedReader br = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+					LOGGER.info(br.lines().collect(Collectors.joining()));
+				}
+	
+			LOGGER.info("the Tendermint process has been shut down");
+		}
+	
+		/**
+		 * Spawns a Tendermint process using the working directory that has been previously initialized.
+		 * 
+		 * @param config the configuration of the node
+		 * @return the Tendermint process
+		 */
+		private Process spawnTendermintProcess(TendermintNodeConfig config) throws IOException {
+			// spawns a process that remains in background
+			Path tendermintHome = config.getDir().resolve("blocks");
+			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
+			return run(executableName + " node --home " + tendermintHome + " --abci grpc", Optional.of("tendermint.log"));
+		}
+	
+		/**
+		 * Waits until the Tendermint process acknowledges a ping.
+		 * 
+		 * @param config the configuration of the node
+		 * @param poster the object that can be used to post to Tendermint
+		 * @throws IOException if it is not possible to connect to the Tendermint process
+		 * @throws TimeoutException if tried many times, but never got a reply
+		 * @throws InterruptedException if interrupted while pinging
+		 */
+		private void waitUntilTendermintProcessIsUp(TendermintNodeConfig config) throws TimeoutException, InterruptedException, IOException {
+			for (long reconnections = 1; reconnections <= config.getMaxPingAttempts(); reconnections++) {
+				try {
+					HttpURLConnection connection = poster.openPostConnectionToTendermint();
+					try (var os = connection.getOutputStream(); var is = connection.getInputStream()) {
+						return;
+					}
+				}
+				catch (ConnectException e) {
+					// take a nap, then try again
+					Thread.sleep(config.getPingDelay());
+				}
+			}
+	
+			try {
+				close();
+			}
+			catch (Exception e) {
+				LOGGER.log(Level.SEVERE, "cannot close the Tendermint process", e);
+			}
+	
+			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
+		}
 	}
 }

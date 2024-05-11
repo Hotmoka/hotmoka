@@ -11,7 +11,6 @@ import java.util.stream.Stream;
 
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.MethodSignatures;
-import io.hotmoka.node.StorageTypes;
 import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.CodeExecutionException;
@@ -22,12 +21,8 @@ import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
-import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.BigIntegerValue;
-import io.hotmoka.node.api.values.IntValue;
 import io.hotmoka.node.api.values.StorageReference;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.AbstractTrieBasedStoreTransaction;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -36,9 +31,8 @@ import io.hotmoka.node.local.api.StoreException;
 public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransaction<TendermintStore, TendermintStoreTransaction> {
 
 	/**
-	 * The current validators set in this store transaction. This information could be recovered from the store
-	 * transaction itself, but this field is used for caching. The validators set might be missing if the
-	 * node is not initialized yet.
+	 * The current validators set in this store transaction. This information could be recovered from the store transaction itself,
+	 * but this field is used for caching. The validators set might be missing if the node is not initialized yet.
 	 */
 	private volatile Optional<TendermintValidator[]> validators;
 
@@ -48,59 +42,11 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 		super(store, executors, consensus, now);
 	}
 
-	public final Optional<TendermintValidator[]> getTendermintValidatorsUncommitted() throws StoreException {
+	protected final Optional<TendermintValidator[]> getTendermintValidators() throws StoreException {
 		if (validators.isEmpty())
 			recomputeValidators();
 
 		return validators;
-	}
-
-	private static final BigInteger _50_000 = BigInteger.valueOf(50_000);
-	private static final MethodSignature SIZE = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "size", StorageTypes.INT);
-	private static final MethodSignature GET_SHARES = MethodSignatures.ofNonVoid(StorageTypes.VALIDATORS, "getShares", StorageTypes.STORAGE_MAP_VIEW);
-	private static final MethodSignature SELECT = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "select", StorageTypes.OBJECT, StorageTypes.INT);
-	private static final MethodSignature GET = MethodSignatures.ofNonVoid(StorageTypes.STORAGE_MAP_VIEW, "get", StorageTypes.OBJECT, StorageTypes.OBJECT);
-
-	private void recomputeValidators() throws StoreException {
-		try {
-			Optional<StorageReference> maybeManifest = getManifest();
-			if (maybeManifest.isPresent()) {
-				StorageReference manifest = maybeManifest.get();
-				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
-				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
-
-				var shares = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall // TODO: check casts
-					(manifest, _50_000, takamakaCode, GET_SHARES, validators))
-					.orElseThrow(() -> new StoreException(GET_SHARES + " should not return void"));
-
-				int numOfValidators = ((IntValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-					(manifest, _50_000, takamakaCode, SIZE, shares))
-					.orElseThrow(() -> new StoreException(SIZE + " should not return void"))).getValue();
-
-				var result = new TendermintValidator[numOfValidators];
-
-				for (int num = 0; num < numOfValidators; num++) {
-					var validator = (StorageReference) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, SELECT, shares, StorageValues.intOf(num)))
-						.orElseThrow(() -> new StoreException(SELECT + " should not return void"));
-
-					String id = ((StringValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
-						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))).getValue();
-
-					long power = ((BigIntegerValue) runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
-						(manifest, _50_000, takamakaCode, GET, shares, validator))
-						.orElseThrow(() -> new StoreException(GET + " should not return void"))).getValue().longValue();
-
-					String publicKey = getPublicKey(validator);
-
-					result[num] = new TendermintValidator(id, power, publicKey, "tendermint/PubKeyEd25519");
-				}
-			}
-		}
-		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException e) {
-			throw new StoreException(e);
-		}
 	}
 
 	@Override
@@ -110,6 +56,55 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 		if (validatorsMightHaveChanged(response, classLoader)) {
 			LOGGER.info("the validators set might have changed: deleting their cache");
 			validators = Optional.empty();
+		}
+	}
+
+	private void recomputeValidators() throws StoreException {
+		try {
+			Optional<StorageReference> maybeManifest = getManifest();
+			if (maybeManifest.isPresent()) {
+				StorageReference manifest = maybeManifest.get();
+				TransactionReference takamakaCode = getTakamakaCode().orElseThrow(() -> new StoreException("The manifest is set but the Takamaka code reference is not set"));
+				StorageReference validators = getValidators().orElseThrow(() -> new StoreException("The manifest is set but the validators are not set"));
+				BigInteger _50_000 = BigInteger.valueOf(50_000);
+
+				StorageReference shares = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _50_000, takamakaCode, MethodSignatures.GET_SHARES, validators))
+					.orElseThrow(() -> new StoreException(MethodSignatures.GET_SHARES + " should not return void"))
+					.asReference(value -> new StoreException(MethodSignatures.GET_SHARES + " should return a reference, not a " + value.getClass().getName()));
+
+				int numOfValidators = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+					(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SIZE, shares))
+					.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should not return void"))
+					.asInt(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SIZE + " should return an integer, not a " + value.getClass().getName()));
+
+				var result = new TendermintValidator[numOfValidators];
+
+				for (int num = 0; num < numOfValidators; num++) {
+					StorageReference validator = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_SELECT, shares, StorageValues.intOf(num)))
+						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should not return void"))
+						.asReference(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_SELECT + " should return a reference, not a " + value.getClass().getName()));
+
+					String id = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _50_000, takamakaCode, MethodSignatures.ID, validator))
+						.orElseThrow(() -> new StoreException(MethodSignatures.ID + " should not return void"))
+						.asString(value -> new StoreException(MethodSignatures.ID + " should return a string, not a " + value.getClass().getName()));
+
+					long power = runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
+						(manifest, _50_000, takamakaCode, MethodSignatures.STORAGE_MAP_VIEW_GET, shares, validator))
+						.orElseThrow(() -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should not return void"))
+						.asBigInteger(value -> new StoreException(MethodSignatures.STORAGE_MAP_VIEW_GET + " should return a BigInteger, not a " + value.getClass().getName()))
+						.longValue();
+
+					result[num] = new TendermintValidator(id, power, getPublicKey(validator), "tendermint/PubKeyEd25519");
+				}
+
+				this.validators = Optional.of(result);
+			}
+		}
+		catch (TransactionRejectedException | TransactionException | CodeExecutionException | UnknownReferenceException | FieldNotFoundException e) {
+			throw new StoreException(e);
 		}
 	}
 
@@ -139,8 +134,7 @@ public class TendermintStoreTransaction extends AbstractTrieBasedStoreTransactio
 						.anyMatch(validators::equals));
 				}
 				catch (UnknownReferenceException | FieldNotFoundException e) {
-					// if it was possible to verify that it is an event, then it exists in store and must have a creator
-					// or otherwise the store is corrupted
+					// if it was possible to verify that it is an event, then it exists in store and must have a creator or otherwise the store is corrupted
 					throw new StoreException(e);
 				}
 			}

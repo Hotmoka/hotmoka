@@ -19,6 +19,7 @@ package io.hotmoka.node.internal.values;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Objects;
+import java.util.function.Function;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.marshalling.api.MarshallingContext;
@@ -72,6 +73,11 @@ public final class BigIntegerValueImpl extends AbstractStorageValue implements B
 			return value.compareTo(biv.getValue());
 		else
 			return super.compareTo(other);
+	}
+
+	@Override
+	public <E extends Exception> BigInteger asBigInteger(Function<StorageValue, ? extends E> exception) {
+		return value;
 	}
 
 	@Override

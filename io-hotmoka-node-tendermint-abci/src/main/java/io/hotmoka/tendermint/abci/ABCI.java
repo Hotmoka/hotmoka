@@ -118,8 +118,13 @@ public abstract class ABCI {
 
 		@Override
 	    public final void commit(RequestCommit request, StreamObserver<ResponseCommit> responseObserver) {
-	        responseObserver.onNext(ABCI.this.commit(request));
-	        responseObserver.onCompleted();
+			try {
+				responseObserver.onNext(ABCI.this.commit(request));
+				responseObserver.onCompleted();
+			}
+			catch (NodeException e) {
+				responseObserver.onError(e);
+			}
 	    }
 
 		@Override
@@ -198,7 +203,7 @@ public abstract class ABCI {
 	 * @param request the request
 	 * @return the response
 	 */
-	protected abstract ResponseCommit commit(RequestCommit request);
+	protected abstract ResponseCommit commit(RequestCommit request) throws NodeException;
 
 	/**
 	 * Executes a query request.

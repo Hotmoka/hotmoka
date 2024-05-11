@@ -22,7 +22,6 @@ import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.HashingAlgorithms;
@@ -48,24 +47,20 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 	 */
 	private final Hasher<byte[]> hasherOfHashes;
 
-	private final Supplier<TendermintPoster> poster;
-
 	/**
      * Creates a store for the Tendermint blockchain.
      * It is initialized to the view of the last checked out root.
      * 
      * @param node an object that can be used to send post requests to Tendermint
      */
-    TendermintStore(Supplier<TendermintPoster> poster, ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) {
+    TendermintStore(ExecutorService executors, ConsensusConfig<?,?> consensus, TendermintNodeConfig config, Hasher<TransactionRequest<?>> hasher) throws StoreException {
     	super(executors, consensus, config, hasher);
-
-    	this.poster = poster;
 
     	try {
     		this.hasherOfHashes = HashingAlgorithms.sha256().getHasher(Function.identity());
     	}
     	catch (NoSuchAlgorithmException e) {
-    		throw new RuntimeException("unexpected exception", e);
+    		throw new StoreException(e);
     	}
     }
 
@@ -73,26 +68,31 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
 
     	this.hasherOfHashes = toClone.hasherOfHashes;
-    	this.poster = toClone.poster;
 	}
 
-	/**
-	 * Yields the hash of this store. It is computed from the roots of its tries.
-	 * 
-	 * @return the hash. If the store is currently empty, it yields an empty array of bytes
-	 */
-	byte[] getHash() {
-		try {
-			return isEmpty() ?
-					new byte[0] : // Tendermint requires an empty array at the beginning, for consensus
-						// we do not use the info part of the hash, so that the hash
-						// remains stable when the responses and the histories are stable,
-						// although the info part has changed for the update of the number of commits
-						hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
+    /**
+     * Yields the hash of this store. It is computed from the roots of its tries.
+     * 
+     * @return the hash. If the store is currently empty, it yields an empty array of bytes
+     */
+    protected byte[] getHash() throws StoreException {
+    	if (isEmpty())
+    		return new byte[0]; // Tendermint requires an empty array at the beginning, for consensus
+    	else
+    		// we do not use the info part of the hash, so that the hash
+    		// remains stable when the responses and the histories are stable,
+    		// although the info part has changed for the update of the number of commits
+    		return hasherOfHashes.hash(mergeRootsOfTriesWithoutInfo()); // we hash the result into 32 bytes
+    }
+
+	@Override
+    protected TendermintStore make(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+		return new TendermintStore(this, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
+	}
+
+	@Override
+	protected TendermintStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
+		return new TendermintStoreTransaction(this, executors, consensus, now);
 	}
 
 	/**
@@ -109,17 +109,7 @@ public class TendermintStore extends AbstractTrieBasedStore<TendermintStore, Ten
 		byte[] bytes = getStateId();
 		for (int pos = 32; pos < 64; pos++)
 			bytes[pos] = 0;
-
+	
 		return bytes;
-	}
-
-	@Override
-    protected TendermintStore mkClone(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-		return new TendermintStore(this, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
-	}
-
-	@Override
-	protected TendermintStoreTransaction beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException {
-		return new TendermintStoreTransaction(this, executors, consensus, now);
 	}
 }

@@ -38,5 +38,5 @@ public interface CheckableStore<S extends CheckableStore<S, T>, T extends StoreT
 	 * 
 	 * @param stateId the state identifier to reset the store to
 	 */
-	void checkoutAt(byte[] stateId);
+	S checkoutAt(byte[] stateId) throws StoreException;
 }
