@@ -18,6 +18,7 @@ package io.hotmoka.node.local.api;
 
 import java.util.Optional;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
@@ -60,9 +61,9 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	ConsensusConfig<?,?> getConfig() throws StoreException;
 
-	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException;
 
-	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException;
+	Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException;
 
 	/**
 	 * Rewards the validators with the cost of the gas consumed for the execution of the
@@ -87,7 +88,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @return the builder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException;
+	ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
 	/**
 	 * Builds a response for the given request and adds it to the store of the node.
@@ -98,7 +99,9 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
-	void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
+	void forEachCompletedTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException;
+
+	void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 
 	S getFinalStore() throws StoreException;
 }

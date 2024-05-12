@@ -33,6 +33,7 @@ import io.hotmoka.node.api.responses.ConstructorCallTransactionResponse;
 import io.hotmoka.node.api.signatures.ConstructorSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a constructor of Takamaka code.
@@ -47,8 +48,9 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 	}
 
@@ -62,7 +64,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	}
 
 	@Override
-	public ConstructorCallTransactionResponse getResponse() throws TransactionRejectedException {
+	public ConstructorCallTransactionResponse getResponse() throws StoreException {
 		return new ResponseCreator().create();
 	}
 
@@ -73,7 +75,7 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() throws TransactionRejectedException {
+		private ResponseCreator() {
 		}
 
 		@Override

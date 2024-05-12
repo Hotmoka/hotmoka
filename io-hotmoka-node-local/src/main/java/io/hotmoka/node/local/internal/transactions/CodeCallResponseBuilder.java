@@ -65,18 +65,14 @@ public abstract class CodeCallResponseBuilder
 	 * @param request the request of the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 
-		try {
-			// calls to @View methods are allowed to receive non-exported values
-			if (transactionIsSigned()) 
-				argumentsAreExported();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		// calls to @View methods are allowed to receive non-exported values
+		if (transactionIsSigned()) 
+			argumentsAreExported();
 	}
 
 	/**
@@ -108,14 +104,14 @@ public abstract class CodeCallResponseBuilder
 
 			try {
 				if (!classLoader.isExported(clazz.getName()))
-					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz);
+					throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " is not exported: add @Exported to " + clazz, consensus);
 			}
 			catch (ClassNotFoundException e) {
-				throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved");
+				throw new TransactionRejectedException("Class " + clazz + " of the parameter " + reference + " cannot be resolved", consensus);
 			}
 		}
 		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("Object " + reference + " cannot be found in store");
+			throw new TransactionRejectedException("Object " + reference + " cannot be found in store", consensus);
 		}
 	}
 
@@ -204,13 +200,8 @@ public abstract class CodeCallResponseBuilder
 		 */
 		private final List<Object> events = new ArrayList<>();
 
-		protected ResponseCreator() throws TransactionRejectedException {
-			try {
-				this.serializer = new Serializer(classLoader);
-			}
-			catch (Throwable t) {
-				throw new TransactionRejectedException(t);
-			}
+		protected ResponseCreator() {
+			this.serializer = new Serializer(classLoader);
 		}
 
 		/**

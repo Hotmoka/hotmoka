@@ -43,7 +43,6 @@ import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.updates.UpdateOfField;
 import io.hotmoka.node.local.api.EngineClassLoader;
@@ -70,24 +69,20 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @param request the request of the transaction
 	 * @param node the node that is creating the response
 	 * @throws TransactionRejectedException if the builder cannot be built
+	 * @throws StoreException 
 	 */
-	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	protected NonInitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 
-		try {
-			this.gasCostModel = consensus.getGasCostModel();
-			callerMustBeExternallyOwnedAccount();
-			gasLimitIsInsideBounds();
-			requestPromisesEnoughGas();
-			gasPriceIsLargeEnough();
-			requestMustHaveCorrectChainId();
-			signatureMustBeValid();
-			callerAndRequestMustAgreeOnNonce();
-			payerCanPayForAllPromisedGas();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		this.gasCostModel = consensus.getGasCostModel();
+		callerMustBeExternallyOwnedAccount();
+		gasLimitIsInsideBounds();
+		requestPromisesEnoughGas();
+		gasPriceIsLargeEnough();
+		requestMustHaveCorrectChainId();
+		signatureMustBeValid();
+		callerAndRequestMustAgreeOnNonce();
+		payerCanPayForAllPromisedGas();
 	}
 
 	/**
@@ -100,13 +95,8 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws NodeException, TransactionRejectedException {
-		try {
-			return storeTransaction.getClassLoader(request.getClasspath(), consensus);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
+		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
 	}
 
 	/**
@@ -150,8 +140,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private SignatureAlgorithm determineSignatureAlgorithm() throws StoreException, TransactionRejectedException {
 		try {
-			ClassTag classTag = storeTransaction.getClassTag(request.getCaller());
-			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
+			Class<?> clazz = classLoader.loadClass(storeTransaction.getClassName(request.getCaller()));
 
 			if (classLoader.getAccountED25519().isAssignableFrom(clazz))
 				return SignatureAlgorithms.ed25519();
@@ -165,13 +154,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				return consensus.getSignatureForRequests();
 		}
 		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store");
+			throw new TransactionRejectedException("The caller " + request.getCaller() + " is not an object in store", consensus);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);
 		}
 		catch (ClassNotFoundException e) {
-			throw new TransactionRejectedException(e);
+			throw new TransactionRejectedException(e, consensus);
 		}
 	}
 
@@ -185,22 +174,22 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * @throws UnknownReferenceException 
 	 */
 	private void callerMustBeExternallyOwnedAccount() throws TransactionRejectedException, StoreException {
-		ClassTag classTag;
-		
+		String className;
+
 		try {
-			classTag = storeTransaction.getClassTag(request.getCaller());
+			className = storeTransaction.getClassName(request.getCaller());
 		}
 		catch (UnknownReferenceException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store");
+			throw new TransactionRejectedException("The caller " + request.getCaller() + " cannot be found in store", consensus);
 		}
 
 		try {
-			Class<?> clazz = classLoader.loadClass(classTag.getClazz().getName());
+			Class<?> clazz = classLoader.loadClass(className);
 			if (!classLoader.getExternallyOwnedAccount().isAssignableFrom(clazz))
-				throw new TransactionRejectedException("The caller of a request must be an externally owned account");
+				throw new TransactionRejectedException("The caller of a request must be an externally owned account", consensus);
 		}
 		catch (ClassNotFoundException e) {
-			throw new TransactionRejectedException("The class " + classTag + " of the caller cannot be resolved");
+			throw new TransactionRejectedException("The class " + className + " of the caller cannot be resolved", consensus);
 		}
 	}
 
@@ -209,12 +198,12 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws NodeException if the signature of the request could not be checked
 	 */
-	private void signatureMustBeValid() throws StoreException, TransactionRejectedException {
+	private void signatureMustBeValid() throws TransactionRejectedException, StoreException {
 		// if the node is not initialized yet, the signature is not checked
 		if (transactionIsSigned() && storeTransaction.getManifest().isPresent()) {
 			try {
 				if (!storeTransaction.signatureIsValid((SignedTransactionRequest<?>) request, determineSignatureAlgorithm()))
-					throw new TransactionRejectedException("Invalid request signature");
+					throw new TransactionRejectedException("Invalid request signature", consensus);
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
 				// we have already verified that the caller exists and is an externally owned account:
@@ -229,18 +218,13 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 * 
 	 * @throws TransactionRejectedException if the node and the request have different chain identifiers
 	 */
-	private void requestMustHaveCorrectChainId() throws TransactionRejectedException {
+	private void requestMustHaveCorrectChainId() throws TransactionRejectedException, StoreException {
 		// the chain identifier is not checked for unsigned transactions or if the node is not initialized yet
-		try {
-			if (transactionIsSigned() && storeTransaction.getManifest().isPresent()) {
-				String chainIdOfNode = consensus.getChainId();
-				String chainId = ((SignedTransactionRequest<?>) request).getChainId();
-				if (!chainIdOfNode.equals(chainId))
-					throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode);
-			}
-		}
-		catch (StoreException e) {
-			LOGGER.log(Level.SEVERE, "", e);
+		if (transactionIsSigned() && storeTransaction.getManifest().isPresent()) {
+			String chainIdOfNode = consensus.getChainId();
+			String chainId = ((SignedTransactionRequest<?>) request).getChainId();
+			if (!chainIdOfNode.equals(chainId))
+				throw new TransactionRejectedException("Incorrect chain id: the request reports " + chainId + " but the node requires " + chainIdOfNode, consensus);
 		}
 	}
 
@@ -256,7 +240,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				BigInteger expected = storeTransaction.getNonce(request.getCaller());
 				if (!expected.equals(request.getNonce()))
 					throw new TransactionRejectedException("Incorrect nonce: the request reports " + request.getNonce()
-					+ " but the account " + request.getCaller() + " contains " + expected);
+					+ " but the account " + request.getCaller() + " contains " + expected, consensus);
 			}
 			catch (UnknownReferenceException | FieldNotFoundException e) {
 				// we have already verified that the caller is an externally owned account, so this can only be a store corruption problem
@@ -273,7 +257,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	private void requestPromisesEnoughGas() throws TransactionRejectedException {
 		BigInteger minimum = minimalGasRequiredForTransaction();
 		if (request.getGasLimit().compareTo(minimum) < 0)
-			throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas");
+			throw new TransactionRejectedException("not enough gas to start the transaction, expected at least " + minimum + " units of gas", consensus);
 	}
 
 	/**
@@ -283,9 +267,9 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 	 */
 	private void gasLimitIsInsideBounds() throws TransactionRejectedException {
 		if (request.getGasLimit().compareTo(ZERO) < 0)
-			throw new TransactionRejectedException("The gas limit cannot be negative");
+			throw new TransactionRejectedException("The gas limit cannot be negative", consensus);
 		else if (request.getGasLimit().compareTo(consensus.getMaxGasPerTransaction()) > 0)
-			throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")");
+			throw new TransactionRejectedException("The gas limit of the request is larger than the maximum allowed (" + request.getGasLimit() + " > " + consensus.getMaxGasPerTransaction() + ")", consensus);
 	}
 
 	/**
@@ -299,7 +283,7 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 				Optional<BigInteger> maybeGasPrice = storeTransaction.getGasPrice();
 				// before initialization, the gas price is not yet available
 				if (maybeGasPrice.isPresent() && request.getGasPrice().compareTo(maybeGasPrice.get()) < 0)
-					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")");
+					throw new TransactionRejectedException("The gas price of the request is smaller than the current gas price (" + request.getGasPrice() + " < " + maybeGasPrice.get() + ")", consensus);
 			}
 		}
 		catch (StoreException e) {
@@ -319,14 +303,14 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 			BigInteger totalBalance = storeTransaction.getTotalBalance(request.getCaller());
 
 			if (totalBalance.subtract(cost).signum() < 0)
-				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas");
+				throw new TransactionRejectedException("The payer has not enough funds to buy " + request.getGasLimit() + " units of gas", consensus);
 		}
 		catch (UnknownReferenceException e) {
 			// we have verified that the caller was an account, so this can only be a store corruption problem
 			throw new StoreException(e);
 		}
 		catch (FieldNotFoundException e) {
-			throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field");
+			throw new TransactionRejectedException("The caller " + request.getCaller() + " has no balance field", consensus);
 		}
 	}
 
@@ -402,27 +386,14 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger redBalanceOfPayerInCaseOfTransactionException;
 
-		protected ResponseCreator() throws TransactionRejectedException {
-			try {
-				this.gas = request.getGasLimit();
-			}
-			catch (Throwable t) {
-				LOGGER.log(Level.WARNING, "response creation rejected", t);
-				throw wrapAsTransactionRejectedException(t);
-			}
+		protected ResponseCreator() {
+			this.gas = request.getGasLimit();
 		}
 
-		protected final void init() throws NodeException {
+		protected final void init() throws StoreException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
-			this.deserializedPayer = deserializedPayer();
-
-			try {
-				this.deserializedValidators = storeTransaction.getValidators().map(deserializer::deserialize);
-			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
-
+			this.deserializedPayer = deserializedPayer(); // TODO: remove?
+			this.deserializedValidators = storeTransaction.getValidators().map(deserializer::deserialize);
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));

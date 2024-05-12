@@ -577,14 +577,14 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 				// we ask the account: 100,000 units of gas should be enough to run the method
 				nonce = ((BigIntegerValue) node.runInstanceMethodCallTransaction(TransactionRequests.instanceViewMethodCall
 					(account, _100_000, node.getClassTag(account).getJar(), MethodSignatures.NONCE, account))
-					.orElseThrow(() -> new TransactionRejectedException(MethodSignatures.NONCE + " should not return void"))).getValue();
+					.orElseThrow(() -> new TransactionRejectedException(MethodSignatures.NONCE + " should not return void", consensus))).getValue();
 
 			nonces.put(account, nonce);
 			return nonce;
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing nonce", e);
-			throw new TransactionRejectedException("Cannot compute the nonce of " + account);
+			throw new TransactionRejectedException("Cannot compute the nonce of " + account, consensus);
 		}
 	}
 
@@ -605,7 +605,7 @@ public abstract class HotmokaTest extends AbstractLoggedTests {
 		}
 		catch (Exception e) {
 			LOGGER.log(Level.SEVERE, "failed computing the balance", e);
-			throw new TransactionRejectedException("Cannot compute the balance of " + account);
+			throw new TransactionRejectedException("Cannot compute the balance of " + account, consensus);
 		}
 	}
 }

@@ -20,7 +20,6 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;
 
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
@@ -41,23 +40,19 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws NodeException {
-		try {
-			return storeTransaction.getClassLoader(request.getClasspath(), consensus);
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+	protected EngineClassLoader mkClassLoader() throws StoreException {
+		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
 	}
 
 	@Override
-	public GameteCreationTransactionResponse getResponse() throws TransactionRejectedException {
+	public GameteCreationTransactionResponse getResponse() throws StoreException {
 		return new ResponseCreator() {
 
 			@Override

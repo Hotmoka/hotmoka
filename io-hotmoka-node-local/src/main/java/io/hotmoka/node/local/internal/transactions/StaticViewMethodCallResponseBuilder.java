@@ -19,6 +19,7 @@ package io.hotmoka.node.local.internal.transactions;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The builder of the response for a transaction that executes a static method of Takamaka code
@@ -33,8 +34,9 @@ public class StaticViewMethodCallResponseBuilder extends StaticMethodCallRespons
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	public StaticViewMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	public StaticViewMethodCallResponseBuilder(TransactionReference reference, StaticMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 	}
 

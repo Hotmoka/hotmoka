@@ -134,7 +134,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 * {@link #checkRequest(TransactionRequest)} failed, hence never
 	 * got the chance to pass to {@link #deliverTransaction(TransactionRequest)}.
 	 */
-	private final LRUCache<TransactionReference, String> recentlyRejectedRequestsErrors;
+	private final LRUCache<TransactionReference, String> recentlyRejectedTransactionsMessages;
 
 	/**
 	 * The store of this node.
@@ -189,7 +189,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try {
 			this.config = config;
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-			this.recentlyRejectedRequestsErrors = new LRUCache<>(100, 1000);
+			this.recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
 			this.semaphores = new ConcurrentHashMap<>();
 
 			if (consensus.isPresent()) {
@@ -306,20 +306,20 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				return store.getResponse(Objects.requireNonNull(reference));
 			}
 			catch (UnknownReferenceException e) {
-				try {
+				/*try {
 					// we check if the request has been executed but ended with a TransactionException:
 					// in that case, the node contains the error message in its store; otherwise,
 					// we check if the request has been rejected with a TransactionRejectedException:
 					// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
 					throw new TransactionRejectedException(store.getError(reference));
 				}
-				catch (UnknownReferenceException ee) {
-					Optional<String> rejectionError = getRecentCheckRequestErrorFor(reference);
-					if (rejectionError.isPresent())
-						throw new TransactionRejectedException(rejectionError.get());
+				catch (UnknownReferenceException ee) {*/
+					String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
+					if (rejectionMessage != null)
+						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
 					else
 						throw new UnknownReferenceException(reference);
-				}
+				//}
 			}
 		}
 		catch (StoreException e) {
@@ -482,41 +482,24 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		}
 	}
 
-	public void signalOutcomeIsReady(Stream<TransactionRequest<?>> requests) {
-		requests.map(hasher::hash).map(TransactionReferences::of).forEach(this::signalSemaphore);
+	/**
+	 * Wakes up who was waiting for the outcome of the given transaction.
+	 * 
+	 * @param reference the reference of the transaction
+	 */
+	public final void signalCompleted(TransactionRequest<?> request) {
+		var reference = TransactionReferences.of(hasher.hash(request));
+		Semaphore semaphore = semaphores.remove(reference);
+		if (semaphore != null)
+			semaphore.release();
 	}
 
-	/**
-	 * Checks that the given transaction request is valid.
-	 * 
-	 * @param request the request
-	 * @throws TransactionRejectedException if the request is not valid
-	 * @throws NodeException 
-	 */
-	public final void checkRequest(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+	public final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
-		if (getRecentCheckRequestErrorFor(reference).isPresent())
-			throw new TransactionRejectedException("Repeated request " + reference);
-
-		try {
-			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
-
-			var storeTransaction = store.beginTransaction(System.currentTimeMillis());
-			storeTransaction.responseBuilderFor(reference, request);
-
-			LOGGER.info(reference + ": checking success");
-		}
-		catch (TransactionRejectedException e) {
-			// we do not write the error message in the store, since a failed check request
-			// means that nobody is paying for it and therefore we do not want to expand the store;
-			// we just take note of the failure
-			storeCheckRequestError(reference, e);
-			LOGGER.warning(reference + ": checking failed: " + trimmedMessage(e, store.getConfig().getMaxErrorLength()));
-			throw e;
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
+		Semaphore semaphore = semaphores.remove(reference);
+		if (semaphore != null)
+			semaphore.release();
 	}
 
 	public final S getStore() {
@@ -568,18 +551,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	protected abstract void postRequest(TransactionRequest<?> request);
 
 	/**
-	 * Yields the error message trimmed to a maximal length, to avoid overflow.
-	 *
-	 * @param t the throwable whose error message is processed
-	 * @return the resulting message
-	 */
-	private String trimmedMessage(Throwable t, int maxErrorLength) {
-		String message = t.getMessage();
-		int length = message.length();
-		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
-	}
-
-	/**
 	 * Posts the given request. It does some preliminary preparation then calls
 	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
 	 * logic of this post.
@@ -595,7 +566,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try {
 			store.getResponse(reference);
 			// if the response is found, then no exception is thrown above and the request was repeated
-			throw new TransactionRejectedException("Repeated request " + reference);
+			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);
@@ -606,14 +577,6 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			return reference;
 		}
-	}
-
-	private Optional<String> getRecentCheckRequestErrorFor(TransactionReference reference) {
-		return Optional.ofNullable(recentlyRejectedRequestsErrors.get(reference));
-	}
-
-	private void storeCheckRequestError(TransactionReference reference, Throwable e) {
-		recentlyRejectedRequestsErrors.put(reference, trimmedMessage(e, store.getConfig().getMaxErrorLength()));
 	}
 
 	/**
@@ -647,18 +610,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	 */
 	private void createSemaphore(TransactionReference reference) throws TransactionRejectedException {
 		if (semaphores.putIfAbsent(reference, new Semaphore(0)) != null)
-			throw new TransactionRejectedException("Repeated request " + reference);
-	}
-
-	/**
-	 * Wakes up who was waiting for the outcome of the given transaction.
-	 * 
-	 * @param reference the reference of the transaction
-	 */
-	private void signalSemaphore(TransactionReference reference) {
-		Semaphore semaphore = semaphores.remove(reference);
-		if (semaphore != null)
-			semaphore.release();
+			throw new TransactionRejectedException("Repeated request " + reference, store.getConfig());
 	}
 
 	/**

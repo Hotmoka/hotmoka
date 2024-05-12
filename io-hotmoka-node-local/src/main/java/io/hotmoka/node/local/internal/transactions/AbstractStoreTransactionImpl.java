@@ -20,7 +20,6 @@ import static io.hotmoka.exceptions.CheckSupplier.check;
 import static io.hotmoka.exceptions.UncheckPredicate.uncheck;
 import static io.hotmoka.node.MethodSignatures.GET_CURRENT_INFLATION;
 import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
-import static java.math.BigInteger.ONE;
 
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
@@ -43,6 +42,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -64,7 +64,6 @@ import io.hotmoka.node.TransactionReferences;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.ValidatorsConsensusConfigBuilders;
 import io.hotmoka.node.api.CodeExecutionException;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -181,7 +180,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	/**
 	 * The number of Hotmoka requests executed during this transaction.
 	 */
-	private volatile BigInteger numberOfRequests;
+	private final Set<TransactionRequest<?>> delivered = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The transactions containing events that must be notified at commit-time.
@@ -214,7 +213,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		this.gasConsumed = BigInteger.ZERO;
 		this.coins = BigInteger.ZERO;
 		this.coinsWithoutInflation = BigInteger.ZERO;
-		this.numberOfRequests = BigInteger.ZERO;
 	}
 
 	@Override
@@ -251,12 +249,12 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
 		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
 	}
 
 	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
 		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
 	}
 
@@ -297,7 +295,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					(manifest, nonce, _100_000, takamakaCode, MethodSignatures.VALIDATORS_REWARD, validators,
 					StorageValues.bigIntegerOf(coins), StorageValues.bigIntegerOf(minted),
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
-					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(numberOfRequests));
+					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(delivered.size()));
 	
 				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
 				TransactionResponse response = responseBuilder.getResponse();
@@ -323,7 +321,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException {
+	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
 			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
 		else if (request instanceof GameteCreationTransactionRequest gctr)
@@ -339,7 +337,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		else if (request instanceof InitializationTransactionRequest itr)
 			return new InitializationResponseBuilder(reference, itr, this);
 		else
-			throw new TransactionRejectedException("Unexpected transaction request of class " + request.getClass().getName());
+			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	@Override
@@ -361,18 +359,13 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			return response;
 		}
 		catch (TransactionRejectedException e) {
-			push(reference, request, trimmedMessage(e));
-			LOGGER.info(reference + ": delivering failed: " + trimmedMessage(e));
+			LOGGER.info(reference + ": delivering failed: " + e.getMessage());
 			throw e;
-		}
-		catch (NodeException | UnknownReferenceException e) { // TODO: these should disappear
-			LOGGER.log(Level.SEVERE, reference + ": delivering failed with unexpected exception", e);
-			throw new StoreException(e);
 		}
 	}
 
 	@Override
-	public final void notifyAllEvents(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
+	public final void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
 		try {
 			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
 				responsesWithEventsToNotify.stream()
@@ -384,6 +377,11 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			// has no creator field: the delivery method of the store is definitely misbehaving
 			throw new StoreException(e);
 		}
+	}
+
+	@Override
+	public void forEachCompletedTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
+		delivered.forEach(notifier::accept);
 	}
 
 	/**
@@ -899,7 +897,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException {
+	protected final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
 		return runInstanceMethodCallTransaction(request, TransactionReferences.of(hasher.hash(request)));
 	}
 
@@ -923,7 +921,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 */
 	private void takeNoteForNextReward(TransactionRequest<?> request, TransactionResponse response) throws StoreException {
 		if (!(request instanceof SystemTransactionRequest)) {
-			numberOfRequests = numberOfRequests.add(ONE);
+			delivered.add(request);
 
 			if (response instanceof NonInitialTransactionResponse responseAsNonInitial) {
 				BigInteger gasConsumedButPenalty = responseAsNonInitial.getGasConsumedForCPU()
@@ -955,19 +953,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					 .divide(_100_000_000);
 
 		return gas;
-	}
-
-	/**
-	 * Yields the error message trimmed to a maximal length, to avoid overflow.
-	 *
-	 * @param t the throwable whose error message is processed
-	 * @return the resulting message
-	 */
-	private String trimmedMessage(Throwable t) {
-		String message = t.getMessage();
-		int length = message.length();
-		int maxErrorLength = consensus.getMaxErrorLength();
-		return length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "...");
 	}
 
 	/**
@@ -1008,20 +993,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			setRequest(reference, request);
 			setResponse(reference, response);
 		}
-	}
-
-	/**
-	 * Pushes into the store the error message resulting from the unsuccessful execution of a Hotmoka request.
-	 * 
-	 * @param reference the reference of the request
-	 * @param request the request of the transaction
-	 * @param errorMessage the error message
-	 * @return the store resulting after the push
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	private void push(TransactionReference reference, TransactionRequest<?> request, String errorMessage) throws StoreException {
-		setRequest(reference, request);
-		setError(reference, errorMessage);
 	}
 
 	protected final Optional<TransactionReference> getTakamakaCode() throws StoreException {

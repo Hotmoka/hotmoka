@@ -103,7 +103,7 @@ public class Reverification {
 	 * 
 	 * @throws NodeException if this node is not able to complete the operation correctly
 	 */
-	public void replace() throws NodeException {
+	public void replace() throws StoreException {
 		for (var entry: reverified.entrySet()) {
 			var reference = entry.getKey();
 
@@ -111,11 +111,8 @@ public class Reverification {
 				storeTransaction.getInitialStore().getRequest(reference);
 				storeTransaction.setResponse(reference, entry.getValue());
 			}
-			catch (StoreException e) {
-				throw new NodeException(e);
-			}
 			catch (UnknownReferenceException e) {
-				throw new NodeException(e); // TODO: is this the right exception?
+				throw new StoreException(e); // TODO: is this the right exception?
 			}
 
 			LOGGER.info(reference + ": updated after reverification");

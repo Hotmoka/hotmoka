@@ -20,6 +20,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import io.hotmoka.annotations.Immutable;
+import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -82,6 +84,15 @@ public interface Store<S extends Store<S, T>, T extends StoreTransaction<S, T>> 
 	Optional<StorageReference> getManifest() throws StoreException;
 
 	ConsensusConfig<?,?> getConfig();
+
+	/**
+	 * Checks that the given transaction request is valid.
+	 * 
+	 * @param request the request
+	 * @throws TransactionRejectedException if the request is not valid
+	 * @throws NodeException 
+	 */
+	void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
 	/**
 	 * Starts a transaction. Instance updates during the transaction are saved

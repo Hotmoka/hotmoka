@@ -18,8 +18,8 @@ package io.hotmoka.tests.errors;
 
 import static java.math.BigInteger.ONE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -86,23 +86,17 @@ class Repeated extends HotmokaTest {
 		// it will charge 20,000 units of coin to account(0), for penalty
 		var request = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000, ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
 
-		try {
-			node.addJarStoreTransaction(request);
-			fail();
-		}
-		catch (TransactionRejectedException e) {
-			// expected
-		}
+		assertThrows(TransactionRejectedException.class, () -> node.addJarStoreTransaction(request));
 
 		// we run a transaction now, with the correct nonce, that increases the nonce of account(0)
 		BigInteger balance = ((BigIntegerValue) node.addInstanceMethodCallTransaction(TransactionRequests.instanceMethodCall(signer, account(0), nonce, chainId, _100_000, ONE, takamakaCode(), MethodSignatures.BALANCE, account(0)))
 			.orElseThrow(() -> new NodeException(MethodSignatures.BALANCE + " should not return void"))).getValue();
 		assertEquals(BigInteger.valueOf(999900000), balance);
 
-		// we a similar request now, that will pass since the nonce is correct this time: we need to change for instance the gas limit
-		// otherwise this second request will be rejected, being considered as a repeated transaction
-		request = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000.add(ONE), ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
-		TransactionReference reference = node.addJarStoreTransaction(request);
+		// we perform a similar request now, that will pass since the nonce is correct this time: we need to change for instance the gas limit
+		// otherwise this second request might be rejected (for instance by Tendermint), being considered as a repeated transaction
+		var request2 = TransactionRequests.jarStore(signer, account(0), nonce.add(ONE), chainId, _500_000.add(ONE), ONE, takamakaCode(), bytesOf("calleronthis.jar"), takamakaCode());
+		TransactionReference reference = node.addJarStoreTransaction(request2);
 
 		// getResponse() agrees
 		assertTrue(node.getResponse(reference) instanceof JarStoreTransactionSuccessfulResponse);

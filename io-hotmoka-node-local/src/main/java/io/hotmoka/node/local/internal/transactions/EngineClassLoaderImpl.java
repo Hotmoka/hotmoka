@@ -28,7 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -43,7 +42,6 @@ import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.instrumentation.api.InstrumentationFields;
 import io.hotmoka.node.StorageTypes;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.responses.TransactionResponse;
@@ -54,7 +52,6 @@ import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.api.StoreTransaction;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.api.TakamakaClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingWizard;
@@ -350,7 +347,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		if (response instanceof TransactionResponseWithInstrumentedJar trwij)
 			return trwij;
 		else
-			throw new IllegalArgumentException("the transaction " + reference + " did not install a jar in store");
+			throw new IllegalArgumentException("The transaction " + reference + " did not install a jar in store");
 	}
 
 	@Override
@@ -685,10 +682,10 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	/**
 	 * Replaces all reverified responses into the store of the node for which
 	 * the class loader has been built.
-	 * @throws NodeException 
-	 * @throws NoSuchElementException 
+	 * 
+	 * @throws StoreException 
 	 */
-	public final void replaceReverifiedResponses(StoreTransaction<?,?> transaction) throws NoSuchElementException, UnknownReferenceException, NodeException {
+	public final void replaceReverifiedResponses() throws StoreException {
 		reverification.replace();
 	}
 

@@ -31,6 +31,7 @@ import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
 import io.hotmoka.node.api.signatures.MethodSignature;
 import io.hotmoka.node.api.signatures.NonVoidMethodSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * The creator of a response for a transaction that executes a method of Takamaka code.
@@ -46,8 +47,9 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	protected MethodCallResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 	}
 
@@ -78,7 +80,7 @@ public abstract class MethodCallResponseBuilder<Request extends MethodCallTransa
 
 	protected abstract class ResponseCreator extends CodeCallResponseBuilder<Request, MethodCallTransactionResponse>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		protected ResponseCreator() {
 		}
 
 		/**

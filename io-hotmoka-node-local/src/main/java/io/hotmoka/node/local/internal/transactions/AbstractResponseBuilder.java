@@ -20,7 +20,6 @@ import static io.hotmoka.node.local.internal.runtime.Runtime.responseCreators;
 
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.NoSuchElementException;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Stream;
@@ -28,7 +27,6 @@ import java.util.stream.Stream;
 import io.hotmoka.node.DeserializationError;
 import io.hotmoka.node.OutOfGasError;
 import io.hotmoka.node.StorageValues;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
@@ -85,17 +83,12 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param storeTransaction the transaction where the updates to the store get accumulated
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
-		try {
-			this.storeTransaction = storeTransaction;
-			this.request = request;
-			this.reference = reference;
-			this.consensus = storeTransaction.getConfig();
-			this.classLoader = mkClassLoader();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
+		this.storeTransaction = storeTransaction;
+		this.request = request;
+		this.reference = reference;
+		this.consensus = storeTransaction.getConfig();
+		this.classLoader = mkClassLoader();
 	}
 
 	@Override
@@ -109,8 +102,8 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	}
 
 	@Override
-	public final void replaceReverifiedResponses() throws NoSuchElementException, UnknownReferenceException, NodeException {
-		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses(storeTransaction);
+	public final void replaceReverifiedResponses() throws StoreException {
+		((EngineClassLoaderImpl) classLoader).replaceReverifiedResponses();
 	}
 
 	/**
@@ -121,18 +114,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @throws UnsupportedVerificationVersionException if the verification version is not available
 	 * @throws IOException if there was an I/O error while accessing some jar
 	 */
-	protected abstract EngineClassLoader mkClassLoader() throws NodeException, TransactionRejectedException;
-
-	/**
-	 * Wraps the given throwable in a {@link io.hotmoka.node.api.TransactionException}, if it not
-	 * already an instance of that exception.
-	 * 
-	 * @param t the throwable to wrap
-	 * @return the wrapped or original exception
-	 */
-	protected static TransactionRejectedException wrapAsTransactionRejectedException(Throwable t) {
-		return t instanceof TransactionRejectedException tre ? tre : new TransactionRejectedException(t);
-	}
+	protected abstract EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException;
 
 	/**
 	 * The creator of a response. Its body runs in a thread, so that the
@@ -162,15 +144,16 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 			this.updatesExtractor = new UpdatesExtractorFromRAM(classLoader);
 		}
 
-		public final Response create() throws TransactionRejectedException {
+		public final Response create() throws StoreException {
 			try {
 				return storeTransaction.submit(new TakamakaCallable(this::body)).get();
 			}
 			catch (ExecutionException e) {
-				throw wrapAsTransactionRejectedException(e.getCause());
+				throw new StoreException(e.getCause());
 			}
-			catch (Throwable t) {
-				throw wrapAsTransactionRejectedException(t);
+			catch (InterruptedException e) {
+				// TODO
+				throw new RuntimeException(e);
 			}
 		}
 

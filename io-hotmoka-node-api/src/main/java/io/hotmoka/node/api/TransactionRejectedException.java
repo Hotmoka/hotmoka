@@ -16,6 +16,8 @@ limitations under the License.
 
 package io.hotmoka.node.api;
 
+import io.hotmoka.node.api.nodes.ConsensusConfig;
+
 /**
  * An exception raised when a transaction cannot even be started.
  * Typically, this means that the payer of the transaction cannot be identified
@@ -35,12 +37,25 @@ public class TransactionRejectedException extends Exception {
 	}
 
 	/**
+	 * Builds an exception with the given message.
+	 * 
+	 * @param message the message
+	 */
+	public TransactionRejectedException(String message, ConsensusConfig<?,?> consensus) {
+		super(trim(message, consensus.getMaxErrorLength()));
+	}
+
+	/**
 	 * Builds an exception with the given cause.
 	 * 
 	 * @param cause the cause
 	 */
-	public TransactionRejectedException(Throwable cause) {
-		super(cause.getClass().getName() + messageOf(cause), cause);
+	public TransactionRejectedException(Throwable cause, ConsensusConfig<?,?> consensus) {
+		super(trim(cause.getClass().getName() + messageOf(cause), consensus.getMaxErrorLength()), cause); // TODO: getMaxErrorLength should be moved to LocalConfig
+	}
+
+	private static String trim(String s, int maxLength) {
+		return s.length() <= maxLength ? s : s.substring(maxLength);
 	}
 
 	private static String messageOf(Throwable cause) {

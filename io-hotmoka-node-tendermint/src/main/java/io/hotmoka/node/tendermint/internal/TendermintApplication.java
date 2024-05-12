@@ -20,8 +20,6 @@ import java.io.ByteArrayInputStream;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,7 +31,6 @@ import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.tendermint.abci.ABCI;
 import tendermint.abci.Types.Evidence;
@@ -75,8 +72,6 @@ class TendermintApplication extends ABCI {
 	 * that has been executed.
 	 */
 	private volatile TendermintValidator[] validatorsAtPreviousBlock;
-
-	private final Set<TransactionRequest<?>> processed = ConcurrentHashMap.newKeySet();
 
 	/**
 	 * The current transaction, if any.
@@ -172,21 +167,6 @@ class TendermintApplication extends ABCI {
     	return Stream.of(validators).anyMatch(validator -> validator.address.equals(address) && validator.power != power);
     }
 
-    /**
-     * Yields the error message in a format that can be put in the data field
-     * of Tendermint responses. The message is trimmed, to avoid overflow.
-     * It will be automatically Base64 encoded by Tendermint, so that there
-     * is no risk of injections.
-     *
-     * @param t the throwable whose error message is processed
-     * @return the resulting message
-     */
-    private ByteString trimmedMessage(Throwable t, int maxErrorLength) {
-    	String message = t.getMessage();
-		int length = message.length();
-		return ByteString.copyFromUtf8(length <= maxErrorLength ? message : (message.substring(0, maxErrorLength) + "..."));
-    }
-
 	@Override
 	protected ResponseInitChain initChain(RequestInitChain request) {
 		return ResponseInitChain.newBuilder().build();
@@ -218,10 +198,10 @@ class TendermintApplication extends ABCI {
         	var hotmokaRequest = TransactionRequests.from(context);
 
         	try {
-        		node.checkRequest(hotmokaRequest);
+        		node.getStore().checkTransaction(hotmokaRequest);
         	}
         	catch (TransactionRejectedException e) {
-        		node.signalOutcomeIsReady(Stream.of(hotmokaRequest));
+        		node.signalRejected(hotmokaRequest, e);
         		throw e;
         	}
 
@@ -229,7 +209,7 @@ class TendermintApplication extends ABCI {
         }
         catch (Throwable t) {
         	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setData(trimmedMessage(t, node.getStore().getConfig().getMaxErrorLength()));
+        	responseBuilder.setData(ByteString.copyFromUtf8(t.getMessage()));
 		}
 
         return responseBuilder.build();
@@ -265,16 +245,17 @@ class TendermintApplication extends ABCI {
 
         	try {
         		transaction.deliverTransaction(hotmokaRequest);
+        		responseBuilder.setCode(0);
         	}
-        	finally { // TODO: in case of RejectedTransactoinException we could signal for whom is waiting
-        		processed.add(hotmokaRequest);
+        	catch (TransactionRejectedException e) {
+        		node.signalRejected(hotmokaRequest, e);
+        		responseBuilder.setCode(1);
+            	responseBuilder.setData(ByteString.copyFromUtf8(e.getMessage()));
         	}
-
-        	responseBuilder.setCode(0);
         }
         catch (Throwable t) {
-        	responseBuilder.setCode(t instanceof TransactionRejectedException ? 1 : 2);
-        	responseBuilder.setData(trimmedMessage(t, transaction.getConfig().getMaxErrorLength()));
+        	responseBuilder.setCode(2);
+        	responseBuilder.setData(ByteString.copyFromUtf8(t.getMessage()));
         }
 
         return responseBuilder.build();
@@ -312,17 +293,11 @@ class TendermintApplication extends ABCI {
 	protected ResponseCommit commit(RequestCommit request) throws NodeException {
 		try {
 			var newStore = transaction.getFinalStore();
-			node.setStore(newStore);
 			newStore.moveRootBranchToThis();
-			node.signalOutcomeIsReady(processed.stream());
-			processed.clear();
-			transaction.notifyAllEvents(node::notifyEvent);
-		}
-		catch (StoreException e) {
-			throw new RuntimeException(e); // TODO
-		}
+			node.setStore(newStore);
+			transaction.forEachCompletedTransaction(node::signalCompleted);
+			transaction.forEachTriggeredEvent(node::notifyEvent);
 
-		try {
 			// hash of the store, used for consensus
 			byte[] hash = node.getStore().getHash();
 			LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());

@@ -54,18 +54,14 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 
-		try {
-			// calls to @View methods are allowed to receive non-exported values
-			if (transactionIsSigned()) 
-				receiverIsExported();
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		// calls to @View methods are allowed to receive non-exported values
+		if (transactionIsSigned()) 
+			receiverIsExported();
 	}
 
 	private void receiverIsExported() throws TransactionRejectedException, StoreException {
@@ -73,7 +69,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	}
 
 	@Override
-	public MethodCallTransactionResponse getResponse() throws TransactionRejectedException {
+	public MethodCallTransactionResponse getResponse() throws StoreException {
 		return new ResponseCreator().create();
 	}
 
@@ -127,7 +123,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private Object[] deserializedActuals;
 
-		private ResponseCreator() throws TransactionRejectedException {
+		private ResponseCreator() {
 		}
 
 		@Override

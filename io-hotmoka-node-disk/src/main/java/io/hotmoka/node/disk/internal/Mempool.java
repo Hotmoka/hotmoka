@@ -16,18 +16,16 @@ limitations under the License.
 
 package io.hotmoka.node.disk.internal;
 
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Stream;
 
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.TransactionRequest;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * A mempool receives transaction requests and schedules them for execution,
@@ -62,8 +60,6 @@ class Mempool {
 	 * The thread the execution requests that have already been checked.
 	 */
 	private final Thread deliverer;
-
-	private final Set<TransactionRequest<?>> processed = ConcurrentHashMap.newKeySet();
 
 	private final int transactionsPerBlock;
 	
@@ -103,26 +99,26 @@ class Mempool {
 	 * The body of the checking thread. Its pops a request from the mempool and checks it.
 	 */
 	private void check() {
-		while (!Thread.currentThread().isInterrupted()) {
+		while (true) {
 			try {
 				TransactionRequest<?> current = mempool.take();
 
 				try {
-					node.checkRequest(current);
+					node.getStore().checkTransaction(current);
 					if (!checkedMempool.offer(current)) {
 						deliverer.interrupt();
-						throw new IllegalStateException("mempool overflow");
+						throw new NodeException("Mempool overflow");
 					}
 				}
 				catch (TransactionRejectedException e) {
-					node.signalOutcomeIsReady(Stream.of(current));
+					node.signalRejected(current, e);
 				}
-				catch (Throwable t) {
-					node.signalOutcomeIsReady(Stream.of(current));
-					LOGGER.log(Level.WARNING, "Failed to check transaction request", t);
+				catch (StoreException | NodeException e) {
+					LOGGER.log(Level.SEVERE, "Transaction request checking failure", e);
 				}
 			}
 			catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
 				return;
 			}
 		}
@@ -136,37 +132,32 @@ class Mempool {
 			int counter = 0;
 			DiskStoreTransaction transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 
-			while (!Thread.currentThread().isInterrupted()) {
+			while (true) {
 				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
 				if (current == null) {
 					if (counter > 0)
 						transaction.rewardValidators("", "");
 					node.setStore(transaction.getFinalStore());
-					node.signalOutcomeIsReady(processed.stream());
-					processed.clear();
-					transaction.notifyAllEvents(node::notifyEvent);
+					transaction.forEachCompletedTransaction(node::signalCompleted);
+					transaction.forEachTriggeredEvent(node::notifyEvent);
 					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
 					counter = 0;
 				}
 				else {
 					try {
 						transaction.deliverTransaction(current);
-					}
-					finally {
-						processed.add(current);
-					}
 
-					counter = (counter + 1) % transactionsPerBlock;
-					// the last transaction of a block is for rewarding the validators and updating the gas price
-					if (counter == transactionsPerBlock - 1) {
-						if (counter > 0)
+						if (++counter == transactionsPerBlock - 1) {
 							transaction.rewardValidators("", "");
-						node.setStore(transaction.getFinalStore());
-						node.signalOutcomeIsReady(processed.stream());
-						processed.clear();
-						transaction.notifyAllEvents(node::notifyEvent);
-						transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-						counter = 0;
+							node.setStore(transaction.getFinalStore());
+							transaction.forEachCompletedTransaction(node::signalCompleted);
+							transaction.forEachTriggeredEvent(node::notifyEvent);
+							transaction = node.getStore().beginTransaction(System.currentTimeMillis());
+							counter = 0;
+						}
+					}
+					catch (TransactionRejectedException e) {
+						node.signalRejected(current, e);
 					}
 				}
 			}

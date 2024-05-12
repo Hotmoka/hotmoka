@@ -20,7 +20,6 @@ import java.io.IOException;
 
 import io.hotmoka.instrumentation.InstrumentedJars;
 import io.hotmoka.node.TransactionResponses;
-import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.responses.JarStoreInitialTransactionResponse;
@@ -44,29 +43,27 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	 * @param request the request of the transaction
 	 * @param node the node that is running the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
+	 * @throws StoreException 
 	 */
-	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 	}
 
 	@Override
-	protected EngineClassLoader mkClassLoader() throws NodeException, TransactionRejectedException {
+	protected EngineClassLoader mkClassLoader() throws StoreException, TransactionRejectedException {
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		try {
 			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), storeTransaction, consensus);
 		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
-		catch (ClassNotFoundException e) {
+		catch (ClassNotFoundException | IllegalArgumentException e) {
 			// the request is trying to install a jar with inconsistent dependencies
-			throw new TransactionRejectedException(e);
+			throw new TransactionRejectedException(e, consensus);
 		}
 	}
 
 	@Override
-	public JarStoreInitialTransactionResponse getResponse() throws TransactionRejectedException {
+	public JarStoreInitialTransactionResponse getResponse() throws StoreException {
 		return new ResponseCreator() {
 
 			@Override

@@ -20,9 +20,12 @@ import java.math.BigInteger;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.concurrent.ExecutorService;
+import java.util.logging.Logger;
 
 import io.hotmoka.annotations.Immutable;
 import io.hotmoka.crypto.api.Hasher;
+import io.hotmoka.node.TransactionReferences;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -80,6 +83,8 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 	private final ExecutorService executors;
 
+	private final static Logger LOGGER = Logger.getLogger(AbstractStoreImpl.class.getName());
+
 	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		this.executors = executors;
 		this.hasher = hasher;
@@ -117,6 +122,24 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	@Override
 	public final T beginViewTransaction() throws StoreException {
 		return beginTransaction(executors, consensusForViews, System.currentTimeMillis());
+	}
+
+	@Override
+	public final void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+		var reference = TransactionReferences.of(hasher.hash(request));
+
+		try {
+			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
+			beginTransaction(System.currentTimeMillis()).responseBuilderFor(reference, request);
+			LOGGER.info(reference + ": checking success");
+		}
+		catch (TransactionRejectedException e) {
+			// we do not write the error message in the store, since a failed check request means that nobody
+			// is paying for it and therefore we do not want to expand the store; we just take note of the failure,
+			// so that getResponse knows which message to use for the rejected transaction exception
+			LOGGER.warning(reference + ": checking failed: " + e.getMessage());
+			throw e;
+		}
 	}
 
 	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;

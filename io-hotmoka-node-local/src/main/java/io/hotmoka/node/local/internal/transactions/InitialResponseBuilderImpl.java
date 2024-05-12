@@ -23,6 +23,7 @@ import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.requests.InitialTransactionRequest;
 import io.hotmoka.node.api.responses.InitialTransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.api.StoreException;
 
 /**
  * Implementation of the creator of the response for an initial transaction. Initial transactions do not consume gas.
@@ -39,21 +40,16 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * @param request the request of the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException {
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
 		super(reference, request, storeTransaction);
 
-		try {
-			if (storeTransaction.getManifest().isPresent())
-				throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node");
-		}
-		catch (Throwable t) {
-			throw wrapAsTransactionRejectedException(t);
-		}
+		if (storeTransaction.getManifest().isPresent())
+			throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
 	}
 
 	protected abstract class ResponseCreator extends AbstractResponseBuilder<Request, Response>.ResponseCreator {
 
-		protected ResponseCreator() throws TransactionRejectedException {
+		protected ResponseCreator() {
 		}
 
 		@Override
