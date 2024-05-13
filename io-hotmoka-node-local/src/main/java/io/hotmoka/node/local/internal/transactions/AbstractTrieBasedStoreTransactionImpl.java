@@ -29,9 +29,8 @@ public abstract class AbstractTrieBasedStoreTransactionImpl<S extends AbstractTr
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
-			Map<TransactionReference, String> addedErrors,
 			Optional<StorageReference> addedManifest) throws StoreException {
 
-		return getInitialStore().makeNext(checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedErrors, addedManifest);
+		return getInitialStore().makeNext(checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedManifest);
 	}
 }

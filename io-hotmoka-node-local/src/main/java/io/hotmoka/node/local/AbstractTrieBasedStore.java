@@ -61,7 +61,7 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	super(executors, consensus, config, hasher);
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
-    	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfErrors, rootOfHistories, rootOfRequests);
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

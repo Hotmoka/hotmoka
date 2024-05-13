@@ -43,7 +43,6 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.KeyValueStoreOnXodus;
-import io.hotmoka.node.local.internal.TrieOfErrors;
 import io.hotmoka.node.local.internal.TrieOfHistories;
 import io.hotmoka.node.local.internal.TrieOfInfo;
 import io.hotmoka.node.local.internal.TrieOfRequests;
@@ -92,11 +91,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     private final io.hotmoka.xodus.env.Store storeOfInfo;
 
 	/**
-	 * The Xodus store that holds the Merkle-Patricia trie of the errors of the requests.
-	 */
-	private final io.hotmoka.xodus.env.Store storeOfErrors;
-
-	/**
 	 * The Xodus store that holds the Merkle-Patricia trie of the requests.
 	 */
 	private final io.hotmoka.xodus.env.Store storeOfRequests;
@@ -117,11 +111,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * The root of the trie of the miscellaneous info. It is empty if the trie is empty.
 	 */
 	private final Optional<byte[]> rootOfInfo;
-
-	/**
-	 * The root of the trie of the errors. It is empty if the trie is empty.
-	 */
-	private final Optional<byte[]> rootOfErrors;
 
 	/**
 	 * The root of the trie of the requests. It is empty if the trie is empty.
@@ -157,20 +146,17 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	});
 
     	var storeOfResponses = new AtomicReference<io.hotmoka.xodus.env.Store>();
-    	var storeOfErrors = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var storeOfRequests = new AtomicReference<io.hotmoka.xodus.env.Store>();
 		var storeOfHistories = new AtomicReference<io.hotmoka.xodus.env.Store>();
 
 		env.executeInTransaction(txn -> {
 			storeOfResponses.set(env.openStoreWithoutDuplicates("responses", txn));
-			storeOfErrors.set(env.openStoreWithoutDuplicates("errors", txn));
 			storeOfRequests.set(env.openStoreWithoutDuplicates("requests", txn));
 			storeOfHistories.set(env.openStoreWithoutDuplicates("history", txn));
 		});
 
     	this.storeOfResponses = storeOfResponses.get();
     	this.storeOfInfo = storeOfInfo.get();
-    	this.storeOfErrors = storeOfErrors.get();
 		this.storeOfRequests = storeOfRequests.get();
 		this.storeOfHistories = storeOfHistories.get();
 
@@ -179,7 +165,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	if (hashesOfRoots.isEmpty()) {
     		rootOfResponses = Optional.empty();
     		rootOfInfo = Optional.empty();
-    		rootOfErrors = Optional.empty();
     		rootOfRequests = Optional.empty();
     		rootOfHistories = Optional.empty();
     	}
@@ -192,39 +177,33 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     		System.arraycopy(hashesOfRoots.get(), 32, rootOfInfo, 0, 32);
     		this.rootOfInfo = Optional.of(rootOfInfo);
 
-    		var rootOfErrors = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 64, rootOfErrors, 0, 32);
-    		this.rootOfErrors = Optional.of(rootOfErrors);
-
     		var rootOfRequests = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 96, rootOfRequests, 0, 32);
+    		System.arraycopy(hashesOfRoots.get(), 64, rootOfRequests, 0, 32);
     		this.rootOfRequests = Optional.of(rootOfRequests);
 
     		var rootOfHistory = new byte[32];
-    		System.arraycopy(hashesOfRoots.get(), 128, rootOfHistory, 0, 32);
+    		System.arraycopy(hashesOfRoots.get(), 96, rootOfHistory, 0, 32);
     		this.rootOfHistories = Optional.of(rootOfHistory);
     	}
     }
 
-    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStoreImpl(AbstractTrieBasedStoreImpl<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation);
 
     	this.env = toClone.env;
     	this.storeOfResponses = toClone.storeOfResponses;
     	this.storeOfInfo = toClone.storeOfInfo;
-    	this.storeOfErrors = toClone.storeOfErrors;
     	this.storeOfHistories = toClone.storeOfHistories;
     	this.storeOfRequests = toClone.storeOfRequests;
     	this.rootOfResponses = rootOfResponses;
     	this.rootOfInfo = rootOfInfo;
-    	this.rootOfErrors = rootOfErrors;
     	this.rootOfHistories = rootOfHistories;
     	this.rootOfRequests = rootOfRequests;
     }
 
     protected abstract S make(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference,
     		EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation,
-    		Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfErrors, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
+    		Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests);
 
     protected final S makeNext(
 			LRUCache<TransactionReference, Boolean> checkedSignatures,
@@ -233,7 +212,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			Map<TransactionReference, TransactionRequest<?>> addedRequests,
 			Map<TransactionReference, TransactionResponse> addedResponses,
 			Map<StorageReference, TransactionReference[]> addedHistories,
-			Map<TransactionReference, String> addedErrors,
 			Optional<StorageReference> addedManifest) throws StoreException {
 
     	try {
@@ -241,10 +219,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 				var trieOfRequests = mkTrieOfRequests(txn);
 				for (var entry: addedRequests.entrySet())
 					trieOfRequests.put(entry.getKey(), entry.getValue());
-
-				var trieOfErrors = mkTrieOfErrors(txn);
-				for (var entry: addedErrors.entrySet())
-					trieOfErrors.put(entry.getKey(), entry.getValue());
 
 				var trieOfResponses = mkTrieOfResponses(txn);
 				for (var entry: addedResponses.entrySet())
@@ -260,7 +234,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 					trieOfInfo.setManifest(addedManifest.get());
 
 				return make(checkedSignatures, classLoaders, consensus, gasPrice, inflation, Optional.of(trieOfResponses.getRoot()),
-					Optional.of(trieOfInfo.getRoot()), Optional.of(trieOfErrors.getRoot()), Optional.of(trieOfHistories.getRoot()), Optional.of(trieOfRequests.getRoot()));
+					Optional.of(trieOfInfo.getRoot()), Optional.of(trieOfHistories.getRoot()), Optional.of(trieOfRequests.getRoot()));
 			})));
 		}
 		catch (ExodusException | TrieException e) {
@@ -296,19 +270,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
     	try {
     		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
     			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfResponses(txn).get(reference)))
-    		)
-    		.orElseThrow(() -> new UnknownReferenceException(reference));
-    	}
-		catch (ExodusException | TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
-	@Override
-	public String getError(TransactionReference reference) throws UnknownReferenceException, StoreException {
-		try {
-    		return CheckSupplier.check(TrieException.class, StoreException.class, () ->
-    			env.computeInReadonlyTransaction(UncheckFunction.uncheck(txn -> mkTrieOfErrors(txn).get(reference)))
     		)
     		.orElseThrow(() -> new UnknownReferenceException(reference));
     	}
@@ -367,19 +328,17 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		System.arraycopy(stateId, 0, bytesOfRootOfResponses, 0, 32);
 		var bytesOfRootOfInfo = new byte[32];
 		System.arraycopy(stateId, 32, bytesOfRootOfInfo, 0, 32);
-		var bytesOfRootOfErrors = new byte[32];
-		System.arraycopy(stateId, 64, bytesOfRootOfErrors, 0, 32);
 		var bytesOfRootOfRequests = new byte[32];
-		System.arraycopy(stateId, 96, bytesOfRootOfRequests, 0, 32);
+		System.arraycopy(stateId, 64, bytesOfRootOfRequests, 0, 32);
 		var bytesOfRootOfHistories = new byte[32];
-		System.arraycopy(stateId, 128, bytesOfRootOfHistories, 0, 32);
+		System.arraycopy(stateId, 96, bytesOfRootOfHistories, 0, 32);
 
 		try {
-			S temp = make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			S temp = make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 			storeTransaction.invalidateConsensusCache();
 			ConsensusConfig<?,?> consensus = storeTransaction.getConfig();
-			return make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			return make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);
@@ -415,15 +374,6 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
-	protected TrieOfErrors mkTrieOfErrors(Transaction txn) throws StoreException {
-		try {
-			return new TrieOfErrors(new KeyValueStoreOnXodus(storeOfErrors, txn), rootOfErrors);
-		}
-		catch (TrieException e) {
-			throw new StoreException(e);
-		}
-	}
-
 	protected TrieOfRequests mkTrieOfRequests(Transaction txn) throws StoreException {
 		try {
 			return new TrieOfRequests(new KeyValueStoreOnXodus(storeOfRequests, txn), rootOfRequests);
@@ -448,7 +398,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @return true if and only if that condition holds
 	 */
 	protected boolean isEmpty() {
-		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfErrors.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
+		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
 	}
 
 	/**
@@ -459,12 +409,11 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	 * @return the concatenation
 	 */
 	private byte[] mergeRootsOfTries() throws StoreException {
-		var result = new byte[160];
+		var result = new byte[128];
 		System.arraycopy(rootOfResponses.get(), 0, result, 0, 32);
 		System.arraycopy(rootOfInfo.get(), 0, result, 32, 32);
-		System.arraycopy(rootOfErrors.get(), 0, result, 64, 32);
-		System.arraycopy(rootOfRequests.get(), 0, result, 96, 32);
-		System.arraycopy(rootOfHistories.get(), 0, result, 128, 32);
+		System.arraycopy(rootOfRequests.get(), 0, result, 64, 32);
+		System.arraycopy(rootOfHistories.get(), 0, result, 96, 32);
 
 		return result;
 	}

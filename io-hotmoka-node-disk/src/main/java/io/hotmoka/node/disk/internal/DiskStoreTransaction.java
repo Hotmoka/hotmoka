@@ -27,9 +27,8 @@ public class DiskStoreTransaction extends AbstractStoreTransaction<DiskStore, Di
     		ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
     		Map<TransactionReference, TransactionResponse> addedResponses,
     		Map<StorageReference, TransactionReference[]> addedHistories,
-    		Map<TransactionReference, String> addedErrors,
     		Optional<StorageReference> addedManifest) throws StoreException {
 	
-		return new DiskStore(getInitialStore(), checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedErrors, addedManifest);
+		return new DiskStore(getInitialStore(), checkedSignatures, classLoaders, consensus, gasPrice, inflation, addedRequests, addedResponses, addedHistories, addedManifest);
 	}
 }
