@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.store;
+package io.hotmoka.node.local.internal.store.trie;
 
 import io.hotmoka.patricia.api.KeyValueStore;
 import io.hotmoka.patricia.api.KeyValueStoreException;

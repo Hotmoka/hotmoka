@@ -34,6 +34,7 @@ import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.Store;
 import io.hotmoka.node.local.api.StoreException;
+import io.hotmoka.node.local.internal.LRUCacheImpl;
 
 @Immutable
 public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransactionImpl<S, T>> implements Store<S, T> {
@@ -88,8 +89,8 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	protected AbstractStoreImpl(ExecutorService executors, ConsensusConfig<?,?> consensus, LocalNodeConfig<?,?> config, Hasher<TransactionRequest<?>> hasher) {
 		this.executors = executors;
 		this.hasher = hasher;
-		this.checkedSignatures = new LRUCache<>(100, 1000);
-		this.classLoaders = new LRUCache<>(100, 1000);
+		this.checkedSignatures = new LRUCacheImpl<>(100, 1000);
+		this.classLoaders = new LRUCacheImpl<>(100, 1000);
 		this.consensus = consensus;
 		this.maxGasPerView = config.getMaxGasPerViewTransaction();
 		this.consensusForViews = consensus.toBuilder().setMaxGasPerTransaction(maxGasPerView).build();

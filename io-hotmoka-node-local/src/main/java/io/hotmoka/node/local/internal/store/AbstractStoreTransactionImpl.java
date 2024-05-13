@@ -106,6 +106,7 @@ import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.StoreTransaction;
+import io.hotmoka.node.local.internal.LRUCacheImpl;
 
 /**
  * The store of a node. It keeps information about the state of the objects created
@@ -521,7 +522,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			LOGGER.info("the consensus parameters might have changed: recomputing their cache");
 			long versionBefore = consensus.getVerificationVersion();
 			recomputeConsensus();
-			classLoaders = new LRUCache<>(100, 1000);
+			classLoaders = new LRUCacheImpl<>(100, 1000);
 
 			if (versionBefore != consensus.getVerificationVersion())
 				LOGGER.info("the version of the verification module has changed from " + versionBefore + " to " + consensus.getVerificationVersion());

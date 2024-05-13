@@ -28,7 +28,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.internal.store.AbstractTrieBasedStoreImpl;
+import io.hotmoka.node.local.internal.store.trie.AbstractTrieBasedStoreImpl;
 
 /**
  * A historical store of a node. It is a transactional database that keeps
@@ -61,7 +61,8 @@ public abstract class AbstractTrieBasedStore<S extends AbstractTrieBasedStore<S,
     	super(executors, consensus, config, hasher);
     }
 
-    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Optional<byte[]> rootOfResponses, Optional<byte[]> rootOfInfo, Optional<byte[]> rootOfHistories, Optional<byte[]> rootOfRequests) {
+    protected AbstractTrieBasedStore(AbstractTrieBasedStore<S, T> toClone, LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders, ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation,
+    		byte[] rootOfResponses, byte[] rootOfInfo, byte[] rootOfHistories, byte[] rootOfRequests) {
     	super(toClone, checkedSignatures, classLoaders, consensus, gasPrice, inflation, rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
     }
 }

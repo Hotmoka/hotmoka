@@ -190,7 +190,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try {
 			this.config = config;
 			this.hasher = HashingAlgorithms.sha256().getHasher(TransactionRequest::toByteArray);
-			this.recentlyRejectedTransactionsMessages = new LRUCache<>(100, 1000);
+			this.recentlyRejectedTransactionsMessages = new LRUCacheImpl<>(100, 1000);
 			this.semaphores = new ConcurrentHashMap<>();
 
 			if (consensus.isPresent()) {

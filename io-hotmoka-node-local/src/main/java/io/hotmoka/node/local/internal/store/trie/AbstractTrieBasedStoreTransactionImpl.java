@@ -1,4 +1,4 @@
-package io.hotmoka.node.local.internal.store;
+package io.hotmoka.node.local.internal.store.trie;
 
 import java.math.BigInteger;
 import java.util.Map;
