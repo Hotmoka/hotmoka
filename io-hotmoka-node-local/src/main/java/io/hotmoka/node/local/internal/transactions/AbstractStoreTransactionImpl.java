@@ -242,10 +242,9 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return consensus;
 	}
 
-	@Override
 	public void invalidateConsensusCache() throws StoreException {
-		LOGGER.info("the consensus parameters have been reset");
 		recomputeConsensus();
+		LOGGER.info("the consensus parameters have been reset");
 	}
 
 	@Override
@@ -259,7 +258,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public void rewardValidators(String behaving, String misbehaving) throws StoreException {
+	public void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
 			if (maybeManifest.isPresent()) {
@@ -297,8 +296,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 					StorageValues.stringOf(behaving), StorageValues.stringOf(misbehaving),
 					StorageValues.bigIntegerOf(gasConsumed), StorageValues.bigIntegerOf(delivered.size()));
 	
-				ResponseBuilder<?,?> responseBuilder = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request);
-				TransactionResponse response = responseBuilder.getResponse();
+				TransactionResponse response = responseBuilderFor(TransactionReferences.of(hasher.hash(request)), request).getResponse();
 				// if there is only one update, it is the update of the nonce of the manifest: we prefer not to expand
 				// the store with the transaction, so that the state stabilizes, which might give
 				// to the node the chance of suspending the generation of new blocks
@@ -320,8 +318,17 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	@Override
-	public ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+	/**
+	 * Yields the builder of a response for a request of a transaction.
+	 * This method can be redefined in subclasses in order to accomodate
+	 * new kinds of transactions, specific to a node.
+	 * 
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
+	 */
+	protected ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
 		if (request instanceof JarStoreInitialTransactionRequest jsitr)
 			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
 		else if (request instanceof GameteCreationTransactionRequest gctr)
@@ -364,7 +371,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	@Override
 	public final void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException {
 		try {
 			CheckRunnable.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
@@ -384,7 +390,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		return delivered.size();
 	}
 
-	@Override
 	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
 		delivered.forEach(notifier::accept);
 	}

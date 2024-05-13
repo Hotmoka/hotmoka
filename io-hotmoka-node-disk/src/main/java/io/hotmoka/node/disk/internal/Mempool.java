@@ -161,7 +161,7 @@ class Mempool {
 	private DiskStoreTransaction restartTransaction(DiskStoreTransaction transaction) throws NodeException {
 		try {
 			if (transaction.deliveredCount() > 0)
-				transaction.rewardValidators("", "");
+				transaction.deliverRewardTransaction("", "");
 		}
 		catch (StoreException e) {
 			throw new NodeException(e);

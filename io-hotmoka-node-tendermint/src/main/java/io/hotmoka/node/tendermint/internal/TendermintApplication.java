@@ -217,7 +217,7 @@ class TendermintApplication extends ABCI {
     	try {
     		transaction = node.beginTransaction(timeOfBlock(request));
     		LOGGER.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
-    		transaction.rewardValidators(behaving, misbehaving);
+    		transaction.deliverRewardTransaction(behaving, misbehaving);
     	}
     	catch (StoreException | NodeException e) {
     		throw new RuntimeException(e); // TODO

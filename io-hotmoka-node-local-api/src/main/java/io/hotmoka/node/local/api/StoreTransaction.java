@@ -17,8 +17,6 @@ limitations under the License.
 package io.hotmoka.node.local.api;
 
 import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
@@ -29,7 +27,6 @@ import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 
 /**
@@ -74,21 +71,7 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @param misbehaving the space-separated sequence of the identifiers of the validators that
 	 *                    misbehaved and must be punished
 	 */
-	void rewardValidators(String behaving, String misbehaving) throws StoreException;
-
-	void invalidateConsensusCache() throws StoreException;
-
-	/**
-	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request
-	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
+	void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException;
 
 	/**
 	 * Builds a response for the given request and adds it to the store of the node.
@@ -100,10 +83,6 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
 	int deliveredCount() throws StoreException;
-
-	void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException;
-
-	void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 
 	S getFinalStore() throws StoreException;
 }
