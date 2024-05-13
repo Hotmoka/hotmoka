@@ -17,7 +17,6 @@ limitations under the License.
 package io.hotmoka.node.tendermint.internal;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
@@ -36,19 +35,12 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import io.hotmoka.crypto.Base64;
-import io.hotmoka.crypto.Base64ConversionException;
-import io.hotmoka.node.NodeUnmarshallingContexts;
-import io.hotmoka.node.TransactionRequests;
 import io.hotmoka.node.api.NodeException;
-import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
-import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.tendermint.api.TendermintNodeConfig;
 import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintStatusResponse;
-import io.hotmoka.node.tendermint.internal.beans.TendermintTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintValidatorPriority;
 import io.hotmoka.node.tendermint.internal.beans.TendermintValidatorsResponse;
 import io.hotmoka.node.tendermint.internal.beans.TxError;
@@ -107,7 +99,7 @@ public class TendermintPoster {
 	 * @param hash the hash of the transaction to look for
 	 * @return the Hotmoka transaction request
 	 */
-	TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	/*TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
 			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
 			if (response.error != null)
@@ -122,13 +114,13 @@ public class TendermintPoster {
 				return TransactionRequests.from(context);
 			}
 		}
-		catch (InterruptedException | TimeoutException e) { // TODO: these must disappear: requests should be kept in store, not asked to Tendermint
+		catch (InterruptedException | TimeoutException e) {
 			throw new StoreException("Cannot get the Tendermint request returned for transaction " + reference, e);
 		}
 		catch (IOException | Base64ConversionException e) {
 			throw new StoreException("Cannot parse the Tendermint request returned for transaction " + reference, e);
 		}
-	}
+	}*/
 
 	/**
 	 * Yields the Hotmoka error in the Tendermint transaction with the given hash.
@@ -153,7 +145,7 @@ public class TendermintPoster {
 				// there is no Hotmoka error for this transaction
 				throw new UnknownReferenceException(reference);
 		}
-		catch (InterruptedException | TimeoutException e) { // TODO: these must disappear: errors should be kept in store, not asked to Tendermint
+		catch (InterruptedException | TimeoutException e) {
 			throw new StoreException("Cannot get the Tendermint error returned for transaction " + reference, e);
 		}
 		catch (IOException | Base64ConversionException e) {
@@ -359,12 +351,12 @@ public class TendermintPoster {
 	 * @throws TimeoutException if writing the request failed after repeated trying for some time
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
-	private String tx(byte[] hash) throws IOException, TimeoutException, InterruptedException {
+	/*private String tx(byte[] hash) throws IOException, TimeoutException, InterruptedException {
 		String jsonTendermintRequest = "{\"method\": \"tx\", \"params\": {\"hash\": \"" +
 			Base64.toBase64String(hash) + "\", \"prove\": false}, \"id\": " + nextId.getAndIncrement() + "}";
 	
 		return postToTendermint(jsonTendermintRequest);
-	}
+	}*/
 
 	/**
 	 * Sends a {@code genesis} request to the Tendermint process, to read the
@@ -377,8 +369,7 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
 	private String genesis() throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"genesis\", \"id\": " + nextId.getAndIncrement() + "}";
-		return postToTendermint(jsonTendermintRequest);
+		return postToTendermint("{\"method\": \"genesis\", \"id\": " + nextId.getAndIncrement() + "}");
 	}
 
 	/**
@@ -391,8 +382,7 @@ public class TendermintPoster {
 	 * @throws InterruptedException if the current thread was interrupted while writing the request
 	 */
 	private String status() throws IOException, TimeoutException, InterruptedException {
-		String jsonTendermintRequest = "{\"method\": \"status\", \"id\": " + nextId.getAndIncrement() + "}";
-		return postToTendermint(jsonTendermintRequest);
+		return postToTendermint("{\"method\": \"status\", \"id\": " + nextId.getAndIncrement() + "}");
 	}
 
 	/**

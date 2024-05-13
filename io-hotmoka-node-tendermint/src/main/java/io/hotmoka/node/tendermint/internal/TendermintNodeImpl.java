@@ -337,7 +337,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * A proxy object that connects to the Tendermint process, sends requests to it
 	 * and gets responses from it.
 	 */
-	class Tendermint implements AutoCloseable {
+	private class Tendermint implements AutoCloseable {
 	
 		/**
 		 * The Tendermint process;
@@ -420,7 +420,7 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 				LOGGER.log(Level.SEVERE, "cannot close the Tendermint process", e);
 			}
 	
-			throw new TimeoutException("cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
+			throw new TimeoutException("Cannot connect to Tendermint process at " + poster.url() + ". Tried " + config.getMaxPingAttempts() + " times");
 		}
 	}
 }

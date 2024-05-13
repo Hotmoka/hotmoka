@@ -71,7 +71,6 @@ import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.tendermint.api.TendermintNode;
@@ -148,8 +147,9 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 		StorageReference gamete = node.gamete();
 		var getNonceRequest = TransactionRequests.instanceViewMethodCall
 			(gamete, BigInteger.valueOf(50_000), takamakaCodeReference, MethodSignatures.NONCE, gamete);
-		BigInteger nonceOfGamete = ((BigIntegerValue) node.runInstanceMethodCallTransaction(getNonceRequest)
-			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))).getValue();
+		BigInteger nonceOfGamete = node.runInstanceMethodCallTransaction(getNonceRequest)
+			.orElseThrow(() -> new NodeException(MethodSignatures.NONCE + " should not return void"))
+			.asBigInteger(value -> new NodeException(MethodSignatures.NONCE + " should return a BigInteger, not a " + value.getClass().getName()));
 
 		// we create validators corresponding to those declared in the configuration file of the Tendermint node
 		var tendermintValidators = poster.getTendermintValidators().toArray(TendermintValidator[]::new);
@@ -179,9 +179,7 @@ public class TendermintInitializedNodeImpl implements InitializedNode {
 			long power = powerFromTendermintValidator(tv);
 			var addValidator = TransactionRequests.instanceMethodCall
 				(new byte[0], gamete, nonceOfGamete, "", _200_000, ZERO, takamakaCodeReference,
-				addValidatorMethod,
-				builder,
-				StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power));
+				addValidatorMethod, builder, StorageValues.stringOf(publicKeyBase64), StorageValues.longOf(power));
 			node.addInstanceMethodCallTransaction(addValidator);
 			nonceOfGamete = nonceOfGamete.add(BigInteger.ONE);
 		}
