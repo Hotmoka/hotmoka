@@ -21,7 +21,6 @@ import java.util.Optional;
 import io.hotmoka.node.api.CodeExecutionException;
 import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
-import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -50,13 +49,6 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 * @return the time, in milliseconds from the UNIX epoch time
 	 */
 	long getNow();
-
-	/**
-	 * Yields the current consensus configuration of the node.
-	 * 
-	 * @return the current consensus configuration of the node
-	 */
-	ConsensusConfig<?,?> getConfig() throws StoreException;
 
 	Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException;
 

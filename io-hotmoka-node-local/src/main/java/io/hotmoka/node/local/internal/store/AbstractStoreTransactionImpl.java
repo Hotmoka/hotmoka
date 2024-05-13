@@ -114,7 +114,7 @@ import io.hotmoka.node.local.internal.LRUCacheImpl;
  * its hash is held in the node, if consensus is needed. Stores must be thread-safe, since they can
  * be used concurrently for executing more requests.
  */
-public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransactionImpl<S, T>> implements StoreTransaction<S, T> {
+public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S, T>, T extends AbstractStoreTransactionImpl<S, T>> extends ExecutionEnvironment implements StoreTransaction<S, T> {
 	private final static Logger LOGGER = Logger.getLogger(AbstractStoreTransactionImpl.class.getName());
 	private final S store;
 
@@ -388,39 +388,25 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
-	/**
-	 * Yields the response of the transaction having the given reference.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @param reference the reference of the transaction
-	 * @return the response
-	 */
+	@Override
+	protected final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+		var uncommittedRequest = requests.get(reference);
+		return uncommittedRequest != null ? uncommittedRequest : getInitialStore().getRequest(reference);
+	}
+
+	@Override
 	protected final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		var uncommittedResponse = responses.get(reference);
 		return uncommittedResponse != null ? uncommittedResponse : getInitialStore().getResponse(reference);
 	}
 
-	/**
-	 * Yields the history of the given object, that is, the references to the transactions
-	 * that can be used to reconstruct the current values of its fields.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @param object the reference of the object
-	 * @return the history. Yields an empty stream if there is no history for {@code object}
-	 * @throws StoreException if the store is not able to perform the operation
-	 */
+	@Override
 	protected final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
 		var uncommittedHistory = histories.get(object);
 		return uncommittedHistory != null ? Stream.of(uncommittedHistory) : getInitialStore().getHistory(object);
 	}
 
-	/**
-	 * Yields the manifest installed when the node is initialized.
-	 * This considers also updates inside this transaction, that have not yet been committed.
-	 * 
-	 * @return the manifest
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
+	@Override
 	protected final Optional<StorageReference> getManifest() throws StoreException {
 		var uncommittedManifest = manifest;
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();

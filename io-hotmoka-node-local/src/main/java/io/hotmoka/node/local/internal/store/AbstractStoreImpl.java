@@ -37,7 +37,7 @@ import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.internal.LRUCacheImpl;
 
 @Immutable
-public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransactionImpl<S, T>> implements Store<S, T> {
+public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T extends AbstractStoreTransactionImpl<S, T>> extends ExecutionEnvironment implements Store<S, T> {
 
 	/**
 	 * Cached recent transactions whose requests that have had their signature checked.
