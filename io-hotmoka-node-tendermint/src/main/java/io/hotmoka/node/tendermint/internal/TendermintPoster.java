@@ -39,6 +39,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.node.NodeUnmarshallingContexts;
 import io.hotmoka.node.TransactionRequests;
+import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
@@ -82,8 +83,10 @@ public class TendermintPoster {
 	 * Sends the given {@code request} to the Tendermint process, inside a {@code broadcast_tx_async} Tendermint request.
 	 * 
 	 * @param request the request to send
+	 * @throws InterruptedException 
+	 * @throws TimeoutException 
 	 */
-	void postRequest(TransactionRequest<?> request) {
+	void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		try {
 			String jsonTendermintRequest = "{\"method\": \"broadcast_tx_async\", \"params\": {\"tx\": \"" + Base64.toBase64String(request.toByteArray()) + "\"}, \"id\": " + nextId.getAndIncrement() + "}";
 			String response = postToTendermint(jsonTendermintRequest);
@@ -91,11 +94,10 @@ public class TendermintPoster {
 			TendermintBroadcastTxResponse parsedResponse = gson.fromJson(response, TendermintBroadcastTxResponse.class);
 			TxError error = parsedResponse.error;
 			if (error != null)
-				throw new RuntimeException("Tendermint transaction failed: " + error.message + ": " + error.data);
+				throw new NodeException("Tendermint transaction failed: " + error.message + ": " + error.data);
 		}
-		catch (InterruptedException | TimeoutException | IOException e) {
-			logger.log(Level.WARNING, "failed posting request", e);
-			throw new RuntimeException(e);
+		catch (IOException e) {
+			throw new NodeException(e);
 		}
 	}
 

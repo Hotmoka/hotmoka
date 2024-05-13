@@ -356,22 +356,23 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		}
 	}
 
+	@Override
 	public byte[] getStateId() throws StoreException {
 		return mergeRootsOfTries();
 	}
 
 	@Override
-	public S checkoutAt(byte[] root) throws StoreException {
+	public S checkoutAt(byte[] stateId) throws StoreException {
 		var bytesOfRootOfResponses = new byte[32];
-		System.arraycopy(root, 0, bytesOfRootOfResponses, 0, 32);
+		System.arraycopy(stateId, 0, bytesOfRootOfResponses, 0, 32);
 		var bytesOfRootOfInfo = new byte[32];
-		System.arraycopy(root, 32, bytesOfRootOfInfo, 0, 32);
+		System.arraycopy(stateId, 32, bytesOfRootOfInfo, 0, 32);
 		var bytesOfRootOfErrors = new byte[32];
-		System.arraycopy(root, 64, bytesOfRootOfErrors, 0, 32);
+		System.arraycopy(stateId, 64, bytesOfRootOfErrors, 0, 32);
 		var bytesOfRootOfRequests = new byte[32];
-		System.arraycopy(root, 96, bytesOfRootOfRequests, 0, 32);
+		System.arraycopy(stateId, 96, bytesOfRootOfRequests, 0, 32);
 		var bytesOfRootOfHistories = new byte[32];
-		System.arraycopy(root, 128, bytesOfRootOfHistories, 0, 32);
+		System.arraycopy(stateId, 128, bytesOfRootOfHistories, 0, 32);
 
 		try {
 			S temp = make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfErrors), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
@@ -442,6 +443,15 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 	}
 
 	/**
+	 * Determines if all roots of the tries in this store are empty.
+	 * 
+	 * @return true if and only if that condition holds
+	 */
+	protected boolean isEmpty() {
+		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfErrors.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
+	}
+
+	/**
 	 * Yields the concatenation of the roots of the tries in this store,
 	 * resulting after all updates performed to the store. Hence, they point
 	 * to the latest view of the store.
@@ -457,14 +467,5 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 		System.arraycopy(rootOfHistories.get(), 0, result, 128, 32);
 
 		return result;
-	}
-
-	/**
-	 * Determines if all roots of the tries in this store are empty.
-	 * 
-	 * @return true if and only if that condition holds
-	 */
-	protected boolean isEmpty() {
-		return rootOfResponses.isEmpty() && rootOfInfo.isEmpty() && rootOfErrors.isEmpty() && rootOfRequests.isEmpty() && rootOfHistories.isEmpty();
 	}
 }

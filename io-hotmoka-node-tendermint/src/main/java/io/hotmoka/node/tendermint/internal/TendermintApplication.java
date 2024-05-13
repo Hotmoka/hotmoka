@@ -179,14 +179,9 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseInfo info(RequestInfo request) throws NodeException {
-		try {
-			return ResponseInfo.newBuilder()
-				.setLastBlockAppHash(ByteString.copyFrom(node.getStore().getHash())) // hash of the store used for consensus
-				.setLastBlockHeight(node.getStore().getNumberOfCommits()).build();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+		return ResponseInfo.newBuilder()
+			.setLastBlockAppHash(ByteString.copyFrom(node.getStateId())) // hash of the store used for consensus
+			.setLastBlockHeight(node.getNumberOfCommits()).build();
 	}
 
 	@Override
@@ -198,7 +193,7 @@ class TendermintApplication extends ABCI {
         	var hotmokaRequest = TransactionRequests.from(context);
 
         	try {
-        		node.getStore().checkTransaction(hotmokaRequest);
+        		node.checkTransaction(hotmokaRequest);
         	}
         	catch (TransactionRejectedException e) {
         		node.signalRejected(hotmokaRequest, e);
@@ -220,11 +215,11 @@ class TendermintApplication extends ABCI {
 		String behaving = spaceSeparatedSequenceOfBehavingValidatorsAddresses(request);
     	String misbehaving = spaceSeparatedSequenceOfMisbehavingValidatorsAddresses(request);
     	try {
-    		transaction = node.getStore().beginTransaction(timeOfBlock(request));
+    		transaction = node.beginTransaction(timeOfBlock(request));
     		LOGGER.info("validators reward: behaving: " + behaving + ", misbehaving: " + misbehaving);
     		transaction.rewardValidators(behaving, misbehaving);
     	}
-    	catch (StoreException e) {
+    	catch (StoreException | NodeException e) {
     		throw new RuntimeException(e); // TODO
     	}
 
@@ -291,23 +286,10 @@ class TendermintApplication extends ABCI {
 
 	@Override
 	protected ResponseCommit commit(RequestCommit request) throws NodeException {
-		try {
-			var newStore = transaction.getFinalStore();
-			newStore.moveRootBranchToThis();
-			node.setStore(newStore);
-			transaction.forEachCompletedTransaction(node::signalCompleted);
-			transaction.forEachTriggeredEvent(node::notifyEvent);
-
-			// hash of the store, used for consensus
-			byte[] hash = node.getStore().getHash();
-			LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());
-			return ResponseCommit.newBuilder()
-					.setData(ByteString.copyFrom(hash))
-					.build();
-		}
-		catch (StoreException e) {
-			throw new NodeException(e);
-		}
+		node.moveToFinalStoreOf(transaction);
+		byte[] hash = node.getStateId();
+		LOGGER.info("committed state with hash " + Hex.toHexString(hash).toUpperCase());
+		return ResponseCommit.newBuilder().setData(ByteString.copyFrom(hash)).build();
 	}
 
 	@Override

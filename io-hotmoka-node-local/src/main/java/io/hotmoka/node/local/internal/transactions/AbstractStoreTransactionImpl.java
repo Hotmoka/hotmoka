@@ -380,7 +380,12 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public void forEachCompletedTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
+	public int deliveredCount() throws StoreException {
+		return delivered.size();
+	}
+
+	@Override
+	public final void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException {
 		delivered.forEach(notifier::accept);
 	}
 

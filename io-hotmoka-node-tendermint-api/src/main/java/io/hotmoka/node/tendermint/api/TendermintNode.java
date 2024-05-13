@@ -17,19 +17,11 @@ limitations under the License.
 package io.hotmoka.node.tendermint.api;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.Node;
-import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.local.api.LocalNode;
 
 /**
  * A node of a blockchain that relies on a Tendermint process.
  */
 @ThreadSafe
-public interface TendermintNode extends Node {
-
-	/**
-	 * Yields the configuration of this node.
-	 * 
-	 * @return the configuration
-	 */
-	TendermintNodeConfig getLocalConfig() throws NodeException;
+public interface TendermintNode extends LocalNode<TendermintNodeConfig> {
 }

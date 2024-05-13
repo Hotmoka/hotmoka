@@ -19,6 +19,7 @@ package io.hotmoka.node.disk.internal;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,10 +82,12 @@ class Mempool {
 	 * Adds a request to the mempool. Eventually, it will be checked and executed.
 	 * 
 	 * @param request the request
+	 * @throws InterruptedException 
+	 * @throws TimeoutException 
 	 */
-	public void add(TransactionRequest<?> request) {
-		if (!mempool.offer(request))
-			throw new RuntimeException("mempool overflow");
+	public void add(TransactionRequest<?> request) throws InterruptedException, TimeoutException {
+		if (!mempool.offer(request, 10, TimeUnit.MILLISECONDS))
+			throw new TimeoutException("Mempool overflow");
 	}
 
 	/**
@@ -99,12 +102,12 @@ class Mempool {
 	 * The body of the checking thread. Its pops a request from the mempool and checks it.
 	 */
 	private void check() {
-		while (true) {
-			try {
+		try {
+			while (true) {
 				TransactionRequest<?> current = mempool.take();
 
 				try {
-					node.getStore().checkTransaction(current);
+					node.checkTransaction(current);
 					if (!checkedMempool.offer(current)) {
 						deliverer.interrupt();
 						throw new NodeException("Mempool overflow");
@@ -113,14 +116,13 @@ class Mempool {
 				catch (TransactionRejectedException e) {
 					node.signalRejected(current, e);
 				}
-				catch (StoreException | NodeException e) {
-					LOGGER.log(Level.SEVERE, "Transaction request checking failure", e);
-				}
 			}
-			catch (InterruptedException e) {
-				Thread.currentThread().interrupt();
-				return;
-			}
+		}
+		catch (NodeException e) {
+			LOGGER.log(Level.SEVERE, "transaction check failure", e);
+		}
+		catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
 		}
 	}
 
@@ -129,32 +131,18 @@ class Mempool {
 	 */
 	private void deliver() {
 		try {
-			int counter = 0;
-			DiskStoreTransaction transaction = node.getStore().beginTransaction(System.currentTimeMillis());
+			DiskStoreTransaction transaction = node.beginTransaction(System.currentTimeMillis());
 
 			while (true) {
 				TransactionRequest<?> current = checkedMempool.poll(10, TimeUnit.MILLISECONDS);
-				if (current == null) {
-					if (counter > 0)
-						transaction.rewardValidators("", "");
-					node.setStore(transaction.getFinalStore());
-					transaction.forEachCompletedTransaction(node::signalCompleted);
-					transaction.forEachTriggeredEvent(node::notifyEvent);
-					transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-					counter = 0;
-				}
+				if (current == null)
+					transaction = restartTransaction(transaction);
 				else {
 					try {
 						transaction.deliverTransaction(current);
 
-						if (++counter == transactionsPerBlock - 1) {
-							transaction.rewardValidators("", "");
-							node.setStore(transaction.getFinalStore());
-							transaction.forEachCompletedTransaction(node::signalCompleted);
-							transaction.forEachTriggeredEvent(node::notifyEvent);
-							transaction = node.getStore().beginTransaction(System.currentTimeMillis());
-							counter = 0;
-						}
+						if (transaction.deliveredCount() == transactionsPerBlock - 1)
+							transaction = restartTransaction(transaction);
 					}
 					catch (TransactionRejectedException e) {
 						node.signalRejected(current, e);
@@ -162,12 +150,25 @@ class Mempool {
 				}
 			}
 		}
+		catch (StoreException | NodeException e) {
+			LOGGER.log(Level.SEVERE, "transaction delivery failure", e);
+		}
 		catch (InterruptedException e) {
 			Thread.currentThread().interrupt();
-			return;
 		}
-		catch (Throwable t) {
-			LOGGER.log(Level.WARNING, "Failed to deliver transaction request", t);
+	}
+
+	private DiskStoreTransaction restartTransaction(DiskStoreTransaction transaction) throws NodeException {
+		try {
+			if (transaction.deliveredCount() > 0)
+				transaction.rewardValidators("", "");
 		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+
+		node.moveToFinalStoreOf(transaction);
+
+		return node.beginTransaction(System.currentTimeMillis());
 	}
 }

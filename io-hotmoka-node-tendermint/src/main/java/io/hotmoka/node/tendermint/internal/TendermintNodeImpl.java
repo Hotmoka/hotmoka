@@ -39,6 +39,7 @@ import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.nodes.ValidatorsConsensusConfig;
@@ -56,7 +57,7 @@ import io.hotmoka.tendermint.abci.Server;
  * its state in a transactional database implemented by the {@link TendermintStore} class.
  */
 @ThreadSafe
-public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore> implements TendermintNode {
+public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, TendermintStore, TendermintStoreTransaction> implements TendermintNode {
 
 	private final static Logger LOGGER = Logger.getLogger(TendermintNodeImpl.class.getName());
 
@@ -157,6 +158,36 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 		}
 	}
 
+	protected final long getNumberOfCommits() throws NodeException {
+		try {
+			return getStore().getNumberOfCommits();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	protected final byte[] getStateId() throws NodeException {
+		try {
+			return getStore().getHash();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
+	@Override
+	protected void moveBranchTo(TendermintStore store) throws NodeException {
+		super.moveBranchTo(store);
+
+		try {
+			store.moveRootBranchToThis();
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
+	}
+
 	@Override
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
@@ -178,12 +209,32 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	}
 
 	@Override
-	protected void postRequest(TransactionRequest<?> request) {
+	protected void postRequest(TransactionRequest<?> request) throws NodeException, TimeoutException, InterruptedException {
 		poster.postRequest(request);
 	}
 
 	protected TendermintPoster getPoster() {
 		return poster;
+	}
+
+	@Override
+	protected TendermintStoreTransaction beginTransaction(long now) throws NodeException {
+		return super.beginTransaction(now);
+	}
+
+	@Override
+	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+		super.checkTransaction(request);
+	}
+
+	@Override
+	protected void moveToFinalStoreOf(TendermintStoreTransaction transaction) throws NodeException {
+		super.moveToFinalStoreOf(transaction);
+	}
+
+	@Override
+	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+		super.signalRejected(request, e);
 	}
 
 	private void tryClose() {
@@ -256,24 +307,30 @@ public class TendermintNodeImpl extends AbstractLocalNode<TendermintNodeConfig, 
 	 * with a single node, that acts as unique validator of the network.
 	 * 
 	 * @param config the configuration of the node
+	 * @throws NodeException 
 	 */
-	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, IOException {
+	private void initWorkingDirectoryOfTendermintProcess(TendermintNodeConfig config) throws InterruptedException, NodeException {
 		Optional<Path> tendermintConfigurationToClone = config.getTendermintConfigurationToClone();
 
-		if (tendermintConfigurationToClone.isEmpty()) {
-			// if there is no configuration to clone, we create a default network of a single node
-			// that plays the role of the unique validator of the network
+		try {
+			if (tendermintConfigurationToClone.isEmpty()) {
+				// if there is no configuration to clone, we create a default network of a single node
+				// that plays the role of the unique validator of the network
 
-			Path tendermintHome = config.getDir().resolve("blocks");
-			String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
-			//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
-			if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0)
-				throw new IOException("Tendermint initialization failed");
+				Path tendermintHome = config.getDir().resolve("blocks");
+				String executableName = isWindows ? "cmd.exe /c tendermint.exe" : "tendermint";
+				//if (run("tendermint testnet --v 1 --o " + tendermintHome + " --populate-persistent-peers", Optional.empty()).waitFor() != 0)
+				if (run(executableName + " init --home " + tendermintHome, Optional.empty()).waitFor() != 0) // TODO: add timeout
+					throw new NodeException("Tendermint initialization failed");
+			}
+			else
+				// we clone the configuration files inside config.tendermintConfigurationToClone
+				// into the blocks subdirectory of the node directory
+				copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
 		}
-		else
-			// we clone the configuration files inside config.tendermintConfigurationToClone
-			// into the blocks subdirectory of the node directory
-			copyRecursively(tendermintConfigurationToClone.get(), config.getDir().resolve("blocks"));
+		catch (IOException e) {
+			throw new NodeException(e);
+		}
 	}
 
 	/**

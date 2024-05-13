@@ -81,6 +81,7 @@ import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractStore;
+import io.hotmoka.node.local.AbstractStoreTransaction;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.LocalNode;
 import io.hotmoka.node.local.api.LocalNodeConfig;
@@ -93,7 +94,7 @@ import io.hotmoka.node.local.api.StoreException;
  * @param <S> the type of the store of the node
  */
 @ThreadSafe
-public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, ?>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
+public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S extends AbstractStore<S, T>, T extends AbstractStoreTransaction<S, T>> extends AbstractAutoCloseableWithLockAndOnCloseHandlers<ClosedNodeException> implements LocalNode<C> {
 
 	/**
 	 * The manager of the subscriptions to the events occurring in this node.
@@ -306,20 +307,11 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 				return store.getResponse(Objects.requireNonNull(reference));
 			}
 			catch (UnknownReferenceException e) {
-				/*try {
-					// we check if the request has been executed but ended with a TransactionException:
-					// in that case, the node contains the error message in its store; otherwise,
-					// we check if the request has been rejected with a TransactionRejectedException:
-					// in that case, we might have its error message in {@link #recentCheckTransactionErrors}
-					throw new TransactionRejectedException(store.getError(reference));
-				}
-				catch (UnknownReferenceException ee) {*/
-					String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
-					if (rejectionMessage != null)
-						throw new TransactionRejectedException(rejectionMessage, store.getConfig());
-					else
-						throw new UnknownReferenceException(reference);
-				//}
+				String rejectionMessage = recentlyRejectedTransactionsMessages.get(reference);
+				if (rejectionMessage != null)
+					throw new TransactionRejectedException(rejectionMessage, store.getConfig());
+				else
+					throw new UnknownReferenceException(reference);
 			}
 		}
 		catch (StoreException e) {
@@ -349,9 +341,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	@Override
 	public final Stream<Update> getState(StorageReference reference) throws UnknownReferenceException, NodeException {
 		try (var scope = mkScope()) {
-			Objects.requireNonNull(reference);
 			try {
-				Stream<TransactionReference> history = store.getHistory(reference);
+				Stream<TransactionReference> history = store.getHistory(Objects.requireNonNull(reference));
 				var updates = new HashSet<Update>();
 				CheckRunnable.check(StoreException.class, () -> history.forEachOrdered(UncheckConsumer.uncheck(transaction -> addUpdatesCommitted(reference, transaction, updates))));
 				return updates.stream();
@@ -422,12 +413,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
-
-			Optional<StorageValue> result;
-
-			var storeTransaction = store.beginViewTransaction();
-			result = storeTransaction.runInstanceMethodCallTransaction(request, reference);
-
+			Optional<StorageValue> result = store.beginViewTransaction().runInstanceMethodCallTransaction(request, reference);
 			LOGGER.info(reference + ": running success");
 			return result;
 		}
@@ -441,11 +427,7 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 		try (var scope = mkScope()) {
 			var reference = TransactionReferences.of(hasher.hash(request));
 			LOGGER.info(reference + ": running start (" + request.getClass().getSimpleName() + " -> " + request.getStaticTarget().getMethodName() + ')');
-			Optional<StorageValue> result;
-
-			var storeTransaction = store.beginViewTransaction();
-			result = storeTransaction.runStaticMethodCallTransaction(request, reference);
-
+			Optional<StorageValue> result = store.beginViewTransaction().runStaticMethodCallTransaction(request, reference);
 			LOGGER.info(reference + ": running success");
 			return result;
 		}
@@ -455,46 +437,38 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	}
 
 	@Override
-	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException {
+	public final JarFuture postJarStoreTransaction(JarStoreTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return JarFutures.of(post(request), this);
 		}
 	}
 
 	@Override
-	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+	public final ConstructorFuture postConstructorCallTransaction(ConstructorCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofConstructor(post(request), this);
 		}
 	}
 
 	@Override
-	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+	public final MethodFuture postInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofMethod(post(request), this);
 		}
 	}
 
 	@Override
-	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException {
+	public final MethodFuture postStaticMethodCallTransaction(StaticMethodCallTransactionRequest request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		try (var scope = mkScope()) {
 			return CodeFutures.ofMethod(post(request), this);
 		}
 	}
 
-	/**
-	 * Wakes up who was waiting for the outcome of the given transaction.
-	 * 
-	 * @param reference the reference of the transaction
-	 */
-	public final void signalCompleted(TransactionRequest<?> request) {
-		var reference = TransactionReferences.of(hasher.hash(request));
-		Semaphore semaphore = semaphores.remove(reference);
-		if (semaphore != null)
-			semaphore.release();
+	protected final S getStore() {
+		return store;
 	}
 
-	public final void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		recentlyRejectedTransactionsMessages.put(reference, e.getMessage());
 		Semaphore semaphore = semaphores.remove(reference);
@@ -502,25 +476,37 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			semaphore.release();
 	}
 
-	public final S getStore() {
-		return store;
+	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+		try {
+			store.checkTransaction(request);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
-	public final void setStore(S store) {
-		this.store = store;
+	protected T beginTransaction(long now) throws NodeException {
+		try {
+			return store.beginTransaction(now);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
-	public void notifyEvent(StorageReference creator, StorageReference event) {
-		subscriptions.notifyEvent(creator, event);
-		LOGGER.info(event + ": notified as event with creator " + creator);		
+	protected void moveToFinalStoreOf(T transaction) throws NodeException {
+		try {
+			this.store = transaction.getFinalStore();
+			moveBranchTo(store);
+			transaction.forEachDeliveredTransaction(this::signalCompleted);
+			transaction.forEachTriggeredEvent(this::notifyEvent);
+		}
+		catch (StoreException e) {
+			throw new NodeException(e);
+		}
 	}
 
-	/**
-	 * Factory method for creating the store of this node.
-	 * 
-	 * @return the store
-	 */
-	protected abstract S mkStore(ExecutorService executors, ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher) throws NodeException;
+	protected void moveBranchTo(S store) throws NodeException {}
 
 	protected void closeResources() throws NodeException, InterruptedException {
 		try {
@@ -543,23 +529,46 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 	}
 
 	/**
+	 * Factory method for creating the store of this node.
+	 * 
+	 * @return the store
+	 */
+	protected abstract S mkStore(ExecutorService executors, ConsensusConfig<?,?> config, C localConfig, Hasher<TransactionRequest<?>> hasher) throws NodeException;
+
+	/**
 	 * Node-specific implementation to post the given request. Each node should implement this,
 	 * for instance by adding the request to some mempool or queue of requests to be executed.
 	 * 
 	 * @param request the request
 	 */
-	protected abstract void postRequest(TransactionRequest<?> request);
+	protected abstract void postRequest(TransactionRequest<?> request) throws NodeException, InterruptedException, TimeoutException;
+
+	/**
+	 * Wakes up who was waiting for the outcome of the given transaction.
+	 * 
+	 * @param reference the reference of the transaction
+	 */
+	private void signalCompleted(TransactionRequest<?> request) {
+		var reference = TransactionReferences.of(hasher.hash(request));
+		Semaphore semaphore = semaphores.remove(reference);
+		if (semaphore != null)
+			semaphore.release();
+	}
+
+	private void notifyEvent(StorageReference creator, StorageReference event) {
+		subscriptions.notifyEvent(creator, event);
+		LOGGER.info(event + ": notified as event with creator " + creator);		
+	}
 
 	/**
 	 * Posts the given request. It does some preliminary preparation then calls
-	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific
-	 * logic of this post.
+	 * {@link #postRequest(TransactionRequest)}, that will implement the node-specific logic of this post.
 	 * 
 	 * @param request the request
 	 * @return the reference of the request
 	 * @throws TransactionRejectedException if the request was already present in the store
 	 */
-	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+	private TransactionReference post(TransactionRequest<?> request) throws TransactionRejectedException, NodeException, InterruptedException, TimeoutException {
 		var reference = TransactionReferences.of(hasher.hash(request));
 		LOGGER.info(reference + ": posting (" + request.getClass().getSimpleName() + ')');
 
@@ -572,6 +581,8 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 			throw new NodeException(e);
 		}
 		catch (UnknownReferenceException e) {
+			// this is fine: there was no previous request with the same reference so we register
+			// its semaphore and post the request for execution
 			createSemaphore(reference);
 			postRequest(request);
 

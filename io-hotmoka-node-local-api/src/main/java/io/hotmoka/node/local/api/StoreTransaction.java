@@ -99,7 +99,9 @@ public interface StoreTransaction<S extends Store<S,T>, T extends StoreTransacti
 	 */
 	TransactionResponse deliverTransaction(TransactionRequest<?> request) throws TransactionRejectedException, StoreException;
 
-	void forEachCompletedTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException;
+	int deliveredCount() throws StoreException;
+
+	void forEachDeliveredTransaction(Consumer<TransactionRequest<?>> notifier) throws StoreException;
 
 	void forEachTriggeredEvent(BiConsumer<StorageReference, StorageReference> notifier) throws StoreException;
 

@@ -17,12 +17,14 @@ limitations under the License.
 package io.hotmoka.node.disk.internal;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeoutException;
 
 import io.hotmoka.annotations.ThreadSafe;
 import io.hotmoka.crypto.api.Hasher;
 import io.hotmoka.node.ClosedNodeException;
 import io.hotmoka.node.NodeInfos;
 import io.hotmoka.node.api.NodeException;
+import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.api.nodes.NodeInfo;
 import io.hotmoka.node.api.requests.TransactionRequest;
@@ -37,7 +39,7 @@ import io.hotmoka.node.local.AbstractLocalNode;
  * nor transactions. Updates are stored in files, rather than in an external database.
  */
 @ThreadSafe
-public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> implements DiskNode {
+public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, DiskStoreTransaction> implements DiskNode {
 
 	/**
 	 * The mempool where transaction requests are stored and eventually executed.
@@ -80,7 +82,27 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore> i
 	}
 
 	@Override
-	protected void postRequest(TransactionRequest<?> request) {
+	protected void postRequest(TransactionRequest<?> request) throws InterruptedException, TimeoutException {
 		mempool.add(request);
+	}
+
+	@Override
+	protected void checkTransaction(TransactionRequest<?> request) throws TransactionRejectedException, NodeException {
+		super.checkTransaction(request);
+	}
+
+	@Override
+	protected void signalRejected(TransactionRequest<?> request, TransactionRejectedException e) {
+		super.signalRejected(request, e);
+	}
+
+	@Override
+	protected DiskStoreTransaction beginTransaction(long now) throws NodeException {
+		return super.beginTransaction(now);
+	}
+
+	@Override
+	protected void moveToFinalStoreOf(DiskStoreTransaction transaction) throws NodeException {
+		super.moveToFinalStoreOf(transaction);
 	}
 }
