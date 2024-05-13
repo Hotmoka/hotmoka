@@ -127,11 +127,6 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		}
 
 		@Override
-		protected Object deserializedPayer() {
-			return getDeserializedCaller();
-		}
-
-		@Override
 		protected MethodCallTransactionResponse body() {
 			try {
 				init();

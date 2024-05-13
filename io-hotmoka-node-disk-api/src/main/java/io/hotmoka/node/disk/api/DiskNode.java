@@ -17,7 +17,7 @@ limitations under the License.
 package io.hotmoka.node.disk.api;
 
 import io.hotmoka.annotations.ThreadSafe;
-import io.hotmoka.node.api.Node;
+import io.hotmoka.node.local.api.LocalNode;
 
 /**
  * A blockchain node that stores, sequentially, transactions in a directory
@@ -26,5 +26,5 @@ import io.hotmoka.node.api.Node;
  * Updates are stored inside the blocks, rather than in an external database.
  */
 @ThreadSafe
-public interface DiskNode extends Node {
+public interface DiskNode extends LocalNode<DiskNodeConfig> {
 }

@@ -36,10 +36,9 @@ import io.hotmoka.node.local.AbstractLocalNodeConfig;
 public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, DiskNodeConfigBuilder> implements DiskNodeConfig {
 
 	/**
-	 * The number of transactions that fit inside a block.
-	 * It defaults to 5.
+	 * The number of transactions that fit inside a block. It defaults to 10.
 	 */
-	public final long transactionsPerBlock;
+	public final int transactionsPerBlock;
 
 	/**
 	 * Creates a new configuration object from its builder.
@@ -53,7 +52,7 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 	}
 
 	@Override
-	public long getTransactionsPerBlock() {
+	public int getTransactionsPerBlock() {
 		return transactionsPerBlock;
 	}
 
@@ -86,7 +85,7 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 		/**
 		 * The number of transactions that fit inside a block.
 		 */
-		private long transactionsPerBlock = 10;
+		private int transactionsPerBlock = 10;
 
 		/**
 		 * Creates a builder with default values for the properties.
@@ -130,11 +129,15 @@ public class DiskNodeConfigImpl extends AbstractLocalNodeConfig<DiskNodeConfig, 
 		}
 
 		@Override
-		public DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock) {
-			if (transactionsPerBlock <= 0L)
-				throw new IllegalArgumentException("transactionsPerBlock must be positive");
+		public DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock) {
+			return setTransactionsPerBlock((long) transactionsPerBlock);
+		}
 
-			this.transactionsPerBlock = transactionsPerBlock;
+		private DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock) {
+			if (transactionsPerBlock <= 0L || transactionsPerBlock > Integer.MAX_VALUE)
+				throw new IllegalArgumentException("transactionsPerBlock must be between 0 and " + Integer.MAX_VALUE + " inclusive");
+
+			this.transactionsPerBlock = (int) transactionsPerBlock;
 			return getThis();
 		}
 

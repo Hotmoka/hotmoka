@@ -26,9 +26,9 @@ import io.hotmoka.node.local.api.LocalNodeConfig;
 public interface DiskNodeConfig extends LocalNodeConfig<DiskNodeConfig, DiskNodeConfigBuilder> {
 
 	/**
-	 * Yields the number of transactions that fit inside a block.
+	 * Yields the maximum number of transactions that fit inside a block.
 	 * 
-	 * @return the number of transactions that fit inside a block
+	 * @return the maximum number of transactions that fit inside a block
 	 */
-	long getTransactionsPerBlock();
+	int getTransactionsPerBlock();
 }

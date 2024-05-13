@@ -24,11 +24,10 @@ import io.hotmoka.node.local.api.LocalNodeConfigBuilder;
 public interface DiskNodeConfigBuilder extends LocalNodeConfigBuilder<DiskNodeConfig, DiskNodeConfigBuilder> {
 
 	/**
-	 * Sets the number of transactions that fit inside a block.
-	 * It defaults to 5.
+	 * Sets the number of transactions that fit inside a block. It defaults to 10.
 	 * 
 	 * @param transactionsPerBlock the number of transactions that fit inside a block
 	 * @return this builder
 	 */
-	DiskNodeConfigBuilder setTransactionsPerBlock(long transactionsPerBlock);
+	DiskNodeConfigBuilder setTransactionsPerBlock(int transactionsPerBlock);
 }

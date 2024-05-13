@@ -332,11 +332,6 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		private Object deserializedCaller;
 
 		/**
-		 * The deserialized payer.
-		 */
-		private Object deserializedPayer;
-
-		/**
 		 * The deserialized validators contract, if the node is already initialized.
 		 */
 		private Optional<Object> deserializedValidators;
@@ -392,26 +387,14 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 
 		protected final void init() throws StoreException {
 			this.deserializedCaller = deserializer.deserialize(request.getCaller());
-			this.deserializedPayer = deserializedPayer(); // TODO: remove?
 			this.deserializedValidators = storeTransaction.getValidators().map(deserializer::deserialize);
 			increaseNonceOfCaller();
 			chargeGasForCPU(gasCostModel.cpuBaseTransactionCost());
 			chargeGasForStorage(BigInteger.valueOf(request.size()));
 			chargeGasForClassLoader();	
 			this.greenInitiallyPaidForGas = chargePayerForAllGasPromised();
-			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedPayer);
-			this.redBalanceOfPayerInCaseOfTransactionException = classLoader.getRedBalanceOf(deserializedPayer);
-		}
-
-		/**
-		 * Yields the contract that pays for the transaction.
-		 * This normally coincides with {@link #getDeserializedCaller()}
-		 * but subclasses may redefine.
-		 * 
-		 * @return the payer for the transaction
-		 */
-		protected Object deserializedPayer() {
-			return deserializedCaller;
+			this.greenBalanceOfPayerInCaseOfTransactionException = classLoader.getBalanceOf(deserializedCaller);
+			this.redBalanceOfPayerInCaseOfTransactionException = classLoader.getRedBalanceOf(deserializedCaller);
 		}
 
 		/**
@@ -562,19 +545,19 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		private BigInteger chargePayerForAllGasPromised() {
 			BigInteger cost = costOf(request.getGasLimit());
-			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
-			BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
+			BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller);
+			BigInteger redBalance = classLoader.getRedBalanceOf(deserializedCaller);
 
 			// we check first if the payer can pay with red coins only
 			BigInteger newRedBalance = redBalance.subtract(cost);
 			if (newRedBalance.signum() >= 0) {
-				classLoader.setRedBalanceOf(deserializedPayer, newRedBalance);
+				classLoader.setRedBalanceOf(deserializedCaller, newRedBalance);
 				return ZERO;
 			}
 			else {
 				// otherwise, its red coins are set to 0 and the remainder is paid with green coins
-				classLoader.setRedBalanceOf(deserializedPayer, ZERO);
-				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(newRedBalance));
+				classLoader.setRedBalanceOf(deserializedCaller, ZERO);
+				classLoader.setBalanceOf(deserializedCaller, greenBalance.add(newRedBalance));
 				return newRedBalance.negate();
 			}
 		}
@@ -584,21 +567,21 @@ public abstract class NonInitialResponseBuilderImpl<Request extends NonInitialTr
 		 */
 		protected final void refundPayerForAllRemainingGas() {
 			BigInteger refund = costOf(gas);
-			BigInteger greenBalance = classLoader.getBalanceOf(deserializedPayer);
+			BigInteger greenBalance = classLoader.getBalanceOf(deserializedCaller);
 
 			// we pay back the green before
 			if (refund.subtract(greenInitiallyPaidForGas).signum() <= 0)
-				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(refund));
+				classLoader.setBalanceOf(deserializedCaller, greenBalance.add(refund));
 			else {
-				BigInteger redBalance = classLoader.getRedBalanceOf(deserializedPayer);
-				classLoader.setBalanceOf(deserializedPayer, greenBalance.add(greenInitiallyPaidForGas));
-				classLoader.setRedBalanceOf(deserializedPayer, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
+				BigInteger redBalance = classLoader.getRedBalanceOf(deserializedCaller);
+				classLoader.setBalanceOf(deserializedCaller, greenBalance.add(greenInitiallyPaidForGas));
+				classLoader.setRedBalanceOf(deserializedCaller, redBalance.add(refund.subtract(greenInitiallyPaidForGas)));
 			}
 		}
 
 		protected final void resetBalanceOfPayerToInitialValueMinusAllPromisedGas() {
-			classLoader.setBalanceOf(deserializedPayer, greenBalanceOfPayerInCaseOfTransactionException);
-			classLoader.setRedBalanceOf(deserializedPayer, redBalanceOfPayerInCaseOfTransactionException);
+			classLoader.setBalanceOf(deserializedCaller, greenBalanceOfPayerInCaseOfTransactionException);
+			classLoader.setRedBalanceOf(deserializedCaller, redBalanceOfPayerInCaseOfTransactionException);
 		}
 
 		@Override

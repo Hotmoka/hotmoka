@@ -337,8 +337,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 			S temp = make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
 			storeTransaction.invalidateConsensusCache();
-			ConsensusConfig<?,?> consensus = storeTransaction.getConfig();
-			return make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), consensus, Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
+			return make(new LRUCache<>(100, 1000), new LRUCache<>(100, 1000), (ConsensusConfig<?, ?>) storeTransaction.getConfig(), Optional.empty(), OptionalLong.empty(), Optional.of(bytesOfRootOfResponses), Optional.of(bytesOfRootOfInfo), Optional.of(bytesOfRootOfHistories), Optional.of(bytesOfRootOfRequests));
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);

@@ -56,7 +56,14 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 	public DiskNodeImpl(DiskNodeConfig config, ConsensusConfig<?,?> consensus) throws NodeException {
 		super(config, consensus);
 
-		this.mempool = new Mempool(this, (int) config.getTransactionsPerBlock()); // TODO: make this option int
+		this.mempool = new Mempool(this, config.getTransactionsPerBlock());
+	}
+
+	@Override
+	public NodeInfo getNodeInfo() throws ClosedNodeException {
+		try (var scope = mkScope()) {
+			return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
+		}
 	}
 
 	@Override
@@ -71,13 +78,6 @@ public class DiskNodeImpl extends AbstractLocalNode<DiskNodeConfig, DiskStore, D
 		}
 		finally {
 			super.closeResources();
-		}
-	}
-
-	@Override
-	public NodeInfo getNodeInfo() throws ClosedNodeException {
-		try (var scope = mkScope()) {
-			return NodeInfos.of(DiskNode.class.getName(), HOTMOKA_VERSION, "");
 		}
 	}
 

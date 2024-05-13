@@ -49,7 +49,6 @@ import io.hotmoka.node.tendermint.internal.beans.TendermintBroadcastTxResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintGenesisResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintStatusResponse;
 import io.hotmoka.node.tendermint.internal.beans.TendermintTxResponse;
-import io.hotmoka.node.tendermint.internal.beans.TendermintTxResult;
 import io.hotmoka.node.tendermint.internal.beans.TendermintValidatorPriority;
 import io.hotmoka.node.tendermint.internal.beans.TendermintValidatorsResponse;
 import io.hotmoka.node.tendermint.internal.beans.TxError;
@@ -138,7 +137,7 @@ public class TendermintPoster {
 	 * @return the error, if any. If the transaction didn't commit or committed successfully,
 	 *         the result is an empty optional
 	 */
-	String getErrorMessage(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	/*String getErrorMessage(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		try {
 			TendermintTxResponse response = gson.fromJson(tx(reference.getHash()), TendermintTxResponse.class);
 			if (response.error != null)
@@ -160,7 +159,7 @@ public class TendermintPoster {
 		catch (IOException | Base64ConversionException e) {
 			throw new StoreException("Cannot parse the Tendermint error returned for transaction " + reference, e);
 		}
-	}
+	}*/
 
 	/*public String tx_search(String query) throws Exception {
 		String jsonTendermintRequest = "{\"method\": \"tx_search\", \"params\": {\"query\": \"" +
