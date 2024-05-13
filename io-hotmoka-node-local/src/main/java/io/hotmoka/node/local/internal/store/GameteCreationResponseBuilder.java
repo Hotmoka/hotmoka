@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.stream.Stream;

@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -50,7 +50,7 @@ import io.hotmoka.verification.api.VerifiedJar;
 /**
  * A class used to perform a re-verification of jars already stored in the node.
  */
-public class Reverification {
+class Reverification {
 	private final static Logger LOGGER = Logger.getLogger(Reverification.class.getName());
 
 	/**
@@ -79,7 +79,7 @@ public class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException 
 	 */
-	public Reverification(Stream<TransactionReference> transactions, AbstractStoreTransactionImpl<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
+	Reverification(Stream<TransactionReference> transactions, AbstractStoreTransactionImpl<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
 		this.storeTransaction = storeTransaction;
 		this.consensus = consensus;
 

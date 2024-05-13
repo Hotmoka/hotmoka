@@ -50,10 +50,6 @@ public class TrieOfRequests extends AbstractPatriciaTrie<TransactionReference, T
 		super(cloned, root);
 	}
 
-	private TrieOfRequests(TrieOfRequests cloned, KeyValueStore store) {
-		super(cloned, store);
-	}
-
 	@Override
 	public TrieOfRequests checkoutAt(byte[] root) {
 		return new TrieOfRequests(this, root);

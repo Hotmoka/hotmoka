@@ -52,10 +52,6 @@ public class TrieOfInfo extends AbstractPatriciaTrie<Byte, StorageValue, TrieOfI
 		super(cloned, root);
 	}
 
-	private TrieOfInfo(TrieOfInfo cloned, KeyValueStore store) {
-		super(cloned, store);
-	}
-
 	@Override
 	public TrieOfInfo checkoutAt(byte[] root) {
 		return new TrieOfInfo(this, root);

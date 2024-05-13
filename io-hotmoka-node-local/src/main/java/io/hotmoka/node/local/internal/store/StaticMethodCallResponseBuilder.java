@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -97,9 +97,9 @@ public class StaticMethodCallResponseBuilder extends MethodCallResponseBuilder<S
 					return TransactionResponses.voidMethodCallSuccessful(updates(), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 				else {
-					chargeGasForStorageOf(TransactionResponses.methodCallSuccessful(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
+					chargeGasForStorageOf(TransactionResponses.methodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage()));
 					refundPayerForAllRemainingGas();
-					return TransactionResponses.methodCallSuccessful(serializer.serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
+					return TransactionResponses.methodCallSuccessful(serialize(result), updates(result), storageReferencesOfEvents(), gasConsumedForCPU(), gasConsumedForRAM(), gasConsumedForStorage());
 				}
 			}
 			catch (Throwable t) {

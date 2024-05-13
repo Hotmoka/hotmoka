@@ -4,7 +4,7 @@ import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.transactions.AbstractTrieBasedStoreTransactionImpl;
+import io.hotmoka.node.local.internal.store.AbstractTrieBasedStoreTransactionImpl;
 
 public abstract class AbstractTrieBasedStoreTransaction<S extends AbstractTrieBasedStore<S, T>, T extends AbstractTrieBasedStoreTransaction<S, T>> extends AbstractTrieBasedStoreTransactionImpl<S, T> {
 

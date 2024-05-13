@@ -28,7 +28,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.internal.transactions.AbstractTrieBasedStoreImpl;
+import io.hotmoka.node.local.internal.store.AbstractTrieBasedStoreImpl;
 
 /**
  * A historical store of a node. It is a transactional database that keeps

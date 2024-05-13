@@ -28,7 +28,7 @@ import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
-import io.hotmoka.node.local.internal.transactions.AbstractStoreImpl;
+import io.hotmoka.node.local.internal.store.AbstractStoreImpl;
 
 @Immutable
 public abstract class AbstractStore<S extends AbstractStore<S,T>, T extends AbstractStoreTransaction<S, T>> extends AbstractStoreImpl<S, T> {

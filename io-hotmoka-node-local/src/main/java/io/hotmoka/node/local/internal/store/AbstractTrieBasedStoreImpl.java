@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.math.BigInteger;
 import java.security.NoSuchAlgorithmException;
@@ -42,7 +42,6 @@ import io.hotmoka.node.local.api.CheckableStore;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.LocalNodeConfig;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.KeyValueStoreOnXodus;
 import io.hotmoka.node.local.internal.TrieOfHistories;
 import io.hotmoka.node.local.internal.TrieOfInfo;
 import io.hotmoka.node.local.internal.TrieOfRequests;

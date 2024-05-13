@@ -71,12 +71,6 @@ public class TrieOfResponses extends AbstractPatriciaTrie<TransactionReference, 
 		this.hasherForJars = cloned.hasherForJars;
 	}
 
-	private TrieOfResponses(TrieOfResponses cloned, KeyValueStore store) {
-		super(cloned, store);
-
-		this.hasherForJars = cloned.hasherForJars;
-	}
-
 	@Override
 	public Optional<TransactionResponse> get(TransactionReference key) throws TrieException {
 		Optional<TransactionResponse> maybeResponse = super.get(key);

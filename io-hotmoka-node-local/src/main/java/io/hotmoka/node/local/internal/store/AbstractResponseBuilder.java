@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import static io.hotmoka.node.local.internal.runtime.Runtime.responseCreators;
 
@@ -42,7 +42,6 @@ import io.hotmoka.node.local.api.FieldNotFoundException;
 import io.hotmoka.node.local.api.ResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.node.local.api.UnsupportedVerificationVersionException;
-import io.hotmoka.node.local.internal.UpdatesExtractorFromRAM;
 import io.hotmoka.verification.VerificationException;
 
 /**
@@ -132,7 +131,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * The object that can be used to extract the updates to a set of storage objects,
 		 * induced by the run of the transaction.
 		 */
-		protected final UpdatesExtractorFromRAM updatesExtractor;
+		protected final UpdatesExtractor updatesExtractor;
 
 		/**
 		 * The counter for the next storage object created during the transaction.
@@ -141,7 +140,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 
 		protected ResponseCreator() {
 			this.deserializer = new Deserializer(storeTransaction, classLoader);
-			this.updatesExtractor = new UpdatesExtractorFromRAM(classLoader);
+			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}
 
 		public final Response create() throws StoreException {

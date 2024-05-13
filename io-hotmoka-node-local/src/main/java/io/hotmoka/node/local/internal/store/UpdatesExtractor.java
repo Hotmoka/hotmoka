@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal;
+package io.hotmoka.node.local.internal.store;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -43,14 +43,14 @@ import io.hotmoka.node.local.api.EngineClassLoader;
  * This object is used after a transaction, to collect the fields that have changed
  * their value during the transaction.
  */
-public class UpdatesExtractorFromRAM {
+class UpdatesExtractor {
 
 	private final EngineClassLoader classLoader;
 
 	/**
 	 * Builds an extractor of the updates to the state reachable from some storage objects.
 	 */
-	public UpdatesExtractorFromRAM(EngineClassLoader classLoader) {
+	UpdatesExtractor(EngineClassLoader classLoader) {
 		this.classLoader = classLoader;
 	}
 

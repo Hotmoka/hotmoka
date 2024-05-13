@@ -14,11 +14,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Executable;
 import java.lang.reflect.InvocationTargetException;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,6 +31,7 @@ import java.util.stream.Stream;
 import io.hotmoka.exceptions.CheckRunnable;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.node.NonWhiteListedCallException;
+import io.hotmoka.node.StorageValues;
 import io.hotmoka.node.api.NodeException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
@@ -39,9 +41,9 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 import io.hotmoka.node.api.types.StorageType;
 import io.hotmoka.node.api.updates.Update;
 import io.hotmoka.node.api.values.StorageReference;
+import io.hotmoka.node.api.values.StorageValue;
 import io.hotmoka.node.local.AbstractNonInitialResponseBuilder;
 import io.hotmoka.node.local.api.StoreException;
-import io.hotmoka.node.local.internal.Serializer;
 import io.hotmoka.whitelisting.Dummy;
 import io.hotmoka.whitelisting.api.ResolvingClassLoader;
 import io.hotmoka.whitelisting.api.WhiteListingPredicate;
@@ -188,21 +190,62 @@ public abstract class CodeCallResponseBuilder
 		return classes.toArray(Class<?>[]::new);
 	}
 
-	protected abstract class ResponseCreator extends AbstractNonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
-		/**
-		 * The object that serializes RAM values into storage objects.
-		 */
-		protected final Serializer serializer;
+	/**
+	 * Yields the serialization of the given RAM object, that is, yields its
+	 * representation in the store.
+	 * 
+	 * @param object the object to serialize. This must be a storage object, a Java wrapper
+	 *               object for numerical types, an enumeration
+	 *               or a special Java object that is allowed
+	 *               in store, such as a {@link java.lang.String} or {@link java.math.BigInteger}
+	 * @return the serialization of {@code object}, if any
+	 * @throws IllegalArgumentException if the type of {@code object} is not allowed in store
+	 */
+	protected final StorageValue serialize(Object object) throws IllegalArgumentException {
+		if (isStorage(object))
+			return classLoader.getStorageReferenceOf(object);
+		else if (object instanceof BigInteger bi)
+			return StorageValues.bigIntegerOf(bi);
+		else if (object instanceof Boolean b)
+			return StorageValues.booleanOf(b);
+		else if (object instanceof Byte b)
+			return StorageValues.byteOf(b);
+		else if (object instanceof Character c)
+			return StorageValues.charOf(c);
+		else if (object instanceof Double d)
+			return StorageValues.doubleOf(d);
+		else if (object instanceof Float f)
+			return StorageValues.floatOf(f);
+		else if (object instanceof Integer i)
+			return StorageValues.intOf(i);
+		else if (object instanceof Long l)
+			return StorageValues.longOf(l);
+		else if (object instanceof Short s)
+			return StorageValues.shortOf(s);
+		else if (object instanceof String s)
+			return StorageValues.stringOf(s);
+		else if (object instanceof Enum<?> e)
+			return StorageValues.enumElementOf(e.getClass().getName(), e.name());
+		else if (object == null)
+			return StorageValues.NULL;
+		else
+			throw new IllegalArgumentException("An object of class " + object.getClass().getName()
+				+ " cannot be kept in store since it does not implement " + Constants.STORAGE_NAME);
+	}
+
+	private boolean isStorage(Object object) {
+		return object != null && classLoader.getStorage().isAssignableFrom(object.getClass());
+	}
+
+	protected abstract class ResponseCreator extends AbstractNonInitialResponseBuilder<Request, Response>.ResponseCreator {
 
 		/**
 		 * The events accumulated during the transaction.
 		 */
 		private final List<Object> events = new ArrayList<>();
 
-		protected ResponseCreator() {
-			this.serializer = new Serializer(classLoader);
-		}
+		protected ResponseCreator() {}
 
 		/**
 		 * Yields the actual arguments of the call.
@@ -213,10 +256,7 @@ public abstract class CodeCallResponseBuilder
 
 		@Override
 		public final void event(Object event) {
-			if (event == null)
-				throw new NullPointerException("an event cannot be null");
-
-			events.add(event);
+			events.add(Objects.requireNonNull(event));
 		}
 
 		/**

@@ -27,10 +27,10 @@ import io.hotmoka.node.api.transactions.TransactionReference;
 /**
  * An array of transaction references that can be marshalled into an object stream.
  */
-public class MarshallableArrayOfTransactionReferences extends AbstractMarshallable {
+class MarshallableArrayOfTransactionReferences extends AbstractMarshallable {
 	final TransactionReference[] transactions;
 
-	public MarshallableArrayOfTransactionReferences(TransactionReference[] transactions) {
+	MarshallableArrayOfTransactionReferences(TransactionReference[] transactions) {
 		this.transactions = transactions.clone();
 	}
 

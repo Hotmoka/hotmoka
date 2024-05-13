@@ -54,10 +54,6 @@ public class TrieOfHistories extends AbstractPatriciaTrie<StorageReference, Stre
 		super(cloned, root);
 	}
 
-	private TrieOfHistories(TrieOfHistories cloned, KeyValueStore store) {
-		super(cloned, store);
-	}
-
 	private static HashingAlgorithm sha256() throws TrieException {
 		try {
 			return HashingAlgorithms.sha256();

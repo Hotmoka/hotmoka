@@ -1,4 +1,4 @@
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.math.BigInteger;
 import java.util.Map;

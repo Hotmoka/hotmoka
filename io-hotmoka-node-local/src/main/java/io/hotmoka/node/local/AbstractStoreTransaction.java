@@ -19,7 +19,7 @@ package io.hotmoka.node.local;
 import java.util.concurrent.ExecutorService;
 
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.local.internal.transactions.AbstractStoreTransactionImpl;
+import io.hotmoka.node.local.internal.store.AbstractStoreTransactionImpl;
 
 /**
  * The store of a node. It keeps information about the state of the objects created

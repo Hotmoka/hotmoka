@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package io.hotmoka.node.local.internal.transactions;
+package io.hotmoka.node.local.internal.store;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -54,7 +54,7 @@ import io.hotmoka.whitelisting.Dummy;
 /**
  * An implementation of an object that translates storage values into RAM values.
  */
-public class Deserializer {
+class Deserializer {
 
 	/**
 	 * The transaction for which deserialization is performed.
@@ -122,7 +122,7 @@ public class Deserializer {
 	 * 
 	 * @param builder the response builder for which deserialization is performed
 	 */
-	public Deserializer(AbstractStoreTransactionImpl<?,?> storeTransaction, EngineClassLoader classLoader) {
+	Deserializer(AbstractStoreTransactionImpl<?,?> storeTransaction, EngineClassLoader classLoader) {
 		this.storeTransaction = storeTransaction;
 		this.classLoader = classLoader;
 	}
