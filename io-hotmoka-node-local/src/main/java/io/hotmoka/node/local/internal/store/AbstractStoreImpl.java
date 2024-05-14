@@ -42,21 +42,21 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	/**
 	 * Cached recent transactions whose requests that have had their signature checked.
 	 */
-	final LRUCache<TransactionReference, Boolean> checkedSignatures;
+	private final LRUCache<TransactionReference, Boolean> checkedSignatures;
 
 	/**
 	 * Cached class loaders for each classpath.
 	 */
-	final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
+	private final LRUCache<TransactionReference, EngineClassLoader> classLoaders;
 
 	/**
 	 * The current consensus configuration in this store. This information could be recovered from the store
 	 * itself, but this field is used for caching. The consensus configuration might be missing if the
 	 * store has been checked out to a specific root and consequently this cache has not been recomputed yet.
 	 */
-	final ConsensusConfig<?,?> consensus;
+	private final ConsensusConfig<?,?> consensus;
 
-	final BigInteger maxGasPerView;
+	private final BigInteger maxGasPerView;
 
 	/**
 	 * The current consensus configuration in this store, for the execution of view transactions.
@@ -71,7 +71,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 * itself, but this field is used for caching. The gas price might be missing if the
 	 * node is not initialized yet.
 	 */
-	final Optional<BigInteger> gasPrice;
+	private final Optional<BigInteger> gasPrice;
 
 	/**
 	 * The current inflation in this store. This information could be recovered from the store
@@ -80,7 +80,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	 */
 	final OptionalLong inflation;
 
-	final Hasher<TransactionRequest<?>> hasher;
+	private final Hasher<TransactionRequest<?>> hasher;
 
 	private final ExecutorService executors;
 

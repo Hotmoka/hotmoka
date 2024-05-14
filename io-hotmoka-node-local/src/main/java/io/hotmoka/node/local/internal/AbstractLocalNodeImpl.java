@@ -202,16 +202,20 @@ public abstract class AbstractLocalNodeImpl<C extends LocalNodeConfig<C,?>, S ex
 
 			if (consensus.isEmpty()) {
 				S temp = mkStore(executors, ValidatorsConsensusConfigBuilders.defaults().build(), config, hasher);
-				var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
-				storeTransaction.invalidateConsensusCache();
-				consensus = Optional.of(storeTransaction.getConfig());
+
+				try {
+					consensus = Optional.of(temp.extractConsensus());
+				}
+				catch (StoreException e) {
+					throw new NodeException("Cannot extract the consensus from the store: is the node initialized already?", e);
+				}
 			}
 
 			this.store = mkStore(executors, consensus.get(), config, hasher);
 
 			addShutdownHook(); // move down to the concrete classes
 		}
-		catch (NoSuchAlgorithmException | IOException | StoreException e) {
+		catch (NoSuchAlgorithmException | IOException e) {
 			throw new NodeException(e);
 		}
 	}

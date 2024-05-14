@@ -333,9 +333,7 @@ public abstract class AbstractTrieBasedStoreImpl<S extends AbstractTrieBasedStor
 
 		try {
 			S temp = make(new LRUCacheImpl<>(100, 1000), new LRUCacheImpl<>(100, 1000), ValidatorsConsensusConfigBuilders.defaults().build(), Optional.empty(), OptionalLong.empty(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
-			var storeTransaction = temp.beginTransaction(System.currentTimeMillis());
-			storeTransaction.invalidateConsensusCache();
-			return make(new LRUCacheImpl<>(100, 1000), new LRUCacheImpl<>(100, 1000), storeTransaction.getConfig(), Optional.empty(), OptionalLong.empty(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
+			return make(new LRUCacheImpl<>(100, 1000), new LRUCacheImpl<>(100, 1000), temp.extractConsensus(), Optional.empty(), OptionalLong.empty(), rootOfResponses, rootOfInfo, rootOfHistories, rootOfRequests);
 		}
 		catch (NoSuchAlgorithmException e) {
 			throw new StoreException(e);
