@@ -40,10 +40,10 @@ public abstract class InitialResponseBuilderImpl<Request extends InitialTransact
 	 * @param request the request of the transaction
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	protected InitialResponseBuilderImpl(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 
-		if (storeTransaction.getManifest().isPresent())
+		if (environment.getManifest().isPresent())
 			throw new TransactionRejectedException("Cannot run an initial transaction request in an already initialized node", consensus);
 	}
 

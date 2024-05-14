@@ -42,13 +42,13 @@ public class GameteCreationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	public GameteCreationResponseBuilder(TransactionReference reference, GameteCreationTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 	}
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws StoreException {
-		return storeTransaction.getClassLoader(request.getClasspath(), consensus);
+		return environment.getClassLoader(request.getClasspath(), consensus);
 	}
 
 	@Override

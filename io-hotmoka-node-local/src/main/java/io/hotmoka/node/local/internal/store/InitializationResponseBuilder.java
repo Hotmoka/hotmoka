@@ -39,8 +39,8 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	public InitializationResponseBuilder(TransactionReference reference, InitializationTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 	}
 
 	@Override
@@ -57,6 +57,6 @@ public class InitializationResponseBuilder extends AbstractInitialResponseBuilde
 
 	@Override
 	protected EngineClassLoader mkClassLoader() throws StoreException {
-		return storeTransaction.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
+		return environment.getClassLoader(request.getClasspath(), consensus); // currently not used for this transaction
 	}
 }

@@ -45,8 +45,8 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	public JarStoreInitialResponseBuilder(TransactionReference reference, JarStoreInitialTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 	}
 
 	@Override
@@ -54,7 +54,7 @@ public class JarStoreInitialResponseBuilder extends AbstractInitialResponseBuild
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		try {
-			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), storeTransaction, consensus);
+			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);
 		}
 		catch (ClassNotFoundException | IllegalArgumentException e) {
 			// the request is trying to install a jar with inconsistent dependencies

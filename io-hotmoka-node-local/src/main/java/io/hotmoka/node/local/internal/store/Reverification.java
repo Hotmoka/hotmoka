@@ -41,6 +41,7 @@ import io.hotmoka.node.api.responses.JarStoreTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithInstrumentedJar;
 import io.hotmoka.node.api.transactions.TransactionReference;
+import io.hotmoka.node.local.AbstractStoreTransaction;
 import io.hotmoka.node.local.api.StoreException;
 import io.hotmoka.verification.TakamakaClassLoaders;
 import io.hotmoka.verification.VerificationException;
@@ -62,7 +63,7 @@ class Reverification {
 	/**
 	 * The node whose responses are reverified.
 	 */
-	private final AbstractStoreTransactionImpl<?,?> storeTransaction;
+	private final ExecutionEnvironment environment;
 
 	/**
 	 * The consensus parameters to use for reverification. This might be {@code null} if the node is restarting,
@@ -79,8 +80,8 @@ class Reverification {
 	 * @param consensus the consensus parameters to use for reverification
 	 * @throws StoreException 
 	 */
-	Reverification(Stream<TransactionReference> transactions, AbstractStoreTransactionImpl<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException {
-		this.storeTransaction = storeTransaction;
+	Reverification(Stream<TransactionReference> transactions, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException {
+		this.environment = environment;
 		this.consensus = consensus;
 
 		var counter = new AtomicInteger();
@@ -108,8 +109,10 @@ class Reverification {
 			var reference = entry.getKey();
 
 			try {
-				storeTransaction.getInitialStore().getRequest(reference);
-				storeTransaction.setResponse(reference, entry.getValue());
+				environment.getRequest(reference);
+
+				if (environment instanceof AbstractStoreTransaction<?,?> ast)
+					ast.setResponse(reference, entry.getValue());
 			}
 			catch (UnknownReferenceException e) {
 				throw new StoreException(e); // TODO: is this the right exception?
@@ -158,7 +161,7 @@ class Reverification {
 		TransactionRequest<?> request;
 		
 		try {
-			request = storeTransaction.getInitialStore().getRequest(transaction);
+			request = environment.getRequest(transaction);
 		}
 		catch (UnknownReferenceException e) {
 			throw new StoreException("The jar under reverification cannot be found in store"); // TODO: correct exception?
@@ -267,7 +270,7 @@ class Reverification {
 	 */
 	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference) throws StoreException {
 		try {
-			if (storeTransaction.getResponse(reference) instanceof TransactionResponseWithInstrumentedJar trwij)
+			if (environment.getResponse(reference) instanceof TransactionResponseWithInstrumentedJar trwij)
 				return trwij;
 			else
 				throw new StoreException("The transaction " + reference + " under reverification did not install a jar in store");

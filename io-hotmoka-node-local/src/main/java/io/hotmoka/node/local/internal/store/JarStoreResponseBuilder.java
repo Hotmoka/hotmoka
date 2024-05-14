@@ -56,7 +56,7 @@ public class JarStoreResponseBuilder extends AbstractNonInitialResponseBuilder<J
 		// we redefine this method, since the class loader must be able to access the
 		// jar that is being installed and its dependencies, in order to instrument them
 		try {
-			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), storeTransaction, consensus);
+			return new EngineClassLoaderImpl(request.getJar(), request.getDependencies(), environment, consensus);
 		}
 		catch (ClassNotFoundException | IllegalArgumentException e) {
 			// the request is trying to install a jar with inconsistent dependencies

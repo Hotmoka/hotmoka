@@ -56,8 +56,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	public InstanceMethodCallResponseBuilder(TransactionReference reference, AbstractInstanceMethodCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 
 		// calls to @View methods are allowed to receive non-exported values
 		if (transactionIsSigned()) 
@@ -80,7 +80,7 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 
 	private boolean callerIsGameteOfTheNode() {
 		try {
-			return storeTransaction.getGamete().filter(request.getCaller()::equals).isPresent();
+			return environment.getGamete().filter(request.getCaller()::equals).isPresent();
 		}
 		catch (StoreException e) {
 			LOGGER.log(Level.SEVERE, "", e);
@@ -238,8 +238,8 @@ public class InstanceMethodCallResponseBuilder extends MethodCallResponseBuilder
 		 */
 		private void mintCoinsForRewardToValidators() {
 			try {
-				Optional<StorageReference> manifest = storeTransaction.getManifest();
-				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && manifest.isPresent() && request.getCaller().equals(manifest.get())) {
+				Optional<StorageReference> manifest;
+				if (isSystemCall() && request.getStaticTarget().equals(MethodSignatures.VALIDATORS_REWARD) && (manifest = environment.getManifest()).isPresent() && request.getCaller().equals(manifest.get())) {
 					Optional<StorageValue> firstArg = request.actuals().findFirst();
 					if (firstArg.isPresent()) {
 						StorageValue value = firstArg.get();

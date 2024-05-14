@@ -144,4 +144,34 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 	}
 
 	protected abstract T beginTransaction(ExecutorService executors, ConsensusConfig<?,?> consensus, long now) throws StoreException;
+
+	@Override
+	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
+		return classLoaders;
+	}
+
+	@Override
+	protected final ExecutorService getExecutors() {
+		return executors;
+	}
+
+	@Override
+	protected final Hasher<TransactionRequest<?>> getHasher() {
+		return hasher;
+	}
+
+	@Override
+	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {
+		return checkedSignatures;
+	}
+
+	@Override
+	protected final Optional<BigInteger> getGasPrice() {
+		return gasPrice;
+	}
+
+	@Override
+	protected long getNow() {
+		return System.currentTimeMillis();
+	}
 }

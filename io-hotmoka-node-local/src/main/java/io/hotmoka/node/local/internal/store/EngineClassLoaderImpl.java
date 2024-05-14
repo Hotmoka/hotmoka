@@ -168,16 +168,16 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws ClassNotFoundException if some class of the dependencies cannot be found
 	 * @throws StoreException 
 	 */
-	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, AbstractStoreTransactionImpl<?,?> storeTransaction, ConsensusConfig<?,?> consensus) throws StoreException, ClassNotFoundException {
+	public EngineClassLoaderImpl(byte[] jar, Stream<TransactionReference> dependencies, ExecutionEnvironment environment, ConsensusConfig<?,?> consensus) throws StoreException, ClassNotFoundException {
 		try {
 			var dependenciesAsList = dependencies.collect(Collectors.toList());
 
 			// consensus might be null just after restarting a node, during the recomputation of the same consensus from the store;
 			// if reverification is not possible, we build an empty reverification object, for no dependencies
-			this.reverification = new Reverification(consensus != null ? dependenciesAsList.stream() : Stream.empty(), storeTransaction, consensus);
+			this.reverification = new Reverification(consensus != null ? dependenciesAsList.stream() : Stream.empty(), environment, consensus);
 			var jars = new ArrayList<byte[]>();
 			var transactionsOfJars = new ArrayList<TransactionReference>();
-			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, storeTransaction, jars, transactionsOfJars);
+			this.parent = mkTakamakaClassLoader(dependenciesAsList.stream(), consensus, jar, environment, jars, transactionsOfJars);
 			this.lengthsOfJars = jars.stream().mapToInt(bytes -> bytes.length).toArray();
 			this.transactionsOfJars = transactionsOfJars.toArray(TransactionReference[]::new);
 			Class<?> contract = getContract(), storage = getStorage();
@@ -224,7 +224,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @throws ClassNotFoundException if some class of the Takamaka runtime cannot be loaded
 	 * @throws StoreException 
 	 */
-	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, AbstractStoreTransactionImpl<?,?> storeTransaction, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException, StoreException {
+	private TakamakaClassLoader mkTakamakaClassLoader(Stream<TransactionReference> dependencies, ConsensusConfig<?,?> consensus, byte[] start, ExecutionEnvironment environment, List<byte[]> jars, ArrayList<TransactionReference> transactionsOfJars) throws ClassNotFoundException, StoreException {
 		var counter = new AtomicInteger();
 
 		if (start != null) {
@@ -233,7 +233,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 			counter.incrementAndGet();
 		}
 
-		CheckRunnable.check(StoreException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, storeTransaction, counter))));
+		CheckRunnable.check(StoreException.class, () -> dependencies.forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, transactionsOfJars, environment, counter))));
 		processClassInJar(jars, transactionsOfJars);
 
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
@@ -300,15 +300,15 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @param node the node for which the class loader is created
 	 * @param counter the number of jars that have been encountered up to now, during the recursive descent
 	 */
-	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, AbstractStoreTransactionImpl<?,?> storeTransaction, AtomicInteger counter) throws StoreException {
+	private void addJars(TransactionReference classpath, ConsensusConfig<?,?> consensus, List<byte[]> jars, List<TransactionReference> jarTransactions, ExecutionEnvironment environment, AtomicInteger counter) throws StoreException {
 		// consensus might be null if the node is restarting, during the recomputation of its consensus itself
 		if (consensus != null && counter.incrementAndGet() > consensus.getMaxDependencies())
 			throw new IllegalArgumentException("too many dependencies in classpath: max is " + consensus.getMaxDependencies());
 
-		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, storeTransaction);
+		TransactionResponseWithInstrumentedJar responseWithInstrumentedJar = getResponseWithInstrumentedJarAtUncommitted(classpath, environment);
 
 		// we consider its dependencies before as well, recursively
-		CheckRunnable.check(StoreException.class, () -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, jarTransactions, storeTransaction, counter))));
+		CheckRunnable.check(StoreException.class, () -> responseWithInstrumentedJar.getDependencies().forEachOrdered(UncheckConsumer.uncheck(dependency -> addJars(dependency, consensus, jars, jarTransactions, environment, counter))));
 
 		jars.add(responseWithInstrumentedJar.getInstrumentedJar());
 		jarTransactions.add(classpath);
@@ -328,7 +328,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 	 * @return the response
 	 * @throws IllegalArgumentException if the transaction does not exist in the store, or did not generate a response with instrumented jar
 	 */
-	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, AbstractStoreTransactionImpl<?,?> storeTransaction) throws StoreException {
+	private TransactionResponseWithInstrumentedJar getResponseWithInstrumentedJarAtUncommitted(TransactionReference reference, ExecutionEnvironment environment) throws StoreException {
 		// first we check if the response has been reverified and we use the reverified version
 		Optional<TransactionResponse> maybeResponse = reverification.getReverifiedResponse(reference);
 		TransactionResponse response;
@@ -337,7 +337,7 @@ public final class EngineClassLoaderImpl implements EngineClassLoader {
 		else {
 			// otherwise the response has not been reverified
 			try {
-				response = storeTransaction.getResponse(reference);
+				response = environment.getResponse(reference);
 			}
 			catch (UnknownReferenceException e) {
 				throw new IllegalArgumentException("unknown transaction reference " + reference); // TODO

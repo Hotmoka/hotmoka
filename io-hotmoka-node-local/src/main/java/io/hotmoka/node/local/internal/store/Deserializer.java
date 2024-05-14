@@ -59,7 +59,7 @@ class Deserializer {
 	/**
 	 * The transaction for which deserialization is performed.
 	 */
-	private final AbstractStoreTransactionImpl<?,?> storeTransaction;
+	private final ExecutionEnvironment environment;
 
 	/**
 	 * The class loader that can be used to load classes.
@@ -122,8 +122,8 @@ class Deserializer {
 	 * 
 	 * @param builder the response builder for which deserialization is performed
 	 */
-	Deserializer(AbstractStoreTransactionImpl<?,?> storeTransaction, EngineClassLoader classLoader) {
-		this.storeTransaction = storeTransaction;
+	Deserializer(ExecutionEnvironment environment, EngineClassLoader classLoader) {
+		this.environment = environment;
 		this.classLoader = classLoader;
 	}
 
@@ -207,8 +207,8 @@ class Deserializer {
 	
 			// we set the value for eager fields only; other fields will be loaded lazily
 			// we process the updates in the same order they have in the deserialization constructor
-			ClassTag classTag = storeTransaction.getClassTag(reference);
-			storeTransaction.getEagerFields(reference)
+			ClassTag classTag = environment.getClassTag(reference);
+			environment.getEagerFields(reference)
 				.sorted(updateComparator)
 				.forEachOrdered(update -> {
 					try {

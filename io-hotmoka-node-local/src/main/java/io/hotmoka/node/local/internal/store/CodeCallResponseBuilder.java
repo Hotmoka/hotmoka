@@ -56,8 +56,7 @@ import io.takamaka.code.constants.Constants;
  * @param <Request> the type of the request of the transaction
  * @param <Response> the type of the response of the transaction
  */
-public abstract class CodeCallResponseBuilder
-			<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse>
+public abstract class CodeCallResponseBuilder<Request extends CodeExecutionTransactionRequest<Response>, Response extends CodeExecutionTransactionResponse>
 		extends AbstractNonInitialResponseBuilder<Request, Response> {
 
 	/**
@@ -69,8 +68,8 @@ public abstract class CodeCallResponseBuilder
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	protected CodeCallResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	protected CodeCallResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 
 		// calls to @View methods are allowed to receive non-exported values
 		if (transactionIsSigned()) 
@@ -102,7 +101,7 @@ public abstract class CodeCallResponseBuilder
 	 */
 	protected final void enforceExported(StorageReference reference) throws TransactionRejectedException, StoreException {
 		try {
-			var clazz = storeTransaction.getClassTag(reference).getClazz();
+			var clazz = environment.getClassTag(reference).getClazz();
 
 			try {
 				if (!classLoader.isExported(clazz.getName()))

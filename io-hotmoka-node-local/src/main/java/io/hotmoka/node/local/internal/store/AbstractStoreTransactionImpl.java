@@ -24,23 +24,18 @@ import static io.hotmoka.node.MethodSignatures.GET_GAS_PRICE;
 import java.math.BigInteger;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.OptionalLong;
 import java.util.Set;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.logging.Level;
@@ -52,9 +47,7 @@ import io.hotmoka.crypto.Base64;
 import io.hotmoka.crypto.Base64ConversionException;
 import io.hotmoka.crypto.SignatureAlgorithms;
 import io.hotmoka.crypto.api.Hasher;
-import io.hotmoka.crypto.api.SignatureAlgorithm;
 import io.hotmoka.exceptions.CheckRunnable;
-import io.hotmoka.exceptions.CheckSupplier;
 import io.hotmoka.exceptions.UncheckConsumer;
 import io.hotmoka.exceptions.UncheckFunction;
 import io.hotmoka.node.FieldSignatures;
@@ -76,30 +69,21 @@ import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
 import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
-import io.hotmoka.node.api.requests.SignedTransactionRequest;
 import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SystemTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
 import io.hotmoka.node.api.responses.GameteCreationTransactionResponse;
 import io.hotmoka.node.api.responses.InitializationTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionExceptionResponse;
 import io.hotmoka.node.api.responses.MethodCallTransactionFailedResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionResponse;
-import io.hotmoka.node.api.responses.MethodCallTransactionSuccessfulResponse;
 import io.hotmoka.node.api.responses.NonInitialTransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponse;
 import io.hotmoka.node.api.responses.TransactionResponseWithEvents;
 import io.hotmoka.node.api.responses.TransactionResponseWithUpdates;
-import io.hotmoka.node.api.signatures.FieldSignature;
 import io.hotmoka.node.api.transactions.TransactionReference;
-import io.hotmoka.node.api.updates.ClassTag;
 import io.hotmoka.node.api.updates.Update;
-import io.hotmoka.node.api.updates.UpdateOfField;
-import io.hotmoka.node.api.values.BigIntegerValue;
 import io.hotmoka.node.api.values.StorageReference;
 import io.hotmoka.node.api.values.StorageValue;
-import io.hotmoka.node.api.values.StringValue;
 import io.hotmoka.node.local.LRUCache;
 import io.hotmoka.node.local.api.EngineClassLoader;
 import io.hotmoka.node.local.api.FieldNotFoundException;
@@ -231,16 +215,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	@Override
-	public final Optional<StorageValue> runInstanceMethodCallTransaction(InstanceMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
-		return getOutcome(new InstanceViewMethodCallResponseBuilder(reference, request, this).getResponse());
-	}
-
-	@Override
-	public final Optional<StorageValue> runStaticMethodCallTransaction(StaticMethodCallTransactionRequest request, TransactionReference reference) throws TransactionRejectedException, TransactionException, CodeExecutionException, StoreException {
-		return getOutcome(new StaticViewMethodCallResponseBuilder(reference, request, this).getResponse());
-	}
-
-	@Override
 	public final void deliverRewardTransaction(String behaving, String misbehaving) throws StoreException {
 		try {
 			Optional<StorageReference> maybeManifest = getManifest();
@@ -353,61 +327,26 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		delivered.forEach(notifier::accept);
 	}
 
-	protected abstract S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
-	ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
-	Map<TransactionReference, TransactionResponse> addedResponses,
-	Map<StorageReference, TransactionReference[]> addedHistories,
-	Optional<StorageReference> addedManifest) throws StoreException;
-
-	/**
-	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request
-	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
-		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, this);
-		else if (request instanceof JarStoreTransactionRequest jstr)
-			return new JarStoreResponseBuilder(reference, jstr, this);
-		else if (request instanceof ConstructorCallTransactionRequest cctr)
-			return new ConstructorCallResponseBuilder(reference, cctr, this);
-		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
-		else if (request instanceof StaticMethodCallTransactionRequest smctr)
-			return new StaticMethodCallResponseBuilder(reference, smctr, this);
-		else if (request instanceof InitializationTransactionRequest itr)
-			return new InitializationResponseBuilder(reference, itr, this);
-		else
-			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
-	}
-
 	@Override
-	protected final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public final TransactionRequest<?> getRequest(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		var uncommittedRequest = requests.get(reference);
 		return uncommittedRequest != null ? uncommittedRequest : getInitialStore().getRequest(reference);
 	}
 
 	@Override
-	protected final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
+	public final TransactionResponse getResponse(TransactionReference reference) throws UnknownReferenceException, StoreException {
 		var uncommittedResponse = responses.get(reference);
 		return uncommittedResponse != null ? uncommittedResponse : getInitialStore().getResponse(reference);
 	}
 
 	@Override
-	protected final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
+	public final Stream<TransactionReference> getHistory(StorageReference object) throws UnknownReferenceException, StoreException {
 		var uncommittedHistory = histories.get(object);
 		return uncommittedHistory != null ? Stream.of(uncommittedHistory) : getInitialStore().getHistory(object);
 	}
 
 	@Override
-	protected final Optional<StorageReference> getManifest() throws StoreException {
+	public final Optional<StorageReference> getManifest() throws StoreException {
 		var uncommittedManifest = manifest;
 		return uncommittedManifest != null ? Optional.of(uncommittedManifest) : getInitialStore().getManifest();
 	}
@@ -460,15 +399,36 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	}
 
 	/**
-	 * Yields the current gas price at the end of this transaction.
-	 * This might be missing if the node is not initialized yet.
+	 * Yields the builder of a response for a request of a transaction.
+	 * This method can be redefined in subclasses in order to accomodate
+	 * new kinds of transactions, specific to a node.
 	 * 
-	 * @return the current gas price at the end of this transaction
+	 * @param reference the reference to the transaction that is building the response
+	 * @param request the request
+	 * @return the builder
+	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected final Optional<BigInteger> getGasPrice() throws StoreException {
-		if (gasPrice.isEmpty())
-			recomputeGasPrice();
-	
+	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
+		if (request instanceof JarStoreInitialTransactionRequest jsitr)
+			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
+		else if (request instanceof GameteCreationTransactionRequest gctr)
+			return new GameteCreationResponseBuilder(reference, gctr, this);
+		else if (request instanceof JarStoreTransactionRequest jstr)
+			return new JarStoreResponseBuilder(reference, jstr, this);
+		else if (request instanceof ConstructorCallTransactionRequest cctr)
+			return new ConstructorCallResponseBuilder(reference, cctr, this);
+		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
+			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
+		else if (request instanceof StaticMethodCallTransactionRequest smctr)
+			return new StaticMethodCallResponseBuilder(reference, smctr, this);
+		else if (request instanceof InitializationTransactionRequest itr)
+			return new InitializationResponseBuilder(reference, itr, this);
+		else
+			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
+	}
+
+	@Override
+	protected final Optional<BigInteger> getGasPrice() {
 		return gasPrice;
 	}
 
@@ -477,23 +437,28 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 * 
 	 * @return the current inflation of the node, if the node is already initialized
 	 */
-	protected final OptionalLong getInflation() throws StoreException {
-		if (inflation.isEmpty())
-			recomputeInflation();
-
+	protected final OptionalLong getInflation() {
 		return inflation;
 	}
 
-	protected final <X> Future<X> submit(Callable<X> task) {
-		return executors.submit(task);
-	}
-
+	@Override
 	protected final LRUCache<TransactionReference, Boolean> getCheckedSignatures() {
 		return checkedSignatures;
 	}
 
+	@Override
 	protected final LRUCache<TransactionReference, EngineClassLoader> getClassLoaders() {
 		return classLoaders;
+	}
+
+	@Override
+	protected final ExecutorService getExecutors() {
+		return executors;
+	}
+
+	@Override
+	protected final Hasher<TransactionRequest<?>> getHasher() {
+		return hasher;
 	}
 
 	/**
@@ -505,9 +470,9 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 */
 	protected void invalidateCachesIfNeeded(TransactionResponse response, EngineClassLoader classLoader) throws StoreException {
 		if (consensusParametersMightHaveChanged(response, classLoader)) {
-			LOGGER.info("the consensus parameters might have changed: recomputing their cache");
 			long versionBefore = consensus.getVerificationVersion();
 			recomputeConsensus();
+			LOGGER.info("the consensus parameters cache has been updated since it might have changed");
 			classLoaders = new LRUCacheImpl<>(100, 1000);
 
 			if (versionBefore != consensus.getVerificationVersion())
@@ -515,13 +480,13 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 
 		if (gasPriceMightHaveChanged(response, classLoader)) {
-			LOGGER.info("the gas price might have changed: deleting its cache");
-			gasPrice = Optional.empty();
+			recomputeGasPrice();
+			LOGGER.info("the gas price cache has been updated since it might have changed");
 		}
 
 		if (inflationMightHaveChanged(response, classLoader)) {
-			LOGGER.info("the inflation might have changed: deleting its cache");
-			inflation = OptionalLong.empty();
+			recomputeInflation();
+			LOGGER.info("the inflation cache has been updated since it might have changed");
 		}
 	}
 
@@ -542,129 +507,15 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	protected final Optional<StorageReference> getValidators() throws StoreException {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_VALIDATORS_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the validators set", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			return Optional.empty();
-	}
-
-	protected final Optional<StorageReference> getGamete() throws StoreException {
-		var maybeManifest = getManifest();
-		if (maybeManifest.isPresent()) {
-			try {
-				return Optional.of(getReferenceField(maybeManifest.get(), FieldSignatures.MANIFEST_GAMETE_FIELD));
-			}
-			catch (FieldNotFoundException e) {
-				throw new StoreException("The manifest does not contain the reference to the gamete", e);
-			}
-			catch (UnknownReferenceException e) {
-				throw new StoreException("The manifest is set but cannot be found in store", e);
-			}
-		}
-		else
-			return Optional.empty();
-	}
-
-	protected final String getPublicKey(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getStringField(account, FieldSignatures.EOA_PUBLIC_KEY_FIELD);
-	}
-
 	protected final StorageReference getCreator(StorageReference event) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getReferenceField(event, FieldSignatures.EVENT_CREATOR_FIELD);
 	}
 
-	protected final BigInteger getNonce(StorageReference account) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(account, FieldSignatures.EOA_NONCE_FIELD);
-	}
-
-	protected final BigInteger getTotalBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBalance(contract).add(getRedBalance(contract));
-	}
-
-	protected final String getClassName(StorageReference reference) throws UnknownReferenceException, StoreException {
-		return getClassTag(reference).getClazz().getName();
-	}
-
-	protected final ClassTag getClassTag(StorageReference reference) throws UnknownReferenceException, StoreException {
-		// we go straight to the transaction that created the object
-		if (getResponse(reference.getTransaction()) instanceof TransactionResponseWithUpdates trwu) {
-			return trwu.getUpdates().filter(update -> update instanceof ClassTag && update.getObject().equals(reference))
-					.map(update -> (ClassTag) update)
-					.findFirst()
-					.orElseThrow(() -> new UnknownReferenceException("Object " + reference + " does not exist"));
-		}
-		else
-			throw new UnknownReferenceException("Transaction reference " + reference + " does not contain updates");
-	}
-
-	protected final Stream<UpdateOfField> getEagerFields(StorageReference object) throws UnknownReferenceException, StoreException {
-		var fieldsAlreadySeen = new HashSet<FieldSignature>();
-
-		return getHistory(object)
-				.flatMap(CheckSupplier.check(StoreException.class, () -> UncheckFunction.uncheck(this::getUpdates)))
-				.filter(update -> update.isEager() && update instanceof UpdateOfField uof && update.getObject().equals(object) && fieldsAlreadySeen.add(uof.getField()))
-				.map(update -> (UpdateOfField) update);
-	}
-
-	protected final UpdateOfField getLastUpdateToField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		Stream<TransactionReference> history = getHistory(object);
-
-		try {
-			return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, () -> history.map(UncheckFunction.uncheck(transaction -> getLastUpdate(object, field, transaction)))
-					.filter(Optional::isPresent)
-					.map(Optional::get)
-					.findFirst())
-					.orElseThrow(() -> new FieldNotFoundException(field));
-		}
-		catch (UnknownReferenceException e) {
-			throw new StoreException("Object " + object + " has a history containing a reference not in store");
-		}
-	}
-
-	protected final UpdateOfField getLastUpdateToFinalField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		// accesses directly the transaction that created the object
-		return getLastUpdate(object, field, object.getTransaction()).orElseThrow(() -> new FieldNotFoundException(field));
-	}
-
-	protected final boolean signatureIsValid(SignedTransactionRequest<?> request, SignatureAlgorithm signatureAlgorithm) throws StoreException, UnknownReferenceException, FieldNotFoundException {
-		var reference = TransactionReferences.of(hasher.hash(request));
-		return CheckSupplier.check(StoreException.class, UnknownReferenceException.class, FieldNotFoundException.class, () ->
-			checkedSignatures.computeIfAbsentNoException(reference, UncheckFunction.uncheck(_reference -> verifySignature(signatureAlgorithm, request))));
-	}
-
-	/**
-	 * Yields a class loader for the given class path, using a cache to avoid regeneration, if possible.
-	 * 
-	 * @param classpath the class path that must be used by the class loader
-	 * @return the class loader
-	 * @throws StoreException if the store is not able to complete the operation correctly
-	 */
-	protected final EngineClassLoader getClassLoader(TransactionReference classpath, ConsensusConfig<?,?> consensus) throws StoreException {
-		try {
-			var classLoader = classLoaders.get(classpath);
-			if (classLoader != null)
-				return classLoader;
-
-			var classLoader2 = new EngineClassLoaderImpl(null, Stream.of(classpath), this, consensus);
-			return classLoaders.computeIfAbsent(classpath, _classpath -> classLoader2);
-		}
-		catch (ClassNotFoundException e) {
-			// since the class loader is created from transactions that are already in the store,
-			// they should be consistent and never miss a dependent class
-			throw new StoreException(e);
-		}
-	}
+	protected abstract S mkFinalStore(LRUCache<TransactionReference, Boolean> checkedSignatures, LRUCache<TransactionReference, EngineClassLoader> classLoaders,
+	ConsensusConfig<?,?> consensus, Optional<BigInteger> gasPrice, OptionalLong inflation, Map<TransactionReference, TransactionRequest<?>> addedRequests,
+	Map<TransactionReference, TransactionResponse> addedResponses,
+	Map<StorageReference, TransactionReference[]> addedHistories,
+	Optional<StorageReference> addedManifest) throws StoreException;
 
 	private void recomputeConsensus() throws StoreException {
 		try {
@@ -998,17 +849,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 		}
 	}
 
-	private Optional<StorageValue> getOutcome(MethodCallTransactionResponse response) throws CodeExecutionException, TransactionException {
-		if (response instanceof MethodCallTransactionSuccessfulResponse mctsr)
-			return Optional.of(mctsr.getResult());
-		else if (response instanceof MethodCallTransactionExceptionResponse mcter)
-			throw new CodeExecutionException(mcter.getClassNameOfCause(), mcter.getMessageOfCause(), mcter.getWhere());
-		else if (response instanceof MethodCallTransactionFailedResponse mctfr)
-			throw new TransactionException(mctfr.getClassNameOfCause(), mctfr.getMessageOfCause(), mctfr.getWhere());
-		else
-			return Optional.empty(); // void methods return no value
-	}
-
 	/**
 	 * Takes note that a new transaction has been delivered. This transaction is not a {@code @@View} transaction.
 	 * 
@@ -1126,14 +966,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			return Optional.empty();
 	}
 
-	private BigInteger getBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(contract, FieldSignatures.BALANCE_FIELD);
-	}
-
-	private BigInteger getRedBalance(StorageReference contract) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		return getBigIntegerField(contract, FieldSignatures.RED_BALANCE_FIELD);
-	}
-
 	private BigInteger getCurrentSupply(StorageReference validators) throws UnknownReferenceException, FieldNotFoundException, StoreException {
 		return getBigIntegerField(validators, FieldSignatures.ABSTRACT_VALIDATORS_CURRENT_SUPPLY_FIELD);
 	}
@@ -1160,90 +992,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	private void scheduleEventsForNotificationAfterCommit(TransactionResponse response) {
 		if (response instanceof TransactionResponseWithEvents responseWithEvents && responseWithEvents.getEvents().findAny().isPresent())
 			responsesWithEventsToNotify.add(responseWithEvents);
-	}
-
-	private boolean verifySignature(SignatureAlgorithm signature, SignedTransactionRequest<?> request) throws StoreException, UnknownReferenceException, FieldNotFoundException {
-		try {
-			return signature.getVerifier(getPublicKey(request.getCaller(), signature), SignedTransactionRequest<?>::toByteArrayWithoutSignature).verify(request, request.getSignature());
-		}
-		catch (InvalidKeyException | SignatureException | Base64ConversionException | InvalidKeySpecException e) {
-			LOGGER.info("the public key of " + request.getCaller() + " could not be verified: " + e.getMessage());
-			return false;
-		}
-	}
-
-	/**
-	 * Yields the public key of the given externally owned account.
-	 * 
-	 * @param reference the account
-	 * @param signatureAlgorithm the signing algorithm used for the request
-	 * @return the public key
-	 * @throws Base64ConversionException 
-	 * @throws InvalidKeySpecException 
-	 * @throws StoreException 
-	 * @throws FieldNotFoundException 
-	 * @throws UnknownReferenceException 
-	 */
-	private PublicKey getPublicKey(StorageReference reference, SignatureAlgorithm signatureAlgorithm) throws Base64ConversionException, InvalidKeySpecException, UnknownReferenceException, FieldNotFoundException, StoreException {
-		String publicKeyEncodedBase64 = getPublicKey(reference);
-		byte[] publicKeyEncoded = Base64.fromBase64String(publicKeyEncodedBase64);
-		return signatureAlgorithm.publicKeyFromEncoding(publicKeyEncoded);
-	}
-
-	private Stream<Update> getUpdates(TransactionReference referenceInHistory) throws StoreException {
-		try {
-			if (getResponse(referenceInHistory) instanceof TransactionResponseWithUpdates trwu)
-				return trwu.getUpdates();
-			else
-				throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but does not contain updates");
-		}
-		catch (UnknownReferenceException e) {
-			throw new StoreException("Transaction " + referenceInHistory + " belongs to the histories but is not present in store");
-		}
-	}
-
-	private StorageReference getReferenceField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof StorageReference reference)
-			return reference;
-		else
-			throw new FieldNotFoundException(field);
-	}
-
-	private BigInteger getBigIntegerField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof BigIntegerValue biv)
-			return biv.getValue();
-		else
-			throw new FieldNotFoundException(field);
-	}
-
-	private String getStringField(StorageReference object, FieldSignature field) throws UnknownReferenceException, FieldNotFoundException, StoreException {
-		StorageValue value = getLastUpdateToField(object, field).getValue();
-		if (value instanceof StringValue sv)
-			return sv.getValue();
-		else
-			throw new FieldNotFoundException(field);
-	}
-
-	/**
-	 * Yields the update to the given field of the object at the given reference, generated during a given transaction.
-	 * 
-	 * @param object the reference of the object
-	 * @param field the field of the object
-	 * @param reference the reference to the transaction
-	 * @return the update, if any. If the field of {@code object} was not modified during
-	 *         the {@code transaction}, this method returns an empty optional
-	 */
-	private Optional<UpdateOfField> getLastUpdate(StorageReference object, FieldSignature field, TransactionReference reference) throws UnknownReferenceException, StoreException {
-		if (getResponse(reference) instanceof TransactionResponseWithUpdates trwu)
-			return trwu.getUpdates()
-					.filter(update -> update instanceof UpdateOfField)
-					.map(update -> (UpdateOfField) update)
-					.filter(update -> update.getObject().equals(object) && update.getField().equals(field))
-					.findFirst();
-		else
-			throw new StoreException("Transaction reference " + reference + " does not contain updates");
 	}
 
 	/**

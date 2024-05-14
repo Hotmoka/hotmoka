@@ -57,7 +57,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 */
 	private final TransactionReference reference;
 
-	protected final AbstractStoreTransactionImpl<?,?> storeTransaction;
+	protected final ExecutionEnvironment environment;
 
 	/**
 	 * The class loader used for the transaction.
@@ -82,11 +82,11 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 	 * @param storeTransaction the transaction where the updates to the store get accumulated
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 */
-	protected AbstractResponseBuilder(TransactionReference reference, Request request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		this.storeTransaction = storeTransaction;
+	protected AbstractResponseBuilder(TransactionReference reference, Request request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		this.environment = environment;
 		this.request = request;
 		this.reference = reference;
-		this.consensus = storeTransaction.getConfig();
+		this.consensus = environment.getConfig();
 		this.classLoader = mkClassLoader();
 	}
 
@@ -139,13 +139,13 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		private BigInteger nextProgressive = BigInteger.ZERO;
 
 		protected ResponseCreator() {
-			this.deserializer = new Deserializer(storeTransaction, classLoader);
+			this.deserializer = new Deserializer(environment, classLoader);
 			this.updatesExtractor = new UpdatesExtractor(classLoader);
 		}
 
 		public final Response create() throws StoreException {
 			try {
-				return storeTransaction.submit(new TakamakaCallable(this::body)).get();
+				return environment.submit(new TakamakaCallable(this::body)).get();
 			}
 			catch (ExecutionException e) {
 				throw new StoreException(e.getCause());
@@ -174,7 +174,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 * @return the UTC time, as returned by {@link java.lang.System#currentTimeMillis()}
 		 */
 		public final long now() {
-			return storeTransaction.getNow();
+			return environment.getNow();
 		}
 
 		/**
@@ -235,7 +235,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateFor(StorageReference object, FieldSignature field) {
 			try {
-				return deserializer.deserialize(storeTransaction.getLastUpdateToField(object, field).getValue());
+				return deserializer.deserialize(environment.getLastUpdateToField(object, field).getValue());
 			}
 			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 				throw new DeserializationError(e);
@@ -253,7 +253,7 @@ public abstract class AbstractResponseBuilder<Request extends TransactionRequest
 		 */
 		public final Object deserializeLastUpdateForFinal(StorageReference object, FieldSignature field) {
 			try {
-				return deserializer.deserialize(storeTransaction.getLastUpdateToFinalField(object, field).getValue());
+				return deserializer.deserialize(environment.getLastUpdateToFinalField(object, field).getValue());
 			}
 			catch (StoreException | UnknownReferenceException | FieldNotFoundException e) {
 				throw new DeserializationError(e); // TODO
