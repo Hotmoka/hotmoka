@@ -50,8 +50,8 @@ public class ConstructorCallResponseBuilder extends CodeCallResponseBuilder<Cons
 	 * @throws TransactionRejectedException if the builder cannot be created
 	 * @throws StoreException 
 	 */
-	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, AbstractStoreTransactionImpl<?,?> storeTransaction) throws TransactionRejectedException, StoreException {
-		super(reference, request, storeTransaction);
+	public ConstructorCallResponseBuilder(TransactionReference reference, ConstructorCallTransactionRequest request, ExecutionEnvironment environment) throws TransactionRejectedException, StoreException {
+		super(reference, request, environment);
 	}
 
 	@Override

@@ -131,7 +131,7 @@ public abstract class AbstractStoreImpl<S extends AbstractStoreImpl<S,T>, T exte
 
 		try {
 			LOGGER.info(reference + ": checking start (" + request.getClass().getSimpleName() + ')');
-			beginTransaction(System.currentTimeMillis()).responseBuilderFor(reference, request);
+			responseBuilderFor(reference, request);
 			LOGGER.info(reference + ": checking success");
 		}
 		catch (TransactionRejectedException e) {

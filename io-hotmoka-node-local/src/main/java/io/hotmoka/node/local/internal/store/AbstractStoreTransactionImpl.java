@@ -61,15 +61,9 @@ import io.hotmoka.node.api.TransactionException;
 import io.hotmoka.node.api.TransactionRejectedException;
 import io.hotmoka.node.api.UnknownReferenceException;
 import io.hotmoka.node.api.nodes.ConsensusConfig;
-import io.hotmoka.node.api.requests.AbstractInstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.ConstructorCallTransactionRequest;
-import io.hotmoka.node.api.requests.GameteCreationTransactionRequest;
 import io.hotmoka.node.api.requests.InitializationTransactionRequest;
 import io.hotmoka.node.api.requests.InstanceMethodCallTransactionRequest;
-import io.hotmoka.node.api.requests.JarStoreInitialTransactionRequest;
-import io.hotmoka.node.api.requests.JarStoreTransactionRequest;
 import io.hotmoka.node.api.requests.NonInitialTransactionRequest;
-import io.hotmoka.node.api.requests.StaticMethodCallTransactionRequest;
 import io.hotmoka.node.api.requests.SystemTransactionRequest;
 import io.hotmoka.node.api.requests.TransactionRequest;
 import io.hotmoka.node.api.responses.FailedTransactionResponse;
@@ -294,7 +288,7 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 			return response;
 		}
 		catch (TransactionRejectedException e) {
-			LOGGER.info(reference + ": delivering failed: " + e.getMessage());
+			LOGGER.warning(reference + ": delivering failed: " + e.getMessage());
 			throw e;
 		}
 	}
@@ -418,35 +412,6 @@ public abstract class AbstractStoreTransactionImpl<S extends AbstractStoreImpl<S
 	 */
 	protected final void setResponse(TransactionReference reference, TransactionResponse response) {
 		responses.put(reference, response);
-	}
-
-	/**
-	 * Yields the builder of a response for a request of a transaction.
-	 * This method can be redefined in subclasses in order to accomodate
-	 * new kinds of transactions, specific to a node.
-	 * 
-	 * @param reference the reference to the transaction that is building the response
-	 * @param request the request
-	 * @return the builder
-	 * @throws TransactionRejectedException if the builder cannot be created
-	 */
-	protected final ResponseBuilder<?,?> responseBuilderFor(TransactionReference reference, TransactionRequest<?> request) throws TransactionRejectedException, StoreException {
-		if (request instanceof JarStoreInitialTransactionRequest jsitr)
-			return new JarStoreInitialResponseBuilder(reference, jsitr, this);
-		else if (request instanceof GameteCreationTransactionRequest gctr)
-			return new GameteCreationResponseBuilder(reference, gctr, this);
-		else if (request instanceof JarStoreTransactionRequest jstr)
-			return new JarStoreResponseBuilder(reference, jstr, this);
-		else if (request instanceof ConstructorCallTransactionRequest cctr)
-			return new ConstructorCallResponseBuilder(reference, cctr, this);
-		else if (request instanceof AbstractInstanceMethodCallTransactionRequest aimctr)
-			return new InstanceMethodCallResponseBuilder(reference, aimctr, this);
-		else if (request instanceof StaticMethodCallTransactionRequest smctr)
-			return new StaticMethodCallResponseBuilder(reference, smctr, this);
-		else if (request instanceof InitializationTransactionRequest itr)
-			return new InitializationResponseBuilder(reference, itr, this);
-		else
-			throw new StoreException("Unexpected transaction request of class " + request.getClass().getName());
 	}
 
 	protected final Optional<TransactionReference> getTakamakaCode() throws StoreException {
